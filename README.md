@@ -1,8 +1,7 @@
+> [!IMPORTANT]
+> This repository is work in progress.
+
 # par-dpia-form
-
-[!IMPORTANT]
-This repository is work in progress.
-
 ## Form definitions
 The `sources/` directory contains the speficications of the (Pre Scan) DPIA Forms and the logic
 on how fields within the forms are related. Currently, only the DPIA is implemented. The `DPIA.yaml`

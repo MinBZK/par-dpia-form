@@ -1,0 +1,8 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/form-app/"
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "typescript"
