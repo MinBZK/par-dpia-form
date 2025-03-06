@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import logging
 import sys
@@ -67,7 +68,9 @@ class SchemaValidator:
             self.logger.exception(f"Invalid YAML in file {yaml_path}")
             raise
 
-    def validate_yaml(self, yaml_path: Path, schema_path: Path) -> tuple[bool, list[str]]:
+    def validate_yaml(
+        self, yaml_path: Path, schema_path: Path
+    ) -> tuple[bool, list[str]]:
         """Validate a YAML file against its schema."""
         try:
             # Load schema if not already loaded
@@ -80,16 +83,28 @@ class SchemaValidator:
             data = self.load_yaml(yaml_path)
             validate(instance=data, schema=schema)
 
-            result = {"file": yaml_path.name, "schema": schema_path.name, "success": True, "errors": []}
+            result = {
+                "file": yaml_path.name,
+                "schema": schema_path.name,
+                "success": True,
+                "errors": [],
+            }
             self.validation_results.append(result)
 
             return True, []
 
         except jsonschema.exceptions.ValidationError as e:
             error_path = " -> ".join(str(x) for x in e.path)
-            error_msg = f"Validation error in {yaml_path.name} at {error_path}: {e.message}"
+            error_msg = (
+                f"Validation error in {yaml_path.name} at {error_path}: {e.message}"
+            )
 
-            result = {"file": yaml_path.name, "schema": schema_path.name, "success": False, "errors": [error_msg]}
+            result = {
+                "file": yaml_path.name,
+                "schema": schema_path.name,
+                "success": False,
+                "errors": [error_msg],
+            }
             self.validation_results.append(result)
 
             return False, [error_msg]
@@ -97,7 +112,12 @@ class SchemaValidator:
         except Exception as e:
             error_msg = f"Error validating {yaml_path.name}: {e!s}"
 
-            result = {"file": yaml_path.name, "schema": schema_path.name, "success": False, "errors": [error_msg]}
+            result = {
+                "file": yaml_path.name,
+                "schema": schema_path.name,
+                "success": False,
+                "errors": [error_msg],
+            }
             self.validation_results.append(result)
 
             return False, [error_msg]
@@ -117,9 +137,6 @@ class SchemaValidator:
         # Print to console
         print("\nValidation Report")
         print("=" * 50)
-        print(f"Total files validated: {report['summary']['total_files']}")
-        print(f"Successful: {report['summary']['successful']}")
-        print(f"Failed: {report['summary']['failed']}")
         print("\nDetailed Results:")
 
         for result in self.validation_results:
@@ -133,7 +150,10 @@ class SchemaValidator:
         # Save to file if output directory provided
         if output_dir:
             output_dir.mkdir(parents=True, exist_ok=True)
-            output_path = output_dir / f'validation_report_{datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")}.json'
+            output_path = (
+                output_dir
+                / f'validation_report_{datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")}.json'
+            )
             with output_path.open("w", encoding="utf-8") as f:
                 json.dump(report, f, indent=2)
             print(f"\nDetailed report saved to: {output_path}")
@@ -144,40 +164,36 @@ def main() -> None:
     script_dir = Path(__file__).parent
     project_dir = script_dir.parent
 
-    # Set up paths relative to project root
-    schema_dir = project_dir / "schemas"
-    source_dir = project_dir / "sources"
-    report_dir = project_dir / "reports"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--schema", type=Path, required=True)
+    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument(
+        "--report", type=Path, required=False, default=project_dir / "reports"
+    )
+    subparser = parser.add_subparsers(dest="command", required=False)
+    parser_export = subparser.add_parser("export")
+    parser_export.add_argument("-p", "--path", type=Path, required=True)
+    args = parser.parse_args()
 
-    # Verify directories exist
-    if not all(d.exists() for d in [schema_dir, source_dir]):
-        print("Error: Required directories not found. Expected structure:")
-        print("project/")
-        print("  ├── schemas/")
-        print("  ├── sources/")
-        print("  └── script/")
-        sys.exit(1)
-
-    # Create validator
     validator = SchemaValidator(project_dir)
 
     try:
-        # Validate DPIA
-        dpia_schema = schema_dir / "schema_DPIA.json"
-        dpia_yaml = source_dir / "DPIA.yaml"
-        validator.validate_yaml(dpia_yaml, dpia_schema)
-
-        # Validate Begrippenkader
-        begrippenkader_schema = schema_dir / "schema_begrippenkader.json"
-        begrippenkader_yaml = source_dir / "begrippenkader.yaml"
-        validator.validate_yaml(begrippenkader_yaml, begrippenkader_schema)
-
-        # Generate report
-        validator.generate_report(report_dir)
+        validator.validate_yaml(args.source, args.schema)
+        validator.generate_report(args.report)
 
     except Exception:
         validator.logger.exception("Validation process failed")
         sys.exit(1)
+
+    if not args.command:
+        sys.exit(0)
+
+    if args.command == "export":
+        with args.source.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        with args.path.open("w") as f:
+            json.dump(data, f)
+        print(f"Exported {args.source} to JSON at {args.path}")
 
 
 if __name__ == "__main__":

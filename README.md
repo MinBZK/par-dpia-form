@@ -14,8 +14,9 @@ the `schemas/` directory.
 The Python script `script/validate` can be used the validate the YAML's agains their schema. It can be
 invoked, for example using UV, by
 ```
-uv run --with jsonschema --with pyyaml script/validate
+uv run --with jsonschema --with pyyaml script/validate --schema schemas/schema_DPIA.json --source sources/DPIA.yaml export --path form-app/src/assets/DPIA.json
 ```
+This will validate the DPIA yaml and export it in JSON format to the specified file.
 
 ## Pre Scan DPIA Form
 TODO
