@@ -37,12 +37,12 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       repeatable: t.boolean,
       tasks: t.array(Task),
       options: t.array(t.string),
-      links: t.array(t.any),
       sources: t.array(Source),
     }),
   ]),
 )
 export type Task = t.TypeOf<typeof Task>
+
 export const Tasks = t.array(Task)
 export type Tasks = t.TypeOf<typeof Tasks>
 

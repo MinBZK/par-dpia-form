@@ -74,23 +74,6 @@
                 "repeatable": {
                     "type": "boolean"
                 },
-                "links": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "text": {
-                                "type": "string"
-                            },
-                            "url": {
-                                "type": "string"
-                            },
-                            "urn": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                },
                 "tasks": {
                     "type": "array",
                     "items": {

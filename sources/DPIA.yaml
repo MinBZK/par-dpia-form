@@ -357,7 +357,6 @@ tasks:
    category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - open_text
-   links: []
    repeatable: false
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
