@@ -1,0 +1,113 @@
+- urn:  urn:nl:dpia:1.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Voorstel
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:2.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Persoonsgegevens
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:3.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Gegevensverwerkingen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:4.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Technieken en methoden van de gegevensverwerkingen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:5.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Verwerkingsdoeleinden
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:6.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Betrokken partijen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:7.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Belangen bij de gegevensverwerkingen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:8.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Verwerkingslocaties
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:9.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Juridisch en beleidsmatig kader
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:10.0
+  category: Beschrijving kenmerken gegevensverwerkingen
+  subcategory: Bewaartermijnen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:11.0
+  category: Beoordeling rechtmatigheid gegevensverwerkingen
+  subcategory: Rechtsgrond
+  description: >-
+     Beoordeel de rechtsgrond, noodzaak en doelbinding van de gegevensverwerkingen en rechten van de betrokkene.
+
+- urn:  urn:nl:dpia:12.0
+  category: Beoordeling rechtmatigheid gegevensverwerkingen
+  subcategory: Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
+  description: >-
+     Beoordeel de rechtsgrond, noodzaak en doelbinding van de gegevensverwerkingen en rechten van de betrokkene.
+
+- urn:  urn:nl:dpia:13.0
+  subcategory: Doelbinding
+  category: Beoordeling rechtmatigheid gegevensverwerkingen
+  description: >-
+     Beoordeel de rechtsgrond, noodzaak en doelbinding van de gegevensverwerkingen en rechten van de betrokkene.
+
+- urn:  urn:nl:dpia:14.0
+  category: Beoordeling rechtmatigheid gegevensverwerkingen
+  subcategory: Noodzaak en evenredigheid
+  description: >-
+     Beoordeel de rechtsgrond, noodzaak en doelbinding van de gegevensverwerkingen en rechten van de betrokkene.
+
+- urn:  urn:nl:dpia:15.0
+  category: Beoordeling rechtmatigheid gegevensverwerkingen
+  subcategory: Rechten van de betrokkene
+  description: >-
+     Beoordeel de rechtsgrond, noodzaak en doelbinding van de gegevensverwerkingen en rechten van de betrokkene.
+
+- urn:  urn:nl:dpia:16.0
+  category: Beschrijving en beoordeling risico’s voor de betrokkenen
+  subcategory: Risico’s voor betrokkenen
+  description: >-
+     Beschrijf en beoordeel de risico’s van de voorgenomen gegevensverwerkingen voor de rechten en vrijheden van de betrokkenen. 
+     Houd hierbij rekening met de aard, omvang, context en doelen van de voorgenomen gegevensverwerkingen.
+
+- urn:  urn:nl:dpia:17.0
+  category: Maatregelen en restrisico’s
+  subcategory: Maatregelen
+  description: >-
+    In onderdeel D wordt bezien welke maatregelen kunnen worden getroffen om de in onderdeel C erkende risico’s te voorkomen of te verminderen. 
+    Welke maatregelen in redelijkheid worden getroffen is een belangenafweging van de wetgever of verwerkingsverantwoordelijke. Voor dit onderdeel van de DPIA is in het bijzonder expertise over informatiebeveiliging belangrijk.

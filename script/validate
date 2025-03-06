@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+import json
+import logging
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+import jsonschema
+import yaml
+from jsonschema import validate
+
+
+class SchemaValidator:
+    def __init__(self, base_dir: Path) -> None:
+        """
+        Initialize validator with base directory and logging configuration.
+
+        Args:
+            base_dir: Base directory of the project
+        """
+        self.base_dir = base_dir
+        self.logger = self._setup_logger()
+        self.schemas = {}
+        self.validation_results = []
+
+    def _setup_logger(self) -> logging.Logger:
+        """Set up logging configuration."""
+        logger = logging.getLogger("SchemaValidator")
+        logger.setLevel(logging.INFO)
+
+        # Create console handler with formatting
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+        return logger
+
+    def load_schema(self, schema_path: Path) -> dict[str, Any]:
+        """Load a JSON schema file."""
+        try:
+            with schema_path.open("r", encoding="utf-8") as f:
+                schema = json.load(f)
+                self.schemas[schema_path.stem] = schema
+                self.logger.info(f"Successfully loaded schema: {schema_path}")
+                return schema
+        except FileNotFoundError:
+            self.logger.exception(f"Schema file not found: {schema_path}")
+            raise
+        except json.JSONDecodeError:
+            self.logger.exception(f"Invalid JSON in schema file {schema_path}")
+            raise
+
+    def load_yaml(self, yaml_path: Path) -> dict[str, Any]:
+        """Load a YAML file."""
+        try:
+            with yaml_path.open("r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+                self.logger.info(f"Successfully loaded YAML: {yaml_path}")
+                return data
+        except FileNotFoundError:
+            self.logger.exception(f"YAML file not found: {yaml_path}")
+            raise
+        except yaml.YAMLError:
+            self.logger.exception(f"Invalid YAML in file {yaml_path}")
+            raise
+
+    def validate_yaml(self, yaml_path: Path, schema_path: Path) -> tuple[bool, list[str]]:
+        """Validate a YAML file against its schema."""
+        try:
+            # Load schema if not already loaded
+            if schema_path.stem not in self.schemas:
+                schema = self.load_schema(schema_path)
+            else:
+                schema = self.schemas[schema_path.stem]
+
+            # Load and validate YAML
+            data = self.load_yaml(yaml_path)
+            validate(instance=data, schema=schema)
+
+            result = {"file": yaml_path.name, "schema": schema_path.name, "success": True, "errors": []}
+            self.validation_results.append(result)
+
+            return True, []
+
+        except jsonschema.exceptions.ValidationError as e:
+            error_path = " -> ".join(str(x) for x in e.path)
+            error_msg = f"Validation error in {yaml_path.name} at {error_path}: {e.message}"
+
+            result = {"file": yaml_path.name, "schema": schema_path.name, "success": False, "errors": [error_msg]}
+            self.validation_results.append(result)
+
+            return False, [error_msg]
+
+        except Exception as e:
+            error_msg = f"Error validating {yaml_path.name}: {e!s}"
+
+            result = {"file": yaml_path.name, "schema": schema_path.name, "success": False, "errors": [error_msg]}
+            self.validation_results.append(result)
+
+            return False, [error_msg]
+
+    def generate_report(self, output_dir: Path | None = None) -> None:
+        """Generate a validation report."""
+        report = {
+            "timestamp": datetime.now(tz=UTC).isoformat(),
+            "summary": {
+                "total_files": len(self.validation_results),
+                "successful": sum(1 for r in self.validation_results if r["success"]),
+                "failed": sum(1 for r in self.validation_results if not r["success"]),
+            },
+            "results": self.validation_results,
+        }
+
+        # Print to console
+        print("\nValidation Report")
+        print("=" * 50)
+        print(f"Total files validated: {report['summary']['total_files']}")
+        print(f"Successful: {report['summary']['successful']}")
+        print(f"Failed: {report['summary']['failed']}")
+        print("\nDetailed Results:")
+
+        for result in self.validation_results:
+            print(f"\nFile: {result['file']}")
+            print(f"Schema: {result['schema']}")
+            print(f"Status: {'✓ Success' if result['success'] else '✗ Failed'}")
+            if not result["success"]:
+                for error in result["errors"]:
+                    print(f"  - {error}")
+
+        # Save to file if output directory provided
+        if output_dir:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            output_path = output_dir / f'validation_report_{datetime.now(tz=UTC).strftime("%Y%m%d_%H%M%S")}.json'
+            with output_path.open("w", encoding="utf-8") as f:
+                json.dump(report, f, indent=2)
+            print(f"\nDetailed report saved to: {output_path}")
+
+
+def main() -> None:
+    # Get the script's directory and construct paths relative to it
+    script_dir = Path(__file__).parent
+    project_dir = script_dir.parent
+
+    # Set up paths relative to project root
+    schema_dir = project_dir / "schemas"
+    source_dir = project_dir / "sources"
+    report_dir = project_dir / "reports"
+
+    # Verify directories exist
+    if not all(d.exists() for d in [schema_dir, source_dir]):
+        print("Error: Required directories not found. Expected structure:")
+        print("project/")
+        print("  ├── schemas/")
+        print("  ├── sources/")
+        print("  └── script/")
+        sys.exit(1)
+
+    # Create validator
+    validator = SchemaValidator(project_dir)
+
+    try:
+        # Validate DPIA
+        dpia_schema = schema_dir / "schema_DPIA.json"
+        dpia_yaml = source_dir / "DPIA.yaml"
+        validator.validate_yaml(dpia_yaml, dpia_schema)
+
+        # Validate Begrippenkader
+        begrippenkader_schema = schema_dir / "schema_begrippenkader.json"
+        begrippenkader_yaml = source_dir / "begrippenkader.yaml"
+        validator.validate_yaml(begrippenkader_yaml, begrippenkader_schema)
+
+        # Generate report
+        validator.generate_report(report_dir)
+
+    except Exception:
+        validator.logger.exception("Validation process failed")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

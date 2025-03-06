@@ -1,0 +1,216 @@
+{
+  "$id": "http://example.com/schemas/schema_v1.2.0.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "glossary_term": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the term"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the term"
+        },
+        "definition": {
+          "type": "string",
+          "description": "Complete definition of the term"
+        },
+        "related_terms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "IDs of related terms"
+          }
+        }
+      },
+      "required": ["id", "name", "definition", "category"]
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "task": {
+          "type": "string",
+          "description": "The task"
+        },
+        "description": {
+          "type": "string",
+          "description": "The description"
+        },
+        "urn": {
+          "type": "string",
+          "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+(:[0-9]+\\.[0-9]+)*$"
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "open_text",
+              "sign_task",
+              "select_option",
+              "upload_document",
+              "task_group", 
+              "date"
+            ]
+          }
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_status": {
+          "type": "boolean"
+        },
+        "repeatable": {
+          "type": "boolean"
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "urn": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/task"
+          }
+        }
+      },
+      "required": [
+        "task",
+        "urn",
+        "type",
+        "repeatable"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "const": "select_option"
+                  },
+                  {
+                    "type": "array",
+                    "contains": {
+                      "const": "select_option"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": ["options"]
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "urn": {
+      "type": "string",
+      "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+(:[0-9]+\\.[0-9]+)?$"
+    },
+    "language": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "owners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "organization": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "organization",
+          "name",
+          "email",
+          "role"
+        ]
+      }
+    },
+    "date": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "glossary": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/glossary_term"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["terms"]
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/task"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "name",
+    "description",
+    "urn",
+    "language",
+    "owners",
+    "date",
+    "url",
+    "tasks"
+  ]
+}
