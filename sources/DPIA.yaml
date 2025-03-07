@@ -1,18 +1,9 @@
-schema_version: 1.0.0
 name: DPIA Rapportagemodel Rijksdienst
+urn: 'urn:nl:dpia:3.0'
+version: 3.0
 description: >-
   Data Protection Impact Assessment template following Dutch government model
   version 3.0
-urn: 'urn:nl:dpia:3.0'
-version: 3.0
-language: nl
-owners:
-  - organization: Ministerie van BZK
-    name: CIO Rijk
-    email: privacy-ciorijk@minbzk.nl
-    role: Privacy Officer
-date: '2023-07-25'
-url: 'https://www.rijksoverheid.nl/dpia'
 tasks:
  - task: >-
     Vaststelling
@@ -366,7 +357,6 @@ tasks:
    category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - open_text
-   links: []
    repeatable: false
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
