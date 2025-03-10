@@ -1,18 +1,23 @@
 {
   "name": "form-app",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.1",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix",
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@nl-rvo/assets": "^1.0.0-alpha.360",
+    "@nl-rvo/component-library-css": "^4.5.2",
+    "@nl-rvo/design-tokens": "^1.7.1",
+    "fp-ts": "^2.16.9",
+    "io-ts": "^2.2.22",
     "pinia": "^3.0.1",
     "vue": "^3.5.13"
   },

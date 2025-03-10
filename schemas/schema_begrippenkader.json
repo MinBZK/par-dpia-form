@@ -1,101 +1,121 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-      "schema_version": {
-          "type": "string",
-          "pattern": "^\\d+\\.\\d+\\.\\d+$"
-      },
-      "name": {
-          "type": "string"
-      },
-      "description": {
-          "type": "string"
-      },
-      "urn": {
-          "type": "string",
-          "pattern": "^urn:nl:dpia:[\\d\\.]+:begrippenkader:\\d+\\.\\d+$"
-      },
-      "language": {
-          "type": "string",
-          "enum": ["nl"]
-      },
-      "owners": {
-          "type": "array",
-          "items": {
-              "type": "object",
-              "properties": {
-                  "organization": {
-                      "type": "string"
-                  },
-                  "name": {
-                      "type": "string"
-                  },
-                  "email": {
-                      "type": "string",
-                      "format": "email"
-                  },
-                  "role": {
-                      "type": "string"
-                  }
-              },
-              "required": ["organization", "name", "email", "role"]
-          },
-          "minItems": 1
-      },
-      "glossary": {
-          "type": "array",
-          "items": {
-              "type": "object",
-              "properties": {
-                  "id": {
-                      "type": "string",
-                      "pattern": "^[a-z0-9_]+$"
-                  },
-                  "name": {
-                      "type": "string"
-                  },
-                  "category": {
-                      "type": "string"
-                  },
-                  "definition": {
-                      "type": "string"
-                  }
-              },
-              "required": ["id", "name", "category", "definition"]
-          },
-          "minItems": 1
-      },
-      "metadata": {
-          "type": "object",
-          "properties": {
-              "version": {
-                  "type": "string",
-                  "pattern": "^\\d+\\.\\d+\\.\\d+$"
-              },
-              "last_updated": {
-                  "type": "string",
-                  "format": "date-time"
-              },
-              "maintainer": {
-                  "type": "string"
-              },
-              "language": {
-                  "type": "string",
-                  "enum": ["nl"]
-              }
-          },
-          "required": ["version", "last_updated", "maintainer", "language"]
-      }
-  },
-  "required": [
-      "schema_version", 
-      "name", 
-      "description", 
-      "urn", 
-      "language", 
-      "owners", 
-      "glossary", 
-      "metadata"
-  ]
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/schema_begrippenkader.json",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "urn": {
+            "type": "string",
+            "pattern": "^urn:nl:dpia:[\\d\\.]+:begrippenkader:\\d+\\.\\d+$"
+        },
+        "language": {
+            "type": "string",
+            "enum": [
+                "nl"
+            ]
+        },
+        "owners": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "organization": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "role": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "organization",
+                    "name",
+                    "email",
+                    "role"
+                ]
+            },
+            "minItems": 1
+        },
+        "glossary": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[a-z0-9_]+$"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "category": {
+                        "type": "string"
+                    },
+                    "definition": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "definition"
+                ]
+            },
+            "minItems": 1
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+$"
+                },
+                "last_updated": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "maintainer": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string",
+                    "enum": [
+                        "nl"
+                    ]
+                }
+            },
+            "required": [
+                "version",
+                "last_updated",
+                "maintainer",
+                "language"
+            ]
+        }
+    },
+    "required": [
+        "schema_version",
+        "name",
+        "description",
+        "urn",
+        "language",
+        "owners",
+        "glossary",
+        "metadata"
+    ]
 }
