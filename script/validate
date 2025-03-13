@@ -192,7 +192,7 @@ def main() -> None:
         with args.source.open("r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
         with args.path.open("w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
         print(f"Exported {args.source} to JSON at {args.path}")
 
 
