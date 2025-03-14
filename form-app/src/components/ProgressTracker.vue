@@ -6,7 +6,7 @@ import { useTaskStore } from '@/stores/tasks'
 const taskStore = useTaskStore()
 const { currentTaskId } = storeToRefs(taskStore)
 
-const props = defineProps<{
+defineProps<{
   rootTasks: FlatTask[]
 }>()
 </script>
