@@ -7,7 +7,7 @@
         {
             "task": "Vaststelling",
             "category": "administration",
-            "urn": "urn:nl:dpia:0.0",
+            "id": "0",
             "type": [
                 "task_group"
             ],
@@ -15,42 +15,60 @@
             "tasks": [
                 {
                     "task": "Verwerkingsverantwoordelijke",
-                    "urn": "urn:nl:dpia:0.0:1.0",
+                    "id": "0.1",
                     "type": [
                         "task_group"
                     ],
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Organisatie, directie, afdeling",
-                            "urn": "urn:nl:dpia:0.0:1.1",
+                            "task": "Organisatie",
+                            "id": "0.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "description": "Organisatie, directie, afdeling van de verwerkingsverantwoordelijke",
+                            "description": "Organisatie van de verwerkingsverantwoordelijke",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Directie",
+                            "id": "0.1.2",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Directie van de verwerkingsverantwoordelijke",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Afdeling",
+                            "id": "0.1.3",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Afdeling van de verwerkingsverantwoordelijke",
                             "repeatable": false
                         },
                         {
                             "task": "Naam",
-                            "urn": "urn:nl:dpia:0.0:1.2",
+                            "id": "0.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Naam van de verwerkingsverantwoordelijke",
                             "repeatable": false
                         },
                         {
                             "task": "Functie",
-                            "urn": "urn:nl:dpia:0.0:1.3",
+                            "id": "0.1.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Functie van de verwerkingsverantwoordelijke",
                             "repeatable": false
                         },
                         {
                             "task": "Datum ondertekening",
-                            "urn": "urn:nl:dpia:0.0:1.4",
+                            "id": "0.1.6",
                             "type": [
                                 "date"
                             ],
@@ -59,9 +77,9 @@
                         },
                         {
                             "task": "Opgesteld door afdeling",
-                            "urn": "urn:nl:dpia:0.0:1.5",
+                            "id": "0.1.7",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Afdeling die het document heeft opgesteld",
                             "repeatable": false
@@ -70,42 +88,60 @@
                 },
                 {
                     "task": "Advies functionaris voor gegevensbescherming (FG)",
-                    "urn": "urn:nl:dpia:0.0:2.0",
+                    "id": "0.2",
                     "type": [
                         "task_group"
                     ],
                     "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Organisatie, directie, afdeling",
-                            "urn": "urn:nl:dpia:0.0:2.1",
+                            "task": "Organisatie",
+                            "id": "0.2.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "description": "Organisatie, directie, afdeling van de FG",
+                            "description": "Organisatie van de FG",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Directie",
+                            "id": "0.2.2",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Directie van de FG",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Afdeling",
+                            "id": "0.2.3",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Afdeling van de FG",
                             "repeatable": false
                         },
                         {
                             "task": "Naam",
-                            "urn": "urn:nl:dpia:0.0:2.2",
+                            "id": "0.2.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Naam van de FG",
                             "repeatable": false
                         },
                         {
                             "task": "Functie",
-                            "urn": "urn:nl:dpia:0.0:2.3",
+                            "id": "0.2.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Functie van de persoon",
                             "repeatable": false
                         },
                         {
                             "task": "Datum advies",
-                            "urn": "urn:nl:dpia:0.0:2.4",
+                            "id": "0.2.6",
                             "type": [
                                 "date"
                             ],
@@ -114,18 +150,18 @@
                         },
                         {
                             "task": "Advies FG in document",
-                            "urn": "urn:nl:dpia:0.0:2.5",
+                            "id": "0.2.7",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "description": "Naam van het document met het FG-advies",
+                            "description": "Advies FG in document (naam document)",
                             "repeatable": false
                         },
                         {
-                            "task": "Advies FG verwerkt in versie",
-                            "urn": "urn:nl:dpia:0.0:2.6",
+                            "task": "Advies FG verwerkt in versie (versienummer)",
+                            "id": "0.2.8",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Versienummer waarin het advies is verwerkt",
                             "repeatable": false
@@ -134,44 +170,62 @@
                 },
                 {
                     "task": "Documentbeheerder",
-                    "urn": "urn:nl:dpia:0.0:3.0",
+                    "id": "0.3",
                     "type": [
                         "task_group"
                     ],
                     "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Organisatie, directie, afdeling",
-                            "urn": "urn:nl:dpia:0.0:3.1",
+                            "task": "Organisatie",
+                            "id": "0.3.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "description": "Organisatie, directie, afdeling van de documentbeheerder",
+                            "description": "Organisatie van de documentbeheerder",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Directie",
+                            "id": "0.3.2",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Directie van de documentbeheerder",
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Afdeling",
+                            "id": "0.3.3",
+                            "type": [
+                                "text_input"
+                            ],
+                            "description": "Afdeling van de documentbeheerder",
                             "repeatable": false
                         },
                         {
                             "task": "Naam",
-                            "urn": "urn:nl:dpia:0.0:3.2",
+                            "id": "0.3.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Naam van de documentbeheerder",
                             "repeatable": false
                         },
                         {
                             "task": "Functie",
-                            "urn": "urn:nl:dpia:0.0:3.3",
+                            "id": "0.3.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Functie van de documentbeheerder",
                             "repeatable": false
                         },
                         {
                             "task": "Opslaglocatie",
-                            "urn": "urn:nl:dpia:0.0:3.4",
+                            "id": "0.3.6",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Locatie waar het document wordt opgeslagen",
                             "repeatable": false
@@ -180,15 +234,15 @@
                 },
                 {
                     "task": "Versie",
-                    "urn": "urn:nl:dpia:0.0:4.0",
+                    "id": "0.4",
                     "type": [
-                        "open_text"
+                        "text_input"
                     ],
                     "repeatable": false
                 },
                 {
                     "task": "Status",
-                    "urn": "urn:nl:dpia:0.0:5.0",
+                    "id": "0.5",
                     "type": [
                         "select_option"
                     ],
@@ -200,105 +254,105 @@
                 },
                 {
                     "task": "Het dossier",
-                    "urn": "urn:nl:dpia:0.0:6.0",
+                    "id": "0.6",
                     "type": [
                         "task_group"
                     ],
                     "repeatable": false,
                     "tasks": [
                         {
-                            "task": "grootte (aantal documenten)",
-                            "urn": "urn:nl:dpia:0.0:6.1",
+                            "task": "Grootte (aantal documenten)",
+                            "id": "0.6.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "document soort",
-                            "urn": "urn:nl:dpia:0.0:6.2",
+                            "task": "Document soort",
+                            "id": "0.6.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "repeatable": true
                         },
                         {
-                            "task": "document naam",
-                            "urn": "urn:nl:dpia:0.0:6.3",
+                            "task": "Document naam",
+                            "id": "0.6.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "repeatable": true
                         },
                         {
-                            "task": "document versie",
-                            "urn": "urn:nl:dpia:0.0:6.4",
+                            "task": "Document versie",
+                            "id": "0.6.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "repeatable": true
                         },
                         {
-                            "task": "document locatie",
-                            "urn": "urn:nl:dpia:0.0:6.5",
+                            "task": "Document locatie",
+                            "id": "0.6.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "repeatable": true
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "task": "Ondertekening",
-            "description": "Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. ",
-            "urn": "urn:nl:dpia:0.0:3.0",
-            "category": "administratief",
-            "type": [
-                "task_group"
-            ],
-            "repeatable": true,
-            "tasks": [
-                {
-                    "task": "Organisatie, directie, afdeling verwerkingsverantwoordelijke(n)",
-                    "urn": "urn:nl:dpia:0.0:3.1",
-                    "type": [
-                        "open_text"
-                    ],
-                    "repeatable": false
                 },
                 {
-                    "task": "Naam verwerkingsverantwoordelijke(n)",
-                    "urn": "urn:nl:dpia:0.0:3.2",
+                    "task": "Ondertekening",
+                    "description": "Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. ",
+                    "id": "0.7",
+                    "category": "administratief",
                     "type": [
-                        "open_text"
+                        "task_group"
                     ],
-                    "repeatable": false
-                },
-                {
-                    "task": "Functie verwerkingsverantwoordelijke(n)",
-                    "urn": "urn:nl:dpia:0.0:3.3",
-                    "type": [
-                        "open_text"
-                    ],
-                    "repeatable": false
-                },
-                {
-                    "task": "Datum ondertekening",
-                    "urn": "urn:nl:dpia:0.0:3.4",
-                    "type": [
-                        "date"
-                    ],
-                    "repeatable": false
-                },
-                {
-                    "task": "Datum ondertekening",
-                    "urn": "urn:nl:dpia:0.0:3.5",
-                    "type": [
-                        "sign_task"
-                    ],
-                    "repeatable": false
+                    "repeatable": true,
+                    "tasks": [
+                        {
+                            "task": "Organisatie, directie, afdeling verwerkingsverantwoordelijke(n)",
+                            "id": "0.7.1",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Naam verwerkingsverantwoordelijke(n)",
+                            "id": "0.7.2",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Functie verwerkingsverantwoordelijke(n)",
+                            "id": "0.7.3",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Datum ondertekening",
+                            "id": "0.7.4",
+                            "type": [
+                                "date"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Handtekening",
+                            "id": "0.7.5",
+                            "type": [
+                                "sign_task"
+                            ],
+                            "repeatable": false
+                        }
+                    ]
                 }
             ]
         },
@@ -306,7 +360,7 @@
             "task": "Voorstel",
             "description": "Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
-            "urn": "urn:nl:dpia:1.0",
+            "id": "1",
             "type": [
                 "open_text"
             ],
@@ -316,7 +370,7 @@
             "task": "Persoonsgegevens",
             "description": "Beschrijf alle persoonsgegevens die worden verwerkt.  Classificeer deze persoonsgegevens naar: gewoon, gevoelig, bijzonder, strafrechtelijk en wettelijk identificatienummer en geef aan wat de bron is van deze persoonsgegevens.  Geef, indien gewenst, per persoonsgegeven aan bij welke categorie persoonsgegevens deze hoort.",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
-            "urn": "urn:nl:dpia:2.0",
+            "id": "2",
             "type": [
                 "task_group"
             ],
@@ -324,39 +378,39 @@
             "tasks": [
                 {
                     "task": "Algemene persoonsgegevens",
-                    "urn": "urn:nl:dpia:2.0:1.0",
+                    "id": "2.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Categorie betrokkene",
-                            "urn": "urn:nl:dpia:2.0:1.1",
+                            "task": "Categorie betrokkenen",
+                            "id": "2.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Categorie persoonsgegevens",
-                            "urn": "urn:nl:dpia:2.0:1.2",
+                            "id": "2.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Persoonsgegeven",
-                            "urn": "urn:nl:dpia:2.0:1.3",
+                            "id": "2.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Type persoonsgegeven",
-                            "urn": "urn:nl:dpia:2.0:1.4",
+                            "id": "2.1.4",
                             "type": [
                                 "select_option"
                             ],
@@ -365,13 +419,13 @@
                                 "gevoelig",
                                 "bijzonder",
                                 "strafrechtelijk",
-                                "identificatie-nummer"
+                                "nationaal identificatienummer"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Bron betrokkenen",
-                            "urn": "urn:nl:dpia:2.0:1.5",
+                            "id": "2.1.5",
                             "type": [
                                 "select_option"
                             ],
@@ -379,73 +433,73 @@
                                 "rechtstreeks bij betrokkene",
                                 "via betrokken partij"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Oorspronkelijke verwerkingsdoeleinde",
-                            "urn": "urn:nl:dpia:2.0:1.6",
+                            "id": "2.1.6",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Bronnen via betrokken partij",
-                    "urn": "urn:nl:dpia:2.0:2.0",
+                    "id": "2.2",
                     "type": [
                         "task_group"
                     ],
                     "description": "Geef in deze tabel extra informatie over de bron van persoonsgegevens die via  een betrokken partij komen.",
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Categorie betrokkenen",
-                            "urn": "urn:nl:dpia:2.0:2.1",
+                            "id": "2.2.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Categorie persoonsgegevens",
-                            "urn": "urn:nl:dpia:2.0:2.2",
+                            "id": "2.2.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Naam partij",
-                            "urn": "urn:nl:dpia:2.0:2.3",
+                            "id": "2.2.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Middel van bron",
-                            "urn": "urn:nl:dpia:2.0:2.4",
+                            "id": "2.2.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
                             "description": "Tool/platform",
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Verstrekkingsgrond",
-                            "urn": "urn:nl:dpia:2.0:2.5",
+                            "id": "2.2.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de persoonsgegevens",
-                    "urn": "urn:nl:dpia:2.0:3.0",
+                    "id": "2.3",
                     "type": [
                         "open_text"
                     ],
@@ -454,8 +508,9 @@
             ]
         },
         {
-            "task": "Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorie\u00ebn betrokkenen worden verwerkt per gegevensverwerking.  Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.",
-            "urn": "urn:nl:dpia:3.0",
+            "task": "Gegevenswerkering",
+            "description": "Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorie\u00ebn betrokkenen worden verwerkt per gegevensverwerking.  Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.",
+            "id": "3",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -464,7 +519,7 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking, Categorie\u00ebn betrokkenen & persoonsgegevens",
-                    "urn": "urn:nl:dpia:3.0:1.0",
+                    "id": "3.1",
                     "type": [
                         "task_group"
                     ],
@@ -472,36 +527,44 @@
                     "tasks": [
                         {
                             "task": "Gegevensverwerking",
-                            "urn": "urn:nl:dpia:3.0:1.1",
+                            "id": "3.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:3.0:1.2",
+                            "task": "Categorie betrokkenen",
+                            "id": "3.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Persoonsgegevens",
+                            "id": "3.1.3",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
                         }
                     ]
                 },
                 {
-                    "task": "Samenhang tussen gegevensverwerkingen",
-                    "description": "Upload een afbeelding met de samenhang tussen gegevensverwerkingen.",
-                    "urn": "urn:nl:dpia:3.0:2.0",
+                    "task": "Aanvullende informatie over de gegevensverwerking",
+                    "id": "3.2",
                     "type": [
-                        "upload_document"
+                        "open_text"
                     ],
                     "repeatable": false
                 },
                 {
-                    "task": "Aanvullende informatie over de gegevensverwerking",
-                    "urn": "urn:nl:dpia:3.0:3.0",
+                    "task": "Samenhang tussen gegevensverwerkingen",
+                    "description": "Upload een afbeelding met de samenhang tussen gegevensverwerkingen.",
+                    "id": "3.3",
                     "type": [
-                        "open_text"
+                        "upload_document"
                     ],
                     "repeatable": false
                 }
@@ -510,7 +573,7 @@
         {
             "task": "Technieken en methoden van de gegevensverwerkingen",
             "description": "Beschrijf op welke wijze en met gebruikmaking van welke (technische) middelen en methoden de persoonsgegevens worden verwerkt. Benoem, in het bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.",
-            "urn": "urn:nl:dpia:4.0",
+            "id": "4",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "open_text"
@@ -520,7 +583,7 @@
         {
             "task": "Verwerkingsdoeleinden",
             "description": "Beschrijf de doeleinden van alle gegevensverwerkingen.",
-            "urn": "urn:nl:dpia:5.0",
+            "id": "5",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -529,33 +592,33 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking & verwerkingsdoeleinde",
-                    "urn": "urn:nl:dpia:5.0:1.0",
+                    "id": "5.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Gegevensverwerking",
-                            "urn": "urn:nl:dpia:5.0:1.1",
+                            "id": "5.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Verwerkingsdoeleinde",
-                            "urn": "urn:nl:dpia:5.0:1.2",
+                            "id": "5.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
-                    "task": "Aanvullende informatie over de gegevensverwerking",
-                    "urn": "urn:nl:dpia:5.0",
+                    "task": "Aanvullende informatie over de verwerkingsdoeleinden",
+                    "id": "5.2",
                     "type": [
                         "open_text"
                     ],
@@ -566,7 +629,7 @@
         {
             "task": "Betrokken partijen",
             "description": "Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorie\u00ebn betrokkenen. Voeg aanvullende informatie toe in het tekstveld.",
-            "urn": "urn:nl:dpia:6.0",
+            "id": "6",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -575,7 +638,7 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking betrokkken partijen",
-                    "urn": "urn:nl:dpia:6.0:1.0",
+                    "id": "6.1",
                     "type": [
                         "task_group"
                     ],
@@ -583,15 +646,15 @@
                     "tasks": [
                         {
                             "task": "Naam van de partij",
-                            "urn": "urn:nl:dpia:6.0:1.1",
+                            "id": "6.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Rol van de partij",
-                            "urn": "urn:nl:dpia:6.0:1.2",
+                            "id": "6.1.2",
                             "type": [
                                 "select_option"
                             ],
@@ -605,29 +668,29 @@
                                 "betrokkene",
                                 "derde"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Functies/afdelingen",
-                            "urn": "urn:nl:dpia:6.0:1.3",
+                            "id": "6.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Categorieen betrokkenen & persoonsgegevens",
-                            "urn": "urn:nl:dpia:6.0:1.4",
+                            "id": "6.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de betrokken partijen.",
-                    "urn": "urn:nl:dpia:6.0:2.0",
+                    "id": "6.2",
                     "type": [
                         "open_text"
                     ],
@@ -638,7 +701,7 @@
         {
             "task": "Belangen bij de gegevensverwerkingen",
             "description": "Beschrijf alle belangen die de betrokken partijen hebben bij de gegevensverwerkingen.  Vraag betrokkenen of hun vertegenwoordigers ook naar hun mening over de verwerking indien relevant.  Indien niet relevant, motiveer dit. Licht deze mening toe onder het belang van de betrokkenen. ",
-            "urn": "urn:nl:dpia:7.0",
+            "id": "7",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -647,33 +710,33 @@
             "tasks": [
                 {
                     "task": "Betrokken parij, belangen, uitkomst consultatie betrokkene",
-                    "urn": "urn:nl:dpia:7.0:1.0",
+                    "id": "7.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Betrokken partij",
-                            "urn": "urn:nl:dpia:7.0:1.1",
+                            "id": "7.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Belang, uitkomst consultatie betrokkene",
-                            "urn": "urn:nl:dpia:7.0:1.2",
+                            "id": "7.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de belangen.",
-                    "urn": "urn:nl:dpia:7.0:2.0",
+                    "id": "7.2",
                     "type": [
                         "open_text"
                     ],
@@ -684,7 +747,7 @@
         {
             "task": "Verwerkingslocaties",
             "description": "Benoem in welke landen de gegevensverwerkingen plaatsvinden.  Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. Voeg aanvullende informatie toe in het tekstveld.\nAls persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.\nZie deel III van het Rijksmodel DPIA voor meer informatie over de doorgiftemechanismen.",
-            "urn": "urn:nl:dpia:8.0",
+            "id": "8",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -693,31 +756,31 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen",
-                    "urn": "urn:nl:dpia:8.0:1.0",
+                    "id": "8.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Gegevensverwerking",
-                            "urn": "urn:nl:dpia:8.0:1.1",
+                            "id": "8.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Verwerkingslocatie",
-                            "urn": "urn:nl:dpia:8.0:1.2",
+                            "id": "8.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Doorgiftemechanisme",
-                            "urn": "urn:nl:dpia:8.0:1.3",
+                            "id": "8.1.3",
                             "type": [
                                 "select_option"
                             ],
@@ -728,21 +791,21 @@
                                 "Artikel 49 AVG uitzondering",
                                 "Niet van toepassing (binnen EER)"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Maatregelen",
-                            "urn": "urn:nl:dpia:8.0:1.4",
+                            "id": "8.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de verwerkingslocaties.",
-                    "urn": "urn:nl:dpia:8.0:2.0",
+                    "id": "8.2",
                     "type": [
                         "open_text"
                     ],
@@ -753,7 +816,7 @@
         {
             "task": "Juridisch en beleidsmatig kader",
             "description": "Benoem alle wet- en regelgeving en beleid met mogelijke gevolgen voor de gegevensverwerkingen.  De AVG en de Richtlijn hoeven niet genoemd te worden.  Voeg aanvullende informatie toe in het tekstveld.",
-            "urn": "urn:nl:dpia:9.0",
+            "id": "9",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -762,41 +825,41 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerkingen, juridisch en/of beleidsmatigkader, Wetsartikelen",
-                    "urn": "urn:nl:dpia:9.0:1.0",
+                    "id": "9.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Gegevensverwerking",
-                            "urn": "urn:nl:dpia:9.0:1.1",
+                            "id": "9.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Juridisch en/of beleidsmatig kader",
-                            "urn": "urn:nl:dpia:9.0:1.2",
+                            "id": "9.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Wetsartikelen",
-                            "urn": "urn:nl:dpia:9.0:1.3",
+                            "id": "9.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie toe over het juridische en beleidsmatig kader.",
-                    "urn": "urn:nl:dpia:9.0:2.0",
+                    "id": "9.2",
                     "type": [
                         "open_text"
                     ],
@@ -807,7 +870,7 @@
         {
             "task": "Bewaartermijnen",
             "description": "Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de verwerkingsdoeleinden.  Motiveer waarom deze bewaartermijnen niet langer zijn dan strikt noodzakelijk ten opzichte van de verwerkingsdoeleinden.  Beschrijf wie toeziet op de bewaartermijn en de mogelijke vernietiging of archivering aan het einde van de bewaartermijn.  Voeg deze en andere aanvullende informatie toe in het tekstveld.",
-            "urn": "urn:nl:dpia:10.0",
+            "id": "10",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -816,57 +879,57 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn",
-                    "urn": "urn:nl:dpia:10.0:1.0",
+                    "id": "10.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Gegevensverwerking",
-                            "urn": "urn:nl:dpia:10.0:1.1",
+                            "id": "10.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Verwerkingsdoeleinde",
-                            "urn": "urn:nl:dpia:10.0:1.2",
+                            "id": "10.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:10.0:1.3",
+                            "id": "10.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Bewaartermijn/archiveringsperiode",
-                            "urn": "urn:nl:dpia:10.0:1.4",
+                            "id": "10.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Motivatie voor de bewaartermijn",
-                            "urn": "urn:nl:dpia:10.0:1.5",
+                            "id": "10.1.5",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de bewaartermijnen.",
-                    "urn": "urn:nl:dpia:10.0:2.0",
+                    "id": "10.2",
                     "type": [
                         "open_text"
                     ],
@@ -876,8 +939,8 @@
         },
         {
             "task": "Rechtsgrond",
-            "description": "Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd.  Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe.  Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan.  Voeg aanvullende informatie toe in het tekstveld.\n De rechtsgronden zijn:\n - Toestemming: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.\n - Noodzakelijk voor de uitvoering van de overeenkomst: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.\n - Noodzakelijk om te voldoen aan een wettelijke verplichting: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.\n - Noodzakelijk voor de vervulling van een taak van algemeen belang: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk voor de behartiging van een gerechtvaardigd belang: \n   - Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.\n   - Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.",
-            "urn": "urn:nl:dpia:11.0",
+            "description": "Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. \nVoeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. \nIedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. \nVoeg aanvullende informatie toe in het tekstveld.\n De rechtsgronden zijn:\n - Toestemming: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.\n - Noodzakelijk voor de uitvoering van de overeenkomst: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.\n - Noodzakelijk om te voldoen aan een wettelijke verplichting: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.\n - Noodzakelijk voor de vervulling van een taak van algemeen belang: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk voor de behartiging van een gerechtvaardigd belang: \n   - Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.\n   - Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.\n",
+            "id": "11",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -886,23 +949,23 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking, Rechtsgrond, toelichting op de rechtsgrond",
-                    "urn": "urn:nl:dpia:11.0:1.0",
+                    "id": "11.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "gegevensverwerking",
-                            "urn": "urn:nl:dpia:11.0:1.1",
+                            "id": "11.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "rechtsgrond",
-                            "urn": "urn:nl:dpia:11.0:1.2",
+                            "id": "11.1.2",
                             "type": [
                                 "select_option"
                             ],
@@ -914,21 +977,21 @@
                                 "Noodzakelijk voor de vervulling van een taak van algemeen belang",
                                 "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "toelichting op de rechtsgrond",
-                            "urn": "urn:nl:dpia:11.0:1.3",
+                            "id": "11.1.3",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de rechtsgronden.",
-                    "urn": "urn:nl:dpia:11.0:2.0",
+                    "id": "11.2",
                     "type": [
                         "open_text"
                     ],
@@ -939,7 +1002,7 @@
         {
             "task": "Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers",
             "description": "Het verwerken van bijzondere of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan.  Voeg aanvullende informatie toe in het tekstveld.",
-            "urn": "urn:nl:dpia:12.0",
+            "id": "12",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -948,31 +1011,31 @@
             "tasks": [
                 {
                     "task": "Bijzondere persoonsgegevens",
-                    "urn": "urn:nl:dpia:12.0:1.0",
+                    "id": "12.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "gegevensverwerking",
-                            "urn": "urn:nl:dpia:12.0:1.1",
+                            "id": "12.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:12.0:1.2",
+                            "id": "12.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "type bijzonder persoonsgegevens",
-                            "urn": "urn:nl:dpia:12.0:1.3",
+                            "id": "12.1.3",
                             "type": [
                                 "select_option"
                             ],
@@ -988,89 +1051,89 @@
                                 "Strafrechtelijke gegevens",
                                 "Nationaal identificatienummer"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "doorbrekingsgrond",
-                            "urn": "urn:nl:dpia:12.0:1.4",
+                            "id": "12.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Strafrechtelijke persoonsgegevens",
-                    "urn": "urn:nl:dpia:12.0:2.0",
+                    "id": "12.2",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "gegevensverwerking",
-                            "urn": "urn:nl:dpia:12.0:2.1",
+                            "id": "12.2.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:12.0:2.2",
+                            "id": "12.2.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "uitzonderingsgrond",
-                            "urn": "urn:nl:dpia:12.0:2.3",
+                            "id": "12.2.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Nationale identificatienummers",
-                    "urn": "urn:nl:dpia:12.0:3.0",
+                    "id": "12.3",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "gegevensverwerking",
-                            "urn": "urn:nl:dpia:12.0:3.1",
+                            "id": "12.3.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:12.0:3.2",
+                            "id": "12.3.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "uitzonderingsgrond",
-                            "urn": "urn:nl:dpia:12.0:3.4",
+                            "id": "12.3.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
-                    "task": "Aanvullende informatie over de bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers.",
-                    "urn": "urn:nl:dpia:12.0:4.0",
+                    "task": "Aanvullende informatie over de bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers",
+                    "id": "12.4",
                     "type": [
                         "open_text"
                     ],
@@ -1081,7 +1144,7 @@
         {
             "task": "Doelbinding",
             "desription": "Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld.  Voeg in het tekstveld de verenigbaarheidstoets en aanvullende informatie toe.",
-            "urn": "urn:nl:dpia:13.0",
+            "id": "13",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -1090,49 +1153,49 @@
             "tasks": [
                 {
                     "task": "Gegevensverwerking, categorie betrokkenen & persoonsgegevens, doeleinde & oorspronkelijk doeleinde",
-                    "urn": "urn:nl:dpia:13.0:1.0",
+                    "id": "13.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "gegevensverwerking",
-                            "urn": "urn:nl:dpia:13.0:1.1",
+                            "id": "13.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "categorie betrokkene & persoonsgegevens",
-                            "urn": "urn:nl:dpia:13.0:1.2",
+                            "id": "13.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "doeleinde",
-                            "urn": "urn:nl:dpia:13.0:1.3",
+                            "id": "13.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "oorspronkelijke doeleinde",
-                            "urn": "urn:nl:dpia:13.0:1.4",
+                            "id": "13.1.4",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
-                    "task": "Aanvullende informatie over de verenigbaarheid en toelaatbaarheid.",
-                    "urn": "urn:nl:dpia:13.0:2.0",
+                    "task": "Aanvullende informatie over de verenigbaarheid en toelaatbaarheid",
+                    "id": "13.2",
                     "type": [
                         "open_text"
                     ],
@@ -1143,7 +1206,7 @@
         {
             "task": "Noodzaak en evenredigheid",
             "description": "Ga hierbij in ieder geval in op: - Subsidiariteit (en daarmee ook noodzaak): kunnen de verwerkingsdoeleinden in redelijkheid niet op een andere, voor de betrokkenen minder nadelige wijze, worden verwezenlijkt - Prortionaliteit (ook wel evenredigheid): staat de inbreuk op de persoonlijke levenssfeer en de bescherming van de persoonsgegevens van de betrokkenen in evenredige verhouding tot de verwerkingsdoeleinden",
-            "urn": "urn:nl:dpia:14.0",
+            "id": "14",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
                 "task_group"
@@ -1152,7 +1215,7 @@
             "tasks": [
                 {
                     "task": "De beoordeling van de subsidiariteit.",
-                    "urn": "urn:nl:dpia:14.0:1.0",
+                    "id": "14.1",
                     "type": [
                         "open_text"
                     ],
@@ -1160,7 +1223,7 @@
                 },
                 {
                     "task": "De beoordeling van de proportionaliteit.",
-                    "urn": "urn:nl:dpia:14.0:2.0",
+                    "id": "14.2",
                     "type": [
                         "open_text"
                     ],
@@ -1171,7 +1234,7 @@
         {
             "task": "Rechten van de betrokkene",
             "description": "Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkene Als de rechten van de betrokkene worden beperkt,  beschrijf op grond van welke wettelijke uitzondering dat is toegestaan.",
-            "urn": "urn:nl:dpia:15.0",
+            "id": "15",
             "type": [
                 "task_group"
             ],
@@ -1179,15 +1242,15 @@
             "tasks": [
                 {
                     "task": "Recht van inzage",
-                    "urn": "urn:nl:dpia:15.0:1.0",
+                    "id": "15.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Rechten van de betrokkene",
-                            "urn": "urn:nl:dpia:15.0:1.1",
+                            "id": "15.1.1",
                             "type": [
                                 "select_option"
                             ],
@@ -1201,11 +1264,11 @@
                                 "Recht om bezwaar te maken",
                                 "Recht op duidelijke informatie"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Procedure ter uitvoering",
-                            "urn": "urn:nl:dpia:15.0:1.2",
+                            "id": "15.1.2",
                             "type": [
                                 "select_option"
                             ],
@@ -1214,11 +1277,11 @@
                                 "nee",
                                 "nvt"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Beperking op grond van wettelijke uitzondering",
-                            "urn": "urn:nl:dpia:15.0:1.3",
+                            "id": "15.1.3",
                             "type": [
                                 "select_option"
                             ],
@@ -1226,21 +1289,21 @@
                                 "ja",
                                 "nvt"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Toelichting van de beperking",
-                            "urn": "urn:nl:dpia:15.0:1.4",
+                            "id": "15.1.4",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Geef een beschrijving van de procedures.",
-                    "urn": "urn:nl:dpia:15.0:2.0",
+                    "id": "15.2",
                     "type": [
                         "open_text"
                     ],
@@ -1251,7 +1314,7 @@
         {
             "task": "Risico\u2019s voor betrokkenen",
             "description": "Beschrijf en beoordeel de risico\u2019s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen.  Ga hierbij in ieder geval in op: - welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie; - de oorsprong van deze gevolgen; - de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden; - de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden. Gebruik voor de inschatting van de kans, impact en het risico de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden.  De onderstaande matrix kan worden gebruikt voor het vaststellen van de risico\u2019s voor betrokkenen. ",
-            "urn": "urn:nl:dpia:16.0",
+            "id": "16",
             "category": "Beschrijving en beoordeling risico\u2019s voor de betrokkenen",
             "sources": [
                 {
@@ -1266,31 +1329,31 @@
             "tasks": [
                 {
                     "task": "Beschrijving risico, oorsprong, kans (en motivatie), impact (en motivatie), risico-inschatting (en motivatie)",
-                    "urn": "urn:nl:dpia:16.0:1.0",
+                    "id": "16.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
-                            "task": "beschrijving van het risico",
-                            "urn": "urn:nl:dpia:16.0:1.1",
+                            "task": "Beschrijving van het risico",
+                            "id": "16.1.1",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
-                            "task": "oorsprong",
-                            "urn": "urn:nl:dpia:16.0:1.2",
+                            "task": "Oorsprong",
+                            "id": "16.1.2",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
-                            "task": "kans (en motivatie)",
-                            "urn": "urn:nl:dpia:16.0:1.3",
+                            "task": "Kans (en motivatie)",
+                            "id": "16.1.3",
                             "type": [
                                 "select_option"
                             ],
@@ -1299,11 +1362,11 @@
                                 "midden",
                                 "hoog"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
-                            "task": "impact (en motivatie)",
-                            "urn": "urn:nl:dpia:16.0:1.4",
+                            "task": "Impact (en motivatie)",
+                            "id": "16.1.4",
                             "type": [
                                 "select_option"
                             ],
@@ -1312,11 +1375,11 @@
                                 "midden",
                                 "hoog"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "risicoinschatting (en motivatie)",
-                            "urn": "urn:nl:dpia:16.0:1.5",
+                            "id": "16.1.5",
                             "type": [
                                 "select_option"
                             ],
@@ -1325,13 +1388,13 @@
                                 "midden",
                                 "hoog"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
-                    "task": "Aanvullende informatie over de risico\u2019s. ",
-                    "urn": "urn:nl:dpia:16.0:2.0",
+                    "task": "Aanvullende informatie over de risico\u2019s",
+                    "id": "16.2",
                     "type": [
                         "open_text"
                     ],
@@ -1342,7 +1405,7 @@
         {
             "task": "Maatregelen",
             "description": "Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico\u2019s te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt.  Voeg aanvullende informatie in het tekstveld onder de tabel toe.\nBeschrijf ook de resterende risico\u2019s die nog aanwezig zijn na de uitvoering en/of implementatie van de ge\u00efdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico. \nGeef tot slot een conclusie over de restrisico\u2019s. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de Autoriteit Persoonsgegevens nodig? \nGebruik voor de inschattingen van de risico\u2019s de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. Gebruikmaken van de bijbehorende kleuren is aan te raden.",
-            "urn": "urn:nl:dpia:17.0",
+            "id": "17",
             "category": "Maatregelen en restrisico\u2019s",
             "type": [
                 "task_group"
@@ -1351,39 +1414,39 @@
             "tasks": [
                 {
                     "task": "Risico, Oorsprong, Maatregelen, Resterende risico en risico-inschatting & beheerder van maatregelen",
-                    "urn": "urn:nl:dpia:17.0:1.0",
+                    "id": "17.1",
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "tasks": [
                         {
                             "task": "Risico",
-                            "urn": "urn:nl:dpia:17.0:1.1",
+                            "id": "17.1.1",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Oorsprong",
-                            "urn": "urn:nl:dpia:17.0:1.2",
+                            "id": "17.1.2",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Maatregelen",
-                            "urn": "urn:nl:dpia:17.0:1.3",
+                            "id": "17.1.3",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Resterend risico en de risicoinschatting",
-                            "urn": "urn:nl:dpia:17.0:1.4",
+                            "id": "17.1.4",
                             "type": [
                                 "select_option"
                             ],
@@ -1392,21 +1455,21 @@
                                 "midden",
                                 "hoog"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         },
                         {
                             "task": "Beheerder van de maatregelen",
-                            "urn": "urn:nl:dpia:17.0:1.5",
+                            "id": "17.1.5",
                             "type": [
-                                "open_text"
+                                "text_input"
                             ],
-                            "repeatable": true
+                            "repeatable": false
                         }
                     ]
                 },
                 {
                     "task": "Aanvullende informatie over de maatregelen.",
-                    "urn": "urn:nl:dpia:17.0:2.0",
+                    "id": "17.2",
                     "type": [
                         "open_text"
                     ],
@@ -1414,7 +1477,7 @@
                 },
                 {
                     "task": "De beschrijving toe over de resterende risico\u2019s, de risico-inschatting en onderbouwing voor acceptatie resterende risico\u2019s.",
-                    "urn": "urn:nl:dpia:17.0:3.0",
+                    "id": "17.3",
                     "type": [
                         "open_text"
                     ],

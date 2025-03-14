@@ -2,6 +2,7 @@ import * as t from 'io-ts'
 
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
+  t.literal('text_input'),
   t.literal('open_text'),
   t.literal('date'),
   t.literal('select_option'),
@@ -27,7 +28,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     // Required properties
     t.type({
       task: t.string,
-      urn: t.string,
+      id: t.string,
       type: t.array(TaskTypeValue),
     }),
     // Optional properties
