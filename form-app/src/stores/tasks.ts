@@ -60,11 +60,37 @@ export const useTaskStore = defineStore('TaskStore', () => {
     currentTaskId.value = id
   }
 
+  function nextTask() {
+    const currentId = parseInt(currentTaskId.value, 10)
+    const nextId = currentId + 1
+    if (nextId < rootTaskIds.value.length) {
+      currentTaskId.value = nextId.toString()
+    }
+  }
+
+  function previousTask() {
+    const currentId = parseInt(currentTaskId.value, 10)
+    const nextId = currentId - 1
+    if (nextId >=0 ) {
+      currentTaskId.value = nextId.toString()
+    }
+  }
+
   // Getters
   const taskById = computed(() => {
-    return (taskId: string): FlatTask | undefined => {
-      return flatTasks.value[taskId]
+    return (taskId: string): FlatTask => {
+      const task = flatTasks.value[taskId]
+
+      if (!task) {
+        throw new Error(`Task with id "${taskId} not found`)
+      }
+
+      return task
     }
+  })
+
+  const getRootTasks = computed(() => {
+    return rootTaskIds.value.map(id => flatTasks.value[id])
   })
 
   const getParentTaskId = computed(() => {
@@ -88,9 +114,12 @@ export const useTaskStore = defineStore('TaskStore', () => {
     // Actions
     init,
     setTask,
+    nextTask,
+    previousTask,
 
     // Getters
     taskById,
+    getRootTasks,
     getParentTaskId,
     getChildTaskIds,
   }

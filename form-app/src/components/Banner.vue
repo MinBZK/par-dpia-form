@@ -14,9 +14,6 @@
             </path>
           </svg>
         </div>
-        <div class="rvo-logo__wordmark">
-          <p class="rvo-logo__title">Ministerie van Binnenlandse Zaken en<br />Koninkrijksrelaties</p>
-        </div>
       </div>
     </a>
   </div>

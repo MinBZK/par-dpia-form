@@ -7,3 +7,20 @@
   line-height: var(--utrecht-document-line-height);
 }
 
+.form-input-container {
+  position: relative;
+}
+
+@media (min-width: 1080px) {
+  .rvo-theme .rvo-sidebar-layout {
+    grid-template-columns: 410px 1fr;
+  }
+}
+
+.rvo-theme .utrecht-textbox--lg {
+  width: 100%;
+}
+
+.rvo-theme .small-text {
+  font-size: var(--rvo-font-size-xs);
+}

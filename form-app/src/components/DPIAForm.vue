@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import dpia_json from '@/assets/DPIA.json'
 import TaskSection from '@/components/TaskSection.vue'
 import Banner from '@/components/Banner.vue'
+import ProgressTracker from '@/components/ProgressTracker.vue'
 import { fold } from 'fp-ts/lib/Either'
 import * as t from 'io-ts'
 import { DPIA } from '@/models/dpia.ts'
@@ -13,7 +14,7 @@ const error = ref<string | null>(null)
 const isLoading = ref(true)
 
 const taskStore = useTaskStore()
-const { flatTasks, rootTaskIds, currentTaskId } = storeToRefs(taskStore)
+const { flatTasks, currentTaskId } = storeToRefs(taskStore)
 
 const handleValidationErrors = (errors: t.Errors): never => {
   const errorLocations = errors.map((err) => err.context.map((c) => c.key).join('.'))
@@ -45,49 +46,65 @@ onMounted(async () => {
   }
 })
 
-const hasTasks = Object.keys(flatTasks).length == 0
+const hasTasks = computed(() => flatTasks.value || Object.keys(flatTasks.value).length > 0)
+
+const rootTasks = computed(() => taskStore.getRootTasks)
+
+const currentTask = computed(() => taskStore.taskById(currentTaskId.value))
+
+const currentTaskKey = computed(() => `task-${currentTaskId.value}`)
+
+const handleNextTask = () => {
+  taskStore.nextTask()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handlePreviousTask = () => {
+  taskStore.previousTask()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 </script>
 
 <template>
   <Banner />
+  <div v-if="isLoading">
+    <p>Ophalen van DPIA taken ...</p>
+  </div>
 
-  <div
-    class="rvo-layout-column rvo-max-width-layout rvo-layout-align-items-center rvo-max-width-layout-inline-padding--sm"
-  >
-    <!-- Load screen when tasks are being decoded. -->
-    <div v-if="isLoading">
-      <p>Ophalen van DPIA taken ...</p>
+  <!-- Show decoding error if decoding has failed. -->
+  <div v-else-if="error">
+    <h2 class="utrecht-heading-2">Foutmelding</h2>
+    <p>Er is iets mis gegaan bij het inlezen van de vragen.</p>
+    <pre>{{ error }}</pre>
+  </div>
+
+  <!-- If all is well, render the tasks. -->
+  <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
+    <div class="rvo-sidebar-layout__sidebar">
+      <ProgressTracker :rootTasks="rootTasks" />
     </div>
 
-    <!-- Show decoding error if decoding has failed. -->
-    <div v-else-if="error">
-      <h2 class="utrecht-heading-2">Foutmelding</h2>
-      <p>Er is iets mis gegaan bij het inlezen van de vragen.</p>
-      <pre>{{ error }}</pre>
-    </div>
-
-    <!-- If all is well, render the tasks. -->
-    <div class="rvo-layout-column rvo-layout-gap--2xl" v-else>
-      <div class="rvo-select-wrapper">
-        <select
-          v-model="currentTaskId"
-          class="utrecht-select utrecht-select--html-select utrecht-select--lg"
-        >
-          <option v-for="id in rootTaskIds" :key="id" :value="id">
-            {{ id }}: {{ taskStore.taskById(id).task }}
-          </option>
-        </select>
-      </div>
-
-      <div v-if="hasTasks" class="content">
+    <div class="rvo-sidebar-layout__content">
+      <div v-if="!hasTasks" class="content">
         <p>Geen taken gevonden in de DPIA.</p>
       </div>
 
       <div v-else>
-        <TaskSection
-          :key="`task-${currentTaskId.value}`"
-          :task="taskStore.taskById(currentTaskId)"
-        />
+        <TaskSection :key="currentTaskKey" :task="currentTask" />
+        <div class="rvo-layout-margin-vertical--xl">
+          <p class="utrecht-button-group">
+            <button v-if="currentTaskId != '0'"
+              class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md" type="button"
+              @click="handlePreviousTask">
+              Vorige stap
+            </button>
+            <button v-if="currentTaskId != (rootTasks.length - 1).toString()"
+              class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="handleNextTask"
+              type="button">
+              Volgende stap
+            </button>
+          </p>
+        </div>
       </div>
     </div>
   </div>
