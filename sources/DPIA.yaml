@@ -678,12 +678,12 @@ tasks:
           - task_group
           repeatable: true
           tasks: 
-          - task: gegevensverwerking
+          - task: Gegevensverwerking
             id: "11.1.1"
             type: 
               - text_input
             repeatable: false
-          - task: rechtsgrond 
+          - task: Rechtsgrond 
             id: "11.1.2"
             type: 
               - select_option
@@ -695,12 +695,12 @@ tasks:
               - Noodzakelijk voor de vervulling van een taak van algemeen belang
               - Noodzakelijk voor de behartiging van een gerechtvaardigd belang
             repeatable: false
-          - task: toelichting op de rechtsgrond 
+          - task: Toelichting op de rechtsgrond 
             id: "11.1.3"
             type: 
               - open_text
             repeatable: false
-        - task: Aanvullende informatie over de rechtsgronden.
+        - task: Aanvullende informatie over de rechtsgronden
           id: "11.2"
           type: 
            - open_text
@@ -722,17 +722,17 @@ tasks:
           - task_group
           repeatable: true 
           tasks: 
-          - task: gegevensverwerking 
+          - task: Gegevensverwerking 
             id: "12.1.1"
             type: 
               - text_input
             repeatable: false
-          - task: categorie betrokkene & persoonsgegevens 
+          - task: Categorie betrokkenen & persoonsgegevens 
             id: "12.1.2"
             type: 
               - text_input
             repeatable: false
-          - task: type bijzonder persoonsgegevens 
+          - task: Type bijzonder persoonsgegevens 
             id: "12.1.3"
             type: 
               - select_option
@@ -748,7 +748,7 @@ tasks:
               - Strafrechtelijke gegevens
               - Nationaal identificatienummer
             repeatable: false
-          - task: doorbrekingsgrond 
+          - task: Doorbrekingsgrond 
             id: "12.1.4"
             type: 
               - text_input
@@ -759,17 +759,17 @@ tasks:
           - task_group
           repeatable: true 
           tasks: 
-          - task: gegevensverwerking 
+          - task: Gegevensverwerking 
             id: "12.2.1"
             type: 
               - text_input
             repeatable: false
-          - task: categorie betrokkene & persoonsgegevens 
+          - task: Categorie betrokkenen & persoonsgegevens 
             id: "12.2.2"
             type: 
               - text_input
             repeatable: false
-          - task: uitzonderingsgrond 
+          - task: Uitzonderingsgrond 
             id: "12.2.3"
             type: 
               - text_input
@@ -780,17 +780,17 @@ tasks:
           - task_group
           repeatable: true
           tasks: 
-          - task: gegevensverwerking 
+          - task: Gegevensverwerking 
             id: "12.3.1"
             type: 
               - text_input
             repeatable: false
-          - task: categorie betrokkene & persoonsgegevens 
+          - task: Categorie betrokkenen & persoonsgegevens 
             id: "12.3.2"
             type: 
               - text_input
             repeatable: false
-          - task: uitzonderingsgrond 
+          - task: Uitzonderingsgrond 
             id: "12.3.3"
             type: 
               - text_input
@@ -817,22 +817,22 @@ tasks:
           - task_group
           repeatable: true 
           tasks: 
-          - task: gegevensverwerking 
+          - task: Gegevensverwerking 
             id: "13.1.1"
             type: 
               - text_input
             repeatable: false
-          - task: categorie betrokkene & persoonsgegevens
+          - task: Categorie betrokkenen & persoonsgegevens
             id: "13.1.2"
             type: 
               - text_input
             repeatable: false
-          - task: doeleinde 
+          - task: Doeleinde 
             id: "13.1.3"
             type: 
               - text_input
             repeatable: false
-          - task: oorspronkelijke doeleinde 
+          - task: Oorspronkelijke doeleinde 
             id: "13.1.4"
             type: 
               - text_input
@@ -854,12 +854,12 @@ tasks:
         - task_group
    repeatable: false
    tasks:
-        - task: De beoordeling van de subsidiariteit.
+        - task: De beoordeling van de subsidiariteit
           id: "14.1"
           type: 
             - open_text
           repeatable: false
-        - task: De beoordeling van de proportionaliteit.
+        - task: De beoordeling van de proportionaliteit
           id: "14.2"
           type: 
             - open_text
@@ -919,7 +919,7 @@ tasks:
               - open_text
             repeatable: false
         - task: >-
-            Geef een beschrijving van de procedures.
+            Geef een beschrijving van de procedures
           id: "15.2"
           type: 
            - open_text
@@ -1047,13 +1047,13 @@ tasks:
                 - text_input
               repeatable: false
         - task: >-
-              Aanvullende informatie over de maatregelen.
+              Aanvullende informatie over de maatregelen
           id: "17.2"
           type: 
             - open_text
           repeatable: false
         - task: >-
-              De beschrijving toe over de resterende risico’s, de risico-inschatting en onderbouwing voor acceptatie resterende risico’s.
+              De beschrijving toe over de resterende risico’s, de risico-inschatting en onderbouwing voor acceptatie resterende risico’s
           id: "17.3"
           type: 
             - open_text

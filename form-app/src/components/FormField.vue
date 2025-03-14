@@ -3,11 +3,11 @@ import { TaskTypeValue } from '@/models/dpia.ts'
 import { type FlatTask } from '@/stores/tasks'
 
 const props = defineProps<{
-  task: FlatTask | undefined
+  task: FlatTask
 }>()
 
 const hasType = (typeToCheck: TaskTypeValue): boolean => {
-  return props.task.type.includes(typeToCheck)
+  return props.task.type?.includes(typeToCheck) || false
 }
 </script>
 
@@ -20,7 +20,7 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
 
   <!-- Text area -->
   <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs">
-    <textarea :id="task.id" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"></textarea>
+    <textarea :id="task.id" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto" rows=10></textarea>
   </div>
 
   <!-- Select dropdown -->
