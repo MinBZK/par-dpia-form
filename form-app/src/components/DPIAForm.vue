@@ -1,37 +1,28 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { storeToRefs } from 'pinia'
 import dpia_json from '@/assets/DPIA.json'
-import TaskSection from '@/components/TaskSection.vue'
+import Button from '@/components/ui/Button.vue'
+import TaskSection from '@/components/task/TaskSection.vue'
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
-import { fold } from 'fp-ts/lib/Either'
 import * as t from 'io-ts'
 import { DPIA } from '@/models/dpia.ts'
+import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useTaskStore } from '@/stores/tasks'
+import { validateData } from '@/utils/validation'
 
+// State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 
+// Store setup
 const taskStore = useTaskStore()
-const { flatTasks, currentTaskId } = storeToRefs(taskStore)
+const rootTasks = computed(() => taskStore.getRootTasks)
 
-const handleValidationErrors = (errors: t.Errors): never => {
-  const errorLocations = errors.map((err) => err.context.map((c) => c.key).join('.'))
-  errorLocations.forEach((location) => console.error(`Error at: ${location}`))
-  throw new Error(
-    `JSON decoder could not validate data, problem(s) found at ${errorLocations.join(', ')}`,
-  )
-}
-
-const validateData = <T,>(validation: t.Validation<any>, onSuccess: (data: T) => void): void => {
-  fold(handleValidationErrors, onSuccess)(validation)
-}
-
-// Initialize the flattendTaskStore with tasks.
+// Initialize tasks on component mount
 onMounted(async () => {
   try {
-    const dpiaFormValidation: t.Validation<any> = DPIA.decode(dpia_json)
+    const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
       taskStore.init(validData.tasks)
     })
@@ -46,23 +37,13 @@ onMounted(async () => {
   }
 })
 
-const hasTasks = computed(() => flatTasks.value || Object.keys(flatTasks.value).length > 0)
-
-const rootTasks = computed(() => taskStore.getRootTasks)
-
-const currentTask = computed(() => taskStore.taskById(currentTaskId.value))
-
-const currentTaskKey = computed(() => `task-${currentTaskId.value}`)
-
-const handleNextTask = () => {
-  taskStore.nextTask()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-const handlePreviousTask = () => {
-  taskStore.previousTask()
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
+const {
+  currentRootTaskId,
+  goToNext,
+  goToPrevious,
+  isFirstTask,
+  isLastTask
+} = useTaskNavigation()
 </script>
 
 <template>
@@ -72,7 +53,7 @@ const handlePreviousTask = () => {
   </div>
 
   <!-- Show decoding error if decoding has failed. -->
-  <div v-else-if="error">
+  <div v-else-if="error" role="alert" aria-live="assertive">
     <h2 class="utrecht-heading-2">Foutmelding</h2>
     <p>Er is iets mis gegaan bij het inlezen van de vragen.</p>
     <pre>{{ error }}</pre>
@@ -80,31 +61,24 @@ const handlePreviousTask = () => {
 
   <!-- If all is well, render the tasks. -->
   <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
-    <div class="rvo-sidebar-layout__sidebar">
+
+    <!-- Show all main (root) tasks -->
+    <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
       <ProgressTracker :rootTasks="rootTasks" />
-    </div>
+    </nav>
 
-    <div class="rvo-sidebar-layout__content">
-      <div v-if="!hasTasks" class="content">
-        <p>Geen taken gevonden in de DPIA.</p>
-      </div>
+    <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
+      <!-- Render curren task -->
+      <TaskSection :taskId="currentRootTaskId" />
 
-      <div v-else>
-        <TaskSection :key="currentTaskKey" :task="currentTask" />
-        <div class="rvo-layout-margin-vertical--xl">
-          <p class="utrecht-button-group">
-            <button v-if="currentTaskId != '0'"
-              class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md" type="button"
-              @click="handlePreviousTask">
-              Vorige stap
-            </button>
-            <button v-if="currentTaskId != (rootTasks.length - 1).toString()"
-              class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="handleNextTask"
-              type="button">
-              Volgende stap
-            </button>
-          </p>
-        </div>
+      <div class="rvo-layout-margin-vertical--xl">
+
+        <!-- Navigation buttons -->
+        <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+          <Button v-if="!isFirstTask" variant="secondary" label="Vorige stap" @click="goToPrevious" />
+          <Button v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+        </p>
+
       </div>
     </div>
   </div>

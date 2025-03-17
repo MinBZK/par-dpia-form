@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
+import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { type FlatTask } from '@/stores/tasks'
-import { useTaskStore } from '@/stores/tasks'
 
-const taskStore = useTaskStore()
-const { currentTaskId } = storeToRefs(taskStore)
+const {
+  currentRootTaskId,
+  goToTask,
+} = useTaskNavigation()
 
 defineProps<{
   rootTasks: FlatTask[]
@@ -21,18 +22,18 @@ defineProps<{
       <div :class="[
         'rvo-progress-tracker__step',
         'rvo-progress-tracker__step--md',
-        task.id === currentTaskId ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after' : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
+        task.id === currentRootTaskId ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after' : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
         'rvo-progress-tracker__step--straight',
         'rvo-image-bg-progress-tracker-line-straight--before',
       ]">
-        <a class="rvo-link rvo-progress-tracker__step-link small-text" @click="taskStore.setTask(task.id)">
-          {{ task.id }}. {{ task.task }}
+        <a class="rvo-link rvo-progress-tracker__step-link small-text" @click="goToTask(task.id)">
+          {{ task.id !== "0" ? `${task.id}.` : `` }} {{ task.task }}
         </a>
       </div>
     </div>
     <div
       class="rvo-progress-tracker__step rvo-progress-tracker__step--md rvo-progress-tracker__step--end rvo-image-bg-progress-tracker-start-end-md--after">
-      Process completed
+      Proces voltooid
     </div>
   </div>
 </template>
