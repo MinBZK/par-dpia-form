@@ -490,7 +490,7 @@ tasks:
       - task_group
    repeatable: false
    tasks:
-        - task: Betrokken parij, belangen, uitkomst consultatie betrokkene
+        - task: Betrokken partij, belangen, uitkomst consultatie betrokkenen
           id: "7.1"
           type: 
           - task_group
@@ -501,12 +501,12 @@ tasks:
               type: 
                 - text_input
               repeatable: false 
-            - task: Belang, uitkomst consultatie betrokkene
+            - task: Belang, uitkomst consultatie betrokkenen
               id: "7.1.2"
               type: 
                 - text_input
               repeatable: false 
-        - task: Aanvullende informatie over de belangen.
+        - task: Aanvullende informatie over de belangen
           id: "7.2"
           type: 
            - open_text
@@ -558,7 +558,7 @@ tasks:
               type: 
                 - text_input
               repeatable: false 
-        - task: Aanvullende informatie over de verwerkingslocaties.
+        - task: Aanvullende informatie over de verwerkingslocaties
           id: "8.2"
           type: 
            - open_text
@@ -596,7 +596,7 @@ tasks:
             type: 
               - text_input
             repeatable: false 
-        - task: Aanvullende informatie toe over het juridische en beleidsmatig kader.
+        - task: Aanvullende informatie toe over het juridische en beleidsmatig kader
           id: "9.2"
           type: 
            - open_text
@@ -645,7 +645,7 @@ tasks:
               type: 
                 - open_text
               repeatable: false
-        - task: Aanvullende informatie over de bewaartermijnen.
+        - task: Aanvullende informatie over de bewaartermijnen
           id: "10.2"
           type: 
            - open_text
@@ -979,7 +979,7 @@ tasks:
               - midden
               - hoog
             repeatable: false
-          - task: risicoinschatting (en motivatie)
+          - task: Risicoinschatting (en motivatie)
             id: "16.1.5"
             type: 
               - select_option

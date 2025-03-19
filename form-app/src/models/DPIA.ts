@@ -23,6 +23,7 @@ export const Source = t.intersection([
 ])
 export type Source = t.TypeOf<typeof Source>
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
   t.intersection([
     // Required properties

@@ -18,8 +18,9 @@ export interface FlatTask {
 export const useTaskStore = defineStore('TaskStore', () => {
   // Properties
   const flatTasks = ref<Record<string, FlatTask>>({})
+  const taskInstances = ref<Record<string, number>>({})
   const rootTaskIds = ref<string[]>([])
-  const currentTaskId = ref('0')
+  const currentRootTaskId = ref('0')
 
   // Actions
   function init(tasks: Task[]) {
@@ -42,6 +43,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
       }
 
       flatTasks.value[task.id] = flatTask
+      taskInstances.value[task.id] = 1
 
       if (parentId) {
         flatTasks.value[parentId].childrenIds.push(task.id)
@@ -56,23 +58,58 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
-  function setTask(id: string) {
-    currentTaskId.value = id
+  function setRootTask(id: string) {
+    currentRootTaskId.value = id
   }
 
-  function nextTask() {
-    const currentId = parseInt(currentTaskId.value, 10)
+  function nextRootTask() {
+    const currentId = parseInt(currentRootTaskId.value, 10)
     const nextId = currentId + 1
     if (nextId < rootTaskIds.value.length) {
-      currentTaskId.value = nextId.toString()
+      setRootTask(nextId.toString())
     }
   }
 
-  function previousTask() {
-    const currentId = parseInt(currentTaskId.value, 10)
+  function previousRootTask() {
+    const currentId = parseInt(currentRootTaskId.value, 10)
     const nextId = currentId - 1
-    if (nextId >=0 ) {
-      currentTaskId.value = nextId.toString()
+    if (nextId >= 0) {
+      setRootTask(nextId.toString())
+    }
+  }
+
+  function addRepeatableTaskInstance(id: string) {
+    const task = taskById.value(id)
+    if (task.repeatable) {
+      _addTaskInstance(id)
+    }
+  }
+
+  function removeRepeatableTaskInstance(id: string) {
+    const task = taskById.value(id)
+    if (task.repeatable) {
+      _removeTaskInstance(id)
+    }
+  }
+
+  function _addTaskInstance(id: string) {
+    const task = taskById.value(id)
+    taskInstances.value[id]++
+    if (task.childrenIds.length > 0) {
+      for (const childId of task.childrenIds) {
+        _addTaskInstance(childId)
+      }
+    }
+  }
+
+
+  function _removeTaskInstance(id: string) {
+    const task = taskById.value(id)
+    taskInstances.value[id]--
+    if (task.childrenIds.length > 0) {
+      for (const childId of task.childrenIds) {
+        _removeTaskInstance(childId)
+      }
     }
   }
 
@@ -105,22 +142,32 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   })
 
+  const getInstance = computed(() => {
+    return (taskId: string): number => {
+      return taskInstances.value[taskId]
+    }
+  })
+
   return {
     // Properties
     flatTasks,
     rootTaskIds,
-    currentTaskId,
+    currentRootTaskId,
+    taskInstances,
 
     // Actions
     init,
-    setTask,
-    nextTask,
-    previousTask,
+    setRootTask,
+    nextRootTask,
+    previousRootTask,
+    addRepeatableTaskInstance,
+    removeRepeatableTaskInstance,
 
     // Getters
     taskById,
     getRootTasks,
     getParentTaskId,
     getChildTaskIds,
+    getInstance,
   }
 })
