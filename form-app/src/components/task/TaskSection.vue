@@ -32,7 +32,7 @@ const isRepeatable = (taskId: string) => {
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-          <p class="utrecht-paragraph">
+          <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>
         </fieldset>
@@ -46,7 +46,8 @@ const isRepeatable = (taskId: string) => {
           <!--Single task (no children): render the task itself -->
           <template v-for="instance in taskStore.getInstance(childId)" :key="instance">
 
-            <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instance="instance" />
+            <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instance="instance"
+              :showDescription="true" />
 
             <!-- Nested task group (has children): render children as TaskField -->
             <TaskField v-else :taskId="childId" :instance="instance" />

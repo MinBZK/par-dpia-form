@@ -8,6 +8,7 @@ const props = defineProps<{
   task: FlatTask,
   instance: number,
   label?: string,
+  description?: string,
 }>()
 
 const answerStore = useAnswerStore()
@@ -49,6 +50,9 @@ const handleFileInput = (event: Event) => {
     <label class="rvo-label" :id="`label-${task.id}-${instance}`">
       {{ label }}
     </label>
+    <div v-if="description" class="utrecht-form-field-description" id="helperTextId">
+      {{ description }}
+    </div>
   </div>
 
   <!-- Text input field -->
