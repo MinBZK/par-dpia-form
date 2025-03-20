@@ -943,13 +943,14 @@ tasks:
       - de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.
 
       Gebruik voor de inschatting van de kans, impact en het risico de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. 
+
       De onderstaande matrix kan worden gebruikt voor het vaststellen van de risico’s voor betrokkenen. 
    id: "17"
    category: Beschrijving en beoordeling risico’s voor de betrokkenen
    sources: 
-    - source: sources/datamodel/risico_matrix.png
+    - source: risico_matrix.png
       description: >-
-        De bovenstaande risicomatrix is illustratief. Risico’s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden. 
+        Deze risicomatrix is illustratief. Risico’s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden. 
    type:
         - task_group
    repeatable: false 
