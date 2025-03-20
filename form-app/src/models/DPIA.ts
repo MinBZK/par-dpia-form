@@ -23,6 +23,18 @@ export const Source = t.intersection([
 ])
 export type Source = t.TypeOf<typeof Source>
 
+export const Dependency = t.type({
+  type: t.string,
+  condition: t.type({
+    id: t.string,
+    operator: t.string,
+    value: t.string,
+  }),
+  action: t.string,
+})
+
+export type Dependency = t.TypeOf<typeof Dependency>
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
   t.intersection([
@@ -40,6 +52,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       tasks: t.array(Task),
       options: t.array(t.string),
       sources: t.array(Source),
+      dependencies: t.array(Dependency),
     }),
   ]),
 )

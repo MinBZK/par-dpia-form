@@ -460,6 +460,17 @@
                     ],
                     "description": "Geef in deze tabel extra informatie over de bron van persoonsgegevens die via  een betrokken partij komen.",
                     "repeatable": true,
+                    "dependencies": [
+                        {
+                            "type": "conditional",
+                            "condition": {
+                                "id": "3.1.5",
+                                "operator": "equals",
+                                "value": "via betrokken partij"
+                            },
+                            "action": "show"
+                        }
+                    ],
                     "tasks": [
                         {
                             "task": "Categorie betrokkenen",
