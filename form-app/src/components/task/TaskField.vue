@@ -36,8 +36,8 @@ const removeInstance = (taskId: string, instance: number) => {
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">
 
         <div v-for="childId in taskStore.taskById(taskId).childrenIds" :key="childId">
-          <FormField :task="taskStore.taskById(childId)" :instance="instance"
-            :label="taskStore.taskById(childId).task" />
+          <FormField :task="taskStore.taskById(childId)" :instance="instance" :label="taskStore.taskById(childId).task"
+            :description="taskStore.taskById(childId).description" />
         </div>
       </div>
       <Button v-if="isRepeatable" variant="secondary" icon="verwijderen" label="Verwijder veld"

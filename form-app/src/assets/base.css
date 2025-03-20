@@ -24,3 +24,7 @@
 .rvo-theme .small-text {
   font-size: var(--rvo-font-size-xs);
 }
+
+.rvo-theme .preserve-whitespace {
+    white-space: pre-line;
+}
