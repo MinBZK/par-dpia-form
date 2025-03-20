@@ -1322,13 +1322,13 @@
         },
         {
             "task": "Risico\u2019s voor betrokkenen",
-            "description": "Beschrijf en beoordeel de risico\u2019s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen. \n\nGa hierbij in ieder geval in op:\n- welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie;\n- de oorsprong van deze gevolgen;\n- de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden;\n- de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.\n\nGebruik voor de inschatting van de kans, impact en het risico de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. \nDe onderstaande matrix kan worden gebruikt voor het vaststellen van de risico\u2019s voor betrokkenen. \n",
+            "description": "Beschrijf en beoordeel de risico\u2019s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen. \n\nGa hierbij in ieder geval in op:\n- welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie;\n- de oorsprong van deze gevolgen;\n- de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden;\n- de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.\n\nGebruik voor de inschatting van de kans, impact en het risico de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. \n\nDe onderstaande matrix kan worden gebruikt voor het vaststellen van de risico\u2019s voor betrokkenen. \n",
             "id": "17",
             "category": "Beschrijving en beoordeling risico\u2019s voor de betrokkenen",
             "sources": [
                 {
-                    "source": "sources/datamodel/risico_matrix.png",
-                    "description": "De bovenstaande risicomatrix is illustratief. Risico\u2019s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden. "
+                    "source": "risico_matrix.png",
+                    "description": "Deze risicomatrix is illustratief. Risico\u2019s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden. "
                 }
             ],
             "type": [

@@ -12,12 +12,17 @@ const props = defineProps<{
 const taskStore = useTaskStore()
 
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
+
 const shouldShowChildren = computed(() =>
   task.value.type?.includes('task_group') && (task.value.childrenIds?.length || 0) > 0
 )
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
+}
+
+const resolveImagePath = (image: string): string => {
+  return "/src/assets/images/" + image
 }
 </script>
 
@@ -35,6 +40,13 @@ const isRepeatable = (taskId: string) => {
           <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>
+          <template v-if="task.sources">
+            <template v-for="source in task.sources" :key="source">
+              <img :src="resolveImagePath(source.source)" :alt="source.description">
+            </template>
+          </template>
+
+
         </fieldset>
       </div>
 
