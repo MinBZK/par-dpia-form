@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 
-export type AnswerValue = string | string[] | File[] | number | boolean | Date | null;
+export type AnswerValue = string | string[] | number | null;
 
 export interface Answer {
   value: AnswerValue;

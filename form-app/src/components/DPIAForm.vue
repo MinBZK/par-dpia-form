@@ -1,22 +1,29 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import dpia_json from '@/assets/DPIA.json'
-import Button from '@/components/ui/Button.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
+import SaveForm from '@/components/SaveForm.vue'
 import * as t from 'io-ts'
 import { DPIA } from '@/models/dpia.ts'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useTaskStore } from '@/stores/tasks'
+import { useAnswerStore } from '@/stores/answers'
 import { validateData } from '@/utils/validation'
+import { type DPIASnapshot } from '@/models/dpiaSnapshot'
+import { downloadJsonFile } from '@/utils/fileExport'
+
 
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
+const isSaveModalOpen = ref(false)
 
 // Store setup
 const taskStore = useTaskStore()
+const answerStore = useAnswerStore()
 const rootTasks = computed(() => taskStore.getRootTasks)
 
 // Initialize tasks on component mount
@@ -44,6 +51,35 @@ const {
   isFirstTask,
   isLastTask
 } = useTaskNavigation()
+
+const openSaveModal = () => {
+  isSaveModalOpen.value = true;
+}
+const closeSaveModal = () => {
+  isSaveModalOpen.value = false;
+}
+const handleSaveForm = (filename: string) => {
+  console.log('Saving form with filename:', filename);
+  try {
+
+    const snapshotData: DPIASnapshot = {
+      metadata: {
+        savedAt: new Date().toISOString(),
+      },
+      taskState: {
+        currentRootTaskId: taskStore.currentRootTaskId,
+        taskInstances: { ...taskStore.taskInstances }
+      },
+      answers: { ...answerStore.answers }
+    }
+
+    downloadJsonFile(snapshotData, filename)
+  } catch (error) {
+
+    //TODO: Make user friendly error
+    console.error('Failed to save form data:', error)
+  }
+}
 </script>
 
 <template>
@@ -74,12 +110,17 @@ const {
       <div class="rvo-layout-margin-vertical--xl">
 
         <!-- Navigation buttons -->
-        <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-          <Button v-if="!isFirstTask" variant="secondary" label="Vorige stap" @click="goToPrevious" />
-          <Button v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-        </p>
-
+        <div class="button-group-container">
+          <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
+          <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+            <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
+            <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+          </p>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Save Form Modal -->
+  <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
 </template>

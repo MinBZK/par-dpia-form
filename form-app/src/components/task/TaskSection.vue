@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { type FlatTask, useTaskStore } from '@/stores/tasks'
-import Button from '@/components/ui/Button.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import TaskField from '@/components/task/TaskField.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 
@@ -55,9 +55,9 @@ const resolveImagePath = (image: string): string => {
 
         <template v-for="childId in task.childrenIds" :key="childId">
 
-          <!--Single task (no children): render the task itself -->
           <template v-for="instance in taskStore.getInstance(childId)" :key="instance">
 
+            <!--Single task (no children): render the task itself -->
             <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instance="instance"
               :showDescription="true" />
 
@@ -65,7 +65,7 @@ const resolveImagePath = (image: string): string => {
             <TaskField v-else :taskId="childId" :instance="instance" />
           </template>
 
-          <Button v-if="isRepeatable(childId)" variant="primary" icon="plus" label="Voeg veld toe"
+          <UiButton v-if="isRepeatable(childId)" variant="primary" icon="plus" label="Voeg veld toe"
             @click="taskStore.addRepeatableTaskInstance(childId)" />
         </template>
       </div>

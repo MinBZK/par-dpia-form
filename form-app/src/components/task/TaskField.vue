@@ -2,8 +2,9 @@
 import { computed } from 'vue'
 import { type FlatTask, useTaskStore } from '@/stores/tasks'
 import { useAnswerStore } from '@/stores/answers'
-import Button from '@/components/ui/Button.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import FormField from '@/components/task/FormField.vue'
+import { useTaskDependencies } from '@/composables/useTaskDependencies'
 
 const props = defineProps<{
   taskId: string,
@@ -13,6 +14,7 @@ const props = defineProps<{
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 
+const { shouldShowTask } = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
 
@@ -36,11 +38,13 @@ const removeInstance = (taskId: string, instance: number) => {
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">
 
         <div v-for="childId in taskStore.taskById(taskId).childrenIds" :key="childId">
-          <FormField :task="taskStore.taskById(childId)" :instance="instance" :label="taskStore.taskById(childId).task"
-            :description="taskStore.taskById(childId).description" />
+          <template v-if="shouldShowTask(childId, instance)">
+            <FormField :task="taskStore.taskById(childId)" :instance="instance"
+              :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
+          </template>
         </div>
       </div>
-      <Button v-if="isRepeatable" variant="secondary" icon="verwijderen" label="Verwijder veld"
+      <UiButton v-if="isRepeatable" variant="secondary" icon="verwijderen" label="Verwijder veld"
         @click="removeInstance(taskId, instance)" />
     </fieldset>
   </div>
