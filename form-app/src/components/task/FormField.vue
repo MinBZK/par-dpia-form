@@ -36,6 +36,12 @@ const handleSelectInput = (event: Event) => {
   answerStore.setAnswer(props.task.id, props.instance, target.value)
 }
 
+// Radio handler
+const handleRadioInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  answerStore.setAnswer(props.task.id, props.instance, target.value)
+}
+
 // File input handler
 const handleFileInput = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -50,7 +56,7 @@ const handleFileInput = (event: Event) => {
     <label class="rvo-label" :id="`label-${task.id}-${instance}`">
       {{ label }}
     </label>
-    <div v-if="description" class="utrecht-form-field-description" id="helperTextId">
+    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instance}`">
       {{ description }}
     </div>
   </div>
@@ -69,6 +75,19 @@ const handleFileInput = (event: Event) => {
       @input="handleTextInput"></textarea>
   </div>
 
+  <!-- Select radio -->
+  <div v-else-if="hasType('radio_option')" class="field-group">
+    <div class="rvo-radio-button__group">
+      <label v-for="option in task.options" :key="option.value" class="rvo-radio-button"
+        :for="`${task.id}-${instance}-${option.value}`">
+        <input :id="`${task.id}-${instance}-${option.value}`" :value="option.value"
+          :checked="currentValue === option.value" :name="`group-${task.id}-${instance}`" type="radio"
+          class="utrecht-radio-button" @change="handleRadioInput" />
+        {{ option.label }}
+      </label>
+    </div>
+  </div>
+
   <!-- Select dropdown -->
   <div v-else-if="hasType('select_option')" class="field-group">
     <div class="rvo-select-wrapper">
@@ -76,8 +95,8 @@ const handleFileInput = (event: Event) => {
         :aria-labelledby="label ? `label-${task.id}-${instance}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="option" :value="option">
-          {{ option }}
+        <option v-for="option in task.options" :key="option" :value="option.value">
+          {{ option.value }}
         </option>
       </select>
     </div>

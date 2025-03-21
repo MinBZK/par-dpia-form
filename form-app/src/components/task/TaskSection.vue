@@ -58,6 +58,7 @@ const resolveImagePath = (image: string): string => {
           <!--Single task (no children): render the task itself -->
           <template v-for="instance in taskStore.getInstance(childId)" :key="instance">
 
+
             <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instance="instance"
               :showDescription="true" />
 

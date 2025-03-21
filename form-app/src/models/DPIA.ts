@@ -6,6 +6,7 @@ export const TaskTypeValue = t.union([
   t.literal('open_text'),
   t.literal('date'),
   t.literal('select_option'),
+  t.literal('radio_option'),
   t.literal('upload_document'),
   t.literal('sign_task'),
 ])
@@ -22,6 +23,19 @@ export const Source = t.intersection([
   }),
 ])
 export type Source = t.TypeOf<typeof Source>
+
+export const Option = t.intersection([
+  // Required properties
+  t.type({
+    value: t.string,
+  }),
+  // Optional properties
+  t.partial({
+    label: t.string,
+  }),
+])
+
+export type Option = t.TypeOf<typeof Option>
 
 export const Dependency = t.type({
   type: t.string,
@@ -50,7 +64,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       category: t.string,
       repeatable: t.boolean,
       tasks: t.array(Task),
-      options: t.array(t.string),
+      options: t.array(Option),
       sources: t.array(Source),
       dependencies: t.array(Dependency),
     }),

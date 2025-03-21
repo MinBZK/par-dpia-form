@@ -57,6 +57,7 @@
                             "open_text",
                             "sign_task",
                             "select_option",
+                            "radio_option",
                             "upload_document",
                             "task_group",
                             "date"
@@ -66,7 +67,18 @@
                 "options": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "value"
+                        ]
                     }
                 },
                 "required_status": {

@@ -226,8 +226,12 @@
                         "select_option"
                     ],
                     "options": [
-                        "concept",
-                        "definitief"
+                        {
+                            "value": "concept"
+                        },
+                        {
+                            "value": "definitief"
+                        }
                     ],
                     "repeatable": false
                 },
@@ -422,96 +426,107 @@
                                 "select_option"
                             ],
                             "options": [
-                                "gewoon",
-                                "gevoelig",
-                                "bijzonder",
-                                "strafrechtelijk",
-                                "nationaal identificatienummer"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Bron betrokkenen",
-                            "id": "3.1.5",
-                            "type": [
-                                "select_option"
-                            ],
-                            "options": [
-                                "rechtstreeks bij betrokkene",
-                                "via betrokken partij"
+                                {
+                                    "value": "gewoon"
+                                },
+                                {
+                                    "value": "gevoelig"
+                                },
+                                {
+                                    "value": "bijzonder"
+                                },
+                                {
+                                    "value": "strafrechtelijk"
+                                },
+                                {
+                                    "value": "nationaal identificatienummer"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Oorspronkelijke verwerkingsdoeleinde",
-                            "id": "3.1.6",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        }
-                    ]
-                },
-                {
-                    "task": "Bronnen via betrokken partij",
-                    "id": "3.2",
-                    "type": [
-                        "task_group"
-                    ],
-                    "description": "Geef in deze tabel extra informatie over de bron van persoonsgegevens die via  een betrokken partij komen.",
-                    "repeatable": true,
-                    "dependencies": [
-                        {
-                            "type": "conditional",
-                            "condition": {
-                                "id": "3.1.5",
-                                "operator": "equals",
-                                "value": "via betrokken partij"
-                            },
-                            "action": "show"
-                        }
-                    ],
-                    "tasks": [
-                        {
-                            "task": "Categorie betrokkenen",
-                            "id": "3.2.1",
+                            "id": "3.1.5",
                             "type": [
                                 "text_input"
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie persoonsgegevens",
-                            "id": "3.2.2",
+                            "task": "Bron betrokkenen",
+                            "description": "Zijn de persoonsgegevens via een betrokken partij gekomen?",
+                            "id": "3.1.6",
                             "type": [
-                                "text_input"
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": "rechstreeks bij betrokkenen",
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": "via betrokken partij",
+                                    "label": "Ja"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Naam partij",
-                            "id": "3.2.3",
+                            "id": "3.1.7",
                             "type": [
                                 "text_input"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": "via betrokken partij"
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         },
                         {
                             "task": "Middel van bron (tool/platform)",
-                            "id": "3.2.4",
+                            "id": "3.1.8",
                             "type": [
                                 "text_input"
                             ],
-                            "description": "Tool/platform",
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": "via betrokken partij"
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         },
                         {
                             "task": "Verstrekkingsgrond",
-                            "id": "3.2.5",
+                            "id": "3.1.9",
                             "type": [
                                 "text_input"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": "via betrokken partij"
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -677,14 +692,30 @@
                                 "select_option"
                             ],
                             "options": [
-                                "verwerkingsverantwoordelijke",
-                                "gezamenlijke verwerkingsverantwoordelijke",
-                                "verwerker",
-                                "sub-verwerker",
-                                "verstrekker",
-                                "ontvanger",
-                                "betrokkene",
-                                "derde"
+                                {
+                                    "value": "verwerkingsverantwoordelijke"
+                                },
+                                {
+                                    "value": "gezamenlijke verwerkingsverantwoordelijke"
+                                },
+                                {
+                                    "value": "verwerker"
+                                },
+                                {
+                                    "value": "sub-verwerker"
+                                },
+                                {
+                                    "value": "verstrekker"
+                                },
+                                {
+                                    "value": "ontvanger"
+                                },
+                                {
+                                    "value": "betrokkene"
+                                },
+                                {
+                                    "value": "derde"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -803,11 +834,21 @@
                                 "select_option"
                             ],
                             "options": [
-                                "Adequaatheidsbesluit",
-                                "Binding Corporate Rules (BCR)",
-                                "Standaard contractsbepalingen (SCC)",
-                                "Artikel 49 AVG uitzondering",
-                                "Niet van toepassing (binnen EER)"
+                                {
+                                    "value": "Adequaatheidsbesluit"
+                                },
+                                {
+                                    "value": "Binding Corporate Rules (BCR)"
+                                },
+                                {
+                                    "value": "Standaard contractsbepalingen (SCC)"
+                                },
+                                {
+                                    "value": "Artikel 49 AVG uitzondering"
+                                },
+                                {
+                                    "value": "Niet van toepassing (binnen EER)"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -988,12 +1029,24 @@
                                 "select_option"
                             ],
                             "options": [
-                                "Toestemming",
-                                "Noodzakelijk voor de uitvoering van de overeenkomst",
-                                "Noodzakelijk om te voldoen aan een wettelijke verplichting",
-                                "Noodzakelijk om de vitale belangen te beschermen",
-                                "Noodzakelijk voor de vervulling van een taak van algemeen belang",
-                                "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                {
+                                    "value": "Toestemming"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de uitvoering van de overeenkomst"
+                                },
+                                {
+                                    "value": "Noodzakelijk om te voldoen aan een wettelijke verplichting"
+                                },
+                                {
+                                    "value": "Noodzakelijk om de vitale belangen te beschermen"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de vervulling van een taak van algemeen belang"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1058,16 +1111,36 @@
                                 "select_option"
                             ],
                             "options": [
-                                "Ras of etnische afkomst",
-                                "Politieke opvattingen",
-                                "Religieuze of levensbeschouwelijke overtuigingen",
-                                "Lidmaatschap van een vakbond",
-                                "Genetische gegevens",
-                                "Biometrische gegevens",
-                                "Gezondheidsgegevens",
-                                "Seksuele gerichtheid",
-                                "Strafrechtelijke gegevens",
-                                "Nationaal identificatienummer"
+                                {
+                                    "value": "Ras of etnische afkomst"
+                                },
+                                {
+                                    "value": "Politieke opvattingen"
+                                },
+                                {
+                                    "value": "Religieuze of levensbeschouwelijke overtuigingen"
+                                },
+                                {
+                                    "value": "Lidmaatschap van een vakbond"
+                                },
+                                {
+                                    "value": "Genetische gegevens"
+                                },
+                                {
+                                    "value": "Biometrische gegevens"
+                                },
+                                {
+                                    "value": "Gezondheidsgegevens"
+                                },
+                                {
+                                    "value": "Seksuele gerichtheid"
+                                },
+                                {
+                                    "value": "Strafrechtelijke gegevens"
+                                },
+                                {
+                                    "value": "Nationaal identificatienummer"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1275,14 +1348,30 @@
                                 "select_option"
                             ],
                             "options": [
-                                "Recht van inzage",
-                                "Recht op rectificatie en aanvulling",
-                                "Recht op vergetelheid",
-                                "Recht op beperking van de verwerking",
-                                "Recht op dataportabiliteit",
-                                "Recht niet onderworpen te worden aan geautomatiseerde besluitvorming",
-                                "Recht om bezwaar te maken",
-                                "Recht op duidelijke informatie"
+                                {
+                                    "value": "Recht van inzage"
+                                },
+                                {
+                                    "value": "Recht op rectificatie en aanvulling"
+                                },
+                                {
+                                    "value": "Recht op vergetelheid"
+                                },
+                                {
+                                    "value": "Recht op beperking van de verwerking"
+                                },
+                                {
+                                    "value": "Recht op dataportabiliteit"
+                                },
+                                {
+                                    "value": "Recht niet onderworpen te worden aan geautomatiseerde besluitvorming"
+                                },
+                                {
+                                    "value": "Recht om bezwaar te maken"
+                                },
+                                {
+                                    "value": "Recht op duidelijke informatie"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1293,9 +1382,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "ja",
-                                "nee",
-                                "nvt"
+                                {
+                                    "value": "ja"
+                                },
+                                {
+                                    "value": "nee"
+                                },
+                                {
+                                    "value": "nvt"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1306,8 +1401,12 @@
                                 "select_option"
                             ],
                             "options": [
-                                "ja",
-                                "nvt"
+                                {
+                                    "value": "ja"
+                                },
+                                {
+                                    "value": "nvt"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1378,9 +1477,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1391,9 +1496,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1404,9 +1515,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         }
@@ -1471,9 +1588,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         },
