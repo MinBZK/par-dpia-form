@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
+import SaveForm from '@/components/SaveForm.vue'
 import * as t from 'io-ts'
 import { DPIA } from '@/models/dpia.ts'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
@@ -14,6 +15,7 @@ import { validateData } from '@/utils/validation'
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
+const isSaveModalOpen = ref(false)
 
 // Store setup
 const taskStore = useTaskStore()
@@ -44,6 +46,17 @@ const {
   isFirstTask,
   isLastTask
 } = useTaskNavigation()
+
+const openSaveModal = () => {
+  isSaveModalOpen.value = true;
+}
+const closeSaveModal = () => {
+  isSaveModalOpen.value = false;
+}
+const handleSaveForm = (filename: string) => {
+  // This will be implemented later to actually save the form
+  console.log('Saving form with filename:', filename);
+}
 </script>
 
 <template>
@@ -77,11 +90,14 @@ const {
         <div class="button-group-container">
           <Button v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
           <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-            <Button variant="secondary" label="Opslaan" />
+            <Button variant="secondary" label="Opslaan" @click="openSaveModal" />
             <Button v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
           </p>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Save Form Modal -->
+  <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
 </template>
