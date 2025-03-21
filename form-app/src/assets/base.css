@@ -28,3 +28,9 @@
 .rvo-theme .preserve-whitespace {
     white-space: pre-line;
 }
+
+.button-group-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}

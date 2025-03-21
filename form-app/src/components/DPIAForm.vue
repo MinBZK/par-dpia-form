@@ -74,11 +74,13 @@ const {
       <div class="rvo-layout-margin-vertical--xl">
 
         <!-- Navigation buttons -->
-        <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-          <Button v-if="!isFirstTask" variant="secondary" label="Vorige stap" @click="goToPrevious" />
-          <Button v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-        </p>
-
+        <div class="button-group-container">
+          <Button v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
+          <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+            <Button variant="secondary" label="Opslaan" />
+            <Button v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+          </p>
+        </div>
       </div>
     </div>
   </div>

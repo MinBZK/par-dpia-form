@@ -1,5 +1,7 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary';
   size?: 'xs' | 'sm' | 'md';
   type?: 'button' | 'submit' | 'reset';
@@ -10,6 +12,16 @@ defineProps<{
   ariaLabel?: string;
 }>()
 
+const variantClass = computed(() => {
+  switch (props.variant) {
+    case 'tertiary':
+    case 'quaternary':
+      return `utrecht-button--rvo-${props.variant}-action`;
+    default:
+      return `utrecht-button--${props.variant || 'primary'}-action`;
+  }
+});
+
 defineEmits<{
   (e: 'click', event: MouseEvent): void;
 }>()
@@ -17,7 +29,7 @@ defineEmits<{
 
 <template>
   <button :class="['utrecht-button',
-    `utrecht-button--${variant || 'primary'}-action`,
+    variantClass,
     `utrecht-button--rvo-${size || 'md'}`,
     fullWidth ? 'utrecht-button--rvo-full-width' : '',
   ]" :type="type || 'button'" :disabled="disabled" :aria-label="ariaLabel || label"
