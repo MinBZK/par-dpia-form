@@ -95,7 +95,7 @@ const handleFileInput = (event: Event) => {
         :aria-labelledby="label ? `label-${task.id}-${instance}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="option" :value="option.value">
+        <option v-for="option in task.options" :key="option.value" :value="option.value">
           {{ option.value }}
         </option>
       </select>

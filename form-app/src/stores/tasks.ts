@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { Task, TaskTypeValue, Source, Dependency } from '@/models/dpia'
+import { Task, TaskTypeValue, Source, Dependency, Option } from '@/models/dpia'
 
 export interface FlatTask {
   id: string
@@ -9,7 +9,7 @@ export interface FlatTask {
   description?: string
   category?: string
   repeatable?: boolean
-  options?: string[]
+  options?: Option[]
   sources?: Source[]
   dependencies?: Dependency[]
   parentId: string | null
