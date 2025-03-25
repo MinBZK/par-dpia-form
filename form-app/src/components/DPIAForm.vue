@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import dpia_json from '@/assets/DPIA.json'
 import UiButton from '@/components/ui/UiButton.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
@@ -14,6 +14,8 @@ import { useAnswerStore } from '@/stores/answers'
 import { validateData } from '@/utils/validation'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { downloadJsonFile } from '@/utils/fileExport'
+import { useTaskDependencies } from '@/composables/useTaskDependencies'
+
 
 
 // State
@@ -26,12 +28,16 @@ const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 const rootTasks = computed(() => taskStore.getRootTasks)
 
+const { syncInstances } = useTaskDependencies()
+
 // Initialize tasks on component mount
 onMounted(async () => {
   try {
     const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
       taskStore.init(validData.tasks)
+      taskStore.syncInstancesFromAnswers(answerStore.answers);
+      syncInstances.value();
     })
   } catch (e: unknown) {
     if (e instanceof Error) {
@@ -43,6 +49,12 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Also add a watcher for answer changes
+watch(() => answerStore.answers, () => {
+  // Sync instances whenever answers change
+  syncInstances.value();
+}, { deep: true });
 
 const {
   currentRootTaskId,

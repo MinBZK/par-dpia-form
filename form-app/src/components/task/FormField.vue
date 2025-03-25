@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { TaskTypeValue } from '@/models/dpia.ts'
 import { type FlatTask } from '@/stores/tasks'
 import { useAnswerStore } from '@/stores/answers'
+import { useTaskDependencies } from '@/composables/useTaskDependencies'
+
 
 const props = defineProps<{
   task: FlatTask,
@@ -12,6 +14,8 @@ const props = defineProps<{
 }>()
 
 const answerStore = useAnswerStore()
+
+const { getSourceOptions } = useTaskDependencies()
 
 const currentValue = computed(() => {
   if (answerStore.answers[props.task.id]?.[props.instance]) {
@@ -54,6 +58,7 @@ const handleRadioInput = (event: Event) => {
   </div>
 
   <!-- Text input field -->
+
   <div v-if="hasType('text_input')" class="field-group">
     <input :id="`field-${task.id}-${instance}`" type="text" class="utrecht-textbox utrecht-textbox--html-input
     utrecht-textbox--lg" dir="auto" :aria-labelledby="label ? `label-${task.id}-${instance}` :
@@ -69,14 +74,16 @@ const handleRadioInput = (event: Event) => {
 
   <!-- Select radio -->
   <div v-else-if="hasType('radio_option')" class="field-group">
-    <div class="rvo-radio-button__group">
-      <label v-for="option in task.options" :key="option.value" class="rvo-radio-button"
-        :for="`${task.id}-${instance}-${option.value}`">
-        <input :id="`${task.id}-${instance}-${option.value}`" :value="option.value"
-          :checked="currentValue === option.value" :name="`group-${task.id}-${instance}`" type="radio"
-          class="utrecht-radio-button" @change="handleRadioInput" />
-        {{ option.label }}
-      </label>
+    <div class="rvo-layout-margin-vertical--md">
+      <div class="rvo-radio-button__group">
+        <label v-for="option in task.options" :key="option.value" class="rvo-radio-button"
+          :for="`${task.id}-${instance}-${option.value}`">
+          <input :id="`${task.id}-${instance}-${option.value}`" :value="option.value"
+            :checked="currentValue === option.value" :name="`group-${task.id}-${instance}`" type="radio"
+            class="utrecht-radio-button" @change="handleRadioInput" />
+          {{ option.label }}
+        </label>
+      </div>
     </div>
   </div>
 
@@ -94,12 +101,17 @@ const handleRadioInput = (event: Event) => {
     </div>
   </div>
 
+  <!-- Select checkbox -->
   <div v-else-if="hasType('checkbox_option')" class="field-group">
-    <div class="rvo-checkbox__group">
-      <label class="rvo-checkbox rvo-checkbox--not-checked" for="optionA">
-        <input id="optionA" name="group" class="rvo-checkbox__input" type="checkbox" />
-        Option A
-      </label>
+    <div class="rvo-layout-margin-vertical--md">
+      <div class="rvo-checkbox__group">
+        <label v-for="option in getSourceOptions(task)" key="option" class="rvo-checkbox rvo-checkbox--not-checked"
+          :for="`${task.id}-${instance}-${option}`">
+          <input :id="`${task.id}-${instance}-${option}`" :value="option" name="`group-${task.id}-${instance}`"
+            class="rvo-checkbox__input" type="checkbox" />
+          {{ option }}
+        </label>
+      </div>
     </div>
 
   </div>

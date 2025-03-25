@@ -392,7 +392,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Algemene persoonsgegevens",
+                    "task": "Persoonsgegevens",
                     "id": "3.1",
                     "type": [
                         "task_group"
@@ -581,11 +581,10 @@
                                 {
                                     "type": "source_options",
                                     "condition": {
-                                        "id": "3.1.6",
-                                        "operator": "equals",
-                                        "value": "via betrokken partij"
+                                        "id": "3.1.1",
+                                        "operator": "any"
                                     },
-                                    "action": "show"
+                                    "action": "options"
                                 }
                             ]
                         },
@@ -655,21 +654,24 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": true,
+                    "repeatable": false,
+                    "instance_label_template": "Gegevensverwerking '{4.1.1}'",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Verwerkingsdoeleinde",
                             "id": "6.1.1",
                             "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Verwerkingsdoeleinde",
-                            "id": "6.1.2",
-                            "type": [
-                                "text_input"
+                                "open_text"
                             ],
                             "repeatable": false
                         }

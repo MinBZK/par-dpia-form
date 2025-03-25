@@ -5,6 +5,8 @@ import { useAnswerStore } from '@/stores/answers'
 import UiButton from '@/components/ui/UiButton.vue'
 import FormField from '@/components/task/FormField.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
+import { renderInstanceLabel } from '@/utils/taskLabels'
+
 
 const props = defineProps<{
   taskId: string,
@@ -17,6 +19,13 @@ const answerStore = useAnswerStore()
 const { shouldShowTask } = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
+
+const instanceLabel = computed(() => {
+  if (task.value.instance_label_template) {
+    return renderInstanceLabel(props.instance, task.value.instance_label_template)
+  }
+  return isRepeatable.value ? `${task.value.task} item ${props.instance}` : task.value.task
+})
 
 const removeInstance = (taskId: string, instance: number) => {
   taskStore.removeRepeatableTaskInstance(taskId)
@@ -31,7 +40,7 @@ const removeInstance = (taskId: string, instance: number) => {
 
       <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
         :id="`group-${taskId}-${instance}-legend`">
-        {{ taskStore.taskById(taskId).task }} {{ isRepeatable === true ? `item ${instance}` : "" }}
+        {{ instanceLabel }}
       </legend>
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instance}-legend`"

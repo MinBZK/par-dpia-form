@@ -36,15 +36,33 @@ export const Option = t.intersection([
 
 export type Option = t.TypeOf<typeof Option>
 
-export const Dependency = t.type({
-  type: t.string,
-  condition: t.type({
-    id: t.string,
-    operator: t.string,
-    value: t.union([t.string, t.boolean, t.null]),
+export const Condition = t.intersection(
+  [
+    t.type({
+      id: t.string,
+      operator: t.string,
+    }),
+    t.partial({
+      value: t.union([t.string, t.boolean, t.null]),
+    }),
+  ]
+)
+
+export type Condition = t.TypeOf<typeof Condition>
+
+export const Dependency = t.intersection([
+  t.type({
+    type: t.string,
+    action: t.string,
   }),
-  action: t.string,
-})
+  t.partial({
+    condition: Condition,
+    source: t.type({
+      id: t.string,
+    }),
+    mapping_type: t.string,
+  }),
+])
 
 export type Dependency = t.TypeOf<typeof Dependency>
 
@@ -59,6 +77,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     }),
     // Optional properties
     t.partial({
+      instance_label_template: t.string,
       description: t.string,
       category: t.string,
       repeatable: t.boolean,

@@ -12,6 +12,7 @@ export interface FlatTask {
   options?: Option[]
   sources?: Source[]
   dependencies?: Dependency[]
+  instance_label_template?: string
   parentId: string | null
   childrenIds: string[]
 }
@@ -40,6 +41,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         options: task.options,
         sources: task.sources,
         dependencies: task.dependencies,
+        instance_label_template: task.instance_label_template,
         parentId,
         childrenIds: [],
       }
@@ -93,6 +95,50 @@ export const useTaskStore = defineStore('TaskStore', () => {
       _removeTaskInstance(id)
     }
   }
+
+  function syncInstancesFromAnswers(answers: Record<string, Record<number, any>>): void {
+    // For each task with answers...
+    for (const taskId in answers) {
+      if (taskId in flatTasks.value) {
+        const instanceNumbers = Object.keys(answers[taskId]).map(Number);
+        if (instanceNumbers.length > 0) {
+          const maxInstance = Math.max(...instanceNumbers);
+
+          // Only update if we need more instances than currently exist
+          if (maxInstance > taskInstances.value[taskId]) {
+            taskInstances.value[taskId] = maxInstance;
+          }
+        }
+      }
+    }
+
+    // If a parent has children with data, ensure parent has enough instances
+    for (const taskId in flatTasks.value) {
+      const task = flatTasks.value[taskId];
+
+      // Only needed for repeatable tasks that are parents
+      if (task.repeatable && task.childrenIds.length > 0) {
+        // Check each child
+        for (const childId of task.childrenIds) {
+          // If child has more instances than parent, update parent
+          if (taskInstances.value[childId] > taskInstances.value[taskId]) {
+            taskInstances.value[taskId] = taskInstances.value[childId];
+          }
+        }
+      }
+    }
+  }
+
+  function syncInstancesFromSource(taskId: string, count: number): void {
+    const currentCount = taskInstances.value[taskId] || 0
+
+    if (count > currentCount) {
+      taskInstances.value[taskId] = count
+    } else if (count < currentCount) {
+      taskInstances.value[taskId] = count
+    }
+  }
+
 
   function _addTaskInstance(id: string) {
     const task = taskById.value(id)
@@ -164,6 +210,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
     previousRootTask,
     addRepeatableTaskInstance,
     removeRepeatableTaskInstance,
+    syncInstancesFromAnswers,
+    syncInstancesFromSource,
 
     // Getters
     taskById,
