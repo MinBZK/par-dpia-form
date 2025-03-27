@@ -18,47 +18,67 @@ export function useTaskDependencies() {
   const answerStore = useAnswerStore()
 
   const shouldShowTask = computed(() => {
-    return (taskId: string, instance: number): boolean => {
+    return (taskId: string, instanceId: string): boolean => {
       const task = taskStore.taskById(taskId)
+      const instance = taskStore.getInstanceById(instanceId)
 
-      if (!task.dependencies || task.dependencies.length === 0) {
+      // If there are no dependencies, dependencies are void or there is no instance
+      // we should show task.
+      if (!task.dependencies || task.dependencies.length === 0 || !instance) {
         return true
       }
 
       for (const dependency of task.dependencies) {
-        if (dependency.type == "conditional") {
+
+        if (dependency.type == 'conditional') {
+
+          // If the condition is void we should show task.
           if (!dependency.condition) {
             return true
           }
 
-          const { id, operator, value } = dependency.condition
+          const { id: conditionTaskId, operator, value } = dependency.condition
           const action = dependency.action
 
-          const conditionValue = answerStore.answers[id]?.[instance]?.value
-          let normalizedValue = null
+          // NOTE: We assume the conditionTaskId is within the same task group, i.e. we
+          // assume that the conditionTaskId is an ancestor of taskId.
+          const relatedInstance = taskStore.findRelatedInstance(conditionTaskId, instanceId)
+          if (!relatedInstance) {
+            continue
+          }
+
+          const conditionValue = answerStore.getAnswer(relatedInstance.id)
+
+
+          // We need to parse the conditionValue if it is a string.
+          let normalizedValue = conditionValue
           if (typeof conditionValue === 'string') {
             normalizedValue = normalizeValue(conditionValue)
-          } else {
-            normalizedValue = conditionValue
           }
 
           let conditionMet = false
           if (operator === 'equals') {
             conditionMet = normalizedValue === value
+          } else {
+            // Add more operators if needed.
+            throw new Error(`got an unsuported operator ${operator}`)
           }
-          // Add more operators if needed.
+
+          // If the action is 'show' and the condition is non-void and is not met,
+          // we should not show task.
           if (action === 'show' && !conditionMet) {
             return false
           }
         }
       }
+
+      // We exhausted all possibilities of to not show task, so we should show task.
       return true
     }
   })
 
   const getSourceOptions = computed(() => {
     return (task: FlatTask): string[] => {
-
       if (!task.dependencies || task.dependencies.length === 0) {
         return []
       }
@@ -68,18 +88,17 @@ export function useTaskDependencies() {
           if (!dependency.condition) {
             return []
           }
-          const { id } = dependency.condition
-
+          const { id: sourceTaskId } = dependency.condition
 
           const uniqueValues = new Set<string>()
+          const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
 
-          if (answerStore.answers[id]) {
-            Object.values(answerStore.answers[id]).forEach(answer => {
-              if (typeof answer.value === 'string' && answer.value !== '') {
-                uniqueValues.add(answer.value)
-              }
-            })
-          }
+          sourceInstanceIds.forEach((instanceId) => {
+            const answer = answerStore.getAnswer(instanceId)
+            if (typeof answer === 'string' && answer !== '') {
+              uniqueValues.add(answer)
+            }
+          })
 
           return Array.from(uniqueValues)
         }
@@ -90,20 +109,15 @@ export function useTaskDependencies() {
 
   const syncInstances = computed(() => {
     return (): void => {
-      Object.keys(taskStore.flatTasks).forEach(taskId => {
-        const task = taskStore.taskById(taskId)
-
-        const mappingDeps = task.dependencies?.filter(d => d.type === 'instance_mapping') || []
+      console.log('Synchronising instances based on dependencies')
+      Object.entries(taskStore.flatTasks).forEach(([taskId, task]) => {
+        const mappingDeps = task.dependencies?.filter((d) => d.type === 'instance_mapping') || []
 
         for (const dep of mappingDeps) {
           const sourceId = dep.source?.id
           if (sourceId) {
-            const sourceValues = Object.values(answerStore.answers[sourceId] || {})
-
-            if (sourceValues.length >= 0) {
-              taskStore.syncInstancesFromSource(taskId, sourceValues.length)
-            }
-
+            // TODO
+            console.log(`Should sync ${taskId} based on ${sourceId}`)
           }
         }
       })

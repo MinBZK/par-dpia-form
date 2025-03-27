@@ -8,7 +8,7 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 
 const props = defineProps<{
   task: FlatTask,
-  instance: number,
+  instanceId: string,
   label?: string,
   description?: string,
 }>()
@@ -18,10 +18,7 @@ const answerStore = useAnswerStore()
 const { getSourceOptions } = useTaskDependencies()
 
 const currentValue = computed(() => {
-  if (answerStore.answers[props.task.id]?.[props.instance]) {
-    return answerStore.answers[props.task.id][props.instance].value
-  }
-  return null
+  return answerStore.getAnswer(props.instanceId)
 })
 
 const hasType = (typeToCheck: TaskTypeValue): boolean => {
@@ -31,28 +28,28 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
 // Text input and textarea handler
 const handleTextInput = (event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
-  answerStore.setAnswer(props.task.id, props.instance, target.value)
+  answerStore.setAnswer(props.instanceId, target.value)
 }
 
 // Select handler
 const handleSelectInput = (event: Event) => {
   const target = event.target as HTMLSelectElement
-  answerStore.setAnswer(props.task.id, props.instance, target.value)
+  answerStore.setAnswer(props.instanceId, target.value)
 }
 
 // Radio handler
 const handleRadioInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  answerStore.setAnswer(props.task.id, props.instance, target.value)
+  answerStore.setAnswer(props.instanceId, target.value)
 }
 </script>
 
 <template>
   <div v-if="label" class="rvo-form-field__label">
-    <label class="rvo-label" :id="`label-${task.id}-${instance}`">
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
       {{ label }}
     </label>
-    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instance}`">
+    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       {{ description }}
     </div>
   </div>
@@ -60,15 +57,15 @@ const handleRadioInput = (event: Event) => {
   <!-- Text input field -->
 
   <div v-if="hasType('text_input')" class="field-group">
-    <input :id="`field-${task.id}-${instance}`" type="text" class="utrecht-textbox utrecht-textbox--html-input
-    utrecht-textbox--lg" dir="auto" :aria-labelledby="label ? `label-${task.id}-${instance}` :
+    <input :id="`field-${task.id}-${instanceId}`" type="text" class="utrecht-textbox utrecht-textbox--html-input
+    utrecht-textbox--lg" dir="auto" :aria-labelledby="label ? `label-${task.id}-${instanceId}` :
       undefined" :value="currentValue" @input="handleTextInput" />
   </div>
 
   <!-- Text area -->
   <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs">
-    <textarea :id="`field-${task.id}-${instance}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instance}` : undefined" rows=10 :value="currentValue"
+    <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows=10 :value="currentValue"
       @input="handleTextInput"></textarea>
   </div>
 
@@ -77,9 +74,9 @@ const handleRadioInput = (event: Event) => {
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-radio-button__group">
         <label v-for="option in task.options" :key="option.value" class="rvo-radio-button"
-          :for="`${task.id}-${instance}-${option.value}`">
-          <input :id="`${task.id}-${instance}-${option.value}`" :value="option.value"
-            :checked="currentValue === option.value" :name="`group-${task.id}-${instance}`" type="radio"
+          :for="`${task.id}-${instanceId}-${option.value}`">
+          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
+            :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
             class="utrecht-radio-button" @change="handleRadioInput" />
           {{ option.label }}
         </label>
@@ -90,8 +87,8 @@ const handleRadioInput = (event: Event) => {
   <!-- Select dropdown -->
   <div v-else-if="hasType('select_option')" class="field-group">
     <div class="rvo-select-wrapper">
-      <select :id="`field-${task.id}-${instance}`" class="utrecht-select utrecht-select--html-select"
-        :aria-labelledby="label ? `label-${task.id}-${instance}` : undefined" :value="currentValue"
+      <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
+        :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
         <option v-for="option in task.options" :key="option.value" :value="option.value">
@@ -106,8 +103,8 @@ const handleRadioInput = (event: Event) => {
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
         <label v-for="option in getSourceOptions(task)" key="option" class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instance}-${option}`">
-          <input :id="`${task.id}-${instance}-${option}`" :value="option" name="`group-${task.id}-${instance}`"
+          :for="`${task.id}-${instanceId}-${option}`">
+          <input :id="`${task.id}-${instanceId}-${option}`" :value="option" name="`group-${task.id}-${instance}`"
             class="rvo-checkbox__input" type="checkbox" />
           {{ option }}
         </label>
@@ -117,9 +114,9 @@ const handleRadioInput = (event: Event) => {
   </div>
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group">
-    <input :id="`field-${task.id}-${instance}`" type="date"
+    <input :id="`field-${task.id}-${instanceId}`" type="date"
       class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instance}` : undefined" :value="currentValue"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
       @input="handleTextInput" />
   </div>
 </template>
