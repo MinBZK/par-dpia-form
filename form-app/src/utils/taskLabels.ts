@@ -16,7 +16,7 @@ export function renderInstanceLabel(
     if (!originInstance) return match
 
     const value = answerStore.getAnswer(originInstance)
-    if (value == null) return match
+    if (value == null) return ''
 
     return String(value)
   })

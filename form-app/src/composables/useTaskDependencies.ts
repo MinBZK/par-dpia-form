@@ -131,14 +131,16 @@ export function useTaskDependencies() {
           const targetInstances = taskStore.getInstancesForTask(taskId)
 
           const targetInstancesBySourceId = new Map<string, TaskInstance>()
-          targetInstances.forEach((instance) => {
+          targetInstances.forEach(instance => {
             if (instance.mappedFromInstanceId) {
               targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
             } else {
+              instance.mappedFromInstanceId = sourceInstances[0].id
+              targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
             }
           })
 
-          sourceInstances.forEach((sourceInstance) => {
+          sourceInstances.forEach(sourceInstance => {
             const existingTarget = targetInstancesBySourceId.get(sourceInstance.id)
 
             if (!existingTarget) {

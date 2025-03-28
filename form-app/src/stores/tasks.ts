@@ -38,6 +38,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const taskInstances = ref<Record<string, TaskInstance>>({})
   const currentRootTaskId = ref('0')
   const rootTaskIds = ref<string[]>([])
+  const isInitialized = ref<boolean>(false)
 
   /**
    * ==============================================
@@ -45,10 +46,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
    * ==============================================
    */
   function init(tasks: Task[]) {
-    createTasks(tasks)
-    rootTaskIds.value.forEach((taskId) => {
-      createTaskInstance(taskId)
-    })
+    if (!isInitialized.value) {
+      createTasks(tasks)
+      rootTaskIds.value.forEach((taskId) => {
+        createTaskInstance(taskId)
+      })
+      isInitialized.value = true
+    }
   }
 
   function createTasks(tasks: Task[], parentId: string | null = null) {
