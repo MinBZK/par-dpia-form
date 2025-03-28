@@ -78,7 +78,7 @@ const handleRadioInput = (event: Event) => {
       class="utrecht-textarea utrecht-textarea--html-textarea"
       dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-      rows="10"
+      rows="5"
       :value="currentValue"
       @input="handleTextInput"
     ></textarea>

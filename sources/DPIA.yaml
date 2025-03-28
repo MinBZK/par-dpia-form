@@ -452,7 +452,7 @@ tasks:
           id: "6.1.1"
           type: 
             - open_text
-          repeatable: false
+          repeatable: true
     - task: Aanvullende informatie over de verwerkingsdoeleinden
       id: "6.2"
       type: 

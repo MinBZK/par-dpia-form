@@ -673,7 +673,7 @@
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": false
+                            "repeatable": true
                         }
                     ]
                 },

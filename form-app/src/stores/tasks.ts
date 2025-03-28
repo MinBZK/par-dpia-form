@@ -88,6 +88,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
   function createTaskInstance(taskId: string, parentInstanceId?: string): string {
     const instanceId = taskId + '_' + nanoid()
+    console.log(instanceId)
 
     let groupId
     if (parentInstanceId) {

@@ -34,45 +34,32 @@ const handleDelete = (instanceId: string) => {
 
 <template>
   <div class="utrecht-form-fieldset rvo-form-fieldset">
-    <fieldset
-      class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset"
-      :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
-    >
-      <legend
-        class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
-        :id="`group-${taskId}-${instanceId}-legend`"
-      >
+    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset"
+      :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
+      <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
+        :id="`group-${taskId}-${instanceId}-legend`">
         {{ instanceLabel }}
       </legend>
 
-      <div
-        role="group"
-        :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
-        class="utrecht-form-field utrecht-form-field--text rvo-form-field"
-      >
+      <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
+        class="utrecht-form-field utrecht-form-field--text rvo-form-field">
         <div v-for="childId in task.childrenIds" :key="childId">
-          <template
-            v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
-            :key="childInstanceId"
-          >
+          <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+            :key="childInstanceId">
             <template v-if="shouldShowTask(childId, childInstanceId)">
-              <FormField
-                :task="taskStore.taskById(childId)"
-                :instanceId="childInstanceId"
-                :label="taskStore.taskById(childId).task"
-                :description="taskStore.taskById(childId).description"
-              />
+              <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
+                :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
             </template>
           </template>
+          <div v-if="taskStore.taskById(childId).repeatable === true && canUserCreateInstances(childId)"
+            class="rvo-layout-margin-vertical--md">
+            <UiButton variant="primary" icon="plus" label="Voeg veld toe"
+              @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
+          </div>
         </div>
       </div>
-      <UiButton
-        v-if="isRepeatable && canUserCreateInstances(taskId)"
-        variant="secondary"
-        icon="verwijderen"
-        label="Verwijder veld"
-        @click="handleDelete(props.instanceId)"
-      />
+      <UiButton v-if="isRepeatable && canUserCreateInstances(taskId)" variant="secondary" icon="verwijderen"
+        label="Verwijder veld" @click="handleDelete(props.instanceId)" />
     </fieldset>
   </div>
 </template>
