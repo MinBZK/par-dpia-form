@@ -1,6 +1,6 @@
-import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
 import { useTaskStore } from '@/stores/tasks'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 
 export function useTaskNavigation() {
   const taskStore = useTaskStore()
@@ -40,6 +40,6 @@ export function useTaskNavigation() {
     goToPrevious,
     goToTask,
     isFirstTask,
-    isLastTask
+    isLastTask,
   }
 }

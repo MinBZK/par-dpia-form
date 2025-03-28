@@ -1,33 +1,61 @@
-import { ref, computed } from 'vue'
+import { Dependency, Option, Source, Task, TaskTypeValue } from '@/models/dpia'
+import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
-import { Task, TaskTypeValue, Source } from '@/models/dpia'
+import { computed, ref } from 'vue'
 
 export interface FlatTask {
   id: string
   task: string
   type: TaskTypeValue[]
+  parentId: string | null
+  childrenIds: string[]
   description?: string
   category?: string
   repeatable?: boolean
-  options?: string[]
+  options?: Option[]
   sources?: Source[]
-  parentId: string | null
-  childrenIds: string[]
+  dependencies?: Dependency[]
+  instance_label_template?: string
+}
+
+export interface TaskInstance {
+  id: string
+  taskId: string
+  groupId: string
+  parentInstanceId: string | null
+  childInstanceIds: string[]
+  mappedFromInstanceId?: string
 }
 
 export const useTaskStore = defineStore('TaskStore', () => {
-  // Properties
-  const flatTasks = ref<Record<string, FlatTask>>({})
-  const taskInstances = ref<Record<string, number>>({})
-  const rootTaskIds = ref<string[]>([])
-  const currentRootTaskId = ref('0')
+  /**
+   * ==============================================
+   * Store properties
+   * ==============================================
+   */
 
-  // Actions
+  const flatTasks = ref<Record<string, FlatTask>>({})
+  const taskInstances = ref<Record<string, TaskInstance>>({})
+  const currentRootTaskId = ref('0')
+  const rootTaskIds = ref<string[]>([])
+  const isInitialized = ref<boolean>(false)
+
+  /**
+   * ==============================================
+   * Store actions
+   * ==============================================
+   */
   function init(tasks: Task[]) {
-    flattenTasks(tasks)
+    if (!isInitialized.value) {
+      createTasks(tasks)
+      rootTaskIds.value.forEach((taskId) => {
+        createTaskInstance(taskId)
+      })
+      isInitialized.value = true
+    }
   }
 
-  function flattenTasks(tasks: Task[], parentId: string | null = null) {
+  function createTasks(tasks: Task[], parentId: string | null = null) {
     tasks.forEach((task) => {
       const flatTask: FlatTask = {
         id: task.id,
@@ -38,12 +66,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
         repeatable: task.repeatable,
         options: task.options,
         sources: task.sources,
+        dependencies: task.dependencies,
+        instance_label_template: task.instance_label_template,
         parentId,
         childrenIds: [],
       }
 
       flatTasks.value[task.id] = flatTask
-      taskInstances.value[task.id] = 1
 
       if (parentId) {
         flatTasks.value[parentId].childrenIds.push(task.id)
@@ -51,11 +80,96 @@ export const useTaskStore = defineStore('TaskStore', () => {
         rootTaskIds.value.push(task.id)
       }
 
-      // Process children recursively (only during initialization)
       if (task.tasks && task.tasks.length > 0) {
-        flattenTasks(task.tasks, task.id)
+        createTasks(task.tasks, task.id)
       }
     })
+  }
+
+  function createTaskInstance(taskId: string, parentInstanceId?: string): string {
+    const instanceId = taskId + '_' + nanoid()
+
+    let groupId
+    if (parentInstanceId) {
+      groupId = taskInstances.value[parentInstanceId].groupId
+    } else {
+      groupId = taskId + '_' + nanoid()
+    }
+    taskInstances.value[instanceId] = {
+      id: instanceId,
+      taskId,
+      parentInstanceId: parentInstanceId || null,
+      childInstanceIds: [],
+      groupId,
+    }
+
+    if (parentInstanceId && taskInstances.value[parentInstanceId]) {
+      taskInstances.value[parentInstanceId].childInstanceIds.push(instanceId)
+    }
+
+    const childTaskIds = flatTasks.value[taskId].childrenIds
+    if (childTaskIds.length > 0) {
+      childTaskIds.forEach((childTaskId) => {
+        createTaskInstance(childTaskId, instanceId)
+      })
+    }
+    return instanceId
+  }
+
+  function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string): string {
+    const task = taskById.value(taskId)
+    if (!task.repeatable) return ''
+    return createTaskInstance(taskId, parentInstanceId)
+  }
+
+  function removeRepeatableTaskInstance(instanceId: string): void {
+    const instance = taskInstances.value[instanceId]
+
+    if (!instance) return
+
+    const childrenToRemove = [...instance.childInstanceIds]
+    childrenToRemove.forEach((childId) => {
+      removeRepeatableTaskInstance(childId)
+    })
+
+    if (instance.parentInstanceId && taskInstances.value[instance.parentInstanceId]) {
+      const parent = taskInstances.value[instance.parentInstanceId]
+      parent.childInstanceIds = parent.childInstanceIds.filter((id) => id !== instanceId)
+    }
+
+    delete taskInstances.value[instanceId]
+  }
+
+  function getInstancesForTask(taskId: string, parentInstanceId?: string): TaskInstance[] {
+    return Object.values(taskInstances.value).filter(
+      (instance) =>
+        instance.taskId === taskId &&
+        (parentInstanceId === undefined || instance.parentInstanceId === parentInstanceId),
+    )
+  }
+
+  function getInstanceIdsForTask(taskId: string, parentInstanceId?: string): string[] {
+    return getInstancesForTask(taskId, parentInstanceId).map((instance) => instance.id)
+  }
+
+  function findRelatedInstance(
+    conditionTaskId: string,
+    currentInstanceId: string,
+  ): TaskInstance | null {
+    const currentInstance = taskInstances.value[currentInstanceId]
+    if (!currentInstance) return null
+
+    const relatedInstance = Object.values(taskInstances.value).find(
+      (instance) =>
+        instance.taskId === conditionTaskId && instance.groupId === currentInstance.groupId,
+    )
+    return relatedInstance || null
+  }
+
+  function setInstanceMappingSource(instanceId: string, sourceInstanceId: string): void {
+    if (taskInstances.value[instanceId]) {
+      taskInstances.value[instanceId].mappedFromInstanceId = sourceInstanceId
+    }
   }
 
   function setRootTask(id: string) {
@@ -78,42 +192,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   }
 
-  function addRepeatableTaskInstance(id: string) {
-    const task = taskById.value(id)
-    if (task.repeatable) {
-      _addTaskInstance(id)
-    }
-  }
-
-  function removeRepeatableTaskInstance(id: string) {
-    const task = taskById.value(id)
-    if (task.repeatable) {
-      _removeTaskInstance(id)
-    }
-  }
-
-  function _addTaskInstance(id: string) {
-    const task = taskById.value(id)
-    taskInstances.value[id]++
-    if (task.childrenIds.length > 0) {
-      for (const childId of task.childrenIds) {
-        _addTaskInstance(childId)
-      }
-    }
-  }
-
-
-  function _removeTaskInstance(id: string) {
-    const task = taskById.value(id)
-    taskInstances.value[id]--
-    if (task.childrenIds.length > 0) {
-      for (const childId of task.childrenIds) {
-        _removeTaskInstance(childId)
-      }
-    }
-  }
-
-  // Getters
+  /**
+   * ==============================================
+   * Store getters
+   * ==============================================
+   */
   const taskById = computed(() => {
     return (taskId: string): FlatTask => {
       const task = flatTasks.value[taskId]
@@ -127,7 +210,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   })
 
   const getRootTasks = computed(() => {
-    return rootTaskIds.value.map(id => flatTasks.value[id])
+    return rootTaskIds.value.map((id) => flatTasks.value[id])
   })
 
   const getParentTaskId = computed(() => {
@@ -142,32 +225,36 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   })
 
-  const getInstance = computed(() => {
-    return (taskId: string): number => {
-      return taskInstances.value[taskId]
+  const getInstanceById = computed(() => {
+    return (instanceId: string): TaskInstance | null => {
+      return taskInstances.value[instanceId] || null
     }
   })
 
   return {
     // Properties
     flatTasks,
-    rootTaskIds,
-    currentRootTaskId,
     taskInstances,
+    currentRootTaskId,
+    rootTaskIds,
 
     // Actions
     init,
+    addRepeatableTaskInstance,
+    removeRepeatableTaskInstance,
+    getInstancesForTask,
+    getInstanceIdsForTask,
+    findRelatedInstance,
+    setInstanceMappingSource,
     setRootTask,
     nextRootTask,
     previousRootTask,
-    addRepeatableTaskInstance,
-    removeRepeatableTaskInstance,
 
     // Getters
     taskById,
     getRootTasks,
     getParentTaskId,
     getChildTaskIds,
-    getInstance,
+    getInstanceById,
   }
 })

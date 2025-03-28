@@ -55,9 +55,9 @@
                         "enum": [
                             "text_input",
                             "open_text",
-                            "sign_task",
                             "select_option",
-                            "upload_document",
+                            "checkbox_option",
+                            "radio_option",
                             "task_group",
                             "date"
                         ]
@@ -66,7 +66,18 @@
                 "options": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": ["string", "boolean", "null"]
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "value"
+                        ]
                     }
                 },
                 "required_status": {

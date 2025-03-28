@@ -226,8 +226,12 @@
                         "select_option"
                     ],
                     "options": [
-                        "concept",
-                        "definitief"
+                        {
+                            "value": "concept"
+                        },
+                        {
+                            "value": "definitief"
+                        }
                     ],
                     "repeatable": false
                 },
@@ -322,14 +326,6 @@
                                 "date"
                             ],
                             "repeatable": false
-                        },
-                        {
-                            "task": "Handtekening",
-                            "id": "0.7.5",
-                            "type": [
-                                "sign_task"
-                            ],
-                            "repeatable": false
                         }
                     ]
                 }
@@ -365,11 +361,23 @@
                 },
                 {
                     "task": "Afbeeldingen",
+                    "description": "Afbeeldingen",
                     "id": "2.2",
                     "type": [
-                        "upload_document"
+                        "task_group"
                     ],
-                    "repeatable": false
+                    "repeatable": true,
+                    "tasks": [
+                        {
+                            "task": "Afbeelding",
+                            "description": "Geef de bestandsnaam van een afbeelding",
+                            "id": "2.2.1",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        }
+                    ]
                 }
             ]
         },
@@ -384,7 +392,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Algemene persoonsgegevens",
+                    "task": "Persoonsgegevens",
                     "id": "3.1",
                     "type": [
                         "task_group"
@@ -392,7 +400,7 @@
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Categorie betrokkenen",
+                            "task": "Persoonsgegeven",
                             "id": "3.1.1",
                             "type": [
                                 "text_input"
@@ -400,7 +408,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie persoonsgegevens",
+                            "task": "Categorie betrokkenen",
                             "id": "3.1.2",
                             "type": [
                                 "text_input"
@@ -408,7 +416,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Persoonsgegeven",
+                            "task": "Categorie persoonsgegevens",
                             "id": "3.1.3",
                             "type": [
                                 "text_input"
@@ -422,85 +430,107 @@
                                 "select_option"
                             ],
                             "options": [
-                                "gewoon",
-                                "gevoelig",
-                                "bijzonder",
-                                "strafrechtelijk",
-                                "nationaal identificatienummer"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Bron betrokkenen",
-                            "id": "3.1.5",
-                            "type": [
-                                "select_option"
-                            ],
-                            "options": [
-                                "rechtstreeks bij betrokkene",
-                                "via betrokken partij"
+                                {
+                                    "value": "gewoon"
+                                },
+                                {
+                                    "value": "gevoelig"
+                                },
+                                {
+                                    "value": "bijzonder"
+                                },
+                                {
+                                    "value": "strafrechtelijk"
+                                },
+                                {
+                                    "value": "nationaal identificatienummer"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Oorspronkelijke verwerkingsdoeleinde",
-                            "id": "3.1.6",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        }
-                    ]
-                },
-                {
-                    "task": "Bronnen via betrokken partij",
-                    "id": "3.2",
-                    "type": [
-                        "task_group"
-                    ],
-                    "description": "Geef in deze tabel extra informatie over de bron van persoonsgegevens die via  een betrokken partij komen.",
-                    "repeatable": true,
-                    "tasks": [
-                        {
-                            "task": "Categorie betrokkenen",
-                            "id": "3.2.1",
+                            "id": "3.1.5",
                             "type": [
                                 "text_input"
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie persoonsgegevens",
-                            "id": "3.2.2",
+                            "task": "Bron betrokkenen",
+                            "description": "Zijn de persoonsgegevens via een betrokken partij gekomen?",
+                            "id": "3.1.6",
                             "type": [
-                                "text_input"
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Naam partij",
-                            "id": "3.2.3",
+                            "id": "3.1.7",
                             "type": [
                                 "text_input"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         },
                         {
                             "task": "Middel van bron (tool/platform)",
-                            "id": "3.2.4",
+                            "id": "3.1.8",
                             "type": [
                                 "text_input"
                             ],
-                            "description": "Tool/platform",
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         },
                         {
                             "task": "Verstrekkingsgrond",
-                            "id": "3.2.5",
+                            "id": "3.1.9",
                             "type": [
                                 "text_input"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "3.1.6",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -533,7 +563,7 @@
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Naam",
                             "id": "4.1.1",
                             "type": [
                                 "text_input"
@@ -541,7 +571,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen",
+                            "task": "Beschrijving",
                             "id": "4.1.2",
                             "type": [
                                 "text_input"
@@ -552,9 +582,19 @@
                             "task": "Persoonsgegevens",
                             "id": "4.1.3",
                             "type": [
-                                "text_input"
+                                "checkbox_option"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "source_options",
+                                    "condition": {
+                                        "id": "3.1.1",
+                                        "operator": "any"
+                                    },
+                                    "action": "options"
+                                }
+                            ]
                         }
                     ]
                 },
@@ -568,12 +608,23 @@
                 },
                 {
                     "task": "Samenhang tussen gegevensverwerkingen",
-                    "description": "Upload een afbeelding met de samenhang tussen gegevensverwerkingen.",
+                    "description": "Geef een bestandsnaam van een afbeelding met de samenhang tussen de gevevensverwerkingen.",
                     "id": "4.3",
                     "type": [
-                        "upload_document"
+                        "task_group"
                     ],
-                    "repeatable": false
+                    "repeatable": true,
+                    "tasks": [
+                        {
+                            "task": "Samenhang gegevensverwerking",
+                            "description": "Geef een bestandsnaam van een afbeelding met de samenhang tussen de gevevensverwerkingen.",
+                            "id": "4.3.1",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        }
+                    ]
                 }
             ]
         },
@@ -604,20 +655,23 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Verwerkingsdoeleinde",
                             "id": "6.1.1",
                             "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Verwerkingsdoeleinde",
-                            "id": "6.1.2",
-                            "type": [
-                                "text_input"
+                                "open_text"
                             ],
                             "repeatable": false
                         }
@@ -650,6 +704,17 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
                             "task": "Naam partij",
@@ -666,14 +731,30 @@
                                 "select_option"
                             ],
                             "options": [
-                                "verwerkingsverantwoordelijke",
-                                "gezamenlijke verwerkingsverantwoordelijke",
-                                "verwerker",
-                                "sub-verwerker",
-                                "verstrekker",
-                                "ontvanger",
-                                "betrokkene",
-                                "derde"
+                                {
+                                    "value": "verwerkingsverantwoordelijke"
+                                },
+                                {
+                                    "value": "gezamenlijke verwerkingsverantwoordelijke"
+                                },
+                                {
+                                    "value": "verwerker"
+                                },
+                                {
+                                    "value": "sub-verwerker"
+                                },
+                                {
+                                    "value": "verstrekker"
+                                },
+                                {
+                                    "value": "ontvanger"
+                                },
+                                {
+                                    "value": "betrokkene"
+                                },
+                                {
+                                    "value": "derde"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -722,20 +803,23 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Betrokken partij {7.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "7.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Betrokken partij",
+                            "task": "Belang, uitkomst consultatie betrokkenen",
                             "id": "8.1.1",
                             "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Belang, uitkomst consultatie betrokkenen",
-                            "id": "8.1.2",
-                            "type": [
-                                "text_input"
+                                "open_text"
                             ],
                             "repeatable": false
                         }
@@ -768,9 +852,20 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Verwerkingslocatie",
                             "id": "9.1.1",
                             "type": [
                                 "text_input"
@@ -778,31 +873,33 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Verwerkingslocatie",
-                            "id": "9.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
                             "task": "Doorgiftemechanisme",
-                            "id": "9.1.3",
+                            "id": "9.1.2",
                             "type": [
                                 "select_option"
                             ],
                             "options": [
-                                "Adequaatheidsbesluit",
-                                "Binding Corporate Rules (BCR)",
-                                "Standaard contractsbepalingen (SCC)",
-                                "Artikel 49 AVG uitzondering",
-                                "Niet van toepassing (binnen EER)"
+                                {
+                                    "value": "Adequaatheidsbesluit"
+                                },
+                                {
+                                    "value": "Binding Corporate Rules (BCR)"
+                                },
+                                {
+                                    "value": "Standaard contractsbepalingen (SCC)"
+                                },
+                                {
+                                    "value": "Artikel 49 AVG uitzondering"
+                                },
+                                {
+                                    "value": "Niet van toepassing (binnen EER)"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Maatregelen",
-                            "id": "9.1.4",
+                            "id": "9.1.3",
                             "type": [
                                 "text_input"
                             ],
@@ -837,9 +934,20 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Juridisch en/of beleidsmatig kader",
                             "id": "10.1.1",
                             "type": [
                                 "text_input"
@@ -847,16 +955,8 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Juridisch en/of beleidsmatig kader",
-                            "id": "10.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
                             "task": "Wetsartikelen",
-                            "id": "10.1.3",
+                            "id": "10.1.2",
                             "type": [
                                 "text_input"
                             ],
@@ -891,9 +991,20 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Verwerkingsdoeleinde",
                             "id": "11.1.1",
                             "type": [
                                 "text_input"
@@ -901,7 +1012,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Verwerkingsdoeleinde",
+                            "task": "Categorie betrokkenen & persoonsgegevens",
                             "id": "11.1.2",
                             "type": [
                                 "text_input"
@@ -909,7 +1020,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkene & persoonsgegevens",
+                            "task": "Bewaartermijn/archiveringsperiode",
                             "id": "11.1.3",
                             "type": [
                                 "text_input"
@@ -917,16 +1028,8 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Bewaartermijn/archiveringsperiode",
-                            "id": "11.1.4",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
                             "task": "Motivatie voor de bewaartermijn",
-                            "id": "11.1.5",
+                            "id": "11.1.4",
                             "type": [
                                 "open_text"
                             ],
@@ -961,34 +1064,49 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
-                            "id": "12.1.1",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
                             "task": "Rechtsgrond",
-                            "id": "12.1.2",
+                            "id": "12.1.1",
                             "type": [
                                 "select_option"
                             ],
                             "options": [
-                                "Toestemming",
-                                "Noodzakelijk voor de uitvoering van de overeenkomst",
-                                "Noodzakelijk om te voldoen aan een wettelijke verplichting",
-                                "Noodzakelijk om de vitale belangen te beschermen",
-                                "Noodzakelijk voor de vervulling van een taak van algemeen belang",
-                                "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                {
+                                    "value": "Toestemming"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de uitvoering van de overeenkomst"
+                                },
+                                {
+                                    "value": "Noodzakelijk om te voldoen aan een wettelijke verplichting"
+                                },
+                                {
+                                    "value": "Noodzakelijk om de vitale belangen te beschermen"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de vervulling van een taak van algemeen belang"
+                                },
+                                {
+                                    "value": "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
                             "task": "Toelichting op de rechtsgrond",
-                            "id": "12.1.3",
+                            "id": "12.1.2",
                             "type": [
                                 "open_text"
                             ],
@@ -1047,16 +1165,36 @@
                                 "select_option"
                             ],
                             "options": [
-                                "Ras of etnische afkomst",
-                                "Politieke opvattingen",
-                                "Religieuze of levensbeschouwelijke overtuigingen",
-                                "Lidmaatschap van een vakbond",
-                                "Genetische gegevens",
-                                "Biometrische gegevens",
-                                "Gezondheidsgegevens",
-                                "Seksuele gerichtheid",
-                                "Strafrechtelijke gegevens",
-                                "Nationaal identificatienummer"
+                                {
+                                    "value": "Ras of etnische afkomst"
+                                },
+                                {
+                                    "value": "Politieke opvattingen"
+                                },
+                                {
+                                    "value": "Religieuze of levensbeschouwelijke overtuigingen"
+                                },
+                                {
+                                    "value": "Lidmaatschap van een vakbond"
+                                },
+                                {
+                                    "value": "Genetische gegevens"
+                                },
+                                {
+                                    "value": "Biometrische gegevens"
+                                },
+                                {
+                                    "value": "Gezondheidsgegevens"
+                                },
+                                {
+                                    "value": "Seksuele gerichtheid"
+                                },
+                                {
+                                    "value": "Strafrechtelijke gegevens"
+                                },
+                                {
+                                    "value": "Nationaal identificatienummer"
+                                }
                             ],
                             "repeatable": false
                         },
@@ -1165,9 +1303,20 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking {4.1.1}",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Categorie betrokkenen & persoonsgegevens",
                             "id": "14.1.1",
                             "type": [
                                 "text_input"
@@ -1175,7 +1324,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
+                            "task": "Doeleinde",
                             "id": "14.1.2",
                             "type": [
                                 "text_input"
@@ -1183,16 +1332,8 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Doeleinde",
-                            "id": "14.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
                             "task": "Oorspronkelijke doeleinde",
-                            "id": "14.1.4",
+                            "id": "14.1.3",
                             "type": [
                                 "text_input"
                             ],
@@ -1241,8 +1382,8 @@
             ]
         },
         {
-            "task": "Rechten van de betrokkene",
-            "description": "Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkene Als de rechten van de betrokkene worden beperkt,  beschrijf op grond van welke wettelijke uitzondering dat is toegestaan.",
+            "task": "Rechten van de betrokkenen",
+            "description": "Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkenen. Als de rechten van de betrokkene worden beperkt,  beschrijf op grond van welke wettelijke uitzondering dat is toegestaan.",
             "id": "16",
             "type": [
                 "task_group"
@@ -1255,68 +1396,703 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": true,
+                    "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Rechten van de betrokkene",
+                            "task": "Procedures ter uitvoering",
                             "id": "16.1.1",
                             "type": [
-                                "select_option"
+                                "radio_option"
                             ],
                             "options": [
-                                "Recht van inzage",
-                                "Recht op rectificatie en aanvulling",
-                                "Recht op vergetelheid",
-                                "Recht op beperking van de verwerking",
-                                "Recht op dataportabiliteit",
-                                "Recht niet onderworpen te worden aan geautomatiseerde besluitvorming",
-                                "Recht om bezwaar te maken",
-                                "Recht op duidelijke informatie"
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Procedure ter uitvoering",
+                            "task": "Procedure toelichting",
                             "id": "16.1.2",
                             "type": [
-                                "select_option"
+                                "open_text"
                             ],
-                            "options": [
-                                "ja",
-                                "nee",
-                                "nvt"
-                            ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.1.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         },
                         {
                             "task": "Beperking op grond van wettelijke uitzondering",
                             "id": "16.1.3",
                             "type": [
-                                "select_option"
+                                "radio_option"
                             ],
                             "options": [
-                                "ja",
-                                "nvt"
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Toelichting van de beperking",
+                            "task": "Beperking toelichting",
                             "id": "16.1.4",
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.1.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
                         }
                     ]
                 },
                 {
-                    "task": "Geef een beschrijving van de procedures",
+                    "task": "Recht op rectificatie en aanvulling",
                     "id": "16.2",
                     "type": [
-                        "open_text"
+                        "task_group"
                     ],
-                    "repeatable": false
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.2.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.2.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.2.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.2.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.2.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.2.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht op vergetelheid",
+                    "id": "16.3",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.3.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.3.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.3.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.3.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.3.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.3.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht op beperking van de verwerking",
+                    "id": "16.4",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.4.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.4.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.4.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.4.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.4.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.4.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht op beperking dataportabiliteit",
+                    "id": "16.5",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.5.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.5.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.5.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.5.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.5.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.5.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht niet onderworpen te worden aan geautomatiseerde besluitvorming",
+                    "id": "16.6",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.6.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.6.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.6.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.6.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.6.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.6.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht om bezwaar te maken",
+                    "id": "16.7",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.7.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.7.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.7.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.7.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.7.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.7.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "task": "Recht op duidelijke informatie",
+                    "id": "16.8",
+                    "type": [
+                        "task_group"
+                    ],
+                    "repeatable": false,
+                    "tasks": [
+                        {
+                            "task": "Procedures ter uitvoering",
+                            "id": "16.8.1",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Procedure toelichting",
+                            "id": "16.8.2",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.8.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        },
+                        {
+                            "task": "Beperking op grond van wettelijke uitzondering",
+                            "id": "16.8.3",
+                            "type": [
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                },
+                                {
+                                    "value": null,
+                                    "label": "Niet van toepassing"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Beperking toelichting",
+                            "id": "16.8.4",
+                            "type": [
+                                "open_text"
+                            ],
+                            "repeatable": false,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "16.8.3",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         },
@@ -1361,41 +2137,83 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Kans (en motivatie)",
+                            "task": "Kans",
                             "id": "17.1.3",
                             "type": [
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Impact (en motivatie)",
+                            "task": "Motivatie van de kans",
                             "id": "17.1.4",
                             "type": [
-                                "select_option"
-                            ],
-                            "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                "text_input"
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Risicoinschatting (en motivatie)",
+                            "task": "Impact",
                             "id": "17.1.5",
                             "type": [
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Motivatie van de impact",
+                            "id": "17.1.6",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Risicoinschatting",
+                            "id": "17.1.7",
+                            "type": [
+                                "select_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Motivatie van de risicoinschatting",
+                            "id": "17.1.8",
+                            "type": [
+                                "text_input"
                             ],
                             "repeatable": false
                         }
@@ -1460,9 +2278,15 @@
                                 "select_option"
                             ],
                             "options": [
-                                "laag",
-                                "midden",
-                                "hoog"
+                                {
+                                    "value": "laag"
+                                },
+                                {
+                                    "value": "midden"
+                                },
+                                {
+                                    "value": "hoog"
+                                }
                             ],
                             "repeatable": false
                         },
