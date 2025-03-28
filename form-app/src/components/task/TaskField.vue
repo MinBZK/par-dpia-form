@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { type FlatTask, useTaskStore } from '@/stores/tasks'
-import { useAnswerStore } from '@/stores/answers'
-import UiButton from '@/components/ui/UiButton.vue'
 import FormField from '@/components/task/FormField.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
+import { useTaskStore, type FlatTask } from '@/stores/tasks'
 import { renderInstanceLabel } from '@/utils/taskLabels'
+import { computed, nextTick } from 'vue'
 
 const props = defineProps<{
   taskId: string
@@ -13,20 +12,10 @@ const props = defineProps<{
 }>()
 
 const taskStore = useTaskStore()
-const answerStore = useAnswerStore()
 
-const { shouldShowTask } = useTaskDependencies()
+const { shouldShowTask, canUserCreateInstances, syncInstances } = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
-
-const instance = computed(() => {
-  taskStore.getInstanceById(props.instanceId) || {
-    id: props.instanceId,
-    taskId: props.taskId,
-    index: 0,
-    childInstanceIds: [],
-  }
-})
 
 const instanceLabel = computed(() => {
   if (task.value.instance_label_template) {
@@ -35,8 +24,11 @@ const instanceLabel = computed(() => {
   return isRepeatable.value ? `${task.value.task} item` : task.value.task
 })
 
-const removeInstance = (instanceId: string) => {
+const handleDelete = (instanceId: string) => {
   taskStore.removeRepeatableTaskInstance(instanceId)
+  nextTick(() => {
+    syncInstances.value()
+  })
 }
 </script>
 
@@ -44,18 +36,18 @@ const removeInstance = (instanceId: string) => {
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset
       class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset"
-      :aria-labelledby="`group-${taskId}-${instance}-legend`"
+      :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
     >
       <legend
         class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
-        :id="`group-${taskId}-${instance}-legend`"
+        :id="`group-${taskId}-${instanceId}-legend`"
       >
         {{ instanceLabel }}
       </legend>
 
       <div
         role="group"
-        :aria-labelledby="`group-${taskId}-${instance}-legend`"
+        :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
         class="utrecht-form-field utrecht-form-field--text rvo-form-field"
       >
         <div v-for="childId in task.childrenIds" :key="childId">
@@ -75,11 +67,11 @@ const removeInstance = (instanceId: string) => {
         </div>
       </div>
       <UiButton
-        v-if="isRepeatable"
+        v-if="isRepeatable && canUserCreateInstances(taskId)"
         variant="secondary"
         icon="verwijderen"
         label="Verwijder veld"
-        @click="removeInstance(props.instanceId)"
+        @click="handleDelete(props.instanceId)"
       />
     </fieldset>
   </div>

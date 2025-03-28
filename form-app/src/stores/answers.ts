@@ -1,32 +1,32 @@
-import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { ref, watch } from 'vue'
 
 const LOCAL_STORAGE_KEY = 'dpia_form_answers'
 
-export type AnswerValue = string | string[] | boolean | number | null;
+export type AnswerValue = string | string[] | boolean | number | null
 
 export interface Answer {
-  value: AnswerValue;
-  timestamp: string;
+  value: AnswerValue
+  timestamp: string
 }
 
 export const useAnswerStore = defineStore('AnswerStore', () => {
   /**
-    * ==============================================
-    * Store properties
-    * ==============================================
-    */
+   * ==============================================
+   * Store properties
+   * ==============================================
+   */
   const answers = ref<Record<string, Answer>>({})
 
   /**
-    * ==============================================
-    * Store actions
-    * ==============================================
-    */
+   * ==============================================
+   * Store actions
+   * ==============================================
+   */
   function setAnswer(instanceId: string, value: AnswerValue): void {
     const answer: Answer = {
       value,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
     answers.value[instanceId] = answer
   }
@@ -35,7 +35,6 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     return answers.value[instanceId]?.value || null
   }
 
-
   function removeAnswer(instanceId: string): void {
     if (instanceId in answers.value) {
       delete answers.value[instanceId]
@@ -43,7 +42,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   }
 
   function removeAnswerForInstances(instanceIds: string[]): void {
-    instanceIds.forEach(id => removeAnswer(id))
+    instanceIds.forEach((id) => removeAnswer(id))
   }
 
   function saveToLocalStorage() {
@@ -54,9 +53,13 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     }
   }
 
-  watch(answers, () => {
-    saveToLocalStorage()
-  }, { deep: true })
+  watch(
+    answers,
+    () => {
+      saveToLocalStorage()
+    },
+    { deep: true },
+  )
 
   return {
     // Properties

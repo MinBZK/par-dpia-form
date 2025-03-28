@@ -1,6 +1,6 @@
-import { computed } from 'vue'
-import { useTaskStore, type FlatTask } from '@/stores/tasks'
 import { useAnswerStore } from '@/stores/answers'
+import { useTaskStore, type FlatTask, type TaskInstance } from '@/stores/tasks'
+import { computed } from 'vue'
 
 function normalizeValue(value: string): string | boolean | null {
   if (value.toLowerCase() === 'true') {
@@ -29,9 +29,7 @@ export function useTaskDependencies() {
       }
 
       for (const dependency of task.dependencies) {
-
         if (dependency.type == 'conditional') {
-
           // If the condition is void we should show task.
           if (!dependency.condition) {
             return true
@@ -48,7 +46,6 @@ export function useTaskDependencies() {
           }
 
           const conditionValue = answerStore.getAnswer(relatedInstance.id)
-
 
           // We need to parse the conditionValue if it is a string.
           let normalizedValue = conditionValue
@@ -107,18 +104,57 @@ export function useTaskDependencies() {
     }
   })
 
+  const canUserCreateInstances = computed(() => {
+    return (taskId: string): boolean => {
+      const task = taskStore.taskById(taskId)
+
+      if (!task.repeatable) return false
+
+      const hasInstanceMapping =
+        task.dependencies?.some((dep) => dep.type === 'instance_mapping') || false
+      return !hasInstanceMapping
+    }
+  })
+
   const syncInstances = computed(() => {
     return (): void => {
-      console.log('Synchronising instances based on dependencies')
       Object.entries(taskStore.flatTasks).forEach(([taskId, task]) => {
         const mappingDeps = task.dependencies?.filter((d) => d.type === 'instance_mapping') || []
 
+        if (mappingDeps.length === 0) return
+
         for (const dep of mappingDeps) {
           const sourceId = dep.source?.id
-          if (sourceId) {
-            // TODO
-            console.log(`Should sync ${taskId} based on ${sourceId}`)
-          }
+          if (!sourceId) continue
+
+          const sourceInstances = taskStore.getInstancesForTask(sourceId)
+          const targetInstances = taskStore.getInstancesForTask(taskId)
+
+          const targetInstancesBySourceId = new Map<string, TaskInstance>()
+          targetInstances.forEach((instance) => {
+            if (instance.mappedFromInstanceId) {
+              targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
+            } else {
+            }
+          })
+
+          sourceInstances.forEach((sourceInstance) => {
+            const existingTarget = targetInstancesBySourceId.get(sourceInstance.id)
+
+            if (!existingTarget) {
+              const newInstanceId = taskStore.addRepeatableTaskInstance(taskId)
+
+              if (newInstanceId) {
+                taskStore.setInstanceMappingSource(newInstanceId, sourceInstance.id)
+              } else {
+              }
+            } else {
+              targetInstancesBySourceId.delete(sourceInstance.id)
+            }
+          })
+          targetInstancesBySourceId.forEach((instance) => {
+            taskStore.removeRepeatableTaskInstance(instance.id)
+          })
         }
       })
     }
@@ -126,6 +162,7 @@ export function useTaskDependencies() {
 
   return {
     shouldShowTask,
+    canUserCreateInstances,
     getSourceOptions,
     syncInstances,
   }

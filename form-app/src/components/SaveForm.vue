@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue';
-import UiButton from '@/components/ui/UiButton.vue';
+import UiButton from '@/components/ui/UiButton.vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{
-  isOpen: boolean,
+  isOpen: boolean
 }>()
 
 const emit = defineEmits<{
@@ -16,10 +16,11 @@ const saveFormRef = ref<HTMLDivElement | null>(null)
 // Generate filename based on timestamp
 const filename = computed((): string => {
   const now = new Date()
-  const timestamp = now.toISOString()
-    .replace(/:/g, '-')   // Replace colons with hyphens
-    .replace(/\..+/, '')  // Remove milliseconds
-    .replace('T', '_')   // Replace T with underscore
+  const timestamp = now
+    .toISOString()
+    .replace(/:/g, '-') // Replace colons with hyphens
+    .replace(/\..+/, '') // Remove milliseconds
+    .replace('T', '_') // Replace T with underscore
 
   return `DPIA_${timestamp}.json`
 })
@@ -58,25 +59,31 @@ const handleSave = () => {
 
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="handleClickOutside">
-
-    <div ref="saveFormRef" class="save-modal" aria-labelledby="save-form-title" role="dialog" aria-modal="true">
-
+    <div
+      ref="saveFormRef"
+      class="save-modal"
+      aria-labelledby="save-form-title"
+      role="dialog"
+      aria-modal="true"
+    >
       <h2 id="save-form-title" class="utrecht-heading-2">Formulier opslaan</h2>
 
       <div class="rvo-layout-margin-vertical--s">
+        <p class="utrecht-paragraph">Sla het formulier lokaal op om je voortgang te bewaren.</p>
         <p class="utrecht-paragraph">
-          Sla het formulier lokaal op om je voortgang te bewaren.
-        </p>
-        <p class="utrecht-paragraph">
-          Het bestand <strong>{{ filename }}</strong> kan later weer worden geselecteerd om
-          mee verder te werken.
+          Het bestand <strong>{{ filename }}</strong> kan later weer worden geselecteerd om mee
+          verder te werken.
         </p>
         <p class="utrecht-paragraph">
           Je kunt dit bestand ook delen met collega's zodat zij ermee aan de slag kunnen.
         </p>
       </div>
 
-      <p class="utrecht-button-group rvo-action-groul--position-right" role="group" aria-label="Formulier opslag">
+      <p
+        class="utrecht-button-group rvo-action-groul--position-right"
+        role="group"
+        aria-label="Formulier opslag"
+      >
         <UiButton variant="tertiary" label="Annuleren" @click="closeModal" />
         <UiButton variant="primary" label="Opslaan" @click="handleSave" />
       </p>

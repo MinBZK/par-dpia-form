@@ -1,12 +1,14 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { Dependency, Option, Source, Task, TaskTypeValue } from '@/models/dpia'
 import { nanoid } from 'nanoid'
-import { Task, TaskTypeValue, Source, Dependency, Option } from '@/models/dpia'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 
 export interface FlatTask {
   id: string
   task: string
   type: TaskTypeValue[]
+  parentId: string | null
+  childrenIds: string[]
   description?: string
   category?: string
   repeatable?: boolean
@@ -14,37 +16,34 @@ export interface FlatTask {
   sources?: Source[]
   dependencies?: Dependency[]
   instance_label_template?: string
-  parentId: string | null
-  childrenIds: string[]
 }
 
 export interface TaskInstance {
   id: string
   taskId: string
   groupId: string
-  parentInstanceId?: string
+  parentInstanceId: string | null
   childInstanceIds: string[]
-  index: number
+  mappedFromInstanceId?: string
 }
 
 export const useTaskStore = defineStore('TaskStore', () => {
   /**
-    * ==============================================
-    * Store properties
-    * ==============================================
-    */
+   * ==============================================
+   * Store properties
+   * ==============================================
+   */
 
   const flatTasks = ref<Record<string, FlatTask>>({})
   const taskInstances = ref<Record<string, TaskInstance>>({})
   const currentRootTaskId = ref('0')
   const rootTaskIds = ref<string[]>([])
 
-
   /**
-    * ==============================================
-    * Store actions
-    * ==============================================
-    */
+   * ==============================================
+   * Store actions
+   * ==============================================
+   */
   function init(tasks: Task[]) {
     createTasks(tasks)
     rootTaskIds.value.forEach((taskId) => {
@@ -95,10 +94,9 @@ export const useTaskStore = defineStore('TaskStore', () => {
     taskInstances.value[instanceId] = {
       id: instanceId,
       taskId,
-      parentInstanceId,
+      parentInstanceId: parentInstanceId || null,
       childInstanceIds: [],
       groupId,
-      index: 0,
     }
 
     if (parentInstanceId && taskInstances.value[parentInstanceId]) {
@@ -164,7 +162,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     return relatedInstance || null
   }
 
-  function syncInstancesFromSource(targetTaskId: string, sourceTaskId: string): void { }
+  function setInstanceMappingSource(instanceId: string, sourceInstanceId: string): void {
+    if (taskInstances.value[instanceId]) {
+      taskInstances.value[instanceId].mappedFromInstanceId = sourceInstanceId
+    }
+  }
 
   function setRootTask(id: string) {
     currentRootTaskId.value = id
@@ -186,12 +188,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   }
 
-
   /**
-    * ==============================================
-    * Store getters
-    * ==============================================
-    */
+   * ==============================================
+   * Store getters
+   * ==============================================
+   */
   const taskById = computed(() => {
     return (taskId: string): FlatTask => {
       const task = flatTasks.value[taskId]
@@ -240,7 +241,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
     getInstancesForTask,
     getInstanceIdsForTask,
     findRelatedInstance,
-    syncInstancesFromSource,
+    setInstanceMappingSource,
     setRootTask,
     nextRootTask,
     previousRootTask,

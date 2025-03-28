@@ -400,7 +400,7 @@
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Categorie betrokkenen",
+                            "task": "Persoonsgegeven",
                             "id": "3.1.1",
                             "type": [
                                 "text_input"
@@ -408,7 +408,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie persoonsgegevens",
+                            "task": "Categorie betrokkenen",
                             "id": "3.1.2",
                             "type": [
                                 "text_input"
@@ -416,7 +416,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Persoonsgegeven",
+                            "task": "Categorie persoonsgegevens",
                             "id": "3.1.3",
                             "type": [
                                 "text_input"
@@ -563,7 +563,7 @@
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Naam",
                             "id": "4.1.1",
                             "type": [
                                 "text_input"
@@ -571,8 +571,16 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen",
+                            "task": "Beschrijving",
                             "id": "4.1.2",
+                            "type": [
+                                "text_input"
+                            ],
+                            "repeatable": false
+                        },
+                        {
+                            "task": "Persoonsgegevens",
+                            "id": "4.1.3",
                             "type": [
                                 "checkbox_option"
                             ],
@@ -587,14 +595,6 @@
                                     "action": "options"
                                 }
                             ]
-                        },
-                        {
-                            "task": "Persoonsgegevens",
-                            "id": "4.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
                         }
                     ]
                 },
@@ -654,7 +654,7 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": false,
+                    "repeatable": true,
                     "instance_label_template": "Gegevensverwerking '{4.1.1}'",
                     "dependencies": [
                         {
@@ -704,6 +704,17 @@
                         "task_group"
                     ],
                     "repeatable": true,
+                    "instance_label_template": "Gegevensverwerking '{4.1.1}'",
+                    "dependencies": [
+                        {
+                            "type": "instance_mapping",
+                            "source": {
+                                "id": "4.1.1"
+                            },
+                            "mapping_type": "one_to_one",
+                            "action": "sync_instances"
+                        }
+                    ],
                     "tasks": [
                         {
                             "task": "Naam partij",

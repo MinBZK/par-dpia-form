@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { type FlatTask, useTaskStore } from '@/stores/tasks'
-import UiButton from '@/components/ui/UiButton.vue'
 import TaskField from '@/components/task/TaskField.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
+import UiButton from '@/components/ui/UiButton.vue'
+import { useTaskDependencies } from '@/composables/useTaskDependencies'
+import { type FlatTask, useTaskStore } from '@/stores/tasks'
+import { computed } from 'vue'
 
 const props = defineProps<{
   taskId: string
 }>()
 
 const taskStore = useTaskStore()
+
+const { canUserCreateInstances } = useTaskDependencies()
 
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 
@@ -66,7 +69,7 @@ const resolveImagePath = (image: string): string => {
           </template>
 
           <UiButton
-            v-if="isRepeatable(childId)"
+            v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
             variant="primary"
             icon="plus"
             label="Voeg veld toe"

@@ -11,24 +11,13 @@ export function renderInstanceLabel(
   const instance = taskStore.getInstanceById(instanceId)
   if (!instance) return template
 
-  return template.replace(/\{([^}]+)\}/g, (match: string, fieldId: string): string => {
-    const parentInstanceId = instance.parentInstanceId
-    if (!parentInstanceId) return match
+  return template.replace(/\{([^}]+)\}/g, (match: string, _fieldId: string): string => {
+    const originInstance = instance.mappedFromInstanceId
+    if (!originInstance) return match
 
-    const siblingInstanceIds = taskStore.getInstanceIdsForTask(fieldId, parentInstanceId)
-    if (!siblingInstanceIds.length) return match
+    const value = answerStore.getAnswer(originInstance)
+    if (value == null) return match
 
-    const siblingInstanceId = siblingInstanceIds[0]
-    const value = answerStore.getAnswer(siblingInstanceId)
-
-    if (value === undefined || value == null) {
-      return match
-    }
-
-    if (Array.isArray(value)) {
-      return value.join(', ')
-
-    }
     return String(value)
   })
 }
