@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
-    "@nl-rvo/component-library-css": "^4.5.2",
+    "@nl-rvo/component-library-css": "^4.5.5",
     "@nl-rvo/design-tokens": "^1.7.1",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22",
