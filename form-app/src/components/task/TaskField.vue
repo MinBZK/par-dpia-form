@@ -50,10 +50,12 @@ const handleDelete = (instanceId: string) => {
               <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
                 :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
             </template>
+            <UiButton v-if="taskStore.taskById(childId).repeatable === true && canUserCreateInstances(childId)"
+              variant="tertiary" icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
           </template>
           <div v-if="taskStore.taskById(childId).repeatable === true && canUserCreateInstances(childId)"
             class="rvo-layout-margin-vertical--md">
-            <UiButton variant="primary" icon="plus" label="Voeg veld toe"
+            <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
               @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
           </div>
         </div>
