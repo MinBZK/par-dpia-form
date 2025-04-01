@@ -39,6 +39,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const currentRootTaskId = ref('0')
   const rootTaskIds = ref<string[]>([])
   const isInitialized = ref<boolean>(false)
+  const completedRootTaskIds = ref<Set<string>>(new Set())
+
 
   /**
    * ==============================================
@@ -192,6 +194,21 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   }
 
+  function toggleCompleteForTaskId(taskId: string) {
+    if (!rootTaskIds.value.includes(taskId)) {
+      throw new Error(`Task with id ${taskId} is not a root task`)
+    }
+    if (completedRootTaskIds.value.has(taskId)) {
+      completedRootTaskIds.value.delete(taskId)
+    } else {
+      completedRootTaskIds.value.add(taskId)
+    }
+  }
+
+  function isRootTaskCompleted(taskId: string): boolean {
+    return completedRootTaskIds.value.has(taskId)
+  }
+
   /**
    * ==============================================
    * Store getters
@@ -202,7 +219,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
       const task = flatTasks.value[taskId]
 
       if (!task) {
-        throw new Error(`Task with id "${taskId} not found`)
+        throw new Error(`Task with id ${taskId} not found`)
       }
 
       return task
@@ -249,6 +266,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
     setRootTask,
     nextRootTask,
     previousRootTask,
+    toggleCompleteForTaskId,
+    isRootTaskCompleted,
 
     // Getters
     taskById,

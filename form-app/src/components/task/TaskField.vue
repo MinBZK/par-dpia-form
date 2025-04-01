@@ -38,7 +38,6 @@ const childTasksWithoutChildren = computed(() => {
 })
 
 const handleDelete = (instanceId: string) => {
-  console.log('Deleting instance:', instanceId); // Debug
   taskStore.removeRepeatableTaskInstance(instanceId);
   nextTick(() => {
     syncInstances.value();
