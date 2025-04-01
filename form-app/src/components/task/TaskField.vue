@@ -77,11 +77,8 @@ const handleDelete = (instanceId: string) => {
                   :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
                 <!-- Only show delete button for repeatable children instances -->
-                <UiButton v-if="canUserCreateInstances(childId)"
-                  variant="secondary"
-                  icon="verwijderen"
-                  label="Verwijder veld"
-                  @click="handleDelete(childInstanceId)" />
+                <UiButton v-if="canUserCreateInstances(childId)" variant="secondary" icon="verwijderen"
+                  label="Verwijder veld" @click="handleDelete(childInstanceId)" />
               </div>
             </div>
 
@@ -111,25 +108,21 @@ const handleDelete = (instanceId: string) => {
               <div v-if="shouldShowTask(childId, childInstanceId)">
                 <TaskField :taskId="childId" :instanceId="childInstanceId" />
 
-                <!-- Don't include delete button here - let the nested TaskField handle its own deletion -->
+                <!-- Add button for repeatable task group -->
+                <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
+                  <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
+                    @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
+                </div>
               </div>
             </div>
 
-            <!-- Add button for repeatable task group -->
-            <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
-                @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
-            </div>
           </template>
         </div>
       </div>
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
-      <UiButton v-if="isRepeatable && canUserCreateInstances(taskId)"
-        variant="secondary"
-        icon="verwijderen"
-        label="Verwijder veld"
-        @click="handleDelete(props.instanceId)" />
+      <UiButton v-if="isRepeatable && canUserCreateInstances(taskId)" variant="secondary" icon="verwijderen"
+        label="Verwijder veld" @click="handleDelete(props.instanceId)" />
     </fieldset>
   </div>
 </template>
