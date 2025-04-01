@@ -673,7 +673,7 @@
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": false
+                            "repeatable": true
                         }
                     ]
                 },
@@ -717,62 +717,72 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Naam partij",
+                            "task": "Betrokken partij",
                             "id": "7.1.1",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Rol partij",
-                            "id": "7.1.2",
-                            "type": [
-                                "select_option"
-                            ],
-                            "options": [
+                            "repeatable": true,
+                            "tasks": [
                                 {
-                                    "value": "verwerkingsverantwoordelijke"
+                                    "task": "Naam partij",
+                                    "id": "7.1.1.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "gezamenlijke verwerkingsverantwoordelijke"
+                                    "task": "Rol partij",
+                                    "id": "7.1.1.2",
+                                    "type": [
+                                        "select_option"
+                                    ],
+                                    "options": [
+                                        {
+                                            "value": "verwerkingsverantwoordelijke"
+                                        },
+                                        {
+                                            "value": "gezamenlijke verwerkingsverantwoordelijke"
+                                        },
+                                        {
+                                            "value": "verwerker"
+                                        },
+                                        {
+                                            "value": "sub-verwerker"
+                                        },
+                                        {
+                                            "value": "verstrekker"
+                                        },
+                                        {
+                                            "value": "ontvanger"
+                                        },
+                                        {
+                                            "value": "betrokkene"
+                                        },
+                                        {
+                                            "value": "derde"
+                                        }
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "verwerker"
+                                    "task": "Functies/afdelingen",
+                                    "id": "7.1.1.3",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "sub-verwerker"
-                                },
-                                {
-                                    "value": "verstrekker"
-                                },
-                                {
-                                    "value": "ontvanger"
-                                },
-                                {
-                                    "value": "betrokkene"
-                                },
-                                {
-                                    "value": "derde"
+                                    "task": "Categorieen betrokkenen & persoonsgegevens",
+                                    "id": "7.1.1.4",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
                                 }
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Functies/afdelingen",
-                            "id": "7.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Categorieen betrokkenen & persoonsgegevens",
-                            "id": "7.1.4",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
+                            ]
                         }
                     ]
                 },
@@ -821,7 +831,7 @@
                             "type": [
                                 "open_text"
                             ],
-                            "repeatable": false
+                            "repeatable": true
                         }
                     ]
                 },
@@ -865,45 +875,55 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Verwerkingslocatie",
+                            "task": "Verwerkingslocaties",
                             "id": "9.1.1",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Doorgiftemechanisme",
-                            "id": "9.1.2",
-                            "type": [
-                                "select_option"
-                            ],
-                            "options": [
+                            "repeatable": true,
+                            "tasks": [
                                 {
-                                    "value": "Adequaatheidsbesluit"
+                                    "task": "Verwerkingslocatie",
+                                    "id": "9.1.1.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "Binding Corporate Rules (BCR)"
+                                    "task": "Doorgiftemechanisme",
+                                    "id": "9.1.1.2",
+                                    "type": [
+                                        "select_option"
+                                    ],
+                                    "options": [
+                                        {
+                                            "value": "Adequaatheidsbesluit"
+                                        },
+                                        {
+                                            "value": "Binding Corporate Rules (BCR)"
+                                        },
+                                        {
+                                            "value": "Standaard contractsbepalingen (SCC)"
+                                        },
+                                        {
+                                            "value": "Artikel 49 AVG uitzondering"
+                                        },
+                                        {
+                                            "value": "Niet van toepassing (binnen EER)"
+                                        }
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "Standaard contractsbepalingen (SCC)"
-                                },
-                                {
-                                    "value": "Artikel 49 AVG uitzondering"
-                                },
-                                {
-                                    "value": "Niet van toepassing (binnen EER)"
+                                    "task": "Maatregelen",
+                                    "id": "9.1.1.3",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
                                 }
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Maatregelen",
-                            "id": "9.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
+                            ]
                         }
                     ]
                 },
@@ -947,20 +967,30 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Juridisch en/of beleidsmatig kader",
+                            "task": "Juridisch en beleidsmatig kader",
                             "id": "10.1.1",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Wetsartikelen",
-                            "id": "10.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
+                            "repeatable": true,
+                            "tasks": [
+                                {
+                                    "task": "Juridisch en/of beleidsmatig kader",
+                                    "id": "10.1.1.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Wetsartikelen",
+                                    "id": "10.1.1.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1004,36 +1034,46 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Verwerkingsdoeleinde",
+                            "task": "Bewaartermijnen",
                             "id": "11.1.1",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
-                            "id": "11.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Bewaartermijn/archiveringsperiode",
-                            "id": "11.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Motivatie voor de bewaartermijn",
-                            "id": "11.1.4",
-                            "type": [
-                                "open_text"
-                            ],
-                            "repeatable": false
+                            "repeatable": true,
+                            "tasks": [
+                                {
+                                    "task": "Verwerkingsdoeleinde",
+                                    "id": "11.1.1.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Categorie betrokkenen & persoonsgegevens",
+                                    "id": "11.1.1.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Bewaartermijn/archiveringsperiode",
+                                    "id": "11.1.1.3",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Motivatie voor de bewaartermijn",
+                                    "id": "11.1.1.4",
+                                    "type": [
+                                        "open_text"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1080,37 +1120,47 @@
                             "task": "Rechtsgrond",
                             "id": "12.1.1",
                             "type": [
-                                "select_option"
+                                "task_group"
                             ],
-                            "options": [
+                            "repeatable": true,
+                            "tasks": [
                                 {
-                                    "value": "Toestemming"
+                                    "task": "Rechtsgrond",
+                                    "id": "12.1.1.1",
+                                    "type": [
+                                        "select_option"
+                                    ],
+                                    "options": [
+                                        {
+                                            "value": "Toestemming"
+                                        },
+                                        {
+                                            "value": "Noodzakelijk voor de uitvoering van de overeenkomst"
+                                        },
+                                        {
+                                            "value": "Noodzakelijk om te voldoen aan een wettelijke verplichting"
+                                        },
+                                        {
+                                            "value": "Noodzakelijk om de vitale belangen te beschermen"
+                                        },
+                                        {
+                                            "value": "Noodzakelijk voor de vervulling van een taak van algemeen belang"
+                                        },
+                                        {
+                                            "value": "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                        }
+                                    ],
+                                    "repeatable": false
                                 },
                                 {
-                                    "value": "Noodzakelijk voor de uitvoering van de overeenkomst"
-                                },
-                                {
-                                    "value": "Noodzakelijk om te voldoen aan een wettelijke verplichting"
-                                },
-                                {
-                                    "value": "Noodzakelijk om de vitale belangen te beschermen"
-                                },
-                                {
-                                    "value": "Noodzakelijk voor de vervulling van een taak van algemeen belang"
-                                },
-                                {
-                                    "value": "Noodzakelijk voor de behartiging van een gerechtvaardigd belang"
+                                    "task": "Toelichting op de rechtsgrond",
+                                    "id": "12.1.1.2",
+                                    "type": [
+                                        "open_text"
+                                    ],
+                                    "repeatable": false
                                 }
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Toelichting op de rechtsgrond",
-                            "id": "12.1.2",
-                            "type": [
-                                "open_text"
-                            ],
-                            "repeatable": false
+                            ]
                         }
                     ]
                 },
@@ -1316,28 +1366,38 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
+                            "task": "Doelbinding",
                             "id": "14.1.1",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Doeleinde",
-                            "id": "14.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Oorspronkelijke doeleinde",
-                            "id": "14.1.3",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
+                            "repeatable": true,
+                            "tasks": [
+                                {
+                                    "task": "Categorie betrokkenen & persoonsgegevens",
+                                    "id": "14.1.1.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Doeleinde",
+                                    "id": "14.1.1.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Oorspronkelijke doeleinde",
+                                    "id": "14.1.1.3",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },

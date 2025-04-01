@@ -452,7 +452,7 @@ tasks:
           id: "6.1.1"
           type: 
             - open_text
-          repeatable: false
+          repeatable: true
     - task: Aanvullende informatie over de verwerkingsdoeleinden
       id: "6.2"
       type: 
@@ -481,35 +481,41 @@ tasks:
             mapping_type: "one_to_one"
             action: sync_instances
         tasks: 
-        - task: Naam partij
+        - task: Betrokken partij
           id: "7.1.1"
           type: 
-            - text_input
-          repeatable: false 
-        - task: Rol partij
-          id: "7.1.2"
-          type: 
-            - select_option
-          options:
-            - value: verwerkingsverantwoordelijke
-            - value: gezamenlijke verwerkingsverantwoordelijke
-            - value: verwerker
-            - value: sub-verwerker
-            - value: verstrekker
-            - value: ontvanger
-            - value: betrokkene
-            - value: derde
-          repeatable: false
-        - task: Functies/afdelingen
-          id: "7.1.3"
-          type: 
-            - text_input
-          repeatable: false
-        - task: Categorieen betrokkenen & persoonsgegevens
-          id: "7.1.4"
-          type: 
-            - text_input
-          repeatable: false
+            - task_group
+          repeatable: true 
+          tasks:
+          - task: Naam partij
+            id: "7.1.1.1"
+            type: 
+              - text_input
+            repeatable: false 
+          - task: Rol partij
+            id: "7.1.1.2"
+            type: 
+              - select_option
+            options:
+              - value: verwerkingsverantwoordelijke
+              - value: gezamenlijke verwerkingsverantwoordelijke
+              - value: verwerker
+              - value: sub-verwerker
+              - value: verstrekker
+              - value: ontvanger
+              - value: betrokkene
+              - value: derde
+            repeatable: false
+          - task: Functies/afdelingen
+            id: "7.1.1.3"
+            type: 
+              - text_input
+            repeatable: false
+          - task: Categorieen betrokkenen & persoonsgegevens
+            id: "7.1.1.4"
+            type: 
+              - text_input
+            repeatable: false
       - task: Aanvullende informatie over de betrokken partijen
         id: "7.2"
         type: 
@@ -544,7 +550,7 @@ tasks:
               id: "8.1.1"
               type: 
                 - open_text
-              repeatable: false 
+              repeatable: true 
         - task: Aanvullende informatie over de belangen
           id: "8.2"
           type: 
@@ -578,27 +584,33 @@ tasks:
               mapping_type: "one_to_one"
               action: sync_instances
           tasks: 
-            - task: Verwerkingslocatie
+            - task: Verwerkingslocaties
               id: "9.1.1"
               type: 
-                - text_input
-              repeatable: false 
-            - task: Doorgiftemechanisme
-              id: "9.1.2"
-              type: 
-                - select_option
-              options:
-                - value: Adequaatheidsbesluit
-                - value: Binding Corporate Rules (BCR)
-                - value: Standaard contractsbepalingen (SCC)
-                - value: Artikel 49 AVG uitzondering
-                - value: Niet van toepassing (binnen EER)
-              repeatable: false
-            - task: Maatregelen
-              id: "9.1.3"
-              type: 
-                - text_input
-              repeatable: false 
+                - task_group
+              repeatable: true 
+              tasks:
+              - task: Verwerkingslocatie
+                id: "9.1.1.1"
+                type: 
+                  - text_input
+                repeatable: false 
+              - task: Doorgiftemechanisme
+                id: "9.1.1.2"
+                type: 
+                  - select_option
+                options:
+                  - value: Adequaatheidsbesluit
+                  - value: Binding Corporate Rules (BCR)
+                  - value: Standaard contractsbepalingen (SCC)
+                  - value: Artikel 49 AVG uitzondering
+                  - value: Niet van toepassing (binnen EER)
+                repeatable: false
+              - task: Maatregelen
+                id: "9.1.1.3"
+                type: 
+                  - text_input
+                repeatable: false 
         - task: Aanvullende informatie over de verwerkingslocaties
           id: "9.2"
           type: 
@@ -629,16 +641,22 @@ tasks:
               mapping_type: "one_to_one"
               action: sync_instances
           tasks: 
-          - task: Juridisch en/of beleidsmatig kader
+          - task: Juridisch en beleidsmatig kader
             id: "10.1.1"
             type: 
-              - text_input
-            repeatable: false 
-          - task: Wetsartikelen
-            id: "10.1.2"
-            type: 
-              - text_input
-            repeatable: false 
+              - task_group
+            repeatable: true 
+            tasks:
+            - task: Juridisch en/of beleidsmatig kader
+              id: "10.1.1.1"
+              type: 
+                - text_input
+              repeatable: false 
+            - task: Wetsartikelen
+              id: "10.1.1.2"
+              type: 
+                - text_input
+              repeatable: false 
         - task: Aanvullende informatie toe over het juridische en beleidsmatig kader
           id: "10.2"
           type: 
@@ -670,26 +688,32 @@ tasks:
               mapping_type: "one_to_one"
               action: sync_instances
           tasks: 
-            - task: Verwerkingsdoeleinde
+            - task: Bewaartermijnen
               id: "11.1.1"
               type: 
-                - text_input
-              repeatable: false
-            - task: Categorie betrokkenen & persoonsgegevens
-              id: "11.1.2"
-              type: 
-                - text_input
-              repeatable: false
-            - task: Bewaartermijn/archiveringsperiode
-              id: "11.1.3"
-              type: 
-                - text_input
-              repeatable: false
-            - task: Motivatie voor de bewaartermijn
-              id: "11.1.4"
-              type: 
-                - open_text
-              repeatable: false
+                - task_group
+              repeatable: true
+              tasks:
+              - task: Verwerkingsdoeleinde
+                id: "11.1.1.1"
+                type: 
+                  - text_input
+                repeatable: false
+              - task: Categorie betrokkenen & persoonsgegevens
+                id: "11.1.1.2"
+                type: 
+                  - text_input
+                repeatable: false
+              - task: Bewaartermijn/archiveringsperiode
+                id: "11.1.1.3"
+                type: 
+                  - text_input
+                repeatable: false
+              - task: Motivatie voor de bewaartermijn
+                id: "11.1.1.4"
+                type: 
+                  - open_text
+                repeatable: false
         - task: Aanvullende informatie over de bewaartermijnen
           id: "11.2"
           type: 
@@ -731,20 +755,26 @@ tasks:
           - task: Rechtsgrond 
             id: "12.1.1"
             type: 
-              - select_option
-            options:
-              - value: Toestemming
-              - value: Noodzakelijk voor de uitvoering van de overeenkomst
-              - value: Noodzakelijk om te voldoen aan een wettelijke verplichting
-              - value: Noodzakelijk om de vitale belangen te beschermen
-              - value: Noodzakelijk voor de vervulling van een taak van algemeen belang
-              - value: Noodzakelijk voor de behartiging van een gerechtvaardigd belang
-            repeatable: false
-          - task: Toelichting op de rechtsgrond 
-            id: "12.1.2"
-            type: 
-              - open_text
-            repeatable: false
+              - task_group
+            repeatable: true
+            tasks:
+            - task: Rechtsgrond 
+              id: "12.1.1.1"
+              type: 
+                - select_option
+              options:
+                - value: Toestemming
+                - value: Noodzakelijk voor de uitvoering van de overeenkomst
+                - value: Noodzakelijk om te voldoen aan een wettelijke verplichting
+                - value: Noodzakelijk om de vitale belangen te beschermen
+                - value: Noodzakelijk voor de vervulling van een taak van algemeen belang
+                - value: Noodzakelijk voor de behartiging van een gerechtvaardigd belang
+              repeatable: false
+            - task: Toelichting op de rechtsgrond 
+              id: "12.1.1.2"
+              type: 
+                - open_text
+              repeatable: false
         - task: Aanvullende informatie over de rechtsgronden
           id: "12.2"
           type: 
@@ -868,21 +898,27 @@ tasks:
               mapping_type: "one_to_one"
               action: sync_instances
           tasks: 
-          - task: Categorie betrokkenen & persoonsgegevens
+          - task: Doelbinding
             id: "14.1.1"
             type: 
-              - text_input
-            repeatable: false
-          - task: Doeleinde 
-            id: "14.1.2"
-            type: 
-              - text_input
-            repeatable: false
-          - task: Oorspronkelijke doeleinde 
-            id: "14.1.3"
-            type: 
-              - text_input
-            repeatable: false
+              - task_group
+            repeatable: true
+            tasks:
+            - task: Categorie betrokkenen & persoonsgegevens
+              id: "14.1.1.1"
+              type: 
+                - text_input
+              repeatable: false
+            - task: Doeleinde 
+              id: "14.1.1.2"
+              type: 
+                - text_input
+              repeatable: false
+            - task: Oorspronkelijke doeleinde 
+              id: "14.1.1.3"
+              type: 
+                - text_input
+              repeatable: false
         - task: Aanvullende informatie over de verenigbaarheid en toelaatbaarheid
           id: "14.2"
           type: 
