@@ -1,5 +1,5 @@
 {
-    "name": "DPIA Rapportagemodel Rijksdienst",
+    "name": "DPIA Rapportagemodel Rijksdienstyaml",
     "urn": "urn:nl:dpia:3.0",
     "version": "3.0",
     "description": "Data Protection Impact Assessment template following Dutch government model version 3.0",
@@ -1190,71 +1190,111 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": true,
+                    "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Bijzondere persoonsgegevens",
+                            "description": "Worden er bijzondere persoonsgegevens verwerkt?",
                             "id": "13.1.1",
                             "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
-                            "id": "13.1.2",
-                            "type": [
-                                "text_input"
-                            ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Type bijzonder persoonsgegevens",
-                            "id": "13.1.3",
-                            "type": [
-                                "select_option"
+                                "radio_option"
                             ],
                             "options": [
                                 {
-                                    "value": "Ras of etnische afkomst"
+                                    "value": false,
+                                    "label": "Nee"
                                 },
                                 {
-                                    "value": "Politieke opvattingen"
-                                },
-                                {
-                                    "value": "Religieuze of levensbeschouwelijke overtuigingen"
-                                },
-                                {
-                                    "value": "Lidmaatschap van een vakbond"
-                                },
-                                {
-                                    "value": "Genetische gegevens"
-                                },
-                                {
-                                    "value": "Biometrische gegevens"
-                                },
-                                {
-                                    "value": "Gezondheidsgegevens"
-                                },
-                                {
-                                    "value": "Seksuele gerichtheid"
-                                },
-                                {
-                                    "value": "Strafrechtelijke gegevens"
-                                },
-                                {
-                                    "value": "Nationaal identificatienummer"
+                                    "value": true,
+                                    "label": "Ja"
                                 }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Doorbrekingsgrond",
-                            "id": "13.1.4",
+                            "task": "Bijzondere pesoonsgegevens",
+                            "id": "13.1.2",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
+                            "repeatable": true,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "13.1.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
+                            ],
+                            "tasks": [
+                                {
+                                    "task": "Gegevensverwerking",
+                                    "id": "13.1.2.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "id": "13.1.2.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Type bijzonder persoonsgegevens",
+                                    "id": "13.1.2.3",
+                                    "type": [
+                                        "select_option"
+                                    ],
+                                    "options": [
+                                        {
+                                            "value": "Ras of etnische afkomst"
+                                        },
+                                        {
+                                            "value": "Politieke opvattingen"
+                                        },
+                                        {
+                                            "value": "Religieuze of levensbeschouwelijke overtuigingen"
+                                        },
+                                        {
+                                            "value": "Lidmaatschap van een vakbond"
+                                        },
+                                        {
+                                            "value": "Genetische gegevens"
+                                        },
+                                        {
+                                            "value": "Biometrische gegevens"
+                                        },
+                                        {
+                                            "value": "Gezondheidsgegevens"
+                                        },
+                                        {
+                                            "value": "Seksuele gerichtheid"
+                                        },
+                                        {
+                                            "value": "Strafrechtelijke gegevens"
+                                        },
+                                        {
+                                            "value": "Nationaal identificatienummer"
+                                        }
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Doorbrekingsgrond",
+                                    "id": "13.2.2.4",
+                                    "type": [
+                                        "open_text"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1264,31 +1304,71 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": true,
+                    "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Strafrechtelijke persoonsgegevens",
+                            "description": "Worden er strafrechtelijke persoonsgegevens verwerkt?",
                             "id": "13.2.1",
                             "type": [
-                                "text_input"
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
+                            "task": "Strafrechtelijke persoonsgegegevens",
                             "id": "13.2.2",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Uitzonderingsgrond",
-                            "id": "13.2.3",
-                            "type": [
-                                "text_input"
+                            "repeatable": true,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "13.2.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
                             ],
-                            "repeatable": false
+                            "tasks": [
+                                {
+                                    "task": "Gegevensverwerking",
+                                    "id": "13.2.2.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "id": "13.2.2.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Uitzonderingsgrond",
+                                    "id": "13.2.2.3",
+                                    "type": [
+                                        "open_text"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },
@@ -1298,31 +1378,71 @@
                     "type": [
                         "task_group"
                     ],
-                    "repeatable": true,
+                    "repeatable": false,
                     "tasks": [
                         {
-                            "task": "Gegevensverwerking",
+                            "task": "Nationale identificatienummers",
+                            "description": "Worden er nationale identificatienummers verwerkt?",
                             "id": "13.3.1",
                             "type": [
-                                "text_input"
+                                "radio_option"
+                            ],
+                            "options": [
+                                {
+                                    "value": false,
+                                    "label": "Nee"
+                                },
+                                {
+                                    "value": true,
+                                    "label": "Ja"
+                                }
                             ],
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen & persoonsgegevens",
+                            "task": "Strafrechtelijke persoonsgegegevens",
                             "id": "13.3.2",
                             "type": [
-                                "text_input"
+                                "task_group"
                             ],
-                            "repeatable": false
-                        },
-                        {
-                            "task": "Uitzonderingsgrond",
-                            "id": "13.3.3",
-                            "type": [
-                                "text_input"
+                            "repeatable": true,
+                            "dependencies": [
+                                {
+                                    "type": "conditional",
+                                    "condition": {
+                                        "id": "13.3.1",
+                                        "operator": "equals",
+                                        "value": true
+                                    },
+                                    "action": "show"
+                                }
                             ],
-                            "repeatable": false
+                            "tasks": [
+                                {
+                                    "task": "Gegevensverwerking",
+                                    "id": "13.3.2.1",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "id": "13.3.2.2",
+                                    "type": [
+                                        "text_input"
+                                    ],
+                                    "repeatable": false
+                                },
+                                {
+                                    "task": "Uitzonderingsgrond",
+                                    "id": "13.3.2.3",
+                                    "type": [
+                                        "open_text"
+                                    ],
+                                    "repeatable": false
+                                }
+                            ]
                         }
                     ]
                 },
