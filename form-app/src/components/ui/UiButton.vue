@@ -49,6 +49,7 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
+        'rvo-icon--with-spacing',
       ]"
       role="img"
       aria-label="icon"

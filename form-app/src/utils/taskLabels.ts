@@ -11,7 +11,7 @@ export function renderInstanceLabel(
   const instance = taskStore.getInstanceById(instanceId)
   if (!instance) return template
 
-  return template.replace(/\{([^}]+)\}/g, (match: string, _fieldId: string): string => {
+  return template.replace(/\{([^}]+)\}/g, (match: string): string => {
     const originInstance = instance.mappedFromInstanceId
     if (!originInstance) return match
 
