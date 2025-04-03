@@ -1,5 +1,6 @@
-export function downloadJsonFile(data: unknown, filename: string): void {
+import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 
+export function downloadJsonFile(data: unknown, filename: string): void {
   try {
     const jsonString = JSON.stringify(data, null, 4);
     const blob = new Blob([jsonString], { type: 'application/json' })
@@ -18,4 +19,40 @@ export function downloadJsonFile(data: unknown, filename: string): void {
     console.error('Error in creating download file:', error)
     throw new Error('Failed to create download file')
   }
+}
+
+export async function readJsonFile(file: File): Promise<DPIASnapshot> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = (event) => {
+      try {
+        if (!event.target || typeof event.target.result !== 'string') {
+          reject(new Error('Could not read given file'))
+          return
+        }
+
+        const data = JSON.parse(event.target.result) as DPIASnapshot
+
+        if (!data.metadata || !data.taskState || !data.answers) {
+          reject(new Error('File contains format incompatible with DPIASnapshot structure'))
+          return
+        }
+
+        resolve(data)
+      } catch (error) {
+        if (error instanceof Error) {
+          reject(error)
+        } else {
+          reject(new Error('Could not process file'))
+        }
+      }
+    }
+
+    reader.onerror = () => {
+      reject(new Error('There was an error reading the file'))
+    }
+
+    reader.readAsText(file)
+  })
 }

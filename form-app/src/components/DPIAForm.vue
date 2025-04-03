@@ -5,6 +5,7 @@ import ProgressTracker from '@/components/ProgressTracker.vue'
 import SaveForm from '@/components/SaveForm.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import WelcomePage from '@/components/WelcomePage.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useAppStatePersistence } from '@/composables/useAppStatePersistence'
@@ -21,6 +22,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
+const dpiaStarted = ref(false)
 
 // Store setup
 const taskStore = useTaskStore()
@@ -106,6 +108,14 @@ const handleSaveForm = (filename: string) => {
     console.error('Failed to save form data:', error)
   }
 }
+
+const handleStart = (fileData?: DPIASnapshot) => {
+  if (fileData) {
+    appPersistence.applyAppState(fileData)
+    syncInstances.value()
+  }
+  dpiaStarted.value = true
+}
 </script>
 
 <template>
@@ -130,18 +140,24 @@ const handleSaveForm = (filename: string) => {
 
     <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
       <!-- Render curren task -->
-      <TaskSection :taskId="currentRootTaskId" />
-
-      <div class="rvo-layout-margin-vertical--xl">
-        <!-- Navigation buttons -->
-        <div class="button-group-container">
-          <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-          <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-            <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
-            <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-          </p>
-        </div>
+      <div v-if="!dpiaStarted">
+        <WelcomePage @start="handleStart" />
       </div>
+
+      <template v-else>
+        <TaskSection :taskId="currentRootTaskId" />
+
+        <div class="rvo-layout-margin-vertical--xl">
+          <!-- Navigation buttons -->
+          <div class="button-group-container">
+            <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
+            <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+              <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
+              <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+            </p>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 
