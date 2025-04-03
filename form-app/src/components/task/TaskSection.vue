@@ -39,9 +39,8 @@ const resolveImagePath = (image: string): string => {
 
       <div class="rvo-checkbox__group">
         <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
-          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input"
-          type="checkbox" :checked="taskStore.isRootTaskCompleted(taskId)"
-          @change="taskStore.toggleCompleteForTaskId(taskId)" />
+          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
+            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
           Markeer als voltooid
         </label>
       </div>
@@ -72,8 +71,12 @@ const resolveImagePath = (image: string): string => {
             <TaskField v-else :taskId="childId" :instanceId="instanceId" />
           </template>
 
-          <UiButton v-if="isRepeatable(childId) && canUserCreateInstances(childId)" variant="primary" icon="plus"
-            label="Voeg veld toe" @click="taskStore.addRepeatableTaskInstance(childId)" />
+          <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+            class="utrecht-form-fieldset rvo-form-fieldset">
+            <UiButton variant="primary" icon="plus" :label="`Voeg extra
+            ${taskStore.taskById(childId).task.toLowerCase()} toe`"
+              @click="taskStore.addRepeatableTaskInstance(childId)" />
+          </div>
         </template>
       </div>
 

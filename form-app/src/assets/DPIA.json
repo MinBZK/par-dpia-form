@@ -2314,7 +2314,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Beschrijving risico, oorsprong, kans (en motivatie), impact (en motivatie), risico-inschatting (en motivatie)",
+                    "task": "Risico's voor de betrokkenen",
                     "id": "17.1",
                     "type": [
                         "task_group"
