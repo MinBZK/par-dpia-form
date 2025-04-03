@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
-const LOCAL_STORAGE_KEY = 'dpia_form_answers'
-
-export type AnswerValue = string | string[] | boolean | number | null
+export type AnswerValue = string | string[] | null
 
 export interface Answer {
   value: AnswerValue
@@ -44,22 +42,6 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   function removeAnswerForInstances(instanceIds: string[]): void {
     instanceIds.forEach((id) => removeAnswer(id))
   }
-
-  function saveToLocalStorage() {
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(answers.value))
-    } catch (error) {
-      console.error('Failed to save answers:', error)
-    }
-  }
-
-  watch(
-    answers,
-    () => {
-      saveToLocalStorage()
-    },
-    { deep: true },
-  )
 
   return {
     // Properties

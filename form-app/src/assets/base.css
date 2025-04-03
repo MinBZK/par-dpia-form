@@ -59,3 +59,7 @@
   flex-direction: column;
   max-height: 90vh;
 }
+
+.rvo-theme .rvo-icon--with-spacing {
+  margin-right: 0.5rem;
+}

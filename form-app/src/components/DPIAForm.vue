@@ -7,6 +7,7 @@ import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
+import { useAppStatePersistence } from '@/composables/useAppStatePersistence'
 import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
@@ -27,13 +28,32 @@ const answerStore = useAnswerStore()
 const rootTasks = computed(() => taskStore.getRootTasks)
 
 const { syncInstances } = useTaskDependencies()
+const appPersistence = useAppStatePersistence()
 
 // Initialize tasks on component mount
 onMounted(async () => {
   try {
+
+    // Step 1: Initialize tasks from DPIA.json.
     const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
+
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
+
+      // Step 2: Load saved state from local storage if it exists.
+      const savedState = appPersistence.loadAppState()
+
+      // Step 3: Initialize task structure.
       taskStore.init(validData.tasks)
+
+      // Step 4: Apply saved state if it is available.
+      if (savedState) {
+        appPersistence.applyAppState(savedState)
+      }
+
+      // Step 5: Set up watchers for automatic saving to local storage.
+      appPersistence.setupWatchers()
+
+      // Step 6: Sync task instances based on their dependencies.
       syncInstances.value()
     })
   } catch (e: unknown) {
@@ -47,7 +67,7 @@ onMounted(async () => {
   }
 })
 
-// Also add a watcher for answer changes
+// Sync instances whenever answers change
 watch(
   () => answerStore.answers,
   () => {
@@ -75,6 +95,7 @@ const handleSaveForm = (filename: string) => {
       taskState: {
         currentRootTaskId: taskStore.currentRootTaskId,
         taskInstances: taskStore.taskInstances,
+        completedRootTaskIds: Array.from(taskStore.completedRootTaskIds),
       },
       answers: answerStore.answers,
     }
@@ -114,21 +135,10 @@ const handleSaveForm = (filename: string) => {
       <div class="rvo-layout-margin-vertical--xl">
         <!-- Navigation buttons -->
         <div class="button-group-container">
-          <UiButton
-            v-if="!isFirstTask"
-            variant="tertiary"
-            icon="terug"
-            label="Vorige stap"
-            @click="goToPrevious"
-          />
+          <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
           <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
             <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
-            <UiButton
-              v-if="!isLastTask"
-              variant="primary"
-              label="Volgende stap"
-              @click="goToNext"
-            />
+            <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
           </p>
         </div>
       </div>

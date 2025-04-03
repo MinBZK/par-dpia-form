@@ -9,6 +9,7 @@ export interface FlatTask {
   type: TaskTypeValue[]
   parentId: string | null
   childrenIds: string[]
+  valueType?: string
   description?: string
   category?: string
   repeatable?: boolean
@@ -50,9 +51,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
   function init(tasks: Task[]) {
     if (!isInitialized.value) {
       createTasks(tasks)
-      rootTaskIds.value.forEach((taskId) => {
-        createTaskInstance(taskId)
-      })
+
+      if (Object.keys(taskInstances.value).length === 0) {
+        createDefaultInstances()
+      }
+
       isInitialized.value = true
     }
   }
@@ -70,6 +73,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         sources: task.sources,
         dependencies: task.dependencies,
         instance_label_template: task.instance_label_template,
+        valueType: task.valueType,
         parentId,
         childrenIds: [],
       }
@@ -116,6 +120,12 @@ export const useTaskStore = defineStore('TaskStore', () => {
       })
     }
     return instanceId
+  }
+
+  function createDefaultInstances() {
+    rootTaskIds.value.forEach((taskId) => {
+      createTaskInstance(taskId)
+    })
   }
 
   function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string): string {
@@ -254,6 +264,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
     taskInstances,
     currentRootTaskId,
     rootTaskIds,
+    completedRootTaskIds,
+    isInitialized,
 
     // Actions
     init,

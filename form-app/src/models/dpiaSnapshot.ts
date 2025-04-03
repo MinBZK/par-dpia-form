@@ -7,6 +7,7 @@ export interface DPIASnapshotMetadata {
 
 export interface DPIATaskState {
   currentRootTaskId: string
+  completedRootTaskIds: string[]
   taskInstances: Record<string, TaskInstance>
 }
 
