@@ -8,6 +8,7 @@ const { currentRootTaskId, goToTask } = useTaskNavigation()
 
 defineProps<{
   rootTasks: FlatTask[]
+  disabled?: boolean
 }>()
 </script>
 
@@ -21,15 +22,20 @@ defineProps<{
       <div :class="[
         'rvo-progress-tracker__step',
         'rvo-progress-tracker__step--md',
-        taskStore.isRootTaskCompleted(task.id)
-          ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
-          : task.id === currentRootTaskId
-          ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after'
-          : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
+        disabled
+          ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
+          : taskStore.isRootTaskCompleted(task.id)
+            ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
+            : task.id === currentRootTaskId
+              ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after'
+              : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
         'rvo-progress-tracker__step--straight',
         'rvo-image-bg-progress-tracker-line-straight--before',
       ]">
-        <a class="rvo-link rvo-progress-tracker__step-link small-text" @click="goToTask(task.id)">
+        <div v-if="disabled" class="small-text">
+          {{ task.id !== '0' ? `${task.id}.` : `` }} {{ task.task }}
+        </div>
+        <a v-else class="rvo-link rvo-progress-tracker__step-link small-text" @click="goToTask(task.id)">
           {{ task.id !== '0' ? `${task.id}.` : `` }} {{ task.task }}
         </a>
       </div>
