@@ -32,8 +32,15 @@ function converStringValue(value: string | null, typeSpec: string): null | strin
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
-  if (!Array.isArray(storedAnswer) && props.task.valueType && ['boolean', 'boolean|null'].includes(props.task.valueType)) {
+  if (props.task.valueType && ['boolean', 'boolean|null'].includes(props.task.valueType)) {
     return converStringValue(storedAnswer, props.task.valueType)
+  } else if (props.task.valueType === 'string[]') {
+    if (Array.isArray(storedAnswer)) {
+      return storedAnswer
+    } else {
+      return [storedAnswer]
+    }
+
   }
   return storedAnswer
 })
@@ -141,7 +148,7 @@ const handleCheckboxInput = (event: Event) => {
         <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
           :for="`${task.id}-${instanceId}-${option}`">
           <input :id="`${task.id}-${instanceId}-${option}`" :value="option" :checked="currentValue.includes(option)"
-            :name="`group-${task.id}-${instance}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
             type="checkbox" />
           {{ option }}
         </label>
