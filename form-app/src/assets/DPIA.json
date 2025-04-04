@@ -14,7 +14,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Verwerkingsverantwoordelijke",
+                    "task": "<div class='aiv-definition'>Verwerkingsverantwoordelijke<span class='aiv-definition-text'>Een verwerkingsverantwoordelijke is een [partij] die/dat het [verwerkingsdoeleinde] van en de middelen voor de [gegevensverwerking] vaststelt.</span></div>",
                     "id": "0.1",
                     "type": [
                         "task_group"
@@ -38,7 +38,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Afdeling",
+                            "task": "<div class='aiv-definition'>Afdeling<span class='aiv-definition-text'>Een afdeling is een [organisatorische eenheid] als onderdeel van de afdelingshi\u00ebrarchie van een organisatie.</span></div>",
                             "id": "0.1.3",
                             "type": [
                                 "text_input"
@@ -54,7 +54,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Functie",
+                            "task": "<div class='aiv-definition'>Functie<span class='aiv-definition-text'>Een functie is een set van taken, bevoegdheden en verantwoordelijkheden, die gedefinieerd is in termen van het werk van de [organisatorische eenheid] van de betreffende persoon.</span></div>",
                             "id": "0.1.5",
                             "type": [
                                 "text_input"
@@ -104,7 +104,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Afdeling",
+                            "task": "<div class='aiv-definition'>Afdeling<span class='aiv-definition-text'>Een afdeling is een [organisatorische eenheid] als onderdeel van de afdelingshi\u00ebrarchie van een organisatie.</span></div>",
                             "id": "0.2.3",
                             "type": [
                                 "text_input"
@@ -120,7 +120,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Functie",
+                            "task": "<div class='aiv-definition'>Functie<span class='aiv-definition-text'>Een functie is een set van taken, bevoegdheden en verantwoordelijkheden, die gedefinieerd is in termen van het werk van de [organisatorische eenheid] van de betreffende persoon.</span></div>",
                             "id": "0.2.5",
                             "type": [
                                 "text_input"
@@ -136,7 +136,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Advies FG in document (naam document)",
+                            "task": "<div class='aiv-definition'>Advies FG<span class='aiv-definition-text'>Advies FG is een beschrijving van wat de [functionaris voor gegevensbescherming] van een [verwerkingsverantwoordelijke] die de [DPIA] opstelt heeft geadviseerd, en wat met dat advies is gedaan.</span></div> in document (naam document)",
                             "id": "0.2.7",
                             "type": [
                                 "text_input"
@@ -144,7 +144,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Advies FG verwerkt in versie (versienummer)",
+                            "task": "<div class='aiv-definition'>Advies FG<span class='aiv-definition-text'>Advies FG is een beschrijving van wat de [functionaris voor gegevensbescherming] van een [verwerkingsverantwoordelijke] die de [DPIA] opstelt heeft geadviseerd, en wat met dat advies is gedaan.</span></div> verwerkt in versie (versienummer)",
                             "id": "0.2.8",
                             "type": [
                                 "text_input"
@@ -154,7 +154,7 @@
                     ]
                 },
                 {
-                    "task": "Documentbeheerder",
+                    "task": "<div class='aiv-definition'>Documentbeheerder<span class='aiv-definition-text'>Een documentbeheerder is een persoon in een [functie] die termns een [verwerkingsverantwoordelijke] die een [DPIA] opstelt verantwoordelijk is voor de opslag van dat [DPIA] [document].</span></div>",
                     "id": "0.3",
                     "type": [
                         "task_group"
@@ -178,7 +178,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Afdeling",
+                            "task": "<div class='aiv-definition'>Afdeling<span class='aiv-definition-text'>Een afdeling is een [organisatorische eenheid] als onderdeel van de afdelingshi\u00ebrarchie van een organisatie.</span></div>",
                             "id": "0.3.3",
                             "type": [
                                 "text_input"
@@ -194,7 +194,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Functie",
+                            "task": "<div class='aiv-definition'>Functie<span class='aiv-definition-text'>Een functie is een set van taken, bevoegdheden en verantwoordelijkheden, die gedefinieerd is in termen van het werk van de [organisatorische eenheid] van de betreffende persoon.</span></div>",
                             "id": "0.3.5",
                             "type": [
                                 "text_input"
@@ -212,7 +212,7 @@
                     ]
                 },
                 {
-                    "task": "Versie",
+                    "task": "<div class='aiv-definition'>Versie<span class='aiv-definition-text'>Een versie is een afzonderlijk [informatieobject] uit een reeks die door opeenvolgende wijzigingen is ontstaan.</span></div>",
                     "id": "0.4",
                     "type": [
                         "text_input"
@@ -252,7 +252,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Document soort",
+                            "task": "<div class='aiv-definition'>Document<span class='aiv-definition-text'>Een document is een [informatieobject] dat eenvoudig kan worden gedeeld met andere partijen, en (ook) voor mensen leesbare tekst bevat.</span></div> soort",
                             "id": "0.6.2",
                             "type": [
                                 "text_input"
@@ -260,7 +260,7 @@
                             "repeatable": true
                         },
                         {
-                            "task": "Document naam",
+                            "task": "<div class='aiv-definition'>Document<span class='aiv-definition-text'>Een document is een [informatieobject] dat eenvoudig kan worden gedeeld met andere partijen, en (ook) voor mensen leesbare tekst bevat.</span></div> naam",
                             "id": "0.6.3",
                             "type": [
                                 "text_input"
@@ -268,7 +268,7 @@
                             "repeatable": true
                         },
                         {
-                            "task": "Document versie",
+                            "task": "<div class='aiv-definition'>Document<span class='aiv-definition-text'>Een document is een [informatieobject] dat eenvoudig kan worden gedeeld met andere partijen, en (ook) voor mensen leesbare tekst bevat.</span></div> versie",
                             "id": "0.6.4",
                             "type": [
                                 "text_input"
@@ -276,7 +276,7 @@
                             "repeatable": true
                         },
                         {
-                            "task": "Document locatie",
+                            "task": "<div class='aiv-definition'>Document<span class='aiv-definition-text'>Een document is een [informatieobject] dat eenvoudig kan worden gedeeld met andere partijen, en (ook) voor mensen leesbare tekst bevat.</span></div> locatie",
                             "id": "0.6.5",
                             "type": [
                                 "text_input"
@@ -287,7 +287,7 @@
                 },
                 {
                     "task": "Ondertekening",
-                    "description": "Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. ",
+                    "description": "Om de <div class='aiv-definition'>DPIA<span class='aiv-definition-text'>Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de [risico\u2019s voor betrokkenen] in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om de [risico\u2019s voor betrokkenen] zoveel mogelijk te mitigeren.</span></div> formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. ",
                     "id": "0.7",
                     "category": "administratief",
                     "type": [
@@ -312,7 +312,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Functie verwerkingsverantwoordelijke(n)",
+                            "task": "<div class='aiv-definition'>Functie<span class='aiv-definition-text'>Een functie is een set van taken, bevoegdheden en verantwoordelijkheden, die gedefinieerd is in termen van het werk van de [organisatorische eenheid] van de betreffende persoon.</span></div> verwerkingsverantwoordelijke(n)",
                             "id": "0.7.3",
                             "type": [
                                 "text_input"
@@ -333,7 +333,7 @@
         },
         {
             "task": "Inleiding",
-            "description": "Dit is het rapportagemodel van het Rijksmodel DPIA. Een DPIA wordt uitgevoerd door de 17 paragrafen in de navolgende pagina\u2019s zo helder en nauwkeurig mogelijk in te vullen en te beschrijven.\n\nDit rapportagemodel staat niet op zichzelf. Het is aan te raden om het Rijksmodel DPIA (delen I tot en met III) bij de hand te houden bij het schrijven van een DPIA. Met name deel III, de toelichting, is van belang bij het schrijven van de DPIA. Hierin wordt per paragraaf beschreven wat wordt verwacht qua invulling van desbetreffende onderdeel. Ook worden definities uitgebreid uitgelegd en worden handige voorbeelden gegeven.\n\nHet Rijksmodel DPIA is hier te vinden.\n\nVoeg hier wanneer gewenst een openingsalinea of inleiding toe. \nDenk bijvoorbeeld aan:\n  - Verwijzing naar het privacybeleid\n  - Motivatie achter de uitvoering van deze DPIA\n  - Informatie over de manier waarop deze DPIA is opgesteld\n",
+            "description": "Dit is het rapportagemodel van het Rijksmodel <div class='aiv-definition'>DPIA<span class='aiv-definition-text'>Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de [risico\u2019s voor betrokkenen] in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om de [risico\u2019s voor betrokkenen] zoveel mogelijk te mitigeren.</span></div>. Een DPIA wordt uitgevoerd door de 17 paragrafen in de navolgende pagina\u2019s zo helder en nauwkeurig mogelijk in te vullen en te beschrijven.\n\nDit rapportagemodel staat niet op zichzelf. Het is aan te raden om het Rijksmodel DPIA (delen I tot en met III) bij de hand te houden bij het schrijven van een DPIA. Met name deel III, de toelichting, is van belang bij het schrijven van de DPIA. Hierin wordt per paragraaf beschreven wat wordt verwacht qua invulling van desbetreffende onderdeel. Ook worden definities uitgebreid uitgelegd en worden handige voorbeelden gegeven.\n\nHet Rijksmodel DPIA is hier te vinden.\n\nVoeg hier wanneer gewenst een openingsalinea of inleiding toe. \nDenk bijvoorbeeld aan:\n  - Verwijzing naar het privacybeleid\n  - Motivatie achter de uitvoering van deze DPIA\n  - Informatie over de manier waarop deze DPIA is opgesteld\n",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "id": "1",
             "type": [
@@ -342,8 +342,8 @@
             "repeatable": false
         },
         {
-            "task": "Voorstel",
-            "description": "Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.",
+            "task": "<div class='aiv-definition'>Voorstel<span class='aiv-definition-text'>Het voorstel is een beschrijving van waar een [DPIA] over gaat, op hoofdlijnen, hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.</span></div>",
+            "description": "Beschrijf het voorstel waar de <div class='aiv-definition'>DPIA<span class='aiv-definition-text'>Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de [risico\u2019s voor betrokkenen] in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om de [risico\u2019s voor betrokkenen] zoveel mogelijk te mitigeren.</span></div> op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "id": "2",
             "type": [
@@ -352,7 +352,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Voorstel",
+                    "task": "<div class='aiv-definition'>Voorstel<span class='aiv-definition-text'>Het voorstel is een beschrijving van waar een [DPIA] over gaat, op hoofdlijnen, hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.</span></div>",
                     "id": "2.1",
                     "type": [
                         "open_text"
@@ -400,7 +400,7 @@
                     "repeatable": true,
                     "tasks": [
                         {
-                            "task": "Persoonsgegeven",
+                            "task": "<div class='aiv-definition'>Persoonsgegeven<span class='aiv-definition-text'>Een persoonsgegeven is een gegeven over een [ge\u00efdentificeerde natuurlijke persoon] of [identificeerbare natuurlijke persoon].</span></div>",
                             "id": "3.1.1",
                             "type": [
                                 "text_input"
@@ -408,7 +408,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie betrokkenen",
+                            "task": "<div class='aiv-definition'>Categorie betrokkenen<span class='aiv-definition-text'>Een categorie betrokkenen is een groepering van [betrokkenen].</span></div>",
                             "id": "3.1.2",
                             "type": [
                                 "text_input"
@@ -416,7 +416,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Categorie persoonsgegevens",
+                            "task": "<div class='aiv-definition'>Categorie persoonsgegevens<span class='aiv-definition-text'>Een categorie persoonsgegevens is een groepering van [persoonsgegevens].</span></div>",
                             "id": "3.1.3",
                             "type": [
                                 "text_input"
@@ -424,7 +424,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Type persoonsgegeven",
+                            "task": "<div class='aiv-definition'>Type persoonsgegeven<span class='aiv-definition-text'>Type persoonsgegeven is een [classificatie] van het type waartoe een [persoonsgegeven] behoort.</span></div>",
                             "id": "3.1.4",
                             "type": [
                                 "select_option"
@@ -555,7 +555,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking, Categorie\u00ebn betrokkenen & persoonsgegevens",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>, Categorie\u00ebn betrokkenen & persoonsgegevens",
                     "id": "4.1",
                     "type": [
                         "task_group"
@@ -649,7 +649,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking & verwerkingsdoeleinde",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div> & verwerkingsdoeleinde",
                     "id": "6.1",
                     "type": [
                         "task_group"
@@ -668,7 +668,7 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Verwerkingsdoeleinde",
+                            "task": "<div class='aiv-definition'>Verwerkingsdoeleinde<span class='aiv-definition-text'>Het verwerkingsdoeleinde is het resultaat dat wordt beoogd met een [gegevensverwerking]. Een verwerkingsdoeleinde is altijd welbepaald, uitdrukkelijk\nomschreven en gerechtvaardigd.</span></div>",
                             "id": "6.1.1",
                             "type": [
                                 "open_text"
@@ -698,7 +698,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking betrokkken partijen",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div> betrokkken partijen",
                     "id": "7.1",
                     "type": [
                         "task_group"
@@ -717,7 +717,7 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Betrokken partij",
+                            "task": "<div class='aiv-definition'>Betrokken partij<span class='aiv-definition-text'>Een betrokken partij is een [partij] die in een [AVG-rol] betrokken is bij een [gegevensverwerking].</span></div>",
                             "id": "7.1.1",
                             "type": [
                                 "task_group"
@@ -807,7 +807,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Betrokken partij, belangen, uitkomst consultatie betrokkenen",
+                    "task": "<div class='aiv-definition'>Betrokken partij<span class='aiv-definition-text'>Een betrokken partij is een [partij] die in een [AVG-rol] betrokken is bij een [gegevensverwerking].</span></div>, belangen, uitkomst consultatie betrokkenen",
                     "id": "8.1",
                     "type": [
                         "task_group"
@@ -826,7 +826,7 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Belang, uitkomst consultatie betrokkenen",
+                            "task": "<div class='aiv-definition'>Belang<span class='aiv-definition-text'>Een belang is hetgeen waaraan een [partij] waarde hecht met betrekking tot een [gegevensverwerking].</span></div>, uitkomst consultatie betrokkenen",
                             "id": "8.1.1",
                             "type": [
                                 "open_text"
@@ -847,7 +847,7 @@
         },
         {
             "task": "Verwerkingslocaties",
-            "description": "Benoem in welke landen de gegevensverwerkingen plaatsvinden.  Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. Voeg aanvullende informatie toe in het tekstveld.\nAls persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.\nZie deel III van het Rijksmodel DPIA voor meer informatie over de doorgiftemechanismen.",
+            "description": "Benoem in welke landen de gegevensverwerkingen plaatsvinden.  Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de <div class='aiv-definition'>Europese Economische Ruimte<span class='aiv-definition-text'>De Europese Economische Ruimte is een internationele overeenkomst en bestaat uit alle landen die lid zijn van de Europese Unie plus de landen IJsland, Liechtenstein en Noorwegen.</span></div> bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. Voeg aanvullende informatie toe in het tekstveld.\nAls persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, is het noodzakelijk om een zogenoemde data transfer impact assessment (<div class='aiv-definition'>DTIA<span class='aiv-definition-text'>Een DTIA is een onderzoek naar een specifieke [internationale doorgifte], de daaraan verbonden risico's en de mogelijkheden om de ge\u00efnventariseerde risico's te mitigeren.</span></div>) uit te voeren.\nZie deel III van het Rijksmodel <div class='aiv-definition'>DPIA<span class='aiv-definition-text'>Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de [risico\u2019s voor betrokkenen] in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om de [risico\u2019s voor betrokkenen] zoveel mogelijk te mitigeren.</span></div> voor meer informatie over de doorgiftemechanismen.",
             "id": "9",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
             "type": [
@@ -856,7 +856,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>, verwerkingslocatie, doorgiftemechanisme, maatregelen",
                     "id": "9.1",
                     "type": [
                         "task_group"
@@ -883,7 +883,7 @@
                             "repeatable": true,
                             "tasks": [
                                 {
-                                    "task": "Verwerkingslocatie",
+                                    "task": "<div class='aiv-definition'>Verwerkingslocatie<span class='aiv-definition-text'>Een verwerkingslocatie is een land waarin een [gegevensverwerking] plaatsvindt.</span></div>",
                                     "id": "9.1.1.1",
                                     "type": [
                                         "text_input"
@@ -891,7 +891,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Doorgiftemechanisme",
+                                    "task": "<div class='aiv-definition'>Doorgiftemechanisme<span class='aiv-definition-text'>Een doorgiftemechanisme is een voorwaarde voor [internationale doorgifte].</span></div>",
                                     "id": "9.1.1.2",
                                     "type": [
                                         "select_option"
@@ -1015,7 +1015,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn",
                     "id": "11.1",
                     "type": [
                         "task_group"
@@ -1042,7 +1042,7 @@
                             "repeatable": true,
                             "tasks": [
                                 {
-                                    "task": "Verwerkingsdoeleinde",
+                                    "task": "<div class='aiv-definition'>Verwerkingsdoeleinde<span class='aiv-definition-text'>Het verwerkingsdoeleinde is het resultaat dat wordt beoogd met een [gegevensverwerking]. Een verwerkingsdoeleinde is altijd welbepaald, uitdrukkelijk\nomschreven en gerechtvaardigd.</span></div>",
                                     "id": "11.1.1.1",
                                     "type": [
                                         "text_input"
@@ -1050,7 +1050,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Categorie betrokkenen & persoonsgegevens",
+                                    "task": "<div class='aiv-definition'>Categorie betrokkenen<span class='aiv-definition-text'>Een categorie betrokkenen is een groepering van [betrokkenen].</span></div> & persoonsgegevens",
                                     "id": "11.1.1.2",
                                     "type": [
                                         "text_input"
@@ -1058,7 +1058,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Bewaartermijn/archiveringsperiode",
+                                    "task": "<div class='aiv-definition'>Bewaartermijn<span class='aiv-definition-text'>De bewaartermijn is de periode waarin [persoonsgegevens] bewaard moeten worden.</span></div>/archiveringsperiode",
                                     "id": "11.1.1.3",
                                     "type": [
                                         "text_input"
@@ -1088,7 +1088,7 @@
             ]
         },
         {
-            "task": "Rechtsgrond",
+            "task": "<div class='aiv-definition'>Rechtsgrond<span class='aiv-definition-text'>Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking] als rechtmatig kan worden beschouwd.</span></div>",
             "description": "Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. Voeg aanvullende informatie toe in het tekstveld.\n\nDe rechtsgronden zijn:\n - Toestemming: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.\n - Noodzakelijk voor de uitvoering van de overeenkomst: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.\n - Noodzakelijk om te voldoen aan een wettelijke verplichting: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.\n - Noodzakelijk voor de vervulling van een taak van algemeen belang: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.\n - Noodzakelijk voor de behartiging van een gerechtvaardigd belang: \n   - Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.\n   - Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.\n",
             "id": "12",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
@@ -1098,7 +1098,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking, Rechtsgrond, toelichting op de rechtsgrond",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>, <div class='aiv-definition'>Rechtsgrond<span class='aiv-definition-text'>Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking] als rechtmatig kan worden beschouwd.</span></div>, toelichting op de rechtsgrond",
                     "id": "12.1",
                     "type": [
                         "task_group"
@@ -1117,7 +1117,7 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Rechtsgrond",
+                            "task": "<div class='aiv-definition'>Rechtsgrond<span class='aiv-definition-text'>Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking] als rechtmatig kan worden beschouwd.</span></div>",
                             "id": "12.1.1",
                             "type": [
                                 "task_group"
@@ -1125,7 +1125,7 @@
                             "repeatable": true,
                             "tasks": [
                                 {
-                                    "task": "Rechtsgrond",
+                                    "task": "<div class='aiv-definition'>Rechtsgrond<span class='aiv-definition-text'>Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking] als rechtmatig kan worden beschouwd.</span></div>",
                                     "id": "12.1.1.1",
                                     "type": [
                                         "select_option"
@@ -1231,7 +1231,7 @@
                             ],
                             "tasks": [
                                 {
-                                    "task": "Gegevensverwerking",
+                                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>",
                                     "id": "13.1.2.1",
                                     "type": [
                                         "text_input"
@@ -1287,7 +1287,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Doorbrekingsgrond",
+                                    "task": "<div class='aiv-definition'>Doorbrekingsgrond<span class='aiv-definition-text'>Een doorbrekingsgrond is een wettelijke bepaling waarmee het verbod om [bijzondere persoonsgegevens] te verwerken wordt opgeheven.</span></div>",
                                     "id": "13.2.2.4",
                                     "type": [
                                         "open_text"
@@ -1345,7 +1345,7 @@
                             ],
                             "tasks": [
                                 {
-                                    "task": "Gegevensverwerking",
+                                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>",
                                     "id": "13.2.2.1",
                                     "type": [
                                         "text_input"
@@ -1361,7 +1361,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Uitzonderingsgrond",
+                                    "task": "<div class='aiv-definition'>Uitzonderingsgrond<span class='aiv-definition-text'>Een uitzonderingsgrond is een wettelijke uitzondering op het verwerkingsverbod van [strafrechtelijke persoonsgegevens] of [nationale identificatienummers].</span></div>",
                                     "id": "13.2.2.3",
                                     "type": [
                                         "open_text"
@@ -1419,7 +1419,7 @@
                             ],
                             "tasks": [
                                 {
-                                    "task": "Gegevensverwerking",
+                                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>",
                                     "id": "13.3.2.1",
                                     "type": [
                                         "text_input"
@@ -1435,7 +1435,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Uitzonderingsgrond",
+                                    "task": "<div class='aiv-definition'>Uitzonderingsgrond<span class='aiv-definition-text'>Een uitzonderingsgrond is een wettelijke uitzondering op het verwerkingsverbod van [strafrechtelijke persoonsgegevens] of [nationale identificatienummers].</span></div>",
                                     "id": "13.3.2.3",
                                     "type": [
                                         "open_text"
@@ -1457,7 +1457,7 @@
             ]
         },
         {
-            "task": "Doelbinding",
+            "task": "<div class='aiv-definition'>Doelbinding<span class='aiv-definition-text'>Doelbinding geldt wanneer het [verwerkingsdoeleinde] van een verdere [gegevensverwerking] als [verenigbaar] wordt beschouwd met de [oorspronkelijke verwerkingsdoeleinden] van de [persoonsgegevens] in die [gegevensverwerking].</span></div>",
             "description": "Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld. Voeg in het tekstveld de verenigbaarheidstoets en aanvullende informatie toe.\n",
             "id": "14",
             "category": "Beschrijving kenmerken gegevensverwerkingen",
@@ -1467,7 +1467,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Gegevensverwerking, categorie betrokkenen & persoonsgegevens, doeleinde & oorspronkelijk doeleinde",
+                    "task": "<div class='aiv-definition'>Gegevensverwerking<span class='aiv-definition-text'>Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].</span></div>, categorie betrokkenen & persoonsgegevens, doeleinde & oorspronkelijk doeleinde",
                     "id": "14.1",
                     "type": [
                         "task_group"
@@ -1486,7 +1486,7 @@
                     ],
                     "tasks": [
                         {
-                            "task": "Doelbinding",
+                            "task": "<div class='aiv-definition'>Doelbinding<span class='aiv-definition-text'>Doelbinding geldt wanneer het [verwerkingsdoeleinde] van een verdere [gegevensverwerking] als [verenigbaar] wordt beschouwd met de [oorspronkelijke verwerkingsdoeleinden] van de [persoonsgegevens] in die [gegevensverwerking].</span></div>",
                             "id": "14.1.1",
                             "type": [
                                 "task_group"
@@ -1494,7 +1494,7 @@
                             "repeatable": true,
                             "tasks": [
                                 {
-                                    "task": "Categorie betrokkenen & persoonsgegevens",
+                                    "task": "<div class='aiv-definition'>Categorie betrokkenen<span class='aiv-definition-text'>Een categorie betrokkenen is een groepering van [betrokkenen].</span></div> & persoonsgegevens",
                                     "id": "14.1.1.1",
                                     "type": [
                                         "text_input"
@@ -1571,7 +1571,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Recht van inzage",
+                    "task": "<div class='aiv-definition'>Recht van inzage<span class='aiv-definition-text'>Het recht van inzage is een [recht van de betrokkene] waarbij de [betrokkene] het recht heeft om van de [verwerkingsverantwoordelijke] uitsluitsel te verkrijgen over het al dan niet verwerken van hem betreffende [persoonsgegevens] en, wanneer dat het geval is, om inzage te verkrijgen van die [persoonsgegevens] en overige informatie.</span></div>",
                     "id": "16.1",
                     "type": [
                         "task_group"
@@ -1659,7 +1659,7 @@
                     ]
                 },
                 {
-                    "task": "Recht op rectificatie en aanvulling",
+                    "task": "<div class='aiv-definition'>Recht op rectificatie<span class='aiv-definition-text'>Het recht op rectificatie is een [recht van de betrokkene] waarbij de [betrokkene] het recht heeft om van de [verwerkingsverantwoordelijke]  rectificatie van hem betreffende onjuiste [persoonsgegevens] te verkrijgen. Met inachtneming van de [verwerkingsdoeleinden] van de [gegevensverwerking] heeft de [betrokkene] het recht vervollediging van onvolledige [persoonsgegevens] te verkrijgen, onder meer door een aanvullende verklaring te verstrekken.</span></div> en aanvulling",
                     "id": "16.2",
                     "type": [
                         "task_group"
@@ -1835,7 +1835,7 @@
                     ]
                 },
                 {
-                    "task": "Recht op beperking van de verwerking",
+                    "task": "<div class='aiv-definition'>Recht op beperking van de verwerking<span class='aiv-definition-text'>Het recht op beperking van de verwerking is een [recht van de betrokkene] waarbij, indien een van de elementen uit artikel 18, lid 1, AVG van toepassing is, de [betrokkene] het recht heeft van de [verwerkingsverantwoordelijke] te verkrijgen dat [persoonsgegevens], met uitzondering van de opslag ervan, slechts verwerkt worden met toestemming van de [betrokkene] of voor de instelling, uitoefening of onderbouwing van een rechtsvordering of ter bescherming van de rechten van een andere [natuurlijke persoon] of rechtspersoon of om gewichtige redenen van algemeen belang voor de Unie of voor een lidstaat.</span></div>",
                     "id": "16.4",
                     "type": [
                         "task_group"
@@ -2317,7 +2317,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Kans",
+                            "task": "<div class='aiv-definition'>Kans<span class='aiv-definition-text'>De kans is de waarschijnlijkheid dat gevolgen van een [risico voor betrokkenen] zullen intreden.</span></div>",
                             "id": "17.1.3",
                             "type": [
                                 "select_option"
@@ -2344,7 +2344,7 @@
                             "repeatable": false
                         },
                         {
-                            "task": "Impact",
+                            "task": "<div class='aiv-definition'>Impact<span class='aiv-definition-text'>De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.</span></div>",
                             "id": "17.1.5",
                             "type": [
                                 "select_option"
@@ -2411,7 +2411,7 @@
         },
         {
             "task": "Maatregelen",
-            "description": "Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico\u2019s te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt. \nVoeg aanvullende informatie in het tekstveld onder de tabel toe.\n\nBeschrijf ook de resterende risico\u2019s die nog aanwezig zijn na de uitvoering en/of implementatie van de ge\u00efdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico. \n\nGeef tot slot een conclusie over de restrisico\u2019s. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de Autoriteit Persoonsgegevens nodig? \n\nGebruik voor de inschattingen van de risico\u2019s de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. Gebruikmaken van de bijbehorende kleuren is aan te raden.\n",
+            "description": "Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico\u2019s te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt. \nVoeg aanvullende informatie in het tekstveld onder de tabel toe.\n\nBeschrijf ook de resterende risico\u2019s die nog aanwezig zijn na de uitvoering en/of implementatie van de ge\u00efdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico. \n\nGeef tot slot een conclusie over de restrisico\u2019s. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de <div class='aiv-definition'>Autoriteit Persoonsgegevens<span class='aiv-definition-text'>De Autoriteit Persoonsgegevens is de onafhankelijke toezichthouder in Nederland die zich sterk maakt voor het recht op bescherming van [persoonsgegevens].</span></div> nodig? \n\nGebruik voor de inschattingen van de risico\u2019s de niveaus \u2018laag\u2019, \u2018gemiddeld\u2019 en \u2018hoog\u2019. Gebruikmaken van de bijbehorende kleuren is aan te raden.\n",
             "id": "18",
             "category": "Maatregelen en restrisico\u2019s",
             "type": [
