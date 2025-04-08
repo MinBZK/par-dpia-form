@@ -164,6 +164,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
     return getInstancesForTask(taskId, parentInstanceId).map((instance) => instance.id)
   }
 
+  function getRootTaskInstanceIds(taskId: string): string[] {
+    if (!rootTaskIds.value.includes(taskId)) {
+      throw new Error(`Task ${taskId} is not a root task.`)
+    }
+    return getInstanceIdsForTask(taskId)
+  }
+
   function findRelatedInstance(
     conditionTaskId: string,
     currentInstanceId: string,
@@ -273,6 +280,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
     removeRepeatableTaskInstance,
     getInstancesForTask,
     getInstanceIdsForTask,
+    getRootTaskInstanceIds,
     findRelatedInstance,
     setInstanceMappingSource,
     setRootTask,

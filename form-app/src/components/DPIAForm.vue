@@ -13,7 +13,7 @@ import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
-import { downloadJsonFile } from '@/utils/fileExport'
+import { downloadJsonFile, exportDpiaToPdf, diagnosePdfIssues } from '@/utils/fileExport'
 import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
@@ -23,6 +23,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
+const isExportingPdf = ref(false)
 const dpiaStarted = ref(false)
 
 // Store setup
@@ -113,6 +114,52 @@ const handleSaveForm = (filename: string) => {
   }
 }
 
+const handleExportPdf = async () => {
+  console.log('Tasks:', rootTasks.value);
+  console.log('Instances:', taskStore.taskInstances);
+  console.log('Answers:', answerStore.answers);
+  if (isExportingPdf.value) return;
+
+  try {
+    isExportingPdf.value = true;
+    diagnosePdfIssues(
+      rootTasks.value,
+      taskStore.flatTasks,
+      taskStore.taskInstances,
+      answerStore.answers
+    );
+
+
+    // Generate PDF filename
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const timestamp = today.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS format
+    const filename = `DPIA_${formattedDate}_${timestamp}.pdf`;
+
+    // Export PDF with proper options
+    await exportDpiaToPdf(
+      rootTasks.value,
+      taskStore.flatTasks,
+      taskStore.taskInstances,
+      answerStore.answers,
+      {
+        includeEmptyFields: false,
+        filename,
+        language: 'nl-NL'
+      }
+    );
+
+    // Log success for tracking
+    console.log('DPIA successfully exported to PDF');
+
+  } catch (error) {
+    console.error('Failed to export PDF:', error);
+    alert(`Er is een fout opgetreden bij het exporteren naar PDF: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
+  } finally {
+    isExportingPdf.value = false;
+  }
+};
+
 const handleStart = (fileData?: DPIASnapshot) => {
   if (fileData) {
     appPersistence.applyAppState(fileData)
@@ -158,7 +205,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
             <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
               <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
               <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF"/>
+              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
             </p>
           </div>
         </div>

@@ -513,11 +513,30 @@ tasks:
             type: 
               - text_input
             repeatable: false
-          - task: Categorieen betrokkenen & persoonsgegevens
+          - task: Persoonsgegevens
             id: "7.1.1.4"
-            type: 
-              - text_input
+            type:
+              - checkbox_option
             repeatable: false
+            valueType: "string[]"
+            dependencies:
+              - type: source_options
+                condition:
+                  id: "3.1.1"
+                  operator: any
+                action: options
+          - task: Categorieen betrokkenen
+            id: "7.1.1.5"
+            type:
+              - checkbox_option
+            repeatable: false
+            valueType: "string[]"
+            dependencies:
+              - type: source_options
+                condition:
+                  id: "3.1.2"
+                  operator: any
+                action: options
       - task: Aanvullende informatie over de betrokken partijen
         id: "7.2"
         type: 
