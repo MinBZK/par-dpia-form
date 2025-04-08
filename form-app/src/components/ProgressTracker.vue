@@ -2,14 +2,22 @@
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { type FlatTask, useTaskStore } from '@/stores/tasks'
 
-
-const taskStore = useTaskStore()
-const { currentRootTaskId, goToTask } = useTaskNavigation()
-
 defineProps<{
   rootTasks: FlatTask[]
   disabled?: boolean
 }>()
+
+const taskStore = useTaskStore()
+const { currentRootTaskId, goToTask } = useTaskNavigation()
+
+function displayTitle(task: FlatTask): string {
+  if (task.id === '0' || task.type?.includes('signing')) {
+    return task.task
+  } else {
+    return task.id + ". " + task.task
+  }
+}
+
 </script>
 
 <template>
@@ -33,10 +41,10 @@ defineProps<{
         'rvo-image-bg-progress-tracker-line-straight--before',
       ]">
         <div v-if="disabled" class="small-text">
-          {{ task.id !== '0' ? `${task.id}.` : `` }} {{ task.task }}
+          {{ displayTitle(task) }}
         </div>
         <a v-else class="rvo-link rvo-progress-tracker__step-link small-text" @click="goToTask(task.id)">
-          {{ task.id !== '0' ? `${task.id}.` : `` }} {{ task.task }}
+          {{ displayTitle(task) }}
         </a>
       </div>
     </div>

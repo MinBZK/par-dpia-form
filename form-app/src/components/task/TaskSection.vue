@@ -20,6 +20,10 @@ const shouldShowChildren = computed(
   () => task.value.type?.includes('task_group') && (task.value.childrenIds?.length || 0) > 0,
 )
 
+const isSigningTask = computed(
+  () => task.value.type?.includes("signing")
+)
+
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
 }
@@ -27,15 +31,33 @@ const isRepeatable = (taskId: string) => {
 const resolveImagePath = (image: string): string => {
   return '/src/assets/images/' + image
 }
+
+const taskDisplayTitle = (task: FlatTask): string => {
+  if (task.id === '0' || isSigningTask.value) {
+    return task.task
+  } else {
+    return task.id + '. ' + task.task
+  }
+}
 </script>
 
 <template>
   <div class="rvo-layout-margin-vertical--s">
     <!-- Task header -->
-    <h1 class="utrecht-heading-1">{{ task.id !== '0' ? `${task.id}.` : `` }} {{ task.task }}</h1>
+    <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
+
+    <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
+      <div class="utrecht-form-fieldset rvo-form-fieldset">
+        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+          <p class="utrecht-paragraph preserve-whitespace">
+            {{ task.description }}
+          </p>
+        </fieldset>
+      </div>
+    </div>
 
 
-    <div class="rvo-layout-column rvo-layout-gap--2xl">
+    <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
 
       <div class="rvo-checkbox__group">
         <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">

@@ -14,6 +14,7 @@ import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { downloadJsonFile } from '@/utils/fileExport'
+import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -40,6 +41,9 @@ onMounted(async () => {
     const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
 
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
+
+      // Add signing task (export to PDF step).
+      validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
 
       // Step 2: Load saved state from local storage if it exists.
       const savedState = appPersistence.loadAppState()
@@ -154,6 +158,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
             <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
               <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
               <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF"/>
             </p>
           </div>
         </div>

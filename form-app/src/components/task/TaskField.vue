@@ -3,7 +3,7 @@ import FormField from '@/components/task/FormField.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskStore, type FlatTask } from '@/stores/tasks'
-import { renderInstanceLabel } from '@/utils/taskLabels'
+import { renderInstanceLabel } from '@/utils/taskUtils'
 import { computed, nextTick } from 'vue'
 
 const props = defineProps<{
