@@ -2,6 +2,7 @@ import * as t from 'io-ts'
 
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
+  t.literal('signing'),
   t.literal('text_input'),
   t.literal('open_text'),
   t.literal('date'),
