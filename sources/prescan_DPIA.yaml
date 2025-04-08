@@ -1,0 +1,824 @@
+name: Pre-scan DPIA
+urn: 'urn:nl:dpia:3.0:prescan:2.0'
+version: "2.0"
+description: >-
+  Een Pre-scan DPIA is een vastlegging van de impact die een bepaalde gegevensverwerking heeft of kan hebben op de privacy van burgers.
+  In deze specificatie wordt beschreven uit welke gegevens een pre-scan DPIA is opgebouwd, en hoe deze zich onderling verhouden, 
+  op het conceptuele en semantische niveau. De beschrijving zal gebeuren aan de hand van de indeling van de pre-scan DPIA, 
+  conform de indeling in de [HandreikingPre-scanDPIA]. Hierbij zijn paragraaf I en J buiten beschouwing gelaten, 
+  aangezien deze paragrafen niet relevant zijn voor de vraag of er een DPIA of IAMA moet worden uitgevoerd. 
+  Ook uit de overige paragrafen zijn zaken weggelaten die niet relevant zijn voor de vraag of er een instrument als de DPIA moet worden ingezet.
+language: nl
+owners:
+- organization: Ministerie van BZK
+  name: Privacy Adviseur Rijk (PAR)
+  email: privacy-ciorijk@minbzk.nl
+  role: Privacy Officer
+
+tasks: 
+- task: Heeft u al eerder aan een prescan DPIA gewerkt voor dit project? 
+  description: Selecteer deze om de gegevens te gebruiken. 
+  id: "0"
+  category: 
+  type: 
+    - upload_file
+- task: Inleiding
+  description: >-
+    Geef een uitvoerige beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het. 
+    Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe. 
+    Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie. 
+    Deze input kun je hergebruiken voor paragraaf 1 van het Model DPIA Rijksdienst.
+  id: "A"
+  category: Inleiding/Algemeen 
+  type: 
+    - task_group
+  repeatable: false 
+  tasks: 
+    - task: Beschrijving van de verwerking 
+      description: >-
+        Geef een uitvoerige beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het. 
+        Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe. 
+        Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie. 
+        Deze input kun je hergebruiken voor paragraaf 1 van het Model DPIA Rijksdienst.
+      id: "A.1"
+      repeatable: false 
+      type: 
+        - text_input
+    - task: Doel gegevensverwerking
+      description: >-
+        Welk doel wil de organisatie bereiken met de gegevensverwerking? 
+        Dit kan hergebruikt worden in paragraaf 5 van het Model DPIA Rijksdienst.
+      id: "A.2"
+      repeatable: false 
+      type: 
+        - text_input
+    - task: Wat is de grondslag voor de verwerking? 
+      id: "A.3"
+      links: {"DPIA":"12.1.1.1"}
+      repeatable: false 
+      type: 
+        - text_input
+    - task: Is er sprake van cloudgebruik? 
+      id: "A.4"
+      repeatable: false
+      type: 
+        - radio_option
+      valueType: boolean
+      options: 
+        - value: true
+          label: Ja
+        - value: false
+          label: Nee
+    - task: Selecteer een of meer van onderstaande opties 
+      id: "A.5"
+      type: 
+        - select_option
+      options: 
+        - value: Een Saas, IaaS of PaaS oplossing 
+        - value: Cloudopslag van data 
+        - value: Een applicatie die gebruik maakt van een subverwerker voor cloudopslag (bijv. Azure, AWS, Google Cloud)
+        - value: On premise toepassing met functionaliteiten van het internet vanuit de cloud (hybrid cloud)
+      dependencies: 
+        - type: conditional 
+          condition: 
+            id: "A.4"
+            operator: equals 
+            value: true 
+          action: show
+    - task: Welke vorm van cloud betreft het? 
+      id: "A.6"
+      type: 
+        - radio_option
+      options: 
+        - value: Public cloud
+        - value: Private cloud
+        - value: Hybrid
+      dependencies: 
+        - type: conditional 
+          condition: 
+            id: "A.4"
+            operator: equals 
+            value: true 
+          action: show
+    - task: Gaat eht om materieel public cloudgebruik voor de primaire taak?
+      id: "A.7"
+      type: 
+        - radio_option
+      options: 
+        - value: true
+          label: Ja
+        - value: false
+          label: Nee
+      dependencies: 
+        - type: conditional 
+          condition: 
+            id: "A.4"
+            operator: equals 
+            value: true 
+          action: show
+- task: Gegevensverwerking
+  description: >-
+    Indien een organisatorische activiteit persoonsgegevens niet meteen een DPIA-verplichting krijgt door een gegevensverwerking op de lijst AP of lijst EPDB, 
+    dan spreken we van een organisatorische activiteit zonder DPIA-verplichting o.b.v. lijst AP of EDPB.
+    Daarbij leggen we een aantal gegevens vast die uitsluitsel kunnen geven over de vraag of er alsnog een DPIA-verplichting ontstaat.
+  id: "B"
+  category: Gegevensverwerking
+  type: 
+    - task_group
+  repeatable: false 
+  tasks: 
+  - task: Verwerkt het systeem persoonsgegevens? 
+    id: "B.8"
+    type: 
+      - radio_option
+    options: 
+      - value: true
+        label: Ja
+      - value: false
+        label: Nee
+  - task: Verwerkt het systeem een van onderstaande persoonsgegevens? 
+    id: "B.8.1"
+    type: 
+    - select_option
+    counter: true 
+    options: 
+    - value: Apparaat- en internetgegevens
+      risicoscore_tag: "persoonsgegeven"
+    - value: Content
+      risicoscore_tag: "persoonsgegeven"
+    - value: Demografische gegevens
+      risicoscore_tag: "persoonsgegeven"
+    - value: Diagnostische gegevens of telemetrie
+      risicoscore_tag: "persoonsgegeven"
+    - value: Gegevens verzameld via een website
+      risicoscore_tag: "persoonsgegeven"
+    - value: Helpdeskgegevens
+      risicoscore_tag: "persoonsgegeven"
+    - value: Logging
+      risicoscore_tag: "persoonsgegeven"
+    - value: Naam, contactgegevens
+      risicoscore_tag: "persoonsgegeven"
+    - value: Overige
+    calculation:
+      risicoscore_tag: "persoonsgegeven"
+      type: count
+      thresholds:
+        - threshold_min: 6
+          risicoscore: 1
+        - default:
+          risicoscore: 0
+  - task: Specificeer
+    id: "B.8.2"
+    type:
+    - open_text
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "B.9"
+        operator: equals 
+        value: Overige 
+      action: show
+  - task: Verwerkt het systeem ook bijzondere persoonsgegevens? 
+    id: "B.9"
+    type: 
+    - radio_option
+    links: {"DPIA": "13.1.1"}
+    options: 
+    - value: true
+      label: Ja
+    - value: false
+      label: Nee
+  - task: Verwerkt het systeem een van onderstaande bijzondere persoonsgegevens? 
+    id: "B.9.1"
+    type: 
+    - select_option
+    links: {"DPIA": "13.1.2.3"}
+    counter: true 
+    options: 
+    - value: Biometrische gegevens met het oog op identificatie
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Gegevens over seksuele geaardheid of seksueel gedrag
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Gegevens over gezondheid
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Genetische gegevens
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt 
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Persoonsgegevens waaruit politieke opvattingen blijken
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Persoonsgegevens waaruit ras of etnische afkomst blijkt
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    - value: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "B.9"
+        operator: equals 
+        value: true 
+      action: show
+    repeatable: false
+    calculation:
+      risicoscore_tag: "bijzonder_persoonsgegeven"
+      type: count
+      thresholds:
+        - threshold_max: 1
+          risicoscore: 0
+        - threshold_max: 1
+          threshold_min: 1
+          risicoscore: 1
+        - threshold_min: 2
+          risicoscore: 2
+
+  - task: Verwerkt het systeem ook bijzondere persoonsgegevens? 
+    id: "B.10"
+    type: 
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false
+      label: Nee
+    repeatable: false
+  - task: Gaat het systeem een van onderstaande gevoelige persoonsgegevens verwerken? 
+    id: "B.10.1"
+    type: 
+    - select_option
+    options:  ## TO DO: Controleren van gegevens
+    - value: Surfgedrag 
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Gegevens over de financiele situatievan de betrokkene
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Gegevens die kunnen worden gebruikt voor (identiteits)fraude
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Gegevens die betrekking hebben op kwetsbare groepen
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Gebruikersnamen, wachtwoorden en andere inloggegevens
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Communicatie- en locatiegegevens
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Nationale identificatienummers (bijv. BSN)
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Strafrechtelijke gegevens
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+    - value: Andere gegevens die kunnen leiden tot stigmatisering of uitsluiting van de betrokkene
+      risico_tag: "gevoelig_persoonsgegeven"
+    calculation:
+      risicoscore_tag: "gevoelig_persoonsgegeven"
+      type: count
+      thresholds:
+        - threshold_max: 1
+          risicoscore: 0
+        - threshold_max: 1
+          threshold_min: 4
+          risicoscore: 1
+        - threshold_min: 4
+          risicoscore: 2
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "B.10"
+        operator: equals 
+        value: true 
+      action: show
+    repeatable: false
+  - task: Welke categorieen betrokkken kun je onderscheiden? 
+    id: "B.11" 
+    type: 
+    - select_option
+    counter: true
+    options: 
+    - value: Medewerkers/bewindspersonen 
+      risicoscore_tag: "betrokkenen"
+      weight: 1
+    - value: Burgers 
+      risicoscore_tag: "betrokkenen"
+      weight: 1
+    - value: Kinderen jonger dan 16 jaar
+      risicoscore_tag: "betrokkenen"
+      weight: 3
+    - value: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
+      risicoscore_tag: "betrokkenen"
+      weight: 3
+    - value: Geen van bovenstaande 
+    calculation:
+      risicoscore_tag: "betrokkenen"
+      type: weighted_sum
+      thresholds:
+        - threshold_max: 2
+          risicoscore: 0
+        - threshold_min: 3
+          threshold_max: 4
+          risicoscore: 1
+        - threshold_min: 5
+          risicoscore: 2
+  - task: Specificeer categorie betrokkenen  ##Hier verdergaan 
+    id: "B.11.1"
+    type:
+    - text_input
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "B.11"
+        operator: equals 
+        value: Geen van bovenstaande
+      action: show
+  - task: Wat is naar schatting de omvang an de gegevensset/de verwerking? 
+    id: "B.12"
+    type: 
+    - task_group
+    tasks: 
+    - task: Aantal betrokkenen
+      id: "B.12.1"
+      type: 
+      - text_input
+      risicoscore_tag: "aantal_betrokkenen"
+      repeatable: false
+      calculation:
+        risicoscore_tag: "aantal_betrokkenen"
+        type: input
+      thresholds:
+        - threshold_max: 10000
+          threshold_min: 0
+          risicoscore: 0
+        - threshold_min: 10000
+          risicoscore: 2
+    - task: Hoeveelheid gegevens die per betrokkene wordt verwerkt 
+      id: "B.12.2"
+      type: 
+      - text_input
+      repeatable: false 
+    - task: Frequentie van verwerking 
+      id: "B.12.3"
+      type: 
+      - select_option #is this the same as multi-check? 
+      options:
+      - value: Continu
+      - value: Vaker dan maandelijks
+      - value: Minstens maandelijks
+      - value: Minstens jaarlijks 
+      - value: Onregelmatig 
+      - value: Eenmalig 
+      repeatable: false
+    - task: Wat is de bewaartermijn van de gegevens? 
+      id: "B.12.4"
+      type: select_option
+      options:
+      - value: Aantal jaren 
+      - value: Jaar
+      - value: Minder dan 1 maand
+      - value: Minder dan 1 week 
+      - value: Minder dan 24 uur
+      repeatable: false
+    - task: ZIjn de volgende gebruikersgroepen betrokken bij de verwerking? 
+      id: "B.13"
+      type:
+      - task_group
+      tasks: 
+      - task: Afnemers van de dienst? Bijvoorbeeld burgers die een dienst van de overheid afnamen. 
+        id: "B.13.1"
+        type: 
+        - radio_option
+        options:
+        - value: true 
+          label: Ja
+        - value: false 
+          label: Nee
+        repeatable: false 
+      - task: Afnemers van de informatie? Bijvoorbeeld (collega)overheidsorganan die informatie uit de applicatie of het proces halen? 
+        id: "B.13.2"
+        type: 
+        - radio_option
+        options:
+        - value: true 
+          label: Ja
+        - value: false 
+          label: Nee
+        repeatable: false 
+- task: Internationale doorgiften 
+  description: >-
+    Bij de organisatorische activiteit persoonsgegevens wordt vastgelegd of er sprake is van een internationale doorgifte. Als er sprake is van zo'n internationale doorgifte, dan is er sprake van een organisatorische activiteit met internationale doorgifte.
+  id: "C"
+  type: 
+  - task_group
+  repeatable: false
+  tasks: 
+  - task: Is er sprake van internationale doorgifte? 
+    id: "C.1"
+    type: 
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee
+    repeatable: false 
+  - task: Waar is het kantoor van de cloudprovider gevestigd? 
+    id: "C.1.1"
+    type: 
+    - radio_option
+    options: 
+    - value: Binnen EER
+    - value: Buiten EER 
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "C.1.1"
+          operator: equals 
+          value: Ja
+        action: show
+    repeatable: false
+  - task: Waar vindt de opslag van de gegevens contractueel plaats? 
+    id: "C.1.2"
+    type: 
+    - radio_option
+    options: 
+    - value: On premise 
+    - value: Datacenter EER
+    - value: Buiten EER 
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "C.1.1"
+          operator: equals 
+          value: Ja
+        action: show
+    repeatable: false
+  - task: Wat is het mechanisme voor doorgifte van gegevens? 
+    id: "C.1.3"
+    type: 
+    - radio_option
+    options: 
+    - value: Adequaatheidsbesluit
+    - value: Standaard contractsbepaling (SCC)
+    - value: Binding Corporate Rules (BCR)
+    - value: Uitzondering artikel 49 AVG 
+    - value: Geen van bovenstaande
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "C.1.1"
+          operator: equals 
+          value: Ja
+        action: show
+    repeatable: false
+  - task: Bevat de doorgifte ook bijzondere persoonsgegevens? ## Deze vraag wordt nergens voor gebruikt, is die nodig? 
+    id: "C.1.5"
+    type: 
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false
+      label: Nee
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "C.1.1"
+          operator: equals 
+          value: Ja
+        action: show
+    repeatable: false
+    redirect: 
+    - if: 
+        ("C.1" == "JA") &&
+        (("C.1.1" == "Buiten EER") || ("C.1.2" == "Buiten EER")) &&
+        (("C.1.3" == "Standaard contractsbepaling (SCC)") || ("C.1.3" == "Geen van bovenstaande"))
+      result: "DTIA"
+- task: Lijst AP
+  description: >-
+    Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst AP. De Lijst AP is een lijst met soorten gegevensverwerkingen van de [AP] waarvoor een DPIA verplicht is.
+  id: "D"
+  counter: true 
+  type: 
+  - task_group
+  tasks: 
+  - task: Welke groepen betrokkenen kun je onderscheiden? 
+    id: "D.1"
+    type: 
+    - select_option
+    options: 
+    - value: Biometrische gegevens 
+      risicoscore_tag: "AP"
+    - value: Cameratoezicht 
+      risicoscore_tag: "AP"
+    - value: Communicatiegegevens
+      risicoscore_tag: "AP"
+    - value: Controle werknemers
+      risicoscore_tag: "AP"
+    - value: Creditscores
+      risicoscore_tag: "AP"
+    - value: Financiele situatie
+      risicoscore_tag: "AP"
+    - value: Flexibel camaratoezicht
+      risicoscore_tag: "AP"
+    - value: Fraudebestrijding 
+      risicoscore_tag: "AP"
+    - value: Genetische persoonsgegeens 
+      risicoscore_tag: "AP"
+    - value: Gezondheidsgegevens 
+      risicoscore_tag: "AP"
+    - value: Heimelijk onderzoek
+      risicoscore_tag: "AP"
+    - value: Internet of things 
+      risicoscore_tag: "AP"
+    - value: Geen van bovenstaande 
+    calculation: 
+      risicoscore_tag: "AP"
+      thresholds:
+        - threshold_min: 1
+          result: "DPIA"
+  - task: Specificeer categorie betrokkenen 
+    id: "D.1.1"
+    type:
+    - text_input
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "D.1"
+        operator: equals 
+        value: Geen van bovenstaande
+      action: show
+- task: Lijst EDPB
+  description: >- 
+    Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst EDPB. De Lijst EDPB is een lijst met soorten gegevensverwerkingen van de [EDPB] waarvoor mogelijk een DPIA verplicht is.
+  id: "E"
+  type: 
+  - task_group
+  counter: true
+  tasks: 
+  - task: Welke categorieen betrokkenen kun je onderscheiden? 
+    id: "E.1"
+    type: 
+    - select_option
+    options: 
+    - value: Bijzondere persoonsgegevens of zeer gevoelige persoonsgegevens
+      risicoscore_tag: "EPDB"
+    - value: Blokkering van een dienst, recht of contract
+      risicoscore_tag: "EPDB"
+    - value: Geautomatiseerde besluitvorming 
+      risicoscore_tag: "EPDB"
+    - value: Gebruik van nieuwe technologieen 
+      risicoscore_tag: "EPDB"
+    - value: Grootschalige gegevensverwerkingen 
+      risicoscore_tag: "EPDB"
+    - value: Koppelen van datasets
+      risicoscore_tag: "EPDB"
+    - value: Mensen beoordelen met persoonskenmerken (evaluatie of scoring)
+      risicoscore_tag: "EPDB"
+    - value: Stelselmatige en grootschalige monitoring
+      risicoscore_tag: "EPDB"
+    - value: Genetische persoonsgegeens 
+      risicoscore_tag: "EPDB"
+    - value: Verwerking van persoonsgegevens over kwetsbare groepen of personen 
+      risicoscore_tag: "EPDB"
+    - value: Geen van bovenstaande 
+    calculation: 
+      risicoscore_tag: "EPDB"
+      thresholds:
+        - threshold_min: 6
+          result: "DPIA"
+  - task: Specificeer categorie betrokkenen 
+    id: "E.1.1"
+    type:
+    - text_input
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "E.1"
+        operator: equals 
+        value: Geen van bovenstaande
+      action: show
+# - task: Basisregistratie #should be removed, where can we find this info? 
+- task: Algoritmes/AI
+  description: >-
+    Bij de organisatorische activiteit persoonsgegevens kan er sprake zijn van het gebruik van een algoritme. Indien er sprake van een algoritme is, dan is de organisatorische activiteit een organisatorische activiteit met algoritme. Daarbij wordt een aanduiding of er sprake is van inzet van een AI-systeem vastgelegd.
+    Als er sprake (is) van een algoritme dat kwalificeert als een AI-systeem, dan is de organisatorische activiteit een Organisatorische activiteit met IAMA-verplichting.
+  id: "G"
+  type: 
+  - task_group
+  tasks:
+  - task: Wordt er gebruik gemaakt van een algoritme? 
+    id: "G.1"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false 
+  - task: Wordt op de uitslag (mede) een besluit over mensen genomen?
+    id: "G.2"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false 
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "G.1"
+        operator: equals 
+        value: true
+      action: show
+  - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
+    id: "G.3"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false
+    dependencies: 
+    - type: conditional 
+      condition: 
+        id: "G.1"
+        operator: equals 
+        value: true
+      action: show
+  redirect: 
+    - if:
+        ("G.2" == true) || ("G.3" == true) 
+      result: "IAMA"
+- task: Kinderrechten
+  description: >- 
+    Bij de organisatorische activiteit persoonsgegevens kan er sprake zijn van een digitale dienst voor personen jonger dan 18 jaar. Als er sprake is van digitale dienst voor personen jonger dan 18 jaar: een digitale dienst aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar, dan geldt er een KIA-verplichting, waarbij er een Kinderrechten Impact Assessment moet worden gemaakt, en is er dus sprake van een organisatorische activiteit met KIA-verplichting.
+  id: "H"
+  type: 
+  - task_group
+  tasks:
+  - task: Biedt u een digitale dienst aan of gebruikt u deze? 
+    id: "H.1"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false 
+  - task: Biedt u een digitale dienst aan die primair bedoeld is voor gebruik door personen jonger dan 18 jaar?
+    id: "H.2"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false 
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "H.1"
+          operator: equals 
+          value: true 
+        action: show
+  - task: Kunt u aantonen dat de deinst zal worden gebruikt door personen jonger dan 18 jaar of deze niet wordt ingezet bij personen jonger dan 18 jaar? 
+    description: Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst.
+    id: "H.3"
+    type:
+    - radio_option
+    options: 
+    - value: true
+      label: Ja
+    - value: false 
+      label: Nee 
+    repeatable: false 
+    dependencies: 
+      - type: conditional 
+        condition: 
+          id: "H.1"
+          operator: equals 
+          value: true 
+        action: show
+    redirect: 
+      - if: 
+          ("H.2" == 'Ja')
+        result: 'KIA'
+      - if: 
+          ("H.3" == "Nee")
+        result: 'Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst' #RM: voorstel om dit eruit te laten en in de vraag op te nemen. 
+
+conclusies:
+  # Conclusie op basis van de Algemene risicoscore (tenminste 4 risico's in de algemene vragen)
+  - conclusie: 
+    id: "Z.1"
+    condition:
+      type: "algemene_risicoscore"
+      count_min: 4  # Als 4 of meer algemene risico's zijn geselecteerd
+    result:
+      DPIA: "mogelijk_verplicht"  # Overeenkomend met I9=1
+      IAMA: false
+      KIA: false
+      DTIA: false
+
+  # Conclusie op basis van AP lijst (tenminste 1 item geselecteerd)
+  - conclusie: 
+    id: "Z.2"
+    condition:
+      type: "ap_lijst"
+      count_min: 1  # Als minstens 1 item op de AP lijst is geselecteerd
+    result:
+      DPIA: "verplicht"  # Overeenkomend met I9=2
+      IAMA: false
+      KIA: false
+      DTIA: false
+
+  # Conclusie op basis van EDPB lijst (precies 1 item geselecteerd)
+  - conclusie: 
+    id: "Z.3"
+    condition:
+      type: "edpb_lijst"
+      count: 1  # Als precies 1 item op de EDPB lijst is geselecteerd
+    result:
+      DPIA: "mogelijk_verplicht"  # Overeenkomend met I9=1
+      IAMA: false
+      KIA: false
+      DTIA: false
+
+  # Conclusie op basis van EDPB lijst (2 of meer items geselecteerd)
+  - conclusie: 
+    id: "Z.4"
+    condition:
+      type: "edpb_lijst"
+      count_min: 2  # Als 2 of meer items op de EDPB lijst zijn geselecteerd
+    result:
+      DPIA: "verplicht"  # Overeenkomend met I9=2
+      IAMA: false
+      KIA: false
+      DTIA: false
+
+  # Algoritmes/AI conclusie
+  - conclusie: 
+    id: "Z.5"
+    condition:
+      id: "G.1"
+      value: true
+    result:
+      DPIA: false
+      IAMA: true
+      KIA: false
+      DTIA: false
+
+  # Kinderrechten conclusie
+  - conclusie: 
+    id: "Z.6"
+    condition:
+      operator: "OR"
+      conditions:
+        - id: "H.2"
+          value: true
+        - id: "H.3"
+          value: true
+    result:
+      DPIA: false
+      IAMA: false
+      KIA: true
+      DTIA: false
+
+  # Internationale doorgifte conclusie
+  - conclusie: 
+    id: "Z.7"
+    condition:
+      id: "C.1"
+      value: true
+    result:
+      DPIA: false
+      IAMA: false
+      KIA: false
+      DTIA: true
+
+  # Standaard conclusie (als geen van bovenstaande van toepassing is)
+  - conclusie: 
+    id: "Z.8"
+    condition:
+      type: "default"
+    result:
+      DPIA: "niet_verplicht"  # Overeenkomend met I9=0
+      IAMA: false
+      KIA: false
+      DTIA: false
+
+
+        
+
+
+
+
+
+    
+
+
+
+
+
+
+
