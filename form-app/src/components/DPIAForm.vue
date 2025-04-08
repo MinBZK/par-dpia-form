@@ -13,7 +13,7 @@ import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
-import { downloadJsonFile, exportDpiaToPdf, diagnosePdfIssues } from '@/utils/fileExport'
+import { downloadJsonFile, exportDpiaToPdf } from '@/utils/fileExport'
 import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
@@ -122,14 +122,6 @@ const handleExportPdf = async () => {
 
   try {
     isExportingPdf.value = true;
-    diagnosePdfIssues(
-      rootTasks.value,
-      taskStore.flatTasks,
-      taskStore.taskInstances,
-      answerStore.answers
-    );
-
-
     // Generate PDF filename
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format

@@ -44,10 +44,12 @@ export function useTaskDependencies() {
           if (!relatedInstance) {
             continue
           }
+          console.log(relatedInstance.groupId)
 
           const conditionValue = answerStore.getAnswer(relatedInstance.id)
 
           // We need to parse the conditionValue if it is a string.
+          console.log(conditionValue)
           let normalizedValue = conditionValue
           if (typeof conditionValue === 'string') {
             normalizedValue = normalizeValue(conditionValue)

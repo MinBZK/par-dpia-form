@@ -92,11 +92,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
-  function createTaskInstance(taskId: string, parentInstanceId?: string): string {
+  function createTaskInstance(taskId: string, parentInstanceId?: string, forceNewGroupId: boolean = false): string {
     const instanceId = taskId + '_' + nanoid()
 
     let groupId
-    if (parentInstanceId) {
+    if (parentInstanceId && !forceNewGroupId) {
       groupId = taskInstances.value[parentInstanceId].groupId
     } else {
       groupId = taskId + '_' + nanoid()
@@ -131,7 +131,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string): string {
     const task = taskById.value(taskId)
     if (!task.repeatable) return ''
-    return createTaskInstance(taskId, parentInstanceId)
+    return createTaskInstance(taskId, parentInstanceId, true)
   }
 
   function removeRepeatableTaskInstance(instanceId: string): void {
