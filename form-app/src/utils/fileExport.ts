@@ -1,6 +1,7 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type Answer } from '@/stores/answers'
 import { type FlatTask, type TaskInstance } from '@/stores/tasks'
+import { generateTableForTaskGroup, shouldRenderAsTable } from '@/utils/tableBuilder'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
@@ -66,101 +67,6 @@ export async function readJsonFile(file: File): Promise<DPIASnapshot> {
 }
 
 /**
- * Function for diagnosing instance rendering issues
- */
-export function diagnosePdfIssues(
-  rootTasks: any[],
-  flatTasks: any,
-  taskInstances: any,
-  answers: any
-): void {
-  console.group('DPIA PDF Rendering Diagnosis');
-
-  // Task instance statistics
-  const totalInstances = Object.keys(taskInstances).length;
-  const rootTaskIds = rootTasks.map(task => task.id);
-
-  const instancesByTask = {};
-
-  // Count instances per task
-  Object.values(taskInstances).forEach((instance: any) => {
-    if (!instancesByTask[instance.taskId]) {
-      instancesByTask[instance.taskId] = [];
-    }
-    instancesByTask[instance.taskId].push(instance.id);
-  });
-
-  console.log('Total instances:', totalInstances);
-  console.log('Root task IDs:', rootTaskIds);
-
-  // Find repeatable tasks with multiple instances
-  const repeatableTasks = Object.entries(instancesByTask)
-    .filter(([_, instances]) => (instances as any[]).length > 1)
-    .map(([taskId, instances]) => ({
-      taskId,
-      taskName: flatTasks[taskId]?.task || 'Unknown',
-      instanceCount: (instances as any[]).length,
-      instanceIds: instances,
-      isDirectChildOfRoot: rootTaskIds.some(rootId =>
-        Object.values(taskInstances)
-          .some((instance: any) =>
-            instance.taskId === rootId &&
-            instance.childInstanceIds?.some(id => taskInstances[id]?.taskId === taskId)
-          )
-      )
-    }));
-
-  console.log('Repeatable tasks with multiple instances:', repeatableTasks);
-
-  // Check parent-child relationships
-  console.log('Checking parent-child relationships...');
-
-  // Print out the first few instances of each repeatable task
-  repeatableTasks.forEach(task => {
-    console.group(`Task: ${task.taskName} (${task.taskId})`);
-
-    const instanceIds = task.instanceIds as string[];
-    const sampleSize = Math.min(instanceIds.length, 3);
-
-    for (let i = 0; i < sampleSize; i++) {
-      const instanceId = instanceIds[i];
-      const instance = taskInstances[instanceId];
-
-      console.log(`Instance ${i+1}/${sampleSize}:`, {
-        id: instance.id,
-        taskId: instance.taskId,
-        parentInstanceId: instance.parentInstanceId,
-        parentTask: instance.parentInstanceId ?
-          `${flatTasks[taskInstances[instance.parentInstanceId]?.taskId]?.task} (${taskInstances[instance.parentInstanceId]?.taskId})` :
-          'None',
-        childCount: instance.childInstanceIds?.length || 0,
-        groupId: instance.groupId,
-        hasAnswer: !!answers[instance.id]
-      });
-    }
-
-    console.groupEnd();
-  });
-
-  // Check if repeatable tasks are being found correctly in buildSectionContent
-  const rootInstancesFound = rootTaskIds.map(taskId => {
-    const directInstances = Object.values(taskInstances)
-      .filter((instance: any) => instance.taskId === taskId);
-
-    return {
-      taskId,
-      taskName: flatTasks[taskId]?.task || 'Unknown',
-      directInstanceCount: directInstances.length,
-      directInstances: directInstances.map((instance: any) => instance.id)
-    };
-  });
-
-  console.log('Root task instances found:', rootInstancesFound);
-
-  console.groupEnd();
-}
-
-/**
  * Comprehensive PDF export utility for DPIA application
  */
 
@@ -169,13 +75,15 @@ interface PdfExportOptions {
   includeEmptyFields?: boolean
   filename?: string
   language?: string
+  useTablesForRepeatableTasks?: boolean
 }
 
 // Default export options
 const DEFAULT_OPTIONS: PdfExportOptions = {
   includeEmptyFields: false,
   filename: 'DPIA_Export.pdf',
-  language: 'nl-NL'
+  language: 'nl-NL',
+  useTablesForRepeatableTasks: true
 }
 
 /**
@@ -219,7 +127,6 @@ export async function exportDpiaToPdf(
       z-index: 9999;
     `
     document.body.appendChild(loadingElement)
-
     // Create document definition
     const docDefinition = await buildDocDefinition(
       rootTasks,
@@ -435,12 +342,54 @@ function buildSectionContent(
     content.push({ text: task.description, style: 'normal', margin: [0, 0, 0, 15] })
   }
 
-  // Get all task instances for this root task
-  const instances = Object.values(taskInstances)
+  // Get all direct child tasks
+  const childTasks = task.childrenIds?.map(id => flatTasks[id]) || []
+
+  // Process each child task - check if it should be rendered as a table
+  if (options.useTablesForRepeatableTasks) {
+    childTasks.forEach(childTask => {
+      if (childTask && shouldRenderAsTable(childTask.id, flatTasks, taskInstances)) {
+        content.push(
+          { text: childTask.task, style: 'sectionHeader', margin: [0, 15, 0, 10] },
+
+          // If the child task has a description, include it
+          ...(childTask.description ? [
+            { text: childTask.description, style: 'normal', margin: [0, 0, 0, 10] }
+          ] : []),
+
+          // Generate table for this repeatable task group
+          generateTableForTaskGroup(
+            childTask.id,
+            flatTasks,
+            taskInstances,
+            answers,
+            {
+              tableLayout: 'lightHorizontalLines',
+              margin: [0, 10, 0, 20],
+              includeEmptyFields: options.includeEmptyFields
+            }
+          )
+        )
+      }
+    })
+  }
+
+  // Get instances for this root task
+  const directInstances = Object.values(taskInstances)
     .filter(instance => instance.taskId === task.id)
 
-  // Process each instance
-  instances.forEach(instance => {
+  // Get all child tasks recursively
+  const childTaskIds = getAllChildTaskIds(task.id, flatTasks)
+
+  // Find orphaned instances for any task in this hierarchy
+  const orphanedInstances = Object.values(taskInstances)
+    .filter(instance =>
+      instance.parentInstanceId === null &&
+      childTaskIds.includes(instance.taskId)
+    )
+
+  // Process direct instances (these follow proper hierarchy)
+  directInstances.forEach(instance => {
     content.push(...renderTaskInstance(
       instance,
       flatTasks,
@@ -450,6 +399,32 @@ function buildSectionContent(
       0
     ))
   })
+
+  // Process orphaned instances if they belong to immediate children
+  // (only process top-level orphans to avoid duplicates)
+  orphanedInstances
+    .filter(instance => {
+      const instanceTask = flatTasks[instance.taskId]
+      return instanceTask && instanceTask.parentId === task.id
+    })
+    .forEach(instance => {
+      // Skip instances of task groups that were already rendered as tables
+      if (options.useTablesForRepeatableTasks) {
+        const instanceTask = flatTasks[instance.taskId]
+        if (instanceTask && shouldRenderAsTable(instanceTask.id, flatTasks, taskInstances)) {
+          return
+        }
+      }
+
+      content.push(...renderTaskInstance(
+        instance,
+        flatTasks,
+        taskInstances,
+        answers,
+        options,
+        1 // Start these at depth 1 since they're children
+      ))
+    })
 
   return content
 }
@@ -469,6 +444,13 @@ function renderTaskInstance(
   const task = flatTasks[instance.taskId]
 
   if (!task) return content
+
+  // Skip task groups that were already rendered as tables
+  if (options.useTablesForRepeatableTasks &&
+    depth > 0 &&
+    shouldRenderAsTable(task.id, flatTasks, taskInstances)) {
+    return content
+  }
 
   // Check if this is a task group that should have its own heading
   const isTaskGroup = task.type?.includes('task_group')
@@ -523,6 +505,14 @@ function renderTaskInstance(
 
     // Process child instances
     childInstances.forEach(childInstance => {
+      // Skip task groups that were already rendered as tables
+      if (options.useTablesForRepeatableTasks) {
+        const childTask = flatTasks[childInstance.taskId]
+        if (childTask && shouldRenderAsTable(childTask.id, flatTasks, taskInstances)) {
+          return
+        }
+      }
+
       content.push(...renderTaskInstance(
         childInstance,
         flatTasks,
@@ -642,3 +632,24 @@ function renderTaskAnswer(task: FlatTask, answer: any, depth: number): any {
     } : {})
   }
 }
+
+/**
+ * Get all child task IDs recursively for a given task
+ */
+function getAllChildTaskIds(taskId: string, flatTasks: Record<string, FlatTask>): string[] {
+  const childIds: string[] = []
+  const task = flatTasks[taskId]
+
+  if (!task) return childIds
+
+  // Add direct children
+  childIds.push(...task.childrenIds)
+
+  // Add children of children recursively
+  task.childrenIds.forEach(childId => {
+    childIds.push(...getAllChildTaskIds(childId, flatTasks))
+  })
+
+  return childIds
+}
+
