@@ -1,4 +1,6 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
+import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
+import { type AnswerStoreType } from '@/stores/answers'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
@@ -63,5 +65,64 @@ export async function readJsonFile(file: File): Promise<DPIASnapshot> {
   })
 }
 
-export async function exportDpiaToPdf(): Promise<void> {
+export async function exportDpiaToPdf(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): Promise<void> {
+  var docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [70, 70, 70, 70],
+
+    content: [
+      // Cover page
+      {
+        stack: [
+          { text: 'Data Protection Impact Assessment', style: 'title' },
+          { text: 'DPIA Rapportagemodel', style: 'subtitle' },
+          { text: `Gegenereerd met de 'DPIA Rapportage-editor' op ${new Date().toISOString()}`, style: 'subsubtitle' },
+        ],
+        alignment: 'center',
+        margin: [0, 150, 0, 0],
+        pageBreak: 'after',
+      },
+      {
+        toc: {
+          title: { text: 'Inhoudsopgave', style: 'header' },
+        },
+      },
+      ...taskStore.getRootTasks.filter(task => !task.type.includes("signing")).map(task => buildSection(task)),
+    ],
+    styles: {
+      title: {
+        fontSize: 28,
+        bold: true,
+        margin: [0, 0, 0, 10],
+        color: '#154273' // RVO blue
+      },
+      subtitle: {
+        fontSize: 18,
+        margin: [0, 15, 0, 0],
+        color: '#333333'
+      },
+      subsubtitle: {
+        fontSize: 14,
+        margin: [0, 40, 0, 0],
+        color: '#666666',
+        italics: true
+      },
+      header: {
+        fontSize: 24,
+        bold: true,
+        margin: [0, 0, 0, 20],
+        color: '#154273' // RVO blue
+      }
+    }
+  }
+
+  pdfMake.createPdf(docDefinition).download('DPIA_Rapportagemodel.pdf')
+}
+
+function buildSection(task: FlatTask): any {
+  const content = { text: `${task.id}.  ${task.task}`, style: 'header', tocItem: true, pageBreak: 'before' }
+  return content
 }
