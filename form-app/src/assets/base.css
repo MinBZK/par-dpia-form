@@ -68,15 +68,17 @@
 .aiv-definition {
   position: relative;
   display: inline-block;
-  border-bottom: 1px dotted #007bff;
+  border-bottom: 2px dotted black;
   cursor: help;
 }
 
 .aiv-definition .aiv-definition-text {
+  /* Keep your existing styles */
   visibility: hidden;
   position: absolute;
   z-index: 1000;
-  bottom: 125%;
+  /* bottom: 125%; */
+  top: 125%;
   left: 0;
   background-color: #fff;
   min-width: 200px;
@@ -86,8 +88,24 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transition: visibility 0s, opacity 0.3s;
+  
+  /* Text styling */
+  color: #333;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: none;
+  text-align: left;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  
+  /* Add this line for the white border */
+  border: 2px solid white;
 }
 
+/* Make the tooltip visible on hover */
 .aiv-definition:hover .aiv-definition-text {
   visibility: visible;
   opacity: 1;
