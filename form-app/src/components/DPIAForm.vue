@@ -115,7 +115,7 @@ const handleSaveForm = (filename: string) => {
 }
 
 const handleExportPdf = async () => {
-  await exportDpiaToPdf()
+  await exportDpiaToPdf(taskStore, answerStore)
 }
 
 const handleStart = (fileData?: DPIASnapshot) => {

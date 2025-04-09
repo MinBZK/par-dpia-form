@@ -54,3 +54,5 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     removeAnswerForInstances,
   }
 })
+
+export type AnswerStoreType = ReturnType<typeof useAnswerStore>

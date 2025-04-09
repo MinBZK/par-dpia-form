@@ -297,3 +297,5 @@ export const useTaskStore = defineStore('TaskStore', () => {
     getInstanceById,
   }
 })
+
+export type TaskStoreType = ReturnType<typeof useTaskStore>
