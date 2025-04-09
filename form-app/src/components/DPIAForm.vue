@@ -115,42 +115,8 @@ const handleSaveForm = (filename: string) => {
 }
 
 const handleExportPdf = async () => {
-  console.log('Tasks:', rootTasks.value);
-  console.log('Instances:', taskStore.taskInstances);
-  console.log('Answers:', answerStore.answers);
-  if (isExportingPdf.value) return;
-
-  try {
-    isExportingPdf.value = true;
-    // Generate PDF filename
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD format
-    const timestamp = today.toTimeString().split(' ')[0].replace(/:/g, '-'); // HH-MM-SS format
-    const filename = `DPIA_${formattedDate}_${timestamp}.pdf`;
-
-    // Export PDF with proper options
-    await exportDpiaToPdf(
-      rootTasks.value,
-      taskStore.flatTasks,
-      taskStore.taskInstances,
-      answerStore.answers,
-      {
-        includeEmptyFields: false,
-        filename,
-        language: 'nl-NL'
-      }
-    );
-
-    // Log success for tracking
-    console.log('DPIA successfully exported to PDF');
-
-  } catch (error) {
-    console.error('Failed to export PDF:', error);
-    alert(`Er is een fout opgetreden bij het exporteren naar PDF: ${error instanceof Error ? error.message : 'Onbekende fout'}`);
-  } finally {
-    isExportingPdf.value = false;
-  }
-};
+  await exportDpiaToPdf()
+}
 
 const handleStart = (fileData?: DPIASnapshot) => {
   if (fileData) {

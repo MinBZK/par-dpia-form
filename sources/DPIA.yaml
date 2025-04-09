@@ -559,11 +559,11 @@ tasks:
           type: 
           - task_group
           repeatable: true
-          instance_label_template: "Betrokken partij {7.1.1}"
+          instance_label_template: "Betrokken partij {7.1.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "7.1.1"
+                id: "7.1.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
           tasks:
