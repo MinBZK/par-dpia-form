@@ -13,7 +13,7 @@ const taskStore = useTaskStore()
 
 <template>
   <div class="utrecht-form-fieldset rvo-form-fieldset">
-    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset  rvo-margin-block-start--xs rvo-margin-inline-start--xs">
       <div role="group" class="utrecht-form-field utrecht-form-field--text rvo-form-field">
         <FormField
           :task="taskStore.taskById(taskId)"

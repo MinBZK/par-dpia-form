@@ -85,7 +85,7 @@ const handleCheckboxInput = (event: Event) => {
 </script>
 
 <template>
-  <div v-if="label" class="rvo-form-field__label">
+  <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
     <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
       {{ label }}
     </label>
@@ -96,7 +96,7 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Text input field -->
 
-  <div v-if="hasType('text_input')" class="field-group">
+  <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
     <input :id="`field-${task.id}-${instanceId}`" type="text"
       class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
@@ -104,14 +104,14 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Text area -->
-  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs">
+  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
     <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5" :value="currentValue"
       @input="handleTextInput"></textarea>
   </div>
 
   <!-- Select radio -->
-  <div v-else-if="hasType('radio_option')" class="field-group">
+  <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-radio-button__group">
         <label v-for="option in task.options!" :key="option.value" class="rvo-radio-button"
@@ -126,7 +126,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select dropdown -->
-  <div v-else-if="hasType('select_option')" class="field-group">
+  <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-select-wrapper">
       <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
         :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
@@ -142,7 +142,7 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select checkbox -->
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
     refactor.-->
-  <div v-else-if="hasType('checkbox_option')" class="field-group">
+  <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
         <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
@@ -157,7 +157,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Date input -->
-  <div v-else-if="hasType('date')" class="field-group">
+  <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
     <input :id="`field-${task.id}-${instanceId}`" type="date"
       class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"

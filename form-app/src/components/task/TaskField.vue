@@ -55,7 +55,7 @@ const handleDelete = (instanceId: string) => {
 
 <template>
   <div class="utrecht-form-fieldset rvo-form-fieldset">
-    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset"
+    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
       <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
         :id="`group-${taskId}-${instanceId}-legend`">
@@ -113,8 +113,8 @@ const handleDelete = (instanceId: string) => {
             <!-- Repeatable task groups -->
             <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
               :key="`complex-rep-${childInstanceId}`">
-              <div v-if="shouldShowTask(childId, childInstanceId)">
-                <TaskField :taskId="childId" :instanceId="childInstanceId" />
+              <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
+                <TaskField :taskId="childId" :instanceId="childInstanceId" class="rvo-margin-block-end--md" style="background-color:var(--rvo-color-logoblauw-150);"/>
               </div>
             </div>
 

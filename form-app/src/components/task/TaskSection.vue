@@ -69,7 +69,7 @@ const taskDisplayTitle = (task: FlatTask): string => {
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset  rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>

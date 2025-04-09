@@ -151,7 +151,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
       <template v-else>
         <TaskSection :taskId="currentRootTaskId" />
 
-        <div class="rvo-layout-margin-vertical--xl">
+        <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--3xl">
           <!-- Navigation buttons -->
           <div class="button-group-container">
             <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
