@@ -67,33 +67,32 @@ function handleAddRepeatableTask(childId: string) {
     <!-- Task header -->
     <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
 
-    <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
-      <div class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
-        </fieldset>
-      </div>
-    </div>
+<div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
+  <div class="utrecht-form-fieldset rvo-form-fieldset">
+    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+      <p class="utrecht-paragraph preserve-whitespace">
+        {{ task.description }}
+      </p>
+    </fieldset>
+  </div>
+</div>
 
 
-    <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
+<div v-else class="rvo-layout-column rvo-layout-gap--2xl">
 
-      <div class="rvo-checkbox__group">
-        <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
-          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
-            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
-          Markeer als voltooid
-        </label>
-      </div>
+  <div class="rvo-checkbox__group">
+    <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
+      <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
+        :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
+      Markeer als voltooid
+    </label>
+  </div>
+
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img :src="resolveImagePath(source.source)" :alt="source.description" />

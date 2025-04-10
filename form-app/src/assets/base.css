@@ -63,3 +63,50 @@
 .rvo-theme .rvo-icon--with-spacing {
   margin-right: 0.5rem;
 }
+
+.aiv-definition {
+  position: relative;
+  display: inline-block;
+  border-bottom: 2px dotted black;
+  cursor: help;
+  line-height: 0.9; 
+}
+
+.aiv-definition .aiv-definition-text {
+  /* Keep your existing styles */
+  visibility: hidden;
+  position: absolute;
+  z-index: 1000;
+  /* bottom: 125%; */
+  top: 125%;
+  left: 0;
+  background-color: #fff;
+  min-width: 500px;
+  max-width: 1000px;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: visibility 0s, opacity 0.3s;
+  
+  /* Text styling */
+  color: var(--utrecht-document-color);
+  font-family: var(--utrecht-document-font-family);
+  font-size: var(--utrecht-document-font-size);
+  font-weight: var(--utrecht-document-font-weight);
+  font-style: normal;
+  text-decoration: none;
+  text-align: left;
+  line-height: var(--utrecht-document-line-height);
+  letter-spacing: normal;
+  text-transform: none;
+  
+  /* Add this line for the white border */
+  border: 2px solid white;
+}
+
+/* Make the tooltip visible on hover */
+.aiv-definition:hover .aiv-definition-text {
+  visibility: visible;
+  opacity: 1;
+}

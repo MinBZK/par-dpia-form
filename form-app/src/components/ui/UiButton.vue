@@ -54,6 +54,7 @@ defineEmits<{
       role="img"
       aria-label="icon"
     ></span>
-    {{ label ? label : '' }}
+    <span v-html="`${label ? label : ''}`"> </span>
+    <!--{ label ? label : '' }} -->
   </button>
 </template>
