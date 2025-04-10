@@ -44,6 +44,7 @@ const taskDisplayTitle = (task: FlatTask): string => {
 <template>
   <div class="rvo-layout-margin-vertical--s">
     <!-- Task header -->
+<<<<<<< HEAD
     <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
 
     <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
@@ -56,6 +57,12 @@ const taskDisplayTitle = (task: FlatTask): string => {
       </div>
     </div>
 
+=======
+    <h1 class="utrecht-heading-1">
+      {{ task.id !== '0' ? `${task.id}.` : `` }}
+      <span v-html="task.task"></span>
+    </h1>
+>>>>>>> b611f6b (Add to validate script)
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
 
@@ -70,9 +77,7 @@ const taskDisplayTitle = (task: FlatTask): string => {
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img :src="resolveImagePath(source.source)" :alt="source.description" />

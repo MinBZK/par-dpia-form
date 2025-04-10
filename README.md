@@ -13,12 +13,17 @@ related and the `begrippenkader.yaml` contains glossary items.
 The JSON-schema specification of `sources/DPIA.yaml` and `sources/DPIA_field_mapping.yaml` can be found
 the `schemas/` directory.
 
-The Python script `script/validate` can be used the validate the YAML's agains their schema. It can be
+The Python script `script/validate` can be used the validate the YAML's agains their schema and insert the definitions. It can be
 invoked, for example using UV, by
 ```
-uv run --with jsonschema --with pyyaml script/validate --schema schemas/schema_DPIA.json --source sources/DPIA.yaml export --path form-app/src/assets/DPIA.json
+uv run --with jsonschema --with pyyaml script/validate --schema schemas/schema_DPIA.json --source sources/DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
 ```
-This will validate the DPIA yaml and export it in JSON format to the specified file.
+This will validate the DPIA yaml and export it in JSON format to the specified file with the definitions embedded.
+
+In order to create the `begrippenkader.yaml` the Python script `script/sync_begrippenkader` can be used. This script takes the `sources/datamode/begrippenkader.html` as base (from the Datamodel). It can be invoked by
+```
+python script/sync_begrippenkader --input sources/datamodel/begrippenkader.html --output sources/begrippenkader.yaml --existing sources/begrippenkader.yaml
+```
 
 ## Pre Scan DPIA Form
 TODO

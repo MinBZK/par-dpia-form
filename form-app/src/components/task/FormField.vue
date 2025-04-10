@@ -86,16 +86,23 @@ const handleCheckboxInput = (event: Event) => {
 
 <template>
   <div v-if="label" class="rvo-form-field__label">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
-      {{ label }}
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label">
     </label>
+<<<<<<< HEAD
     <div v-if="description" class="utrecht-form-field-description" answeet :id="`description-${task.id}-${instanceId}`">
       {{ description }}
     </div>
+=======
+    <div
+      v-if="description"
+      class="utrecht-form-field-description"
+      :id="`description-${task.id}-${instanceId}`"
+      v-html = "description"
+    ></div>
+>>>>>>> b611f6b (Add to validate script)
   </div>
 
   <!-- Text input field -->
-
   <div v-if="hasType('text_input')" class="field-group">
     <input :id="`field-${task.id}-${instanceId}`" type="text"
       class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"

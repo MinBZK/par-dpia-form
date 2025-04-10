@@ -60,6 +60,36 @@
   max-height: 90vh;
 }
 
+<<<<<<< HEAD
 .rvo-theme .rvo-icon--with-spacing {
   margin-right: 0.5rem;
 }
+=======
+.aiv-definition {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted #007bff;
+  cursor: help;
+}
+
+.aiv-definition .aiv-definition-text {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1000;
+  bottom: 125%;
+  left: 0;
+  background-color: #fff;
+  min-width: 200px;
+  max-width: 300px;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: visibility 0s, opacity 0.3s;
+}
+
+.aiv-definition:hover .aiv-definition-text {
+  visibility: visible;
+  opacity: 1;
+}
+>>>>>>> b611f6b (Add to validate script)

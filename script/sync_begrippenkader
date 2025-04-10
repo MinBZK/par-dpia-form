@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import csv
 import yaml
 import datetime
 import re
+import argparse
+from bs4 import BeautifulSoup
+import os
 
 
 def create_id(term):
@@ -23,43 +25,105 @@ def create_id(term):
     return id_str
 
 
-def csv_to_yaml(csv_file, output_yaml_file):
-    # Lees de CSV in
-    with open(csv_file, "r", encoding="utf-8") as f:
-        # Lees CSV met puntkomma als scheidingsteken
-        reader = csv.reader(f, delimiter=";")
+def html_to_yaml(html_file, output_yaml_file, existing_yaml_file=None):
+    """
+    Parses HTML file with begrippen and converts to YAML format.
+    If existing_yaml_file is provided, it will merge with existing terms.
+    """
+    # Read existing YAML if provided
+    existing_begrippen = []
+    existing_ids = set()
+    if existing_yaml_file and os.path.exists(existing_yaml_file):
+        with open(existing_yaml_file, 'r', encoding='utf-8') as f:
+            existing_yaml = yaml.safe_load(f)
+            if 'definitions' in existing_yaml:
+                existing_begrippen = existing_yaml['definitions']
+                existing_ids = {begriff['id'] for begriff in existing_begrippen}
+    
+    # Parse HTML file
+    with open(html_file, 'r', encoding='utf-8') as f:
+        soup = BeautifulSoup(f, 'html.parser')
+    
+    new_begrippen = []
+    
+    # Find all section elements that contain terms
+    term_sections = soup.select('section[id]')
+    
+    for section in term_sections:
+        # Skip sections without proper structure
+        h4 = section.select_one('h4')
+        if not h4:
+            continue
+            
+        blockquote = section.select_one('blockquote p')
+        if not blockquote:
+            continue
+        
+        # Extract term, category, and definition
+        # Remove section numbers (e.g., "2.2.9 DPIA opslaglocatie" -> "DPIA opslaglocatie")
+        term_text = h4.get_text().strip()
+        # Remove section numbering (like "2.2.9 ")
+        term = re.sub(r'^\d+(\.\d+)*\s+', '', term_text)
+        
+        # Find the category by looking at the parent sections
+        category = "00. Algemeen"  # Default category
+        parent_section = section.parent
+        while parent_section and parent_section.name == 'section':
+            parent_h3 = parent_section.select_one('h3')
+            if parent_h3 and 'DPIA - ' in parent_h3.get_text():
+                category_text = parent_h3.get_text().strip()
+                # Extract just the category part after "DPIA - "
+                if 'DPIA - ' in category_text:
+                    category = category_text.split('DPIA - ')[1]
+                break
+            parent_section = parent_section.parent
+        
+        # Get the definition from the blockquote
+        definition = blockquote.get_text().strip()
+        
+        # Create ID based on the cleaned term (without section numbers)
+        id_value = create_id(term)
+        
+        # Skip if this ID already exists in the existing YAML
+        if id_value in existing_ids:
+            print(f"Skipping '{term}' as it already exists in the YAML file.")
+            continue
+        
+        begriff = {
+            "id": id_value,
+            "term": term,
+            "category": category,
+            "definition": definition,
+        }
+        
+        new_begrippen.append(begriff)
+    
+    # Combine existing and new begrippen
+    all_begrippen = existing_begrippen + new_begrippen
+    
+    # Sort all begrippen by ID
+    all_begrippen.sort(key=lambda x: x["id"])
+    
+    # Create YAML structure
+    if existing_yaml_file and os.path.exists(existing_yaml_file):
+        # Update existing structure with new terms
+        with open(existing_yaml_file, 'r', encoding='utf-8') as f:
+            begrippenkader = yaml.safe_load(f)
+        begrippenkader['definitions'] = all_begrippen
+    else:
+        # Create new structure
+        begrippenkader = create_yaml_structure(all_begrippen)
+    
+    # Write to YAML file
+    write_yaml_to_file(begrippenkader, output_yaml_file)
+    
+    print(f"Bestand '{output_yaml_file}' is bijgewerkt met {len(new_begrippen)} nieuwe begrippen.")
+    print(f"Totaal aantal begrippen: {len(all_begrippen)}")
 
-        # Lees de header (eerste rij)
-        header = next(reader)
 
-        begrippen = []
-
-        # Verwerk elke rij in de CSV
-        for row in reader:
-            if len(row) >= 3:  # Controleer of we voldoende kolommen hebben
-                voorkeursterm = row[0].strip()
-                hoofdonderwerp = row[1].strip()
-                definitie = row[2].strip()
-
-                # Genereer ID op basis van de voorkeursterm
-                id_value = create_id(voorkeursterm)
-
-                begrip = {
-                    "id": id_value,
-                    "name": voorkeursterm,
-                    "category": hoofdonderwerp.replace("DPIA - ", ""),
-                    "definition": definitie,
-                }
-
-                # Voeg alleen begrippen toe met een definitie
-                if begrip["definition"]:
-                    begrippen.append(begrip)
-
-    # Sorteer de begrippen op ID
-    begrippen.sort(key=lambda x: x["id"])
-
-    # Creëer de YAML-structuur
-    begrippenkader = {
+def create_yaml_structure(begrippen):
+    """Creates a YAML structure with the provided terms"""
+    return {
         "schema_version": "1.0.0",
         "name": "Begrippenkader",
         "description": "Het begrippenkader is lijst met definities van begrippen die worden gebruikt in de DPIA. Het begrippenkader is ontwikkeld door J&V. Elke term heeft een id, naam, category (vraag DPIA) en een definitie.",
@@ -73,28 +137,32 @@ def csv_to_yaml(csv_file, output_yaml_file):
                 "role": "Privacy Officer",
             }
         ],
-        "glossary": begrippen,
+        "definitions": begrippen,
         "metadata": {
             "version": "1.0.0",
-            "last_updated": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S%z"),
+            "last_updated": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "maintainer": "CIO Rijk",
             "language": "nl",
         },
     }
 
-    # Schrijf naar YAML bestand
-    with open(output_yaml_file, "w", encoding="utf-8") as f:
+
+def write_yaml_to_file(begrippenkader, output_file):
+    """Writes the YAML structure to a file"""
+    with open(output_file, "w", encoding="utf-8") as f:
         # Voeg een multiline string indicator toe voor de description (>-)
         yaml_text = yaml.dump(begrippenkader, default_flow_style=False, allow_unicode=True, sort_keys=False)
         # Handmatig toevoegen van >- voor description
         yaml_text = yaml_text.replace("description: '", "description: >-\n  ")
         f.write(yaml_text)
 
-    print(f"Bestand '{output_yaml_file}' is succesvol aangemaakt met {len(begrippen)} begrippen.")
-
 
 if __name__ == "__main__":
-    input_file = "sources/datamodel/Begrippenkader_kort.csv"
-    output_file = "sources/begrippenkader.yaml"
-
-    csv_to_yaml(input_file, output_file)
+    parser = argparse.ArgumentParser(description='Convert HTML to YAML begrippenkader')
+    parser.add_argument('--input', required=True, help='Input file (HTML)')
+    parser.add_argument('--output', required=True, help='Output YAML file')
+    parser.add_argument('--existing', help='Existing YAML file to merge with (for HTML only)', default=None)
+    
+    args = parser.parse_args()
+    
+    html_to_yaml(args.input, args.output, args.existing)
