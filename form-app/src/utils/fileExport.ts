@@ -4,7 +4,7 @@ import { type AnswerStoreType } from '@/stores/answers'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces';
-
+import { renderInstanceLabel } from '@/utils/taskUtils'
 
 (<any>pdfMake).addVirtualFileSystem(pdfFonts);
 
@@ -103,6 +103,14 @@ const dpiaStyleDictionary: StyleDictionary = {
   },
   normal: {
     fontSize: 11,
+  },
+  tableHeader: {
+    fontSize: 12,
+    bold: true,
+    color: '#154273'
+  },
+  tableExample: {
+    margin: [0, 5, 0, 15]
   }
 }
 
@@ -219,11 +227,12 @@ function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: Answ
           } else {
             // Task is repeatable. We need to distinguish between instances created by the user,
             // and instances that are synced from another task
-
-            if (childTask.dependencies?.filter(dep => dep.type === "instance_mapping")) {
+            const hasInstanceMapping = childTask.dependencies?.filter(dep => dep.type === "instance_mapping")
+            if (hasInstanceMapping) {
               childElements.push({ text: `DEPENDEND instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
             } else {
-              childElements.push({ text: `INDEPENDENT instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
+              childElements.push(createTableElement(id, childTask, taskStore, answerStore))
+              //childElements.push({ text: `INDEPENDENT instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
             }
           }
         }
@@ -238,4 +247,75 @@ function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: Answ
     answerContent.push({ text: `${singleTaskAnswer ? singleTaskAnswer : ''}`, style: 'normal' })
   }
   return { stack: answerContent }
+}
+
+// Helper function to format answer values for display
+function formatAnswerValue(value: any): string {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  } else if (value === true) {
+    return "Ja";
+  } else if (value === false) {
+    return "Nee";
+  } else if (value === null) {
+    return "";
+  }
+  return value ? String(value) : "";
+}
+
+// Creates a table for a task group instance
+function buildTableForInstance(
+  instanceId: string,
+  parentTask: FlatTask,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType
+): any[][] {
+  // Create table rows array
+  const tableRows: any[][] = [];
+
+  // Add header row with instance label
+  //const instanceLabel = parentTask.instance_label_template
+  //  ? renderInstanceLabel(instanceId, parentTask.instance_label_template)
+  //  : parentTask.task;
+  //tableRows.push([{ text: instanceLabel, style: 'tableHeader', colSpan: 2 }, {}]);
+
+  // Add rows for each child task that's a simple field
+  for (const childTaskId of parentTask.childrenIds) {
+    const childTask = taskStore.taskById(childTaskId);
+
+    // Skip tasks with children (only include simple fields)
+    if (childTask.childrenIds && childTask.childrenIds.length > 0) {
+      continue;
+    }
+
+    // Add a row for each instance of this child task
+    const childInstanceIds = taskStore.getInstanceIdsForTask(childTaskId, instanceId);
+    for (const childInstanceId of childInstanceIds) {
+      const value = answerStore.getAnswer(childInstanceId);
+      tableRows.push([
+        {
+          text: childTask.task, bold: true, margin: [0, 3, 0, 3], fillColor: '#f5f5f5',
+        },
+        { text: formatAnswerValue(value), margin: [0, 3, 0, 3] }
+      ]);
+    }
+  }
+
+  return tableRows;
+}
+
+// Creates a table content element for a task instance
+function createTableElement(
+  instanceId: string,
+  task: FlatTask,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType
+): Content {
+  return {
+    style: 'tableExample',
+    table: {
+      widths: ['35%', '65%'],
+      body: buildTableForInstance(instanceId, task, taskStore, answerStore)
+    },
+  };
 }
