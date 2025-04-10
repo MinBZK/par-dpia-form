@@ -777,12 +777,42 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Categorieen betrokkenen & persoonsgegevens",
+                                    "task": "Persoonsgegevens",
                                     "id": "7.1.1.4",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "task": "Categorieen betrokkenen",
+                                    "id": "7.1.1.5",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -815,12 +845,12 @@
                         "task_group"
                     ],
                     "repeatable": true,
-                    "instance_label_template": "Betrokken partij {7.1.1}",
+                    "instance_label_template": "Betrokken partij {7.1.1.1}",
                     "dependencies": [
                         {
                             "type": "instance_mapping",
                             "source": {
-                                "id": "7.1.1"
+                                "id": "7.1.1.1"
                             },
                             "mapping_type": "one_to_one",
                             "action": "sync_instances"

@@ -13,7 +13,7 @@ import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
-import { downloadJsonFile } from '@/utils/fileExport'
+import { downloadJsonFile, exportDpiaToPdf } from '@/utils/fileExport'
 import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
@@ -23,6 +23,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
+const isExportingPdf = ref(false)
 const dpiaStarted = ref(false)
 
 // Store setup
@@ -113,6 +114,10 @@ const handleSaveForm = (filename: string) => {
   }
 }
 
+const handleExportPdf = async () => {
+  await exportDpiaToPdf(taskStore, answerStore)
+}
+
 const handleStart = (fileData?: DPIASnapshot) => {
   if (fileData) {
     appPersistence.applyAppState(fileData)
@@ -158,7 +163,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
             <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
               <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
               <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF"/>
+              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
             </p>
           </div>
         </div>

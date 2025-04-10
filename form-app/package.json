@@ -16,8 +16,10 @@
     "@nl-rvo/assets": "^1.0.0-alpha.360",
     "@nl-rvo/component-library-css": "^4.5.7",
     "@nl-rvo/design-tokens": "^1.7.3",
+    "@types/pdfmake": "^0.2.11",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.22",
+    "pdfmake": "^0.2.18",
     "pinia": "^3.0.1",
     "vue": "^3.5.13"
   },

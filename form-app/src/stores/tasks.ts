@@ -19,6 +19,10 @@ export interface FlatTask {
   instance_label_template?: string
 }
 
+export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
+  return task.type?.includes(type)
+}
+
 export interface TaskInstance {
   id: string
   taskId: string
@@ -92,11 +96,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
-  function createTaskInstance(taskId: string, parentInstanceId?: string): string {
+  function createTaskInstance(taskId: string, parentInstanceId?: string, forceNewGroupId: boolean = false): string {
     const instanceId = taskId + '_' + nanoid()
 
     let groupId
-    if (parentInstanceId) {
+    if (parentInstanceId && !forceNewGroupId) {
       groupId = taskInstances.value[parentInstanceId].groupId
     } else {
       groupId = taskId + '_' + nanoid()
@@ -131,7 +135,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string): string {
     const task = taskById.value(taskId)
     if (!task.repeatable) return ''
-    return createTaskInstance(taskId, parentInstanceId)
+    return createTaskInstance(taskId, parentInstanceId, true)
   }
 
   function removeRepeatableTaskInstance(instanceId: string): void {
@@ -162,6 +166,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
   function getInstanceIdsForTask(taskId: string, parentInstanceId?: string): string[] {
     return getInstancesForTask(taskId, parentInstanceId).map((instance) => instance.id)
+  }
+
+  function getRootTaskInstanceIds(taskId: string): string[] {
+    if (!rootTaskIds.value.includes(taskId)) {
+      throw new Error(`Task ${taskId} is not a root task.`)
+    }
+    return getInstanceIdsForTask(taskId)
   }
 
   function findRelatedInstance(
@@ -273,6 +284,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
     removeRepeatableTaskInstance,
     getInstancesForTask,
     getInstanceIdsForTask,
+    getRootTaskInstanceIds,
     findRelatedInstance,
     setInstanceMappingSource,
     setRootTask,
@@ -289,3 +301,5 @@ export const useTaskStore = defineStore('TaskStore', () => {
     getInstanceById,
   }
 })
+
+export type TaskStoreType = ReturnType<typeof useTaskStore>
