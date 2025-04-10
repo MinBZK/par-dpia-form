@@ -33,12 +33,14 @@ const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
   if (props.task.valueType && ['boolean', 'boolean|null'].includes(props.task.valueType)) {
-    return converStringValue(storedAnswer, props.task.valueType)
+    return converStringValue(storedAnswer as string | null, props.task.valueType)
   } else if (props.task.valueType === 'string[]') {
     if (Array.isArray(storedAnswer)) {
       return storedAnswer
-    } else {
+    } else if (storedAnswer) {
       return [storedAnswer]
+    } else {
+      return []
     }
 
   }
@@ -72,7 +74,8 @@ const handleCheckboxInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   const value = target.value
   const isChecked = target.checked
-  let selectedValues = [...currentValue.value]
+  let selectedValues = Array.isArray(currentValue.value) ? [...(currentValue.value as string[])] :
+    []
 
   if (isChecked && value !== null && !selectedValues.includes(value)) {
     selectedValues.push(value)
@@ -113,7 +116,8 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Text area -->
   <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs">
     <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5" :value="currentValue"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
+      :value="currentValue as string | number | readonly string[] | null | undefined"
       @input="handleTextInput"></textarea>
   </div>
 
@@ -121,7 +125,7 @@ const handleCheckboxInput = (event: Event) => {
   <div v-else-if="hasType('radio_option')" class="field-group">
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-radio-button__group">
-        <label v-for="option in task.options!" :key="option.value" class="rvo-radio-button"
+        <label v-for="option in task.options!" :key="String(option.value || '')" class="rvo-radio-button"
           :for="`${task.id}-${instanceId}-${option.value}`">
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
@@ -139,7 +143,7 @@ const handleCheckboxInput = (event: Event) => {
         :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="option.value" :value="option.value">
+        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value">
           {{ option.value }}
         </option>
       </select>
@@ -154,9 +158,9 @@ const handleCheckboxInput = (event: Event) => {
       <div class="rvo-checkbox__group">
         <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
           :for="`${task.id}-${instanceId}-${option}`">
-          <input :id="`${task.id}-${instanceId}-${option}`" :value="option" :checked="currentValue.includes(option)"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
+          <input :id="`${task.id}-${instanceId}-${option}`" :value="option" :checked="!currentValue
+            || (currentValue as string[]).includes(option)" :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput"
+            class="rvo-checkbox__input" type="checkbox" />
           {{ option }}
         </label>
       </div>

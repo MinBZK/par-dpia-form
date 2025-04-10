@@ -3,7 +3,7 @@ import TaskField from '@/components/task/TaskField.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
-import { type FlatTask, useTaskStore } from '@/stores/tasks'
+import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -17,12 +17,11 @@ const { canUserCreateInstances } = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 
 const shouldShowChildren = computed(
-  () => task.value.type?.includes('task_group') && (task.value.childrenIds?.length || 0) > 0,
+  () => taskIsOfTaskType(task.value, 'task_group') && (task.value.childrenIds?.length || 0) > 0,
 )
 
 const isSigningTask = computed(
-  () => task.value.type?.includes("signing")
-)
+  () => taskIsOfTaskType(task.value, 'signing'))
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
