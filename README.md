@@ -4,6 +4,15 @@
 # par-dpia-form
 This repository contains forms to fill in the (pre scan) DPIA form.
 
+## High level overview
+The restrictions imposed on the project are that the forms must be accessible *without any installation
+or hosting*. A standalone HTML file with all necessary styling and javascript embedded in it fulfills 
+this requirement and was hence chosen as a suitable, albeit nonstandard, solution.
+
+Form definitions are declared in YAML. A Vue 3 application loads these YAML definitions and renders
+the form. Users can provide answers, export their progress into a JSON file, load their saved JSON state
+into the application and export the questions and answers to a PDF report.
+
 ## Form definitions
 The `sources/` directory contains the speficications of the (Pre Scan) DPIA Forms and the logic
 on how fields within the forms are related. Currently, only the DPIA is implemented. The `DPIA.yaml`
@@ -26,9 +35,3 @@ TODO
 ## DPIA Form
 The DPIA form can be downloaded from here: [DPIA form](form-app/dist/index.html). This is a user interface to fill in the DPIA form.
 Because it is a standalone HTML file no installation is needed and it can be rendered in any browser. 
-
-## High level implementation overview
-The restrictions imposed on the project are that the form must be accessible without any installation
-or hosting. A standalone HTML file fulfills this requirement and was hence chosen as a suitable solution.
-Form definitions are declared in YAML format. A simple Vue 3 application then loads this YAML and renders
-the form.
