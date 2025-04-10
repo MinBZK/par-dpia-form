@@ -65,35 +65,29 @@ function handleAddRepeatableTask(childId: string) {
 <template>
   <div class="rvo-layout-margin-vertical--s">
     <!-- Task header -->
-<<<<<<< HEAD
     <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
 
-    <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
-      <div class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
-        </fieldset>
-      </div>
-    </div>
+<div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
+  <div class="utrecht-form-fieldset rvo-form-fieldset">
+    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+      <p class="utrecht-paragraph preserve-whitespace">
+        {{ task.description }}
+      </p>
+    </fieldset>
+  </div>
+</div>
 
-=======
-    <h1 class="utrecht-heading-1">
-      {{ task.id !== '0' ? `${task.id}.` : `` }}
-      <span v-html="task.task"></span>
-    </h1>
->>>>>>> b611f6b (Add to validate script)
 
-    <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
+<div v-else class="rvo-layout-column rvo-layout-gap--2xl">
 
-      <div class="rvo-checkbox__group">
-        <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
-          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
-            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
-          Markeer als voltooid
-        </label>
-      </div>
+  <div class="rvo-checkbox__group">
+    <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
+      <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
+        :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
+      Markeer als voltooid
+    </label>
+  </div>
+
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">

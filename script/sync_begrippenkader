@@ -84,7 +84,7 @@ def html_to_yaml(html_file, output_yaml_file, existing_yaml_file=None):
         # Look for Toelichting paragraph and append it to the definition if found
         toelichting_p = section.select_one('p:-soup-contains("Toelichting:")')
         if toelichting_p:
-            definition += "\n\n" + toelichting_p.get_text().strip()
+            definition += ". \n\n" + toelichting_p.get_text().strip()
             print(f'Found Toelichting for "{term}"')
         
         # Create ID based on the cleaned term (without section numbers)
