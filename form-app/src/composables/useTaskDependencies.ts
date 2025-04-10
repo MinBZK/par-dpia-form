@@ -1,4 +1,4 @@
-import { useAnswerStore } from '@/stores/answers'
+import { useAnswerStore, type AnswerValue } from '@/stores/answers'
 import { useTaskStore, type FlatTask, type TaskInstance } from '@/stores/tasks'
 import { computed } from 'vue'
 
@@ -44,13 +44,11 @@ export function useTaskDependencies() {
           if (!relatedInstance) {
             continue
           }
-          console.log(relatedInstance.groupId)
 
           const conditionValue = answerStore.getAnswer(relatedInstance.id)
 
           // We need to parse the conditionValue if it is a string.
-          console.log(conditionValue)
-          let normalizedValue = conditionValue
+          let normalizedValue: AnswerValue | boolean = conditionValue
           if (typeof conditionValue === 'string') {
             normalizedValue = normalizeValue(conditionValue)
           }

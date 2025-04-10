@@ -19,6 +19,10 @@ export interface FlatTask {
   instance_label_template?: string
 }
 
+export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
+  return task.type?.includes(type)
+}
+
 export interface TaskInstance {
   id: string
   taskId: string
