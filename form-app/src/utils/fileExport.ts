@@ -87,15 +87,19 @@ const dpiaStyleDictionary: StyleDictionary = {
     color: '#154273' // RVO blue
   },
   subHeader: {
-    fontSize: 18,
+    fontSize: 16,
     bold: true,
     margin: [0, 15, 0, 10],
     color: '#154273' // RVO blue
   },
   subSubHeader: {
-    fontSize: 16,
+    fontSize: 14,
     bold: true,
     margin: [0, 10, 0, 5]
+  },
+  description: {
+    fontSize: 11,
+    margin: [0, 0, 0, 15]
   },
   normal: {
     fontSize: 11,
@@ -171,47 +175,67 @@ function buildSection(task: FlatTask, taskStore: TaskStoreType, answerStore: Ans
   contentElements.push(buildAnswer(task, taskStore, answerStore))
 
   return {
-    text: contentElements,
+    stack: contentElements,
     pageBreak: 'before'
   }
 }
 
 function buildSectionTitle(taskId: string, taskName: string): Content {
   return {
-    text: [
-      { text: `${taskId}.  ${taskName}`, style: 'header', tocItem: true },
-      { text: "\n\n", style: 'normal' },
-    ]
+    text: `${taskId}.  ${taskName}`, style: 'header', tocItem: true
   }
 }
 
 function buildSectionDesciption(description?: string): Content {
   return {
-    text: [
+    stack: [
       { text: "Beschrijving", style: 'subSubHeader' },
-      { text: "\n", style: 'normal' },
-      { text: `${description}`, style: 'normal' },
-      { text: "\n\n", style: 'normal' },
+      { text: `${description}`, style: 'description' },
     ]
   }
 }
 
 function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: AnswerStoreType): Content {
-  const answerContent: Content = [
-    { text: "Antwoord", style: 'subSubHeader' },
-    { text: "\n", style: 'normal' },
-  ]
-  var singleTaskAnswer
-  if (!task.type?.includes("task_group") || !task.childrenIds?.length) {
-    const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
-    singleTaskAnswer = answerStore.getAnswer(instanceId)
+  const answerContent: Content = []
+  if (task.type?.includes("task_group") && task.childrenIds?.length > 0) {
+    const childElements: Content = []
 
-    if (singleTaskAnswer !== null) {
-      answerContent.push({ text: `${singleTaskAnswer}`, style: 'normal' })
-    } else {
-      answerContent.push({ text: 'Vraag niet beantwoord', style: 'normal' })
+    for (const childId of task.childrenIds) {
+      const childTask = taskStore.taskById(childId)
+      childElements.push({ text: `${childTask.task}`, style: 'subSubHeader' })
+
+      for (const id of taskStore.getInstanceIdsForTask(childId)) {
+
+        // Single task
+        // If a root task in a DPIA has no child tasks we know it only has exactly 1 instance and must
+        // be of type open_text, text_input or select_option.
+        if (!childTask.childrenIds.length) {
+          const instanceId = taskStore.getInstanceIdsForTask(childTask.id)[0]
+          const singleTaskAnswer = answerStore.getAnswer(instanceId)
+          childElements.push({ text: `${singleTaskAnswer ? singleTaskAnswer : ''}`, style: 'normal' })
+        } else {
+          if (!childTask.repeatable) {
+            childElements.push({ text: `instance=${id}, childName=${childTask.task}, childrenLen=${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, NOT REPEATABLE\n\n`, style: 'normal' })
+          } else {
+            // Task is repeatable. We need to distinguish between instances created by the user,
+            // and instances that are synced from another task
+
+            if (childTask.dependencies?.filter(dep => dep.type === "instance_mapping")) {
+              childElements.push({ text: `DEPENDEND instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
+            } else {
+              childElements.push({ text: `INDEPENDENT instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
+            }
+          }
+        }
+      }
     }
 
+    answerContent.push({ stack: childElements })
+
+  } else {
+    const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
+    const singleTaskAnswer = answerStore.getAnswer(instanceId)
+    answerContent.push({ text: `${singleTaskAnswer ? singleTaskAnswer : ''}`, style: 'normal' })
   }
-  return { text: answerContent }
+  return { stack: answerContent }
 }
