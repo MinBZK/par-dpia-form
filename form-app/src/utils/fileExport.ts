@@ -1,6 +1,6 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
-import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
-import { type AnswerStoreType } from '@/stores/answers'
+import { type FlatTask, type TaskInstance, type TaskStoreType } from '@/stores/tasks'
+import { type AnswerStoreType, type AnswerValue } from '@/stores/answers'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces';
@@ -203,53 +203,9 @@ function buildSectionDesciption(description?: string): Content {
   }
 }
 
-function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: AnswerStoreType): Content {
-  const answerContent: Content = []
-  if (task.type?.includes("task_group") && task.childrenIds?.length > 0) {
-    const childElements: Content = []
-
-    for (const childId of task.childrenIds) {
-      const childTask = taskStore.taskById(childId)
-      childElements.push({ text: `${childTask.task}`, style: 'subSubHeader' })
-
-      for (const id of taskStore.getInstanceIdsForTask(childId)) {
-
-        // Single task
-        // If a root task in a DPIA has no child tasks we know it only has exactly 1 instance and must
-        // be of type open_text, text_input or select_option.
-        if (!childTask.childrenIds.length) {
-          const instanceId = taskStore.getInstanceIdsForTask(childTask.id)[0]
-          const singleTaskAnswer = answerStore.getAnswer(instanceId)
-          childElements.push({ text: `${singleTaskAnswer ? singleTaskAnswer : ''}`, style: 'normal' })
-        } else {
-          if (!childTask.repeatable) {
-            childElements.push({ text: `instance=${id}, childName=${childTask.task}, childrenLen=${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, NOT REPEATABLE\n\n`, style: 'normal' })
-          } else {
-            // Task is repeatable. We need to distinguish between instances created by the user,
-            // and instances that are synced from another task
-            const hasInstanceMapping = childTask.dependencies?.filter(dep => dep.type === "instance_mapping")
-            if (hasInstanceMapping) {
-              childElements.push({ text: `DEPENDEND instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
-            } else {
-              childElements.push(createTableElement(id, childTask, taskStore, answerStore))
-              //childElements.push({ text: `INDEPENDENT instance = ${id}, childName = ${childTask.task}, childrenLen = ${childTask.childrenIds.length}, taskGroup=${task.type.includes("task_group")}, REPEATABLE\n\n`, style: 'normal' })
-            }
-          }
-        }
-      }
-    }
-
-    answerContent.push({ stack: childElements })
-
-  } else {
-    const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
-    const singleTaskAnswer = answerStore.getAnswer(instanceId)
-    answerContent.push({ text: `${singleTaskAnswer ? singleTaskAnswer : ''}`, style: 'normal' })
-  }
-  return { stack: answerContent }
-}
-
-// Helper function to format answer values for display
+/**
+ * Formats answer values for display in the PDF
+ */
 function formatAnswerValue(value: any): string {
   if (Array.isArray(value)) {
     return value.join(", ");
@@ -263,40 +219,302 @@ function formatAnswerValue(value: any): string {
   return value ? String(value) : "";
 }
 
-// Creates a table for a task group instance
-function buildTableForInstance(
+/**
+ * Determines if a task should be visible based on its dependencies
+ */
+function shouldShowTask(
+  taskId: string,
   instanceId: string,
-  parentTask: FlatTask,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType
+): boolean {
+  const task = taskStore.taskById(taskId);
+  const instance = taskStore.getInstanceById(instanceId);
+
+  if (!task.dependencies || task.dependencies.length === 0 || !instance) {
+    return true;
+  }
+
+  for (const dependency of task.dependencies) {
+    if (dependency.type === 'conditional') {
+      if (!dependency.condition) {
+        continue;
+      }
+
+      const { id: conditionTaskId, operator, value } = dependency.condition;
+      const action = dependency.action;
+
+      // Find the related instance for the condition task
+      const relatedInstance = findRelatedInstance(conditionTaskId, instanceId, taskStore);
+      if (!relatedInstance) {
+        continue;
+      }
+
+      const conditionValue = answerStore.getAnswer(relatedInstance.id);
+
+      // Normalize string values
+      let normalizedValue: AnswerValue | boolean = conditionValue;
+      if (typeof conditionValue === 'string') {
+        if (conditionValue.toLowerCase() === 'true') {
+          normalizedValue = true;
+        } else if (conditionValue.toLowerCase() === 'false') {
+          normalizedValue = false;
+        } else if (conditionValue === 'null' || conditionValue === '') {
+          normalizedValue = null;
+        }
+      }
+
+      let conditionMet = false;
+      if (operator === 'equals') {
+        conditionMet = normalizedValue === value;
+      } else if (operator === 'any') {
+        conditionMet = true;
+      }
+
+      if (action === 'show' && !conditionMet) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Finds a related instance for a condition task
+ */
+function findRelatedInstance(
+  targetTaskId: string,
+  currentInstanceId: string,
+  taskStore: TaskStoreType
+): TaskInstance | null {
+  const currentInstance = taskStore.getInstanceById(currentInstanceId);
+  if (!currentInstance) return null;
+
+  // First, try to find instance in the same group
+  const relatedInstance = Object.values(taskStore.taskInstances).find(
+    (instance) => instance.taskId === targetTaskId && instance.groupId === currentInstance.groupId
+  );
+
+  if (relatedInstance) return relatedInstance;
+
+  // If not found, and we have a parent instance, try with the parent
+  if (currentInstance.parentInstanceId) {
+    return findRelatedInstance(targetTaskId, currentInstance.parentInstanceId, taskStore);
+  }
+
+  return null;
+}
+
+/**
+ * Checks if a task has instance mapping dependencies
+ */
+function hasInstanceMapping(task: FlatTask): boolean {
+  return task.dependencies?.some(dep => dep.type === "instance_mapping") || false;
+}
+
+/**
+ * Main entry point for rendering task content
+ */
+function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: AnswerStoreType): Content {
+  // Root task with children
+  if (task.type?.includes("task_group") && task.childrenIds?.length > 0) {
+    const childElements: Content[] = [];
+
+    // Process each child of the root task
+    for (const childId of task.childrenIds) {
+      const childTask = taskStore.taskById(childId);
+      childElements.push({ text: childTask.task, style: 'subSubHeader' });
+
+      // Process child task and its instances
+      const contentItems = processTaskWithInstances(childTask, null, taskStore, answerStore, 0);
+      if (contentItems.length > 0) {
+        childElements.push(...contentItems);
+      }
+    }
+
+    return { stack: childElements };
+  }
+  // Simple task
+  else {
+    const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0];
+    const answer = answerStore.getAnswer(instanceId);
+    return { text: formatAnswerValue(answer), style: 'normal' };
+  }
+}
+
+/**
+ * Process a task and all its instances, including nested structures
+ * @param task The task to process
+ * @param parentInstanceId Parent instance ID (null for root tasks)
+ * @param taskStore Task store
+ * @param answerStore Answer store
+ * @param nestingLevel Current nesting level (for indentation)
+ */
+function processTaskWithInstances(
+  task: FlatTask,
+  parentInstanceId: string | null,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+  nestingLevel: number
+): Content[] {
+  const elements: Content[] = [];
+
+  // Get instances for this task
+  let instanceIds: string[] = [];
+
+  if (parentInstanceId && hasInstanceMapping(task)) {
+    // For instance-mapped tasks, find instances mapped to this parent
+    instanceIds = findMappedInstances(task.id, parentInstanceId, taskStore);
+  } else {
+    // Regular child tasks
+    instanceIds = parentInstanceId
+      ? taskStore.getInstanceIdsForTask(task.id, parentInstanceId)
+      : taskStore.getInstanceIdsForTask(task.id);
+  }
+
+  // Skip if no instances
+  if (instanceIds.length === 0) {
+    return elements;
+  }
+
+  // Simple task (no children)
+  if (!task.childrenIds || task.childrenIds.length === 0) {
+    for (const instanceId of instanceIds) {
+      if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
+        const answer = answerStore.getAnswer(instanceId);
+        elements.push({
+          text: formatAnswerValue(answer),
+          style: 'normal',
+          margin: [nestingLevel * 10, 0, 0, 5]
+        });
+      }
+    }
+    return elements;
+  }
+
+  // Task group with children
+  if (nestingLevel > 0 && instanceIds.length > 0 && task.repeatable) {
+    // Add category title for repeatable nested groups
+    elements.push({
+      text: task.task,
+      style: 'category',
+      margin: [nestingLevel * 10, 10, 0, 5]
+    });
+  }
+
+  // Process each instance of this task
+  for (const instanceId of instanceIds) {
+    // Skip if this instance shouldn't be shown
+    if (!shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
+      continue;
+    }
+
+    // Create table for this instance's simple fields
+    const tableRows = buildTableRows(instanceId, task, taskStore, answerStore);
+    if (tableRows.length > 1) { // If there's more than just the header
+      elements.push(createTableElement(tableRows, ['35%', '65%'], nestingLevel * 10));
+    }
+
+    // Process each child task that has its own complex structure
+    for (const childId of task.childrenIds) {
+      const childTask = taskStore.taskById(childId);
+
+      // Skip simple fields (they're already in the table)
+      if (!childTask.childrenIds || childTask.childrenIds.length === 0) {
+        continue;
+      }
+
+      // Recursively process this child and its instances
+      const childElements = processTaskWithInstances(
+        childTask,
+        instanceId,
+        taskStore,
+        answerStore,
+        nestingLevel + 1
+      );
+
+      if (childElements.length > 0) {
+        elements.push(...childElements);
+      }
+    }
+  }
+
+  return elements;
+}
+
+/**
+ * Find instances that are mapped from a specific parent instance
+ */
+function findMappedInstances(
+  taskId: string,
+  parentInstanceId: string,
+  taskStore: TaskStoreType
+): string[] {
+  return Object.values(taskStore.taskInstances)
+    .filter(instance =>
+      instance.taskId === taskId &&
+      instance.mappedFromInstanceId === parentInstanceId
+    )
+    .map(instance => instance.id);
+}
+
+/**
+ * Build table rows for a task instance
+ */
+function buildTableRows(
+  instanceId: string,
+  task: FlatTask,
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType
 ): any[][] {
-  // Create table rows array
   const tableRows: any[][] = [];
 
   // Add header row with instance label
-  //const instanceLabel = parentTask.instance_label_template
-  //  ? renderInstanceLabel(instanceId, parentTask.instance_label_template)
-  //  : parentTask.task;
-  //tableRows.push([{ text: instanceLabel, style: 'tableHeader', colSpan: 2 }, {}]);
+  const instanceLabel = task.instance_label_template
+    ? renderInstanceLabel(instanceId, task.instance_label_template)
+    : task.task;
 
-  // Add rows for each child task that's a simple field
-  for (const childTaskId of parentTask.childrenIds) {
-    const childTask = taskStore.taskById(childTaskId);
+  tableRows.push([
+    {
+      text: instanceLabel,
+      style: 'tableHeader',
+      colSpan: 2,
+      margin: [0, 3, 0, 3]
+    },
+    {}
+  ]);
 
-    // Skip tasks with children (only include simple fields)
+  // Add rows for each simple child field
+  for (const childId of task.childrenIds) {
+    const childTask = taskStore.taskById(childId);
+
+    // Skip complex child tasks (with children)
     if (childTask.childrenIds && childTask.childrenIds.length > 0) {
       continue;
     }
 
-    // Add a row for each instance of this child task
-    const childInstanceIds = taskStore.getInstanceIdsForTask(childTaskId, instanceId);
+    // Get instances of this child task
+    const childInstanceIds = taskStore.getInstanceIdsForTask(childId, instanceId);
+
     for (const childInstanceId of childInstanceIds) {
+      // Skip if this child shouldn't be shown
+      if (!shouldShowTask(childId, childInstanceId, taskStore, answerStore)) {
+        continue;
+      }
+
       const value = answerStore.getAnswer(childInstanceId);
       tableRows.push([
         {
-          text: childTask.task, bold: true, margin: [0, 3, 0, 3], fillColor: '#f5f5f5',
+          text: childTask.task,
+          bold: true,
+          margin: [0, 3, 0, 3],
+          fillColor: '#f5f5f5'
         },
-        { text: formatAnswerValue(value), margin: [0, 3, 0, 3] }
+        {
+          text: formatAnswerValue(value),
+          margin: [0, 3, 0, 3]
+        }
       ]);
     }
   }
@@ -304,18 +522,24 @@ function buildTableForInstance(
   return tableRows;
 }
 
-// Creates a table content element for a task instance
+/**
+ * Create a styled table element
+ */
 function createTableElement(
-  instanceId: string,
-  task: FlatTask,
-  taskStore: TaskStoreType,
-  answerStore: AnswerStoreType
+  rows: any[][],
+  widths: any[] = ['35%', '65%'],
+  leftMargin: number = 0
 ): Content {
+  if (rows.length <= 1) { // Skip if only header row or empty
+    return { text: '' };
+  }
+
   return {
     style: 'tableExample',
+    margin: [leftMargin, 5, 0, 10],
     table: {
-      widths: ['35%', '65%'],
-      body: buildTableForInstance(instanceId, task, taskStore, answerStore)
-    },
+      widths: widths,
+      body: rows
+    }
   };
 }
