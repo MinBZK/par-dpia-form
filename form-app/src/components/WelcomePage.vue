@@ -51,6 +51,8 @@ const startDpia = async () => {
     } else {
       fileUploadError.value = 'Er is een onbekende fout opgetreden'
     }
+  } finally {
+    isProcessing.value = false
   }
 }
 </script>
@@ -89,4 +91,8 @@ const startDpia = async () => {
       :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'" :disabled="isProcessing"
       @click="startDpia" />
   </div>
+
+  <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">
+    {{ fileUploadError }}
+  </p>
 </template>
