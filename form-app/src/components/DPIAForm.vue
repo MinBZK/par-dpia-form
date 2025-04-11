@@ -13,7 +13,8 @@ import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
-import { downloadJsonFile, exportDpiaToPdf } from '@/utils/fileExport'
+import { exportToJson } from '@/utils/jsonExport'
+import { exportToPdf } from '@/utils/pdfExport'
 import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
@@ -92,22 +93,10 @@ const openSaveModal = () => {
 const closeSaveModal = () => {
   isSaveModalOpen.value = false
 }
-const handleSaveForm = (filename: string) => {
+const handleSaveForm = async (filename: string) => {
   console.log('Saving form with filename:', filename)
   try {
-    const snapshotData: DPIASnapshot = {
-      metadata: {
-        savedAt: new Date().toISOString(),
-      },
-      taskState: {
-        currentRootTaskId: taskStore.currentRootTaskId,
-        taskInstances: taskStore.taskInstances,
-        completedRootTaskIds: Array.from(taskStore.completedRootTaskIds),
-      },
-      answers: answerStore.answers,
-    }
-
-    downloadJsonFile(snapshotData, filename)
+    await exportToJson(taskStore, answerStore, filename)
   } catch (error) {
     //TODO: Make user friendly error
     console.error('Failed to save form data:', error)
@@ -115,7 +104,11 @@ const handleSaveForm = (filename: string) => {
 }
 
 const handleExportPdf = async () => {
-  await exportDpiaToPdf(taskStore, answerStore)
+  try {
+    await exportToPdf(taskStore, answerStore)
+  } catch (error) {
+    console.error('Failed to export PDF:', error)
+  }
 }
 
 const handleStart = (fileData?: DPIASnapshot) => {
@@ -142,16 +135,14 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
   <!-- If all is well, render the tasks. -->
   <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
-    <!-- Show all main (root) tasks -->
+
     <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
-      <ProgressTracker :rootTasks="rootTasks" :disabled="!dpiaStarted" />
+      <ProgressTracker :disabled="!dpiaStarted" />
     </nav>
 
     <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-      <!-- Render curren task -->
-      <div v-if="!dpiaStarted">
-        <WelcomePage @start="handleStart" />
-      </div>
+
+      <WelcomePage v-if="!dpiaStarted" @start="handleStart" />
 
       <template v-else>
         <TaskSection :taskId="currentRootTaskId" />

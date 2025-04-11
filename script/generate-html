@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+rm docs/*
+npm run --prefix form-app build
+cp -r form-app/dist/* docs/
