@@ -1,10 +1,12 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
-import { type FlatTask, type TaskInstance, type TaskStoreType } from '@/stores/tasks'
-import { type AnswerStoreType, type AnswerValue } from '@/stores/answers'
+import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
+import { type AnswerStoreType } from '@/stores/answers'
 import * as pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces';
 import { renderInstanceLabel } from '@/utils/taskUtils'
+import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
+
 
 (<any>pdfMake).addVirtualFileSystem(pdfFonts);
 
@@ -209,110 +211,17 @@ function buildSectionDesciption(description?: string): Content {
 function formatAnswerValue(value: any): string {
   if (Array.isArray(value)) {
     return value.join(", ");
-  } else if (value === true) {
+  } else if (value === 'true') {
     return "Ja";
-  } else if (value === false) {
+  } else if (value === 'false') {
     return "Nee";
-  } else if (value === null) {
+  } else if (value === 'null') {
     return "";
   }
   return value ? String(value) : "";
 }
 
-/**
- * Determines if a task should be visible based on its dependencies
- */
-function shouldShowTask(
-  taskId: string,
-  instanceId: string,
-  taskStore: TaskStoreType,
-  answerStore: AnswerStoreType
-): boolean {
-  const task = taskStore.taskById(taskId);
-  const instance = taskStore.getInstanceById(instanceId);
-
-  if (!task.dependencies || task.dependencies.length === 0 || !instance) {
-    return true;
-  }
-
-  for (const dependency of task.dependencies) {
-    if (dependency.type === 'conditional') {
-      if (!dependency.condition) {
-        continue;
-      }
-
-      const { id: conditionTaskId, operator, value } = dependency.condition;
-      const action = dependency.action;
-
-      // Find the related instance for the condition task
-      const relatedInstance = findRelatedInstance(conditionTaskId, instanceId, taskStore);
-      if (!relatedInstance) {
-        continue;
-      }
-
-      const conditionValue = answerStore.getAnswer(relatedInstance.id);
-
-      // Normalize string values
-      let normalizedValue: AnswerValue | boolean = conditionValue;
-      if (typeof conditionValue === 'string') {
-        if (conditionValue.toLowerCase() === 'true') {
-          normalizedValue = true;
-        } else if (conditionValue.toLowerCase() === 'false') {
-          normalizedValue = false;
-        } else if (conditionValue === 'null' || conditionValue === '') {
-          normalizedValue = null;
-        }
-      }
-
-      let conditionMet = false;
-      if (operator === 'equals') {
-        conditionMet = normalizedValue === value;
-      } else if (operator === 'any') {
-        conditionMet = true;
-      }
-
-      if (action === 'show' && !conditionMet) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-/**
- * Finds a related instance for a condition task
- */
-function findRelatedInstance(
-  targetTaskId: string,
-  currentInstanceId: string,
-  taskStore: TaskStoreType
-): TaskInstance | null {
-  const currentInstance = taskStore.getInstanceById(currentInstanceId);
-  if (!currentInstance) return null;
-
-  // First, try to find instance in the same group
-  const relatedInstance = Object.values(taskStore.taskInstances).find(
-    (instance) => instance.taskId === targetTaskId && instance.groupId === currentInstance.groupId
-  );
-
-  if (relatedInstance) return relatedInstance;
-
-  // If not found, and we have a parent instance, try with the parent
-  if (currentInstance.parentInstanceId) {
-    return findRelatedInstance(targetTaskId, currentInstance.parentInstanceId, taskStore);
-  }
-
-  return null;
-}
-
-/**
- * Checks if a task has instance mapping dependencies
- */
-function hasInstanceMapping(task: FlatTask): boolean {
-  return task.dependencies?.some(dep => dep.type === "instance_mapping") || false;
-}
-
+/*
 /**
  * Main entry point for rendering task content
  */
@@ -343,14 +252,6 @@ function buildAnswer(task: FlatTask, taskStore: TaskStoreType, answerStore: Answ
   }
 }
 
-/**
- * Process a task and all its instances, including nested structures
- * @param task The task to process
- * @param parentInstanceId Parent instance ID (null for root tasks)
- * @param taskStore Task store
- * @param answerStore Answer store
- * @param nestingLevel Current nesting level (for indentation)
- */
 function processTaskWithInstances(
   task: FlatTask,
   parentInstanceId: string | null,
