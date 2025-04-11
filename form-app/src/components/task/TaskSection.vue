@@ -5,6 +5,8 @@ import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
+import risicoMatrixImage from '@/assets/images/risico_matrix.png'
+
 
 const props = defineProps<{
   taskId: string
@@ -27,16 +29,22 @@ const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
 }
 
-const resolveImagePath = (image: string): string => {
-  return '/src/assets/images/' + image
-}
-
 const taskDisplayTitle = (task: FlatTask): string => {
   if (task.id === '0' || isSigningTask.value) {
     return task.task
   } else {
     return task.id + '. ' + task.task
   }
+}
+
+type ImageMap = { [key: string]: string }
+const imageMap = {
+  'risico_matrix.png': risicoMatrixImage
+}
+
+// Helper function with proper type safety
+function getImage(key: string): string | undefined {
+  return key in imageMap ? imageMap[key as keyof typeof imageMap] : undefined
 }
 
 function handleAddRepeatableTask(childId: string) {
@@ -96,7 +104,8 @@ function handleAddRepeatableTask(childId: string) {
           </p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
-              <img :src="resolveImagePath(source.source)" :alt="source.description" />
+              <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                :alt="source.description" />
             </template>
           </template>
         </fieldset>
