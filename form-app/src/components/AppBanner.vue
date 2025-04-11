@@ -2,6 +2,16 @@
 </script>
 
 <template>
+  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
+    <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
+      aria-label="Waarschuwing"></span>
+    <div class="rvo-alert-text">
+      <div>
+        <a class="rvo-link" id="version-link" href="https://github.com/MinBZK/par-dpia-form">Bètaversie</a>
+        Deze beslishulp is in ontwikkeling.
+      </div>
+    </div>
+  </div>
   <div class="rvo-header__logo-wrapper">
     <a href="#" class="rvo-header__logo-link rvo-link rvo-link--no-underline">
       <div class="rvo-logo rvo-header__logo-img">
