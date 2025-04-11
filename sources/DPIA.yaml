@@ -720,18 +720,37 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false
-              - task: Categorie betrokkenen & persoonsgegevens
+              - task: Categorie betrokkenen
                 id: "11.1.1.2"
-                type: 
-                  - text_input
+                type:
+                  - checkbox_option
                 repeatable: false
-              - task: Bewaartermijn/archiveringsperiode
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
                 id: "11.1.1.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.1"
+                      operator: any
+                    action: options
+              - task: Bewaartermijn/archiveringsperiode
+                id: "11.1.1.4"
                 type: 
                   - text_input
                 repeatable: false
               - task: Motivatie voor de bewaartermijn
-                id: "11.1.1.4"
+                id: "11.1.1.5"
                 type: 
                   - open_text
                 repeatable: false
@@ -848,13 +867,32 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false 
-              - task: Categorie betrokkke & persoonsgegevens
+              - task: Categorie betrokkene
                 id: "13.1.2.2"
-                type: 
-                  - text_input
-                repeatable: false 
-              - task: Type bijzonder persoonsgegevens 
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
                 id: "13.1.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.1"
+                      operator: any
+                    action: options
+              - task: Type bijzonder persoonsgegevens 
+                id: "13.1.2.4"
                 type: 
                   - select_option
                 options:
@@ -910,13 +948,32 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false 
-              - task: Categorie betrokkke & persoonsgegevens
+              - task: Categorie betrokkene
                 id: "13.2.2.2"
-                type: 
-                  - text_input
-                repeatable: false 
-              - task: Uitzonderingsgrond
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
                 id: "13.2.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.1"
+                      operator: any
+                    action: options
+              - task: Uitzonderingsgrond
+                id: "13.2.2.4"
                 type: 
                   - open_text
                 repeatable: false
@@ -956,13 +1013,32 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false 
-              - task: Categorie betrokkke & persoonsgegevens
+              - task: Categorie betrokkene
                 id: "13.3.2.2"
-                type: 
-                  - text_input
-                repeatable: false 
-              - task: Uitzonderingsgrond
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
                 id: "13.3.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "3.1.1"
+                      operator: any
+                    action: options
+              - task: Uitzonderingsgrond
+                id: "13.3.2.4"
                 type: 
                   - open_text
                 repeatable: false
@@ -1000,18 +1076,37 @@ tasks:
               - task_group
             repeatable: true
             tasks:
-            - task: Categorie betrokkenen & persoonsgegevens
+            - task: Categorie betrokkene
               id: "14.1.1.1"
-              type: 
-                - text_input
+              type:
+                - checkbox_option
               repeatable: false
-            - task: Doeleinde 
+              valueType: "string[]"
+              dependencies:
+                - type: source_options
+                  condition:
+                    id: "3.1.2"
+                    operator: any
+                  action: options
+            - task: Persoonsgegevens
               id: "14.1.1.2"
+              type:
+                - checkbox_option
+              repeatable: false
+              valueType: "string[]"
+              dependencies:
+                - type: source_options
+                  condition:
+                    id: "3.1.1"
+                    operator: any
+                  action: options
+            - task: Doeleinde 
+              id: "14.1.1.3"
               type: 
                 - text_input
               repeatable: false
             - task: Oorspronkelijke doeleinde 
-              id: "14.1.1.3"
+              id: "14.1.1.4"
               type: 
                 - text_input
               repeatable: false
