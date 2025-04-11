@@ -142,16 +142,14 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
   <!-- If all is well, render the tasks. -->
   <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
-    <!-- Show all main (root) tasks -->
+
     <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
       <ProgressTracker :disabled="!dpiaStarted" />
     </nav>
 
     <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-      <!-- Render curren task -->
-      <div v-if="!dpiaStarted">
-        <WelcomePage @start="handleStart" />
-      </div>
+
+      <WelcomePage v-if="!dpiaStarted" @start="handleStart" />
 
       <template v-else>
         <TaskSection :taskId="currentRootTaskId" />
