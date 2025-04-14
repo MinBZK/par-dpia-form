@@ -281,7 +281,7 @@ tasks:
               type: 
                 - text_input
               repeatable: false
-            - task: Categorie betrokkenen
+            - task: Categorie betrokkene
               id: "3.1.2"
               type: 
                 - text_input
@@ -525,7 +525,7 @@ tasks:
                   id: "3.1.1"
                   operator: any
                 action: options
-          - task: Categorieen betrokkenen
+          - task: Categorieen betrokkene
             id: "7.1.1.5"
             type:
               - checkbox_option
@@ -720,7 +720,7 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false
-              - task: Categorie betrokkenen
+              - task: Categorie betrokkene
                 id: "11.1.1.2"
                 type:
                   - checkbox_option
@@ -864,9 +864,16 @@ tasks:
               tasks:
               - task: Gegevensverwerking
                 id: "13.1.2.1"
-                type: 
-                  - text_input
-                repeatable: false 
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "4.1.1"
+                      operator: any
+                    action: options
               - task: Categorie betrokkene
                 id: "13.1.2.2"
                 type:
@@ -945,9 +952,16 @@ tasks:
               tasks:
               - task: Gegevensverwerking
                 id: "13.2.2.1"
-                type: 
-                  - text_input
-                repeatable: false 
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "4.1.1"
+                      operator: any
+                    action: options
               - task: Categorie betrokkene
                 id: "13.2.2.2"
                 type:
@@ -1010,9 +1024,16 @@ tasks:
               tasks:
               - task: Gegevensverwerking
                 id: "13.3.2.1"
-                type: 
-                  - text_input
-                repeatable: false 
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "4.1.1"
+                      operator: any
+                    action: options
               - task: Categorie betrokkene
                 id: "13.3.2.2"
                 type:
