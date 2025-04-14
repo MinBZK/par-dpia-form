@@ -11,12 +11,6 @@ owners:
   role: Privacy Officer
 
 tasks: 
-- task: Heeft u al eerder aan een prescan DPIA gewerkt voor dit project? 
-  description: Selecteer deze om de gegevens te gebruiken. 
-  id: "0"
-  category: 
-  type: 
-    - upload_file
 - task: Inleiding
   description: >-
     De vastlegging van de pre-scan DPIA wordt gekenmerkt door de pre-scan DPIA code.
