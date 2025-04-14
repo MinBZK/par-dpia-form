@@ -1297,9 +1297,20 @@
                                     "task": "Gegevensverwerking",
                                     "id": "13.1.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
                                     "task": "Categorie betrokkene",
@@ -1442,9 +1453,20 @@
                                     "task": "Gegevensverwerking",
                                     "id": "13.2.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
                                     "task": "Categorie betrokkene",
@@ -1547,9 +1569,20 @@
                                     "task": "Gegevensverwerking",
                                     "id": "13.3.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
                                     "task": "Categorie betrokkene",
