@@ -45,6 +45,16 @@ function hasMoreThanOneInstance(taskId: string, parentInstanceId?: string) {
   return taskStore.getInstancesForTask(taskId, parentInstanceId).length > 1
 }
 
+function instanceIsVisible(taskId: string): boolean {
+  const instanceIds = taskStore.getInstanceIdsForTask(taskId, props.instanceId)
+  if (instanceIds.length === 0) return false
+
+  // We assume all instances are visible if and only if the first instance for a task is visible.
+  // This is the use case we need it for, namely in task 13.
+  return shouldShowTask.value(taskId, instanceIds[0])
+}
+
+
 const handleDelete = (instanceId: string) => {
   taskStore.removeRepeatableTaskInstance(instanceId);
   nextTick(() => {
@@ -85,8 +95,9 @@ const handleDelete = (instanceId: string) => {
                   :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
                 <!-- Only show delete button for repeatable children instances -->
-                <UiButton v-if="canUserCreateInstances(childId) && hasMoreThanOneInstance(childId, props.instanceId)" variant="secondary"
-                  icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
+                <UiButton v-if="canUserCreateInstances(childId) && hasMoreThanOneInstance(childId, props.instanceId)"
+                  variant="secondary" icon="verwijderen" label="Verwijder veld"
+                  @click="handleDelete(childInstanceId)" />
               </div>
             </div>
 
@@ -119,7 +130,7 @@ const handleDelete = (instanceId: string) => {
             </div>
 
             <!-- Add button for repeatable task group (outside the loop) -->
-            <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
+            <div v-if="canUserCreateInstances(childId) && instanceIsVisible(childId)" class="rvo-layout-margin-vertical--md">
               <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
@@ -129,7 +140,8 @@ const handleDelete = (instanceId: string) => {
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
       <UiButton v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
-      variant="secondary" icon="verwijderen" :label="`Verwijder ${task.task.toLowerCase()}`" @click="handleDelete(props.instanceId)" />
+        variant="secondary" icon="verwijderen" :label="`Verwijder ${task.task.toLowerCase()}`"
+        @click="handleDelete(props.instanceId)" />
     </fieldset>
   </div>
 </template>

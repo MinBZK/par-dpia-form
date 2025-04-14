@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 
-const { getSourceOptions } = useTaskDependencies()
+const { getSourceOptions, getSourceOptionSourceTaskId  } = useTaskDependencies()
 
 function converStringValue(value: string | null, typeSpec: string): null | string | boolean {
   if (value === null) return null
@@ -147,16 +147,19 @@ const handleCheckboxInput = (event: Event) => {
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
     refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group">
-    <div class="rvo-layout-margin-vertical--md">
+    <div v-if="getSourceOptions(task).length > 0" class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
         <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
           :for="`${task.id}-${instanceId}-${option}`">
           <input :id="`${task.id}-${instanceId}-${option}`" :value="option" :checked="!currentValue
-            || (currentValue as string[]).includes(option)" :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput"
-            class="rvo-checkbox__input" type="checkbox" />
+            || (currentValue as string[]).includes(option)" :name="`group-${task.id}-${instanceId}`"
+            @change="handleCheckboxInput" class="rvo-checkbox__input" type="checkbox" />
           {{ option }}
         </label>
       </div>
+    </div>
+    <div v-else>
+      Vul vraag {{ getSourceOptionSourceTaskId(task) }} eerst in.
     </div>
   </div>
 

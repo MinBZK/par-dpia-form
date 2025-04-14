@@ -1,5 +1,5 @@
 import { type AnswerValue } from '@/stores/answers'
-import { type FlatTask, type TaskInstance, type TaskStoreType } from '@/stores/tasks'
+import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
 
 export function normalizeValue(value: string): string | boolean | null {

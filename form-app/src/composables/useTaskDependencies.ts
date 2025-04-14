@@ -14,33 +14,67 @@ export function useTaskDependencies() {
     }
   })
 
-  const getSourceOptions = computed(() => {
-    return (task: FlatTask): string[] => {
+  const getSourceOptionSourceTaskId = computed(() => {
+    return (task: FlatTask): string | null => {
       if (!task.dependencies || task.dependencies.length === 0) {
-        return []
+        return null
       }
 
       for (const dependency of task.dependencies) {
         if (dependency.type === 'source_options') {
           if (!dependency.condition) {
-            return []
+            return null
           }
-          const { id: sourceTaskId } = dependency.condition
-
-          const uniqueValues = new Set<string>()
-          const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
-
-          sourceInstanceIds.forEach((instanceId) => {
-            const answer = answerStore.getAnswer(instanceId)
-            if (typeof answer === 'string' && answer !== '') {
-              uniqueValues.add(answer)
-            }
-          })
-
-          return Array.from(uniqueValues)
+          return dependency.condition.id
         }
       }
-      return []
+      return null
+    }
+  })
+
+  const getSourceOptions = computed(() => {
+    return (task: FlatTask): string[] => {
+      const sourceTaskId = getSourceOptionSourceTaskId.value(task)
+
+      if (sourceTaskId === null) return []
+
+      const uniqueValues = new Set<string>()
+      const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
+
+      sourceInstanceIds.forEach((instanceId) => {
+        const answer = answerStore.getAnswer(instanceId)
+        if (typeof answer === 'string' && answer !== '') {
+          uniqueValues.add(answer)
+        }
+      })
+
+      return Array.from(uniqueValues)
+
+      //if (!task.dependencies || task.dependencies.length === 0) {
+      //  return []
+      //}
+
+      //for (const dependency of task.dependencies) {
+      //  if (dependency.type === 'source_options') {
+      //    if (!dependency.condition) {
+      //      return []
+      //    }
+      //    const { id: sourceTaskId } = dependency.condition
+
+      //    const uniqueValues = new Set<string>()
+      //    const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
+
+      //    sourceInstanceIds.forEach((instanceId) => {
+      //      const answer = answerStore.getAnswer(instanceId)
+      //      if (typeof answer === 'string' && answer !== '') {
+      //        uniqueValues.add(answer)
+      //      }
+      //    })
+
+      //    return Array.from(uniqueValues)
+      //  }
+      //}
+      //return []
     }
   })
 
@@ -100,6 +134,7 @@ export function useTaskDependencies() {
 
   return {
     shouldShowTask,
+    getSourceOptionSourceTaskId,
     canUserCreateInstances,
     getSourceOptions,
     syncInstances,
