@@ -3,12 +3,11 @@ import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { type FlatTask, useTaskStore } from '@/stores/tasks'
 
 defineProps<{
-  rootTasks: FlatTask[]
   disabled?: boolean
 }>()
 
 const taskStore = useTaskStore()
-const { currentRootTaskId, goToTask } = useTaskNavigation()
+const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
 
 function displayTitle(task: FlatTask): string {
   if (task.id === '0' || task.type?.includes('signing')) {

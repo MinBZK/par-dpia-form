@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiButton from '@/components/ui/UiButton.vue'
+import { generateFilename } from '@/utils/fileName'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{
@@ -15,14 +16,7 @@ const saveFormRef = ref<HTMLDivElement | null>(null)
 
 // Generate filename based on timestamp
 const filename = computed((): string => {
-  const now = new Date()
-  const timestamp = now
-    .toISOString()
-    .replace(/:/g, '-') // Replace colons with hyphens
-    .replace(/\..+/, '') // Remove milliseconds
-    .replace('T', '_') // Replace T with underscore
-
-  return `DPIA_${timestamp}.json`
+  return generateFilename('json')
 })
 
 // Handle ESC key to close modal
@@ -59,13 +53,7 @@ const handleSave = () => {
 
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="handleClickOutside">
-    <div
-      ref="saveFormRef"
-      class="save-modal"
-      aria-labelledby="save-form-title"
-      role="dialog"
-      aria-modal="true"
-    >
+    <div ref="saveFormRef" class="save-modal" aria-labelledby="save-form-title" role="dialog" aria-modal="true">
       <h2 id="save-form-title" class="utrecht-heading-2">Formulier opslaan</h2>
 
       <div class="rvo-layout-margin-vertical--s">
@@ -79,11 +67,7 @@ const handleSave = () => {
         </p>
       </div>
 
-      <p
-        class="utrecht-button-group rvo-action-groul--position-right"
-        role="group"
-        aria-label="Formulier opslag"
-      >
+      <p class="utrecht-button-group rvo-action-groul--position-right" role="group" aria-label="Formulier opslag">
         <UiButton variant="tertiary" label="Annuleren" @click="closeModal" />
         <UiButton variant="primary" label="Opslaan" @click="handleSave" />
       </p>

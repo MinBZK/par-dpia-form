@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
-import { readJsonFile } from '@/utils/fileExport'
+import { importFromJson } from '@/utils/jsonExport'
 
 const emit = defineEmits<{
   (e: 'start', fileData?: DPIASnapshot): void
@@ -29,7 +29,7 @@ const startDpia = async () => {
     if (uploadedFile.value) {
       console.log(uploadedFile.value)
       try {
-        const fileData = await readJsonFile(uploadedFile.value)
+        const fileData = await importFromJson(uploadedFile.value)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -51,6 +51,8 @@ const startDpia = async () => {
     } else {
       fileUploadError.value = 'Er is een onbekende fout opgetreden'
     }
+  } finally {
+    isProcessing.value = false
   }
 }
 </script>
@@ -89,4 +91,8 @@ const startDpia = async () => {
       :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'" :disabled="isProcessing"
       @click="startDpia" />
   </div>
+
+  <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">
+    {{ fileUploadError }}
+  </p>
 </template>
