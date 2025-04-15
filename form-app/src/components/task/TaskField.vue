@@ -85,14 +85,14 @@ const handleDelete = (instanceId: string) => {
                   :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
                 <!-- Only show delete button for repeatable children instances -->
-                <UiButton v-if="canUserCreateInstances(childId) && hasMoreThanOneInstance(childId, props.instanceId)" variant="secondary"
-                  icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
+                <UiButton v-if="canUserCreateInstances(childId) && hasMoreThanOneInstance(childId, props.instanceId)"
+                  icon="verwijderen" label="Verwijder veld" class="utrecht-button utrecht-button--warning rvo-margin-block-end--md" @click="handleDelete(childInstanceId)" />
               </div>
             </div>
 
             <!-- Add button for repeatable field -->
             <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
+              <UiButton variant="secondary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
@@ -120,7 +120,7 @@ const handleDelete = (instanceId: string) => {
 
             <!-- Add button for repeatable task group (outside the loop) -->
             <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
+              <UiButton variant="secondary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
@@ -129,7 +129,7 @@ const handleDelete = (instanceId: string) => {
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
       <UiButton v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
-      variant="secondary" icon="verwijderen" :label="`Verwijder ${task.task.toLowerCase()}`" @click="handleDelete(props.instanceId)" />
+      class="utrecht-button utrecht-button--warning " icon="verwijderen" :label="`Verwijder ${task.task.toLowerCase()}`" @click="handleDelete(props.instanceId)" />
     </fieldset>
   </div>
 </template>
