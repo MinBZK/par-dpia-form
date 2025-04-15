@@ -36,11 +36,10 @@ export async function importFromJson(file: File): Promise<DPIASnapshot> {
   })
 }
 
-
 export async function exportToJson(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
-  filename?: string
+  filename?: string,
 ): Promise<void> {
   try {
     // Create snapshot data
@@ -69,10 +68,9 @@ export async function exportToJson(
   }
 }
 
-
 export function downloadJsonFile(data: unknown, filename: string): Promise<void> {
   try {
-    const jsonString = JSON.stringify(data, null, 4);
+    const jsonString = JSON.stringify(data, null, 4)
     const blob = new Blob([jsonString], { type: 'application/json' })
 
     const url = URL.createObjectURL(blob)
@@ -92,5 +90,3 @@ export function downloadJsonFile(data: unknown, filename: string): Promise<void>
     return Promise.reject(new Error('Failed to create download file'))
   }
 }
-
-

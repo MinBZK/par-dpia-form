@@ -37,17 +37,15 @@ export const Option = t.intersection([
 
 export type Option = t.TypeOf<typeof Option>
 
-export const Condition = t.intersection(
-  [
-    t.type({
-      id: t.string,
-      operator: t.string,
-    }),
-    t.partial({
-      value: t.union([t.string, t.boolean, t.null]),
-    }),
-  ]
-)
+export const Condition = t.intersection([
+  t.type({
+    id: t.string,
+    operator: t.string,
+  }),
+  t.partial({
+    value: t.union([t.string, t.boolean, t.null]),
+  }),
+])
 
 export type Condition = t.TypeOf<typeof Condition>
 

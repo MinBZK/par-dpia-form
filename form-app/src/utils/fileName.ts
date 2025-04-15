@@ -8,5 +8,3 @@ export function generateFilename(extension: string): string {
 
   return `DPIA_${timestamp}.${extension}`
 }
-
-

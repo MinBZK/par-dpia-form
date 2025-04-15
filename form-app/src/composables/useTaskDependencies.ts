@@ -3,7 +3,6 @@ import { useTaskStore, type FlatTask, type TaskInstance } from '@/stores/tasks'
 import { shouldShowTask as checkShouldShowTask, hasInstanceMapping } from '@/utils/dependency'
 import { computed } from 'vue'
 
-
 export function useTaskDependencies() {
   const taskStore = useTaskStore()
   const answerStore = useAnswerStore()
@@ -101,7 +100,7 @@ export function useTaskDependencies() {
           const targetInstances = taskStore.getInstancesForTask(taskId)
 
           const targetInstancesBySourceId = new Map<string, TaskInstance>()
-          targetInstances.forEach(instance => {
+          targetInstances.forEach((instance) => {
             if (instance.mappedFromInstanceId) {
               targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
             } else {
@@ -110,7 +109,7 @@ export function useTaskDependencies() {
             }
           })
 
-          sourceInstances.forEach(sourceInstance => {
+          sourceInstances.forEach((sourceInstance) => {
             const existingTarget = targetInstancesBySourceId.get(sourceInstance.id)
 
             if (!existingTarget) {

@@ -61,35 +61,46 @@ const startDpia = async () => {
   <h1 class="utrecht-heading-1">Welkom bij de DPIA tool</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
-
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-
       <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend">
         Heeft u al een eerdere versie beschikbaar?
       </legend>
 
-      <div class="utrecht-form-field-description" id="file-upload-helper">Upload de bestanden om
-        bestaande gegevens te hergebruiken.</div>
+      <div class="utrecht-form-field-description" id="file-upload-helper">
+        Upload de bestanden om bestaande gegevens te hergebruiken.
+      </div>
 
       <div class="rvo-layout-margin-vertical--lg">
-        <div role="group" aria-labelledby="file-upload-label"
-          class="utrecht-form-field utrecht-form-field--text rvo-form-field">
+        <div
+          role="group"
+          aria-labelledby="file-upload-label"
+          class="utrecht-form-field utrecht-form-field--text rvo-form-field"
+        >
           <div class="rvo-form-field__label">
             <label class="rvo-label" id="file-upload-label" for="file-upload-field">
               Bestand
             </label>
           </div>
-          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json" @change="handleFileSelect" />
+          <input
+            id="file-upload-field"
+            type="file"
+            class="rvo-file-input"
+            accept=".json"
+            @change="handleFileSelect"
+          />
         </div>
       </div>
     </fieldset>
-
   </div>
 
   <div class="rvo-layout-margin-vertical--xl">
-    <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'" :disabled="isProcessing"
-      @click="startDpia" />
+    <UiButton
+      variant="primary"
+      :icon="isProcessing ? 'refresh' : undefined"
+      :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'"
+      :disabled="isProcessing"
+      @click="startDpia"
+    />
   </div>
 
   <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">

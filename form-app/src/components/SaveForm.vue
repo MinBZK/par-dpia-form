@@ -53,7 +53,13 @@ const handleSave = () => {
 
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="handleClickOutside">
-    <div ref="saveFormRef" class="save-modal" aria-labelledby="save-form-title" role="dialog" aria-modal="true">
+    <div
+      ref="saveFormRef"
+      class="save-modal"
+      aria-labelledby="save-form-title"
+      role="dialog"
+      aria-modal="true"
+    >
       <h2 id="save-form-title" class="utrecht-heading-2">Formulier opslaan</h2>
 
       <div class="rvo-layout-margin-vertical--s">
@@ -67,7 +73,11 @@ const handleSave = () => {
         </p>
       </div>
 
-      <p class="utrecht-button-group rvo-action-groul--position-right" role="group" aria-label="Formulier opslag">
+      <p
+        class="utrecht-button-group rvo-action-groul--position-right"
+        role="group"
+        aria-label="Formulier opslag"
+      >
         <UiButton variant="tertiary" label="Annuleren" @click="closeModal" />
         <UiButton variant="primary" label="Opslaan" @click="handleSave" />
       </p>

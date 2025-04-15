@@ -47,7 +47,6 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const isInitialized = ref<boolean>(false)
   const completedRootTaskIds = ref<Set<string>>(new Set())
 
-
   /**
    * ==============================================
    * Store actions
@@ -98,7 +97,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
-  function createTaskInstance(taskId: string, parentInstanceId?: string, forceNewGroupId: boolean = false): string {
+  function createTaskInstance(
+    taskId: string,
+    parentInstanceId?: string,
+    forceNewGroupId: boolean = false,
+  ): string {
     const instanceId = taskId + '_' + nanoid()
 
     let groupId
