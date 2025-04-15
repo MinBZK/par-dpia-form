@@ -63,3 +63,7 @@
 .rvo-theme .rvo-icon--with-spacing {
   margin-right: 0.5rem;
 }
+.background-grijs-200 {
+  background-color: var(--rvo-color-grijs-200) !important;
+}
+

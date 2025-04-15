@@ -58,7 +58,6 @@ const taskDisplayTitle = (task: FlatTask): string => {
 
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
-
       <div class="rvo-checkbox__group">
         <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
           <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
@@ -69,7 +68,7 @@ const taskDisplayTitle = (task: FlatTask): string => {
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset  rvo-margin-block-start--xs rvo-margin-inline-start--xs">
+        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>
@@ -94,7 +93,7 @@ const taskDisplayTitle = (task: FlatTask): string => {
           </template>
 
           <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-            class="utrecht-form-fieldset rvo-form-fieldset">
+            class="utrecht-form-fieldset rvo-form-fieldset background-grijs-200">
             <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
             ${taskStore.taskById(childId).task.toLowerCase()} toe`"
               @click="taskStore.addRepeatableTaskInstance(childId)"/>
