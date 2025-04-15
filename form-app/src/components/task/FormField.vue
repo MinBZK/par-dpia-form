@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
-import { TaskTypeValue } from '@/models/dpia.ts'
+import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
 import { computed } from 'vue'
@@ -111,7 +111,6 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Text input field -->
-
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
     <input
       :id="`field-${task.id}-${instanceId}`"
@@ -184,7 +183,7 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Select checkbox -->
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
-    refactor.-->
+  refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0" class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
@@ -201,8 +200,9 @@ const handleCheckboxInput = (event: Event) => {
             :name="`group-${task.id}-${instanceId}`"
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
-            type="checkbox"/>
-          {{ option }}
+            type="checkbox"
+          />
+          <span v-html="option"></span>
         </label>
       </div>
     </div>
@@ -217,14 +217,13 @@ const handleCheckboxInput = (event: Event) => {
           <input
             :id="`${task.id}-${instanceId}-${safeString(option.value)}`"
             :value="option.value"
-            :checked="!currentValue ? false : (currentValue as
-            string[]).includes(safeString(option.value))"
+            :checked="!currentValue ? false : (currentValue as string[]).includes(safeString(option.value))"
             :name="`group-${task.id}-${instanceId}`"
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
             type="checkbox"
           />
-          {{ option.value }}
+          <span v-html="option.value"></span>
         </label>
       </div>
     </div>
@@ -232,6 +231,8 @@ const handleCheckboxInput = (event: Event) => {
       Vul eerst vraag {{ getDependencySourceTaskId(task)?.split('.')[0] || '' }} in.
     </div>
   </div>
+
+
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">

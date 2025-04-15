@@ -41,26 +41,21 @@ JSON-schemas are in the `schemas/` directory.
 
 ```bash
 # DPIA
-python schema_validator.py --schema schemas/schema_DPIA.json --source sources/DPIA.yaml --output form-app/src/assets/DPIA.json
+python script/schema_validator.py --schema schemas/schema_DPIA.json --source sources/DPIA.yaml --output form-app/src/assets/DPIA.json
 
 # Prescan DPIA
-python schema_validator.py --schema schemas/schema_prescanDPIA.json --source sources/prescan_DPIA.yaml --output form-app/src/assets/PreScanDPIA.json
+python script/schema_validator.py --schema schemas/schema_DPIA.json --source sources/prescan_DPIA.yaml --output form-app/src/assets/PreScanDPIA.json
 ```
 
-### Begrippenkader Synchronization
-
-```bash
-python begrippenkader.py --input path/to/begrippenkader.json --output path/to/begrippenkader.yaml [--existing path/to/existing_begrippenkader.yaml]
-```
 
 ### Definition Enrichment
 
 ```bash
 # DPIA
-python definition_enricher.py --source sources/DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
+python script/definition_enricher.py --source sources/DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
 
 # Prescan DPIA
-python definition_enricher.py --source sources/prescan_DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
+python script/definition_enricher.py --source sources/prescan_DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/PreScanDPIA.json
 ```
 
 ### Combined Workflow
@@ -70,21 +65,19 @@ python definition_enricher.py --source sources/prescan_DPIA.yaml --definitions s
 python script/run_sync_validate_and_inject.py \
   --schema schemas/schema_DPIA.json \
   --source sources/DPIA.yaml \
-  --begrippen-json sources/datamodel/begrippenkader-dpia.json \
   --begrippen-yaml sources/begrippenkader.yaml \
   --output form-app/src/assets/DPIA.json \
   --[--skip-validation] \
-  --[--skip-sync-begrippenkader] \
+
 
 # Prescan DPIA
 python script/run_sync_validate_and_inject.py \
   --schema schemas/schema_DPIA.json \
   --source sources/prescan_DPIA.yaml \
-  --begrippen-json sources/datamodel/begrippenkader-dpia.json \
   --begrippen-yaml sources/begrippenkader.yaml \
   --output form-app/src/assets/PreScanDPIA.json \
   --[--skip-validation] \
-  --[--skip-sync-begrippenkader] \
+
 ```
 
 

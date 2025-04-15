@@ -1,7 +1,7 @@
 // src/stores/schemaStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { DPIA, FormType } from '@/models/dpia.ts'
+import { DPIA, FormType } from '@/models/dpia'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '@/utils/taskUtils'
@@ -33,7 +33,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         )
         if (!hasSigningTask) {
           if (schemaType === FormType.DPIA) {
-            validData.tasks.push(createConclusionTask("Ondertekening", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
           } else if (schemaType === FormType.PRE_SCAN) {
             validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           }

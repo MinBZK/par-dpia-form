@@ -80,17 +80,16 @@
   filter: drop-shadow(0 4px 4px rgba(115, 142, 171, 0.5));
   text-align: left;
   border-radius: var(--rvo-border-radius-xl);
-  border-color: var(--rvo-color-grijs-200);
-  border: 1px;
+  border: 1px solid var(--rvo-color-grijs-200);
   padding: var(--rvo-alert-padding-sm-padding-block-end);
   position: absolute;
   z-index: 1;
-
+  
   /* Position below the term by default */
   top: 100%;
-  left: 0;
+  right: 0;
   margin-top: 5px;
-
+  
   /* Text styling */
   color: var(--utrecht-document-color);
   font-family: var(--utrecht-document-font-family);
@@ -99,8 +98,8 @@
   font-style: normal;
   text-align: left;
   line-height: var(--utrecht-document-line-height);
-
-  /* hack for Safari, https://stackoverflow.com/questions/38762661/css-drop-shadow-not-working-properly-in-safari/75027316#75027316 **/
+  
+  /* Fix for Safari */
   backdrop-filter: blur(0);
 }
 
@@ -108,15 +107,6 @@
 .aiv-definition:hover .aiv-definition-text {
   visibility: visible;
   opacity: 1;
-}
-
-/* Class for when we need to shift the tooltip to the left side */
-.aiv-definition.edge-right .aiv-definition-text {
-  right: 100%;
-  left: auto;
-  top: 0;
-  margin-top: 0;
-  margin-right: 5px;
 }
 
 .rvo-theme .rvo-icon--with-spacing-left {

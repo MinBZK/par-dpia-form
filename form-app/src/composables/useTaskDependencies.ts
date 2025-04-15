@@ -42,6 +42,7 @@ export function useTaskDependencies() {
           throw new Error(`got an unsupported dependency type ${dependency.type}`)
         }
       }
+
       return null
     }
   })
