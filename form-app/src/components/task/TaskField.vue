@@ -92,7 +92,7 @@ const handleDelete = (instanceId: string) => {
 
             <!-- Add button for repeatable field -->
             <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="secondary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
+              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
@@ -114,13 +114,13 @@ const handleDelete = (instanceId: string) => {
             <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
               :key="`complex-rep-${childInstanceId}`">
               <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
-                <TaskField :taskId="childId" :instanceId="childInstanceId" class="rvo-margin-block-end--md" style="background-color:var(--rvo-color-logoblauw-150);"/>
+                <TaskField :taskId="childId" :instanceId="childInstanceId" class="rvo-margin-block-end--md" style="background-color:var(--rvo-color-grijs-200);"/>
               </div>
             </div>
 
             <!-- Add button for repeatable task group (outside the loop) -->
-            <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="secondary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
+            <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md rvo-card rvo-card--padding-lg" style="background-color:var(--rvo-color-grijs-200);">
+              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra ${task.task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>

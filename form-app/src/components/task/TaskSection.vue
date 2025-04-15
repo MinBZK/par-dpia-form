@@ -95,9 +95,9 @@ const taskDisplayTitle = (task: FlatTask): string => {
 
           <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
             class="utrecht-form-fieldset rvo-form-fieldset">
-            <UiButton variant="primary" icon="plus" :label="`Voeg extra
+            <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
             ${taskStore.taskById(childId).task.toLowerCase()} toe`"
-              @click="taskStore.addRepeatableTaskInstance(childId)" />
+              @click="taskStore.addRepeatableTaskInstance(childId)"/>
           </div>
         </template>
       </div>
