@@ -63,3 +63,10 @@
 .rvo-theme .rvo-icon--with-spacing {
   margin-right: 0.5rem;
 }
+
+.rvo-theme .utrecht-textarea,
+.rvo-theme .utrecht-textarea--html-textarea {
+  resize: vertical; 
+  width: 100%; 
+  box-sizing: border-box; 
+}

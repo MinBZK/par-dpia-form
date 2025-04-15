@@ -17,6 +17,7 @@ export interface FlatTask {
   sources?: Source[]
   dependencies?: Dependency[]
   instance_label_template?: string
+  defaultValue?: boolean | string | null
 }
 
 export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
@@ -78,6 +79,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         dependencies: task.dependencies,
         instance_label_template: task.instance_label_template,
         valueType: task.valueType,
+        defaultValue: task.defaultValue,
         parentId,
         childrenIds: [],
       }
