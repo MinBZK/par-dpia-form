@@ -313,6 +313,7 @@ tasks:
               type: 
                 - radio_option
               valueType: boolean
+              defaultValue: false
               options:
                 - value: false
                   label: Nee 
@@ -843,6 +844,7 @@ tasks:
               type: 
                 - radio_option
               valueType: "boolean"
+              defaultValue: false
               options:
                 - value: false
                   label: Nee 
@@ -931,6 +933,7 @@ tasks:
               type: 
                 - radio_option
               valueType: boolean
+              defaultValue: false
               options:
                 - value: false
                   label: Nee 
@@ -1003,6 +1006,7 @@ tasks:
               type: 
                 - radio_option
               valueType: boolean
+              defaultValue: false
               options:
                 - value: false
                   label: Nee 

@@ -14,9 +14,9 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 
-const { getSourceOptions, getSourceOptionSourceTaskId  } = useTaskDependencies()
+const { getSourceOptions, getSourceOptionSourceTaskId } = useTaskDependencies()
 
-function converStringValue(value: string | null, typeSpec: string): null | string | boolean {
+function convertStringValue(value: string | null, typeSpec: string): null | string | boolean {
   if (value === null) return null
 
   const types = typeSpec.split('|')
@@ -32,8 +32,20 @@ function converStringValue(value: string | null, typeSpec: string): null | strin
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
+  // If there is no stored answer but a default value exists, use the default value.
+  if (storedAnswer === null && props.task.defaultValue !== undefined) {
+    if (props.task.valueType && ['boolean', 'boolean|null'].includes(props.task.valueType)) {
+      if (typeof props.task.defaultValue === 'string') {
+        return convertStringValue(props.task.defaultValue, props.task.valueType)
+      } else {
+        return props.task.defaultValue
+      }
+    }
+  }
+
+  // If necessary convert booleans string arrays to correct type.
   if (props.task.valueType && ['boolean', 'boolean|null'].includes(props.task.valueType)) {
-    return converStringValue(storedAnswer as string | null, props.task.valueType)
+    return convertStringValue(storedAnswer as string | null, props.task.valueType)
   } else if (props.task.valueType === 'string[]') {
     if (Array.isArray(storedAnswer)) {
       return storedAnswer

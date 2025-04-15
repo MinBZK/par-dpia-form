@@ -45,13 +45,10 @@ function hasMoreThanOneInstance(taskId: string, parentInstanceId?: string) {
   return taskStore.getInstancesForTask(taskId, parentInstanceId).length > 1
 }
 
-function instanceIsVisible(taskId: string): boolean {
+function hasVisibleInstance(taskId: string): boolean {
   const instanceIds = taskStore.getInstanceIdsForTask(taskId, props.instanceId)
   if (instanceIds.length === 0) return false
-
-  // We assume all instances are visible if and only if the first instance for a task is visible.
-  // This is the use case we need it for, namely in task 13.
-  return shouldShowTask.value(taskId, instanceIds[0])
+  return instanceIds.some(instanceId => shouldShowTask.value(taskId, instanceId));
 }
 
 
@@ -76,7 +73,7 @@ const handleDelete = (instanceId: string) => {
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">
 
         <!-- Simple fields without children -->
-        <div v-for="childId in childTasksWithoutChildren" :key="`simple-${childId}`">
+        <template v-for="childId in childTasksWithoutChildren" :key="`simple-${childId}`">
           <template v-if="!taskStore.taskById(childId).repeatable">
             <!-- Non-repeatable simple fields -->
             <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
@@ -107,10 +104,10 @@ const handleDelete = (instanceId: string) => {
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
-        </div>
+        </template>
 
         <!-- Complex task groups with children -->
-        <div v-for="childId in childTasksWithChildren" :key="`complex-${childId}`">
+        <template v-for="childId in childTasksWithChildren" :key="`complex-${childId}`">
           <template v-if="!taskStore.taskById(childId).repeatable">
             <!-- Non-repeatable task groups -->
             <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
@@ -130,12 +127,13 @@ const handleDelete = (instanceId: string) => {
             </div>
 
             <!-- Add button for repeatable task group (outside the loop) -->
-            <div v-if="canUserCreateInstances(childId) && instanceIsVisible(childId)" class="rvo-layout-margin-vertical--md">
+            <div v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
+              class="rvo-layout-margin-vertical--md">
               <UiButton variant="secondary" icon="plus" label="Voeg aanvullende informatie toe"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
-        </div>
+        </template>
       </div>
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->

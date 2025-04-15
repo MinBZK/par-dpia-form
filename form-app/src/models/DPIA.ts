@@ -87,6 +87,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       options: t.array(Option),
       sources: t.array(Source),
       dependencies: t.array(Dependency),
+      defaultValue: t.union([t.string, t.boolean, t.null]),
     }),
   ]),
 )
