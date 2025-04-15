@@ -25,7 +25,6 @@ export function useAppStatePersistence() {
       }
 
       localStorage.setItem(APP_STATE_KEY, JSON.stringify(dpiaSnapshot))
-
     } catch (error) {
       console.error('Failed to save app state to local storage:', error)
     }
@@ -62,17 +61,13 @@ export function useAppStatePersistence() {
 
   function setupWatchers() {
     watch(
-      [
-        () => taskStore.currentRootTaskId,
-        () => taskStore.taskInstances,
-        () => answerStore.answers,
-      ],
+      [() => taskStore.currentRootTaskId, () => taskStore.taskInstances, () => answerStore.answers],
       () => {
         if (taskStore.isInitialized) {
           saveAppState()
         }
       },
-      { deep: true }
+      { deep: true },
     )
   }
 

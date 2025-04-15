@@ -38,12 +38,10 @@ const appPersistence = useAppStatePersistence()
 // Initialize tasks on component mount
 onMounted(async () => {
   try {
-
     // Step 1: Initialize tasks from DPIA.json.
     const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
 
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
-
       // Add signing task (export to PDF step).
       validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
 
@@ -135,13 +133,11 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
   <!-- If all is well, render the tasks. -->
   <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
-
     <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
       <ProgressTracker :disabled="!dpiaStarted" />
     </nav>
 
     <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-
       <WelcomePage v-if="!dpiaStarted" @start="handleStart" />
 
       <template v-else>
@@ -150,11 +146,27 @@ const handleStart = (fileData?: DPIASnapshot) => {
         <div class="rvo-layout-margin-vertical--xl">
           <!-- Navigation buttons -->
           <div class="button-group-container">
-            <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
+            <UiButton
+              v-if="!isFirstTask"
+              variant="tertiary"
+              icon="terug"
+              label="Vorige stap"
+              @click="goToPrevious"
+            />
             <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
               <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
-              <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
-              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
+              <UiButton
+                v-if="!isLastTask"
+                variant="primary"
+                label="Volgende stap"
+                @click="goToNext"
+              />
+              <UiButton
+                v-if="isLastTask"
+                variant="primary"
+                label="Exporteer als PDF"
+                @click="handleExportPdf"
+              />
             </p>
           </div>
         </div>

@@ -17,7 +17,12 @@ export function hasInstanceMapping(task: FlatTask): boolean {
   return task.dependencies?.some((dep) => dep.type === 'instance_mapping') || false
 }
 
-export function shouldShowTask(taskId: string, instanceId: string, taskStore: TaskStoreType, answerStore: AnswerStoreType): boolean {
+export function shouldShowTask(
+  taskId: string,
+  instanceId: string,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): boolean {
   const task = taskStore.taskById(taskId)
   const instance = taskStore.getInstanceById(instanceId)
 
@@ -56,7 +61,7 @@ export function shouldShowTask(taskId: string, instanceId: string, taskStore: Ta
       if (operator === 'equals') {
         conditionMet = normalizedValue === value
       } else if (operator === 'any') {
-        conditionMet = true;
+        conditionMet = true
       } else {
         // Add more operators if needed.
         throw new Error(`got an unsuported operator ${operator}`)
