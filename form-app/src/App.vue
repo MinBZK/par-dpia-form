@@ -9,5 +9,5 @@ import '@nl-rvo/design-tokens/dist/index.css'
 </script>
 
 <template>
-  <DPIAForm />
+  <router-view />
 </template>
