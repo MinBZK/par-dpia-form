@@ -5,7 +5,7 @@ import ProgressTracker from '@/components/ProgressTracker.vue'
 import SaveForm from '@/components/SaveForm.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
-import WelcomePage from '@/components/WelcomePage.vue'
+import FileUploadPage from '@/components/FileUploadPage.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useAppStatePersistence } from '@/composables/useAppStatePersistence'
@@ -138,7 +138,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
     </nav>
 
     <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-      <WelcomePage v-if="!dpiaStarted" @start="handleStart" />
+      <FileUploadPage v-if="!dpiaStarted" @start="handleStart" />
 
       <template v-else>
         <TaskSection :taskId="currentRootTaskId" />
