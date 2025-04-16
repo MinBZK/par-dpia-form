@@ -211,7 +211,7 @@ const handleCheckboxInput = (event: Event) => {
         </label>
       </div>
     </div>
-    <div v-else>Vul vraag {{ getSourceOptionSourceTaskId(task) }} eerst in.</div>
+    <div v-else>Vul eerst vraag {{ getSourceOptionSourceTaskId(task).split('.')[0] }} in.</div>
   </div>
 
   <!-- Date input -->

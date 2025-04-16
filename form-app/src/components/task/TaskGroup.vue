@@ -115,7 +115,7 @@ const handleDelete = (instanceId: string) => {
             <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
               :key="`complex-nonrep-${childInstanceId}`">
               <div v-if="shouldShowTask(childId, childInstanceId)">
-                <TaskField :taskId="childId" :instanceId="childInstanceId" />
+                <TaskGroup :taskId="childId" :instanceId="childInstanceId" />
               </div>
             </template>
           </template>
@@ -124,7 +124,7 @@ const handleDelete = (instanceId: string) => {
             <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
               :key="`complex-rep-${childInstanceId}`">
               <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
-                <TaskField :taskId="childId" :instanceId="childInstanceId"
+                <TaskGroup :taskId="childId" :instanceId="childInstanceId"
                   class="rvo-margin-block-end--md background-grijs-200" />
               </div>
             </div>
