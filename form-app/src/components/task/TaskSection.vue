@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TaskField from '@/components/task/TaskField.vue'
+import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
@@ -119,8 +119,8 @@ function handleAddRepeatableTask(childId: string) {
             <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instanceId="instanceId"
               :showDescription="true" />
 
-            <!-- Nested task group (has children): render children as TaskField -->
-            <TaskField v-else :taskId="childId" :instanceId="instanceId" />
+            <!-- Nested task group (has children): render children as TaskGroup -->
+            <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
           </template>
 
           <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
