@@ -143,30 +143,14 @@ const handleStart = (fileData?: DPIASnapshot) => {
       <template v-else>
         <TaskSection :taskId="currentRootTaskId" />
 
-        <div class="rvo-layout-margin-vertical--xl">
+        <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--3xl">
           <!-- Navigation buttons -->
           <div class="button-group-container">
-            <UiButton
-              v-if="!isFirstTask"
-              variant="tertiary"
-              icon="terug"
-              label="Vorige stap"
-              @click="goToPrevious"
-            />
+            <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
             <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
               <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
-              <UiButton
-                v-if="!isLastTask"
-                variant="primary"
-                label="Volgende stap"
-                @click="goToNext"
-              />
-              <UiButton
-                v-if="isLastTask"
-                variant="primary"
-                label="Exporteer als PDF"
-                @click="handleExportPdf"
-              />
+              <UiButton v-if="!isLastTask" variant="primary" label="Volgende stap" @click="goToNext" />
+              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
             </p>
           </div>
         </div>

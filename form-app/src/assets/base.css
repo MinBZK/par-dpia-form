@@ -70,3 +70,8 @@
   width: 100%; 
   box-sizing: border-box; 
 }
+
+.rvo-theme .background-grijs-200 {
+  background-color: var(--rvo-color-grijs-200) !important;
+}
+

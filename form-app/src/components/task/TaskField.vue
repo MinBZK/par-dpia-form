@@ -62,7 +62,7 @@ const handleDelete = (instanceId: string) => {
 <template>
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset
-      class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset"
+      class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
     >
       <legend
@@ -114,7 +114,7 @@ const handleDelete = (instanceId: string) => {
                     canUserCreateInstances(childId) &&
                     hasMoreThanOneInstance(childId, props.instanceId)
                   "
-                  variant="secondary"
+                  variant="warning"
                   icon="verwijderen"
                   label="Verwijder veld"
                   @click="handleDelete(childInstanceId)"
@@ -125,9 +125,9 @@ const handleDelete = (instanceId: string) => {
             <!-- Add button for repeatable field -->
             <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
               <UiButton
-                variant="secondary"
+                variant="tertiary"
                 icon="plus"
-                label="Voeg aanvullende informatie toe"
+                :label="`Voeg ${taskStore.taskById(childId).task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"
               />
             </div>
@@ -153,20 +153,20 @@ const handleDelete = (instanceId: string) => {
               v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
               :key="`complex-rep-${childInstanceId}`"
             >
-              <div v-if="shouldShowTask(childId, childInstanceId)">
-                <TaskField :taskId="childId" :instanceId="childInstanceId" />
+              <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
+                <TaskField :taskId="childId" :instanceId="childInstanceId" class="rvo-margin-block-end--md background-grijs-200"/>
               </div>
             </div>
 
             <!-- Add button for repeatable task group (outside the loop) -->
             <div
               v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
-              class="rvo-layout-margin-vertical--md"
+              class="rvo-layout-margin-vertical--md background-grijs-200"
             >
               <UiButton
-                variant="secondary"
+                variant="tertiary"
                 icon="plus"
-                label="Voeg aanvullende informatie toe"
+                :label="`Voeg ${taskStore.taskById(childId).task.toLowerCase()} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"
               />
             </div>
@@ -177,7 +177,7 @@ const handleDelete = (instanceId: string) => {
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
       <UiButton
         v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
-        variant="secondary"
+        variant="warning"
         icon="verwijderen"
         :label="`Verwijder ${task.task.toLowerCase()}`"
         @click="handleDelete(props.instanceId)"

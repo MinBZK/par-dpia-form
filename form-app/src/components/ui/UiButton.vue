@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'warning'
   size?: 'xs' | 'sm' | 'md'
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean
@@ -17,6 +17,8 @@ const variantClass = computed(() => {
     case 'tertiary':
     case 'quaternary':
       return `utrecht-button--rvo-${props.variant}-action`
+    case 'warning':
+      return 'utrecht-button--primary-action utrecht-button--warning rvo-margin-block-end--md'
     default:
       return `utrecht-button--${props.variant || 'primary'}-action`
   }
