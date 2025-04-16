@@ -60,8 +60,12 @@
   max-height: 90vh;
 }
 
-.rvo-theme .rvo-icon--with-spacing {
+.rvo-theme .rvo-icon--with-spacing-right {
   margin-right: 0.5rem;
+}
+
+.rvo-theme .rvo-icon--with-spacing-left {
+  margin-left: 0.5rem;
 }
 
 .rvo-theme .utrecht-textarea,
@@ -70,3 +74,8 @@
   width: 100%; 
   box-sizing: border-box; 
 }
+
+.rvo-theme .background-grijs-200 {
+  background-color: var(--rvo-color-grijs-200) !important;
+}
+

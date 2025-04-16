@@ -2,11 +2,12 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
-  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary'
+  variant?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'warning'
   size?: 'xs' | 'sm' | 'md'
   type?: 'button' | 'submit' | 'reset'
   disabled?: boolean
   icon?: string
+  showIconAfter?: boolean
   fullWidth?: boolean
   label?: string
   ariaLabel?: string
@@ -17,6 +18,8 @@ const variantClass = computed(() => {
     case 'tertiary':
     case 'quaternary':
       return `utrecht-button--rvo-${props.variant}-action`
+    case 'warning':
+      return 'utrecht-button--primary-action utrecht-button--warning rvo-margin-block-end--md'
     default:
       return `utrecht-button--${props.variant || 'primary'}-action`
   }
@@ -41,6 +44,8 @@ defineEmits<{
     :aria-disabled="disabled ? 'true' : undefined"
     @click="$emit('click', $event)"
   >
+  <template v-if="showIconAfter">
+    {{ label ? label : '' }}
     <span
       v-if="icon"
       :class="[
@@ -49,11 +54,29 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing',
+        'rvo-icon--with-spacing-left',
+      ]"
+      role="img"
+      aria-label="icon"
+    ></span>
+  </template>
+  <template v-else>
+    <span
+      v-if="icon"
+      :class="[
+        'utrecht-icon',
+        'rvo-icon',
+        `rvo-icon-${icon}`,
+        'rvo-icon--md',
+        'rvo-icon--hemelblauw',
+        'rvo-icon--with-spacing-right',
       ]"
       role="img"
       aria-label="icon"
     ></span>
     {{ label ? label : '' }}
+  </template>
+
+
   </button>
 </template>

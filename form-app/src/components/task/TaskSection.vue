@@ -77,7 +77,7 @@ function handleAddRepeatableTask(childId: string) {
 
     <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
       <div class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>
@@ -102,7 +102,7 @@ function handleAddRepeatableTask(childId: string) {
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
+        <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace">
             {{ task.description }}
           </p>
@@ -139,10 +139,10 @@ function handleAddRepeatableTask(childId: string) {
 
           <div
             v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-            class="utrecht-form-fieldset rvo-form-fieldset"
+            class="utrecht-form-fieldset rvo-form-fieldset background-grijs-200"
           >
             <UiButton
-              variant="primary"
+              variant="tertiary"
               icon="plus"
               :label="`Voeg extra
             ${taskStore.taskById(childId).task.toLowerCase()} toe`"

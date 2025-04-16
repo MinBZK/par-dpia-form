@@ -99,7 +99,7 @@ const handleCheckboxInput = (event: Event) => {
 </script>
 
 <template>
-  <div v-if="label" class="rvo-form-field__label">
+  <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
     <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
       {{ label }}
     </label>
@@ -114,7 +114,7 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Text input field -->
 
-  <div v-if="hasType('text_input')" class="field-group">
+  <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
     <input
       :id="`field-${task.id}-${instanceId}`"
       type="text"
@@ -127,7 +127,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Text area -->
-  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs">
+  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
     <textarea
       :id="`field-${task.id}-${instanceId}`"
       class="utrecht-textarea utrecht-textarea--html-textarea"
@@ -140,7 +140,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select radio -->
-  <div v-else-if="hasType('radio_option')" class="field-group">
+  <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-radio-button__group">
         <label
@@ -165,7 +165,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select dropdown -->
-  <div v-else-if="hasType('select_option')" class="field-group">
+  <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-select-wrapper">
       <select
         :id="`field-${task.id}-${instanceId}`"
@@ -189,7 +189,7 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select checkbox -->
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
     refactor.-->
-  <div v-else-if="hasType('checkbox_option')" class="field-group">
+  <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0" class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
         <label
@@ -215,7 +215,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Date input -->
-  <div v-else-if="hasType('date')" class="field-group">
+  <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
     <input
       :id="`field-${task.id}-${instanceId}`"
       type="date"
