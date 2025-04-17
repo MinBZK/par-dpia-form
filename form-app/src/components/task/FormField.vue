@@ -171,6 +171,18 @@ const handleCheckboxInput = (event: Event) => {
         </label>
       </div>
     </div>
+    <div v-else-if="task.options.length > 0" class="rvo-layout-margin-vertical--md">
+      <div class="rvo-checkbox__group">
+        <label v-for="option in task.options" :key="option.value" class="rvo-checkbox rvo-checkbox--not-checked"
+          :for="`${task.id}-${instanceId}-${option.value}`">
+          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
+            :checked="!currentValue? false : (currentValue as string[]).includes(option.value)"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
+          {{ option.value }}
+        </label>
+      </div>
+    </div>
     <div v-else>Vul eerst vraag {{ getSourceOptionSourceTaskId(task)?.split('.')[0] || '' }} in.</div>
   </div>
 

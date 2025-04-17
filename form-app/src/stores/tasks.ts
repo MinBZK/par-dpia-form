@@ -61,6 +61,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
       }
 
       isInitialized.value = true
+      console.log(rootTaskIds)
     }
   }
 

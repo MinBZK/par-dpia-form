@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dpia_json from '@/assets/DPIA.json'
+import pre_dpia_json from '@/assets/PreScanDPIA.json'
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
 import SaveForm from '@/components/SaveForm.vue'
@@ -45,7 +46,7 @@ const appPersistence = useAppStatePersistence()
 onMounted(async () => {
   try {
     // Step 1: Initialize tasks from DPIA.json.
-    const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(dpia_json)
+    const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(pre_dpia_json)
 
     validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
       // Add signing task (export to PDF step).
