@@ -20,6 +20,10 @@ import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
 import { computed, onMounted, ref, watch } from 'vue'
 
+const props = defineProps({
+  navigation: Object
+})
+
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
