@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import AppBanner from '@/components/AppBanner.vue'
+import { type NavigationFunctions } from '@/models/navigation'
 
-// Receive navigation functions from parent
-const props = defineProps({
-  navigation: Object
-})
+const props = defineProps<{
+  navigation: NavigationFunctions
+}>()
 </script>
 
 <template>
