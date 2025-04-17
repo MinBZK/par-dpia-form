@@ -1,15 +1,8 @@
 name: Pre-scan DPIA
-urn: 'urn:nl:dpia:3.0:prescan:2.0'
+urn: 'urn:nl:prescan:2.0'
 version: "2.0"
 description: >-
   Een Pre-scan DPIA is een vastlegging van de impact die een bepaalde gegevensverwerking heeft of kan hebben op de privacy van burgers.
-language: nl
-owners:
-- organization: Ministerie van BZK
-  name: Privacy Adviseur Rijk (PAR)
-  email: privacy-ciorijk@minbzk.nl
-  role: Privacy Officer
-
 tasks: 
 - task: Inleiding
   description: >-
@@ -17,7 +10,7 @@ tasks:
     In de inleiding wordt de organisatorische activiteit beschreven waarvoor de pre-scan DPIA wordt uitgevoerd, in een organisatorische activiteit beschrijving. Deze omvat een beschrijving van de verwerking of het geheel van verwerkingen, waarin wordt aangegeven om welke processen, systemen en applicaties het gaat, wat de context van de verwerking is (door wie, waar, waarom en hoe), en hoeveel gegevens over wie wordt vastgelegd met welk doel.
     Vervolgens wordt vastgesteld of de organisatorische activiteit persoonsgegevens verwerkt, wat kan worden vastgelegd in een classificatie persoonsgegevens. Indien er geen persoonsgegevens worden verwerkt, hoeven er verder geen vragen te worden beantwoord.
     Als na invullen van de pre-scan DPIA blijkt dat er een DPIA nodig is, dan is de organisatorische activiteit een organisatorische activiteit met DPIA-verplichting.
-  id: "A"
+  id: "1"
   category: Inleiding/Algemeen 
   type: 
     - task_group
@@ -29,7 +22,7 @@ tasks:
         Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe. 
         Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie. 
         Deze input kun je hergebruiken voor paragraaf 1 van het Model DPIA Rijksdienst.
-      id: "A.1"
+      id: "1.1"
       prescan_model_id: 1
       repeatable: false 
       type: 
@@ -38,21 +31,21 @@ tasks:
       description: >-
         Welk doel wil de organisatie bereiken met de gegevensverwerking? 
         Dit kan hergebruikt worden in paragraaf 5 van het Model DPIA Rijksdienst.
-      id: "A.2"
+      id: "1.2"
       prescan_model_id: 2
       links: {"DPIA": "3.1.5"} #paragraaf 5
       repeatable: false 
       type: 
         - text_input
     - task: Wat is de grondslag voor de verwerking? 
-      id: "A.3"
+      id: "1.3"
       prescan_model_id: 3
       links: {"DPIA":"12.1.1.1"} #paragraaf 11
       repeatable: false 
       type: 
         - text_input
     - task: Is er sprake van cloudgebruik? 
-      id: "A.4"
+      id: "1.4"
       prescan_model_id: 4
       repeatable: false
       type: 
@@ -66,7 +59,7 @@ tasks:
           label: Nee
           risicoscore_tag: cloudgebruik
     - task: Selecteer een of meer van onderstaande opties 
-      id: "A.5"
+      id: "1.5"
       prescan_model_id: 4
       type: 
         - select_option
@@ -78,12 +71,13 @@ tasks:
       dependencies: 
         - type: conditional 
           condition: 
-            id: "A.4"
+            id: "1.4"
             operator: equals 
             value: true 
           action: show
+      repeatable: false
     - task: Welke vorm van cloud betreft het? 
-      id: "A.6"
+      id: "1.6"
       prescan_model_id: 5
       type: 
         - radio_option
@@ -94,12 +88,13 @@ tasks:
       dependencies: 
         - type: conditional 
           condition: 
-            id: "A.4"
+            id: "1.4"
             operator: equals 
             value: true 
           action: show
+      repeatable: false 
     - task: Gaat het om materieel public cloudgebruik voor de primaire taak?
-      id: "A.7"
+      id: "1.7"
       prescan_model_id: 6
       type: 
         - radio_option
@@ -111,10 +106,11 @@ tasks:
       dependencies: 
         - type: conditional 
           condition: 
-            id: "A.4"
+            id: "1.4"
             operator: equals 
             value: true 
           action: show
+      repeatable: false 
 - task: Gegevensverwerking
   description: >-
     "Indien een organisatorische activiteit persoonsgegevens niet meteen een DPIA-verplichting krijgt door een gegevensverwerking op de lijst AP of lijst EPDB, 
@@ -131,7 +127,7 @@ tasks:
 
     Voor de pre-scan DPIA beschouwen we strafrechtelijke persoonsgegevens en nationale identificatienummers als gevoelige gegevens.
     Bij een verwerking van persoonsgegevens is er sprake van een organisatorische activiteit persoonsgegevens.""
-  id: "B"
+  id: "2"
   category: Gegevensverwerking
   type: 
     - task_group
@@ -141,7 +137,7 @@ tasks:
     description: >-
       Er is sprake van een organisatorische activiteit gewone persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde "bevat gewone persoonsgegevens". 
       In dat geval wordt bij die organisatorische activiteit de categorie gewone persoonsgegevens vastgelegd.
-    id: "B.8"
+    id: "2.8"
     prescan_model_id: 7
     type: 
       - radio_option
@@ -150,8 +146,9 @@ tasks:
         label: Ja
       - value: false
         label: Nee
+    repeatable: false 
   - task: Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer één of meer opties. 
-    id: "B.8.1"
+    id: "2.8.1"
     prescan_model_id: 7
     type: 
     - select_option
@@ -182,22 +179,24 @@ tasks:
           risicoscore_gewone_persoonsgegeven: 0
         - condition: gewone_persoonsgegeven >= 6
           risicoscore_gewone_persoonsgegeven: 1
+    repeatable: false 
   - task: Specificeer
-    id: "B.8.2"
+    id: "2.8.2"
     type:
     - open_text
     dependencies: 
     - type: conditional 
       condition: 
-        id: "B.9"
+        id: "2.9"
         operator: equals 
         value: Overige 
       action: show
+    repeatable: false 
   - task: Gaat het systeem bijzondere persoonsgegevens verwerken? 
     description: >-
       Er is sprake van een organisatorische activiteit bijzondere persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde Classificatie type persoonsgegevens: Bijzonder. 
       In dat geval wordt vastgelegd om welk classificatie type bijzondere persoonsgegevens het gaat.
-    id: "B.9"
+    id: "2.9"
     prescan_model_id: 8
     type: 
     - radio_option
@@ -207,8 +206,9 @@ tasks:
       label: Ja
     - value: false
       label: Nee
+    repeatable: false 
   - task: Gaat het systeem een van onderstaande bijzondere persoonsgegevens verwerken? Selecteer één of meer opties. 
-    id: "B.9.1"
+    id: "2.9.1"
     prescan_model_id: 8
     type: 
     - select_option
@@ -337,6 +337,7 @@ tasks:
           risicoscore_betrokkenen: 1
         - condition: betrokkenen >= 4
           risicoscore_betrokkenen: 2
+    repeatable: false 
   - task: Geef een omschrijving van de doelgroep 
     id: "B.11.1"
     prescan_model_id: 10
@@ -349,11 +350,13 @@ tasks:
         operator: equals 
         value: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
       action: show
+    repeatable: false 
   - task: Wat is naar schatting de omvang van de gegevensset/de verwerking? 
     id: "B.12"
     prescan_model_id: 11
     type: 
     - task_group
+    repeatable: false 
     tasks: 
     - task: Aantal betrokkenen (hoeveelheden in getallen bijv. 300 of 10000).
       id: "B.12.1"
@@ -366,6 +369,7 @@ tasks:
           id: "B.11"
           operator: any 
         action: show
+      repeatable: false 
       tasks: 
       - task: Medewerkers/bewindspersonen #RM: moet dit ook bewindspersonen zijn of alleen medewerkers?
         id: "B.12.1.1"
@@ -379,6 +383,7 @@ tasks:
             operator: equals
             value: Medewerkers/bewindspersonen 
           action: show
+        repeatable: false 
       - task:  Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
         id: "B.12.1.2"
         type:
@@ -391,6 +396,7 @@ tasks:
             operator: equals
             value: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
           action: show
+        repeatable: false 
       - task: Kinderen jonger dan 16 jaar
         id: "B.12.1.3"
         type: 
@@ -403,6 +409,7 @@ tasks:
             operator: equals
             value: Kinderen jonger dan 16 jaar
           action: show
+        repeatable: false 
       - task: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
         id: "B.12.1.4"
         type: 
@@ -415,6 +422,7 @@ tasks:
             operator: equals
             value: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
           action: show
+        repeatable: false 
       - task: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
         id: "B.12.1.5"
         type: 
@@ -427,6 +435,7 @@ tasks:
             operator: equals
             value: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
           action: show
+        repeatable: false 
       calculation:
         risicoscore_tag: aantal_betrokkenen
         type: sum
@@ -446,6 +455,7 @@ tasks:
           id: "B.11"
           operator: any 
         action: show
+      repeatable: false 
       tasks: 
       - task: Medewerkers/bewindspersonen #RM: moet dit ook bewindspersonen zijn of alleen medewerkers?
         id: "B.12.2.1"
@@ -458,6 +468,7 @@ tasks:
             operator: equals
             value: Medewerkers/bewindspersonen 
           action: show
+        repeatable: false 
       - task:  Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
         id: "B.12.2.2"
         type:
@@ -469,6 +480,7 @@ tasks:
             operator: equals
             value: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
           action: show
+        repeatable: false 
       - task: Kinderen jonger dan 16 jaar
         id: "B.12.2.3"
         type: 
@@ -480,6 +492,7 @@ tasks:
             operator: equals
             value: Kinderen jonger dan 16 jaar
           action: show
+        repeatable: false 
       - task: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
         id: "B.12.2.4"
         type: 
@@ -491,6 +504,7 @@ tasks:
             operator: equals
             value: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
           action: show
+        repeatable: false 
       - task: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
         id: "B.12.2.5"
         type: 
@@ -502,6 +516,7 @@ tasks:
             operator: equals
             value: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
           action: show
+        repeatable: false 
     - task: Frequentie van verwerking 
       id: "B.12.3"
       prescan_model_id: 11.c
@@ -559,6 +574,7 @@ tasks:
       prescan_model_id: 12
       type:
       - task_group
+      repeatable: false 
       tasks: 
       - task: Afnemers van de dienst? Bijvoorbeeld burgers die een dienst van de overheid afnamen. 
         id: "B.13.1"
@@ -704,6 +720,7 @@ tasks:
         operator: equals 
         value: Overig mechanisme
       action: show
+    repeatable: false
   - task: Bevat de doorgifte ook bijzondere persoonsgegevens? 
     id: "C.1.6"
     prescan_model_id: 19
@@ -749,6 +766,7 @@ tasks:
   counter: true 
   type: 
   - task_group
+  repeatable: false
   tasks: 
   - task: Welke groepen betrokkenen kun je onderscheiden? 
     id: "D.1"
@@ -795,6 +813,7 @@ tasks:
       thresholds:
         - condition: AP => 1
           AP_score: 2
+    repeatable: false
 - task: Lijst EDPB
   description: >- 
     Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst EDPB. De Lijst EDPB is een lijst met soorten gegevensverwerkingen van de [EDPB] waarvoor mogelijk een DPIA verplicht is.
@@ -803,6 +822,7 @@ tasks:
   type: 
   - task_group
   counter: true
+  repeatable: false
   tasks: 
   - task: Welke categorieen betrokkenen kun je onderscheiden? 
     id: "E.1"
@@ -836,6 +856,7 @@ tasks:
           EPDB_score: 1
         - condition: EPDB > 1
           EPDB_score: 2
+    repeatable: false
 - task: Basisregistratie #should be removed, where can we find this info? 
   description: >-
     Bij de organisatorische activiteit persoonsgegevens moet, indien er sprake is van gegevensverwerkingen die gebruik maken van een basisregistratie, worden aangegeven van welke basisregistratie gebruik wordt gemaakt.
@@ -915,6 +936,7 @@ tasks:
   id: "G"
   type: 
   - task_group
+  repeatable: false 
   tasks:
   - task: Wordt er gebruik gemaakt van een algoritme? 
     id: "G.1"
@@ -966,6 +988,7 @@ tasks:
   id: "H"
   type: 
   - task_group
+  repeatable: false
   tasks:
   - task: Biedt u een digitale dienst aan of gebruikt u deze? 
     id: "H.1"
@@ -1008,7 +1031,6 @@ tasks:
     - value: false 
       label: Nee 
       risicoscore_tag: digitaledienst_gebruik_minderjarig
-    repeatable: false 
     dependencies: 
       - type: conditional 
         condition: 
@@ -1026,6 +1048,7 @@ tasks:
         risicoscore_digitaledienst_minderjarig: 1
       - condition: digitaledienst_minderjarig == true
         risicoscore_digitaledienst_minderjarig: 2
+    repeatable: false 
 
 conclusion_calculation:
   DPIA:

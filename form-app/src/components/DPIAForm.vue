@@ -5,12 +5,14 @@ import ProgressTracker from '@/components/ProgressTracker.vue'
 import SaveForm from '@/components/SaveForm.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import NavHeader from '@/components/NavHeader.vue'
 import FileUploadPage from '@/components/FileUploadPage.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useAppStatePersistence } from '@/composables/useAppStatePersistence'
 import { DPIA } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
+import { type NavigationFunctions } from '@/models/navigation'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { exportToJson } from '@/utils/jsonExport'
@@ -19,6 +21,10 @@ import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
 import { computed, onMounted, ref, watch } from 'vue'
+
+const props = defineProps<{
+  navigation: NavigationFunctions
+}>()
 
 // State
 const error = ref<string | null>(null)
@@ -132,32 +138,37 @@ const handleStart = (fileData?: DPIASnapshot) => {
   </div>
 
   <!-- If all is well, render the tasks. -->
-  <div v-else class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
-    <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
-      <ProgressTracker :disabled="!dpiaStarted" />
-    </nav>
+  <template v-else>
 
-    <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-      <FileUploadPage v-if="!dpiaStarted" @start="handleStart" />
+    <NavHeader :navigation="navigation" />
 
-      <template v-else>
-        <TaskSection :taskId="currentRootTaskId" />
+    <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
+      <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
+        <ProgressTracker :disabled="!dpiaStarted" />
+      </nav>
 
-        <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--3xl">
-          <!-- Navigation buttons -->
-          <div class="button-group-container">
-            <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-            <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-              <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
-              <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
-                label="Volgende stap" @click="goToNext" />
-              <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
-            </p>
+      <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
+        <FileUploadPage v-if="!dpiaStarted" @start="handleStart" />
+
+        <template v-else>
+          <TaskSection :taskId="currentRootTaskId" />
+
+          <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--3xl">
+            <!-- Navigation buttons -->
+            <div class="button-group-container">
+              <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
+              <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+                <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
+                <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
+                  label="Volgende stap" @click="goToNext" />
+                <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
+              </p>
+            </div>
           </div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
-  </div>
+  </template>
 
   <!-- Save Form Modal -->
   <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
