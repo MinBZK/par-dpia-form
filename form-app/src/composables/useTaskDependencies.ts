@@ -1,17 +1,7 @@
 import { useAnswerStore, type AnswerValue } from '@/stores/answers'
 import { useTaskStore, type FlatTask, type TaskInstance } from '@/stores/tasks'
+import { shouldShowTask as checkShouldShowTask, hasInstanceMapping } from '@/utils/dependency'
 import { computed } from 'vue'
-
-function normalizeValue(value: string): string | boolean | null {
-  if (value.toLowerCase() === 'true') {
-    return true
-  } else if (value.toLowerCase() === 'false') {
-    return false
-  } else if (value === 'null' || value === '') {
-    return null
-  }
-  return value
-}
 
 export function useTaskDependencies() {
   const taskStore = useTaskStore()
@@ -19,6 +9,7 @@ export function useTaskDependencies() {
 
   const shouldShowTask = computed(() => {
     return (taskId: string, instanceId: string): boolean => {
+<<<<<<< HEAD
       const task = taskStore.taskById(taskId)
       const instance = taskStore.getInstanceById(instanceId)
 
@@ -71,48 +62,81 @@ export function useTaskDependencies() {
 
       // We exhausted all possibilities of to not show task, so we should show task.
       return true
+=======
+      return checkShouldShowTask(taskId, instanceId, taskStore, answerStore)
+>>>>>>> main
     }
   })
 
-  const getSourceOptions = computed(() => {
-    return (task: FlatTask): string[] => {
+  const getSourceOptionSourceTaskId = computed(() => {
+    return (task: FlatTask): string | null => {
       if (!task.dependencies || task.dependencies.length === 0) {
-        return []
+        return null
       }
 
       for (const dependency of task.dependencies) {
         if (dependency.type === 'source_options') {
           if (!dependency.condition) {
-            return []
+            return null
           }
-          const { id: sourceTaskId } = dependency.condition
-
-          const uniqueValues = new Set<string>()
-          const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
-
-          sourceInstanceIds.forEach((instanceId) => {
-            const answer = answerStore.getAnswer(instanceId)
-            if (typeof answer === 'string' && answer !== '') {
-              uniqueValues.add(answer)
-            }
-          })
-
-          return Array.from(uniqueValues)
+          return dependency.condition.id
         }
       }
-      return []
+      return null
+    }
+  })
+
+  const getSourceOptions = computed(() => {
+    return (task: FlatTask): string[] => {
+      const sourceTaskId = getSourceOptionSourceTaskId.value(task)
+
+      if (sourceTaskId === null) return []
+
+      const uniqueValues = new Set<string>()
+      const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
+
+      sourceInstanceIds.forEach((instanceId) => {
+        const answer = answerStore.getAnswer(instanceId)
+        if (typeof answer === 'string' && answer !== '') {
+          uniqueValues.add(answer)
+        }
+      })
+
+      return Array.from(uniqueValues)
+
+      //if (!task.dependencies || task.dependencies.length === 0) {
+      //  return []
+      //}
+
+      //for (const dependency of task.dependencies) {
+      //  if (dependency.type === 'source_options') {
+      //    if (!dependency.condition) {
+      //      return []
+      //    }
+      //    const { id: sourceTaskId } = dependency.condition
+
+      //    const uniqueValues = new Set<string>()
+      //    const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
+
+      //    sourceInstanceIds.forEach((instanceId) => {
+      //      const answer = answerStore.getAnswer(instanceId)
+      //      if (typeof answer === 'string' && answer !== '') {
+      //        uniqueValues.add(answer)
+      //      }
+      //    })
+
+      //    return Array.from(uniqueValues)
+      //  }
+      //}
+      //return []
     }
   })
 
   const canUserCreateInstances = computed(() => {
     return (taskId: string): boolean => {
       const task = taskStore.taskById(taskId)
-
       if (!task.repeatable) return false
-
-      const hasInstanceMapping =
-        task.dependencies?.some((dep) => dep.type === 'instance_mapping') || false
-      return !hasInstanceMapping
+      return !hasInstanceMapping(task)
     }
   })
 
@@ -131,7 +155,7 @@ export function useTaskDependencies() {
           const targetInstances = taskStore.getInstancesForTask(taskId)
 
           const targetInstancesBySourceId = new Map<string, TaskInstance>()
-          targetInstances.forEach(instance => {
+          targetInstances.forEach((instance) => {
             if (instance.mappedFromInstanceId) {
               targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
             } else {
@@ -140,7 +164,7 @@ export function useTaskDependencies() {
             }
           })
 
-          sourceInstances.forEach(sourceInstance => {
+          sourceInstances.forEach((sourceInstance) => {
             const existingTarget = targetInstancesBySourceId.get(sourceInstance.id)
 
             if (!existingTarget) {
@@ -164,6 +188,7 @@ export function useTaskDependencies() {
 
   return {
     shouldShowTask,
+    getSourceOptionSourceTaskId,
     canUserCreateInstances,
     getSourceOptions,
     syncInstances,

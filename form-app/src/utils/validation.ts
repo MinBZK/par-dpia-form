@@ -9,7 +9,9 @@ const handleValidationErrors = (errors: t.Errors): never => {
   )
 }
 
-export const validateData = <T>(validation: t.Validation<T>, onSuccess: (data: T) => void): void => {
+export const validateData = <T>(
+  validation: t.Validation<T>,
+  onSuccess: (data: T) => void,
+): void => {
   fold(handleValidationErrors, onSuccess)(validation)
 }
-

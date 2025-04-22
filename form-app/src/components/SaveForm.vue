@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiButton from '@/components/ui/UiButton.vue'
+import { generateFilename } from '@/utils/fileName'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{
@@ -15,14 +16,7 @@ const saveFormRef = ref<HTMLDivElement | null>(null)
 
 // Generate filename based on timestamp
 const filename = computed((): string => {
-  const now = new Date()
-  const timestamp = now
-    .toISOString()
-    .replace(/:/g, '-') // Replace colons with hyphens
-    .replace(/\..+/, '') // Remove milliseconds
-    .replace('T', '_') // Replace T with underscore
-
-  return `DPIA_${timestamp}.json`
+  return generateFilename('json')
 })
 
 // Handle ESC key to close modal

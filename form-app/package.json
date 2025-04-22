@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
+<<<<<<< HEAD
     "@nl-rvo/component-library-css": "^4.5.7",
     "@nl-rvo/design-tokens": "^1.7.3",
     "@types/pdfmake": "^0.2.11",
@@ -21,11 +22,21 @@
     "io-ts": "^2.2.22",
     "pdfmake": "^0.2.18",
     "pinia": "^3.0.1",
+=======
+    "@nl-rvo/component-library-css": "^4.5.10",
+    "@nl-rvo/design-tokens": "^1.7.4",
+    "@types/pdfmake": "^0.2.11",
+    "fp-ts": "^2.16.9",
+    "io-ts": "^2.2.22",
+    "nanoid": "^5.1.5",
+    "pdfmake": "^0.2.18",
+    "pinia": "^3.0.2",
+>>>>>>> main
     "vue": "^3.5.13"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.14.1",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.4.0",
@@ -36,7 +47,7 @@
     "npm-run-all2": "^7.0.2",
     "prettier": "^3.5.1",
     "typescript": "~5.7.3",
-    "vite": "^6.2.5",
+    "vite": "^6.2.6",
     "vite-plugin-singlefile": "^2.2.0",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vue-tsc": "^2.2.2"

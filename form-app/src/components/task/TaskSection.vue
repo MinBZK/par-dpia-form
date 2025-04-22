@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import TaskField from '@/components/task/TaskField.vue'
+import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
+import risicoMatrixImage from '@/assets/images/risico_matrix.png'
 
 const props = defineProps<{
   taskId: string
@@ -20,15 +21,15 @@ const shouldShowChildren = computed(
   () => taskIsOfTaskType(task.value, 'task_group') && (task.value.childrenIds?.length || 0) > 0,
 )
 
+<<<<<<< HEAD
 const isSigningTask = computed(
   () => taskIsOfTaskType(task.value, 'signing'))
+=======
+const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
+>>>>>>> main
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
-}
-
-const resolveImagePath = (image: string): string => {
-  return '/src/assets/images/' + image
 }
 
 const taskDisplayTitle = (task: FlatTask): string => {
@@ -39,6 +40,19 @@ const taskDisplayTitle = (task: FlatTask): string => {
   }
 }
 
+<<<<<<< HEAD
+=======
+type ImageMap = { [key: string]: string }
+const imageMap = {
+  'risico_matrix.png': risicoMatrixImage,
+}
+
+// Helper function with proper type safety
+function getImage(key: string): string | undefined {
+  return key in imageMap ? imageMap[key as keyof typeof imageMap] : undefined
+}
+
+>>>>>>> main
 function handleAddRepeatableTask(childId: string) {
   try {
     // When we create a repeatableTaskInstance we need to give a parentInstanceId. Since the
@@ -56,7 +70,13 @@ function handleAddRepeatableTask(childId: string) {
     taskStore.addRepeatableTaskInstance(childId, rootInstanceId)
   } catch (error) {
     console.error(`Failed to add repeatable task with TaskId ${props.taskId}: ${error}`)
+<<<<<<< HEAD
     console.warn("Could not properly create a new item because parent item is ambigious. The resulting form structure may be invalid.")
+=======
+    console.warn(
+      'Could not properly create a new item because parent item is ambigious. The resulting form structure may be invalid.',
+    )
+>>>>>>> main
     taskStore.addRepeatableTaskInstance(childId)
   }
 }
@@ -67,6 +87,7 @@ function handleAddRepeatableTask(childId: string) {
     <!-- Task header -->
     <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
 
+<<<<<<< HEAD
 <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
@@ -93,9 +114,39 @@ function handleAddRepeatableTask(childId: string) {
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
           <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
+=======
+    <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
+      <div class="utrecht-form-fieldset rvo-form-fieldset">
+        <fieldset
+          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
+          <p class="utrecht-paragraph preserve-whitespace">
+            {{ task.description }}
+          </p>
+        </fieldset>
+      </div>
+    </div>
+
+    <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
+      <div class="rvo-checkbox__group">
+        <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
+          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
+            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
+          Markeer als voltooid
+        </label>
+      </div>
+
+      <!-- Description section (if available) -->
+      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
+        <fieldset
+          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
+          <p class="utrecht-paragraph preserve-whitespace">
+            {{ task.description }}
+          </p>
+>>>>>>> main
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
-              <img :src="resolveImagePath(source.source)" :alt="source.description" />
+              <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                :alt="source.description" />
             </template>
           </template>
         </fieldset>
@@ -109,13 +160,18 @@ function handleAddRepeatableTask(childId: string) {
             <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instanceId="instanceId"
               :showDescription="true" />
 
-            <!-- Nested task group (has children): render children as TaskField -->
-            <TaskField v-else :taskId="childId" :instanceId="instanceId" />
+            <!-- Nested task group (has children): render children as TaskGroup -->
+            <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
           </template>
 
           <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+<<<<<<< HEAD
             class="utrecht-form-fieldset rvo-form-fieldset">
             <UiButton variant="primary" icon="plus" :label="`Voeg extra
+=======
+            class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+            <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
+>>>>>>> main
             ${taskStore.taskById(childId).task.toLowerCase()} toe`" @click="handleAddRepeatableTask(childId)" />
           </div>
         </template>

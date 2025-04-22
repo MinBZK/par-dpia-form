@@ -60,10 +60,11 @@
   max-height: 90vh;
 }
 
-.rvo-theme .rvo-icon--with-spacing {
+.rvo-theme .rvo-icon--with-spacing-right {
   margin-right: 0.5rem;
 }
 
+<<<<<<< HEAD
 .aiv-definition {
   position: relative;
   display: inline-block;
@@ -109,4 +110,23 @@
 .aiv-definition:hover .aiv-definition-text {
   visibility: visible;
   opacity: 1;
+=======
+.rvo-theme .rvo-icon--with-spacing-left {
+  margin-left: 0.5rem;
+}
+
+.rvo-theme .utrecht-textarea,
+.rvo-theme .utrecht-textarea--html-textarea {
+  resize: vertical; 
+  width: 100%; 
+  box-sizing: border-box; 
+}
+
+.rvo-theme .background-grijs-100 {
+  background-color: var(--rvo-color-grijs-100) !important;
+}
+
+.rvo-theme .background-grijs-200 {
+  background-color: var(--rvo-color-grijs-200) !important;
+>>>>>>> main
 }

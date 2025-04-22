@@ -17,6 +17,11 @@ export interface FlatTask {
   sources?: Source[]
   dependencies?: Dependency[]
   instance_label_template?: string
+  defaultValue?: boolean | string | null
+}
+
+export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
+  return task.type?.includes(type)
 }
 
 export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
@@ -45,7 +50,6 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const rootTaskIds = ref<string[]>([])
   const isInitialized = ref<boolean>(false)
   const completedRootTaskIds = ref<Set<string>>(new Set())
-
 
   /**
    * ==============================================
@@ -78,6 +82,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         dependencies: task.dependencies,
         instance_label_template: task.instance_label_template,
         valueType: task.valueType,
+        defaultValue: task.defaultValue,
         parentId,
         childrenIds: [],
       }
@@ -96,7 +101,15 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
+<<<<<<< HEAD
   function createTaskInstance(taskId: string, parentInstanceId?: string, forceNewGroupId: boolean = false): string {
+=======
+  function createTaskInstance(
+    taskId: string,
+    parentInstanceId?: string,
+    forceNewGroupId: boolean = false,
+  ): string {
+>>>>>>> main
     const instanceId = taskId + '_' + nanoid()
 
     let groupId

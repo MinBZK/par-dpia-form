@@ -408,7 +408,11 @@
                             "repeatable": false
                         },
                         {
+<<<<<<< HEAD
                             "task": "<span class=\"aiv-definition\">Categorie betrokkenen<span class=\"aiv-definition-text\">Een categorie betrokkenen is een groepering van betrokkenen.</span></span>",
+=======
+                            "task": "Categorie betrokkene",
+>>>>>>> main
                             "id": "3.1.2",
                             "type": [
                                 "text_input"
@@ -464,6 +468,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": false,
@@ -796,7 +801,11 @@
                                     ]
                                 },
                                 {
+<<<<<<< HEAD
                                     "task": "Categorieen betrokkenen",
+=======
+                                    "task": "Categorieen betrokkene",
+>>>>>>> main
                                     "id": "7.1.1.5",
                                     "type": [
                                         "checkbox_option"
@@ -1082,16 +1091,55 @@
                                     "repeatable": false
                                 },
                                 {
+<<<<<<< HEAD
                                     "task": "<span class=\"aiv-definition\">Categorie betrokkenen<span class=\"aiv-definition-text\">Een categorie betrokkenen is een groepering van betrokkenen.</span></span> & persoonsgegevens",
+=======
+                                    "task": "Categorie betrokkene",
+>>>>>>> main
                                     "id": "11.1.1.2",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
+                                    "task": "Persoonsgegevens",
+                                    "id": "11.1.1.3",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+<<<<<<< HEAD
                                     "task": "<span class=\"aiv-definition\">Bewaartermijn<span class=\"aiv-definition-text\">De bewaartermijn in een DPIA of pre-scan DPIA is de periode waarin persoonsgegevens bewaard moeten blijven.\n\nToelichting: Bij invulling van \"bewaartermijn\" in de Pre-scan DPIA kan er \u00e9\u00e9n optie worden ingevuld. Is er sprake van meerdere bewaartermijnen, dan geldt de hoogst van toepassing zijnde.</span></span>/archiveringsperiode",
                                     "id": "11.1.1.3",
+=======
+                                    "task": "Bewaartermijn/archiveringsperiode",
+                                    "id": "11.1.1.4",
+>>>>>>> main
                                     "type": [
                                         "text_input"
                                     ],
@@ -1099,7 +1147,7 @@
                                 },
                                 {
                                     "task": "Motivatie voor de bewaartermijn",
-                                    "id": "11.1.1.4",
+                                    "id": "11.1.1.5",
                                     "type": [
                                         "open_text"
                                     ],
@@ -1232,6 +1280,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": false,
@@ -1267,21 +1316,62 @@
                                     "task": "<span class=\"aiv-definition\">Gegevensverwerking<span class=\"aiv-definition-text\">Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot gegevens of een geheel van gegevens.\n\nToelichting: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde proced\u00e9s. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van gegevens.</span></span>",
                                     "id": "13.1.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
-                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "task": "Categorie betrokkene",
                                     "id": "13.1.2.2",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "task": "Persoonsgegevens",
+                                    "id": "13.1.2.3",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
                                     "task": "Type bijzonder persoonsgegevens",
-                                    "id": "13.1.2.3",
+                                    "id": "13.1.2.4",
                                     "type": [
                                         "select_option"
                                     ],
@@ -1347,6 +1437,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": false,
@@ -1382,21 +1473,67 @@
                                     "task": "<span class=\"aiv-definition\">Gegevensverwerking<span class=\"aiv-definition-text\">Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot gegevens of een geheel van gegevens.\n\nToelichting: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde proced\u00e9s. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van gegevens.</span></span>",
                                     "id": "13.2.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
-                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "task": "Categorie betrokkene",
                                     "id": "13.2.2.2",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
+                                    "task": "Persoonsgegevens",
+                                    "id": "13.2.2.3",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+<<<<<<< HEAD
                                     "task": "<span class=\"aiv-definition\">Uitzonderingsgrond<span class=\"aiv-definition-text\">Een uitzonderingsgrond is een wettelijke uitzondering op het verwerkingsverbod van strafrechtelijke persoonsgegevens of nationale identificatienummers.\n\nToelichting: Het verwerken van strafrechtelijke persoonsgegevens of nationale identificatienummers is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is.</span></span>",
                                     "id": "13.2.2.3",
+=======
+                                    "task": "Uitzonderingsgrond",
+                                    "id": "13.2.2.4",
+>>>>>>> main
                                     "type": [
                                         "open_text"
                                     ],
@@ -1422,6 +1559,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": false,
@@ -1457,21 +1595,67 @@
                                     "task": "<span class=\"aiv-definition\">Gegevensverwerking<span class=\"aiv-definition-text\">Een gegevensverwerking is een bewerking of een geheel van bewerkingen met betrekking tot gegevens of een geheel van gegevens.\n\nToelichting: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde proced\u00e9s. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van gegevens.</span></span>",
                                     "id": "13.3.2.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "4.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
-                                    "task": "Categorie betrokkke & persoonsgegevens",
+                                    "task": "Categorie betrokkene",
                                     "id": "13.3.2.2",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
+                                    "task": "Persoonsgegevens",
+                                    "id": "13.3.2.3",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+<<<<<<< HEAD
                                     "task": "<span class=\"aiv-definition\">Uitzonderingsgrond<span class=\"aiv-definition-text\">Een uitzonderingsgrond is een wettelijke uitzondering op het verwerkingsverbod van strafrechtelijke persoonsgegevens of nationale identificatienummers.\n\nToelichting: Het verwerken van strafrechtelijke persoonsgegevens of nationale identificatienummers is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is.</span></span>",
                                     "id": "13.3.2.3",
+=======
+                                    "task": "Uitzonderingsgrond",
+                                    "id": "13.3.2.4",
+>>>>>>> main
                                     "type": [
                                         "open_text"
                                     ],
@@ -1529,16 +1713,50 @@
                             "repeatable": true,
                             "tasks": [
                                 {
+<<<<<<< HEAD
                                     "task": "<span class=\"aiv-definition\">Categorie betrokkenen<span class=\"aiv-definition-text\">Een categorie betrokkenen is een groepering van betrokkenen.</span></span> & persoonsgegevens",
+=======
+                                    "task": "Categorie betrokkene",
+>>>>>>> main
                                     "id": "14.1.1.1",
                                     "type": [
-                                        "text_input"
+                                        "checkbox_option"
                                     ],
-                                    "repeatable": false
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.2",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "task": "Persoonsgegevens",
+                                    "id": "14.1.1.2",
+                                    "type": [
+                                        "checkbox_option"
+                                    ],
+                                    "repeatable": false,
+                                    "valueType": "string[]",
+                                    "dependencies": [
+                                        {
+                                            "type": "source_options",
+                                            "condition": {
+                                                "id": "3.1.1",
+                                                "operator": "any"
+                                            },
+                                            "action": "options"
+                                        }
+                                    ]
                                 },
                                 {
                                     "task": "Doeleinde",
-                                    "id": "14.1.1.2",
+                                    "id": "14.1.1.3",
                                     "type": [
                                         "text_input"
                                     ],
@@ -1546,7 +1764,7 @@
                                 },
                                 {
                                     "task": "Oorspronkelijke doeleinde",
-                                    "id": "14.1.1.3",
+                                    "id": "14.1.1.4",
                                     "type": [
                                         "text_input"
                                     ],
