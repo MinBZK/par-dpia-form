@@ -1,10 +1,11 @@
 import { useTaskStore } from '@/stores/tasks'
-import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 export function useTaskNavigation() {
   const taskStore = useTaskStore()
-  const { currentRootTaskId } = storeToRefs(taskStore)
+  const currentRootTaskId = computed(() => {
+    return taskStore.currentRootTaskId[taskStore.activeNamespace]
+  })
   const rootTasks = computed(() => taskStore.getRootTasks)
 
   const goToNext = () => {

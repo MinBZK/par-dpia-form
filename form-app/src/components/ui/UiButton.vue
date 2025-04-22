@@ -44,39 +44,37 @@ defineEmits<{
     :aria-disabled="disabled ? 'true' : undefined"
     @click="$emit('click', $event)"
   >
-  <template v-if="showIconAfter">
-    {{ label ? label : '' }}
-    <span
-      v-if="icon"
-      :class="[
-        'utrecht-icon',
-        'rvo-icon',
-        `rvo-icon-${icon}`,
-        'rvo-icon--md',
-        'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-left',
-      ]"
-      role="img"
-      aria-label="icon"
-    ></span>
-  </template>
-  <template v-else>
-    <span
-      v-if="icon"
-      :class="[
-        'utrecht-icon',
-        'rvo-icon',
-        `rvo-icon-${icon}`,
-        'rvo-icon--md',
-        'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-right',
-      ]"
-      role="img"
-      aria-label="icon"
-    ></span>
-    {{ label ? label : '' }}
-  </template>
-
-
+    <template v-if="showIconAfter">
+      {{ label ? label : '' }}
+      <span
+        v-if="icon"
+        :class="[
+          'utrecht-icon',
+          'rvo-icon',
+          `rvo-icon-${icon}`,
+          'rvo-icon--md',
+          'rvo-icon--hemelblauw',
+          'rvo-icon--with-spacing-left',
+        ]"
+        role="img"
+        aria-label="icon"
+      ></span>
+    </template>
+    <template v-else>
+      <span
+        v-if="icon"
+        :class="[
+          'utrecht-icon',
+          'rvo-icon',
+          `rvo-icon-${icon}`,
+          'rvo-icon--md',
+          'rvo-icon--hemelblauw',
+          'rvo-icon--with-spacing-right',
+        ]"
+        role="img"
+        aria-label="icon"
+      ></span>
+      {{ label ? label : '' }}
+    </template>
   </button>
 </template>

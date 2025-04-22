@@ -58,10 +58,13 @@ const currentValue = computed(() => {
   return storedAnswer
 })
 
+function safeString(value: string | boolean | null): string {
+  return value !== null ? String(value) : ''
+}
+
 const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
-
 
 // Text input and textarea handler
 const handleTextInput = (event: Event) => {
@@ -104,7 +107,11 @@ const handleCheckboxInput = (event: Event) => {
     <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
       {{ label }}
     </label>
-    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
+    <div
+      v-if="description"
+      class="utrecht-form-field-description"
+      :id="`description-${task.id}-${instanceId}`"
+    >
       {{ description }}
     </div>
   </div>
@@ -112,29 +119,52 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Text input field -->
 
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="text"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+    <input
+      :id="`field-${task.id}-${instanceId}`"
+      type="text"
+      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg"
+      dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+      :value="currentValue"
+      @input="handleTextInput"
+    />
   </div>
 
   <!-- Text area -->
-  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
-    <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
+  <div
+    v-if="hasType('open_text')"
+    class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md"
+  >
+    <textarea
+      :id="`field-${task.id}-${instanceId}`"
+      class="utrecht-textarea utrecht-textarea--html-textarea"
+      dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+      rows="5"
       :value="currentValue as string | number | readonly string[] | null | undefined"
-      @input="handleTextInput"></textarea>
+      @input="handleTextInput"
+    ></textarea>
   </div>
 
   <!-- Select radio -->
   <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-layout-margin-vertical--md">
       <div class="rvo-radio-button__group">
-        <label v-for="option in task.options!" :key="String(option.value || '')" class="rvo-radio-button"
-          :for="`${task.id}-${instanceId}-${option.value}`">
-          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
-            :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
-            class="utrecht-radio-button" @change="handleRadioInput" />
+        <label
+          v-for="option in task.options!"
+          :key="String(option.value || '')"
+          class="rvo-radio-button"
+          :for="`${task.id}-${instanceId}-${option.value}`"
+        >
+          <input
+            :id="`${task.id}-${instanceId}-${option.value}`"
+            :value="option.value"
+            :checked="currentValue === option.value"
+            :name="`group-${task.id}-${instanceId}`"
+            type="radio"
+            class="utrecht-radio-button"
+            @change="handleRadioInput"
+          />
           {{ option.label }}
         </label>
       </div>
@@ -144,11 +174,19 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select dropdown -->
   <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-select-wrapper">
-      <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
-        :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-        @input="handleSelectInput">
+      <select
+        :id="`field-${task.id}-${instanceId}`"
+        class="utrecht-select utrecht-select--html-select"
+        :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+        :value="currentValue"
+        @input="handleSelectInput"
+      >
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value">
+        <option
+          v-for="option in task.options"
+          :key="String(option.value || '')"
+          :value="option.value"
+        >
           {{ option.value }}
         </option>
       </select>
@@ -161,36 +199,62 @@ const handleCheckboxInput = (event: Event) => {
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0" class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
-        <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instanceId}-${option}`">
-          <input :id="`${task.id}-${instanceId}-${option}`" :value="option"
+        <label
+          v-for="option in getSourceOptions(task)"
+          :key="option"
+          class="rvo-checkbox rvo-checkbox--not-checked"
+          :for="`${task.id}-${instanceId}-${option}`"
+        >
+          <input
+            :id="`${task.id}-${instanceId}-${option}`"
+            :value="option"
             :checked="!currentValue || (currentValue as string[]).includes(option)"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
+            :name="`group-${task.id}-${instanceId}`"
+            @change="handleCheckboxInput"
+            class="rvo-checkbox__input"
+            type="checkbox"
+          />
           {{ option }}
         </label>
       </div>
     </div>
-    <div v-else-if="task.options.length > 0" class="rvo-layout-margin-vertical--md">
+    <div v-else-if="task.options && task.options.length > 0" class="rvo-layout-margin-vertical--md">
       <div class="rvo-checkbox__group">
-        <label v-for="option in task.options" :key="option.value" class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instanceId}-${option.value}`">
-          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
-            :checked="!currentValue? false : (currentValue as string[]).includes(option.value)"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
+        <label
+          v-for="option in task.options!"
+          :key="safeString(option.value)"
+          class="rvo-checkbox rvo-checkbox--not-checked"
+          :for="`${task.id}-${instanceId}-${safeString(option.value)}`"
+        >
+          <input
+            :id="`${task.id}-${instanceId}-${safeString(option.value)}`"
+            :value="option.value"
+            :checked="!currentValue ? false : (currentValue as
+            string[]).includes(safeString(option.value))"
+            :name="`group-${task.id}-${instanceId}`"
+            @change="handleCheckboxInput"
+            class="rvo-checkbox__input"
+            type="checkbox"
+          />
           {{ option.value }}
         </label>
       </div>
     </div>
-    <div v-else>Vul eerst vraag {{ getSourceOptionSourceTaskId(task)?.split('.')[0] || '' }} in.</div>
+    <div v-else>
+      Vul eerst vraag {{ getSourceOptionSourceTaskId(task)?.split('.')[0] || '' }} in.
+    </div>
   </div>
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="date"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+    <input
+      :id="`field-${task.id}-${instanceId}`"
+      type="date"
+      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md"
+      dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+      :value="currentValue"
+      @input="handleTextInput"
+    />
   </div>
 </template>

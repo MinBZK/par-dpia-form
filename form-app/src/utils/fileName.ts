@@ -1,4 +1,4 @@
-export function generateFilename(extension: string): string {
+export function generateFilename(type: 'dpia' | 'prescan', extension: string): string {
   const now = new Date()
   const timestamp = now
     .toISOString()
@@ -6,5 +6,5 @@ export function generateFilename(extension: string): string {
     .replace(/\..+/, '') // Remove milliseconds
     .replace('T', '_') // Replace T with underscore
 
-  return `DPIA_${timestamp}.${extension}`
+  return `${type}_${timestamp}.${extension}`
 }

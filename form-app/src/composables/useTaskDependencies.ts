@@ -87,7 +87,8 @@ export function useTaskDependencies() {
 
   const syncInstances = computed(() => {
     return (): void => {
-      Object.entries(taskStore.flatTasks).forEach(([taskId, task]) => {
+      const namespace = taskStore.activeNamespace
+      Object.entries(taskStore.flatTasks[namespace]).forEach(([taskId, task]) => {
         const mappingDeps = task.dependencies?.filter((d) => d.type === 'instance_mapping') || []
 
         if (mappingDeps.length === 0) return

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import dpia_json from '@/assets/DPIA.json'
-import pre_dpia_json from '@/assets/PreScanDPIA.json'
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
 import SaveForm from '@/components/SaveForm.vue'
@@ -21,23 +19,23 @@ import { exportToPdf } from '@/utils/pdfExport'
 import { createSigningTask } from '@/utils/taskUtils'
 import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   navigation: NavigationFunctions
+  namespace: 'dpia' | 'prescan'
+  formData: any // The DPIA or PreScan JSON data
 }>()
 
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
-const isExportingPdf = ref(false)
-const dpiaStarted = ref(false)
+const formStarted = ref(false)
 
 // Store setup
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
-const rootTasks = computed(() => taskStore.getRootTasks)
 
 const { syncInstances } = useTaskDependencies()
 const appPersistence = useAppStatePersistence()
@@ -45,12 +43,21 @@ const appPersistence = useAppStatePersistence()
 // Initialize tasks on component mount
 onMounted(async () => {
   try {
-    // Step 1: Initialize tasks from DPIA.json.
-    const dpiaFormValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(pre_dpia_json)
+    taskStore.setActiveNamespace(props.namespace)
+    answerStore.setActiveNamespace(props.namespace)
 
-    validateData<t.TypeOf<typeof DPIA>>(dpiaFormValidation, (validData) => {
+    // Step 1: Initialize tasks from DPIA.json.
+    const formValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(props.formData)
+
+    validateData<t.TypeOf<typeof DPIA>>(formValidation, (validData) => {
+      const hasSigningTask = validData.tasks.some(task =>
+        task.type && task.type.includes('signing')
+      )
+
       // Add signing task (export to PDF step).
-      validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
+      if (!hasSigningTask) {
+        validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
+      }
 
       // Step 2: Load saved state from local storage if it exists.
       const savedState = appPersistence.loadAppState()
@@ -80,6 +87,10 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(() => {
+  formStarted.value = false
+})
+
 // Sync instances whenever answers change
 watch(
   () => answerStore.answers,
@@ -101,6 +112,7 @@ const closeSaveModal = () => {
 const handleSaveForm = async (filename: string) => {
   console.log('Saving form with filename:', filename)
   try {
+    // This will now export only the active namespace data
     await exportToJson(taskStore, answerStore, filename)
   } catch (error) {
     //TODO: Make user friendly error
@@ -121,14 +133,14 @@ const handleStart = (fileData?: DPIASnapshot) => {
     appPersistence.applyAppState(fileData)
     syncInstances.value()
   }
-  dpiaStarted.value = true
+  formStarted.value = true
 }
 </script>
 
 <template>
   <Banner />
   <div v-if="isLoading">
-    <p>Ophalen van DPIA taken ...</p>
+    <p>Ophalen van taken ...</p>
   </div>
 
   <!-- Show decoding error if decoding has failed. -->
@@ -140,16 +152,15 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
   <!-- If all is well, render the tasks. -->
   <template v-else>
-
     <NavHeader :navigation="navigation" />
 
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
-        <ProgressTracker :disabled="!dpiaStarted" />
+        <ProgressTracker :disabled="!formStarted" />
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-        <FileUploadPage v-if="!dpiaStarted" @start="handleStart" />
+        <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
           <TaskSection :taskId="currentRootTaskId" />
