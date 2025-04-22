@@ -7,7 +7,7 @@
         {
             "task": "Inleiding",
             "description": "De vastlegging van de pre-scan DPIA wordt gekenmerkt door de pre-scan DPIA code. In de inleiding wordt de organisatorische activiteit beschreven waarvoor de pre-scan DPIA wordt uitgevoerd, in een organisatorische activiteit beschrijving. Deze omvat een beschrijving van de verwerking of het geheel van verwerkingen, waarin wordt aangegeven om welke processen, systemen en applicaties het gaat, wat de context van de verwerking is (door wie, waar, waarom en hoe), en hoeveel gegevens over wie wordt vastgelegd met welk doel. Vervolgens wordt vastgesteld of de organisatorische activiteit persoonsgegevens verwerkt, wat kan worden vastgelegd in een classificatie persoonsgegevens. Indien er geen persoonsgegevens worden verwerkt, hoeven er verder geen vragen te worden beantwoord. Als na invullen van de pre-scan DPIA blijkt dat er een DPIA nodig is, dan is de organisatorische activiteit een organisatorische activiteit met DPIA-verplichting.",
-            "id": "A",
+            "id": "1",
             "category": "Inleiding/Algemeen",
             "type": [
                 "task_group"
@@ -16,8 +16,8 @@
             "tasks": [
                 {
                     "task": "Beschrijving van de verwerking",
-                    "description": "Geef een korte beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het.  Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe.  Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie.  Deze input kun je hergebruiken voor paragraaf 1 van het Model DPIA Rijksdienst.",
-                    "id": "A.1",
+                    "description": "Geef een korte beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het.  Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe.  Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie.  Deze input kun je hergebruiken voor paragraaf 1 van het Model <span class=\"aiv-definition\">DPIA<span class=\"aiv-definition-text\">Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de risico\u2019s voor betrokkenen in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen] zoveel mogelijk te mitigeren.\n\nToelichting: Hoewel een DPIA een verplichting is op basis van de AVG en voornamelijk ziet op het beoordelen van privacyrisico\u2019s, dient een DPIA breder opgevat te worden.\n\nHet kan gaan om zowel voorgenomen als reeds actieve projecten, regelgeving en beleid. Normaliter wordt een DPIA uitgevoerd, voordat desbetreffende projecten, regelgeving of beleid actief zijn. Echter, hier wordt in de praktijk om uiteenlopende redenen van afgeweken. Daarom wordt in het Model en het Rapportagemodel niet gesproken over voorgenomen gegevensverwerkingen, projecten, regelgeving of beleid, maar is dit op neutrale wijze opgenomen als gegevensverwerking, project, regelgeving of beleid. Dit betekent echter niet dat het juridisch verantwoord is om een DPIA pas te starten of af te ronden als de verwerking van persoonsgegevens al is gestart. Artikel 35 lid 1 van de AVG noemt dat een DPIA uitgevoerd moet worden voordat gestart wordt met de verwerking van persoonsgegevens.\n\nHet doel van een DPIA is om bij de verwerking van persoonsgegevens een zo goed en duidelijk mogelijk beeld te hebben wat de risico\u2019s zijn bij het verwerken van desbetreffende persoonsgegevens en welke risico mitigerende maatregelen genomen worden om die risico\u2019s zoveel mogelijk te mitigeren. Daarnaast is de DPIA zo opgezet dat het beoordelen van deze onderwerpen stapsgewijs en gestructureerd plaatsvindt.\n\nBij het bepalen van passende maatregelen die genomen dienen te worden om de naleving van de privacyregelgeving aan te tonen, dienen ook de uitkomsten van de DPIA in acht te worden genomen.\n\nEen voltooide DPIA bestaat uit:\n\nA. Beschrijving algemene kenmerken gegevensverwerkingen: een beschrijving van de verwerkingen en de verwerkingsdoeleinden;\nB. Beoordeling rechtmatigheid gegevensverwerkingen: een beoordeling en onderbouwing van de rechtsgrond, de noodzaak, evenredigheid en verenigbaarheid van de verwerkingen in relatie tot de verwerkingsdoeleinden;\nC. Beschrijving en beoordeling risico\u2019s voor betrokkenen: een beoordeling van de gevolgen en risico\u2019s van de verwerkingen voor de rechten en vrijheden van de betrokkenen; en\nD. Beschrijving voorgenomen maatregelen: de voorgenomen maatregelen om deze gevolgen en risico\u2019s van de verwerkingen aan te pakken.\n\nEen DPIA moet worden uitgevoerd:\n\n1. Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of\n2. Wanneer sprake is van een verplichting op basis van departementaal beleid; of\n3. Wanneer er gebruik gemaakt wordt van een publieke cloudvoorziening in specifieke omstandigheden, zie voor meer informatie het cloudbeleid ; of\n4. Bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.\n\nHet laatste punt dient te worden beoordeeld aan de hand van de AVG en de DPIA-criteria die zijn opgesteld door de EDPB en de AP zoals hieronder nader toegelicht.\n\n**Algemene verordening gegevensbescherming (AVG)**\n\nEen DPIA zoals toegelicht onder paragraaf 1.1 is in ieder geval vereist in de volgende gevallen:\na. Een systematische en uitgebreide beoordeling van persoonlijke aspecten, die is gebaseerd op geautomatiseerde verwerking, en waarop besluiten worden gebaseerd waaraan rechtsgevolgen zijn verbonden of die de betrokkenen op vergelijkbare wijze wezenlijk treffen;\nb. Grootschalige verwerking van bijzondere categorie\u00ebn van persoonsgegevens of van gegevens met betrekking tot strafrechtelijke veroordelingen en strafbare feiten;\nc. Stelselmatige en grootschalige monitoring van openbaar toegankelijke ruimten;\nd. Wanneer de toezichthoudende autoriteit heeft geoordeeld dat een DPIA verplicht is.\n \n**Europees Comit\u00e9 voor gegevensbescherming (European Data Protection Board \u2013 EDPB)**\n\nDe EDPB heeft in aanvulling op bovenstaande punten criteria opgesteld aan de hand waarvan kan worden beoordeeld of sprake is van een hoog risico. Wanneer aan twee van de criteria wordt voldaan, dan is het waarschijnlijk verplicht om een DPIA uit te voeren. Wanneer aan \u00e9\u00e9n van de criteria wordt voldaan, dan moet beoordeeld worden of sprake is van een hoog risico, in welk geval het ook verplicht is om een DPIA uit te voeren. Wanneer wordt besloten geen DPIA uit te voeren, dan dient een beoordeling met onderbouwing schriftelijk plaats te vinden en moet deze worden vastgelegd.\nWanneer een gegevensverwerking raakt aan grote politiek-bestuurlijke en maatschappelijke vraagstukken is een DPIA te allen tijde gewenst.\n\n**Autoriteit Persoonsgegevens (AP)**\n\nNaast de criteria van de EDPB, heeft de AP een lijst van gegevensverwerkingen opgesteld waarvoor het uitvoeren van een DPIA verplicht is.\n\nEen DPIA is niet verplicht in de volgende gevallen:\n\na. De verwerking vindt zijn rechtsgrond in een wettelijke verplichting of een taak van algemeen belang, en in het kader van het vaststellen van deze rechtsgrond al een DPIA is verricht;\nb. Wanneer de AP heeft geoordeeld dat een DPIA niet verplicht is.\n - Volgens de AP hoeft geen DPIA te worden uitgevoerd wanneer de gegevensverwerking waarschijnlijk geen hoog risico oplevert of sterk lijkt op een andere gegevensverwerking waarvoor al een DPIA is uitgevoerd.\n\nHoewel in het geval onder (a) een DPIA niet verplicht is, kan het toch wenselijk zijn om deze uit te voeren, als in de uitvoering nader invulling wordt gegeven aan zaken die op het niveau van de regelgeving niet aan de orde zijn geweest, bijvoorbeeld de keuze voor een bepaald ICT-systeem en bepaalde beveiligingsmaatregelen.\n\nEen DPIA kan betrekking hebben op een enkele soort gegevensverwerking. Een DPIA kan ook zien op een reeks vergelijkbare verwerkingen die vergelijkbare risico\u2019s inhouden. Een DPIA hoeft zich dus niet te beperken tot een enkel proces, product of verwerkingsverantwoordelijke, bijvoorbeeld wanneer overheidsorganen een gemeenschappelijke applicatie of verwerkingsomgeving willen opzetten.\n\nOm te bepalen of een DPIA verplicht is kan gebruik gemaakt wordt van de Pre-scan DPIA of de tool in het register van verwerkingsactiviteiten.</span></span> Rijksdienst.",
+                    "id": "1.1",
                     "prescan_model_id": 1,
                     "repeatable": false,
                     "type": [
@@ -26,8 +26,8 @@
                 },
                 {
                     "task": "Doel gegevensverwerking",
-                    "description": "Welk doel wil de organisatie bereiken met de gegevensverwerking?  Dit kan hergebruikt worden in paragraaf 5 van het Model DPIA Rijksdienst.",
-                    "id": "A.2",
+                    "description": "Welk doel wil de organisatie bereiken met de gegevensverwerking?  Dit kan hergebruikt worden in paragraaf 5 van het Model <span class=\"aiv-definition\">DPIA<span class=\"aiv-definition-text\">Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de risico\u2019s voor betrokkenen in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen] zoveel mogelijk te mitigeren.\n\nToelichting: Hoewel een DPIA een verplichting is op basis van de AVG en voornamelijk ziet op het beoordelen van privacyrisico\u2019s, dient een DPIA breder opgevat te worden.\n\nHet kan gaan om zowel voorgenomen als reeds actieve projecten, regelgeving en beleid. Normaliter wordt een DPIA uitgevoerd, voordat desbetreffende projecten, regelgeving of beleid actief zijn. Echter, hier wordt in de praktijk om uiteenlopende redenen van afgeweken. Daarom wordt in het Model en het Rapportagemodel niet gesproken over voorgenomen gegevensverwerkingen, projecten, regelgeving of beleid, maar is dit op neutrale wijze opgenomen als gegevensverwerking, project, regelgeving of beleid. Dit betekent echter niet dat het juridisch verantwoord is om een DPIA pas te starten of af te ronden als de verwerking van persoonsgegevens al is gestart. Artikel 35 lid 1 van de AVG noemt dat een DPIA uitgevoerd moet worden voordat gestart wordt met de verwerking van persoonsgegevens.\n\nHet doel van een DPIA is om bij de verwerking van persoonsgegevens een zo goed en duidelijk mogelijk beeld te hebben wat de risico\u2019s zijn bij het verwerken van desbetreffende persoonsgegevens en welke risico mitigerende maatregelen genomen worden om die risico\u2019s zoveel mogelijk te mitigeren. Daarnaast is de DPIA zo opgezet dat het beoordelen van deze onderwerpen stapsgewijs en gestructureerd plaatsvindt.\n\nBij het bepalen van passende maatregelen die genomen dienen te worden om de naleving van de privacyregelgeving aan te tonen, dienen ook de uitkomsten van de DPIA in acht te worden genomen.\n\nEen voltooide DPIA bestaat uit:\n\nA. Beschrijving algemene kenmerken gegevensverwerkingen: een beschrijving van de verwerkingen en de verwerkingsdoeleinden;\nB. Beoordeling rechtmatigheid gegevensverwerkingen: een beoordeling en onderbouwing van de rechtsgrond, de noodzaak, evenredigheid en verenigbaarheid van de verwerkingen in relatie tot de verwerkingsdoeleinden;\nC. Beschrijving en beoordeling risico\u2019s voor betrokkenen: een beoordeling van de gevolgen en risico\u2019s van de verwerkingen voor de rechten en vrijheden van de betrokkenen; en\nD. Beschrijving voorgenomen maatregelen: de voorgenomen maatregelen om deze gevolgen en risico\u2019s van de verwerkingen aan te pakken.\n\nEen DPIA moet worden uitgevoerd:\n\n1. Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of\n2. Wanneer sprake is van een verplichting op basis van departementaal beleid; of\n3. Wanneer er gebruik gemaakt wordt van een publieke cloudvoorziening in specifieke omstandigheden, zie voor meer informatie het cloudbeleid ; of\n4. Bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.\n\nHet laatste punt dient te worden beoordeeld aan de hand van de AVG en de DPIA-criteria die zijn opgesteld door de EDPB en de AP zoals hieronder nader toegelicht.\n\n**Algemene verordening gegevensbescherming (AVG)**\n\nEen DPIA zoals toegelicht onder paragraaf 1.1 is in ieder geval vereist in de volgende gevallen:\na. Een systematische en uitgebreide beoordeling van persoonlijke aspecten, die is gebaseerd op geautomatiseerde verwerking, en waarop besluiten worden gebaseerd waaraan rechtsgevolgen zijn verbonden of die de betrokkenen op vergelijkbare wijze wezenlijk treffen;\nb. Grootschalige verwerking van bijzondere categorie\u00ebn van persoonsgegevens of van gegevens met betrekking tot strafrechtelijke veroordelingen en strafbare feiten;\nc. Stelselmatige en grootschalige monitoring van openbaar toegankelijke ruimten;\nd. Wanneer de toezichthoudende autoriteit heeft geoordeeld dat een DPIA verplicht is.\n \n**Europees Comit\u00e9 voor gegevensbescherming (European Data Protection Board \u2013 EDPB)**\n\nDe EDPB heeft in aanvulling op bovenstaande punten criteria opgesteld aan de hand waarvan kan worden beoordeeld of sprake is van een hoog risico. Wanneer aan twee van de criteria wordt voldaan, dan is het waarschijnlijk verplicht om een DPIA uit te voeren. Wanneer aan \u00e9\u00e9n van de criteria wordt voldaan, dan moet beoordeeld worden of sprake is van een hoog risico, in welk geval het ook verplicht is om een DPIA uit te voeren. Wanneer wordt besloten geen DPIA uit te voeren, dan dient een beoordeling met onderbouwing schriftelijk plaats te vinden en moet deze worden vastgelegd.\nWanneer een gegevensverwerking raakt aan grote politiek-bestuurlijke en maatschappelijke vraagstukken is een DPIA te allen tijde gewenst.\n\n**Autoriteit Persoonsgegevens (AP)**\n\nNaast de criteria van de EDPB, heeft de AP een lijst van gegevensverwerkingen opgesteld waarvoor het uitvoeren van een DPIA verplicht is.\n\nEen DPIA is niet verplicht in de volgende gevallen:\n\na. De verwerking vindt zijn rechtsgrond in een wettelijke verplichting of een taak van algemeen belang, en in het kader van het vaststellen van deze rechtsgrond al een DPIA is verricht;\nb. Wanneer de AP heeft geoordeeld dat een DPIA niet verplicht is.\n - Volgens de AP hoeft geen DPIA te worden uitgevoerd wanneer de gegevensverwerking waarschijnlijk geen hoog risico oplevert of sterk lijkt op een andere gegevensverwerking waarvoor al een DPIA is uitgevoerd.\n\nHoewel in het geval onder (a) een DPIA niet verplicht is, kan het toch wenselijk zijn om deze uit te voeren, als in de uitvoering nader invulling wordt gegeven aan zaken die op het niveau van de regelgeving niet aan de orde zijn geweest, bijvoorbeeld de keuze voor een bepaald ICT-systeem en bepaalde beveiligingsmaatregelen.\n\nEen DPIA kan betrekking hebben op een enkele soort gegevensverwerking. Een DPIA kan ook zien op een reeks vergelijkbare verwerkingen die vergelijkbare risico\u2019s inhouden. Een DPIA hoeft zich dus niet te beperken tot een enkel proces, product of verwerkingsverantwoordelijke, bijvoorbeeld wanneer overheidsorganen een gemeenschappelijke applicatie of verwerkingsomgeving willen opzetten.\n\nOm te bepalen of een DPIA verplicht is kan gebruik gemaakt wordt van de Pre-scan DPIA of de tool in het register van verwerkingsactiviteiten.</span></span> Rijksdienst.",
+                    "id": "1.2",
                     "prescan_model_id": 2,
                     "links": {
                         "DPIA": "3.1.5"
@@ -39,7 +39,7 @@
                 },
                 {
                     "task": "Wat is de grondslag voor de verwerking?",
-                    "id": "A.3",
+                    "id": "1.3",
                     "prescan_model_id": 3,
                     "links": {
                         "DPIA": "12.1.1.1"
@@ -51,7 +51,7 @@
                 },
                 {
                     "task": "Is er sprake van cloudgebruik?",
-                    "id": "A.4",
+                    "id": "1.4",
                     "prescan_model_id": 4,
                     "repeatable": false,
                     "type": [
@@ -73,7 +73,7 @@
                 },
                 {
                     "task": "Selecteer een of meer van onderstaande opties",
-                    "id": "A.5",
+                    "id": "1.5",
                     "prescan_model_id": 4,
                     "type": [
                         "select_option"
@@ -96,7 +96,7 @@
                         {
                             "type": "conditional",
                             "condition": {
-                                "id": "A.4",
+                                "id": "1.4",
                                 "operator": "equals",
                                 "value": true
                             },
@@ -107,7 +107,7 @@
                 },
                 {
                     "task": "Welke vorm van cloud betreft het?",
-                    "id": "A.6",
+                    "id": "1.6",
                     "prescan_model_id": 5,
                     "type": [
                         "radio_option"
@@ -127,7 +127,7 @@
                         {
                             "type": "conditional",
                             "condition": {
-                                "id": "A.4",
+                                "id": "1.4",
                                 "operator": "equals",
                                 "value": true
                             },
@@ -138,7 +138,7 @@
                 },
                 {
                     "task": "Gaat het om materieel public cloudgebruik voor de primaire taak?",
-                    "id": "A.7",
+                    "id": "1.7",
                     "prescan_model_id": 6,
                     "type": [
                         "radio_option"
@@ -157,7 +157,7 @@
                         {
                             "type": "conditional",
                             "condition": {
-                                "id": "A.4",
+                                "id": "1.4",
                                 "operator": "equals",
                                 "value": true
                             },
@@ -171,7 +171,7 @@
         {
             "task": "Gegevensverwerking",
             "description": "\"Indien een organisatorische activiteit persoonsgegevens niet meteen een DPIA-verplichting krijgt door een gegevensverwerking op de lijst AP of lijst EPDB,  dan spreken we van een organisatorische activiteit zonder DPIA-verplichting o.b.v. lijst AP of EDPB. Daarbij leggen we een aantal gegevens vast die uitsluitsel kunnen geven over de vraag of er alsnog een DPIA-verplichting ontstaat.<br>\nIndien er een classificatie persoonsgegevens aanwezig is met waarde bevat persoonsgegevens, dan wordt vastgelegd in de classificatie type persoonsgegevens of er sprake is van:\n- gewoon persoonsgegeven - gevoelig persoonsgegeven - bijzonder persoonsgegeven - strafrechtelijk persoonsgegeven - nationaal identificatienummer\nVoor de pre-scan DPIA beschouwen we strafrechtelijke persoonsgegevens en nationale identificatienummers als gevoelige gegevens. Bij een verwerking van persoonsgegevens is er sprake van een organisatorische activiteit persoonsgegevens.\"\"",
-            "id": "B",
+            "id": "2",
             "category": "Gegevensverwerking",
             "type": [
                 "task_group"
@@ -181,7 +181,7 @@
                 {
                     "task": "Gaat het systeem categorie\u00ebn gewone persoonsgegevens verwerken?",
                     "description": "Er is sprake van een organisatorische activiteit gewone persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde \"bevat gewone persoonsgegevens\".  In dat geval wordt bij die organisatorische activiteit de categorie gewone persoonsgegevens vastgelegd.",
-                    "id": "B.8",
+                    "id": "2.8",
                     "prescan_model_id": 7,
                     "type": [
                         "radio_option"
@@ -200,7 +200,7 @@
                 },
                 {
                     "task": "Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer \u00e9\u00e9n of meer opties.",
-                    "id": "B.8.1",
+                    "id": "2.8.1",
                     "prescan_model_id": 7,
                     "type": [
                         "select_option"
@@ -261,7 +261,7 @@
                 },
                 {
                     "task": "Specificeer",
-                    "id": "B.8.2",
+                    "id": "2.8.2",
                     "type": [
                         "open_text"
                     ],
@@ -269,7 +269,7 @@
                         {
                             "type": "conditional",
                             "condition": {
-                                "id": "B.9",
+                                "id": "2.9",
                                 "operator": "equals",
                                 "value": "Overige"
                             },
@@ -280,8 +280,8 @@
                 },
                 {
                     "task": "Gaat het systeem bijzondere persoonsgegevens verwerken?",
-                    "description": "Er is sprake van een organisatorische activiteit bijzondere persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde Classificatie type persoonsgegevens: Bijzonder.  In dat geval wordt vastgelegd om welk classificatie type bijzondere persoonsgegevens het gaat.",
-                    "id": "B.9",
+                    "description": "Er is sprake van een organisatorische activiteit bijzondere persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde <span class=\"aiv-definition\">Classificatie type persoonsgegevens: Bijzonder<span class=\"aiv-definition-text\">Bijzonder is een [classificatie type persoonsgegevens] dat aangeeft dat een [persoonsgegeven] een [bijzonder persoonsgegeven] is.</span></span>.  In dat geval wordt vastgelegd om welk classificatie type bijzondere persoonsgegevens het gaat.",
+                    "id": "2.9",
                     "prescan_model_id": 8,
                     "type": [
                         "radio_option"
@@ -303,7 +303,7 @@
                 },
                 {
                     "task": "Gaat het systeem een van onderstaande bijzondere persoonsgegevens verwerken? Selecteer \u00e9\u00e9n of meer opties.",
-                    "id": "B.9.1",
+                    "id": "2.9.1",
                     "prescan_model_id": 8,
                     "type": [
                         "select_option"
@@ -379,7 +379,7 @@
                 },
                 {
                     "task": "Gaat het systeem ook andere gevoelige persoonsgegevens verwerken?",
-                    "description": "Er is sprake van een organisatorische activiteit gevoelige persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde Classificatie type persoonsgegevens: Gevoelig.  In dat geval wordt bij die organisatorische activiteit de categorie gevoelige persoonsgegevens vastgelegd.",
+                    "description": "Er is sprake van een organisatorische activiteit gevoelige persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde <span class=\"aiv-definition\">Classificatie type persoonsgegevens: Gevoelig<span class=\"aiv-definition-text\">Gevoelig is een [classificatie type persoonsgegevens] dat aangeeft dat een [persoonsgegeven] een [gevoelig persoonsgegeven] is.</span></span>.  In dat geval wordt bij die organisatorische activiteit de categorie gevoelige persoonsgegevens vastgelegd.",
                     "id": "B.10",
                     "prescan_model_id": 9,
                     "type": [
@@ -656,7 +656,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)",
+                                    "task": "<span class=\"aiv-definition\">Specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving)",
                                     "id": "B.12.1.5",
                                     "type": [
                                         "text_input"
@@ -787,7 +787,7 @@
                                     "repeatable": false
                                 },
                                 {
-                                    "task": "Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)",
+                                    "task": "<span class=\"aiv-definition\">Specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving)",
                                     "id": "B.12.2.5",
                                     "type": [
                                         "text_input"
@@ -808,7 +808,7 @@
                             ]
                         },
                         {
-                            "task": "Frequentie van verwerking",
+                            "task": "<span class=\"aiv-definition\">Frequentie van verwerking<span class=\"aiv-definition-text\">Frequentie van verwerking is een aanduiding die aangeeft met welke frequentie [persoonsgegevens] worden verwerkt.\n\nToelichting: Bij invulling van \"frequentie van verwerking\" in de Pre-scan DPIA kan er \u00e9\u00e9n optie worden ingevuld. Is er sprake van meerdere frequenties, dan geldt de hoogst van toepassing zijnde.</span></span>",
                             "id": "B.12.3",
                             "prescan_model_id": "11.c",
                             "type": [
@@ -863,7 +863,9 @@
                             "links": {
                                 "DPIA": null
                             },
-                            "type": "select_option",
+                            "type": [
+                                "select_option"
+                            ],
                             "options": [
                                 {
                                     "value": "Aantal jaren",
@@ -1578,7 +1580,7 @@
                     ]
                 },
                 {
-                    "task": "Kwalificeert het algoritme als (een onderdeel van) een \u2018hoog-risico AI-systeem\u2019 volgens de EU AI-verordening?",
+                    "task": "Kwalificeert het algoritme als (een onderdeel van) een \u2018hoog-risico <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n\nToelichting: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span>\u2019 volgens de EU AI-verordening?",
                     "id": "G.3",
                     "type": [
                         "radio_option"

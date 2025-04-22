@@ -65,9 +65,7 @@ const handleDelete = (instanceId: string) => {
       class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
       <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
-        :id="`group-${taskId}-${instanceId}-legend`">
-        {{ instanceLabel }}
-      </legend>
+        :id="`group-${taskId}-${instanceId}-legend`" v-html="instanceLabel"></legend>
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">

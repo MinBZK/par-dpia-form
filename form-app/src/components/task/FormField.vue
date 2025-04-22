@@ -101,11 +101,9 @@ const handleCheckboxInput = (event: Event) => {
 
 <template>
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
-      {{ label }}
-    </label>
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label"></label>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
-      {{ description }}
+      <span v-html="description"></span>
     </div>
   </div>
 
@@ -148,8 +146,7 @@ const handleCheckboxInput = (event: Event) => {
         :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value">
-          {{ option.value }}
+        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value" v-html="option.value">
         </option>
       </select>
     </div>
@@ -166,9 +163,7 @@ const handleCheckboxInput = (event: Event) => {
           <input :id="`${task.id}-${instanceId}-${option}`" :value="option"
             :checked="!currentValue || (currentValue as string[]).includes(option)"
             :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
-          {{ option }}
-        </label>
+            type="checkbox" v-html="option"/></label>
       </div>
     </div>
     <div v-else>Vul eerst vraag {{ getSourceOptionSourceTaskId(task)?.split('.')[0] || '' }} in.</div>

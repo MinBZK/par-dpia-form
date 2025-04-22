@@ -79,9 +79,7 @@ function handleAddRepeatableTask(childId: string) {
       <div class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
         </fieldset>
       </div>
     </div>
@@ -99,9 +97,7 @@ function handleAddRepeatableTask(childId: string) {
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"

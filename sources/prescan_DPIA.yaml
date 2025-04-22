@@ -548,7 +548,8 @@ tasks:
       id: "B.12.4"
       prescan_model_id: 11.c
       links: {"DPIA": } #paragraaf 10
-      type: select_option
+      type: 
+      - select_option
       options:
       - value: Aantal jaren 
         risicoscore_tag: bewaartermijn
