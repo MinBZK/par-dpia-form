@@ -14,28 +14,44 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
    * Store properties
    * ==============================================
    */
-  const answers = ref<Record<string, Answer>>({})
+  const activeNamespace = ref('dpia')
+  const answers = ref<Record<string, Record<string, Answer>>>({
+    dpia: {},
+    prescan: {},
+  })
 
   /**
    * ==============================================
    * Store actions
    * ==============================================
    */
+
+  function setActiveNamespace(namespace: 'dpia' | 'prescan') {
+    if (activeNamespace.value !== namespace) {
+      activeNamespace.value = namespace
+
+      // Initialize namespace if it doesn't exist
+      if (!answers.value[namespace]) {
+        answers.value[namespace] = {}
+      }
+    }
+  }
+
   function setAnswer(instanceId: string, value: AnswerValue): void {
     const answer: Answer = {
       value,
       timestamp: new Date().toISOString(),
     }
-    answers.value[instanceId] = answer
+    answers.value[activeNamespace.value][instanceId] = answer
   }
 
   function getAnswer(instanceId: string): AnswerValue | null {
-    return answers.value[instanceId]?.value || null
+    return answers.value[activeNamespace.value][instanceId]?.value || null
   }
 
   function removeAnswer(instanceId: string): void {
     if (instanceId in answers.value) {
-      delete answers.value[instanceId]
+      delete answers.value[activeNamespace.value][instanceId]
     }
   }
 
@@ -45,9 +61,11 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
 
   return {
     // Properties
+    activeNamespace,
     answers,
 
     // Actions
+    setActiveNamespace,
     setAnswer,
     getAnswer,
     removeAnswer,

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LandingView from '@/components/LandingView.vue'
-import DPIAForm from '@/components/DPIAForm.vue'
-import PreScanDPIAForm from '@/components/PreScanDPIAForm.vue'
+import Form from '@/components/Form.vue'
+import { useTaskStore } from '@/stores/tasks'
+import { useAnswerStore } from '@/stores/answers'
+import { useSchemaStore } from '@/stores/schemas'
 import { ViewState, type NavigationFunctions } from '@/models/navigation'
 
 import '@nl-rvo/assets/fonts/index.css'
@@ -12,6 +14,9 @@ import '@nl-rvo/component-library-css/dist/index.css'
 import '@nl-rvo/design-tokens/dist/index.css'
 
 const currentView = ref<ViewState>(ViewState.Landing)
+const taskStore = useTaskStore()
+const answerStore = useAnswerStore()
+const schemaStore = useSchemaStore()
 
 const navigateTo = (view: ViewState) => {
   currentView.value = view
@@ -19,14 +24,38 @@ const navigateTo = (view: ViewState) => {
 
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => navigateTo(ViewState.Landing),
-  goToDPIA: () => navigateTo(ViewState.DPIA),
-  goToPreScanDPIA: () => navigateTo(ViewState.PreScanDPIA)
+  goToDPIA: () => {
+    taskStore.setActiveNamespace('dpia')
+    answerStore.setActiveNamespace('dpia')
+    taskStore.isInitialized['dpia'] = false
+    navigateTo(ViewState.DPIA)
+  },
+  goToPreScanDPIA: () => {
+    taskStore.setActiveNamespace('prescan')
+    answerStore.setActiveNamespace('prescan')
+    taskStore.isInitialized['prescan'] = false
+    navigateTo(ViewState.PreScanDPIA)
+  },
 }
 </script>
 
-
 <template>
+  <!-- Landing page -->
   <LandingView v-if="currentView === ViewState.Landing" :navigation="navigationFunctions" />
-  <DPIAForm v-if="currentView === ViewState.DPIA" :navigation="navigationFunctions" />
-  <PreScanDPIAForm v-if="currentView === ViewState.PreScanDPIA" :navigation="navigationFunctions" />
+
+  <!-- DPIA Form -->
+  <Form
+    v-if="currentView === ViewState.DPIA"
+    :navigation="navigationFunctions"
+    namespace="dpia"
+     :validData="schemaStore.getSchema('dpia')"
+  />
+
+  <!-- Pre Scan DPIA Form -->
+  <Form
+    v-if="currentView === ViewState.PreScanDPIA"
+    :navigation="navigationFunctions"
+    namespace="prescan"
+    :validData="schemaStore.getSchema('prescan')"
+  />
 </template>

@@ -48,32 +48,6 @@ export function useTaskDependencies() {
       })
 
       return Array.from(uniqueValues)
-
-      //if (!task.dependencies || task.dependencies.length === 0) {
-      //  return []
-      //}
-
-      //for (const dependency of task.dependencies) {
-      //  if (dependency.type === 'source_options') {
-      //    if (!dependency.condition) {
-      //      return []
-      //    }
-      //    const { id: sourceTaskId } = dependency.condition
-
-      //    const uniqueValues = new Set<string>()
-      //    const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
-
-      //    sourceInstanceIds.forEach((instanceId) => {
-      //      const answer = answerStore.getAnswer(instanceId)
-      //      if (typeof answer === 'string' && answer !== '') {
-      //        uniqueValues.add(answer)
-      //      }
-      //    })
-
-      //    return Array.from(uniqueValues)
-      //  }
-      //}
-      //return []
     }
   })
 
@@ -87,7 +61,8 @@ export function useTaskDependencies() {
 
   const syncInstances = computed(() => {
     return (): void => {
-      Object.entries(taskStore.flatTasks).forEach(([taskId, task]) => {
+      const namespace = taskStore.activeNamespace
+      Object.entries(taskStore.flatTasks[namespace]).forEach(([taskId, task]) => {
         const mappingDeps = task.dependencies?.filter((d) => d.type === 'instance_mapping') || []
 
         if (mappingDeps.length === 0) return

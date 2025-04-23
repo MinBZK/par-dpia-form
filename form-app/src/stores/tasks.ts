@@ -40,31 +40,90 @@ export const useTaskStore = defineStore('TaskStore', () => {
    * ==============================================
    */
 
-  const flatTasks = ref<Record<string, FlatTask>>({})
-  const taskInstances = ref<Record<string, TaskInstance>>({})
-  const currentRootTaskId = ref('0')
-  const rootTaskIds = ref<string[]>([])
-  const isInitialized = ref<boolean>(false)
-  const completedRootTaskIds = ref<Set<string>>(new Set())
+  const activeNamespace = ref('dpia')
+  const flatTasks = ref<Record<string, Record<string, FlatTask>>>({
+    dpia: {},
+    prescan: {},
+  })
+  const taskInstances = ref<Record<string, Record<string, TaskInstance>>>({
+    dpia: {},
+    prescan: {},
+  })
+  const currentRootTaskId = ref<Record<string, string>>({
+    dpia: '0',
+    prescan: '0',
+  })
+  const rootTaskIds = ref<Record<string, string[]>>({
+    dpia: [],
+    prescan: [],
+  })
+  const isInitialized = ref<Record<string, boolean>>({
+    dpia: false,
+    prescan: false,
+  })
+  const completedRootTaskIds = ref<Record<string, Set<string>>>({
+    dpia: new Set(),
+    prescan: new Set(),
+  })
 
   /**
    * ==============================================
    * Store actions
    * ==============================================
    */
-  function init(tasks: Task[]) {
-    if (!isInitialized.value) {
+
+  const getNamespacedState = computed(() => ({
+    flatTasks: flatTasks.value[activeNamespace.value],
+    taskInstances: taskInstances.value[activeNamespace.value],
+    currentRootTaskId: currentRootTaskId.value[activeNamespace.value],
+    rootTaskIds: rootTaskIds.value[activeNamespace.value],
+    isInitialized: isInitialized.value[activeNamespace.value],
+    completedRootTaskIds: completedRootTaskIds.value[activeNamespace.value],
+  }))
+
+  function setActiveNamespace(namespace: 'dpia' | 'prescan') {
+    if (activeNamespace.value !== namespace) {
+      activeNamespace.value = namespace
+
+      // Reset the current root task ID to the first task if we have any
+      if (rootTaskIds.value[namespace] && rootTaskIds.value[namespace].length > 0) {
+        currentRootTaskId.value[namespace] = rootTaskIds.value[namespace][0]
+      } else {
+        currentRootTaskId.value[namespace] = '0'
+      }
+    }
+  }
+
+  function clearStateForNamespace(namespace: string): void {
+    flatTasks.value[namespace] = {}
+    taskInstances.value[namespace] = {}
+    currentRootTaskId.value[namespace] = '0'
+    rootTaskIds.value[namespace] = []
+    completedRootTaskIds.value[namespace] = new Set()
+  }
+
+  function init(tasks: Task[], forceInit: boolean = false) {
+    const namespace = activeNamespace.value
+
+    if (forceInit) {
+      isInitialized.value[namespace] = false
+    }
+
+    if (!isInitialized.value[namespace]) {
+      clearStateForNamespace(namespace)
       createTasks(tasks)
 
-      if (Object.keys(taskInstances.value).length === 0) {
+      if (Object.keys(taskInstances.value[namespace]).length === 0) {
         createDefaultInstances()
       }
-
-      isInitialized.value = true
+      isInitialized.value[namespace] = true
     }
   }
 
   function createTasks(tasks: Task[], parentId: string | null = null) {
+    if (!parentId) {
+      rootTaskIds.value[activeNamespace.value] = []
+    }
     tasks.forEach((task) => {
       const flatTask: FlatTask = {
         id: task.id,
@@ -83,12 +142,12 @@ export const useTaskStore = defineStore('TaskStore', () => {
         childrenIds: [],
       }
 
-      flatTasks.value[task.id] = flatTask
+      flatTasks.value[activeNamespace.value][task.id] = flatTask
 
       if (parentId) {
-        flatTasks.value[parentId].childrenIds.push(task.id)
+        flatTasks.value[activeNamespace.value][parentId].childrenIds.push(task.id)
       } else {
-        rootTaskIds.value.push(task.id)
+        rootTaskIds.value[activeNamespace.value].push(task.id)
       }
 
       if (task.tasks && task.tasks.length > 0) {
@@ -106,11 +165,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
     let groupId
     if (parentInstanceId && !forceNewGroupId) {
-      groupId = taskInstances.value[parentInstanceId].groupId
+      groupId = taskInstances.value[activeNamespace.value][parentInstanceId].groupId
     } else {
       groupId = taskId + '_' + nanoid()
     }
-    taskInstances.value[instanceId] = {
+    taskInstances.value[activeNamespace.value][instanceId] = {
       id: instanceId,
       taskId,
       parentInstanceId: parentInstanceId || null,
@@ -118,11 +177,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
       groupId,
     }
 
-    if (parentInstanceId && taskInstances.value[parentInstanceId]) {
-      taskInstances.value[parentInstanceId].childInstanceIds.push(instanceId)
+    if (parentInstanceId && taskInstances.value[activeNamespace.value][parentInstanceId]) {
+      taskInstances.value[activeNamespace.value][parentInstanceId].childInstanceIds.push(instanceId)
     }
 
-    const childTaskIds = flatTasks.value[taskId].childrenIds
+    const childTaskIds = flatTasks.value[activeNamespace.value][taskId].childrenIds
     if (childTaskIds.length > 0) {
       childTaskIds.forEach((childTaskId) => {
         createTaskInstance(childTaskId, instanceId)
@@ -132,7 +191,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function createDefaultInstances() {
-    rootTaskIds.value.forEach((taskId) => {
+    const currentNamespace = activeNamespace.value
+    if (!rootTaskIds.value[currentNamespace] || rootTaskIds.value[currentNamespace].length === 0) {
+      console.error(`No root tasks found for namespace: ${currentNamespace}`)
+      return
+    }
+
+    rootTaskIds.value[activeNamespace.value].forEach((taskId) => {
       createTaskInstance(taskId)
     })
   }
@@ -144,7 +209,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function removeRepeatableTaskInstance(instanceId: string): void {
-    const instance = taskInstances.value[instanceId]
+    const instance = taskInstances.value[activeNamespace.value][instanceId]
 
     if (!instance) return
 
@@ -153,16 +218,19 @@ export const useTaskStore = defineStore('TaskStore', () => {
       removeRepeatableTaskInstance(childId)
     })
 
-    if (instance.parentInstanceId && taskInstances.value[instance.parentInstanceId]) {
-      const parent = taskInstances.value[instance.parentInstanceId]
+    if (
+      instance.parentInstanceId &&
+      taskInstances.value[activeNamespace.value][instance.parentInstanceId]
+    ) {
+      const parent = taskInstances.value[activeNamespace.value][instance.parentInstanceId]
       parent.childInstanceIds = parent.childInstanceIds.filter((id) => id !== instanceId)
     }
 
-    delete taskInstances.value[instanceId]
+    delete taskInstances.value[activeNamespace.value][instanceId]
   }
 
   function getInstancesForTask(taskId: string, parentInstanceId?: string): TaskInstance[] {
-    return Object.values(taskInstances.value).filter(
+    return Object.values(taskInstances.value[activeNamespace.value]).filter(
       (instance) =>
         instance.taskId === taskId &&
         (parentInstanceId === undefined || instance.parentInstanceId === parentInstanceId),
@@ -174,7 +242,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function getRootTaskInstanceIds(taskId: string): string[] {
-    if (!rootTaskIds.value.includes(taskId)) {
+    if (!rootTaskIds.value[activeNamespace.value].includes(taskId)) {
       throw new Error(`Task ${taskId} is not a root task.`)
     }
     return getInstanceIdsForTask(taskId)
@@ -184,10 +252,10 @@ export const useTaskStore = defineStore('TaskStore', () => {
     conditionTaskId: string,
     currentInstanceId: string,
   ): TaskInstance | null {
-    const currentInstance = taskInstances.value[currentInstanceId]
+    const currentInstance = taskInstances.value[activeNamespace.value][currentInstanceId]
     if (!currentInstance) return null
 
-    const relatedInstance = Object.values(taskInstances.value).find(
+    const relatedInstance = Object.values(taskInstances.value[activeNamespace.value]).find(
       (instance) =>
         instance.taskId === conditionTaskId && instance.groupId === currentInstance.groupId,
     )
@@ -195,25 +263,25 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function setInstanceMappingSource(instanceId: string, sourceInstanceId: string): void {
-    if (taskInstances.value[instanceId]) {
-      taskInstances.value[instanceId].mappedFromInstanceId = sourceInstanceId
+    if (taskInstances.value[activeNamespace.value][instanceId]) {
+      taskInstances.value[activeNamespace.value][instanceId].mappedFromInstanceId = sourceInstanceId
     }
   }
 
   function setRootTask(id: string) {
-    currentRootTaskId.value = id
+    currentRootTaskId.value[activeNamespace.value] = id
   }
 
   function nextRootTask() {
-    const currentId = parseInt(currentRootTaskId.value, 10)
+    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
     const nextId = currentId + 1
-    if (nextId < rootTaskIds.value.length) {
+    if (nextId < rootTaskIds.value[activeNamespace.value].length) {
       setRootTask(nextId.toString())
     }
   }
 
   function previousRootTask() {
-    const currentId = parseInt(currentRootTaskId.value, 10)
+    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
     const nextId = currentId - 1
     if (nextId >= 0) {
       setRootTask(nextId.toString())
@@ -221,18 +289,18 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function toggleCompleteForTaskId(taskId: string) {
-    if (!rootTaskIds.value.includes(taskId)) {
+    if (!rootTaskIds.value[activeNamespace.value].includes(taskId)) {
       throw new Error(`Task with id ${taskId} is not a root task`)
     }
-    if (completedRootTaskIds.value.has(taskId)) {
-      completedRootTaskIds.value.delete(taskId)
+    if (completedRootTaskIds.value[activeNamespace.value].has(taskId)) {
+      completedRootTaskIds.value[activeNamespace.value].delete(taskId)
     } else {
-      completedRootTaskIds.value.add(taskId)
+      completedRootTaskIds.value[activeNamespace.value].add(taskId)
     }
   }
 
   function isRootTaskCompleted(taskId: string): boolean {
-    return completedRootTaskIds.value.has(taskId)
+    return completedRootTaskIds.value[activeNamespace.value].has(taskId)
   }
 
   /**
@@ -242,7 +310,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
    */
   const taskById = computed(() => {
     return (taskId: string): FlatTask => {
-      const task = flatTasks.value[taskId]
+      const task = flatTasks.value[activeNamespace.value][taskId]
 
       if (!task) {
         throw new Error(`Task with id ${taskId} not found`)
@@ -253,29 +321,32 @@ export const useTaskStore = defineStore('TaskStore', () => {
   })
 
   const getRootTasks = computed(() => {
-    return rootTaskIds.value.map((id) => flatTasks.value[id])
+    return rootTaskIds.value[activeNamespace.value].map(
+      (id) => flatTasks.value[activeNamespace.value][id],
+    )
   })
 
   const getParentTaskId = computed(() => {
     return (taskId: string): string | null => {
-      return flatTasks.value[taskId]?.parentId || null
+      return flatTasks.value[activeNamespace.value][taskId]?.parentId || null
     }
   })
 
   const getChildTaskIds = computed(() => {
     return (taskId: string): string[] => {
-      return flatTasks.value[taskId]?.childrenIds || []
+      return flatTasks.value[activeNamespace.value][taskId]?.childrenIds || []
     }
   })
 
   const getInstanceById = computed(() => {
     return (instanceId: string): TaskInstance | null => {
-      return taskInstances.value[instanceId] || null
+      return taskInstances.value[activeNamespace.value][instanceId] || null
     }
   })
 
   return {
     // Properties
+    activeNamespace,
     flatTasks,
     taskInstances,
     currentRootTaskId,
@@ -285,6 +356,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
     // Actions
     init,
+    getNamespacedState,
+    setActiveNamespace,
     addRepeatableTaskInstance,
     removeRepeatableTaskInstance,
     getInstancesForTask,

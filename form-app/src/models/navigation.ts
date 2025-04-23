@@ -1,11 +1,11 @@
 export enum ViewState {
   Landing = 'landing',
   DPIA = 'dpia',
-  PreScanDPIA = 'prescan'
+  PreScanDPIA = 'prescan',
 }
 
 export interface NavigationFunctions {
-  goToLanding: () => void;
-  goToDPIA: () => void;
-  goToPreScanDPIA: () => void;
+  goToLanding: () => void
+  goToDPIA: () => void
+  goToPreScanDPIA: () => void
 }
