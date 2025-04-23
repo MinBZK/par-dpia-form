@@ -3,7 +3,7 @@ import { type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
 import { generateFilename } from './fileName'
 
-export async function importFromJson(file: File): Promise<DPIASnapshot> {
+export async function importFromJson(file: File, activeNamespace: 'dpia' | 'prescan'): Promise<DPIASnapshot> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
@@ -20,6 +20,12 @@ export async function importFromJson(file: File): Promise<DPIASnapshot> {
           reject(new Error('File contains format incompatible with DPIASnapshot structure'))
           return
         }
+
+        if (!data.taskState[activeNamespace] || !data.answers[activeNamespace]) {
+          reject(new Error(`The uploaded file does not contain ${activeNamespace} data.`))
+          return
+        }
+
         resolve(data)
       } catch (error) {
         if (error instanceof Error) {
@@ -43,20 +49,27 @@ export async function exportToJson(
 ): Promise<void> {
   try {
     // Create snapshot data
+    const activeNamespace = taskStore.activeNamespace
+
     const snapshotData: DPIASnapshot = {
       metadata: {
         savedAt: new Date().toISOString(),
+        activeNamespace: activeNamespace as 'dpia' | 'prescan'
       },
       taskState: {
-        currentRootTaskId: taskStore.currentRootTaskId,
-        taskInstances: taskStore.taskInstances,
-        completedRootTaskIds: Array.from(taskStore.completedRootTaskIds),
+        [activeNamespace]: {
+          currentRootTaskId: taskStore.currentRootTaskId[activeNamespace],
+          taskInstances: taskStore.taskInstances[activeNamespace],
+          completedRootTaskIds: Array.from(taskStore.completedRootTaskIds[activeNamespace]),
+        }
       },
-      answers: answerStore.answers,
+      answers: {
+        [activeNamespace]: answerStore.answers[activeNamespace]
+      }
     }
 
     // Use provided filename or generate default
-    const actualFilename = filename || generateFilename('json')
+    const actualFilename = filename || generateFilename(activeNamespace as 'dpia' | 'prescan', 'json')
 
     // Download the file
     await downloadJsonFile(snapshotData, actualFilename)

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed} from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { importFromJson } from '@/utils/jsonExport'
+import { useTaskStore } from '@/stores/tasks'
 
 const emit = defineEmits<{
   (e: 'start', fileData?: DPIASnapshot): void
@@ -11,6 +12,7 @@ const emit = defineEmits<{
 const uploadedFile = ref<File | null>(null)
 const fileUploadError = ref<string | null>(null)
 const isProcessing = ref(false)
+const taskStore = useTaskStore()
 
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -27,9 +29,9 @@ const startDpia = async () => {
 
   try {
     if (uploadedFile.value) {
-      console.log(uploadedFile.value)
       try {
-        const fileData = await importFromJson(uploadedFile.value)
+        const fileData = await importFromJson(uploadedFile.value, taskStore.activeNamespace as
+        'dpia' | 'prescan')
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -55,10 +57,14 @@ const startDpia = async () => {
     isProcessing.value = false
   }
 }
+
+const formTypeLabel = computed(() => {
+  return taskStore.activeNamespace === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+})
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Welkom bij de DPIA tool</h1>
+  <h1 class="utrecht-heading-1">Welkom bij de {{ formTypeLabel }} tool</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
@@ -67,40 +73,27 @@ const startDpia = async () => {
       </legend>
 
       <div class="utrecht-form-field-description" id="file-upload-helper">
-        Upload de bestanden om bestaande gegevens te hergebruiken.
+        Upload een bestaand {{ formTypeLabel }} bestand om bestaande gegevens te hergebruiken.
       </div>
 
       <div class="rvo-layout-margin-vertical--lg">
-        <div
-          role="group"
-          aria-labelledby="file-upload-label"
-          class="utrecht-form-field utrecht-form-field--text rvo-form-field"
-        >
+        <div role="group" aria-labelledby="file-upload-label"
+          class="utrecht-form-field utrecht-form-field--text rvo-form-field">
           <div class="rvo-form-field__label">
             <label class="rvo-label" id="file-upload-label" for="file-upload-field">
               Bestand
             </label>
           </div>
-          <input
-            id="file-upload-field"
-            type="file"
-            class="rvo-file-input"
-            accept=".json"
-            @change="handleFileSelect"
-          />
+          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json" @change="handleFileSelect" />
         </div>
       </div>
     </fieldset>
   </div>
 
   <div class="rvo-layout-margin-vertical--xl">
-    <UiButton
-      variant="primary"
-      :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'"
-      :disabled="isProcessing"
-      @click="startDpia"
-    />
+    <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
+      :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'" :disabled="isProcessing"
+      @click="startDpia" />
   </div>
 
   <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">

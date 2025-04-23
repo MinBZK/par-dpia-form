@@ -8,13 +8,18 @@ import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
 import { generateFilename } from './fileName'
 
 // Initialize PDFMake
-;(<any>pdfMake).addVirtualFileSystem(pdfFonts)
+(<any>pdfMake).addVirtualFileSystem(pdfFonts)
 
 export async function exportToPdf(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
   filename?: string,
 ): Promise<void> {
+  const activeNamespace = taskStore.activeNamespace
+  const formType = activeNamespace === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+  const rootTasks = taskStore.rootTaskIds[activeNamespace]
+    .map(id => taskStore.flatTasks[activeNamespace][id])
+    .filter(task => !task.type.includes('signing'))
   const dpiaStyleDictionary: StyleDictionary = {
     title: {
       fontSize: 28,
@@ -73,8 +78,7 @@ export async function exportToPdf(
         // Cover page
         {
           stack: [
-            { text: 'Data Protection Impact Assessment', style: 'title' },
-            { text: 'DPIA Rapportagemodel', style: 'subtitle' },
+            { text: formType, style: 'title' },
             {
               text: `Gegenereerd met de 'DPIA Rapportagemodel Editor' op ${new Date().toISOString()}`,
               style: 'subsubtitle',
@@ -93,13 +97,11 @@ export async function exportToPdf(
         },
 
         // Contents
-        ...taskStore.getRootTasks
-          .filter((task) => !task.type.includes('signing'))
-          .map((task) => buildSection(task, taskStore, answerStore)),
+        ...rootTasks.map((task) => buildSection(task, taskStore, answerStore)),
       ],
 
       // Page numbers
-      footer: function (currentPage, pageCount) {
+      footer: function(currentPage, pageCount) {
         return {
           text: `Pagina ${currentPage} van ${pageCount}`,
           alignment: 'center',
@@ -111,9 +113,9 @@ export async function exportToPdf(
 
       // Document metadata
       info: {
-        title: 'DPIA Rapportagemodel',
-        author: 'DPIA Rapportagemodel Editor',
-        creator: 'DPIA Rapportagemodel Editor',
+        title: `${formType} Rapportagemodel`,
+        author: `DPIA Rapportagemodel Editor`,
+        creator: `DPIA Rapportagemodel Editor`,
       },
 
       // Page styling
@@ -122,12 +124,12 @@ export async function exportToPdf(
       styles: dpiaStyleDictionary,
     }
 
-    const actualFilename = filename || 'DPIA_Rapportagemodel.pdf'
+    const actualFilename = filename || generateFilename(activeNamespace as 'dpia' | 'prescan', 'pdf')
     pdfMake.createPdf(docDefinition).download(actualFilename)
 
     return Promise.resolve()
   } catch (error) {
-    return Promise.reject(new Error('Failed to export PDF'))
+    return Promise.reject(new Error(`Failed to export PDF: ${error}`))
   }
 }
 
@@ -319,7 +321,7 @@ function findMappedInstances(
   parentInstanceId: string,
   taskStore: TaskStoreType,
 ): string[] {
-  return Object.values(taskStore.taskInstances)
+  return Object.values(taskStore.taskInstances[taskStore.activeNamespace])
     .filter(
       (instance) =>
         instance.taskId === taskId && instance.mappedFromInstanceId === parentInstanceId,

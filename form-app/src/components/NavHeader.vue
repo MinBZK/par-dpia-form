@@ -13,8 +13,15 @@ defineProps<{
         <li class="rvo-menubar__list">
           <ul class="rvo-menubar__group--flex">
             <li class="rvo-menubar__item">
-              <a class="rvo-link rvo-menubar__link rvo-link--logoblauw" @click="navigation.goToLanding">
-                <span class="utrecht-icon rvo-icon rvo-icon-terug rvo-icon--md" role="img" aria-label="Terug"></span>
+              <a
+                class="rvo-link rvo-menubar__link rvo-link--logoblauw"
+                @click.prevent="navigation.goToLanding"
+              >
+                <span
+                  class="utrecht-icon rvo-icon rvo-icon-terug rvo-icon--md"
+                  role="img"
+                  aria-label="Terug"
+                ></span>
                 Terug naar overzicht
               </a>
             </li>
