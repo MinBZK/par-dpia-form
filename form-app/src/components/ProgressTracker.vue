@@ -4,6 +4,7 @@ import { type FlatTask, useTaskStore } from '@/stores/tasks'
 
 defineProps<{
   disabled?: boolean
+  navigable?: boolean
 }>()
 
 const taskStore = useTaskStore()
@@ -41,7 +42,7 @@ function displayTitle(task: FlatTask): string {
           'rvo-image-bg-progress-tracker-line-straight--before',
         ]"
       >
-        <div v-if="disabled" class="small-text">
+        <div v-if="disabled || !navigable" class="small-text">
           {{ displayTitle(task) }}
         </div>
         <a

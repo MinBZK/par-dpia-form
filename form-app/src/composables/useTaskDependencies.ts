@@ -48,32 +48,6 @@ export function useTaskDependencies() {
       })
 
       return Array.from(uniqueValues)
-
-      //if (!task.dependencies || task.dependencies.length === 0) {
-      //  return []
-      //}
-
-      //for (const dependency of task.dependencies) {
-      //  if (dependency.type === 'source_options') {
-      //    if (!dependency.condition) {
-      //      return []
-      //    }
-      //    const { id: sourceTaskId } = dependency.condition
-
-      //    const uniqueValues = new Set<string>()
-      //    const sourceInstanceIds = taskStore.getInstanceIdsForTask(sourceTaskId)
-
-      //    sourceInstanceIds.forEach((instanceId) => {
-      //      const answer = answerStore.getAnswer(instanceId)
-      //      if (typeof answer === 'string' && answer !== '') {
-      //        uniqueValues.add(answer)
-      //      }
-      //    })
-
-      //    return Array.from(uniqueValues)
-      //  }
-      //}
-      //return []
     }
   })
 

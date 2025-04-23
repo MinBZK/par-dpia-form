@@ -4,10 +4,8 @@ import LandingView from '@/components/LandingView.vue'
 import Form from '@/components/Form.vue'
 import { useTaskStore } from '@/stores/tasks'
 import { useAnswerStore } from '@/stores/answers'
+import { useSchemaStore } from '@/stores/schemas'
 import { ViewState, type NavigationFunctions } from '@/models/navigation'
-
-import dpia_json from '@/assets/DPIA.json'
-import pre_dpia_json from '@/assets/PreScanDPIA.json'
 
 import '@nl-rvo/assets/fonts/index.css'
 import '@nl-rvo/assets/icons/index.css'
@@ -18,6 +16,7 @@ import '@nl-rvo/design-tokens/dist/index.css'
 const currentView = ref<ViewState>(ViewState.Landing)
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
+const schemaStore = useSchemaStore()
 
 const navigateTo = (view: ViewState) => {
   currentView.value = view
@@ -49,7 +48,7 @@ const navigationFunctions: NavigationFunctions = {
     v-if="currentView === ViewState.DPIA"
     :navigation="navigationFunctions"
     namespace="dpia"
-    :formData="dpia_json"
+     :validData="schemaStore.getSchema('dpia')"
   />
 
   <!-- Pre Scan DPIA Form -->
@@ -57,6 +56,6 @@ const navigationFunctions: NavigationFunctions = {
     v-if="currentView === ViewState.PreScanDPIA"
     :navigation="navigationFunctions"
     namespace="prescan"
-    :formData="pre_dpia_json"
+    :validData="schemaStore.getSchema('prescan')"
   />
 </template>

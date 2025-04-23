@@ -16,15 +16,13 @@ import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { exportToJson } from '@/utils/jsonExport'
 import { exportToPdf } from '@/utils/pdfExport'
-import { createSigningTask } from '@/utils/taskUtils'
-import { validateData } from '@/utils/validation'
 import * as t from 'io-ts'
 import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   navigation: NavigationFunctions
   namespace: 'dpia' | 'prescan'
-  formData: any // The DPIA or PreScan JSON data
+  validData: t.TypeOf<typeof DPIA> | null
 }>()
 
 // State
@@ -47,35 +45,29 @@ onMounted(async () => {
     answerStore.setActiveNamespace(props.namespace)
 
     // Step 1: Initialize tasks from DPIA.json.
-    const formValidation: t.Validation<t.TypeOf<typeof DPIA>> = DPIA.decode(props.formData)
+    if (!props.validData) {
+      error.value = `No valid schema data available for ${props.namespace}`
+      isLoading.value = false
+      return
+    }
 
-    validateData<t.TypeOf<typeof DPIA>>(formValidation, (validData) => {
-      const hasSigningTask = validData.tasks.some(task =>
-        task.type && task.type.includes('signing')
-      )
+    // Step 2: Load saved state from local storage if it exists.
+    const savedState = appPersistence.loadAppState()
 
-      // Add signing task (export to PDF step).
-      if (!hasSigningTask) {
-        validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
-      }
+    // Step 3: Initialize task structure.
+    taskStore.init(props.validData.tasks)
 
-      // Step 2: Load saved state from local storage if it exists.
-      const savedState = appPersistence.loadAppState()
+    // Step 4: Apply saved state if it is available.
+    if (savedState) {
+      appPersistence.applyAppState(savedState)
+    }
 
-      // Step 3: Initialize task structure.
-      taskStore.init(validData.tasks)
+    // Step 5: Set up watchers for automatic saving to local storage.
+    appPersistence.setupWatchers()
 
-      // Step 4: Apply saved state if it is available.
-      if (savedState) {
-        appPersistence.applyAppState(savedState)
-      }
+    // Step 6: Sync task instances based on their dependencies.
+    syncInstances.value()
 
-      // Step 5: Set up watchers for automatic saving to local storage.
-      appPersistence.setupWatchers()
-
-      // Step 6: Sync task instances based on their dependencies.
-      syncInstances.value()
-    })
   } catch (e: unknown) {
     if (e instanceof Error) {
       error.value = e.message
@@ -156,7 +148,7 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
-        <ProgressTracker :disabled="!formStarted" />
+        <ProgressTracker :disabled="!formStarted" :navigable="namespace === 'dpia'" />
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">

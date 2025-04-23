@@ -87,7 +87,7 @@ function handleAddRepeatableTask(childId: string) {
     </div>
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
-      <div class="rvo-checkbox__group">
+      <div v-if="taskStore.activeNamespace === 'dpia'" class="rvo-checkbox__group">
         <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
           <input
             id="`${taskId}-completed`"
