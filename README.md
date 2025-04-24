@@ -2,36 +2,97 @@
 > This repository is work in progress.
 
 # par-dpia-form
+
 This repository contains forms to fill in the (pre scan) DPIA form.
 
 ## High level overview
+
 The restrictions imposed on the project are that the forms must be accessible *without any installation
-or hosting*. A standalone HTML file with all necessary styling and javascript embedded in it fulfills 
+or hosting*. A standalone HTML file with all necessary styling and javascript embedded in it fulfills
 this requirement and was hence chosen as a suitable, albeit nonstandard, solution.
 
 Form definitions are declared in YAML. A Vue 3 application loads these YAML definitions and renders
 the form. Users can provide answers, export their progress into a JSON file, load their saved JSON state
 into the application and export the questions and answers to a PDF report.
 
-## Form definitions
-The `sources/` directory contains the speficications of the (Pre Scan) DPIA Forms and the logic
-on how fields within the forms are related. Currently, only the DPIA is implemented. The `DPIA.yaml`
-file contains the tasks within the DPIA, the `DPIA_field_mapping.yaml` contains the way tasks are
-related and the `begrippenkader.yaml` contains glossary items.
+# YAML Validator and Definition Enricher
 
-The JSON-schema specification of `sources/DPIA.yaml` and `sources/DPIA_field_mapping.yaml` can be found
-the `schemas/` directory.
+Tools for validating YAML files against JSON schemas and enriching content with tooltip definitions.
 
-The Python script `script/validate` can be used the validate the YAML's agains their schema. It can be
-invoked, for example using UV, by
+### Components
+
+- `schema_validator.py` - Validates YAML files against JSON schemas
+- `sync_begrippenkader.py` - Manages the glossary (begrippenkader) 
+- `definition_enricher.py` - Enriches data with tooltip definitions
+- `run_sync_validate_and_inject.py` - Combines all functionalities
+
+### Form Definitions
+
+The `sources/` directory contains DPIA form specifications:
+- `DPIA.yaml` - Tasks within the DPIA
+- `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA 
+- `begrippenkader.yaml` - Glossary items
+
+JSON-schemas are in the `schemas/` directory.
+
+## Usage
+
+### Schema Validation
+
+```bash
+# DPIA
+python schema_validator.py --schema schemas/schema_DPIA.json --source sources/DPIA.yaml --output form-app/src/assets/DPIA.json
+
+# Prescan DPIA
+python schema_validator.py --schema schemas/schema_prescanDPIA.json --source sources/prescan_DPIA.yaml --output form-app/src/assets/PreScanDPIA.json
 ```
-uv run --with jsonschema --with pyyaml script/validate --schema schemas/schema_DPIA.json --source sources/DPIA.yaml export --path form-app/src/assets/DPIA.json
+
+### Begrippenkader Synchronization
+
+```bash
+python begrippenkader.py --input path/to/begrippenkader.json --output path/to/begrippenkader.yaml [--existing path/to/existing_begrippenkader.yaml]
 ```
-This will validate the DPIA yaml and export it in JSON format to the specified file.
+
+### Definition Enrichment
+
+```bash
+# DPIA
+python definition_enricher.py --source sources/DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
+
+# Prescan DPIA
+python definition_enricher.py --source sources/prescan_DPIA.yaml --definitions sources/begrippenkader.yaml --output form-app/src/assets/DPIA.json
+```
+
+### Combined Workflow
+
+```bash
+# DPIA
+python script/run_sync_validate_and_inject.py \
+  --schema schemas/schema_DPIA.json \
+  --source sources/DPIA.yaml \
+  --begrippen-json sources/datamodel/begrippenkader-dpia.json \
+  --begrippen-yaml sources/begrippenkader.yaml \
+  --output form-app/src/assets/DPIA.json \
+  --[--skip-validation] \
+  --[--skip-sync-begrippenkader] \
+
+# Prescan DPIA
+python script/run_sync_validate_and_inject.py \
+  --schema schemas/schema_DPIA.json \
+  --source sources/prescan_DPIA.yaml \
+  --begrippen-json sources/datamodel/begrippenkader-dpia.json \
+  --begrippen-yaml sources/begrippenkader.yaml \
+  --output form-app/src/assets/PreScanDPIA.json \
+  --[--skip-validation] \
+  --[--skip-sync-begrippenkader] \
+```
+
 
 ## Pre Scan DPIA Form
+
 TODO
 
 ## DPIA Form
+
 The DPIA form can be downloaded from here: [DPIA form](form-app/dist/index.html). This is a user interface to fill in the DPIA form.
-Because it is a standalone HTML file no installation is needed and it can be rendered in any browser. 
+Because it is a standalone HTML file no installation is needed and it can be rendered in any browser.

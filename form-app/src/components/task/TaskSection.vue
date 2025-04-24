@@ -2,6 +2,7 @@
 import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
@@ -77,11 +78,8 @@ function handleAddRepeatableTask(childId: string) {
     <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
       <div class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
-          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
-        >
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
         </fieldset>
       </div>
     </div>
@@ -104,11 +102,8 @@ function handleAddRepeatableTask(childId: string) {
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
-          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
-        >
-          <p class="utrecht-paragraph preserve-whitespace">
-            {{ task.description }}
-          </p>
+          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
+          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img
@@ -148,7 +143,7 @@ function handleAddRepeatableTask(childId: string) {
               variant="tertiary"
               icon="plus"
               :label="`Voeg extra
-            ${taskStore.taskById(childId).task.toLowerCase()} toe`"
+            ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
               @click="handleAddRepeatableTask(childId)"
             />
           </div>

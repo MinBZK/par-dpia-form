@@ -64,6 +64,47 @@
   margin-right: 0.5rem;
 }
 
+.aiv-definition {
+  position: relative;
+  display: inline-block;
+  border-bottom: 2px dotted black;
+  cursor: help;
+}
+
+.aiv-definition .aiv-definition-text {
+  visibility: hidden;
+  min-width: 500px;
+  max-width: 1000px;
+  background-color: var(--rvo-color-wit);
+  color: var(--rvo-color-zwart);
+  filter: drop-shadow(0 4px 4px rgba(115, 142, 171, 0.5));
+  text-align: left;
+  border-radius: var(--rvo-border-radius-xl);
+  border-color: var(--rvo-color-grijs-200);
+  border: 1px;
+  padding: var(--rvo-alert-padding-sm-padding-block-end);
+  position: absolute;
+  z-index: 1;
+
+  /* Text styling */
+  color: var(--utrecht-document-color);
+  font-family: var(--utrecht-document-font-family);
+  font-size: var(--utrecht-document-font-size);
+  font-weight: var(--utrecht-document-font-weight);
+  font-style: normal;
+  text-align: left;
+  line-height: var(--utrecht-document-line-height);
+
+  /* hack for Safari, https://stackoverflow.com/questions/38762661/css-drop-shadow-not-working-properly-in-safari/75027316#75027316 **/
+  backdrop-filter: blur(0);
+}
+
+/* Make the tooltip visible on hover */
+.aiv-definition:hover .aiv-definition-text {
+  visibility: visible;
+  opacity: 1;
+}
+
 .rvo-theme .rvo-icon--with-spacing-left {
   margin-left: 0.5rem;
 }
