@@ -78,7 +78,7 @@ python script/run_sync_validate_and_inject.py \
 
 # Prescan DPIA
 python script/run_sync_validate_and_inject.py \
-  --schema schemas/schema_prescanDPIA.json \
+  --schema schemas/schema_DPIA.json \
   --source sources/prescan_DPIA.yaml \
   --begrippen-json sources/datamodel/begrippenkader-dpia.json \
   --begrippen-yaml sources/begrippenkader.yaml \
