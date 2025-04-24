@@ -86,6 +86,11 @@
   position: absolute;
   z-index: 1;
 
+  /* Position below the term by default */
+  top: 100%;
+  left: 0;
+  margin-top: 5px;
+
   /* Text styling */
   color: var(--utrecht-document-color);
   font-family: var(--utrecht-document-font-family);
@@ -103,6 +108,15 @@
 .aiv-definition:hover .aiv-definition-text {
   visibility: visible;
   opacity: 1;
+}
+
+/* Class for when we need to shift the tooltip to the left side */
+.aiv-definition.edge-right .aiv-definition-text {
+  right: 100%;
+  left: auto;
+  top: 0;
+  margin-top: 0;
+  margin-right: 5px;
 }
 
 .rvo-theme .rvo-icon--with-spacing-left {
