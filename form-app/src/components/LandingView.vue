@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import AppBanner from '@/components/AppBanner.vue'
+import UiButton from '@/components/ui/UiButton.vue'
 import { type NavigationFunctions } from '@/models/navigation'
 
 defineProps<{
@@ -24,25 +25,23 @@ defineProps<{
       <div class="rvo-layout-grid-container">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link">
-            <div class="rvo-card__content">
+            <div class="rvo-card__content card-content-flex">
               <h2 class="utrecht-heading-2">Pre-scan DPIA</h2>
               <p>Met de pre-scan DPIA toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst
                 die helpt bij het inschatten van risico’s en geeft op basis daarvan advies over het uitvoeren van een
                 DPIA. Daarnaast geeft de tool ook advies over de noodzaak van een IAMA, KIA of DTIA.</p>
-              <button class="utrecht-button utrecht-button--primary-action" @click="navigation.goToPreScanDPIA">
-                Start Pre-scan DPIA
-              </button>
+              <UiButton variant="primary" label="Start Pre-scan DPIA" class="card-button"
+                @click="navigation.goToPreScanDPIA" />
             </div>
           </div>
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link">
-            <div class="rvo-card__content">
+            <div class="rvo-card__content card-content-flex">
               <h2 class="utrecht-heading-2">DPIA Rapportagemodel</h2>
               <p>Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA. De rapportage voldoet aan de
                 eisen uit de AVG en het model DPIA Rijksdienst, en is geschikt voor verwerking in het
                 verwerkingsregister.</p>
-              <button class="utrecht-button utrecht-button--primary-action" @click="navigation.goToDPIA">
-                Start DPIA Rapportagemodel
-              </button>
+              <UiButton variant="primary" label="Start DPIA Rapportagemodel" class="card-button"
+                @click="navigation.goToDPIA" />
             </div>
           </div>
         </div>

@@ -123,3 +123,13 @@
 .rvo-theme .background-grijs-200 {
   background-color: var(--rvo-color-grijs-200) !important;
 }
+
+.rvo-theme .card-content-flex {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.rvo-theme .card-button {
+  margin-top: auto;
+}
