@@ -794,6 +794,8 @@
                             "type": [
                                 "radio_option"
                             ],
+                            "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -812,6 +814,8 @@
                             "type": [
                                 "radio_option"
                             ],
+                            "valueType": "boolean",
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
