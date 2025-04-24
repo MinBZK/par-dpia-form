@@ -487,6 +487,8 @@ tasks:
       id: "1.14.1"
       type: 
       - radio_option
+      valueType: boolean
+      defaultValue: false
       options:
       - value: true 
         label: Ja
@@ -497,6 +499,8 @@ tasks:
       id: "1.14.2"
       type: 
       - radio_option
+      valueType: boolean
+      defaultValue: false
       options:
       - value: true 
         label: Ja
