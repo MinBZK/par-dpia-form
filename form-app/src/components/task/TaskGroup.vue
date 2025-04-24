@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import FormField from '@/components/task/FormField.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskStore, type FlatTask } from '@/stores/tasks'
 import { renderInstanceLabel } from '@/utils/taskUtils'
@@ -122,7 +123,7 @@ const handleDelete = (instanceId: string) => {
               <UiButton
                 variant="tertiary"
                 icon="plus"
-                :label="`Voeg ${taskStore.taskById(childId).task.toLowerCase()} toe`"
+                :label="`Voeg ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"
               />
             </div>
@@ -165,7 +166,7 @@ const handleDelete = (instanceId: string) => {
               <UiButton
                 variant="tertiary"
                 icon="plus"
-                :label="`Voeg ${taskStore.taskById(childId).task.toLowerCase()} toe`"
+                :label="`Voeg ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"
               />
             </div>
@@ -178,7 +179,7 @@ const handleDelete = (instanceId: string) => {
         v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
         variant="warning"
         icon="verwijderen"
-        :label="`Verwijder ${task.task.toLowerCase()}`"
+        :label="`Verwijder ${getPlainTextWithoutDefinitions(task.task.toLowerCase())}`"
         @click="handleDelete(props.instanceId)"
       />
     </fieldset>

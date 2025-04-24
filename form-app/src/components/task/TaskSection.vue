@@ -2,6 +2,7 @@
 import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
@@ -142,7 +143,7 @@ function handleAddRepeatableTask(childId: string) {
               variant="tertiary"
               icon="plus"
               :label="`Voeg extra
-            ${taskStore.taskById(childId).task.toLowerCase()} toe`"
+            ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
               @click="handleAddRepeatableTask(childId)"
             />
           </div>

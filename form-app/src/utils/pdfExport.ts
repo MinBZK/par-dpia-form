@@ -4,6 +4,7 @@ import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
 import { renderInstanceLabel } from '@/utils/taskUtils'
+import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
 import { generateFilename } from './fileName'
 
@@ -154,7 +155,7 @@ function buildSection(
 
 function buildSectionTitle(taskId: string, taskName: string): Content {
   return {
-    text: `${taskId}.  ${taskName}`,
+    text: `${taskId}.  ${getPlainTextWithoutDefinitions(taskName)}`,
     style: 'header',
     tocItem: true,
   }
@@ -164,7 +165,7 @@ function buildSectionDesciption(description?: string): Content {
   return {
     stack: [
       { text: 'Beschrijving', style: 'subSubHeader' },
-      { text: `${description}`, style: 'description' },
+      { text: `${getPlainTextWithoutDefinitions(description)}`, style: 'description' },
     ],
   }
 }
@@ -201,7 +202,7 @@ function buildAnswer(
     // Process each child of the root task
     for (const childId of task.childrenIds) {
       const childTask = taskStore.taskById(childId)
-      childElements.push({ text: childTask.task, style: 'subSubHeader' })
+      childElements.push({ text: getPlainTextWithoutDefinitions(childTask.task), style: 'subSubHeader' })
 
       // Process child task and its instances
       const contentItems = processTaskWithInstances(childTask, null, taskStore, answerStore, 0)
@@ -266,7 +267,7 @@ function processTaskWithInstances(
   if (nestingLevel > 0 && instanceIds.length > 0 && task.repeatable) {
     // Add category title for repeatable nested groups
     elements.push({
-      text: task.task,
+      text: getPlainTextWithoutDefinitions(task.task),
       style: 'category',
       margin: [nestingLevel * 10, 10, 0, 5],
     })
@@ -347,7 +348,7 @@ function buildTableRows(
 
   tableRows.push([
     {
-      text: instanceLabel,
+      text: getPlainTextWithoutDefinitions(instanceLabel),
       style: 'tableHeader',
       colSpan: 2,
       margin: [0, 3, 0, 3],
@@ -376,7 +377,7 @@ function buildTableRows(
       const value = answerStore.getAnswer(childInstanceId)
       tableRows.push([
         {
-          text: childTask.task,
+          text: getPlainTextWithoutDefinitions(childTask.task),
           bold: true,
           margin: [0, 3, 0, 3],
           fillColor: '#f5f5f5',
