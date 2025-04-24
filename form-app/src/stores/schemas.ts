@@ -79,9 +79,10 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     isInitialized.value = dpiaSuccess || preScanSuccess
   }
 
-  function getSchema(namespace: 'dpia' | 'prescan') {
+  function getSchema(namespace: 'dpia' | 'prescan'): t.TypeOf<typeof DPIA> | null {
     if (namespace === 'dpia') return validatedDpia.value
     if (namespace === 'prescan') return validatedPreScan.value
+    return null
   }
 
   return {
