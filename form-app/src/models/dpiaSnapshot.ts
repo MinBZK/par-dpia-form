@@ -1,9 +1,10 @@
 import { type Answer } from '@/stores/answers'
 import { type TaskInstance } from '@/stores/tasks'
+import { FormType } from './dpia';
 
 export interface DPIASnapshotMetadata {
   savedAt: string
-  activeNamespace?: 'dpia' | 'prescan'
+  activeNamespace?: FormType
 }
 
 export interface DPIATaskState {
@@ -15,6 +16,6 @@ export interface DPIATaskState {
 // Contains namespaced state
 export interface DPIASnapshot {
   metadata: DPIASnapshotMetadata
-  taskState: Record<string, DPIATaskState>
-  answers: Record<string, Record<string, Answer>>
+  taskState: Partial<Record<FormType, DPIATaskState>>
+  answers: Partial<Record<FormType, Record<string, Answer>>>
 }

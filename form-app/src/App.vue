@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { FormType } from '@/models/dpia.ts'
 import LandingView from '@/components/LandingView.vue'
 import Form from '@/components/Form.vue'
 import { useTaskStore } from '@/stores/tasks'
@@ -25,15 +26,15 @@ const navigateTo = (view: ViewState) => {
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => navigateTo(ViewState.Landing),
   goToDPIA: () => {
-    taskStore.setActiveNamespace('dpia')
-    answerStore.setActiveNamespace('dpia')
-    taskStore.isInitialized['dpia'] = false
+    taskStore.setActiveNamespace(FormType.DPIA)
+    answerStore.setActiveNamespace(FormType.DPIA)
+    taskStore.isInitialized[FormType.DPIA] = false
     navigateTo(ViewState.DPIA)
   },
   goToPreScanDPIA: () => {
-    taskStore.setActiveNamespace('prescan')
-    answerStore.setActiveNamespace('prescan')
-    taskStore.isInitialized['prescan'] = false
+    taskStore.setActiveNamespace(FormType.PRE_SCAN)
+    answerStore.setActiveNamespace(FormType.PRE_SCAN)
+    taskStore.isInitialized[FormType.PRE_SCAN] = false
     navigateTo(ViewState.PreScanDPIA)
   },
 }
@@ -47,15 +48,15 @@ const navigationFunctions: NavigationFunctions = {
   <Form
     v-if="currentView === ViewState.DPIA"
     :navigation="navigationFunctions"
-    namespace="dpia"
-     :validData="schemaStore.getSchema('dpia')"
+    :namespace="FormType.DPIA"
+     :validData="schemaStore.getSchema(FormType.DPIA)"
   />
 
   <!-- Pre Scan DPIA Form -->
   <Form
     v-if="currentView === ViewState.PreScanDPIA"
     :navigation="navigationFunctions"
-    namespace="prescan"
-    :validData="schemaStore.getSchema('prescan')"
+    :namespace="FormType.PRE_SCAN"
+    :validData="schemaStore.getSchema(FormType.PRE_SCAN)"
   />
 </template>

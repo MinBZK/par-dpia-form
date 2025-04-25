@@ -147,3 +147,11 @@
 .rvo-theme .card-button {
   margin-top: auto;
 }
+
+.rvo-theme .font-hemelblauw {
+ color: var(--rvo-color-hemelblauw);
+}
+
+.rvo-theme .font-white {
+ color: var(--rvo-color-wit);
+}

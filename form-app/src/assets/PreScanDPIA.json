@@ -226,7 +226,6 @@
                             "type": [
                                 "checkbox_option"
                             ],
-                            "counter": true,
                             "options": [
                                 {
                                     "value": "Apparaat- en internetgegevens"
@@ -257,16 +256,16 @@
                                 }
                             ],
                             "calculation": {
-                                "risicoscore_tag": "gewone_persoonsgegeven",
-                                "type": "count",
-                                "thresholds": [
+                                "scoreKey": "gewone_persoonsgegeven",
+                                "expression": "answers('1.8.2') | count",
+                                "riskScore": [
                                     {
-                                        "condition": "gewone_persoonsgegeven < 6",
-                                        "risicoscore_gewone_persoonsgegeven": 0
+                                        "when": "gewone_persoonsgegeven < 6",
+                                        "value": 0
                                     },
                                     {
-                                        "condition": "gewone_persoonsgegeven >= 6",
-                                        "risicoscore_gewone_persoonsgegeven": 1
+                                        "when": "gewone_persoonsgegeven >= 6",
+                                        "value": 1
                                     }
                                 ]
                             },
@@ -347,7 +346,6 @@
                             "links": {
                                 "DPIA": "13.1.2.3"
                             },
-                            "counter": true,
                             "options": [
                                 {
                                     "value": "Biometrische gegevens met het oog op identificatie"
@@ -387,20 +385,20 @@
                             ],
                             "repeatable": false,
                             "calculation": {
-                                "risicoscore_tag": "bijzonder_persoonsgegeven",
-                                "type": "count",
-                                "thresholds": [
+                                "scoreKey": "bijzonder_persoonsgegeven",
+                                "expression": "answers('1.9.2') | count",
+                                "riskScore": [
                                     {
-                                        "condition": "bijzonder_persoonsgegeven == 0",
-                                        "risicoscore_bijzonder_persoonsgegeven": 0
+                                        "when": "bijzonder_persoonsgegeven == 0",
+                                        "value": 0
                                     },
                                     {
-                                        "condition": "bijzonder_persoonsgegeven >= 1 && bijzonder_persoonsgegeven <= 6",
-                                        "risicoscore_bijzonder_persoonsgegeven": 1
+                                        "when": "bijzonder_persoonsgegeven >= 1 && bijzonder_persoonsgegeven <= 6",
+                                        "value": 1
                                     },
                                     {
-                                        "condition": "bijzonder_persoonsgegeven > 6",
-                                        "risicoscore_bijzonder_persoonsgegeven": 2
+                                        "when": "bijzonder_persoonsgegeven > 6",
+                                        "value": 2
                                     }
                                 ]
                             }
@@ -474,20 +472,20 @@
                                 }
                             ],
                             "calculation": {
-                                "risicoscore_tag": "gevoelig_persoonsgegeven",
-                                "type": "count",
-                                "thresholds": [
+                                "scoreKey": "gevoelig_persoonsgegeven",
+                                "expression": "answers('1.10.2') | count",
+                                "riskScore": [
                                     {
-                                        "condition": "gevoelig_persoonsgegeven == 0",
-                                        "risicoscore_gevoelig_persoonsgegeven": 0
+                                        "when": "gevoelig_persoonsgegeven == 0",
+                                        "value": 0
                                     },
                                     {
-                                        "condition": "gevoelig_persoonsgegeven >= 1 && gevoelig_persoonsgegeven <= 6",
-                                        "risicoscore_gevoelig_persoonsgegeven": 1
+                                        "when": "gevoelig_persoonsgegeven >= 1 && gevoelig_persoonsgegeven <= 6",
+                                        "value": 1
                                     },
                                     {
-                                        "condition": "gevoelig_persoonsgegeven > 6",
-                                        "risicoscore_gevoelig_persoonsgegeven": 2
+                                        "when": "gevoelig_persoonsgegeven > 6",
+                                        "value": 2
                                     }
                                 ]
                             },
@@ -514,10 +512,9 @@
                     "type": [
                         "checkbox_option"
                     ],
-                    "counter": true,
                     "options": [
                         {
-                            "value": "Medewerkers/bewindspersonen"
+                            "value": "Medewerkersbewindspersonen"
                         },
                         {
                             "value": "Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie"
@@ -533,20 +530,20 @@
                         }
                     ],
                     "calculation": {
-                        "risicoscore_tag": "betrokkenen",
-                        "type": "weighted_count",
-                        "thresholds": [
+                        "scoreKey": "betrokkenen",
+                        "expression": "weightedCountMap( answers('1.11'), [ 'Medewerkers/bewindspersonen', 'Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie', 'Kinderen jonger dan 16 jaar', 'Andere kwetsbare groepen (gehandicapten, minderheden, etc.)', 'Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)' ], [1, 1, 3, 3, 0])",
+                        "riskScore": [
                             {
-                                "condition": "betrokkenen <=2",
-                                "risicoscore_betrokkenen": 0
+                                "when": "betrokkenen <= 2",
+                                "value": 0
                             },
                             {
-                                "condition": "betrokkenen == 3",
-                                "risicoscore_betrokkenen": 1
+                                "when": "betrokkenen == 3",
+                                "value": 1
                             },
                             {
-                                "condition": "betrokkenen >= 4",
-                                "risicoscore_betrokkenen": 2
+                                "when": "betrokkenen >= 4",
+                                "value": 2
                             }
                         ]
                     },
@@ -585,7 +582,6 @@
                                     "type": [
                                         "text_input"
                                     ],
-                                    "risicoscore_tag": "aantal_betrokkenen",
                                     "repeatable": false
                                 },
                                 {
@@ -594,7 +590,6 @@
                                     "type": [
                                         "text_input"
                                     ],
-                                    "risicoscore_tag": "aantal_betrokkenen",
                                     "repeatable": false
                                 },
                                 {
@@ -603,7 +598,6 @@
                                     "type": [
                                         "text_input"
                                     ],
-                                    "risicoscore_tag": "aantal_betrokkenen",
                                     "repeatable": false
                                 },
                                 {
@@ -612,7 +606,6 @@
                                     "type": [
                                         "text_input"
                                     ],
-                                    "risicoscore_tag": "aantal_betrokkenen",
                                     "repeatable": false
                                 },
                                 {
@@ -621,24 +614,9 @@
                                     "type": [
                                         "text_input"
                                     ],
-                                    "risicoscore_tag": "aantal_betrokkenen",
                                     "repeatable": false
                                 }
-                            ],
-                            "calculation": {
-                                "risicoscore_tag": "aantal_betrokkenen",
-                                "type": "sum",
-                                "thresholds": [
-                                    {
-                                        "condition": "aantal_betrokkenen < 10000",
-                                        "risicoscore_aantal_betrokkenen": 0
-                                    },
-                                    {
-                                        "condition": "aantal_betrokkenen >= 10000",
-                                        "risicoscore_aantal_betrokkenen": 1
-                                    }
-                                ]
-                            }
+                            ]
                         },
                         {
                             "task": "Hoeveelheid gegevens die per betrokkene wordt verwerkt (hoeveelheid in getallen)",
@@ -693,7 +671,7 @@
                         },
                         {
                             "task": "<span class=\"aiv-definition\">Frequentie van verwerking<span class=\"aiv-definition-text\">Frequentie van verwerking is een aanduiding die aangeeft met welke frequentie [persoonsgegevens] worden verwerkt.\n\nToelichting: Bij invulling van \"frequentie van verwerking\" in de Pre-scan DPIA kan er \u00e9\u00e9n optie worden ingevuld. Is er sprake van meerdere frequenties, dan geldt de hoogst van toepassing zijnde.</span></span>",
-                            "id": "1.12.3",
+                            "id": "1.13.3",
                             "prescan_model_id": "11.c",
                             "type": [
                                 "select_option"
@@ -720,16 +698,16 @@
                             ],
                             "repeatable": false,
                             "calculation": {
-                                "risicoscore_tag": "frequentie_verwerking",
-                                "type": "value",
-                                "thresholds": [
+                                "scoreKey": "frequentie_verwerking",
+                                "expression": "answers('1.13.3')",
+                                "riskScore": [
                                     {
-                                        "condition": "(frequentie_verwerking == \"Eenmalig\") || (frequentie_verwerking == \"Onregelmatig\") || (frequentie_verwerking == \"Minstens jaarlijks\")",
-                                        "risicoscore_frequentie_verwerking": 0
+                                        "when": "frequentie_verwerking in ['Eenmalig', 'Onregelmatig', 'Minstens jaarlijks']",
+                                        "value": 0
                                     },
                                     {
-                                        "condition": "(frequentie_verwerking == \"Minstens manadelijks\") || (frequentie_verwerking == \"Vaker dan maandelijks\") || (frequentie_verwerking == \"Continu\")",
-                                        "risicoscore_frequentie_verwerking": 1
+                                        "when": "frequentie_verwerking in ['Minstens maandelijks', 'Vaker dan maandelijks', 'Continu']",
+                                        "value": 1
                                     }
                                 ]
                             }
@@ -763,16 +741,20 @@
                             ],
                             "repeatable": false,
                             "calculation": {
-                                "risicoscore_tag": "bewaartermijn",
-                                "type": "value",
-                                "thresholds": [
+                                "expression": "answers('1.13.4')",
+                                "scoreKey": "bewaartermijn",
+                                "riskScore": [
                                     {
-                                        "condition": "(bewaartermijn == \"Minder dan 24 uur\") || (bewaartermijn == \"Mindern dan 1 week\") || (bewaartermijn == \"Minder dan 1 maand\")",
-                                        "risicoscore_bewaartermijn": 0
+                                        "when": "bewaartermijn == null",
+                                        "value": 0
                                     },
                                     {
-                                        "condition": "(bewaartermijn == \"Jaar\") || (bewaartermijn == \"Aantal jaren\")",
-                                        "risicoscore_bewaartermijn": 1
+                                        "when": "bewaartermijn in ['Minder dan 24 uur', 'Minder dan 1 week', 'Minder dan 1 maand']",
+                                        "value": 0
+                                    },
+                                    {
+                                        "when": "bewaartermijn in ['Jaar', 'Aantal jaren']",
+                                        "value": 1
                                     }
                                 ]
                             }
@@ -1081,13 +1063,11 @@
                             "options": [
                                 {
                                     "value": true,
-                                    "label": "Ja",
-                                    "risicoscore_tag": "bijzondere_persoonsgegevens_doorgifte"
+                                    "label": "Ja"
                                 },
                                 {
                                     "value": false,
-                                    "label": "Nee",
-                                    "risicoscore_tag": "bijzondere_persoonsgegevens_doorgifte"
+                                    "label": "Nee"
                                 }
                             ],
                             "dependencies": [
@@ -1101,41 +1081,35 @@
                                     "action": "show"
                                 }
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "calculation": {
+                                "scoreKey": "internationale_doorgifte",
+                                "expression": "(answers('2.1.1') == true && ((answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER')) || answers('2.1.8') == true)) ? 2 : ((answers('2.1.1') == true && answers('2.1.8') != true && (answers('0.4.1') != true || (answers('0.4.1') == true && answers('2.1.3') != 'Buiten EER' && answers('2.1.4') != 'Buiten EER'))) || (answers('2.1.1') != true && answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER'))) ? 1 : 0",
+                                "riskScore": [
+                                    {
+                                        "when": "internationale_doorgifte == 0",
+                                        "value": 0
+                                    },
+                                    {
+                                        "when": "internationale_doorgifte == 1",
+                                        "value": 1
+                                    },
+                                    {
+                                        "when": "internationale_doorgifte == 2",
+                                        "value": 2
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
-            ],
-            "calculation": {
-                "risico_tag": [
-                    "internationale_doorgifte",
-                    "locatie_gegevensopslag",
-                    "bijzondere_persoonsgegevens_doorgifte",
-                    "cloudgebruik"
-                ],
-                "type": "value",
-                "thresholds": [
-                    {
-                        "condition": "(internationale_doorgifte == false) && ( (cloudgebruik == false) || (cloudgebruik == true && locatie_gegevensopslag != \"Buiten EER\") )",
-                        "risicoscore_internationale_doorgifte": 0
-                    },
-                    {
-                        "condition": "((internationale_doorgifte == true && bijzondere_persoonsgegevens_doorgifte == false && (cloudgebruik == false || (cloudgebruik == true && locatie_gegevensopslag != \"Buiten EER\")))) || ((internationale_doorgifte == false && cloudgebruik == true && locatie_gegevensopslag == \"Buiten EER\"))",
-                        "risicoscore_internationale_doorgifte": 1
-                    },
-                    {
-                        "condition": "internationale_doorgifte == true && ((cloudgebruik == true && locatie_gegevensopslag == \"Buiten EER\") || bijzondere_persoonsgegevens_doorgifte == true )",
-                        "risicoscore_internationale_doorgifte": 2
-                    }
-                ]
-            }
+            ]
         },
         {
             "task": "Lijst AP",
             "description": "Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst AP. De Lijst AP is een lijst met soorten gegevensverwerkingen van de [AP] waarvoor een DPIA verplicht is.",
             "id": "3",
             "prescan_model_id": "D",
-            "counter": true,
             "type": [
                 "task_group"
             ],
@@ -1201,12 +1175,16 @@
                         }
                     ],
                     "calculation": {
-                        "AP_tag": "AP",
-                        "type": "count",
-                        "thresholds": [
+                        "scoreKey": "ap",
+                        "expression": "answers('3.1') | count",
+                        "riskScore": [
                             {
-                                "condition": "AP => 1",
-                                "AP_score": 2
+                                "when": "ap < 2",
+                                "value": 0
+                            },
+                            {
+                                "when": "ap >= 2",
+                                "value": 2
                             }
                         ]
                     },
@@ -1222,7 +1200,6 @@
             "type": [
                 "task_group"
             ],
-            "counter": true,
             "repeatable": false,
             "tasks": [
                 {
@@ -1264,16 +1241,16 @@
                         }
                     ],
                     "calculation": {
-                        "EPDB_tag": "EPDB",
-                        "type": "count",
-                        "thresholds": [
+                        "scoreKey": "epdb",
+                        "expression": "answers('4.1') | count",
+                        "riskScore": [
                             {
-                                "condition": "EPDB == 1",
-                                "EPDB_score": 1
+                                "when": "epdb == 1",
+                                "value": 1
                             },
                             {
-                                "condition": "EPDB > 1",
-                                "EPDB_score": 2
+                                "when": "epdb > 1",
+                                "value": 2
                             }
                         ]
                     },
@@ -1370,25 +1347,25 @@
                                     "action": "show"
                                 }
                             ],
-                            "repeatable": false
+                            "repeatable": false,
+                            "calculation": {
+                                "scoreKey": "basisregistratie",
+                                "expression": "weightedCountMap( answers('5.1.2'), [ 'Basisregistratie Grootschalige Topografie (BGT)', 'Basisregistratie Inkomen (BRI)', 'Basisregistratie Kadaster (BRK)', 'Basisregistratie Ondergrond (BRO)', 'Basisregistratie Personen (BRP)', 'Basisregistratie Topografie (BRT)', 'Basisregistratie Voertuigen (BRV)', 'Basisregistratie Waarde Onroerende Zaken (WOZ)', 'Handelsregister (HR)', 'Adressen en Gebouwen (BAG)' ], [0, 1, 1, 0, 1, 0, 1, 1, 1, 0])",
+                                "riskScore": [
+                                    {
+                                        "when": "basisregistratie == 0",
+                                        "value": 0
+                                    },
+                                    {
+                                        "when": "basisregistratie >= 1",
+                                        "value": 1
+                                    }
+                                ]
+                            }
                         }
                     ]
                 }
-            ],
-            "calculation": {
-                "risicoscore_tag": "basisregistratie",
-                "type": "weighted_count",
-                "thresholds": [
-                    {
-                        "condition": "basisregistratie == 0",
-                        "risicoscore_basisregistratie": 0
-                    },
-                    {
-                        "condition": "basisregistratie >= 1",
-                        "risicoscore_basisregistratie": 1
-                    }
-                ]
-            }
+            ]
         },
         {
             "task": "Algoritmes/AI",
@@ -1541,13 +1518,11 @@
                             "options": [
                                 {
                                     "value": true,
-                                    "label": "Ja",
-                                    "risicoscore_tag": "digitaledienst_minderjarig"
+                                    "label": "Ja"
                                 },
                                 {
                                     "value": false,
-                                    "label": "Nee",
-                                    "risicoscore_tag": "digitaledienst_minderjarig"
+                                    "label": "Nee"
                                 }
                             ],
                             "repeatable": false,
@@ -1576,13 +1551,11 @@
                             "options": [
                                 {
                                     "value": true,
-                                    "label": "Ja",
-                                    "risicoscore_tag": "digitaledienst_gebruik_minderjarig"
+                                    "label": "Ja"
                                 },
                                 {
                                     "value": false,
-                                    "label": "Nee",
-                                    "risicoscore_tag": "digitaledienst_gebruik_minderjarig"
+                                    "label": "Nee"
                                 }
                             ],
                             "dependencies": [
@@ -1593,34 +1566,57 @@
                                         "operator": "equals",
                                         "value": true
                                     },
-                                    "action": "show"
+                                    "action": "show",
+                                    "calculation": {
+                                        "scoreKey": "digitaledienst_minderjarig",
+                                        "expression": "answers('7.1.2') == true ? 2 : (answers('7.1.1') == true && answers('7.1.3') != true) ? 1 : 0",
+                                        "riskScore": [
+                                            {
+                                                "when": "digitaledienst_minderjarig == 0",
+                                                "value": 0
+                                            },
+                                            {
+                                                "when": "digitaledienst_minderjarig == 1",
+                                                "value": 1
+                                            },
+                                            {
+                                                "when": "digitaledienst_minderjarig == 2",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
                                 }
                             ]
                         }
                     ]
                 }
-            ],
-            "calculation": {
-                "risicoscore_tag": [
-                    "digitaledienst_minderjarig",
-                    "digitaledienst_gebruik_minderjarig"
-                ],
-                "type": "value",
-                "thresholds": [
-                    {
-                        "condition": "digitaledienst_minderjarig == false && digitaledienst_gebruik_minderjarig != \"Nee\"",
-                        "risicoscore_digitaledienst_minderjarig": 0
-                    },
-                    {
-                        "condition": "digitaledienst_minderjarig == false && digitaledienst_gebruik_minderjarig == \"Nee\"",
-                        "risicoscore_digitaledienst_minderjarig": 1
-                    },
-                    {
-                        "condition": "digitaledienst_minderjarig == true",
-                        "risicoscore_digitaledienst_minderjarig": 2
-                    }
-                ]
-            }
+            ]
+        }
+    ],
+    "assessments": [
+        {
+            "id": "DPIA",
+            "expression": " ( (scores.gewone_persoonsgegeven || 0) + (scores.bijzonder_persoonsgegeven || 0) + (scores.gevoelig_persoonsgegeven || 0) + (scores.betrokkenen || 0) + (scores.aantal_betrokkenen || 0) + (scores.frequentie_verwerking || 0) + (scores.bewaartermijn || 0) + (scores.internationale_doorgifte || 0) + (scores.basisregistratie || 0) + (scores.digitaledienst_minderjarig || 0) ) > 4|| (countSelectedOptions('3.1') >= 1) || (countSelectedOptions('4.1') >= 2)",
+            "result": "DPIA verplicht",
+            "explanation": "Een DPIA is verplicht omdat:\n - de som van de risicoscores groter is dan 4, en/of\n - er minimaal 1 item op de AP-lijst is geselecteerd, en/of\n - er minimaal 2 items op de EDPB-lijst zijn geselecteerd.\n"
+        },
+        {
+            "id": "DTIA",
+            "expression": " bool(answers('2.1.1')) && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']",
+            "result": "DTIA verplicht",
+            "explanation": "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+        },
+        {
+            "id": "KIA",
+            "expression": "bool(answers('7.1.1')) && bool(answers('7.1.2'))",
+            "result": "KIA verplicht",
+            "explanation": "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar."
+        },
+        {
+            "id": "IAMA",
+            "expression": "bool(answers('6.1.1')) && (bool(answers('6.1.2')) || bool(answers('6.1.3')))",
+            "result": "IAMA verplicht",
+            "explanation": "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
         }
     ]
 }

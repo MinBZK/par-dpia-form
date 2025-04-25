@@ -15,7 +15,7 @@ export function useAppStatePersistence() {
       const dpiaSnapshot: DPIASnapshot = {
         metadata: {
           savedAt: new Date().toISOString(),
-          activeNamespace: namespace as 'dpia' | 'prescan',
+          activeNamespace: namespace,
         },
 
         taskState: {
@@ -58,7 +58,6 @@ export function useAppStatePersistence() {
         parsedState.answers &&
         parsedState.answers[namespace]
       ) {
-        console.log(`Found saved state for namespace: ${namespace}`)
         return parsedState
       }
     } catch (error) {
@@ -69,7 +68,6 @@ export function useAppStatePersistence() {
 
   function applyAppState(snapshot: DPIASnapshot): void {
     const namespace = taskStore.activeNamespace
-    console.log(`Applying saved state for namespace: ${namespace}`)
 
     // ONLY apply state if it exists for the current namespace
     if (
@@ -88,8 +86,6 @@ export function useAppStatePersistence() {
 
       // Apply completed tasks
       taskStore.completedRootTaskIds[namespace] = new Set(namespaceState.completedRootTaskIds)
-    } else {
-      console.log(`No task state found for namespace: ${namespace} or empty instances, skipping`)
     }
 
     // Apply answers for the current namespace only
@@ -101,9 +97,6 @@ export function useAppStatePersistence() {
       // Create a fresh object to avoid reference issues
       answerStore.answers[namespace] = {}
       Object.assign(answerStore.answers[namespace], snapshot.answers[namespace])
-      console.log(`Applied answers for namespace: ${namespace}`)
-    } else {
-      console.log(`No answers found for namespace: ${namespace} or empty answers, skipping`)
     }
   }
 

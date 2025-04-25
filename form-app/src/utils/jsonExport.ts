@@ -1,9 +1,10 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
+import { FormType } from '@/models/dpia';
 import { generateFilename } from './fileName'
 
-export async function importFromJson(file: File, activeNamespace: 'dpia' | 'prescan'): Promise<DPIASnapshot> {
+export async function importFromJson(file: File, activeNamespace: FormType): Promise<DPIASnapshot> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
@@ -54,7 +55,7 @@ export async function exportToJson(
     const snapshotData: DPIASnapshot = {
       metadata: {
         savedAt: new Date().toISOString(),
-        activeNamespace: activeNamespace as 'dpia' | 'prescan'
+        activeNamespace
       },
       taskState: {
         [activeNamespace]: {
@@ -69,7 +70,7 @@ export async function exportToJson(
     }
 
     // Use provided filename or generate default
-    const actualFilename = filename || generateFilename(activeNamespace as 'dpia' | 'prescan', 'json')
+    const actualFilename = filename || generateFilename(activeNamespace, 'json')
 
     // Download the file
     await downloadJsonFile(snapshotData, actualFilename)

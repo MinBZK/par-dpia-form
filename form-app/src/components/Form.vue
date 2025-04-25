@@ -6,10 +6,11 @@ import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import NavHeader from '@/components/NavHeader.vue'
 import FileUploadPage from '@/components/FileUploadPage.vue'
+import LiveResults from '@/components/LiveResults.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
 import { useAppStatePersistence } from '@/composables/useAppStatePersistence'
-import { DPIA } from '@/models/dpia.ts'
+import { DPIA, FormType } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type NavigationFunctions } from '@/models/navigation'
 import { useAnswerStore } from '@/stores/answers'
@@ -21,7 +22,7 @@ import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   navigation: NavigationFunctions
-  namespace: 'dpia' | 'prescan'
+  namespace: FormType
   validData: t.TypeOf<typeof DPIA> | null
 }>()
 
@@ -148,7 +149,12 @@ const handleStart = (fileData?: DPIASnapshot) => {
 
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
-        <ProgressTracker :disabled="!formStarted" :navigable="namespace === 'dpia'" />
+        <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
+          FormType.PRE_SCAN" />
+
+        <div v-if="formStarted && namespace === FormType.PRE_SCAN" class="rvo-layout-margin-vertical--xl">
+          <LiveResults />
+        </div>
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">

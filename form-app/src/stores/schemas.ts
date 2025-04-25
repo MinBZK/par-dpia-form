@@ -1,10 +1,10 @@
 // src/stores/schemaStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { DPIA } from '@/models/dpia.ts'
+import { DPIA, FormType } from '@/models/dpia.ts'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
-import { createSigningTask } from '@/utils/taskUtils'
+import { createConclusionTask } from '@/utils/taskUtils'
 
 // Import JSON files
 import dpia_json from '@/assets/DPIA.json'
@@ -19,7 +19,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
 
   function processSchema(
     jsonData: unknown,
-    schemaType: 'dpia' | 'prescan'
+    schemaType: FormType
   ): boolean {
     try {
       const validation = DPIA.decode(jsonData as any)
@@ -32,13 +32,17 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
           task.type && task.type.includes('signing')
         )
         if (!hasSigningTask) {
-          validData.tasks.push(createSigningTask(validData.tasks.length.toString()))
+          if (schemaType === FormType.DPIA) {
+            validData.tasks.push(createConclusionTask("Ondertekening", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
+          } else if (schemaType === FormType.PRE_SCAN) {
+            validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
+          }
         }
 
         // Store in the appropriate ref
-        if (schemaType === 'dpia') {
+        if (schemaType === FormType.DPIA) {
           validatedDpia.value = validData
-        } else if (schemaType === 'prescan') {
+        } else if (schemaType === FormType.PRE_SCAN) {
           validatedPreScan.value = validData
         }
 
@@ -72,16 +76,16 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     hasErrors.value = false
     errorMessage.value = null
 
-    const dpiaSuccess = processSchema(dpia_json, 'dpia')
-    const preScanSuccess = processSchema(pre_dpia_json, 'prescan')
+    const dpiaSuccess = processSchema(dpia_json, FormType.DPIA)
+    const preScanSuccess = processSchema(pre_dpia_json, FormType.PRE_SCAN)
 
     // Mark as initialized if at least one schema processed successfully
     isInitialized.value = dpiaSuccess || preScanSuccess
   }
 
-  function getSchema(namespace: 'dpia' | 'prescan'): t.TypeOf<typeof DPIA> | null {
-    if (namespace === 'dpia') return validatedDpia.value
-    if (namespace === 'prescan') return validatedPreScan.value
+  function getSchema(namespace: FormType): t.TypeOf<typeof DPIA> | null {
+    if (namespace === FormType.DPIA) return validatedDpia.value
+    if (namespace === FormType.PRE_SCAN) return validatedPreScan.value
     return null
   }
 

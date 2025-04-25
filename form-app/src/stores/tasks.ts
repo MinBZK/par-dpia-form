@@ -1,4 +1,4 @@
-import { Dependency, Option, Source, Task, TaskTypeValue } from '@/models/dpia'
+import { Dependency, Option, Source, Task, TaskTypeValue, FormType } from '@/models/dpia'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -40,30 +40,30 @@ export const useTaskStore = defineStore('TaskStore', () => {
    * ==============================================
    */
 
-  const activeNamespace = ref('dpia')
-  const flatTasks = ref<Record<string, Record<string, FlatTask>>>({
-    dpia: {},
-    prescan: {},
+  const activeNamespace = ref(FormType.DPIA)
+  const flatTasks = ref<Record<FormType, Record<string, FlatTask>>>({
+    [FormType.DPIA]: {},
+    [FormType.PRE_SCAN]: {},
   })
-  const taskInstances = ref<Record<string, Record<string, TaskInstance>>>({
-    dpia: {},
-    prescan: {},
+  const taskInstances = ref<Record<FormType, Record<string, TaskInstance>>>({
+    [FormType.DPIA]: {},
+    [FormType.PRE_SCAN]: {},
   })
-  const currentRootTaskId = ref<Record<string, string>>({
-    dpia: '0',
-    prescan: '0',
+  const currentRootTaskId = ref<Record<FormType, string>>({
+    [FormType.DPIA]: "0",
+    [FormType.PRE_SCAN]: "0",
   })
-  const rootTaskIds = ref<Record<string, string[]>>({
-    dpia: [],
-    prescan: [],
+  const rootTaskIds = ref<Record<FormType, string[]>>({
+    [FormType.DPIA]: [],
+    [FormType.PRE_SCAN]: [],
   })
-  const isInitialized = ref<Record<string, boolean>>({
-    dpia: false,
-    prescan: false,
+  const isInitialized = ref<Record<FormType, boolean>>({
+    [FormType.DPIA]: false,
+    [FormType.PRE_SCAN]: false,
   })
-  const completedRootTaskIds = ref<Record<string, Set<string>>>({
-    dpia: new Set(),
-    prescan: new Set(),
+  const completedRootTaskIds = ref<Record<FormType, Set<string>>>({
+    [FormType.DPIA]: new Set(),
+    [FormType.PRE_SCAN]: new Set(),
   })
 
   /**
@@ -81,7 +81,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
     completedRootTaskIds: completedRootTaskIds.value[activeNamespace.value],
   }))
 
-  function setActiveNamespace(namespace: 'dpia' | 'prescan') {
+  function setActiveNamespace(namespace: FormType) {
     if (activeNamespace.value !== namespace) {
       activeNamespace.value = namespace
 
@@ -94,7 +94,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   }
 
-  function clearStateForNamespace(namespace: string): void {
+  function clearStateForNamespace(namespace: FormType): void {
     flatTasks.value[namespace] = {}
     taskInstances.value[namespace] = {}
     currentRootTaskId.value[namespace] = '0'

@@ -167,7 +167,6 @@ tasks:
         prescan_model_id: 7
         type: 
         - checkbox_option
-        counter: true 
         options: 
         - value: Apparaat- en internetgegevens
         - value: Content
@@ -179,13 +178,13 @@ tasks:
         - value: Naam, contactgegevens
         - value: Overige
         calculation:
-          risicoscore_tag: gewone_persoonsgegeven
-          type: count
-          thresholds:
-            - condition: gewone_persoonsgegeven < 6
-              risicoscore_gewone_persoonsgegeven: 0
-            - condition: gewone_persoonsgegeven >= 6
-              risicoscore_gewone_persoonsgegeven: 1
+          scoreKey: "gewone_persoonsgegeven"   # This creates a variable named gewone_persoonsgegeven
+          expression: "answers('1.8.2') | count"  # Count selected items
+          riskScore:
+            - when: "gewone_persoonsgegeven < 6"
+              value: 0
+            - when: "gewone_persoonsgegeven >= 6"
+              value: 1
         repeatable: false 
         dependencies: 
           - type: conditional 
@@ -194,7 +193,6 @@ tasks:
               operator: equals 
               value: true 
             action: show
-        repeatable: false
       - task: Specificeer
         id: "1.8.3"
         type:
@@ -236,7 +234,6 @@ tasks:
         type: 
         - checkbox_option
         links: {"DPIA": "13.1.2.3"} #paragraaf 12
-        counter: true 
         options: 
         - value: Biometrische gegevens met het oog op identificatie
         - value: Gegevens over seksuele geaardheid of seksueel gedrag
@@ -255,15 +252,15 @@ tasks:
           action: show
         repeatable: false
         calculation:
-          risicoscore_tag: bijzonder_persoonsgegeven
-          type: count
-          thresholds:
-            - condition: bijzonder_persoonsgegeven == 0
-              risicoscore_bijzonder_persoonsgegeven: 0
-            - condition: bijzonder_persoonsgegeven >= 1 && bijzonder_persoonsgegeven <= 6
-              risicoscore_bijzonder_persoonsgegeven: 1
-            - condition: bijzonder_persoonsgegeven > 6
-              risicoscore_bijzonder_persoonsgegeven: 2
+          scoreKey: "bijzonder_persoonsgegeven"
+          expression: "answers('1.9.2') | count"
+          riskScore:
+            - when: "bijzonder_persoonsgegeven == 0"
+              value: 0
+            - when: "bijzonder_persoonsgegeven >= 1 && bijzonder_persoonsgegeven <= 6"
+              value: 1
+            - when: "bijzonder_persoonsgegeven > 6"
+              value: 2
   - task: Overige gevoelige persoonsgegevens
     id: "1.10"
     type:
@@ -302,15 +299,15 @@ tasks:
         - value: Strafrechtelijke gegevens
         - value: (Andere) gegevens die kunnen leiden tot stigmatisering of uitsluiting van de betrokkene
         calculation:
-          risicoscore_tag: gevoelig_persoonsgegeven
-          type: count
-          thresholds:
-            - condition: gevoelig_persoonsgegeven == 0
-              risicoscore_gevoelig_persoonsgegeven: 0
-            - condition: gevoelig_persoonsgegeven >= 1 && gevoelig_persoonsgegeven <= 6
-              risicoscore_gevoelig_persoonsgegeven: 1
-            - condition: gevoelig_persoonsgegeven > 6
-              risicoscore_gevoelig_persoonsgegeven: 2
+          scoreKey: "gevoelig_persoonsgegeven"
+          expression: "answers('1.10.2') | count"
+          riskScore:
+            - when: "gevoelig_persoonsgegeven == 0"
+              value: 0
+            - when: "gevoelig_persoonsgegeven >= 1 && gevoelig_persoonsgegeven <= 6"
+              value: 1
+            - when: "gevoelig_persoonsgegeven > 6"
+              value: 2
         dependencies: 
         - type: conditional 
           condition: 
@@ -326,23 +323,31 @@ tasks:
     prescan_model_id: 10
     type: 
     - checkbox_option
-    counter: true
     options: 
-    - value: Medewerkers/bewindspersonen  # TODO: add value 1
-    - value: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie # TODO: add value 1
-    - value: Kinderen jonger dan 16 jaar # TODO: add value 3
-    - value: Andere kwetsbare groepen (gehandicapten, minderheden, etc.) # TODO : add value 3
-    - value: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving) # TODO: add value 0
+    - value: Medewerkersbewindspersonen
+    - value: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
+    - value: Kinderen jonger dan 16 jaar
+    - value: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
+    - value: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
     calculation:
-      risicoscore_tag: betrokkenen
-      type: weighted_count
-      thresholds:
-        - condition: betrokkenen <=2
-          risicoscore_betrokkenen: 0
-        - condition: betrokkenen == 3
-          risicoscore_betrokkenen: 1
-        - condition: betrokkenen >= 4
-          risicoscore_betrokkenen: 2
+      scoreKey: "betrokkenen"
+      expression: "weightedCountMap(
+        answers('1.11'),
+        [
+          'Medewerkers/bewindspersonen',
+          'Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie',
+          'Kinderen jonger dan 16 jaar',
+          'Andere kwetsbare groepen (gehandicapten, minderheden, etc.)',
+          'Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
+        ],
+        [1, 1, 3, 3, 0])"
+      riskScore:
+        - when: "betrokkenen <= 2"
+          value: 0
+        - when: "betrokkenen == 3"
+          value: 1
+        - when: "betrokkenen >= 4"
+          value: 2
     repeatable: false 
   - task: Geef een omschrijving van de doelgroep 
     id: "1.12"
@@ -368,40 +373,27 @@ tasks:
             id: "1.13.1.1"
             type: 
             - text_input
-            risicoscore_tag: "aantal_betrokkenen"
             repeatable: false 
           - task:  Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie
             id: "1.13.1.2"
             type:
             - text_input
-            risicoscore_tag: "aantal_betrokkenen"
             repeatable: false 
           - task: Kinderen jonger dan 16 jaar
             id: "1.13.1.3"
             type: 
             - text_input
-            risicoscore_tag: "aantal_betrokkenen"
             repeatable: false 
           - task: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)
             id: "1.13.1.4"
             type: 
             - text_input
-            risicoscore_tag: "aantal_betrokkenen"
             repeatable: false 
           - task: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)
             id: "1.13.1.5"
             type: 
             - text_input
-            risicoscore_tag: "aantal_betrokkenen"
             repeatable: false 
-        calculation:
-          risicoscore_tag: aantal_betrokkenen
-          type: sum
-          thresholds:
-            - condition: aantal_betrokkenen < 10000
-              risicoscore_aantal_betrokkenen: 0
-            - condition: aantal_betrokkenen >= 10000
-              risicoscore_aantal_betrokkenen: 1
       - task: Hoeveelheid gegevens die per betrokkene wordt verwerkt (hoeveelheid in getallen) #RM: deze vraag heeft geen invloed op de uitkomst. 
         id: "1.13.2"
         prescan_model_id: 11.b
@@ -435,7 +427,7 @@ tasks:
           - text_input
           repeatable: false 
       - task: Frequentie van verwerking 
-        id: "1.12.3"
+        id: "1.13.3"
         prescan_model_id: 11.c
         type: 
         - select_option 
@@ -448,13 +440,13 @@ tasks:
         - value: Eenmalig 
         repeatable: false
         calculation:
-          risicoscore_tag: frequentie_verwerking
-          type: value
-          thresholds:
-            - condition: (frequentie_verwerking == "Eenmalig") || (frequentie_verwerking == "Onregelmatig") || (frequentie_verwerking == "Minstens jaarlijks")
-              risicoscore_frequentie_verwerking: 0
-            - condition: (frequentie_verwerking == "Minstens manadelijks") || (frequentie_verwerking == "Vaker dan maandelijks") || (frequentie_verwerking == "Continu")
-              risicoscore_frequentie_verwerking: 1
+          scoreKey: "frequentie_verwerking"
+          expression: "answers('1.13.3')"  # Get the selected value
+          riskScore:
+          - when: "frequentie_verwerking in ['Eenmalig', 'Onregelmatig', 'Minstens jaarlijks']"
+            value: 0
+          - when: "frequentie_verwerking in ['Minstens maandelijks', 'Vaker dan maandelijks', 'Continu']"
+            value: 1
       - task: Wat is de bewaartermijn van de gegevens? 
         id: "1.13.4"
         prescan_model_id: 11.c
@@ -469,13 +461,15 @@ tasks:
         - value: Minder dan 24 uur
         repeatable: false
         calculation:
-          risicoscore_tag: bewaartermijn
-          type: value
-          thresholds:
-            - condition: (bewaartermijn == "Minder dan 24 uur") || (bewaartermijn == "Mindern dan 1 week") || (bewaartermijn == "Minder dan 1 maand")
-              risicoscore_bewaartermijn: 0
-            - condition: (bewaartermijn == "Jaar") || (bewaartermijn == "Aantal jaren")
-              risicoscore_bewaartermijn: 1
+          expression: "answers('1.13.4')"
+          scoreKey: "bewaartermijn"
+          riskScore:
+            - when: "bewaartermijn == null"
+              value: 0  
+            - when: "bewaartermijn in ['Minder dan 24 uur', 'Minder dan 1 week', 'Minder dan 1 maand']"
+              value: 0
+            - when: "bewaartermijn in ['Jaar', 'Aantal jaren']"
+              value: 1
   - task: Zijn de volgende gebruikersgroepen betrokken bij de verwerking? 
     id: "1.14"
     prescan_model_id: 12
@@ -660,10 +654,8 @@ tasks:
         options: 
         - value: true
           label: Ja
-          risicoscore_tag: bijzondere_persoonsgegevens_doorgifte
         - value: false
           label: Nee
-          risicoscore_tag: bijzondere_persoonsgegevens_doorgifte
         dependencies: 
           - type: conditional 
             condition: 
@@ -672,29 +664,21 @@ tasks:
               value: true
             action: show
         repeatable: false
-  calculation:
-      risico_tag: [internationale_doorgifte, locatie_gegevensopslag, bijzondere_persoonsgegevens_doorgifte, cloudgebruik]
-      type: value
-      thresholds:
-        - condition: (internationale_doorgifte == false) && 
-                    (
-                      (cloudgebruik == false) || 
-                      (cloudgebruik == true && locatie_gegevensopslag != "Buiten EER")
-                    )
-          risicoscore_internationale_doorgifte: 0
-        - condition: ((internationale_doorgifte == true && bijzondere_persoonsgegevens_doorgifte == false && 
-                      (cloudgebruik == false || (cloudgebruik == true && locatie_gegevensopslag != "Buiten EER")))) || 
-                      ((internationale_doorgifte == false && cloudgebruik == true && locatie_gegevensopslag == "Buiten EER"))
-          risicoscore_internationale_doorgifte: 1
-        - condition: internationale_doorgifte == true && 
-                      ((cloudgebruik == true && locatie_gegevensopslag == "Buiten EER") || bijzondere_persoonsgegevens_doorgifte == true )
-          risicoscore_internationale_doorgifte: 2
+        calculation:
+          scoreKey: "internationale_doorgifte"
+          expression: "(answers('2.1.1') == true && ((answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER')) || answers('2.1.8') == true)) ? 2 : ((answers('2.1.1') == true && answers('2.1.8') != true && (answers('0.4.1') != true || (answers('0.4.1') == true && answers('2.1.3') != 'Buiten EER' && answers('2.1.4') != 'Buiten EER'))) || (answers('2.1.1') != true && answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER'))) ? 1 : 0"
+          riskScore:
+            - when: "internationale_doorgifte == 0"
+              value: 0
+            - when: "internationale_doorgifte == 1"
+              value: 1
+            - when: "internationale_doorgifte == 2"
+              value: 2
 - task: Lijst AP
   description: >-
     Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst AP. De Lijst AP is een lijst met soorten gegevensverwerkingen van de [AP] waarvoor een DPIA verplicht is.
   id: "3"
   prescan_model_id: D
-  counter: true 
   type: 
   - task_group
   repeatable: false
@@ -721,12 +705,14 @@ tasks:
     - value: 'Locatiegegevens'
     - value: 'Samenwerkingsverbanden'
     - value: 'Zwarte lijsten'
-    calculation: 
-      AP_tag: AP
-      type: count
-      thresholds:
-        - condition: AP => 1
-          AP_score: 2
+    calculation:
+      scoreKey: "ap"
+      expression: "answers('3.1') | count"
+      riskScore:
+        - when: "ap < 2"
+          value: 0
+        - when: "ap >= 2"
+          value: 2
     repeatable: false
 - task: Lijst EDPB
   description: >- 
@@ -735,7 +721,6 @@ tasks:
   prescan_model_id: E
   type: 
   - task_group
-  counter: true
   repeatable: false
   tasks: 
   - task: Welke categorieen betrokkenen kun je onderscheiden? 
@@ -753,14 +738,14 @@ tasks:
     - value: 'Stelselmatige en grootschalige monitoring'
     - value: 'Verwerking van persoonsgegevens over kwetsbare groepen of personen'
     - value: Geen van bovenstaande 
-    calculation: 
-      EPDB_tag: EPDB
-      type: count
-      thresholds:
-        - condition: EPDB == 1
-          EPDB_score: 1
-        - condition: EPDB > 1
-          EPDB_score: 2
+    calculation:
+      scoreKey: "epdb"
+      expression: "answers('4.1') | count"
+      riskScore:
+        - when: "epdb == 1"
+          value: 1
+        - when: "epdb > 1"
+          value: 2
     repeatable: false
 - task: Basisregistratie #should be removed, where can we find this info? 
   description: >-
@@ -796,16 +781,16 @@ tasks:
           type: 
             - checkbox_option
           options: 
-            - value: 'Basisregistratie Grootschalige Topografie (BGT)' # TODO: add value 0
-            - value: 'Basisregistratie Inkomen (BRI)' # TODO: add value 1
-            - value: 'Basisregistratie Kadaster (BRK)' # TODO: add value 1
-            - value: 'Basisregistratie Ondergrond (BRO)' # TODO: add value 0
-            - value: 'Basisregistratie Personen (BRP)' # TODO: add value 1
-            - value: 'Basisregistratie Topografie (BRT)' # TODO: add value 0
-            - value: 'Basisregistratie Voertuigen (BRV)' # TODO: add value 1
-            - value: 'Basisregistratie Waarde Onroerende Zaken (WOZ)' # TODO: add value 1
-            - value: 'Handelsregister (HR)' # TODO: add value 1
-            - value: 'Adressen en Gebouwen (BAG)' # TODO: add value 0
+            - value: 'Basisregistratie Grootschalige Topografie (BGT)'
+            - value: 'Basisregistratie Inkomen (BRI)'
+            - value: 'Basisregistratie Kadaster (BRK)'
+            - value: 'Basisregistratie Ondergrond (BRO)'
+            - value: 'Basisregistratie Personen (BRP)'
+            - value: 'Basisregistratie Topografie (BRT)'
+            - value: 'Basisregistratie Voertuigen (BRV)'
+            - value: 'Basisregistratie Waarde Onroerende Zaken (WOZ)'
+            - value: 'Handelsregister (HR)'
+            - value: 'Adressen en Gebouwen (BAG)'
           dependencies: 
             - type: conditional 
               condition: 
@@ -814,14 +799,28 @@ tasks:
                 value: true
               action: show
           repeatable: false
-  calculation:
-      risicoscore_tag: basisregistratie
-      type: weighted_count
-      thresholds:
-        - condition: basisregistratie == 0
-          risicoscore_basisregistratie: 0
-        - condition: basisregistratie >= 1
-          risicoscore_basisregistratie: 1
+          calculation:
+            scoreKey: "basisregistratie"
+            expression: "weightedCountMap(
+              answers('5.1.2'),
+              [
+                'Basisregistratie Grootschalige Topografie (BGT)',
+                'Basisregistratie Inkomen (BRI)',
+                'Basisregistratie Kadaster (BRK)',
+                'Basisregistratie Ondergrond (BRO)',
+                'Basisregistratie Personen (BRP)',
+                'Basisregistratie Topografie (BRT)',
+                'Basisregistratie Voertuigen (BRV)',
+                'Basisregistratie Waarde Onroerende Zaken (WOZ)',
+                'Handelsregister (HR)',
+                'Adressen en Gebouwen (BAG)'
+              ],
+              [0, 1, 1, 0, 1, 0, 1, 1, 1, 0])"
+            riskScore:
+              - when: "basisregistratie == 0"
+                value: 0
+              - when: "basisregistratie >= 1"
+                value: 1
 - task: Algoritmes/AI
   description: >-
     Bij de organisatorische activiteit persoonsgegevens kan er sprake zijn van het gebruik van een algoritme. Indien er sprake van een algoritme is, dan is de organisatorische activiteit een organisatorische activiteit met algoritme. Daarbij wordt een aanduiding of er sprake is van inzet van een AI-systeem vastgelegd.
@@ -922,10 +921,8 @@ tasks:
       options: 
       - value: true
         label: Ja
-        risicoscore_tag: digitaledienst_minderjarig
       - value: false 
         label: Nee 
-        risicoscore_tag: digitaledienst_minderjarig
       repeatable: false 
       dependencies: 
         - type: conditional 
@@ -945,10 +942,8 @@ tasks:
       options: 
       - value: true
         label: Ja
-        risicoscore_tag: digitaledienst_gebruik_minderjarig
       - value: false 
         label: Nee 
-        risicoscore_tag: digitaledienst_gebruik_minderjarig
       dependencies: 
         - type: conditional 
           condition: 
@@ -956,68 +951,54 @@ tasks:
             operator: equals 
             value: true 
           action: show
-  calculation: 
-    risicoscore_tag: [digitaledienst_minderjarig, digitaledienst_gebruik_minderjarig]
-    type: value
-    thresholds:
-    - condition: digitaledienst_minderjarig == false && digitaledienst_gebruik_minderjarig != "Nee"
-      risicoscore_digitaledienst_minderjarig: 0
-    - condition: digitaledienst_minderjarig == false && digitaledienst_gebruik_minderjarig == "Nee"
-      risicoscore_digitaledienst_minderjarig: 1
-    - condition: digitaledienst_minderjarig == true
-      risicoscore_digitaledienst_minderjarig: 2
-
-    #conclusion_calculation:
-    #  DPIA:
-    #    type: value
-    #    thresholds:
-    #      - condition: |
-    #          (
-    #            # Criterion 1: Sum of all risk scores > 4
-    #            (
-    #              (risicoscore_gewone_persoonsgegeven ?? 0) +
-    #              (risicoscore_bijzonder_persoonsgegeven ?? 0) +
-    #              (risicoscore_gevoelig_persoonsgegeven ?? 0) +
-    #              (risicoscore_betrokkenen ?? 0) +
-    #              (risicoscore_aantal_betrokkenen ?? 0) +
-    #              (risicoscore_frequentie_verwerking ?? 0) +
-    #              (risicoscore_bewaartermijn ?? 0) +
-    #              (risicoscore_internationale_doorgifte ?? 0) +
-    #              (risicoscore_basisregistratie ?? 0) +
-    #              (risicoscore_digitaledienst_minderjarig ?? 0) > 4
-    #            )
-    #            OR
-    #            # Criterion 2: At least 1 item from AP list
-    #            (AP_score >= 1)
-    #            OR
-    #            # Criterion 3: At least 2 items from EDPB list
-    #            (EPDB_score >= 2)
-    #          )
-    #        result: "DPIA required"
-    #      - condition: "(EPDB_score == 1)"
-    #        result: "Mogelijk DPIA verplicht"
-    #       
-    #    DTIA:
-    #        type: value
-    #        thresholds:
-    #        - condition: 
-    #            ("3.1" == "JA") &&
-    #            (("3.1.1" == "Buiten EER") || ("3.1.2" == "Buiten EER")) &&
-    #            (("3.1.3" == "Standaard contractsbepaling (SCC)") || ("3.1.3" == "Geen van bovenstaande"))
-    #        result: "DTIA"
-    #
-    #    KIA: 
-    #      type: value
-    #      thresholds:
-    #      - condition: 
-    #          ("8.2" == 'Ja')
-    #        result: "KIA"
-    #      - condition: 
-    #          ("8.3" == "Nee")
-    #        result: "Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst" #RM: voorstel om dit eruit te laten en in de vraag op te nemen. 
-    #    
-    #    IAMA: 
-    #      type: value
-    #      thresholds:
-    #      - condition: ("7.2" == true) || ("7.3" == true) 
-    #        result: "IAMA"
+          calculation:
+            scoreKey: "digitaledienst_minderjarig"
+            expression: "answers('7.1.2') == true ? 2 : (answers('7.1.1') == true && answers('7.1.3') != true) ? 1 : 0"
+            riskScore:
+              - when: "digitaledienst_minderjarig == 0"
+                value: 0
+              - when: "digitaledienst_minderjarig == 1"
+                value: 1
+              - when: "digitaledienst_minderjarig == 2"
+                value: 2
+assessments:
+  - id: "DPIA"
+    expression: "
+      (
+        (scores.gewone_persoonsgegeven || 0) +
+        (scores.bijzonder_persoonsgegeven || 0) +
+        (scores.gevoelig_persoonsgegeven || 0) +
+        (scores.betrokkenen || 0) +
+        (scores.aantal_betrokkenen || 0) +
+        (scores.frequentie_verwerking || 0) +
+        (scores.bewaartermijn || 0) +
+        (scores.internationale_doorgifte || 0) +
+        (scores.basisregistratie || 0) +
+        (scores.digitaledienst_minderjarig || 0) 
+      ) > 4|| 
+      (countSelectedOptions('3.1') >= 1) ||
+      (countSelectedOptions('4.1') >= 2)"
+    result: "DPIA verplicht"
+    explanation: |
+      Een DPIA is verplicht omdat:
+       - de som van de risicoscores groter is dan 4, en/of
+       - er minimaal 1 item op de AP-lijst is geselecteerd, en/of
+       - er minimaal 2 items op de EDPB-lijst zijn geselecteerd.
+  - id: "DTIA"
+    expression: "
+      bool(answers('2.1.1')) && 
+      (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && 
+      answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']"
+    result: "DTIA verplicht"
+    explanation: "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER 
+                 en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+  - id: "KIA"
+    expression: "bool(answers('7.1.1')) && bool(answers('7.1.2'))"
+    result: "KIA verplicht" 
+    explanation: "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair 
+                 bedoeld is voor gebruik door personen jonger dan 18 jaar."
+  - id: "IAMA"
+    expression: "bool(answers('6.1.1')) && (bool(answers('6.1.2')) || bool(answers('6.1.3')))"
+    result: "IAMA verplicht"
+    explanation: "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme 
+                 waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."

@@ -2,6 +2,7 @@
 import UiButton from '@/components/ui/UiButton.vue'
 import { generateFilename } from '@/utils/fileName'
 import { useTaskStore } from '@/stores/tasks'
+import { FormType } from '@/models/dpia';
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{
@@ -18,7 +19,7 @@ const taskStore = useTaskStore()
 
 // Generate filename based on timestamp
 const filename = computed((): string => {
-  return generateFilename(taskStore.activeNamespace as 'dpia' | 'prescan', 'json')
+  return generateFilename(taskStore.activeNamespace, 'json')
 })
 
 // Handle ESC key to close modal
@@ -29,7 +30,7 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 const formName = computed(() =>
-  taskStore.activeNamespace === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+  taskStore.activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
 )
 
 onMounted(() => {

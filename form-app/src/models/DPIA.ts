@@ -1,5 +1,10 @@
 import * as t from 'io-ts'
 
+export enum FormType {
+  DPIA = 'dpia',
+  PRE_SCAN = 'prescan'
+}
+
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
   t.literal('signing'),
@@ -65,7 +70,25 @@ export const Dependency = t.intersection([
 
 export type Dependency = t.TypeOf<typeof Dependency>
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const RiskScore = t.type({
+  when: t.string,
+  value: t.number
+})
+
+export type RiskScore = t.TypeOf<typeof RiskScore>
+
+export const Calculation = t.intersection([
+  t.type({
+    expression: t.string,
+  }),
+  t.partial({
+    scoreKey: t.string,
+    riskScore: t.array(RiskScore)
+  })
+])
+
+export type Calculation = t.TypeOf<typeof Calculation>
+
 export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
   t.intersection([
     // Required properties
@@ -86,6 +109,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       sources: t.array(Source),
       dependencies: t.array(Dependency),
       defaultValue: t.union([t.string, t.boolean, t.null]),
+      calculation: Calculation,
     }),
   ]),
 )
@@ -94,10 +118,23 @@ export type Task = t.TypeOf<typeof Task>
 export const Tasks = t.array(Task)
 export type Tasks = t.TypeOf<typeof Tasks>
 
-export const DPIA = t.type({
-  name: t.string,
-  urn: t.string,
-  version: t.string,
-  description: t.string,
-  tasks: Tasks,
+export const Assessment = t.type({
+  id: t.string,
+  expression: t.string,
+  result: t.string,
+  explanation: t.string,
 })
+export type Assessment = t.TypeOf<typeof Assessment>
+
+export const DPIA = t.intersection([
+  t.type({
+    name: t.string,
+    urn: t.string,
+    version: t.string,
+    description: t.string,
+    tasks: Tasks,
+  }),
+  t.partial({
+    assessments: t.array(Assessment),
+  })
+])
