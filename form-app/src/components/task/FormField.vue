@@ -202,7 +202,9 @@ const handleCheckboxInput = (event: Event) => {
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
             type="checkbox"
-          v-html="option"/></label>
+            v-html="option"/>
+          {{ option }}
+        </label>
       </div>
     </div>
     <div v-else-if="task.options && task.options.length > 0" class="rvo-layout-margin-vertical--md">
