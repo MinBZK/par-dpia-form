@@ -14,11 +14,11 @@ import { DPIA, FormType } from '@/models/dpia.ts'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type NavigationFunctions } from '@/models/navigation'
 import { useAnswerStore } from '@/stores/answers'
-import { useTaskStore } from '@/stores/tasks'
+import { useTaskStore, taskIsOfTaskType } from '@/stores/tasks'
 import { exportToJson } from '@/utils/jsonExport'
 import { exportToPdf } from '@/utils/pdfExport'
 import * as t from 'io-ts'
-import { onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = defineProps<{
   navigation: NavigationFunctions
@@ -128,6 +128,11 @@ const handleStart = (fileData?: DPIASnapshot) => {
   }
   formStarted.value = true
 }
+
+const isSigningTask = computed(() => {
+  const task = taskStore.taskById(currentRootTaskId.value)
+  return taskIsOfTaskType(task, 'signing')
+})
 </script>
 
 <template>
@@ -152,9 +157,6 @@ const handleStart = (fileData?: DPIASnapshot) => {
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
           FormType.PRE_SCAN" />
 
-        <div v-if="formStarted && namespace === FormType.PRE_SCAN" class="rvo-layout-margin-vertical--xl">
-          <LiveResults />
-        </div>
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
@@ -176,6 +178,11 @@ const handleStart = (fileData?: DPIASnapshot) => {
             </div>
           </div>
         </template>
+
+        <div v-if="formStarted && namespace === FormType.PRE_SCAN && !isSigningTask"
+          class="rvo-layout-margin-vertical--xl">
+          <LiveResults />
+        </div>
       </div>
     </div>
   </template>
