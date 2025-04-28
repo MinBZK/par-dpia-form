@@ -41,6 +41,9 @@ export function shouldShowTask(
 
       const { id: conditionTaskId, operator, value } = dependency.condition
       const action = dependency.action
+      if (value === null || value === undefined) {
+        throw new Error(`Dependency on task ${conditionTaskId} with operator ${operator} cannot have void value`)
+      }
 
       // NOTE: We assume the conditionTaskId is within the same task group, i.e. we
       // assume that the conditionTaskId is an ancestor of taskId.
@@ -62,6 +65,12 @@ export function shouldShowTask(
         conditionMet = normalizedValue === value
       } else if (operator === 'any') {
         conditionMet = true
+      } else if (operator === 'contains') {
+        if (!Array.isArray(normalizedValue)) {
+          conditionMet = normalizedValue === value
+        } else {
+          conditionMet = normalizedValue.includes(value as string)
+        }
       } else {
         // Add more operators if needed.
         throw new Error(`got an unsuported operator ${operator}`)

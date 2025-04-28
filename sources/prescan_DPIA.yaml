@@ -200,9 +200,9 @@ tasks:
         dependencies: 
         - type: conditional 
           condition: 
-            id: "1.8.1"
-            operator: equals 
-            value: true 
+            id: "1.8.2"
+            operator: contains 
+            value: "Overige"
           action: show
         repeatable: false 
   - task: Bijzondere persoonsgegevens
