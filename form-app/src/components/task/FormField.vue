@@ -201,8 +201,7 @@ const handleCheckboxInput = (event: Event) => {
             :name="`group-${task.id}-${instanceId}`"
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
-            type="checkbox"
-            v-html="option"/>
+            type="checkbox"/>
           {{ option }}
         </label>
       </div>

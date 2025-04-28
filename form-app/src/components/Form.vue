@@ -170,7 +170,7 @@ const isSigningTask = computed(() => {
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
               <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <UiButton variant="secondary" label="Opslaan" @click="openSaveModal" />
+                <UiButton variant="secondary" label="Werk opslaan als bestand" @click="openSaveModal" />
                 <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
                   label="Volgende stap" @click="goToNext" />
                 <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
