@@ -21,6 +21,7 @@ export interface FlatTask {
 }
 
 export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
+  console.log(task.type)
   return task.type?.includes(type)
 }
 
