@@ -61,22 +61,25 @@ const handleSave = () => {
 <template>
   <div v-if="isOpen" class="modal-overlay" @click="handleClickOutside">
     <div ref="saveFormRef" class="save-modal" aria-labelledby="save-form-title" role="dialog" aria-modal="true">
-      <h2 id="save-form-title" class="utrecht-heading-2">Formulier opslaan</h2>
+      <h2 id="save-form-title" class="utrecht-heading-2">Sla je {{ formName }} op als bestand</h2>
 
       <div class="rvo-layout-margin-vertical--s">
-        <p class="utrecht-paragraph">Sla het {{ formName }} formulier lokaal op om je voortgang te bewaren.</p>
+        <p class="utrecht-paragraph">Klik op "Bestand maken" om je werk lokaal op te slaan.</p>
         <p class="utrecht-paragraph">
-          Het bestand <strong>{{ filename }}</strong> kan later weer worden geselecteerd om mee
-          verder te werken.
+          <strong>Bestandsnaam: {{ filename }}</strong>
         </p>
         <p class="utrecht-paragraph">
-          Je kunt dit bestand ook delen met collega's zodat zij ermee aan de slag kunnen.
+        Je kunt dit bestand later in het startscherm van het formulier weer openen.
+        </p>
+        <p class="utrecht-paragraph">
+        Stuur het bestand door, zodat een collega het kan uploaden in de tool en verder kan
+        werken.
         </p>
       </div>
 
       <p class="utrecht-button-group rvo-action-groul--position-right" role="group" aria-label="Formulier opslag">
         <UiButton variant="tertiary" label="Annuleren" @click="closeModal" />
-        <UiButton variant="primary" label="Opslaan" @click="handleSave" />
+        <UiButton variant="primary" label="Bestand maken" @click="handleSave" />
       </p>
     </div>
   </div>

@@ -46,6 +46,17 @@ defineProps<{
           </div>
         </div>
       </div>
+
+      <div class="rvo-layout-margin-vertical--3xl">
+        <h2 class="utrecht-heading-2">Opslaan en delen van je DPIA</h2>
+        <p class="rvo-text--lg">
+          Tijdens het invullen kun je je voortgang opslaan als een bestand op je eigen computer.
+        </p>
+        <ul>
+          <li> Je kunt dit bestand later opnieuw openen om verder te werken. </li>
+          <li> Je kunt het ook delen met een collega zodat die verder kan gaan.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>

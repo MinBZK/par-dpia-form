@@ -12,6 +12,15 @@ import { generateFilename } from './fileName'
 // Initialize PDFMake
 (<any>pdfMake).addVirtualFileSystem(pdfFonts)
 
+const dutchDateFormatter = new Intl.DateTimeFormat('nl-NL', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+})
+
 export async function exportToPdf(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
@@ -82,7 +91,7 @@ export async function exportToPdf(
           stack: [
             { text: formType, style: 'title' },
             {
-              text: `Gegenereerd met de 'DPIA Rapportagemodel Editor' op ${new Date().toISOString()}`,
+              text: `Gegenereerd met de 'DPIA Rapportagemodel Editor' op ${dutchDateFormatter.format(new Date())}`,
               style: 'subsubtitle',
             },
           ],
