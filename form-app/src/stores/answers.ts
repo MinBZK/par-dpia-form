@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { FormType } from '@/models/dpia';
 
 export type AnswerValue = string | string[] | null
 
@@ -14,10 +15,10 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
    * Store properties
    * ==============================================
    */
-  const activeNamespace = ref('dpia')
-  const answers = ref<Record<string, Record<string, Answer>>>({
-    dpia: {},
-    prescan: {},
+  const activeNamespace = ref(FormType.DPIA)
+  const answers = ref<Record<FormType, Record<string, Answer>>>({
+    [FormType.DPIA]: {},
+    [FormType.PRE_SCAN]: {},
   })
 
   /**
@@ -26,7 +27,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
    * ==============================================
    */
 
-  function setActiveNamespace(namespace: 'dpia' | 'prescan') {
+  function setActiveNamespace(namespace: FormType) {
     if (activeNamespace.value !== namespace) {
       activeNamespace.value = namespace
 

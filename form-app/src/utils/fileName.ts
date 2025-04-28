@@ -1,4 +1,6 @@
-export function generateFilename(type: 'dpia' | 'prescan', extension: string): string {
+import { FormType } from '@/models/dpia';
+
+export function generateFilename(type: FormType, extension: string): string {
   const now = new Date()
   const timestamp = now
     .toISOString()

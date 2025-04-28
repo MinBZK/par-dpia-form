@@ -2,6 +2,8 @@
 import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
+import Results from '@/components/Results.vue'
+import { FormType } from '@/models/dpia.ts'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
@@ -23,6 +25,8 @@ const shouldShowChildren = computed(
 )
 
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
+
+const activeNamespace = computed(() => taskStore.activeNamespace)
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
@@ -76,25 +80,21 @@ function handleAddRepeatableTask(childId: string) {
     <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
 
     <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
-      <div class="utrecht-form-fieldset rvo-form-fieldset">
+      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
         </fieldset>
       </div>
+
+      <Results v-if="activeNamespace === FormType.PRE_SCAN" />
     </div>
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
-      <div v-if="taskStore.activeNamespace === 'dpia'" class="rvo-checkbox__group">
+      <div class="rvo-checkbox__group">
         <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
-          <input
-            id="`${taskId}-completed`"
-            name="step_completed"
-            class="rvo-checkbox__input"
-            type="checkbox"
-            :checked="taskStore.isRootTaskCompleted(taskId)"
-            @change="taskStore.toggleCompleteForTaskId(taskId)"
-          />
+          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
+            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
           Markeer als voltooid
         </label>
       </div>
@@ -106,11 +106,8 @@ function handleAddRepeatableTask(childId: string) {
           <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
-              <img
-                v-if="source.source && source.source in imageMap"
-                :src="getImage(source.source)"
-                :alt="source.description"
-              />
+              <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                :alt="source.description" />
             </template>
           </template>
         </fieldset>
@@ -119,43 +116,26 @@ function handleAddRepeatableTask(childId: string) {
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
         <template v-for="childId in task.childrenIds" :key="childId">
-          <template
-            v-for="instanceId in taskStore.getInstanceIdsForTask(childId)"
-            :key="instanceId"
-          >
+          <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
             <!--Single task (no children): render the task itself -->
-            <TaskItem
-              v-if="!taskStore.taskById(childId).childrenIds.length"
-              :taskId="childId"
-              :instanceId="instanceId"
-              :showDescription="true"
-            />
+            <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instanceId="instanceId"
+              :showDescription="true" />
 
             <!-- Nested task group (has children): render children as TaskGroup -->
             <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
           </template>
 
-          <div
-            v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-            class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs"
-          >
-            <UiButton
-              variant="tertiary"
-              icon="plus"
-              :label="`Voeg extra
+          <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+            class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+            <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
             ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-              @click="handleAddRepeatableTask(childId)"
-            />
+              @click="handleAddRepeatableTask(childId)" />
           </div>
         </template>
       </div>
 
       <!-- Single task: render the task itself -->
-      <TaskItem
-        v-else
-        :taskId="taskId"
-        :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''"
-      />
+      <TaskItem v-else :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
     </div>
   </div>
 </template>

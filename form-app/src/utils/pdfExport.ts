@@ -1,5 +1,6 @@
 import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
+import { FormType } from '@/models/dpia'
 import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
@@ -17,7 +18,7 @@ export async function exportToPdf(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
   const rootTasks = taskStore.rootTaskIds[activeNamespace]
     .map(id => taskStore.flatTasks[activeNamespace][id])
     .filter(task => !task.type.includes('signing'))
@@ -125,7 +126,7 @@ export async function exportToPdf(
       styles: dpiaStyleDictionary,
     }
 
-    const actualFilename = filename || generateFilename(activeNamespace as 'dpia' | 'prescan', 'pdf')
+    const actualFilename = filename || generateFilename(activeNamespace, 'pdf')
     pdfMake.createPdf(docDefinition).download(actualFilename)
 
     return Promise.resolve()

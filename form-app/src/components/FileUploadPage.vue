@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed} from 'vue'
+import { ref, computed } from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { importFromJson } from '@/utils/jsonExport'
@@ -30,8 +30,7 @@ const startDpia = async () => {
   try {
     if (uploadedFile.value) {
       try {
-        const fileData = await importFromJson(uploadedFile.value, taskStore.activeNamespace as
-        'dpia' | 'prescan')
+        const fileData = await importFromJson(uploadedFile.value, taskStore.activeNamespace)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -92,7 +91,7 @@ const formTypeLabel = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : 'Beginnen met de DPIA'" :disabled="isProcessing"
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met de ${formTypeLabel}`" :disabled="isProcessing"
       @click="startDpia" />
   </div>
 

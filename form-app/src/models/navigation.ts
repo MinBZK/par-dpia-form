@@ -1,7 +1,9 @@
+import { FormType } from '@/models/dpia';
+
 export enum ViewState {
   Landing = 'landing',
-  DPIA = 'dpia',
-  PreScanDPIA = 'prescan',
+  DPIA = FormType.DPIA,
+  PreScanDPIA = FormType.PRE_SCAN,
 }
 
 export interface NavigationFunctions {
