@@ -13,6 +13,12 @@ export function createConclusionTask(taskName: string, signingTaskId: string, de
   }
 }
 
+export function removeTemplatePattern(input: string): string {
+  const withoutBraces = input.replace(/\s*\{[^}]*\}/g, '');
+  return withoutBraces.trim();
+}
+
+
 export function renderInstanceLabel(instanceId: string, template: string): string {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
@@ -26,7 +32,6 @@ export function renderInstanceLabel(instanceId: string, template: string): strin
 
     const value = answerStore.getAnswer(originInstance)
     if (value == null) return ''
-
     return String(value)
   })
 }
