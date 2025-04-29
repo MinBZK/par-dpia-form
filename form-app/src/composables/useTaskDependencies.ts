@@ -13,6 +13,15 @@ export function useTaskDependencies() {
     }
   })
 
+  const hasDependencyOfType = computed(() => {
+    return (task: FlatTask, dependency: string): boolean => {
+      if (!task.dependencies || task.dependencies.length === 0) {
+        return false
+      }
+      return task.dependencies.some(dep => dep.type === dependency)
+    }
+  })
+
   const getDependencySourceTaskId = computed(() => {
     return (task: FlatTask): string | null => {
       if (!task.dependencies || task.dependencies.length === 0) {
@@ -26,6 +35,9 @@ export function useTaskDependencies() {
         else if (dependency.type === "instance_mapping" && dependency.source) {
           return dependency.source.id
         }
+        else if (dependency.type === "conditional" && dependency.condition) {
+          return dependency.condition.id
+        }
         else {
           throw new Error(`got an unsupported dependency type ${dependency.type}`)
         }
@@ -36,8 +48,9 @@ export function useTaskDependencies() {
 
   const getSourceOptions = computed(() => {
     return (task: FlatTask): string[] => {
-      const sourceTaskId = getDependencySourceTaskId.value(task)
+      if (!hasDependencyOfType.value(task, "source_options")) return []
 
+      const sourceTaskId = getDependencySourceTaskId.value(task)
       if (sourceTaskId === null) return []
 
       const uniqueValues = new Set<string>()
