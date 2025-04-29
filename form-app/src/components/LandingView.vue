@@ -48,14 +48,28 @@ defineProps<{
       </div>
 
       <div class="rvo-layout-margin-vertical--3xl">
-        <h2 class="utrecht-heading-2">Opslaan en delen van je DPIA</h2>
-        <p class="rvo-text--lg">
-          Tijdens het invullen kun je je voortgang opslaan als een bestand op je eigen computer.
-        </p>
-        <ul>
-          <li> Je kunt dit bestand later opnieuw openen om verder te werken. </li>
-          <li> Je kunt het ook delen met een collega zodat die verder kan gaan.</li>
-        </ul>
+        <div class="rvo-alert rvo-alert--info rvo-alert--padding-md">
+          <span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img"
+            aria-label="Info"></span>
+          <div class="rvo-alert-text">
+            <strong>Opslaan en delen van je DPIA</strong>
+            <p>
+              Tijdens het invullen kun je je voortgang opslaan als een bestand op je eigen computer.
+            </p>
+
+            <p>
+              Wat kun je <strong> wel </strong> met het opgeslagen bestand? <br />
+              ✅ Je kunt dit bestand later opnieuw openen om verder te werken. <br />
+              ✅ Je kunt het ook delen met een collega zodat die verder kan gaan. <br />
+            </p>
+
+            <p>
+            Wat kun je <strong> niet </strong> met het opgeslagen bestand? <br />
+              ❌ Je kunt het bestand niet openen in Word. <br />
+              ❌ Je kunt het bestand niet direct bewerken buiten deze tool. <br />
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
