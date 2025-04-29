@@ -13,18 +13,21 @@ export function useTaskDependencies() {
     }
   })
 
-  const getSourceOptionSourceTaskId = computed(() => {
+  const getDependencySourceTaskId = computed(() => {
     return (task: FlatTask): string | null => {
       if (!task.dependencies || task.dependencies.length === 0) {
         return null
       }
 
       for (const dependency of task.dependencies) {
-        if (dependency.type === 'source_options') {
-          if (!dependency.condition) {
-            return null
-          }
+        if (dependency.type === "source_options" && dependency.condition) {
           return dependency.condition.id
+        }
+        else if (dependency.type === "instance_mapping" && dependency.source) {
+          return dependency.source.id
+        }
+        else {
+          throw new Error(`got an unsupported dependency type ${dependency.type}`)
         }
       }
       return null
@@ -33,7 +36,7 @@ export function useTaskDependencies() {
 
   const getSourceOptions = computed(() => {
     return (task: FlatTask): string[] => {
-      const sourceTaskId = getSourceOptionSourceTaskId.value(task)
+      const sourceTaskId = getDependencySourceTaskId.value(task)
 
       if (sourceTaskId === null) return []
 
@@ -48,6 +51,28 @@ export function useTaskDependencies() {
       })
 
       return Array.from(uniqueValues)
+    }
+  })
+
+  const hasSourceTaskValues = computed(() => {
+    return (task: FlatTask): { hasValues: boolean; sourceId: string | null } => {
+      const sourceTaskId = getDependencySourceTaskId.value(task)
+
+      if (!sourceTaskId) {
+        return { hasValues: true, sourceId: null }
+      }
+
+      const sourceInstances = taskStore.getInstancesForTask(sourceTaskId)
+
+      const hasAnyValue = sourceInstances.some(instance => {
+        const answer = answerStore.getAnswer(instance.id)
+        return answer !== null && answer !== '' && answer !== undefined
+      })
+
+      return {
+        hasValues: hasAnyValue,
+        sourceId: sourceTaskId
+      }
     }
   })
 
@@ -108,7 +133,8 @@ export function useTaskDependencies() {
 
   return {
     shouldShowTask,
-    getSourceOptionSourceTaskId,
+    hasSourceTaskValues,
+    getDependencySourceTaskId,
     canUserCreateInstances,
     getSourceOptions,
     syncInstances,

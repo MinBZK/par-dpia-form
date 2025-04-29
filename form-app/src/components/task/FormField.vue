@@ -14,7 +14,7 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 
-const { getSourceOptions, getSourceOptionSourceTaskId } = useTaskDependencies()
+const { getSourceOptions, getDependencySourceTaskId} = useTaskDependencies()
 
 function convertStringValue(value: string | null, typeSpec: string): null | string | boolean {
   if (value === null) return null
@@ -229,7 +229,7 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
     <div v-else>
-      Vul eerst vraag {{ getSourceOptionSourceTaskId(task)?.split('.')[0] || '' }} in.
+      Vul eerst vraag {{ getDependencySourceTaskId(task)?.split('.')[0] || '' }} in.
     </div>
   </div>
 

@@ -16,7 +16,7 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 
-const { canUserCreateInstances } = useTaskDependencies()
+const { canUserCreateInstances, hasSourceTaskValues, getDependencySourceTaskId } = useTaskDependencies()
 
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 
@@ -39,6 +39,37 @@ const taskDisplayTitle = (task: FlatTask): string => {
     return task.id + '. ' + task.task
   }
 }
+
+const missingSourceDependencies = computed(() => {
+  if (!task.value.childrenIds) return []
+
+  const dependencies = []
+
+  for (const childId of task.value.childrenIds) {
+    const childTask = taskStore.taskById(childId)
+    const sourceId = getDependencySourceTaskId.value(childTask)
+
+    if (sourceId) {
+      const sourceStatus = hasSourceTaskValues.value(childTask)
+
+      if (!sourceStatus.hasValues) {
+        // Get the major section number (e.g., "4" from "4.1.1")
+        const mainSectionNumber = sourceId.split('.')[0]
+
+        dependencies.push({
+          childId,
+          sourceId,
+          sectionNumber: mainSectionNumber
+        })
+      }
+    }
+  }
+
+  // Return unique dependencies by section number
+  return dependencies.filter((dep, index, self) =>
+    index === self.findIndex(d => d.sectionNumber === dep.sectionNumber)
+  )
+})
 
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
@@ -72,6 +103,19 @@ function handleAddRepeatableTask(childId: string) {
     taskStore.addRepeatableTaskInstance(childId)
   }
 }
+
+function shouldSkipTask(taskId: string): boolean {
+  const task = taskStore.taskById(taskId);
+  const sourceId = getDependencySourceTaskId.value(task);
+
+  if (!sourceId) {
+    return false; // Not a mapped task, don't skip
+  }
+
+  const sourceStatus = hasSourceTaskValues.value(task);
+  return !sourceStatus.hasValues; // Skip if source has no values
+}
+
 </script>
 
 <template>
@@ -99,6 +143,20 @@ function handleAddRepeatableTask(childId: string) {
         </label>
       </div>
 
+      <!-- Show consolidated warnings for tasks that need to be filled in -->
+      <div v-if="missingSourceDependencies.length > 0" class="rvo-alert rvo-alert--warning rvo-margin-block-end--md">
+        <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
+          aria-label="Waarschuwing"></span>
+        <div class="rvo-alert-text">
+          <p>Voor deze stap is het nodig eerst de volgende stappen in te vullen:</p>
+          <ul class="utrecht-unordered-list">
+            <li v-for="dep in missingSourceDependencies" :key="dep.sourceId" class="utrecht-unordered-list__item">
+              Stap {{ dep.sectionNumber }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <!-- Description section (if available) -->
       <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
@@ -116,21 +174,24 @@ function handleAddRepeatableTask(childId: string) {
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
         <template v-for="childId in task.childrenIds" :key="childId">
-          <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
-            <!--Single task (no children): render the task itself -->
-            <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId" :instanceId="instanceId"
-              :showDescription="true" />
+          <template v-if="!shouldSkipTask(childId)">
 
-            <!-- Nested task group (has children): render children as TaskGroup -->
-            <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
-          </template>
+            <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
+              <!--Single task (no children): render the task itself -->
+              <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
+                :instanceId="instanceId" :showDescription="true" />
 
-          <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-            class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-            <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
+              <!-- Nested task group (has children): render children as TaskGroup -->
+              <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+            </template>
+
+            <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+              class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
             ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-              @click="handleAddRepeatableTask(childId)" />
-          </div>
+                @click="handleAddRepeatableTask(childId)" />
+            </div>
+          </template>
         </template>
       </div>
 
