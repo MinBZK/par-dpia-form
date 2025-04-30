@@ -139,8 +139,24 @@ tasks:
      - task: Versie
        id: "0.4"
        type:
-         - text_input
-       repeatable: false
+         - task_group
+       repeatable: true
+       tasks: 
+        - task: DPIA versie 
+          id: "0.4.1"
+          type: 
+          - text_input
+          repeatable: false
+        - task: Datum 
+          id: "0.4.2"
+          type: 
+          - text_input
+          repeatable: false
+        - task: Toelichting 
+          id: "0.4.3"
+          type: 
+          - text_input
+          repeatable: false
      - task: Status
        id: "0.5"
        type:
@@ -149,7 +165,7 @@ tasks:
         - value: concept
         - value: definitief
        repeatable: false
-     - task: Het dossier
+     - task: DPIA dossier
        id: "0.6"
        type:
          - task_group
@@ -180,35 +196,6 @@ tasks:
           type:
             - text_input
           repeatable: true
-     - task: Ondertekening
-       description: >- 
-         Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. 
-       id: "0.7"
-       category: administratief 
-       type: 
-       - task_group 
-       repeatable: true 
-       tasks: 
-       - task: Organisatie, directie, afdeling verwerkingsverantwoordelijke(n)
-         id: "0.7.1"
-         type: 
-         - text_input
-         repeatable: false 
-       - task: Naam verwerkingsverantwoordelijke(n)
-         id: "0.7.2"
-         type: 
-         - text_input
-         repeatable: false 
-       - task: Functie verwerkingsverantwoordelijke(n)
-         id: "0.7.3"
-         type: 
-         - text_input
-         repeatable: false 
-       - task: Datum ondertekening
-         id: "0.7.4"
-         type: 
-         - date
-         repeatable: false 
  - task: >-
       Inleiding
    description: |
@@ -216,9 +203,9 @@ tasks:
 
      Dit rapportagemodel staat niet op zichzelf. Het is aan te raden om het Rijksmodel DPIA (delen I tot en met III) bij de hand te houden bij het schrijven van een DPIA. Met name deel III, de toelichting, is van belang bij het schrijven van de DPIA. Hierin wordt per paragraaf beschreven wat wordt verwacht qua invulling van desbetreffende onderdeel. Ook worden definities uitgebreid uitgelegd en worden handige voorbeelden gegeven.
 
-     Het Rijksmodel DPIA is hier te vinden.
+     Het Rijksmodel DPIA is <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">hier</a>  te vinden.
 
-     Voeg hier wanneer gewenst een openingsalinea of inleiding toe. 
+     Voeg hier wanneer gewenst een openingsalinea of DPIA inleiding toe. 
      Denk bijvoorbeeld aan:
        - Verwijzing naar het privacybeleid
        - Motivatie achter de uitvoering van deze DPIA
@@ -226,13 +213,12 @@ tasks:
    category: Beschrijving kenmerken gegevensverwerkingen 
    id: "1"
    type:
-        - open_text
+        - open_text 
    repeatable: false
  - task: >-
       Voorstel
    description: >-
-      Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem
-      hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter
+      Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter
       de totstandkoming van het voorstel.
    category: Beschrijving kenmerken gegevensverwerkingen 
    id: "2"
@@ -262,7 +248,7 @@ tasks:
         Persoonsgegevens
    description: >-
         Beschrijf alle persoonsgegevens die worden verwerkt. 
-        Classificeer deze persoonsgegevens naar: gewoon, gevoelig, bijzonder, strafrechtelijk en wettelijk identificatienummer en geef aan wat de bron is van deze persoonsgegevens. 
+        Classificeer deze persoonsgegevens naar: gewoon persoonsgegeven, gevoelig persoonsgegeven, bijzonder persoonsgegeven, strafrechtelijk persoonsgegeven en wettelijk identificatienummer en geef aan wat de bron persoonsgegevens is. 
         Geef, indien gewenst, per persoonsgegeven aan bij welke categorie persoonsgegevens deze hoort.
    category: Beschrijving kenmerken gegevensverwerkingen 
    id: "3"
@@ -320,7 +306,7 @@ tasks:
                 - value: true
                   label: Ja
               repeatable: false
-            - task: Naam partij
+            - task: Partij naam
               id: "3.1.7"
               type: 
                 - text_input
@@ -361,7 +347,7 @@ tasks:
           type: 
            - open_text
           repeatable: false
- - task: Gegevenswerkering 
+ - task: Gegevensverwerkering 
    description: >-
         Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorieën betrokkenen worden verwerkt per gegevensverwerking. 
         Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.
@@ -372,17 +358,18 @@ tasks:
    repeatable: false
    tasks:
         - task: Gegevensverwerking, Categorieën betrokkenen & persoonsgegevens
+          description: Verwerk elke gegevensverwerking afzonderlijk en klik op '+ Voeg extra gegevensverwerking, categorieën betrokkenen & persoonsgegevens' om een nieuwe gegevensverwerking toe te voegen. 
           id: "4.1"
           type: 
             - task_group
           repeatable: true
           tasks:
-            - task: Naam
+            - task: Naam van de gegevensverwerking
               id: "4.1.1"
               type: 
                - text_input
               repeatable: false 
-            - task: Beschrijving
+            - task: Beschrijving van de gegevensverwerking
               id: "4.1.2"
               type: 
                - text_input
@@ -420,11 +407,8 @@ tasks:
  - task: >-
     Technieken en methoden van de gegevensverwerkingen
    description: >-
-      Beschrijf op welke wijze en met gebruikmaking van welke (technische)
-      middelen en methoden de persoonsgegevens worden verwerkt. Benoem, in het
-      bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming,
-      profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen
-      of big data-verwerkingen.
+      Beschrijf op welke wijze en met gebruikmaking van welke technieken en methoden van gegevensverwerking de persoonsgegevens worden verwerkt. Benoem, in het
+      bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.
    id: "5"
    category: Beschrijving kenmerken gegevensverwerkingen 
    type:
@@ -439,6 +423,7 @@ tasks:
    repeatable: false 
    tasks:
     - task: Gegevensverwerking & verwerkingsdoeleinde
+      description: De gegevensverwerking naam wordt overgenomen uit vraag 4. 
       id: "6.1"
       type: 
           - task_group
@@ -490,12 +475,12 @@ tasks:
             - task_group
           repeatable: true 
           tasks:
-          - task: Naam partij
+          - task: Partij naam
             id: "7.1.1.1"
             type: 
               - text_input
             repeatable: false 
-          - task: Rol partij
+          - task: Partij rol
             id: "7.1.1.2"
             type: 
               - select_option
@@ -526,7 +511,7 @@ tasks:
                   id: "3.1.1"
                   operator: any
                 action: options
-          - task: Categorieen betrokkene
+          - task: Categorieën betrokkene
             id: "7.1.1.5"
             type:
               - checkbox_option
@@ -584,9 +569,10 @@ tasks:
       Benoem in welke landen de gegevensverwerkingen plaatsvinden. 
       Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. Voeg aanvullende informatie toe in het tekstveld.
 
-      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.
+      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, 
+      is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.
 
-      Zie deel III van het Rijksmodel DPIA voor meer informatie over de doorgiftemechanismen.
+      Zie deel III van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Rijksmodel DPIA </a> voor meer informatie over de doorgiftemechanismen.
    id: "9"
    category: Beschrijving kenmerken gegevensverwerkingen 
    type:
@@ -720,6 +706,12 @@ tasks:
                 id: "11.1.1.1"
                 type: 
                   - text_input
+                dependencies:
+                - type: instance_mapping
+                  source:
+                    id: "6.1.1"
+                  mapping_type: "one_to_one"
+                  action: sync_instances
                 repeatable: false
               - task: Categorie betrokkene
                 id: "11.1.1.2"
@@ -766,14 +758,15 @@ tasks:
      Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. Voeg aanvullende informatie toe in het tekstveld.
      
      De rechtsgronden zijn:
-      - Toestemming: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
-      - Noodzakelijk voor de uitvoering van de overeenkomst: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
-      - Noodzakelijk om te voldoen aan een wettelijke verplichting: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
-      - Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
-      - Noodzakelijk voor de vervulling van een taak van algemeen belang: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
-      - Noodzakelijk voor de behartiging van een gerechtvaardigd belang: 
-        - Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.
-        - Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.
+     
+      - <strong>Toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
+      - <strong>Noodzakelijk voor de uitvoering van de overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
+      - <strong>Noodzakelijk om te voldoen aan een wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
+      - <strong>Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
+      - <strong>Noodzakelijk voor de vervulling van een taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
+      - <strong>Noodzakelijk voor de behartiging van een gerechtvaardigd belang</strong>: 
+        (1) Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.
+        (2) Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.
    id: "12"
    category: Beschrijving kenmerken gegevensverwerkingen 
    type:
@@ -824,7 +817,7 @@ tasks:
  - task: >-
      Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
    description: >-
-      Het verwerken van bijzondere of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan. 
+      Het verwerken van bijzondere persoonsgegevens of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan. 
       Voeg aanvullende informatie toe in het tekstveld.
    id: "13"
    category: Beschrijving kenmerken gegevensverwerkingen 
@@ -1758,3 +1751,42 @@ tasks:
           type: 
             - open_text
           repeatable: false
+ - task: >-
+    Managementsamenvatting 
+   id: "19"
+   description: |
+        Voeg hier de DPIA managementsamenvatting toe na afronding rapportagemodel. 
+        De managementsamenvatting dient de belangrijkste punten te omvatten van de DPIA-rapportage, met name de geïdentificeerde risico’s en (voorgenomen) maatregelen om de risico’s te mitigeren.
+   category: Manegementsamenvatting 
+   type: 
+   - open_text
+ - task: >-
+    Ondertekening
+   description: >- 
+    Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. 
+   id: "20"
+   category: administratief 
+   type: 
+   - task_group 
+   repeatable: true 
+   tasks: 
+   - task: Organisatie, directie, afdeling verwerkingsverantwoordelijke(n)
+     id: "0.7.1"
+     type: 
+     - text_input
+     repeatable: false 
+   - task: Naam verwerkingsverantwoordelijke(n)
+     id: "0.7.2"
+     type: 
+     - text_input
+     repeatable: false 
+   - task: Functie verwerkingsverantwoordelijke(n)
+     id: "0.7.3"
+     type: 
+     - text_input
+     repeatable: false 
+   - task: Datum ondertekening
+     id: "0.7.4"
+     type: 
+     - date
+     repeatable: false 
