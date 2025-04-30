@@ -227,7 +227,7 @@ function buildAnswer(
   else {
     const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
     const answer = answerStore.getAnswer(instanceId)
-    return { text: formatAnswerValue(answer), style: 'normal' }
+    return { text: getPlainTextWithoutDefinitions(formatAnswerValue(answer)), style: 'normal' }
   }
 }
 
@@ -264,7 +264,7 @@ function processTaskWithInstances(
       if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
         const answer = answerStore.getAnswer(instanceId)
         elements.push({
-          text: formatAnswerValue(answer),
+          text: getPlainTextWithoutDefinitions(formatAnswerValue(answer)),
           style: 'normal',
           margin: [nestingLevel * 10, 0, 0, 5],
         })
