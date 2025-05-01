@@ -3759,7 +3759,7 @@ definitions:
     kennisbronnen: Verstrekken van persoonsgegevens, AP
     redactionele_opmerking: De definitie is afgeleid van de informatie van de AP.
 - id: kinderrechten_impact_assessment_
-  term: 'Kinderrechten Impact Assessment '
+  term: Kinderrechten Impact Assessment
   category: Pre-scan DPIA - J. Kinderrechten
   definition: Een Kinderrechten Impact Assessment (KIA) is een hulpmiddel om te komen
     tot de best mogelijke beoordeling van de [digitale dienst] in relatie tot de rechten
