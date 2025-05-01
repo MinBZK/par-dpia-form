@@ -994,9 +994,9 @@ assessments:
     result: "DPIA verplicht"
     explanation: |
       Een DPIA is verplicht omdat:
-       - de som van de risicoscores groter is dan 4, en/of
-       - er minimaal 1 item op de AP-lijst is geselecteerd, en/of
-       - er minimaal 2 items op de EDPB-lijst zijn geselecteerd.
+       • de som van de risicoscores groter is dan 4, en/of
+       • er minimaal 1 item op de AP-lijst is geselecteerd, en/of
+       • er minimaal 2 items op de EDPB-lijst zijn geselecteerd.
   - id: "DTIA"
     expression: "
       bool(answers('2.1.1')) && 

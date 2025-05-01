@@ -206,9 +206,9 @@ tasks:
 
      Voeg hier wanneer gewenst een openingsalinea of DPIA inleiding toe. 
      Denk bijvoorbeeld aan:
-       - Verwijzing naar het privacybeleid
-       - Motivatie achter de uitvoering van deze DPIA
-       - Informatie over de manier waarop deze DPIA is opgesteld
+       • Verwijzing naar het privacybeleid
+       • Motivatie achter de uitvoering van deze DPIA
+       • Informatie over de manier waarop deze DPIA is opgesteld
    id: "1"
    type:
         - open_text 
@@ -1595,10 +1595,10 @@ tasks:
       Beschrijf en beoordeel de risico’s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen. 
 
       Ga hierbij in ieder geval in op:
-      - welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie;
-      - de oorsprong van deze gevolgen;
-      - de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden;
-      - de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.
+      • welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie;
+      • de oorsprong van deze gevolgen;
+      • de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden;
+      • de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.
 
       Gebruik voor de inschatting van de kans, impact en het risico de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. 
 

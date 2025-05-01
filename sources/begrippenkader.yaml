@@ -4842,7 +4842,6 @@ definitions:
     kennisbronnen:
     - Verstrekken van persoonsgegevens, AP
     redactionele_opmerking: De definitie is afgeleid van de informatie van de AP.
-<<<<<<< HEAD
 - id: lijst_ap_fraudebestrijding
   term: 'Lijst AP: Fraudebestrijding'
   category: Pre-scan DPIA - D. Lijst AP
@@ -5773,8 +5772,6 @@ definitions:
     [persoonsgegevens] over demografie.
   metadata:
     kennisbronnen: Vragenlijst, vraag 7, Pre-scan DPIA
-=======
->>>>>>> b9f3b12 (Fix begrippenkader)
 - id: categorie_gewone_persoonsgegevens_helpdeskgegevens
   term: 'Categorie gewone persoonsgegevens: Helpdeskgegevens'
   category: Pre-scan DPIA - B. Gegevensverwerkingen
