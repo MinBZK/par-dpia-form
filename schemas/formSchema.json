@@ -1,0 +1,293 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/formSchema.json",
+    "type": "object",
+    "defs": {
+        "task": {
+            "type": "object",
+            "properties": {
+                "task": {
+                    "type": "string",
+                    "description": "The task"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "The description"
+                },
+                "category": {
+                    "type": "string",
+                    "description": "The category the task belongs to"
+                },
+                "id": {
+                    "type": "string",
+                    "pattern": "^[0-9]+(\\.[0-9]+)*"
+                },
+                "type": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "text_input",
+                            "open_text",
+                            "select_option",
+                            "checkbox_option",
+                            "radio_option",
+                            "task_group",
+                            "date"
+                        ]
+                    }
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": [
+                                    "string",
+                                    "boolean",
+                                    "null"
+                                ]
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "value"
+                        ]
+                    }
+                },
+                "valueType": {
+                    "type": "string",
+                    "description": "The expected data type of the answer value",
+                    "examples": [
+                        "string",
+                        "boolean",
+                        "number",
+                        "string[]",
+                        "boolean|null"
+                    ]
+                },
+                "defaultValue": {
+                    "description": "The default value for the field that will be pre-filled",
+                    "type": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "null",
+                        "array",
+                        "object"
+                    ]
+                },
+                "instance_label_template": {
+                    "type": "string",
+                    "description": "Template for generating instance labels for repeatable tasks, can include references to other fields in curly braces",
+                    "examples": [
+                        "Gegevensverwerking {4.1.1}",
+                        "Betrokken partij {7.1.1.1}"
+                    ]
+                },
+                "references": {
+                    "type": "object",
+                    "description": "References to external systems or documents",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "examples": [
+                        {"DPIA": "12.1.1", "prescan": "3"},
+                        {"source": "section_5", "target": "section_6"}
+                    ]
+                },
+                "dependencies": {
+                    "type": "array",
+                    "description": "Rules for conditional display and behavior of form elements",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": ["conditional", "source_options", "instance_mapping"]
+                            },
+                            "condition": {
+                                "type": "object",
+                                "properties": {
+                                    "id": { "type": "string" },
+                                    "operator": { 
+                                        "type": "string",
+                                        "enum": ["equals", "contains", "any", "all"]
+                                    },
+                                    "value": { "type": ["string", "boolean", "number", "null"] }
+                                }
+                            },
+                            "source": {
+                                "type": "object",
+                                "properties": {
+                                    "id": { "type": "string" }
+                                }
+                            },
+                            "mapping_type": {
+                                "type": "string", 
+                                "enum": ["one_to_one", "one_to_many", "many_to_one"]
+                            },
+                            "action": { 
+                                "type": "string",
+                                "enum": ["show", "hide", "options", "sync_instances"]
+                            }
+                        }
+                    }
+                },
+                "calculation": {
+                    "type": "object",
+                    "description": "Logic for calculating values or scores based on form input",
+                    "properties": {
+                        "scoreKey": {
+                            "type": "string",
+                            "description": "Name of the variable to store the calculation result"
+                        },
+                        "expression": {
+                            "type": "string",
+                            "description": "Expression to evaluate, can reference other form values"
+                        },
+                        "riskScore": {
+                            "type": "array",
+                            "description": "Rules for determining risk level based on calculated value",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "when": { 
+                                        "type": "string",
+                                        "description": "Condition to evaluate"
+                                    },
+                                    "value": { 
+                                        "type": "number",
+                                        "description": "Score to assign when condition is true"
+                                    }
+                                },
+                                "required": ["when", "value"]
+                            }
+                        }
+                    }
+                },
+                "sources": {
+                    "type": "array",
+                    "description": "References to external resources such as images or documents",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "source": {
+                                "type": "string",
+                                "description": "Filename or path to the external resource"
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "Description of the resource and its purpose"
+                            }
+                        },
+                        "required": ["source"]
+                    }
+                },
+                "required_status": {
+                    "type": "boolean"
+                },
+                "repeatable": {
+                    "type": "boolean"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/defs/task"
+                    }
+                }
+            },
+            "required": [
+                "task",
+                "id",
+                "type",
+                "repeatable"
+            ],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "oneOf": [
+                                    {
+                                        "type": "string",
+                                        "const": "select_option"
+                                    },
+                                    {
+                                        "type": "array",
+                                        "contains": {
+                                            "const": "select_option"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "then": {
+                        "required": [
+                            "options"
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "version": {
+            "type": "string",
+            "description": "The version of the DPIA model, supporting different formats (major, major.minor, or major.minor.patch)",
+            "pattern": "^\\d+(\\.\\d+)?(\\.\\d+)?$"
+        },
+        "urn": {
+            "type": "string",
+            "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+(:[0-9]+\\.[0-9]+)?$"
+        },
+        "tasks": {
+            "type": "array",
+            "items": {
+                "$ref": "#/defs/task"
+            }
+        },
+        "assessments": {
+            "type": "array",
+            "description": "Evaluation rules that determine required assessments based on form inputs",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "Identifier for the assessment type (e.g., DPIA, DTIA, KIA, IAMA)"
+                    },
+                    "expression": {
+                        "type": "string",
+                        "description": "Expression to evaluate to determine if the assessment is required"
+                    },
+                    "result": {
+                        "type": "string",
+                        "description": "Result message when the assessment is required"
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "Detailed explanation of why the assessment is required"
+                    }
+                },
+                "required": ["id", "expression", "result"]
+            }
+        }
+    },
+    "required": [
+        "name",
+        "description",
+        "urn",
+        "tasks"
+    ]
+}

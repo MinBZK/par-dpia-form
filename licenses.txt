@@ -109,6 +109,10 @@
 ├── package.json:  MIT
 └── license files: MIT
 
+@babel/runtime@7.27.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 @babel/template@7.27.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -136,11 +140,11 @@
 ├── package.json:  Apache-2.0
 └── license files: Apache
 
-@eslint/config-helpers@0.2.0 [license(s): Apache, Apache-2.0]
+@eslint/config-helpers@0.2.1 [license(s): Apache, Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache
 
-@eslint/core@0.12.0 [license(s): Apache, Apache-2.0]
+@eslint/core@0.13.0 [license(s): Apache, Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache
 
@@ -148,7 +152,7 @@
 ├── package.json:  MIT
 └── readme files: MIT
 
-@eslint/js@9.24.0 [license(s): MIT]
+@eslint/js@9.25.1 [license(s): MIT]
 ├── package.json:  MIT
 └── readme files: MIT
 
@@ -156,7 +160,7 @@
 ├── package.json:  Apache-2.0
 └── license files: Apache
 
-@eslint/plugin-kit@0.2.7 [license(s): Apache, Apache-2.0]
+@eslint/plugin-kit@0.2.8 [license(s): Apache, Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache
 
@@ -220,10 +224,10 @@
 ├── package.json:  SEE LICENSE IN LICENSE.md
 └── license files: Eclipse Public License, GPL, LGPL, MPL
 
-@nl-rvo/component-library-css@4.5.7 [license(s): CC0-1.0]
+@nl-rvo/component-library-css@4.5.10 [license(s): CC0-1.0]
 └── package.json:  CC0-1.0
 
-@nl-rvo/design-tokens@1.7.3 [license(s): SEE LICENSE IN LICENSE.md]
+@nl-rvo/design-tokens@1.7.4 [license(s): SEE LICENSE IN LICENSE.md]
 └── package.json:  SEE LICENSE IN LICENSE.md
 
 @nodelib/fs.scandir@2.1.5 [license(s): MIT]
@@ -272,11 +276,23 @@
 ├── package.json:  MIT
 └── license files: MIT
 
+@types/jexl@2.3.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 @types/json-schema@7.0.15 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@types/node@22.14.0 [license(s): MIT]
+@types/lodash@4.17.16 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@types/lodash-es@4.17.12 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@types/node@22.14.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -373,15 +389,15 @@
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-core@7.7.2 [license(s): MIT]
+@vue/devtools-core@7.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-kit@7.7.2 [license(s): MIT]
+@vue/devtools-kit@7.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-shared@7.7.2 [license(s): MIT]
+@vue/devtools-shared@7.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -458,7 +474,7 @@ base64-js@1.3.1 [license(s): MIT]
 ├── license files: MIT
 └── readme files: MIT
 
-birpc@0.2.19 [license(s): MIT]
+birpc@2.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -518,6 +534,11 @@ chalk@4.1.2 [license(s): MIT]
 
 clone@1.0.4 [license(s): MIT]
 └── package.json:  MIT
+
+codsen-utils@1.6.7 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
 
 color-convert@2.0.1 [license(s): MIT]
 └── package.json:  MIT
@@ -632,7 +653,7 @@ escape-string-regexp@4.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-eslint@9.24.0 [license(s): MIT]
+eslint@9.25.1 [license(s): MIT]
 ├── package.json:  MIT
 └── readme files: MIT
 
@@ -710,6 +731,9 @@ fastq@1.19.1 [license(s): ISC]
 ├── package.json:  ISC
 └── readme files: ISC
 
+fdir@6.4.4 [license(s): MIT]
+└── package.json:  MIT
+
 figures@6.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -738,7 +762,7 @@ flatted@3.3.3 [license(s): ISC]
 
 form-app@0.0.1 [license(s): Unknown]
 
-fp-ts@2.16.9 [license(s): MIT]
+fp-ts@2.16.10 [license(s): MIT]
 ├── package.json:  MIT
 ├── license files: MIT
 └── readme files: MIT
@@ -835,6 +859,10 @@ hookable@5.5.3 [license(s): MIT]
 ├── license files: MIT
 └── readme files: MIT
 
+html-entities@2.6.0 [license(s): MIT]
+├── package.json:  MIT
+└── readme files: MIT
+
 human-signals@8.0.0 [license(s): Apache, Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache
@@ -917,6 +945,10 @@ isexe@3.1.1 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
+jexl@2.3.0 [license(s): MIT]
+├── package.json:  MIT
+└── readme files: MIT
+
 jiti@2.4.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -980,6 +1012,9 @@ locate-path@6.0.0 [license(s): MIT]
 lodash@4.17.21 [license(s): MIT]
 └── package.json:  MIT
 
+lodash-es@4.17.21 [license(s): MIT]
+└── package.json:  MIT
+
 lodash.merge@4.6.2 [license(s): MIT]
 └── package.json:  MIT
 
@@ -1036,11 +1071,11 @@ muggle-string@0.4.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-nanoid@3.3.8 [license(s): MIT]
+nanoid@3.3.11 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-nanoid@5.1.2 [license(s): MIT]
+nanoid@5.1.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -1152,7 +1187,7 @@ pidtree@0.6.0 [license(s): MIT]
 ├── license files: MIT
 └── readme files: MIT
 
-pinia@3.0.1 [license(s): MIT]
+pinia@3.0.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -1188,9 +1223,33 @@ queue-microtask@1.2.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+ranges-apply@7.0.19 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+ranges-merge@9.0.18 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+ranges-push@7.0.18 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+ranges-sort@6.0.13 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
 read-package-json-fast@4.0.0 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
+
+regenerator-runtime@0.14.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 regexp.prototype.flags@1.5.4 [license(s): MIT]
 ├── package.json:  MIT
@@ -1276,6 +1335,26 @@ speakingurl@14.0.1 [license(s): BSD, BSD-3-Clause]
 ├── license files: BSD
 └── readme files: BSD
 
+string-collapse-leading-whitespace@7.0.9 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+string-left-right@6.0.20 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+string-strip-html@13.4.12 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
+string-trim-spaces-only@5.0.12 [license(s): MIT]
+├── package.json:  MIT
+├── license files: MIT
+└── readme files: MIT
+
 strip-final-newline@4.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -1300,6 +1379,14 @@ tiny-inflate@1.0.3 [license(s): MIT]
 ├── package.json:  MIT
 ├── license files: MIT
 └── readme files: MIT
+
+tiny-invariant@1.3.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+tinyglobby@0.2.13 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 to-regex-range@5.0.1 [license(s): MIT]
 ├── package.json:  MIT
@@ -1362,11 +1449,11 @@ util-deprecate@1.0.2 [license(s): MIT]
 ├── license files: MIT
 └── readme files: MIT
 
-vite@6.2.5 [license(s): Apache, ISC, MIT]
+vite@6.3.2 [license(s): Apache, ISC, MIT]
 ├── package.json:  MIT
 └── license files: Apache, ISC, MIT
 
-vite-hot-client@0.2.4 [license(s): MIT]
+vite-hot-client@2.0.4 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -1379,7 +1466,7 @@ vite-plugin-singlefile@2.2.0 [license(s): MIT]
 ├── license files: MIT
 └── readme files: MIT
 
-vite-plugin-vue-devtools@7.7.2 [license(s): MIT]
+vite-plugin-vue-devtools@7.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
