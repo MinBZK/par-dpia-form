@@ -7,7 +7,6 @@ description: >-
 tasks:
  - task: >-
     Vaststelling
-   category: administration 
    id: "0"
    type:
      - task_group
@@ -210,7 +209,6 @@ tasks:
        - Verwijzing naar het privacybeleid
        - Motivatie achter de uitvoering van deze DPIA
        - Informatie over de manier waarop deze DPIA is opgesteld
-   category: Beschrijving kenmerken gegevensverwerkingen 
    id: "1"
    type:
         - open_text 
@@ -220,7 +218,6 @@ tasks:
    description: >-
       Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter
       de totstandkoming van het voorstel.
-   category: Beschrijving kenmerken gegevensverwerkingen 
    id: "2"
    type:
         - task_group
@@ -250,7 +247,6 @@ tasks:
         Beschrijf alle persoonsgegevens die worden verwerkt. 
         Classificeer deze persoonsgegevens naar: gewoon persoonsgegeven, gevoelig persoonsgegeven, bijzonder persoonsgegeven, strafrechtelijk persoonsgegeven en wettelijk identificatienummer en geef aan wat de bron persoonsgegevens is. 
         Geef, indien gewenst, per persoonsgegeven aan bij welke categorie persoonsgegevens deze hoort.
-   category: Beschrijving kenmerken gegevensverwerkingen 
    id: "3"
    type:
         - task_group
@@ -352,7 +348,6 @@ tasks:
         Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorieën betrokkenen worden verwerkt per gegevensverwerking. 
         Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.
    id: "4"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -410,14 +405,12 @@ tasks:
       Beschrijf op welke wijze en met gebruikmaking van welke technieken en methoden van gegevensverwerking de persoonsgegevens worden verwerkt. Benoem, in het
       bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.
    id: "5"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - open_text
    repeatable: false
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
    id: "6"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false 
@@ -451,7 +444,6 @@ tasks:
    description: >-
     Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen. Voeg aanvullende informatie toe in het tekstveld.
    id: "7"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - task_group
    repeatable: false
@@ -535,7 +527,6 @@ tasks:
       Vraag betrokkenen of hun vertegenwoordigers ook naar hun mening over de verwerking indien relevant. 
       Indien niet relevant, motiveer dit. Licht deze mening toe onder het belang van de betrokkenen. 
    id: "8"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - task_group
    repeatable: false
@@ -574,7 +565,6 @@ tasks:
 
       Zie deel III van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Rijksmodel DPIA </a> voor meer informatie over de doorgiftemechanismen.
    id: "9"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - task_group
    repeatable: false
@@ -631,7 +621,6 @@ tasks:
       De AVG en de Richtlijn hoeven niet genoemd te worden. 
       Voeg aanvullende informatie toe in het tekstveld.
    id: "10"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
       - task_group
    repeatable: false
@@ -678,7 +667,6 @@ tasks:
       Beschrijf wie toeziet op de bewaartermijn en de mogelijke vernietiging of archivering aan het einde van de bewaartermijn. 
       Voeg deze en andere aanvullende informatie toe in het tekstveld.
    id: "11"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -768,7 +756,6 @@ tasks:
         (1) Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.
         (2) Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.
    id: "12"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -820,7 +807,6 @@ tasks:
       Het verwerken van bijzondere persoonsgegevens of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan. 
       Voeg aanvullende informatie toe in het tekstveld.
    id: "13"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -1070,7 +1056,6 @@ tasks:
    description: |
       Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld. Voeg in het tekstveld de verenigbaarheidstoets en aanvullende informatie toe.
    id: "14"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -1140,7 +1125,6 @@ tasks:
 
         Ga hierbij in ieder geval in op de subsidiariteit (en daarmee ook noodzaak) en de prortionaliteit (ook wel evenredigheid).
    id: "15"
-   category: Beschrijving kenmerken gegevensverwerkingen 
    type:
         - task_group
    repeatable: false
@@ -1614,7 +1598,6 @@ tasks:
 
       De onderstaande matrix kan worden gebruikt voor het vaststellen van de risico’s voor betrokkenen. 
    id: "17"
-   category: Beschrijving en beoordeling risico’s voor de betrokkenen
    sources: 
     - source: risico_matrix.png
       description: >-
@@ -1699,7 +1682,6 @@ tasks:
 
         Gebruik voor de inschattingen van de risico’s de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. Gebruikmaken van de bijbehorende kleuren is aan te raden.
    id: "18"
-   category: Maatregelen en restrisico’s
    type:
         - task_group
    repeatable: false
@@ -1757,15 +1739,14 @@ tasks:
    description: |
         Voeg hier de DPIA managementsamenvatting toe na afronding rapportagemodel. 
         De managementsamenvatting dient de belangrijkste punten te omvatten van de DPIA-rapportage, met name de geïdentificeerde risico’s en (voorgenomen) maatregelen om de risico’s te mitigeren.
-   category: Manegementsamenvatting 
    type: 
    - open_text
+   repeatable: false
  - task: >-
     Ondertekening
    description: >- 
     Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. 
    id: "20"
-   category: administratief 
    type: 
    - task_group 
    repeatable: true 
