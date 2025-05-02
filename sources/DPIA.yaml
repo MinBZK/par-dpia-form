@@ -455,7 +455,7 @@ tasks:
       - task_group
    repeatable: false
    tasks:
-      - task: Gegevensverwerking betrokkken partijen 
+      - task: Gegevensverwerking betrokken partijen 
         id: "7.1"
         type: 
          - task_group

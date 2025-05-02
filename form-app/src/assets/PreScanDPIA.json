@@ -544,7 +544,7 @@
                     ]
                 },
                 {
-                    "task": "Welke categorie\u00ebn betrokkken kun je onderscheiden?",
+                    "task": "Welke categorie\u00ebn betrokken kun je onderscheiden?",
                     "description": "Er wordt ook vastgelegd welke <span class=\"aiv-definition\">categorie betrokkenen<span class=\"aiv-definition-text\"><p>Een categorie betrokkenen is een groepering van [betrokkenen].</p><h4>Voorbeeld(en):</h4><p>Medewerker.</p></span></span></span> onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span> in die categorie.",
                     "id": "1.4",
                     "type": [
@@ -833,7 +833,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "International doorgiften",
+                    "task": "Internationale doorgiften",
                     "id": "2.1",
                     "type": [
                         "task_group"
