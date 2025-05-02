@@ -44,6 +44,15 @@ jobs:
             --source sources/DPIA.yaml \
             --begrippen-yaml sources/begrippenkader.yaml \
             --output form-app/src/assets/DPIA.json
+
+          # Verify generated files
+          echo "Verifying generated JSON files..."
+          if [ ! -f form-app/src/assets/PreScanDPIA.json ] || [ ! -f form-app/src/assets/DPIA.json ]; then
+            echo "::error::One or more JSON files were not generated"
+            exit 1
+          fi
+          
+          echo "JSON files successfully generated"
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -56,7 +65,19 @@ jobs:
         run: cd form-app && npm ci
         
       - name: Build the Vue application
-        run: cd form-app && npm run build
+        run: |
+          cd form-app 
+          npm run build
+
+          # Verify build output
+          echo "Verifying build output..."
+          if [ ! -f dist/index.html ]; then
+            echo "::error::index.html not found in dist directory"
+            exit 1
+          fi
+          
+          echo "Listing dist directory content:"
+          ls -la dist/
         
       - name: Setup Pages
         uses: actions/configure-pages@v4
