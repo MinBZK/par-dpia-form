@@ -219,7 +219,7 @@ tasks:
           condition: 
             id: "1.1.2"
             operator: contains 
-            value: "Overige"
+            value: "Categorie gewone persoonsgegevens: Overige"
           action: show
         repeatable: false 
   - task: Bijzondere persoonsgegevens
@@ -337,7 +337,7 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "9"
-  - task: Welke categorieën betrokkken kun je onderscheiden? 
+  - task: Welke categorieën betrokkene kun je onderscheiden? 
     description: >-
       Er wordt ook vastgelegd welke categorie betrokkenen onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal betrokkenen in die categorie.
     id: "1.4" 
@@ -513,7 +513,7 @@ tasks:
   - task_group
   repeatable: false
   tasks: 
-  - task: International doorgiften
+  - task: Internationale doorgiften
     id: "2.1"
     type:
       - task_group
