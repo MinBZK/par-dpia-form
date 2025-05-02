@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FormType } from '@/models/dpia'
+import { FormType } from '@/models/dpia.ts'
 import LandingView from '@/components/LandingView.vue'
 import Form from '@/components/Form.vue'
 import { useTaskStore } from '@/stores/tasks'

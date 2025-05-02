@@ -2,7 +2,7 @@
 import UiButton from '@/components/ui/UiButton.vue'
 import { generateFilename } from '@/utils/fileName'
 import { useTaskStore } from '@/stores/tasks'
-import { FormType } from '@/models/dpia';
+import { FormType } from '@/models/dpia.ts';
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const props = defineProps<{

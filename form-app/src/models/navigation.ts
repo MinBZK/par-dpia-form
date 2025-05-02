@@ -1,4 +1,4 @@
-import { FormType } from '@/models/dpia';
+import { FormType } from '@/models/dpia.ts';
 
 export enum ViewState {
   Landing = 'landing',

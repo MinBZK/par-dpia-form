@@ -1,4 +1,4 @@
-import { FormType } from '@/models/dpia';
+import { FormType } from '@/models/dpia.ts';
 
 export function generateFilename(type: FormType, extension: string): string {
   const now = new Date()
