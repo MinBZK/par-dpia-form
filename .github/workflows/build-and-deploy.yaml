@@ -1,0 +1,39 @@
+name: Build and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'form-app/package-lock.json'
+          
+      - name: Install dependencies
+        run: cd form-app && npm ci
+        
+      - name: Build the Vue application
+        run: cd form-app && npm run build
+        
+      - name: Clear docs directory and copy build files
+        run: |
+          rm -rf docs/*
+          cp -r form-app/dist/* docs/
+          
+      - name: Commit and push changes
+        run: |
+          git add docs/
+          git diff --staged --quiet || git commit -m "Auto-deploy: Update GitHub Pages"
+          git push
