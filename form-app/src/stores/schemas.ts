@@ -1,7 +1,7 @@
 // src/stores/schemaStore.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { DPIA, FormType } from '@/models/dpia'
+import { DPIA, FormType } from '@/models/dpia.ts'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '@/utils/taskUtils'

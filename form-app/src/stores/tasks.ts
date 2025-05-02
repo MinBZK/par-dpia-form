@@ -1,4 +1,4 @@
-import { Dependency, Option, Source, Task, TaskTypeValue, FormType } from '@/models/dpia'
+import { Dependency, Option, Source, Task, TaskTypeValue, FormType } from '@/models/dpia.ts'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'

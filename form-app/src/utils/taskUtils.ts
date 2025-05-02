@@ -1,4 +1,4 @@
-import { Task } from '@/models/dpia'
+import { Task } from '@/models/dpia.ts'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 

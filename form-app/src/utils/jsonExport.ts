@@ -1,7 +1,7 @@
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
-import { FormType } from '@/models/dpia';
+import { FormType } from '@/models/dpia.ts';
 import { generateFilename } from './fileName'
 
 export async function importFromJson(file: File, activeNamespace: FormType): Promise<DPIASnapshot> {

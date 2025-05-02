@@ -1,6 +1,6 @@
 import { type Answer } from '@/stores/answers'
 import { type TaskInstance } from '@/stores/tasks'
-import { FormType } from './dpia';
+import { FormType } from './dpia.ts';
 
 export interface DPIASnapshotMetadata {
   savedAt: string

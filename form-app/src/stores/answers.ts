@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { FormType } from '@/models/dpia';
+import { FormType } from '@/models/dpia.ts';
 
 export type AnswerValue = string | string[] | null
 
