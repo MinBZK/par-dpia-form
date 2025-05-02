@@ -1,14 +1,16 @@
-name: Build and Deploy to GitHub Pages
+name: CI
 
 on:
   push:
     branches:
-      - main
+      - '**'
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
+    # Skip CI on pushes to main branch, since this is just for PR validation
+    if: github.ref != 'refs/heads/main'
     
     steps:
       - name: Checkout repository
@@ -20,11 +22,12 @@ jobs:
           python-version: '3.12'
           
       - name: Install Python dependencies
-        run: |
-          pip install pyyaml jsonschema
+        run: pip install pyyaml jsonschema
           
       - name: Generate JSON from YAML definitions
         run: |
+          mkdir -p form-app/src/assets
+          
           python script/run_validate_and_inject.py \
             --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
@@ -50,15 +53,23 @@ jobs:
       - name: Build the Vue application
         run: cd form-app && npm run build
         
-      - name: Clear docs directory and copy build files
+      - name: Update docs folder
         run: |
           rm -rf docs/*
           cp -r form-app/dist/* docs/
           
-      - name: Commit and push changes
-        run: |
-          git config user.email "actions@github.com"
-          git config user.name "GitHub Actions"
-          git add docs/
-          git diff --staged --quiet || git commit -m "Auto-deploy: Update GitHub Pages"
-          git push
+          echo "Contents of docs folder after update:"
+          ls -la docs/
+      
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Build successful! The changes build correctly and the docs folder has been updated.'
+            })
