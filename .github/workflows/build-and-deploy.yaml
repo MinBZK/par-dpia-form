@@ -14,6 +14,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: Install Python dependencies
+        run: |
+          pip install pyyaml jsonschema
+          
+      - name: Generate JSON from YAML definitions
+        run: |
+          python script/run_validate_and_inject.py \
+            --schema schemas/schema_DPIA.json \
+            --source sources/prescan_DPIA.yaml \
+            --begrippen-yaml sources/begrippenkader.yaml \
+            --output form-app/src/assets/PreScanDPIA.json
+            
+          python script/run_validate_and_inject.py \
+            --schema schemas/schema_DPIA.json \
+            --source sources/DPIA.yaml \
+            --begrippen-yaml sources/begrippenkader.yaml \
+            --output form-app/src/assets/DPIA.json
+      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -21,7 +44,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'form-app/package-lock.json'
           
-      - name: Install dependencies
+      - name: Install Node dependencies
         run: cd form-app && npm ci
         
       - name: Build the Vue application
