@@ -1,17 +1,22 @@
-name: CI
+name: Build and Deploy GitHub Pages
 
 on:
   push:
     branches:
-      - '**'
-  workflow_dispatch:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Skip CI on pushes to main branch, since this is just for PR validation
-    if: github.ref != 'refs/heads/main'
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,23 +58,21 @@ jobs:
       - name: Build the Vue application
         run: cd form-app && npm run build
         
-      - name: Update docs folder
-        run: |
-          rm -rf docs/*
-          cp -r form-app/dist/* docs/
-          
-          echo "Contents of docs folder after update:"
-          ls -la docs/
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
       
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '✅ Build successful! The changes build correctly and the docs folder has been updated.'
-            })
+          path: 'form-app/dist'
+          
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
