@@ -6,7 +6,9 @@ This document provides a standardized specification for the declaration of struc
 with a specific focus on Data Protection Impact Assessment (DPIA) forms. 
 
 It defines a schema for creating hierarchical form structures that can be used for privacy-related
-assessments and evaluations.
+assessments and evaluations, including:
+- Data Protection Impact Assessments (DPIAs)
+- Pre-scan DPIAs for preliminary risk assessment
 
 ## 2. Terminology
 
@@ -36,7 +38,17 @@ tasks:
       # Nested tasks go here
 ```
 
-For details see the complete [JSON schema](schemas/formSchema.json).
+The root object MUST contain the following properties:
+
+- `name`: Human-readable name of the form
+- `urn`: Unique Resource Name in the format `urn:nl:domain:version`
+- `version`: Version string in the format major[.minor[.patch]]
+- `description`: Human-readable description of the form's purpose
+- `tasks`: Array of top-level tasks
+
+The tasks array MUST contain at least one task.
+
+For details see Appendix A.
 
 ### 3.2 Task types
 
@@ -88,6 +100,16 @@ dependencies:
     action: show
 ```
 
+The following operators MUST be supported:
+
+- `equals`: Exact match
+- `contains`: String/array contains value
+- `any`: Any value is selected
+
+The following actions MUST be supported:
+
+- `show`: Display the field when condition is met
+
 #### 3.4.2 Instance mapping
 
 Forms support synchronizing instances between related sections:
@@ -101,6 +123,10 @@ dependencies:
     action: sync_instances
 ```
 
+The following mapping types MUST be supported:
+
+- `one_to_one`: One instance in source maps to one instance in target
+
 #### 3.4.3 Dynamic options
 
 Options can be dynamically sourced from other fields:
@@ -113,6 +139,45 @@ dependencies:
       operator: any
     action: options
 ```
+
+This allows forms to dynamically populate selection options based on values entered elsewhere in the form.
+
+
+#### 3.4.4 calculations
+
+Forms support calculation of derived values and risk scores:
+
+```yaml
+calculation:
+  scoreKey: "bijzonder_persoonsgegeven"
+  expression: "answers('1.2.2') | count"
+  riskScore:
+    - when: "bijzonder_persoonsgegeven == 0"
+      value: 0
+    - when: "bijzonder_persoonsgegeven >= 1 && bijzonder_persoonsgegeven <= 6"
+      value: 1
+    - when: "bijzonder_persoonsgegeven > 6"
+      value: 2
+```
+
+Implementations MUST support the following capabilities:
+
+- Expression evaluation using a standard expression language such as JEXL
+- Custom functions for accessing form answers
+- Conditional risk score assignment
+
+
+#### 3.4.5 Referencing
+
+Forms support cross-references to other form sections:
+
+```yaml
+references:
+  prescanModelId: "7"
+  DPIA: "13.1.1"
+```
+
+This allows implementations to provide contextual navigation and linking between related forms.
 
 
 ## 4. DPIA Form implementation
@@ -177,3 +242,7 @@ assessments:
 
 Implementations MUST validate form data against the schema.
 Required fields MUST be enforced according to the schema definitions.
+
+## Appendix A
+
+The complete [form JSON schema](schemas/formSchema.json).
