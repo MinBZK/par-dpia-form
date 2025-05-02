@@ -26,13 +26,13 @@ jobs:
       - name: Generate JSON from YAML definitions
         run: |
           python script/run_validate_and_inject.py \
-            --schema schemas/schema_DPIA.json \
+            --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
             --begrippen-yaml sources/begrippenkader.yaml \
             --output form-app/src/assets/PreScanDPIA.json
             
           python script/run_validate_and_inject.py \
-            --schema schemas/schema_DPIA.json \
+            --schema schemas/formSchema.json \
             --source sources/DPIA.yaml \
             --begrippen-yaml sources/begrippenkader.yaml \
             --output form-app/src/assets/DPIA.json

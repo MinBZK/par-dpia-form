@@ -151,7 +151,7 @@ below the schema is validated and exported to a JSON in the assets folder of the
 ```bash
 # Prescan DPIA
 uv run script/schema_validator.py \
-    --schema schemas/schema_DPIA.json \
+    --schema schemas/formSchema.json \
     --source sources/prescan_DPIA.yaml \
     --output form-app/src/assets/PreScanDPIA.json
 ```
@@ -159,7 +159,7 @@ uv run script/schema_validator.py \
 ```bash
 # DPIA
 uv run script/schema_validator.py \
-    --schema schemas/schema_DPIA.json \
+    --schema schemas/formSchema.json \
     --source sources/DPIA.yaml \
     --output form-app/src/assets/DPIA.json
 ```
