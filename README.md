@@ -73,17 +73,8 @@ npm run build
 ```
 
 This will generate a standalone HTML file at `form-app/dist/index.html` that contains all necessary CSS,
-JavaScript and assets.
-
-### GitHub Pages deployment
-
-To deploy to GitHub Pages:
-
-```bash
-./script/generate-html
-```
-
-This script copies the built application to the `docs/` directory, which is configured as the GitHub Pages source.
+JavaScript and assets. There is a GitHub Action that deploys this to GitHub Pages when a branch is merged 
+to the main branch.
 
 ### Technical details
 
