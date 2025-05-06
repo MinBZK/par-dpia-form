@@ -1659,7 +1659,7 @@
             "levels": [
                 {
                     "level": "required",
-                    "expression": "bool(answers('6.1.1')) || bool(answers('6.1.2')))",
+                    "expression": "bool(answers('6.1.1')) || bool(answers('6.1.2'))",
                     "result": "IAMA verplicht",
                     "explanation": "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
                 }
