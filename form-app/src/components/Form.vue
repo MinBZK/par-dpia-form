@@ -160,6 +160,12 @@ const isSigningTask = computed(() => {
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
+        <div v-if="formStarted" class="utrecht-button-group rvo-action-groul--position-right" role="group"
+          aria-label="Formulier opslag">
+          <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
+            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" @click="" />
+          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" @click="openSaveModal" />
+        </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
@@ -169,12 +175,19 @@ const isSigningTask = computed(() => {
             <!-- Navigation buttons -->
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-              <p class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <UiButton variant="secondary" label="Werk opslaan als bestand" @click="openSaveModal" />
+              <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
+                <div class="rvo-checkbox__group">
+                  <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
+                    <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
+                      type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
+                      @change="taskStore.toggleCompleteForTaskId(currentRootTaskId)" />
+                    Markeer als voltooid
+                  </label>
+                </div>
                 <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
                   label="Volgende stap" @click="goToNext" />
                 <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
-              </p>
+              </div>
             </div>
           </div>
         </template>

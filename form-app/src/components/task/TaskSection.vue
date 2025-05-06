@@ -135,13 +135,6 @@ function shouldSkipTask(taskId: string): boolean {
     </div>
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
-      <div class="rvo-checkbox__group">
-        <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${taskId}-completed`">
-          <input id="`${taskId}-completed`" name="step_completed" class="rvo-checkbox__input" type="checkbox"
-            :checked="taskStore.isRootTaskCompleted(taskId)" @change="taskStore.toggleCompleteForTaskId(taskId)" />
-          Markeer als voltooid
-        </label>
-      </div>
 
       <!-- Show consolidated warnings for tasks that need to be filled in -->
       <div v-if="missingSourceDependencies.length > 0" class="rvo-alert rvo-alert--warning rvo-margin-block-end--md">
