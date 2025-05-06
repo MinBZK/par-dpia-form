@@ -329,7 +329,7 @@
                                     "condition": {
                                         "id": "1.1.2",
                                         "operator": "contains",
-                                        "value": "Overige"
+                                        "value": "Categorie gewone persoonsgegevens: Overige"
                                     },
                                     "action": "show"
                                 }
@@ -544,7 +544,7 @@
                     ]
                 },
                 {
-                    "task": "Welke categorie\u00ebn betrokken kun je onderscheiden?",
+                    "task": "Welke categorie\u00ebn <span class=\"aiv-definition\">betrokkene<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span> kun je onderscheiden?",
                     "description": "Er wordt ook vastgelegd welke <span class=\"aiv-definition\">categorie betrokkenen<span class=\"aiv-definition-text\"><p>Een categorie betrokkenen is een groepering van [betrokkenen].</p><h4>Voorbeeld(en):</h4><p>Medewerker.</p></span></span></span> onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span> in die categorie.",
                     "id": "1.4",
                     "type": [
@@ -833,7 +833,7 @@
             "repeatable": false,
             "tasks": [
                 {
-                    "task": "Internationale doorgiften",
+                    "task": "<span class=\"aiv-definition\">Internationale doorgiften<span class=\"aiv-definition-text\"><p>Internationale doorgifte is het doorgeven van [persoonsgegevens] aan een [derde land] of internationale organisatie.</p><h4>Toelichting:</h4><p>De EDPB heeft de volgende drie cumulatieve criteria vastgesteld om een doorgifte buiten de EER (internationale doorgifte) te identificeren:\n\n\n* een verwerkingsverantwoordelijke of een verwerker is onderworpen aan de AVG voor de gegeven verwerking;\n* deze verwerkingsverantwoordelijke of verwerker zendt de persoonsgegevens door naar of stelt deze beschikbaar aan een andere organisatie (gegevensbeheerder of verwerker);\n* deze andere organisatie bevindt zich in een land buiten de EER (een derde land) of is een internationale organisatie.\n\nEr is ook sprake van internationale doorgifte als het hoofdkantoor van de cloudprovider buiten de EER is gevestigd, opslag van gegevens buiten de EER plaatsvindt, support van buiten de EER wordt geleverd of telemetrie en/of diagnostische gegevens buiten de EER worden verwerkt.</p></span></span></span>",
                     "id": "2.1",
                     "type": [
                         "task_group"
@@ -847,7 +847,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "default": false,
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -905,15 +905,15 @@
                             "options": [
                                 {
                                     "label": "On premise",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "On premise"
                                 },
                                 {
                                     "label": "Datacenter EER",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "Datacenter EER"
                                 },
                                 {
                                     "label": "Buiten EER",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "BUiten EER"
                                 }
                             ],
                             "dependencies": [

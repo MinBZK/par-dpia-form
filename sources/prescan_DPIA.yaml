@@ -20,7 +20,7 @@ tasks:
   category: Inleiding/Algemeen 
   type: 
     - task_group
-  repeatable: false 
+  repeatable: false
   tasks: 
     - task: Beschrijving van de verwerking 
       description: >-
@@ -31,7 +31,7 @@ tasks:
         Beschrijf het proces waar de beoogde verwerkingen van persoonsgegevens deel van uitmaken. 
         Noem daarbij de stappen op hoofdlijnen, betrokken partijen, en welke systemen of applicaties gebruikt zullen worden. 
       id: "0.1"
-      repeatable: false 
+      repeatable: false
       type: 
         - open_text
       references:
@@ -42,7 +42,7 @@ tasks:
         Welk doel wil de organisatie bereiken met de gegevensverwerking? 
         Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.2"
-      repeatable: false 
+      repeatable: false
       type: 
         - open_text
       references:
@@ -52,7 +52,7 @@ tasks:
       description: Een alternatieve aanduiding is rechtsgrond. 
         De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
-      repeatable: false 
+      repeatable: false
       type: 
         - select_option
       options: 
@@ -110,7 +110,7 @@ tasks:
            prescanModelId: "4"
        - task: Welke vorm van cloud betreft het? 
          id: "0.4.3"
-         repeatable: false 
+         repeatable: false
          type: 
            - radio_option
          options: 
@@ -145,7 +145,7 @@ tasks:
                operator: equals 
                value: true 
              action: show
-         repeatable: false 
+         repeatable: false
          references:
            prescanModelId: "6"
 - task: Gegevensverwerking
@@ -153,7 +153,7 @@ tasks:
   category: Gegevensverwerking
   type: 
     - task_group
-  repeatable: false 
+  repeatable: false
   tasks: 
   - task: Gewone persoonsgegevens
     id: "1.1"
@@ -175,7 +175,7 @@ tasks:
             label: Ja
           - value: false
             label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "7"
       - task: Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer één of meer opties. 
@@ -200,7 +200,7 @@ tasks:
               value: 0
             - when: "gewone_persoonsgegeven => 6"
               value: 1
-        repeatable: false 
+        repeatable: false
         dependencies: 
           - type: conditional 
             condition: 
@@ -221,7 +221,7 @@ tasks:
             operator: contains 
             value: "Categorie gewone persoonsgegevens: Overige"
           action: show
-        repeatable: false 
+        repeatable: false
   - task: Bijzondere persoonsgegevens
     id: "1.2"
     type:
@@ -242,7 +242,7 @@ tasks:
           label: Ja
         - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "8"
           DPIA: "13.1.1"
@@ -368,21 +368,21 @@ tasks:
           value: 1
         - when: "betrokkenen >= 4"
           value: 2
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "10"
   - task: Geef een omschrijving van de doelgroep 
     id: "1.5"
     type:
     - text_input
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "10"
   - task: Wat is naar schatting de omvang van de gegevensset/de verwerking? 
     id: "1.6"
     type: 
     - task_group
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "11"
     tasks: 
@@ -399,9 +399,9 @@ tasks:
         options:
         - value: true 
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         calculation:
           scoreKey: "aantal_betrokkenen"
           expression: "answers('1.6.1')" 
@@ -424,9 +424,9 @@ tasks:
         options:
         - value: true 
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "11.b"
       - task: Frequentie van verwerking 
@@ -479,7 +479,7 @@ tasks:
     id: "1.7"
     type:
     - task_group
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "12"
     tasks: 
@@ -492,9 +492,9 @@ tasks:
       options:
       - value: true 
         label: Ja
-      - value: false 
+      - value: false
         label: Nee
-      repeatable: false 
+      repeatable: false
     - task: Afnemers van de informatie? Bijvoorbeeld (collega)overheidsorganan die informatie uit de applicatie of het proces halen? 
       id: "1.7.2"
       type: 
@@ -504,9 +504,9 @@ tasks:
       options:
       - value: true 
         label: Ja
-      - value: false 
+      - value: false
         label: Nee
-      repeatable: false 
+      repeatable: false
 - task: Internationale doorgiften 
   id: "2"
   type: 
@@ -524,13 +524,13 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        default: false
+        defaultValue: false
         options: 
         - value: true
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "13"
       - task: Waar is het hoofdkantoor van de cloudprovider gevestigd? 
@@ -559,11 +559,11 @@ tasks:
         - radio_option
         options: 
         - label: On premise 
-          value: locatie_gegevensopslag
+          value: On premise
         - label: Datacenter EER
-          value: locatie_gegevensopslag
+          value: Datacenter EER
         - label: Buiten EER 
-          value: locatie_gegevensopslag
+          value: BUiten EER
         dependencies: 
           - type: conditional 
             condition: 
@@ -783,9 +783,9 @@ tasks:
           options: 
             - value: true
               label: Ja
-            - value: false 
+            - value: false
               label: Nee
-          repeatable: false 
+          repeatable: false
         - task: Van welke basisregistraties wordt gebruik gemaakt? 
           id: "5.1.2"
           type: 
@@ -840,7 +840,7 @@ tasks:
   id: "6"
   type: 
   - task_group
-  repeatable: false 
+  repeatable: false
   tasks:
   - task: Algoritmes en AI
     id: "6.1"
@@ -857,9 +857,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
     - task: Wordt op de uitslag (mede) een besluit over mensen genomen?
       id: "6.1.2"
       type:
@@ -869,9 +869,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
       dependencies: 
       - type: conditional 
         condition: 
@@ -888,7 +888,7 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
       repeatable: false
       dependencies: 
@@ -922,9 +922,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
     - task: Biedt u een digitale dienst aan die primair bedoeld is voor gebruik door personen jonger dan 18 jaar?
       id: "7.1.2"
       type:
@@ -934,9 +934,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
       dependencies: 
         - type: conditional 
           condition: 
@@ -955,7 +955,7 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
       dependencies: 
         - type: conditional 
