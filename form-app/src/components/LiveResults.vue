@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { useCalculationStore } from '@/stores/calculations'
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 
 const calculationStore = useCalculationStore()
 
 onMounted(() => {
   calculationStore.init()
+})
+
+const hasRequiredOrRecommendedAssessments = computed(() => {
+  return calculationStore.assessmentResults.some(assessment =>
+    assessment.required || assessment.level === 'recommended'
+  );
 })
 </script>
 
@@ -13,7 +19,7 @@ onMounted(() => {
   <div class="assessment-results rvo-card">
 
     <div class="rvo-accordion">
-      <details class="rvo-accordion__item">
+      <details class="rvo-accordion__item" :open="hasRequiredOrRecommendedAssessments">
         <summary class="rvo-accordion__item-summary">
           <div class="rvo-accordion__item-icon">
             <span

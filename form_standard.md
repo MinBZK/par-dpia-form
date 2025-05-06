@@ -218,21 +218,29 @@ is computed on the basis of the described conditions.
 
 ### 5.2 Assessment results
 The Pre-scan determines if additional assessments are required; these are computed from risk scoring
-calculations as described in section 5.1. For example:
+calculations as described in section 5.1. An assessment can have different levels, indicating whether 
+it is required or recommended. For example:
 
 ```yaml
 assessments:
   - id: "DPIA"
-    expression: "
-      (
-        (scores.gewone_persoonsgegeven || 0) +
-        (scores.bijzonder_persoonsgegeven || 0) +
-        # Other scores...
-      ) > 4 || 
-      (countSelectedOptions('3.1') >= 1) ||
-      (countSelectedOptions('4.1') >= 2)"
-    result: "DPIA verplicht"
-    explanation: "A DPIA is required because..."
+    levels:
+      - level: "required"
+        expression: "
+          (
+            (scores.gewone_persoonsgegeven || 0) +
+            (scores.bijzonder_persoonsgegeven || 0) +
+            # Other scores...
+          ) > 4 || 
+          (countSelectedOptions('3.1') >= 1) ||
+          (countSelectedOptions('4.1') >= 2)"
+        result: "DPIA verplicht"
+        explanation: "Een DPIA is verplicht omdat ..."
+      
+      - level: "recommended"
+        expression: "countSelectedOptions('4.1') == 1"
+        result: "DPIA aanbevolen"
+        explanation: "Een DPIA wordt aanbevolen omdat ..."
 ```
 
 

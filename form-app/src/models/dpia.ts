@@ -118,12 +118,19 @@ export type Task = t.TypeOf<typeof Task>
 export const Tasks = t.array(Task)
 export type Tasks = t.TypeOf<typeof Tasks>
 
-export const Assessment = t.type({
-  id: t.string,
+export const AssessmentLevel = t.type({
+  level: t.string,
   expression: t.string,
   result: t.string,
   explanation: t.string,
 })
+export type AssessmentLevel = t.TypeOf<typeof AssessmentLevel>
+
+export const Assessment = t.type({
+    id: t.string,
+    levels: t.array(AssessmentLevel),
+  })
+
 export type Assessment = t.TypeOf<typeof Assessment>
 
 export const DPIA = t.intersection([
