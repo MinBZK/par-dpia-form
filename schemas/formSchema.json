@@ -95,8 +95,14 @@
                         "type": "string"
                     },
                     "examples": [
-                        {"DPIA": "12.1.1", "prescan": "3"},
-                        {"source": "section_5", "target": "section_6"}
+                        {
+                            "DPIA": "12.1.1",
+                            "prescan": "3"
+                        },
+                        {
+                            "source": "section_5",
+                            "target": "section_6"
+                        }
                     ]
                 },
                 "dependencies": {
@@ -107,32 +113,61 @@
                         "properties": {
                             "type": {
                                 "type": "string",
-                                "enum": ["conditional", "source_options", "instance_mapping"]
+                                "enum": [
+                                    "conditional",
+                                    "source_options",
+                                    "instance_mapping"
+                                ]
                             },
                             "condition": {
                                 "type": "object",
                                 "properties": {
-                                    "id": { "type": "string" },
-                                    "operator": { 
-                                        "type": "string",
-                                        "enum": ["equals", "contains", "any", "all"]
+                                    "id": {
+                                        "type": "string"
                                     },
-                                    "value": { "type": ["string", "boolean", "number", "null"] }
+                                    "operator": {
+                                        "type": "string",
+                                        "enum": [
+                                            "equals",
+                                            "contains",
+                                            "any",
+                                            "all"
+                                        ]
+                                    },
+                                    "value": {
+                                        "type": [
+                                            "string",
+                                            "boolean",
+                                            "number",
+                                            "null"
+                                        ]
+                                    }
                                 }
                             },
                             "source": {
                                 "type": "object",
                                 "properties": {
-                                    "id": { "type": "string" }
+                                    "id": {
+                                        "type": "string"
+                                    }
                                 }
                             },
                             "mapping_type": {
-                                "type": "string", 
-                                "enum": ["one_to_one", "one_to_many", "many_to_one"]
-                            },
-                            "action": { 
                                 "type": "string",
-                                "enum": ["show", "hide", "options", "sync_instances"]
+                                "enum": [
+                                    "one_to_one",
+                                    "one_to_many",
+                                    "many_to_one"
+                                ]
+                            },
+                            "action": {
+                                "type": "string",
+                                "enum": [
+                                    "show",
+                                    "hide",
+                                    "options",
+                                    "sync_instances"
+                                ]
                             }
                         }
                     }
@@ -155,16 +190,19 @@
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "when": { 
+                                    "when": {
                                         "type": "string",
                                         "description": "Condition to evaluate"
                                     },
-                                    "value": { 
+                                    "value": {
                                         "type": "number",
                                         "description": "Score to assign when condition is true"
                                     }
                                 },
-                                "required": ["when", "value"]
+                                "required": [
+                                    "when",
+                                    "value"
+                                ]
                             }
                         }
                     }
@@ -184,7 +222,9 @@
                                 "description": "Description of the resource and its purpose"
                             }
                         },
-                        "required": ["source"]
+                        "required": [
+                            "source"
+                        ]
                     }
                 },
                 "required_status": {
@@ -267,20 +307,46 @@
                         "type": "string",
                         "description": "Identifier for the assessment type (e.g., DPIA, DTIA, KIA, IAMA)"
                     },
-                    "expression": {
-                        "type": "string",
-                        "description": "Expression to evaluate to determine if the assessment is required"
-                    },
-                    "result": {
-                        "type": "string",
-                        "description": "Result message when the assessment is required"
-                    },
-                    "explanation": {
-                        "type": "string",
-                        "description": "Detailed explanation of why the assessment is required"
+                    "levels": {
+                        "type": "array",
+                        "description": "Different levels of assessment requirement (required, recommended)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "level": {
+                                    "type": "string",
+                                    "enum": [
+                                        "required",
+                                        "recommended"
+                                    ],
+                                    "description": "The level of requirement for this assessment"
+                                },
+                                "expression": {
+                                    "type": "string",
+                                    "description": "Expression to evaluate to determine if this level applies"
+                                },
+                                "result": {
+                                    "type": "string",
+                                    "description": "Result message when this level applies"
+                                },
+                                "explanation": {
+                                    "type": "string",
+                                    "description": "Detailed explanation for this assessment level"
+                                }
+                            },
+                            "required": [
+                                "level",
+                                "expression",
+                                "result",
+                                "explanation"
+                            ]
+                        }
                     }
                 },
-                "required": ["id", "expression", "result"]
+                "required": [
+                    "id",
+                    "levels"
+                ]
             }
         }
     },
