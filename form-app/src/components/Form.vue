@@ -129,6 +129,28 @@ const handleStart = (fileData?: DPIASnapshot) => {
   formStarted.value = true
 }
 
+const handleReset = () => {
+  // 1. Clear local storage
+  appPersistence.clearSavedState(taskStore.activeNamespace)
+
+  // 2. Reset answer store
+  answerStore.answers[taskStore.activeNamespace] = {}
+
+  // 3. Reset task store state
+  taskStore.taskInstances[taskStore.activeNamespace] = {}
+  taskStore.completedRootTaskIds[taskStore.activeNamespace] = new Set()
+  taskStore.currentRootTaskId[taskStore.activeNamespace] = taskStore.rootTaskIds[taskStore.activeNamespace][0] || "0"
+
+  // 4. Force re-initialization
+  taskStore.isInitialized[taskStore.activeNamespace] = false
+  if (props.validData) {
+    taskStore.init(props.validData.tasks, true)
+  }
+
+  // 5. Reset UI state
+  formStarted.value = false
+}
+
 const isSigningTask = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'signing')
@@ -163,7 +185,7 @@ const isSigningTask = computed(() => {
         <div v-if="formStarted" class="utrecht-button-group rvo-action-groul--position-right" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" @click="" />
+            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" @click="handleReset" />
           <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" @click="openSaveModal" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
