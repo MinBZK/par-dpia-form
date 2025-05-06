@@ -170,31 +170,37 @@ tasks:
          - task_group
        repeatable: false
        tasks:
-        - task: Grootte (aantal documenten)
-          id: "0.6.1"
-          type:
-            - text_input
-          repeatable: false
-        - task: Document soort
-          id: "0.6.2"
-          type:
-            - text_input
-          repeatable: true
-        - task: Document naam
-          id: "0.6.3"
-          type:
-            - text_input
-          repeatable: true
-        - task: Document versie
-          id: "0.6.4"
-          type:
-            - text_input
-          repeatable: true
-        - task: Document locatie
-          id: "0.6.5"
-          type:
-            - text_input
-          repeatable: true
+          - task: Grootte (aantal documenten)
+            id: "0.6.1"
+            type:
+              - text_input
+            repeatable: false
+          - task: Documenten
+            id: "0.6.2"
+            type:
+              - task_group
+            repeatable: true
+            tasks:
+              - task: Document soort
+                id: "0.6.2.1"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document naam
+                id: "0.6.2.2"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document versie
+                id: "0.6.2.3"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document locatie
+                id: "0.6.2.4"
+                type:
+                  - text_input
+                repeatable: false
  - task: >-
       Inleiding
    description: |
@@ -236,7 +242,7 @@ tasks:
           repeatable: true 
           tasks:
           - task: Afbeelding
-            description: Geef de bestandsnaam van een afbeelding
+            description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
             id: "2.2.1"
             type:
               - text_input
@@ -251,7 +257,7 @@ tasks:
         • Gevoelig persoonsgegeven<br>
         • Bijzonder persoonsgegeven<br>
         • Strafrechtelijk persoonsgegeven<br>
-        • Wettelijk identificatienummer<br>
+        • Nationaal identificatienummer<br>
         
         Geef aan wat de bron persoonsgegevens is.
    id: "3"
@@ -321,7 +327,7 @@ tasks:
                     operator: equals
                     value: true
                   action: show
-            - task: Middel van bron (tool/platform)
+            - task: Bron tool/platform
               id: "3.1.8"
               type: 
                 - text_input
@@ -345,12 +351,13 @@ tasks:
                     operator: equals
                     value: true
                   action: show
-        - task:  Aanvullende informatie over de persoonsgegevens
+        - task: Aanvullende informatie over de persoonsgegevens
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "3.3"
           type: 
            - open_text
           repeatable: false
- - task: Gegevensverwerkering 
+ - task: Gegevensverwerking 
    description: >-
         Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorieën betrokkenen worden verwerkt per gegevensverwerking. 
         Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.
@@ -389,19 +396,19 @@ tasks:
                     operator: any
                   action: options
         - task: Aanvullende informatie over de gegevensverwerking
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "4.2"
           type: 
            - open_text
           repeatable: false
-        - task: Samenhang tussen gegevensverwerkingen
-          description: Geef een bestandsnaam van een afbeelding met de samenhang tussen de gevevensverwerkingen.
+        - task: Samenhang gegevensverwerkingen
           id: "4.3"
           type:
            - task_group
           repeatable: true 
           tasks:
-          - task: Samenhang gegevensverwerking
-            description: Geef een bestandsnaam van een afbeelding met de samenhang tussen de gevevensverwerkingen.
+          - task: Samenhang tussen de gegevensverwerkingen 
+            description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
             id: "4.3.1"
             type:
               - text_input
@@ -442,6 +449,7 @@ tasks:
             - open_text
           repeatable: true
     - task: Aanvullende informatie over de verwerkingsdoeleinden
+      description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
       id: "6.2"
       type: 
          - open_text
@@ -449,7 +457,7 @@ tasks:
  - task: >-
       Betrokken partijen
    description: >-
-    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen. Voeg aanvullende informatie toe in het tekstveld.
+    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen. 
    id: "7"
    type:
       - task_group
@@ -523,6 +531,7 @@ tasks:
                   operator: any
                 action: options
       - task: Aanvullende informatie over de betrokken partijen
+        description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
         id: "7.2"
         type: 
          - open_text
@@ -557,6 +566,7 @@ tasks:
                 - open_text
               repeatable: true 
         - task: Aanvullende informatie over de belangen
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "8.2"
           type: 
            - open_text
@@ -565,7 +575,7 @@ tasks:
     Verwerkingslocaties
    description: >-
       Benoem in welke landen de gegevensverwerkingen plaatsvinden. 
-      Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. Voeg aanvullende informatie toe in het tekstveld.
+      Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. 
 
       Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, 
       is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.
@@ -617,6 +627,7 @@ tasks:
                   - text_input
                 repeatable: false 
         - task: Aanvullende informatie over de verwerkingslocaties
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "9.2"
           type: 
            - open_text
@@ -626,7 +637,6 @@ tasks:
    description: >-
       Benoem alle wet- en regelgeving en beleid met mogelijke gevolgen voor de gegevensverwerkingen. 
       De AVG en de Richtlijn hoeven niet genoemd te worden. 
-      Voeg aanvullende informatie toe in het tekstveld.
    id: "10"
    type:
       - task_group
@@ -662,6 +672,7 @@ tasks:
                 - text_input
               repeatable: false 
         - task: Aanvullende informatie toe over het juridische en beleidsmatig kader
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "10.2"
           type: 
            - open_text
@@ -672,7 +683,6 @@ tasks:
       Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de verwerkingsdoeleinden. 
       Motiveer waarom deze bewaartermijnen niet langer zijn dan strikt noodzakelijk ten opzichte van de verwerkingsdoeleinden. 
       Beschrijf wie toeziet op de bewaartermijn en de mogelijke vernietiging of archivering aan het einde van de bewaartermijn. 
-      Voeg deze en andere aanvullende informatie toe in het tekstveld.
    id: "11"
    type:
         - task_group
@@ -737,12 +747,13 @@ tasks:
                 type: 
                   - text_input
                 repeatable: false
-              - task: Motivatie voor de bewaartermijn
+              - task: Motivatie bewaartermijn
                 id: "11.1.1.5"
                 type: 
                   - open_text
                 repeatable: false
         - task: Aanvullende informatie over de bewaartermijnen
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "11.2"
           type: 
            - open_text
@@ -750,11 +761,11 @@ tasks:
  - task: >-
      Rechtsgrond
    description: | 
-     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. Voeg aanvullende informatie toe in het tekstveld.
+     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. 
      
      De rechtsgronden zijn:
       • <strong>Toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
-      • <strong>Noodzakelijk voor de uitvoering van de overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
+      • <strong>Noodzakelijk voor overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
       • <strong>Noodzakelijk om te voldoen aan een wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
       • <strong>Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
       • <strong>Noodzakelijk voor de vervulling van een taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
@@ -803,6 +814,7 @@ tasks:
                 - open_text
               repeatable: false
         - task: Aanvullende informatie over de rechtsgronden
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "12.2"
           type: 
            - open_text
@@ -811,7 +823,6 @@ tasks:
      Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
    description: >-
       Het verwerken van bijzondere persoonsgegevens of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan. 
-      Voeg aanvullende informatie toe in het tekstveld.
    id: "13"
    type:
         - task_group
@@ -836,7 +847,7 @@ tasks:
                 - value: true
                   label: Ja
               repeatable: false
-            - task: Bijzondere pesoonsgegevens
+            - task: Bijzondere persoonsgegevens
               id: "13.1.2"
               type: 
                 - task_group
@@ -885,7 +896,7 @@ tasks:
                       id: "3.1.1"
                       operator: any
                     action: options
-              - task: Type bijzonder persoonsgegevens 
+              - task: Type bijzondere persoonsgegevens 
                 id: "13.1.2.4"
                 type: 
                   - select_option
@@ -998,7 +1009,7 @@ tasks:
                 - value: true
                   label: Ja
               repeatable: false
-            - task: Strafrechtelijke persoonsgegegevens
+            - task: Nationale identificatienummers
               id: "13.3.2"
               type: 
                 - task_group
@@ -1053,6 +1064,7 @@ tasks:
                   - open_text
                 repeatable: false
         - task: Aanvullende informatie over de bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "13.4"
           type: 
            - open_text
@@ -1060,7 +1072,7 @@ tasks:
  - task: >-
      Doelbinding
    description: |
-      Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld. Voeg in het tekstveld de verenigbaarheidstoets en aanvullende informatie toe.
+      Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld.
    id: "14"
    type:
         - task_group
@@ -1120,6 +1132,7 @@ tasks:
                 - text_input
               repeatable: false
         - task: Aanvullende informatie over de verenigbaarheid en toelaatbaarheid
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "14.2"
           type: 
            - open_text
@@ -1176,7 +1189,7 @@ tasks:
               - value: null
                 label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "16.1.2"
             type: 
               - open_text
@@ -1427,7 +1440,7 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-        - task: Recht niet onderworpen te worden aan geautomatiseerde besluitvorming
+        - task: Recht niet onderworpen te worden aan uitsluitend geautomatiseerde besluitvorming
           id: "16.6"
           type:
            - task_group
@@ -1602,7 +1615,7 @@ tasks:
 
       Gebruik voor de inschatting van de kans, impact en het risico de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. 
 
-      De onderstaande matrix kan worden gebruikt voor het vaststellen van de risico’s voor betrokkenen. 
+      De onderstaande matrix kan worden gebruikt voor het vaststellen van het risico voor betrokkenen. 
    id: "17"
    sources: 
     - source: risico_matrix.png
@@ -1656,7 +1669,7 @@ tasks:
             type: 
               - text_input
             repeatable: false
-          - task: Risicoinschatting
+          - task: Risiconiveau
             id: "17.1.7"
             type: 
               - select_option
@@ -1672,6 +1685,7 @@ tasks:
             repeatable: false
         - task: >-
             Aanvullende informatie over de risico’s
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "17.2"
           type: 
            - open_text
@@ -1680,7 +1694,6 @@ tasks:
       Maatregelen
    description: |
         Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico’s te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt. 
-        Voeg aanvullende informatie in het tekstveld onder de tabel toe.
         
         Beschrijf ook de resterende risico’s die nog aanwezig zijn na de uitvoering en/of implementatie van de geïdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico. 
 
@@ -1701,8 +1714,15 @@ tasks:
             - task: Risico
               id: "18.1.1"
               type: 
-                - text_input
+                - checkbox_option
               repeatable: false
+              valueType: "string[]"
+              dependencies:
+                - type: source_options
+                  condition:
+                    id: "17.1.1"
+                    operator: any
+                  action: options
             - task: Oorsprong
               id: "18.1.2"
               type: 
@@ -1729,6 +1749,7 @@ tasks:
               repeatable: false
         - task: >-
               Aanvullende informatie over de maatregelen
+          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "18.2"
           type: 
             - open_text

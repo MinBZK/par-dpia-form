@@ -21,7 +21,7 @@ const instanceLabel = computed(() => {
   if (task.value.instance_label_template) {
     return renderInstanceLabel(props.instanceId, task.value.instance_label_template)
   }
-  return isRepeatable.value ? `${task.value.task} item` : task.value.task
+  return isRepeatable.value ? `${task.value.task}` : task.value.task
 })
 
 const childTasksWithChildren = computed(() => {
