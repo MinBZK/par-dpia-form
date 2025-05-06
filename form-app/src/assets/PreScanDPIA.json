@@ -330,6 +330,7 @@
                                         "id": "1.1.2",
                                         "operator": "contains",
                                         "value": "<span class=\"aiv-definition\">Categorie gewone persoonsgegevens: Overige<span class=\"aiv-definition-text\"><p>Overige is een [categorie gewone persoonsgegevens] met [persoonsgegevens], niet zijnde apparaat- en internetgegevens, content, demografische gegevens, diagnostische gegevens of telemetrie, gegevens verzameld via een website, helpdeskgegevens, logging en naam- en/of contactgegevens.</p><h4>Toelichting:</h4><p>Deze categorie is bedoeld voor gegevens die niet netjes in \u00e9\u00e9n van de andere categorie\u00ebn passen, maar toch herleidbaar zijn tot een persoon.\n\nAls deze categorie wordt geselecteerd in de Pre-scan DPIA, dient een verdere specificatie van de categorie te worden gegeven.</p><h4>Voorbeeld(en):</h4><p>Handgeschreven notities.</p></span></span></span>"
+
                                     },
                                     "action": "show"
                                 }
@@ -546,6 +547,7 @@
                 {
                     "task": "Categorie\u00ebn <span class=\"aiv-definition\">betrokkene<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span>",
                     "description": "Er wordt ook vastgelegd welke <span class=\"aiv-definition\">categorie betrokkenen<span class=\"aiv-definition-text\"><p>Een categorie betrokkenen is een groepering van [betrokkenen].</p><h4>Voorbeeld(en):</h4><p>Medewerker, onderwerp van de gegevens, iedereen die geraakt wordt door bekendmaking van de gegevens.</p></span></span></span> onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span> in die categorie.",
+
                     "id": "1.4",
                     "type": [
                         "task_group"
@@ -865,7 +867,7 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "default": false,
+                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -923,15 +925,15 @@
                             "options": [
                                 {
                                     "label": "On premise",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "On premise"
                                 },
                                 {
                                     "label": "Datacenter EER",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "Datacenter EER"
                                 },
                                 {
                                     "label": "Buiten EER",
-                                    "value": "locatie_gegevensopslag"
+                                    "value": "BUiten EER"
                                 }
                             ],
                             "dependencies": [
@@ -1615,27 +1617,53 @@
     "assessments": [
         {
             "id": "DPIA",
-            "expression": " ( (scores.gewone_persoonsgegeven || 0) + (scores.bijzonder_persoonsgegeven || 0) + (scores.gevoelig_persoonsgegeven || 0) + (scores.betrokkenen || 0) + (scores.aantal_betrokkenen || 0) + (scores.frequentie_verwerking || 0) + (scores.bewaartermijn || 0) + (scores.internationale_doorgifte || 0) + (scores.basisregistratie || 0) + (scores.digitaledienst_minderjarig || 0) ) > 4|| (countSelectedOptions('3.1') >= 1) || (countSelectedOptions('4.1') >= 2)",
-            "result": "DPIA verplicht",
-            "explanation": "Een DPIA is verplicht omdat:\n \u2022 de som van de risicoscores groter is dan 4, en/of\n \u2022 er minimaal 1 item op de AP-lijst is geselecteerd, en/of\n \u2022 er minimaal 2 items op de EDPB-lijst zijn geselecteerd.\n"
+            "levels": [
+                {
+                    "level": "required",
+                    "expression": " ( (scores.gewone_persoonsgegeven || 0) + (scores.bijzonder_persoonsgegeven || 0) + (scores.gevoelig_persoonsgegeven || 0) + (scores.betrokkenen || 0) + (scores.aantal_betrokkenen || 0) + (scores.frequentie_verwerking || 0) + (scores.bewaartermijn || 0) + (scores.internationale_doorgifte || 0) + (scores.basisregistratie || 0) + (scores.digitaledienst_minderjarig || 0) ) > 4|| (countSelectedOptions('3.1') >= 1) || (countSelectedOptions('4.1') >= 2)",
+                    "result": "DPIA verplicht",
+                    "explanation": "Een DPIA is verplicht omdat:\n \u2022 de som van de risicoscores groter is dan 4, en/of\n \u2022 er minimaal 1 item op de AP-lijst is geselecteerd, en/of\n \u2022 er minimaal 2 items op de EDPB-lijst zijn geselecteerd.\n"
+                },
+                {
+                    "level": "recommended",
+                    "expression": "countSelectedOptions('4.1') == 1",
+                    "result": "DPIA aanbevolen",
+                    "explanation": "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+                }
+            ]
         },
         {
             "id": "DTIA",
-            "expression": " bool(answers('2.1.1')) && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']",
-            "result": "DTIA verplicht",
-            "explanation": "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+            "levels": [
+                {
+                    "level": "required",
+                    "expression": " bool(answers('2.1.1')) && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']",
+                    "result": "DTIA verplicht",
+                    "explanation": "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+                }
+            ]
         },
         {
             "id": "KIA",
-            "expression": "bool(answers('7.1.1')) && bool(answers('7.1.2'))",
-            "result": "KIA verplicht",
-            "explanation": "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar."
+            "levels": [
+                {
+                    "level": "required",
+                    "expression": "bool(answers('7.1.1')) && bool(answers('7.1.2'))",
+                    "result": "KIA verplicht",
+                    "explanation": "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar."
+                }
+            ]
         },
         {
             "id": "IAMA",
-            "expression": "bool(answers('6.1.1')) || bool(answers('6.1.2'))",
-            "result": "IAMA verplicht",
-            "explanation": "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+            "levels": [
+                {
+                    "level": "required",
+                    "expression": "bool(answers('6.1.1')) || bool(answers('6.1.2')))",
+                    "result": "IAMA verplicht",
+                    "explanation": "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+                }
+            ]
         }
     ]
 }

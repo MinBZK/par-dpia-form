@@ -6,15 +6,25 @@ import { useTaskStore } from '@/stores/tasks'
 import { useSchemaStore } from '@/stores/schemas'
 import * as jexl from 'jexl'
 
-export interface Assessment {
-  id: string;
+
+export interface AssessmentLevel {
+  level: string;
   expression: string;
   result: string;
   explanation: string;
 }
 
-export interface AssessmentResult extends Assessment {
-  required: boolean;
+export interface Assessment {
+  id: string;
+  levels: AssessmentLevel[];
+}
+
+export interface AssessmentResult {
+  id: string;
+  level: string;
+  result: string;
+  explanation: string;
+  required: boolean; // For backward compatibility with UI components
 }
 
 export const useCalculationStore = defineStore('calculationStore', () => {
@@ -132,8 +142,7 @@ export const useCalculationStore = defineStore('calculationStore', () => {
   }
 
 
-  // Evaluate all assessments
-  async function evaluateAssessments() {
+  async function evaluateAssessments(): Promise<AssessmentResult[] | undefined> {
     assessmentResults.value = []
     const schema = schemaStore.getSchema(taskStore.activeNamespace)
     if (!schema || !schema.assessments) {
@@ -146,19 +155,32 @@ export const useCalculationStore = defineStore('calculationStore', () => {
     for (const assessment of assessments) {
       try {
         const context = { scores: calculatedScores.value }
-        const required = await jexlInstance.eval(assessment.expression, context)
+        let matchedLevel = null;
 
-        assessmentResults.value.push({
-          ...assessment,
-          required
-        })
+        for (const level of assessment.levels) {
+          const result = await jexlInstance.eval(level.expression, context)
+          if (result) {
+            matchedLevel = level;
+            break;
+          }
+        }
+
+        if (matchedLevel) {
+          assessmentResults.value.push({
+            id: assessment.id,
+            level: matchedLevel.level,
+            result: matchedLevel.result,
+            explanation: matchedLevel.explanation,
+            required: matchedLevel.level === 'required' || matchedLevel.level === 'recommended'
+          })
+        }
       } catch (error) {
         console.error(`Error evaluating assessment ${assessment.id}:`, error)
         calculationErrors.value.push(`Error in ${assessment.id} assessment: ${error}`)
       }
     }
 
-    // Sort alphabetically by ID as a default order since we don't have priority
+    // Sort alphabetically by ID
     assessmentResults.value.sort((a, b) => a.id.localeCompare(b.id))
   }
 
@@ -191,6 +213,7 @@ export const useCalculationStore = defineStore('calculationStore', () => {
   // Initialize the calculator
   function init() {
     setupJexl()
+    runCalculations()
   }
 
   // Set up watcher to recalculate when answers change

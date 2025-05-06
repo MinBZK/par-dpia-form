@@ -184,16 +184,27 @@ function buildSectionDesciption(description?: string): Content {
  * Formats answer values for display in the PDF
  */
 function formatAnswerValue(value: any): string {
+  if (value === null || value === undefined) {
+    return 'Vraag is niet ingevuld of er is geen waarde geselecteerd.'
+  }
+
   if (Array.isArray(value)) {
-    return value.join(', ')
-  } else if (value === 'true') {
+    const cleanItems = value
+      .map(item => {
+        if (item === null || item === undefined) return '';
+        return getPlainTextWithoutDefinitions(String(item));
+      })
+      .filter(item => item.trim() !== '');
+    return cleanItems.join(', ');
+  }
+  else if (value === 'true') {
     return 'Ja'
   } else if (value === 'false') {
     return 'Nee'
   } else if (value === 'null') {
     return ''
   }
-  return value ? String(value) : ''
+  return value ? getPlainTextWithoutDefinitions(String(value)) : ''
 }
 
 /*
@@ -227,7 +238,7 @@ function buildAnswer(
   else {
     const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
     const answer = answerStore.getAnswer(instanceId)
-    return { text: getPlainTextWithoutDefinitions(formatAnswerValue(answer)), style: 'normal' }
+    return { text: formatAnswerValue(answer), style: 'normal' }
   }
 }
 
@@ -264,7 +275,7 @@ function processTaskWithInstances(
       if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
         const answer = answerStore.getAnswer(instanceId)
         elements.push({
-          text: getPlainTextWithoutDefinitions(formatAnswerValue(answer)),
+          text: formatAnswerValue(answer),
           style: 'normal',
           margin: [nestingLevel * 10, 0, 0, 5],
         })
@@ -292,7 +303,7 @@ function processTaskWithInstances(
 
     // Create table for this instance's simple fields
     const tableRows = buildTableRows(instanceId, task, taskStore, answerStore)
-    if (tableRows.length > 1) {
+    if (tableRows.length > 0) {
       // If there's more than just the header
       elements.push(createTableElement(tableRows, ['35%', '65%'], nestingLevel * 10))
     }
@@ -351,20 +362,20 @@ function buildTableRows(
 ): any[][] {
   const tableRows: any[][] = []
 
-  // Add header row with instance label
-  const instanceLabel = task.instance_label_template
-    ? renderInstanceLabel(instanceId, task.instance_label_template)
-    : task.task
+  // Only add header row if there's an instance label template
+  if (task.instance_label_template) {
+    const instanceLabel = renderInstanceLabel(instanceId, task.instance_label_template)
 
-  tableRows.push([
-    {
-      text: getPlainTextWithoutDefinitions(instanceLabel),
-      style: 'tableHeader',
-      colSpan: 2,
-      margin: [0, 3, 0, 3],
-    },
-    {},
-  ])
+    tableRows.push([
+      {
+        text: getPlainTextWithoutDefinitions(instanceLabel),
+        style: 'tableHeader',
+        colSpan: 2,
+        margin: [0, 3, 0, 3],
+      },
+      {},
+    ])
+  }
 
   // Add rows for each simple child field
   for (const childId of task.childrenIds) {
@@ -411,8 +422,8 @@ function createTableElement(
   widths: any[] = ['35%', '65%'],
   leftMargin: number = 0,
 ): Content {
-  if (rows.length <= 1) {
-    // Skip if only header row or empty
+  // Skip only if completely empty
+  if (rows.length === 0) {
     return { text: '' }
   }
 

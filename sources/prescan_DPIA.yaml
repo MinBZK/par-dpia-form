@@ -20,7 +20,7 @@ tasks:
   category: Inleiding/Algemeen 
   type: 
     - task_group
-  repeatable: false 
+  repeatable: false
   tasks: 
     - task: Beschrijving van de verwerking 
       description: >-
@@ -31,7 +31,7 @@ tasks:
         Beschrijf het proces waar de beoogde verwerkingen van persoonsgegevens deel van uitmaken. 
         Noem daarbij de stappen op hoofdlijnen, betrokken partijen, en welke systemen of applicaties gebruikt zullen worden. 
       id: "0.1"
-      repeatable: false 
+      repeatable: false
       type: 
         - open_text
       references:
@@ -42,7 +42,7 @@ tasks:
         Welk doel wil de organisatie bereiken met de gegevensverwerking? 
         Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.2"
-      repeatable: false 
+      repeatable: false
       type: 
         - open_text
       references:
@@ -52,7 +52,7 @@ tasks:
       description: Een alternatieve aanduiding is rechtsgrond. 
         De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
-      repeatable: false 
+      repeatable: false
       type: 
         - select_option
       options: 
@@ -110,7 +110,7 @@ tasks:
            prescanModelId: "4"
        - task: Welke vorm van cloud betreft het? 
          id: "0.4.3"
-         repeatable: false 
+         repeatable: false
          type: 
            - radio_option
          options: 
@@ -145,7 +145,7 @@ tasks:
                operator: equals 
                value: true 
              action: show
-         repeatable: false 
+         repeatable: false
          references:
            prescanModelId: "6"
 - task: Gegevensverwerking
@@ -153,7 +153,7 @@ tasks:
   category: Gegevensverwerking
   type: 
     - task_group
-  repeatable: false 
+  repeatable: false
   tasks: 
   - task: Gewone persoonsgegevens
     id: "1.1"
@@ -174,7 +174,7 @@ tasks:
             label: Ja
           - value: false
             label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "7"
       - task: Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer één of meer opties. 
@@ -199,7 +199,7 @@ tasks:
               value: 0
             - when: "gewone_persoonsgegeven >= 6"
               value: 1
-        repeatable: false 
+        repeatable: false
         dependencies: 
           - type: conditional 
             condition: 
@@ -220,7 +220,7 @@ tasks:
             operator: contains 
             value: "'Categorie gewone persoonsgegevens: Overige'"
           action: show
-        repeatable: false 
+        repeatable: false
   - task: Bijzondere persoonsgegevens
     id: "1.2"
     type:
@@ -240,7 +240,7 @@ tasks:
           label: Ja
         - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "8"
           DPIA: "13.1.1"
@@ -390,7 +390,7 @@ tasks:
     id: "1.5"
     type: 
     - task_group
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "11"
     tasks: 
@@ -407,9 +407,9 @@ tasks:
         options:
         - value: true 
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         calculation:
           scoreKey: "aantal_betrokkenen"
           expression: "answers('1.5.1')" 
@@ -432,9 +432,9 @@ tasks:
         options:
         - value: true 
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "11.b"
       - task: Frequentie van verwerking 
@@ -487,7 +487,7 @@ tasks:
     id: "1.6"
     type:
     - task_group
-    repeatable: false 
+    repeatable: false
     references:
       prescanModelId: "12"
     tasks: 
@@ -500,9 +500,9 @@ tasks:
       options:
       - value: true 
         label: Ja
-      - value: false 
+      - value: false
         label: Nee
-      repeatable: false 
+      repeatable: false
     - task: Afnemers van de informatie? Bijvoorbeeld (collega)overheidsorganan die informatie uit de applicatie of het proces halen? 
       id: "1.6.2"
       type: 
@@ -512,9 +512,9 @@ tasks:
       options:
       - value: true 
         label: Ja
-      - value: false 
+      - value: false
         label: Nee
-      repeatable: false 
+      repeatable: false
 - task: Internationale doorgiften 
   id: "2"
   type: 
@@ -532,13 +532,13 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        default: false
+        defaultValue: false
         options: 
         - value: true
           label: Ja
-        - value: false 
+        - value: false
           label: Nee
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "13"
       - task: Waar is het hoofdkantoor van de cloudprovider gevestigd? 
@@ -567,11 +567,11 @@ tasks:
         - radio_option
         options: 
         - label: On premise 
-          value: locatie_gegevensopslag
+          value: On premise
         - label: Datacenter EER
-          value: locatie_gegevensopslag
+          value: Datacenter EER
         - label: Buiten EER 
-          value: locatie_gegevensopslag
+          value: BUiten EER
         dependencies: 
           - type: conditional 
             condition: 
@@ -791,9 +791,9 @@ tasks:
           options: 
             - value: true
               label: Ja
-            - value: false 
+            - value: false
               label: Nee
-          repeatable: false 
+          repeatable: false
         - task: Van welke basisregistraties wordt gebruik gemaakt? 
           id: "5.1.2"
           type: 
@@ -848,7 +848,7 @@ tasks:
   id: "6"
   type: 
   - task_group
-  repeatable: false 
+  repeatable: false
   tasks:
   - task: Algoritmes en AI
     id: "6.1"
@@ -869,7 +869,7 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
       repeatable: false 
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
@@ -884,7 +884,7 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
       repeatable: false
       dependencies: 
@@ -918,9 +918,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
     - task: Biedt u een digitale dienst aan die primair bedoeld is voor gebruik door personen jonger dan 18 jaar?
       id: "7.1.2"
       type:
@@ -930,9 +930,9 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
-      repeatable: false 
+      repeatable: false
       dependencies: 
         - type: conditional 
           condition: 
@@ -951,7 +951,7 @@ tasks:
       options: 
       - value: true
         label: Ja
-      - value: false 
+      - value: false
         label: Nee 
       dependencies: 
         - type: conditional 
@@ -972,42 +972,55 @@ tasks:
                 value: 2
 assessments:
   - id: "DPIA"
-    expression: "
-      (
-        (scores.gewone_persoonsgegeven || 0) +
-        (scores.bijzonder_persoonsgegeven || 0) +
-        (scores.gevoelig_persoonsgegeven || 0) +
-        (scores.betrokkenen || 0) +
-        (scores.aantal_betrokkenen || 0) +
-        (scores.frequentie_verwerking || 0) +
-        (scores.bewaartermijn || 0) +
-        (scores.internationale_doorgifte || 0) +
-        (scores.basisregistratie || 0) +
-        (scores.digitaledienst_minderjarig || 0) 
-      ) > 4|| 
-      (countSelectedOptions('3.1') >= 1) ||
-      (countSelectedOptions('4.1') >= 2)"
-    result: "DPIA verplicht"
-    explanation: |
-      Een DPIA is verplicht omdat:
-       • de som van de risicoscores groter is dan 4, en/of
-       • er minimaal 1 item op de AP-lijst is geselecteerd, en/of
-       • er minimaal 2 items op de EDPB-lijst zijn geselecteerd.
+    levels: 
+      - level: "required"
+        expression: "
+          (
+            (scores.gewone_persoonsgegeven || 0) +
+            (scores.bijzonder_persoonsgegeven || 0) +
+            (scores.gevoelig_persoonsgegeven || 0) +
+            (scores.betrokkenen || 0) +
+            (scores.aantal_betrokkenen || 0) +
+            (scores.frequentie_verwerking || 0) +
+            (scores.bewaartermijn || 0) +
+            (scores.internationale_doorgifte || 0) +
+            (scores.basisregistratie || 0) +
+            (scores.digitaledienst_minderjarig || 0) 
+          ) > 4|| 
+          (countSelectedOptions('3.1') >= 1) ||
+          (countSelectedOptions('4.1') >= 2)"
+        result: "DPIA verplicht"
+        explanation: |
+          Een DPIA is verplicht omdat:
+           • de som van de risicoscores groter is dan 4, en/of
+           • er minimaal 1 item op de AP-lijst is geselecteerd, en/of
+           • er minimaal 2 items op de EDPB-lijst zijn geselecteerd.
+      - level: "recommended"
+        expression: "countSelectedOptions('4.1') == 1"
+        result: "DPIA aanbevolen"
+        explanation: "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
   - id: "DTIA"
-    expression: "
-      bool(answers('2.1.1')) && 
-      (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && 
-      answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']"
-    result: "DTIA verplicht"
-    explanation: "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER 
-                 en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+    levels: 
+      - level: "required"
+        expression: "
+          bool(answers('2.1.1')) && 
+          (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && 
+          answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']"
+        result: "DTIA verplicht"
+        explanation: "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER 
+                     en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
   - id: "KIA"
-    expression: "bool(answers('7.1.1')) && bool(answers('7.1.2'))"
-    result: "KIA verplicht" 
-    explanation: "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair 
-                 bedoeld is voor gebruik door personen jonger dan 18 jaar."
+    levels: 
+      - level: "required"
+        expression: "bool(answers('7.1.1')) && bool(answers('7.1.2'))"
+        result: "KIA verplicht" 
+        explanation: "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair 
+                     bedoeld is voor gebruik door personen jonger dan 18 jaar."
   - id: "IAMA"
-    expression: "bool(answers('6.1.1')) || bool(answers('6.1.2'))"
-    result: "IAMA verplicht"
-    explanation: "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme 
-                 waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+    levels: 
+      - level: "required"
+        expression: "bool(answers('6.1.1')) || (bool(answers('6.1.2'))"
+        result: "IAMA verplicht"
+        explanation: "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme 
+                     waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+
