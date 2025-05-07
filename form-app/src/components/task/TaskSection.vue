@@ -3,6 +3,7 @@ import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import Results from '@/components/Results.vue'
+import PreScanPreview from '@/components/PreScanPreview.vue'
 import { FormType } from '@/models/dpia.ts'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
@@ -27,6 +28,26 @@ const shouldShowChildren = computed(
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
+
+const hasPreScanReferences = computed(() => {
+  if (activeNamespace.value !== FormType.DPIA) return false;
+
+  if (isSigningTask.value) return false;
+
+  const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN));
+
+  // If we're looking at root task "1", check for references to "1", "1.1", "1.2", etc.
+  return preScanTasks.some(task =>
+    task.references &&
+    task.references.DPIA &&
+    (
+      task.references.DPIA === props.taskId || // Exact match
+      task.references.DPIA.startsWith(props.taskId + '.') // Child task match
+    )
+  )
+})
+
+const shouldShowPreScanPreview = computed(() => hasPreScanReferences.value)
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
@@ -135,6 +156,7 @@ function shouldSkipTask(taskId: string): boolean {
     </div>
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
+      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
 
       <!-- Show consolidated warnings for tasks that need to be filled in -->
       <div v-if="missingSourceDependencies.length > 0" class="rvo-alert rvo-alert--warning rvo-margin-block-end--md">

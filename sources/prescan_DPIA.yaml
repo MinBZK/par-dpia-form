@@ -563,7 +563,7 @@ tasks:
         - label: Datacenter EER
           value: Datacenter EER
         - label: Buiten EER 
-          value: BUiten EER
+          value: Buiten EER
         dependencies: 
           - type: conditional 
             condition: 
