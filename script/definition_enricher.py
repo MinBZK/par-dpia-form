@@ -215,7 +215,6 @@ class HtmlTemplate:
             return html[definition_start:definition_end]
         return ""
 
-
 class DefinitionEnricher:
     def __init__(self, base_dir: Path) -> None:
         """Initialize the definition enricher."""
@@ -223,7 +222,6 @@ class DefinitionEnricher:
         self.logger = self._setup_logger()
         self.term_dict = CaseInsensitiveDict()
         self.term_lower_to_original = {}  # Maps lowercase terms to original capitalization
-        self.plural_to_singular = {}
         self.alternative_spellings = {}
         self.term_preferences = {}
         self.used_terms_cache = {}  # Cache for used terms to avoid rebuilding sets
@@ -283,7 +281,6 @@ class DefinitionEnricher:
         # Clear all dictionaries
         self.term_dict.clear()
         self.term_lower_to_original.clear()
-        self.plural_to_singular.clear()
         self.alternative_spellings.clear()
         self.term_preferences.clear()
         self.used_terms_cache.clear()
@@ -298,7 +295,7 @@ class DefinitionEnricher:
         # Initialize the term trie with all terms
         self._initialize_term_trie()
         
-        self.logger.info(f"Loaded {len(self.term_dict)} definitions with {len(self.plural_to_singular)} explicit plural forms, "
+        self.logger.info(f"Loaded {len(self.term_dict)} definitions with "
                          f"{len(self.alternative_spellings)} alternative spellings, and {len(self.term_preferences)} alternative terms")
 
     def _process_regular_definitions(self, definitions: List[Dict]) -> None:
@@ -330,9 +327,6 @@ class DefinitionEnricher:
                         "Voorbeeld(en):"
                     )
                 
-                # Process plural forms
-                self._process_plural_forms(term, metadata)
-                
                 # Process alternative spellings
                 self._process_alternative_spellings(term, definition_text, toelichting, 
                                                     voorbeelden, metadata)
@@ -344,40 +338,53 @@ class DefinitionEnricher:
             html_definition = HtmlTemplate.definition(term, formatted_definition, toelichting + voorbeelden)
             self.term_dict[term] = html_definition
 
-    def _process_plural_forms(self, term: str, metadata: Dict) -> None:
-        """Process plural forms for a term."""
-        if "meervoudsvormen" in metadata:
-            plurals = metadata["meervoudsvormen"]
-            if plurals and isinstance(plurals, list):
-                for plural in plurals:
-                    self.plural_to_singular[plural.lower()] = term.lower()
-
     def _process_alternative_spellings(self, term: str, definition_text: str, 
-                                       toelichting: str, voorbeelden: str, 
-                                       metadata: Dict) -> None:
+                                    toelichting: str, voorbeelden: str, 
+                                    metadata: Dict) -> None:
         """Process alternative spellings for a term."""
-        if "alternatieve_spellingen" in metadata:
-            alt_spellings = metadata["alternatieve_spellingen"]
-            if alt_spellings and isinstance(alt_spellings, list):
-                for alt_spelling in alt_spellings:
-                    # Add note about this being an alternative spelling
-                    alt_spelling_note = HtmlTemplate.alternative_spelling_note(term)
-                    
-                    # Format definition as paragraph
-                    formatted_definition = f"<p>{definition_text}</p>"
-                    
-                    # Add the alternative spelling to the term dictionary
-                    alt_html_definition = HtmlTemplate.definition(
-                        alt_spelling, 
-                        formatted_definition, 
-                        alt_spelling_note + toelichting + voorbeelden
-                    )
-                    
-                    self.term_dict[alt_spelling] = alt_html_definition
-                    self.term_lower_to_original[alt_spelling.lower()] = alt_spelling
-                    
-                    # Also track in mapping for reference
-                    self.alternative_spellings[alt_spelling.lower()] = term.lower()
+        if "alternatieve_spellingen" not in metadata:
+            return
+            
+        alt_spellings = metadata["alternatieve_spellingen"]
+        # Remove the print statement
+        # print(alt_spellings)
+        
+        # Replace with logger
+        self.logger.info(f"Processing alternative spellings for '{term}': {alt_spellings}")
+        
+        # Handle different data types
+        if isinstance(alt_spellings, str):
+            alt_spellings = [alt_spellings]
+        
+        if not alt_spellings or not isinstance(alt_spellings, list):
+            return
+        
+        # Process each spelling
+        for alt_entry in alt_spellings:
+            if not alt_entry or not isinstance(alt_entry, str):
+                continue
+                
+            # Handle multi-line entries
+            for alt_spelling in [s.strip() for s in alt_entry.split('\n') if s.strip()]:
+                # Create the note
+                alt_spelling_note = HtmlTemplate.alternative_spelling_note(term)
+                
+                # This ensures it appears prominently in the output
+                formatted_definition = f"<p>{definition_text}</p>{alt_spelling_note}"
+
+                # Create the HTML with the note now in the definition text
+                alt_html_definition = HtmlTemplate.definition(
+                    alt_spelling,
+                    formatted_definition,  # Note is included here now
+                    toelichting + voorbeelden  # Other content still goes here
+                )
+                
+                # Add to dictionaries
+                self.term_dict[alt_spelling] = alt_html_definition
+                self.term_lower_to_original[alt_spelling.lower()] = alt_spelling
+                self.alternative_spellings[alt_spelling.lower()] = term.lower()
+                
+                self.logger.info(f"Added alternative spelling '{alt_spelling}' for term '{term}'")
 
     def _process_alternative_terms(self, alternative_terms: List[Dict], definitions: List[Dict]) -> None:
         """Process alternative terms."""
@@ -443,7 +450,7 @@ class DefinitionEnricher:
         
         # Get all terms and their mappings
         term_keys = list(self.term_dict.keys())
-        plural_mapping = self.get_term_mappings(term_keys)
+        variant_mapping = self.get_term_mappings()
         
         # Add all main terms to trie
         for term in term_keys:
@@ -454,8 +461,8 @@ class DefinitionEnricher:
                 "base_term_lower": term_lower
             })
         
-        # Add all plural forms and alternative spellings to trie
-        for variant, base_term_lower in plural_mapping.items():
+        # Add all alternative spellings to trie
+        for variant, base_term_lower in variant_mapping.items():
             original_term = self.term_lower_to_original.get(base_term_lower)
             if original_term:
                 self.term_trie.add_term(variant, {
@@ -467,39 +474,12 @@ class DefinitionEnricher:
 
     # --- Term Mapping Methods ---
 
-    def get_term_mappings(self, terms: List[str]) -> Dict[str, str]:
-        """Create mapping of plural forms to base terms for Dutch pluralization."""
-        # Start with explicit mappings
-        mapping = self.plural_to_singular.copy()
-        
-        # Add alternative spellings to the mapping
+    def get_term_mappings(self) -> Dict[str, str]:
+        """Create mapping of alternative terms and spellings to base terms."""
+        # Just return the alternative spellings and preferences mappings
+        mapping = {}
         mapping.update(self.alternative_spellings)
-        
-        # Generate additional Dutch plural mappings
-        for term in terms:
-            if not isinstance(term, str):
-                continue
-                
-            term_lower = term.lower()
-            
-            # Handle Dutch adjectival forms (adding 'e')
-            if re.search(r'[bcdfghjklmnpqrstvwxz]$', term_lower):
-                mapping[f"{term_lower}e"] = term_lower
-            
-            # If term ends with 'e', also map the version without 'e'
-            if term_lower.endswith('e'):
-                mapping[term_lower[:-1]] = term_lower
-            
-            # Skip if this term already has explicit plural forms
-            if any(plural.lower() for plural in self.plural_to_singular if self.plural_to_singular[plural] == term_lower):
-                continue
-                
-            # Standard Dutch plural forms
-            mapping[f"{term_lower}en"] = term_lower   # Add -en
-            mapping[f"{term_lower}s"] = term_lower    # Add -s
-            mapping[f"{term_lower}'s"] = term_lower   # Add -'s
-            mapping[f"{term_lower}n"] = term_lower    # Add n
-        
+        mapping.update(self.term_preferences)
         return mapping
 
     def get_cache_key(self, text: str) -> str:
@@ -594,9 +574,10 @@ class DefinitionEnricher:
         return final_matches
 
     def _replace_with_definitions(self, text: str, matches: List[Tuple[str, Dict, int, int]], 
-                                 used_terms: Set[str]) -> str:
+                                used_terms: Set[str]) -> str:
         """
         Replace terms with their definitions based on the processed matches.
+        Prioritize original terms over alternative terms for first occurrences.
         
         Args:
             text: The original text
@@ -610,50 +591,118 @@ class DefinitionEnricher:
         if not matches:
             return text
         
+        # Classify matches into original and alternative terms
+        original_term_matches = []
+        alternative_term_matches = []
+        
+        for match in matches:
+            matched_text, term_data, start, end = match
+            base_term_lower = term_data["base_term_lower"]
+            
+            # Check if this is an alternative term/spelling
+            is_alternative = base_term_lower in self.term_preferences or base_term_lower in self.alternative_spellings
+            
+            if is_alternative:
+                alternative_term_matches.append(match)
+            else:
+                original_term_matches.append(match)
+        
+        # Process matches in priority order: original terms first, then alternative terms
+        all_prioritized_matches = original_term_matches + alternative_term_matches
+        
+        # Sort matches by position to maintain text order
+        all_prioritized_matches.sort(key=lambda m: m[2])
+        
         result = []
         current_pos = 0
         
+        # Track terms that should always redirect to their preferred form
+        always_redirect_terms = set()
+        # Identify terms that should always be redirected (partial terms)
+        for match in alternative_term_matches:
+            matched_text, term_data, _, _ = match
+            base_term_lower = term_data["base_term_lower"]
+            
+            # If matched text is significantly shorter than its base term
+            # or specifically listed as a partial term, always redirect it
+            if base_term_lower in self.term_preferences:
+                preferred_term_lower = self.term_preferences[base_term_lower]
+                if len(matched_text) <= 3 or len(matched_text) < len(preferred_term_lower) * 0.5:
+                    always_redirect_terms.add(base_term_lower)
+        
         # Process each match
-        for matched_text, term_data, start, end in matches:
+        for matched_text, term_data, start, end in all_prioritized_matches:
             # Add text before the match
             result.append(text[current_pos:start])
             
             # Get base term information
             base_term_lower = term_data["base_term_lower"]
             
-            # Replace first occurrence only
-            if base_term_lower not in used_terms:
+            # Determine if we need to redirect this term
+            should_redirect = base_term_lower in always_redirect_terms
+            
+            # Check if this is an alternative term that needs redirection
+            is_alternative = base_term_lower in self.term_preferences or base_term_lower in self.alternative_spellings
+            
+            # Replace first occurrence only or always redirect short alternative terms
+            if base_term_lower not in used_terms or should_redirect:
                 original_term = term_data.get("original_term")
                 if not original_term:
                     original_term = self.term_lower_to_original.get(base_term_lower)
                     
+                # For alternatives that need redirection, get the preferred term
+                if is_alternative:
+                    if base_term_lower in self.term_preferences:
+                        preferred_term_lower = self.term_preferences[base_term_lower]
+                    elif base_term_lower in self.alternative_spellings:
+                        preferred_term_lower = self.alternative_spellings[base_term_lower]
+                    else:
+                        preferred_term_lower = base_term_lower
+                    
+                    preferred_term = self.term_lower_to_original.get(preferred_term_lower)
+                    
+                    # If this is a term that should always redirect, use the preferred term's definition
+                    if should_redirect and preferred_term and preferred_term in self.term_dict:
+                        original_term = preferred_term
+                
                 if original_term and original_term in self.term_dict:
-                    # Get the HTML definition
+                    # Get the original HTML
                     html = self.term_dict[original_term]
                     
-                    # Get definition content between tags
-                    definition_start = html.find('<span class="aiv-definition-text">') + len('<span class="aiv-definition-text">')
-                    definition_end = html.rfind('</span>')
-                    if definition_start > 0 and definition_end > definition_start:
-                        definition_text = html[definition_start:definition_end]
+                    # Use the helper method to extract definition text
+                    # This will include the alternative spelling note if present
+                    definition_text = HtmlTemplate.extract_definition_text(html)
+                    
+                    # For short alternative terms that should redirect, adapt the display text
+                    display_text = matched_text
+                    if should_redirect and is_alternative:
+                        # Add an indicator that this is redirecting to a full term
+                        result.append(
+                            f'<span class="aiv-redirect-term" title="Verwijzing naar {original_term}">'
+                            f'{display_text}'
+                            '</span>'
+                        )
                     else:
-                        definition_text = ""
+                        # Create new HTML with the original matched text's capitalization
+                        # but keeping all the definition text (including notes)
+                        definition_html = (
+                            '<span class="aiv-definition">'
+                            f'{display_text}'  # Use the original matched text
+                            '<span class="aiv-definition-text">'
+                            f'{definition_text}'
+                            '</span>'
+                            '</span>'
+                        )
+
+                        result.append(definition_html)
                     
-                    # Create the HTML with the original matched term's capitalization
-                    definition_html = (
-                        '<span class="aiv-definition">'
-                        f'{matched_text}'  # Use the original matched text
-                        '<span class="aiv-definition-text">'
-                        f'{definition_text}'
-                        '</span>'
-                        '</span>'
-                    )
-                    
-                    result.append(definition_html)
-                    used_terms.add(base_term_lower)
+                    # Mark the term as used unless it's a term that should always redirect
+                    if not should_redirect:
+                        used_terms.add(base_term_lower)
                     
                     if self.debug_enabled:
-                        self.logger.info(f"  Replaced '{matched_text}' with definition (first occurrence)")
+                        action = "Replaced" if not should_redirect else "Redirected"
+                        self.logger.info(f"  {action} '{matched_text}' with definition of '{original_term}'")
                 else:
                     # Term not found in dictionary
                     result.append(matched_text)
@@ -706,7 +755,23 @@ class DefinitionEnricher:
                 for option in task["options"]:
                     if "value" in option and isinstance(option["value"], str):
                         option["value"] = self.replace_terms(option["value"])
-                        
+
+            # Process dependencies with 'contains' operator
+            if "dependencies" in task and isinstance(task["dependencies"], list):
+                for dependency in task["dependencies"]:
+                    if (
+                        isinstance(dependency, dict)
+                        and dependency.get("type") == "conditional"
+                        and dependency.get("condition", {}).get("operator") == "contains"
+                    ):
+                        # Include the value in the processing if it exists
+                        condition = dependency.get("condition", {})
+                        value = condition.get("value")
+                        if isinstance(value, str):
+                            # Process the value using replace_terms
+                            replaced_value = self.replace_terms(value)
+                            condition["value"] = replaced_value.strip("'")
+
             # Recursively process subtasks with incremented level
             if "tasks" in task and isinstance(task["tasks"], list):
                 self.process_tasks(task["tasks"], level + 1)
@@ -720,7 +785,6 @@ class DefinitionEnricher:
             
         return enriched_data
 
-    # --- Main Processing Method ---
 
     def enrich_and_export(self, source_path: Path, definitions_path: Path, output_path: Path) -> None:
         """Main workflow: load files, enrich content, and export result."""

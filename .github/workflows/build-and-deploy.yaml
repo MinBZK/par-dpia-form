@@ -36,13 +36,13 @@ jobs:
           python script/run_validate_and_inject.py \
             --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
-            --begrippen-yaml sources/begrippenkader.yaml \
+            --begrippen-yaml sources/begrippenkader-dpia.yaml \
             --output form-app/src/assets/PreScanDPIA.json
             
           python script/run_validate_and_inject.py \
             --schema schemas/formSchema.json \
             --source sources/DPIA.yaml \
-            --begrippen-yaml sources/begrippenkader.yaml \
+            --begrippen-yaml sources/begrippenkader-dpia.yaml \
             --output form-app/src/assets/DPIA.json
 
           # Verify generated files

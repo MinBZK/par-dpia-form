@@ -49,8 +49,7 @@ tasks:
         prescanModelId: "2"
         DPIA: "6.1"
     - task: Wat is de grondslag voor de verwerking? 
-      description: Een alternatieve aanduiding is rechtsgrond. 
-        De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
       repeatable: false
       type: 
@@ -163,8 +162,7 @@ tasks:
     tasks:
       - task: Gaat het systeem categorieën gewone persoonsgegevens verwerken?
         description: >-
-          Er is sprake van een organisatorische activiteit gewone persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde "bevat gewone persoonsgegevens". 
-          In dat geval wordt bij die organisatorische activiteit de categorie gewone persoonsgegevens vastgelegd. 
+          Er wordt gesproken van gewone persoonsgegevens als een activiteit de classificatie "bevat gewone persoonsgegevens" heeft. In dat geval wordt deze categorie specifiek vastgelegd. 
         id: "1.1.1"
         type: 
           - radio_option
@@ -198,7 +196,7 @@ tasks:
           riskScore:
             - when: "gewone_persoonsgegeven < 6"
               value: 0
-            - when: "gewone_persoonsgegeven => 6"
+            - when: "gewone_persoonsgegeven >= 6"
               value: 1
         repeatable: false
         dependencies: 
@@ -219,7 +217,7 @@ tasks:
           condition: 
             id: "1.1.2"
             operator: contains 
-            value: "Categorie gewone persoonsgegevens: Overige"
+            value: "'Categorie gewone persoonsgegevens: Overige'"
           action: show
         repeatable: false
   - task: Bijzondere persoonsgegevens
@@ -230,8 +228,7 @@ tasks:
     tasks:
       - task: Gaat het systeem bijzondere persoonsgegevens verwerken? 
         description: >-
-          Er is sprake van een organisatorische activiteit bijzondere persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde Classificatie type persoonsgegevens: Bijzonder. 
-          In dat geval wordt vastgelegd om welk classificatie type bijzondere persoonsgegevens het gaat.
+          Er is sprake van bijzondere persoonsgegevens als een activiteit de classificatie "bijzondere persoonsgegevens" heeft. In dat geval wordt vastgelegd om welk type bijzondere persoonsgegevens het gaat.
         id: "1.2.1"
         type: 
         - radio_option
@@ -288,8 +285,7 @@ tasks:
     tasks:
       - task: Gaat het systeem ook andere gevoelige persoonsgegevens verwerken? 
         description: >-
-          Er is sprake van een organisatorische activiteit gevoelige persoonsgegevens als de organisatorische activiteit een classificatie type persoonsgegevens heeft, met als waarde Classificatie type persoonsgegevens: Gevoelig. 
-          In dat geval wordt bij die organisatorische activiteit de categorie gevoelige persoonsgegevens vastgelegd.
+          Er is sprake van gevoelige persoonsgegevens als een activiteit de classificatie "gevoelige persoonsgegevens" heeft. In dat geval wordt vastgelegd om welke categorie gevoelige persoonsgegevens het gaat.
         id: "1.3.1"
         type: 
         - radio_option
@@ -316,7 +312,7 @@ tasks:
           - value: 'Categorie gevoelige persoonsgegevens: Communicatie- en locatiegegevens'
           - value: 'Categorie gevoelige persoonsgegevens: Nationale identificatienummers (bijv. BSN)'
           - value: 'Categorie gevoelige persoonsgegevens: Strafrechtelijke gegevens'
-          - value: 'Categorie gevoelige persoonsgegevens: (Andere) gegevens die kunnen leiden tot stigmatisering of uitsluiting van de betrokkene'
+          - value: 'Categorie gevoelige persoonsgegevens: Andere gegevens die kunnen leiden tot stigmatisering of uitsluiting van de betrokkene'
         calculation:
           scoreKey: "gevoelig_persoonsgegeven"
           expression: "answers('1.3.2') | count"
@@ -337,49 +333,60 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "9"
-  - task: Welke categorieën betrokkene kun je onderscheiden? 
+  - task: Categorieën betrokkene
     description: >-
       Er wordt ook vastgelegd welke categorie betrokkenen onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal betrokkenen in die categorie.
     id: "1.4" 
     type: 
-    - checkbox_option
-    options: 
-      - value: 'Categorie betrokkenen: Medewerkers/bewindspersonen'
-      - value: 'Categorie betrokkenen: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie'
-      - value: 'Categorie betrokkenen: Kinderen jonger dan 16 jaar'
-      - value: 'Categorie betrokkenen: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)'
-      - value: 'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
-    calculation:
-      scoreKey: "betrokkenen"
-      expression: "weightedCountMap(
-        answers('1.4'),
-        [
-          'Medewerkers/bewindspersonen',
-          'Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie',
-          'Kinderen jonger dan 16 jaar',
-          'Andere kwetsbare groepen (gehandicapten, minderheden, etc.)',
-          'Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
-        ],
-        [1, 1, 3, 3, 0])"
-      riskScore:
-        - when: "betrokkenen <= 2"
-          value: 0
-        - when: "betrokkenen == 3"
-          value: 1
-        - when: "betrokkenen >= 4"
-          value: 2
+    - task_group
     repeatable: false
-    references:
-      prescanModelId: "10"
-  - task: Geef een omschrijving van de doelgroep 
-    id: "1.5"
-    type:
-    - text_input
-    repeatable: false
-    references:
-      prescanModelId: "10"
+    tasks:
+      - task: Welke categorieën betrokkene kun je onderscheiden? 
+        id: "1.4.1"
+        type:
+        - checkbox_option
+        options: 
+          - value: 'Categorie betrokkenen: Medewerkers/bewindspersonen'
+          - value: 'Categorie betrokkenen: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie'
+          - value: 'Categorie betrokkenen: Kinderen jonger dan 16 jaar'
+          - value: 'Categorie betrokkenen: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)'
+          - value: 'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
+        calculation:
+          scoreKey: "betrokkenen"
+          expression: "weightedCountMap(
+            answers('1.4.1'),
+            [
+              'Medewerkers/bewindspersonen',
+              'Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie',
+              'Kinderen jonger dan 16 jaar',
+              'Andere kwetsbare groepen (gehandicapten, minderheden, etc.)',
+              'Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
+            ],
+            [1, 1, 3, 3, 0])"
+          riskScore:
+            - when: "betrokkenen <= 2"
+              value: 0
+            - when: "betrokkenen == 3"
+              value: 1
+            - when: "betrokkenen >= 4"
+              value: 2
+        repeatable: false 
+        references:
+          prescanModelId: "10"
+      - task: Specificeer
+        id: "1.4.2"
+        type:
+        - open_text
+        dependencies: 
+        - type: conditional 
+          condition: 
+            id: "1.4.1"
+            operator: contains 
+            value: "'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'"
+          action: show
+        repeatable: false 
   - task: Wat is naar schatting de omvang van de gegevensset/de verwerking? 
-    id: "1.6"
+    id: "1.5"
     type: 
     - task_group
     repeatable: false
@@ -390,7 +397,7 @@ tasks:
         description: >- 
           Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, 
           kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
-        id: "1.6.1"
+        id: "1.5.1"
         risicoscore_tag: "aantal_betrokkenen"
         type: 
         - radio_option
@@ -404,11 +411,11 @@ tasks:
         repeatable: false
         calculation:
           scoreKey: "aantal_betrokkenen"
-          expression: "answers('1.6.1')" 
+          expression: "answers('1.5.1')" 
           riskScore:
             - when: "aantal_betrokkenen == true"
               value: 1
-            - when: "internationale_doorgifte == false"
+            - when: "aantal_betrokkenen == false"
               value: 0
         references:
           prescanModelId: "11.a"
@@ -416,7 +423,7 @@ tasks:
         description: >- 
             Hieronder vallen gegevens : medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, 
             kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
-        id: "1.6.2"
+        id: "1.5.2"
         type: 
         - radio_option
         valueType: boolean
@@ -430,7 +437,7 @@ tasks:
         references:
           prescanModelId: "11.b"
       - task: Frequentie van verwerking 
-        id: "1.6.3"
+        id: "1.5.3"
         type: 
         - select_option 
         options:
@@ -443,7 +450,7 @@ tasks:
         repeatable: false
         calculation:
           scoreKey: "frequentie_verwerking"
-          expression: "answers('1.6.3')"
+          expression: "answers('1.5.3')"
           riskScore:
           - when: "frequentie_verwerking in ['Eenmalig', 'Onregelmatig', 'Minstens jaarlijks']"
             value: 0
@@ -452,7 +459,7 @@ tasks:
         references:
           prescanModelId: "11.c"
       - task: Wat is de bewaartermijn van de gegevens? 
-        id: "1.6.4"
+        id: "1.5.4"
         type: 
         - select_option
         options:
@@ -463,7 +470,7 @@ tasks:
           - value: 'Minder dan 24 uur'
         repeatable: false
         calculation:
-          expression: "answers('1.6.4')"
+          expression: "answers('1.5.4')"
           scoreKey: "bewaartermijn"
           riskScore:
             - when: "bewaartermijn == null"
@@ -476,7 +483,7 @@ tasks:
           prescanModelId: "11.c"
           DPIA: "11.1.1.4"
   - task: Zijn de volgende gebruikersgroepen betrokken bij de verwerking? 
-    id: "1.7"
+    id: "1.6"
     type:
     - task_group
     repeatable: false
@@ -484,7 +491,7 @@ tasks:
       prescanModelId: "12"
     tasks: 
     - task: Afnemers van de dienst? Bijvoorbeeld burgers die een dienst van de overheid afnamen. 
-      id: "1.7.1"
+      id: "1.6.1"
       type: 
       - radio_option
       valueType: boolean
@@ -496,7 +503,7 @@ tasks:
         label: Nee
       repeatable: false
     - task: Afnemers van de informatie? Bijvoorbeeld (collega)overheidsorganan die informatie uit de applicatie of het proces halen? 
-      id: "1.7.2"
+      id: "1.6.2"
       type: 
       - radio_option
       valueType: boolean
@@ -694,7 +701,7 @@ tasks:
   tasks: 
   - task: Welke groepen betrokkenen kun je onderscheiden? 
     description: >-
-      Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst AP. De Lijst AP is een lijst met soorten gegevensverwerkingen van de AP waarvoor een DPIA verplicht is.
+      Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de Autoriteit Persoonsgegevens (AP). Deze lijst bevat soorten gegevensverwerkingen waarvoor een DPIA verplicht is.
     id: "3.1"
     type: 
     - checkbox_option
@@ -734,9 +741,9 @@ tasks:
   repeatable: false
   tasks: 
   - task: Welke categorieën betrokkenen kun je onderscheiden? 
-    description: >- 
-      Bij de organisatorische activiteit persoonsgegevens moet worden aangegeven of er sprake is van gegevensverwerkingen conform de lijst EDPB. De Lijst EDPB is een lijst met soorten gegevensverwerkingen van de EDPB waarvoor mogelijk een DPIA verplicht is.
     id: "4.1"
+    description: >- 
+     Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is.
     type: 
     - checkbox_option
     options: 
@@ -835,8 +842,8 @@ tasks:
             prescanModelId: "F"
 - task: Algoritmes/AI
   description: >-
-    Bij de organisatorische activiteit persoonsgegevens kan er sprake zijn van het gebruik van een algoritme. Indien er sprake van een algoritme is, dan is de organisatorische activiteit een organisatorische activiteit met algoritme. Daarbij wordt een aanduiding of er sprake is van inzet van een AI-systeem vastgelegd.
-    Als er sprake (is) van een algoritme dat kwalificeert als een AI-systeem, dan is de organisatorische activiteit een Organisatorische activiteit met IAMA-verplichting.
+    Bij het verwerken van persoonsgegevens kan gebruik worden gemaakt van een algoritme. Als dat gebeurt, wordt genoteerd dat er sprake is van inzet van een algoritme, en of dit algoritme een AI-systeem betreft.
+    Wanneer het algoritme valt onder de definitie van een AI-systeem, ontstaat een IAMA-verplichting.
   id: "6"
   type: 
   - task_group
@@ -849,38 +856,26 @@ tasks:
     repeatable: false
     tasks:
     - task: Wordt er gebruik gemaakt van een algoritme? 
+      description: Indien overheidsorganisaties gebruik maken van een algoritme waarbij persoonsgegevens worden verwerkt, dan is het uitvoeren van een Impact Assessment Mensenrechten en Algoritmen (IAMA) sterk aanbevolen. 
       id: "6.1.1"
       type:
       - radio_option
       valueType: boolean
+      references:
+        prescanModelId: "G"
+        DPIA: "5"
       defaultValue: false
       options: 
       - value: true
         label: Ja
       - value: false
         label: Nee 
-      repeatable: false
-    - task: Wordt op de uitslag (mede) een besluit over mensen genomen?
-      id: "6.1.2"
-      type:
-      - radio_option
-      valueType: boolean
-      defaultValue: false
-      options: 
-      - value: true
-        label: Ja
-      - value: false
-        label: Nee 
-      repeatable: false
-      dependencies: 
-      - type: conditional 
-        condition: 
-          id: "6.1.1"
-          operator: equals 
-          value: true
-        action: show
+      repeatable: false 
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
-      id: "6.1.3"
+      description: Indien overheidsorganisaties een AI-systeem met een hoog risico in de zin van de EU AI-verordening gebruiken of in gebruik willen nemen, 
+        is het uitvoeren van een IAMA sterk aanbevolen. Met ingang van 2 augustus 2026 verplicht artikel 27 van de EU AI-verordening gebruikers van een AI-systeem met een hoog risico om voorafgaand aan ingebruikneming een Fundamental Rights Impact Assessment (FRIA) uit te voeren. 
+        Indien bij de verwerking van persoonsgegevens gebruik wordt gemaakt van een AI-systeem, dan stelt de AI-verordening mogelijk aanvullende vereisten. Raadpleeg het  <a href="https://minbzk.github.io/Algoritmekader/" target="_blank">Algoritmekader</a> voor meer informatie.
+      id: "6.1.2"
       type:
       - radio_option
       valueType: boolean
@@ -900,8 +895,8 @@ tasks:
         action: show
 - task: Kinderrechten
   description: >- 
-    Bij de organisatorische activiteit persoonsgegevens kan er sprake zijn van een digitale dienst voor personen jonger dan 18 jaar. <br>Als er sprake is van digitale dienst voor personen jonger dan 18 jaar: <br> een digitale dienst aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar,
-    dan geldt er een KIA-verplichting, waarbij er een Kinderrechten Impact Assessment moet worden gemaakt, en is er dus sprake van een organisatorische activiteit met KIA-verplichting.
+    Bij het verwerken van persoonsgegevens kan er een digitale dienst worden aangeboden die gericht is op personen jonger dan 18 jaar.<br>
+    Als de dienst primair bedoeld is voor deze doelgroep, moet een Kinderrechten Impact Assessment (KIA) worden uitgevoerd. In dat geval is er sprake van een KIA-verplichting.
   id: "7"
   type: 
   - task_group
@@ -1023,7 +1018,8 @@ assessments:
   - id: "IAMA"
     levels: 
       - level: "required"
-        expression: "bool(answers('6.1.1')) && (bool(answers('6.1.2')) || bool(answers('6.1.3')))"
+        expression: "bool(answers('6.1.1')) || bool(answers('6.1.2'))"
         result: "IAMA verplicht"
         explanation: "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme 
                      waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+

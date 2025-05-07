@@ -19,7 +19,7 @@ Key features:
 This repository contains 
 
 - [Pre-scan DPIA form specification](sources/prescan_DPIA.yaml), [DPIA form specification](sources/DPIA.yaml) and 
-a [glossary](sources/begrippenkader.yaml), all in YAML format. These YAML's adhere to schemas
+a [glossary](sources/begrippenkader-dpia.yaml), all in YAML format. These YAML's adhere to schemas
 defined [here](schemas/schema_DPIA.json) and are described in the [form standard specification](form_standard.md).
 - A [Vue application](form-app/) to fill in these forms and export them to an intermediate JSON format, or 
 PDF document.
@@ -129,7 +129,7 @@ or see instructions on the [uv website](https://docs.astral.sh/uv/getting-starte
 The `sources/` directory contains DPIA form specifications:
 - `DPIA.yaml` - Tasks within the DPIA
 - `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA 
-- `begrippenkader.yaml` - Glossary items
+- `begrippenkader-dpia.yaml` - Glossary items
 
 JSON-schemas are in the `schemas/` directory.
 
@@ -165,7 +165,7 @@ which can be rendered by the frontend application.
 # Prescan DPIA
 uv run script/definition_enricher.py \
     --source sources/prescan_DPIA.yaml \
-    --definitions sources/begrippenkader.yaml \
+    --definitions sources/begrippenkader-dpia.yaml \
     --output form-app/src/assets/PreScanDPIA.json
 ```
 
@@ -173,7 +173,7 @@ uv run script/definition_enricher.py \
 # DPIA
 uv run script/definition_enricher.py \
     --source sources/DPIA.yaml \
-    --definitions sources/begrippenkader.yaml \
+    --definitions sources/begrippenkader-dpia.yaml \
     --output form-app/src/assets/DPIA.json
 ```
 
@@ -186,7 +186,7 @@ This script combines the two above scripts to validate the script, inject glossa
 uv run script/run_validate_and_inject.py \
   --schema schemas/formSchema.json \
   --source sources/prescan_DPIA.yaml \
-  --begrippen-yaml sources/begrippenkader.yaml \
+  --begrippen-yaml sources/begrippenkader-dpia.yaml \
   --output form-app/src/assets/PreScanDPIA.json
 ```
 
@@ -195,7 +195,7 @@ uv run script/run_validate_and_inject.py \
 uv run script/run_validate_and_inject.py \
   --schema schemas/formSchema.json \
   --source sources/DPIA.yaml \
-  --begrippen-yaml sources/begrippenkader.yaml \
+  --begrippen-yaml sources/begrippenkader-dpia.yaml \
   --output form-app/src/assets/DPIA.json
 ```
 
