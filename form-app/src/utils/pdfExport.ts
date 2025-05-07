@@ -4,6 +4,7 @@ import { FormType } from '@/models/dpia.ts'
 import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
+import FontService from '@/services/fontService.ts'
 import { renderInstanceLabel } from '@/utils/taskUtils'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
@@ -82,9 +83,11 @@ export async function exportToPdf(
       margin: [0, 5, 0, 15],
     },
   }
-
   try {
     const docDefinition: TDocumentDefinitions = {
+      defaultStyle: {
+        font: 'rijksoverheidsanstext' // Use Roboto as the default font since it's included with pdfMake by default
+      },
       content: [
         // Cover page
         {
@@ -135,8 +138,28 @@ export async function exportToPdf(
       styles: dpiaStyleDictionary,
     }
 
+    // Start with default Roboto font
+    const fontDefinitions: Record<string, Record<string, string>> = {
+      Roboto: {
+        normal: 'Roboto-Regular.ttf',
+        bold: 'Roboto-Medium.ttf',
+        italics: 'Roboto-Italic.ttf',
+        bolditalics: 'Roboto-MediumItalic.ttf'
+      }
+    }
+
+    const customFonts = await FontService.getFonts()
+
+    // Add all font families from the FontService
+    for (const [fontFamily, variants] of Object.entries(customFonts)) {
+      fontDefinitions[fontFamily] = variants as Record<string, string>
+    }
+
     const actualFilename = filename || generateFilename(activeNamespace, 'pdf')
-    pdfMake.createPdf(docDefinition).download(actualFilename)
+
+    const vfs = await FontService.getVFS()
+
+    pdfMake.createPdf(docDefinition, undefined, fontDefinitions, vfs).download(actualFilename)
 
     return Promise.resolve()
   } catch (error) {
