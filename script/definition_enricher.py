@@ -215,7 +215,6 @@ class HtmlTemplate:
             return html[definition_start:definition_end]
         return ""
 
-
 class DefinitionEnricher:
     def __init__(self, base_dir: Path) -> None:
         """Initialize the definition enricher."""
@@ -340,33 +339,52 @@ class DefinitionEnricher:
             self.term_dict[term] = html_definition
 
     def _process_alternative_spellings(self, term: str, definition_text: str, 
-                                       toelichting: str, voorbeelden: str, 
-                                       metadata: Dict) -> None:
+                                    toelichting: str, voorbeelden: str, 
+                                    metadata: Dict) -> None:
         """Process alternative spellings for a term."""
-        if "alternatieve_spellingen" in metadata:
-            alt_spellings = metadata["alternatieve_spellingen"]
-            print(alt_spellings)
-            if alt_spellings and isinstance(alt_spellings, list):
-                for alt_spelling in alt_spellings:
-                    # Add note about this being an alternative spelling
-                    alt_spelling_note = HtmlTemplate.alternative_spelling_note(term)
-                    
-                    
-                    # Format definition as paragraph
-                    formatted_definition = f"<p>{definition_text}</p>"
-                    
-                    # Add the alternative spelling to the term dictionary
-                    alt_html_definition = HtmlTemplate.definition(
-                        alt_spelling, 
-                        formatted_definition, 
-                        alt_spelling_note + toelichting + voorbeelden
-                    )
-                    
-                    self.term_dict[alt_spelling] = alt_html_definition
-                    self.term_lower_to_original[alt_spelling.lower()] = alt_spelling
-                    
-                    # Also track in mapping for reference
-                    self.alternative_spellings[alt_spelling.lower()] = term.lower()
+        if "alternatieve_spellingen" not in metadata:
+            return
+            
+        alt_spellings = metadata["alternatieve_spellingen"]
+        # Remove the print statement
+        # print(alt_spellings)
+        
+        # Replace with logger
+        self.logger.info(f"Processing alternative spellings for '{term}': {alt_spellings}")
+        
+        # Handle different data types
+        if isinstance(alt_spellings, str):
+            alt_spellings = [alt_spellings]
+        
+        if not alt_spellings or not isinstance(alt_spellings, list):
+            return
+        
+        # Process each spelling
+        for alt_entry in alt_spellings:
+            if not alt_entry or not isinstance(alt_entry, str):
+                continue
+                
+            # Handle multi-line entries
+            for alt_spelling in [s.strip() for s in alt_entry.split('\n') if s.strip()]:
+                # Create the note
+                alt_spelling_note = HtmlTemplate.alternative_spelling_note(term)
+                
+                # This ensures it appears prominently in the output
+                formatted_definition = f"<p>{definition_text}</p>{alt_spelling_note}"
+
+                # Create the HTML with the note now in the definition text
+                alt_html_definition = HtmlTemplate.definition(
+                    alt_spelling,
+                    formatted_definition,  # Note is included here now
+                    toelichting + voorbeelden  # Other content still goes here
+                )
+                
+                # Add to dictionaries
+                self.term_dict[alt_spelling] = alt_html_definition
+                self.term_lower_to_original[alt_spelling.lower()] = alt_spelling
+                self.alternative_spellings[alt_spelling.lower()] = term.lower()
+                
+                self.logger.info(f"Added alternative spelling '{alt_spelling}' for term '{term}'")
 
     def _process_alternative_terms(self, alternative_terms: List[Dict], definitions: List[Dict]) -> None:
         """Process alternative terms."""
@@ -646,18 +664,14 @@ class DefinitionEnricher:
                     # If this is a term that should always redirect, use the preferred term's definition
                     if should_redirect and preferred_term and preferred_term in self.term_dict:
                         original_term = preferred_term
-                    
+                
                 if original_term and original_term in self.term_dict:
-                    # Get the HTML definition
+                    # Get the original HTML
                     html = self.term_dict[original_term]
                     
-                    # Get definition content between tags
-                    definition_start = html.find('<span class="aiv-definition-text">') + len('<span class="aiv-definition-text">')
-                    definition_end = html.rfind('</span>')
-                    if definition_start > 0 and definition_end > definition_start:
-                        definition_text = html[definition_start:definition_end]
-                    else:
-                        definition_text = ""
+                    # Use the helper method to extract definition text
+                    # This will include the alternative spelling note if present
+                    definition_text = HtmlTemplate.extract_definition_text(html)
                     
                     # For short alternative terms that should redirect, adapt the display text
                     display_text = matched_text
@@ -669,10 +683,6 @@ class DefinitionEnricher:
                             '</span>'
                         )
                     else:
-                        # Get the original HTML and extract the definition content
-                        html = self.term_dict[original_term]
-                        definition_text = HtmlTemplate.extract_definition_text(html)
-
                         # Create new HTML with the original matched text's capitalization
                         # but keeping all the definition text (including notes)
                         definition_html = (
