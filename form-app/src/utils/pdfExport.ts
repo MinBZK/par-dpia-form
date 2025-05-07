@@ -29,9 +29,38 @@ export async function exportToPdf(
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
   const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
-  const rootTasks = taskStore.rootTaskIds[activeNamespace]
+
+  let rootTasks = taskStore.rootTaskIds[activeNamespace]
     .map(id => taskStore.flatTasks[activeNamespace][id])
     .filter(task => !task.type.includes('signing'))
+
+  // Find the management summary task (ID "19")
+  const managementSummaryTask = rootTasks.find(task => task.id === "19")
+
+  // Filter out the management summary from regular tasks if it exists
+  if (managementSummaryTask) {
+    rootTasks = rootTasks.filter(task => task.id !== "19")
+  }
+
+  // Ordered content array for PDF
+  const contentSections: Content[] = []
+
+  // First add the management summary if it exists (as chapter 0)
+  if (managementSummaryTask) {
+    contentSections.push(
+      buildManagementSummarySection(managementSummaryTask, taskStore, answerStore)
+    )
+  }
+
+  // Then add all other sections except the management summary with sequential numbering
+  let currentSection = 1; // Start with section 2 since management summary is section 1
+  rootTasks.forEach(task => {
+    if (task.id !== "19") { // Skip the management summary as we've already added it
+      contentSections.push(buildNumberedSection(task, taskStore, answerStore, currentSection))
+      currentSection++; // Increment for the next section
+    }
+  })
+
   const dpiaStyleDictionary: StyleDictionary = {
     title: {
       fontSize: 28,
@@ -111,7 +140,7 @@ export async function exportToPdf(
         },
 
         // Contents
-        ...rootTasks.map((task) => buildSection(task, taskStore, answerStore)),
+        ...contentSections,
       ],
 
       // Page numbers
@@ -164,6 +193,62 @@ export async function exportToPdf(
     return Promise.resolve()
   } catch (error) {
     return Promise.reject(new Error(`Failed to export PDF: ${error}`))
+  }
+}
+
+// Special function to build the management summary section
+function buildManagementSummarySection(
+  task: FlatTask,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): Content {
+  const contentElements: Content[] = []
+
+  contentElements.push({
+    text: `${getPlainTextWithoutDefinitions(task.task)}`,
+    style: 'header',
+    tocItem: true,
+  })
+
+  // Add description if available
+  if (task.description) {
+    contentElements.push(buildSectionDesciption(task.description))
+  }
+
+  // Add content
+  contentElements.push(buildAnswer(task, taskStore, answerStore))
+
+  return {
+    stack: contentElements,
+    pageBreak: 'before',
+  }
+}
+
+// Build a regular section with a custom section number
+function buildNumberedSection(
+  task: FlatTask,
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+  sectionNumber: number,
+): Content {
+  const contentElements: Content[] = []
+
+  // Add title with custom section number
+  contentElements.push({
+    text: `${sectionNumber}.  ${getPlainTextWithoutDefinitions(task.task)}`,
+    style: 'header',
+    tocItem: true,
+  })
+
+  if (task.description) {
+    contentElements.push(buildSectionDesciption(task.description))
+  }
+
+  contentElements.push(buildAnswer(task, taskStore, answerStore))
+
+  return {
+    stack: contentElements,
+    pageBreak: 'before',
   }
 }
 
