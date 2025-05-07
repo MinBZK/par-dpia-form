@@ -1,7 +1,7 @@
-> [!IMPORTANT]
-> This repository is work in progress.
-
 # par-dpia-form
+[![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
+[![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
+
 A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
 
 ## Introduction
