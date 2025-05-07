@@ -156,7 +156,6 @@ function shouldSkipTask(taskId: string): boolean {
     </div>
 
     <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
-      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
 
       <!-- Show consolidated warnings for tasks that need to be filled in -->
       <div v-if="missingSourceDependencies.length > 0" class="rvo-alert rvo-alert--warning rvo-margin-block-end--md">
@@ -185,6 +184,8 @@ function shouldSkipTask(taskId: string): boolean {
           </template>
         </fieldset>
       </div>
+
+      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
