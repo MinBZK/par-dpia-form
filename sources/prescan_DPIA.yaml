@@ -49,8 +49,7 @@ tasks:
         prescanModelId: "2"
         DPIA: "6.1"
     - task: Wat is de grondslag voor de verwerking? 
-      description: Een alternatieve aanduiding is rechtsgrond. 
-        De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
       repeatable: false
       type: 
@@ -1019,7 +1018,7 @@ assessments:
   - id: "IAMA"
     levels: 
       - level: "required"
-        expression: "bool(answers('6.1.1')) || (bool(answers('6.1.2'))"
+        expression: "bool(answers('6.1.1')) || bool(answers('6.1.2'))"
         result: "IAMA verplicht"
         explanation: "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme 
                      waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."

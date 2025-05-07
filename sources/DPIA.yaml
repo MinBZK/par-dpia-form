@@ -577,7 +577,7 @@ tasks:
       Benoem in welke landen de gegevensverwerkingen plaatsvinden. 
       Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. 
 
-      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheidsbesluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, 
+      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheids¬besluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, 
       is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.
 
       Zie deel III van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Rijksmodel DPIA </a> voor meer informatie over de doorgiftemechanismen.
@@ -1693,73 +1693,70 @@ tasks:
  - task: >-
       Maatregelen
    description: |
-        Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico’s te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt. 
-        
-        Beschrijf ook de resterende risico’s die nog aanwezig zijn na de uitvoering en/of implementatie van de geïdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico. 
-
-        Geef tot slot een conclusie over de restrisico’s. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de Autoriteit Persoonsgegevens nodig? 
-
-        Gebruik voor de inschattingen van de risico’s de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. Gebruikmaken van de bijbehorende kleuren is aan te raden.
+      Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen worden getroffen om de hiervoor beschreven risico's te voorkomen of te verminderen. Beschrijf welke maatregel welk risico aanpakt.
+      Beschrijf ook de resterende risico's die nog aanwezig zijn na de uitvoering en/of implementatie van de geïdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico.
+      Geef tot slot een conclusie over de restrisico's. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de Autoriteit Persoonsgegevens nodig?
+      Gebruik voor de inschattingen van de risico's de niveaus 'laag', 'gemiddeld' en 'hoog'. Gebruikmaken van de bijbehorende kleuren is aan te raden.
    id: "18"
    type:
-        - task_group
+      - task_group
    repeatable: false
    tasks:
-        - task: Risico, Oorsprong, Maatregelen, Resterende risico en risico-inschatting & beheerder van maatregelen
-          id: "18.1"
-          type: 
-           - task_group
-          repeatable: true
-          tasks: 
-            - task: Risico
-              id: "18.1.1"
-              type: 
-                - checkbox_option
-              repeatable: false
-              valueType: "string[]"
-              dependencies:
-                - type: source_options
-                  condition:
-                    id: "17.1.1"
-                    operator: any
-                  action: options
-            - task: Oorsprong
-              id: "18.1.2"
-              type: 
-                - text_input
-              repeatable: false
-            - task: Maatregelen 
-              id: "18.1.3"
-              type: 
-                - text_input
-              repeatable: false
-            - task: Resterend risico en de risicoinschatting 
-              id: "18.1.4"
-              type: 
-                - select_option
-              options:
-                - value: laag
-                - value: midden
-                - value: hoog
-              repeatable: false
-            - task: Beheerder van de maatregelen
-              id: "18.1.5"
-              type: 
-                - text_input
-              repeatable: false
-        - task: >-
-              Aanvullende informatie over de maatregelen
-          description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "18.2"
-          type: 
-            - open_text
-          repeatable: false
-        - task: >-
-              De beschrijving toe over de resterende risico’s, de risico-inschatting en onderbouwing voor acceptatie resterende risico’s
-          id: "18.3"
-          type: 
-            - open_text
-          repeatable: false
+      - task: Risico, Oorsprong, Maatregelen, Resterende risico en risico-inschatting & beheerder van maatregelen
+        id: "18.1"
+        type:
+          - task_group
+        repeatable: true
+        tasks:
+          - task: Risico
+            id: "18.1.1"
+            type:
+              - checkbox_option
+            repeatable: false
+            valueType: "string[]"
+            dependencies:
+              - type: source_options
+                condition:
+                  id: "17.1.1"
+                  operator: any
+                action: options
+          - task: Oorsprong
+            id: "18.1.2"
+            type:
+              - text_input
+            repeatable: false
+          - task: Maatregelen
+            id: "18.1.3"
+            type:
+              - text_input
+            repeatable: false
+          - task: Resterend risico en de risicoinschatting
+            id: "18.1.4"
+            type:
+              - select_option
+            options:
+              - value: laag
+              - value: midden
+              - value: hoog
+            repeatable: false
+          - task: Beheerder van de maatregelen
+            id: "18.1.5"
+            type:
+              - text_input
+            repeatable: false
+      - task: >-
+          Aanvullende informatie over de maatregelen
+        description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
+        id: "18.2"
+        type:
+          - open_text
+        repeatable: false
+      - task: >-
+          Onderbouwing acceptatie resterende risico's
+        id: "18.3"
+        type:
+          - open_text
+        repeatable: false
  - task: >-
     Managementsamenvatting 
    id: "19"
