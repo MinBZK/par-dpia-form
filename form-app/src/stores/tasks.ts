@@ -1,4 +1,4 @@
-import { Dependency, Option, Source, Task, TaskTypeValue, FormType } from '@/models/dpia.ts'
+import { Dependency, Option, Source, Task, TaskTypeValue, FormType, TaskReferences } from '@/models/dpia.ts'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -18,6 +18,7 @@ export interface FlatTask {
   dependencies?: Dependency[]
   instance_label_template?: string
   defaultValue?: boolean | string | null
+  references?: TaskReferences
 }
 
 export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
@@ -138,6 +139,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         instance_label_template: task.instance_label_template,
         valueType: task.valueType,
         defaultValue: task.defaultValue,
+        references: task.references,
         parentId,
         childrenIds: [],
       }
@@ -344,6 +346,38 @@ export const useTaskStore = defineStore('TaskStore', () => {
     }
   })
 
+  function getTasksFromNamespace(namespace: FormType): Record<string, FlatTask> {
+    return flatTasks.value[namespace] || {};
+  }
+
+  function getTaskByIdFromNamespace(namespace: FormType, taskId: string): FlatTask | null {
+    const tasks = flatTasks.value[namespace];
+    if (!tasks || !tasks[taskId]) {
+      return null;
+    }
+    return tasks[taskId];
+  }
+
+  function getTaskInstancesFromNamespace(namespace: FormType): Record<string, TaskInstance> {
+    return taskInstances.value[namespace] || {};
+  }
+
+  function getInstancesForTaskFromNamespace(namespace: FormType, taskId: string, parentInstanceId?: string): TaskInstance[] {
+    const instances = taskInstances.value[namespace] || {};
+
+    return Object.values(instances).filter(
+      (instance) =>
+        instance.taskId === taskId &&
+        (parentInstanceId === undefined || instance.parentInstanceId === parentInstanceId),
+    );
+  }
+
+  function getInstanceIdsForTaskFromNamespace(namespace: FormType, taskId: string, parentInstanceId?: string): string[] {
+    return getInstancesForTaskFromNamespace(namespace, taskId, parentInstanceId).map((instance) => instance.id);
+  }
+
+
+
   return {
     // Properties
     activeNamespace,
@@ -377,6 +411,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
     getParentTaskId,
     getChildTaskIds,
     getInstanceById,
+    getTasksFromNamespace,
+    getTaskByIdFromNamespace,
+    getTaskInstancesFromNamespace,
+    getInstancesForTaskFromNamespace,
+    getInstanceIdsForTaskFromNamespace,
   }
 })
 

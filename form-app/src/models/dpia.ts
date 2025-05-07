@@ -89,6 +89,13 @@ export const Calculation = t.intersection([
 
 export type Calculation = t.TypeOf<typeof Calculation>
 
+export const TaskReferences = t.partial({
+  prescanModelId: t.string,
+  DPIA: t.string
+})
+
+export type TaskReferences = t.TypeOf<typeof TaskReferences>;
+
 export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
   t.intersection([
     // Required properties
@@ -110,6 +117,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       dependencies: t.array(Dependency),
       defaultValue: t.union([t.string, t.boolean, t.null]),
       calculation: Calculation,
+      references: TaskReferences,
     }),
   ]),
 )

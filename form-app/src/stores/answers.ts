@@ -50,6 +50,13 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     return answers.value[activeNamespace.value][instanceId]?.value || null
   }
 
+  function getAnswerFromNamespace(namespace: FormType, instanceId: string): AnswerValue | null {
+    if (!answers.value[namespace] || !answers.value[namespace][instanceId]) {
+      return null;
+    }
+    return answers.value[namespace][instanceId]?.value || null;
+  }
+
   function removeAnswer(instanceId: string): void {
     if (instanceId in answers.value) {
       delete answers.value[activeNamespace.value][instanceId]
@@ -69,6 +76,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     setActiveNamespace,
     setAnswer,
     getAnswer,
+    getAnswerFromNamespace,
     removeAnswer,
     removeAnswerForInstances,
   }
