@@ -327,33 +327,6 @@ function buildNumberedSection(
   }
 }
 
-function buildSection(
-  task: FlatTask,
-  taskStore: TaskStoreType,
-  answerStore: AnswerStoreType,
-): Content {
-  const contentElements: Content = [buildSectionTitle(task.id, task.task)]
-
-  if (task.description) {
-    contentElements.push(buildSectionDesciption(task.description))
-  }
-
-  contentElements.push(buildAnswer(task, taskStore, answerStore))
-
-  return {
-    stack: contentElements,
-    pageBreak: 'before',
-  }
-}
-
-function buildSectionTitle(taskId: string, taskName: string): Content {
-  return {
-    text: `${taskId}.  ${getPlainTextWithoutDefinitions(taskName)}`,
-    style: 'header',
-    tocItem: true,
-  }
-}
-
 function buildSectionDesciption(description?: string): Content {
   return {
     stack: [
