@@ -239,3 +239,35 @@ uv run script/run_validate_and_inject.py \
   --output form-app/src/assets/DPIA.json
 ```
 
+## Known Limitations
+
+While we strive to make this application as robust as possible, there are some known limitations in the current implementation:
+
+### Testing Coverage
+- The application currently lacks comprehensive automated testing
+- Unit tests, component tests, and end-to-end tests need to be implemented
+- Future work should include test coverage reporting and minimum thresholds
+
+### Schema Management
+- Schema versioning is not fully implemented for form definitions
+- There is no automated migration path between different schema versions
+- Forms created with older schema versions may not be compatible with newer application versions
+- Schema evolution strategy needs to be formalized for long-term maintenance
+
+### Media Handling
+- File or image uploading is not currently supported in form inputs
+- No storage mechanism exists for handling uploaded media
+- Future versions could integrate with file storage solutions or implement base64 encoding for simple use cases
+
+### Performance Considerations
+- The application may experience performance issues with very large or complex forms
+- All form data is stored in memory and as a single file, which may not scale for enterprise use cases
+- No backend persistence layer is implemented for multi-user collaboration due to the restrictions posed on this project.
+
+### Accessibility
+- While the application uses the RVO design system which has accessibility features, comprehensive accessibility testing has not been performed
+- WCAG compliance has not been formally verified
+
+### Browser Compatibility
+- The application is primarily tested on modern browsers
+- Compatibility with older browsers or mobile devices may vary
