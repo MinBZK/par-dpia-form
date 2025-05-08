@@ -5,26 +5,17 @@
 A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
 
 ## Introduction
+
 The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA forms and generating reports without requiring installation or server hosting. 
 The Pre-scan DPIA form help organizations evaluate privacy risks associated with data processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten Impact Assessment) is necessary.
 
-Key features:
+## Key features
 
-- Complete DPIA and Pre-scan DPIA forms directly in your browser.
-- Save progress as a JSON file that can be shared with colleagues.
-- Continue work from previously saved sessions.
-- Export completed forms as PDF.
-- No installation or hosting required.
-
-This repository contains 
-
-- [Pre-scan DPIA form specification](sources/prescan_DPIA.yaml), [DPIA form specification](sources/DPIA.yaml) and 
-a [glossary](sources/begrippenkader-dpia.yaml), all in YAML format. These YAML's adhere to schemas
-defined [here](schemas/schema_DPIA.json) and are described in the [form standard specification](form_standard.md).
-- A [Vue application](form-app/) to fill in these forms and export them to an intermediate JSON format, or 
-PDF document.
-- The application as a single [HTML file](form-app/dist/index.html) which is served via [GitHub Pages](https://minbzk.github.io/par-dpia-form/).
-
+- 🌐 Complete DPIA and Pre-scan DPIA forms directly in your browser.
+- 💾 Save progress as a JSON file that can be shared with colleagues.
+- ⏱️ Continue work from previously saved sessions.
+- 📄 Export completed forms as PDF.
+- 📦 No installation or hosting required.
 
 ## High level overview
 
@@ -36,6 +27,50 @@ via [GitHub Pages](https://minbzk.github.io/par-dpia-form/).
 Form definitions are declared in YAML. A Vue 3 application loads these YAML definitions and renders
 the form. Users can provide answers, export their progress into a JSON file, load their saved JSON state
 into the application and export the questions and answers to a PDF report.
+
+## Repository structure
+
+```
+par-dpia-form/
+├── .github/                            # GitHub-specific configurations
+│   ├── workflows/                      # GitHub Actions workflow definitions
+│   │   ├── build.yaml                  # CI workflow - verify builds
+│   │   └── release-and-deploy.yaml     # Release triggered deployments
+│   └── dependabot.yaml                 # Dependency update configuration
+│
+├── form-app/                           # Main Vue application
+│   ├── src/                            # Source code
+│   │   ├── assets/                     # Generated JSON files
+│   │   ├── components/                 # Vue components
+│   │   ├── models/                     # TypeScript data models
+│   │   ├── stores/                     # Pinia state management
+│   │   └── utils/                      # Helper utilities
+│   ├── dist/                           # Build output
+│   │   └── index.html                  # Standalone application file
+│   └── package.json                    # NPM dependencies
+│
+├── schemas/                            # JSON schemas for validation
+│   └── formSchema.json                 # Form structure schema
+│
+├── script/                             # Processing and validation scripts
+│   ├── schema_validator.py             # Validates YAML against schema
+│   ├── definition_enricher.py          # Adds tooltips to form definitions
+│   └── run_validate_and_inject.py      # Combined processing workflow
+│
+├── sources/                            # Source YAML definitions
+│   ├── DPIA.yaml                       # Full DPIA form definition
+│   ├── prescan_DPIA.yaml               # Pre-scan DPIA definition
+│   └── begrippenkader-dpia.yaml        # Glossary and term definitions
+│
+├── LICENSE                             # EUPL v1.2 License
+├── README.md                           # Project documentation
+└── form_standard.md                    # Detailed standard specification
+```
+
+The application flows from the YAML source definitions (in `/sources`), through the processing
+scripts (in `/script`), into the Vue application (in `/form-app`),
+and ultimately produces a standalone HTML file that can be used without installation.
+
 
 ## Vue App
 
@@ -73,8 +108,7 @@ npm run build
 ```
 
 This will generate a standalone HTML file at `form-app/dist/index.html` that contains all necessary CSS,
-JavaScript and assets. There is a GitHub Action that deploys this to GitHub Pages when a branch is merged 
-to the main branch.
+JavaScript and assets. There is a GitHub Action that deploys this to GitHub Pages when a release is created.
 
 ### Technical details
 
