@@ -91,12 +91,10 @@ const FontService = {
    * @private
    */
   async _doLoadFonts(): Promise<void> {
-    console.log('Loading fonts...')
     const fontDefinitions: PdfFonts = {}
     const vfsDefinitions: VirtualFileSystem = {}
 
     for (const [family, variants] of Object.entries(fontAssetPaths)) {
-      console.log(`Processing font family: ${family}`)
       fontDefinitions[family] = {}
 
       // Map of variant keys to PDF font keys
@@ -120,9 +118,6 @@ const FontService = {
       }
       fontDefinitions[family].bolditalics = variants.bold
     }
-
-    console.log('Loaded font definitions:', Object.keys(fontDefinitions))
-    console.log('Loaded VFS entries:', Object.keys(vfsDefinitions))
 
     fonts = fontDefinitions
     vfs = vfsDefinitions
