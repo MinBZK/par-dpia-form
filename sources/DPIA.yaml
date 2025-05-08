@@ -1382,7 +1382,7 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-        - task: Recht op beperking dataportabiliteit
+        - task: Recht op dataportabiliteit
           id: "16.5"
           type:
            - task_group
