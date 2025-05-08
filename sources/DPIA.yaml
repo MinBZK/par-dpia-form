@@ -1209,6 +1209,7 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe. 
             id: "16.1.4"
             type: 
               - open_text

@@ -1857,6 +1857,7 @@
                         },
                         {
                             "task": "Beperking toelichting",
+                            "description": "Voeg hier de <span class=\"aiv-definition\">rechtsgrond voor beperking op recht van de betrokkene<span class=\"aiv-definition-text\"><p>Een rechtsgrond voor beperking op recht van de betrokkene is een [wetsartikel over beperking op recht van de betrokkene] waarop een [beperking op recht van de betrokkene] is gebaseerd.</p><h4>Toelichting:</h4><p>De verwerkingsverantwoordelijke kan de verplichtingen en rechten, bedoeld in de artikelen 12 tot en met 21 en artikel 34 van de AVG, buiten toepassing laten voor zover zulks noodzakelijk en evenredig is ter waarborging van:\na. de nationale veiligheid;\nb. landsverdediging;\nc. de openbare veiligheid;\nd. de voorkoming, het onderzoek, de opsporing en de vervolging van strafbare feiten of de tenuitvoerlegging van straffen, met inbegrip van de bescherming tegen en de voorkoming van gevaren voor de openbare veiligheid;\ne. andere belangrijke doelstellingen van algemeen belang van de Europese Unie of van Nederland, met name een belangrijk economisch of financieel belang van de Europese Unie of van Nederland, met inbegrip van monetaire, budgettaire en fiscale aangelegenheden, volksgezondheid en sociale zekerheid;\nf. de bescherming van de onafhankelijkheid van de rechter en gerechtelijke procedures;\ng. de voorkoming, het onderzoek, de opsporing en de vervolging van schendingen van de beroepscodes voor gereglementeerde beroepen;\nh. een taak op het gebied van toezicht, inspectie of regelgeving die verband houdt, al is het incidenteel, met de uitoefening van het openbaar gezag in de gevallen, bedoeld in de onderdelen a, b, c, d, e en g;\ni. de bescherming van de betrokkene of van de rechten en vrijheden van anderen; of\nj. de inning van civielrechtelijke vorderingen.</p></span></span></span> toe.",
                             "id": "16.1.4",
                             "type": [
                                 "open_text"
@@ -2147,7 +2148,7 @@
                     ]
                 },
                 {
-                    "task": "Recht op beperking dataportabiliteit",
+                    "task": "<span class=\"aiv-definition\">Recht op dataportabiliteit<span class=\"aiv-definition-text\"><p>Het recht op overdraagbaarheid van gegevens is een [recht van de betrokkene] waarbij de [betrokkene] het recht heeft de hem betreffende [persoonsgegevens], die hij aan een [verwerkingsverantwoordelijke] heeft verstrekt, in een gestructureerde, gangbare en machineleesbare vorm te verkrijgen, en het recht heeft die [persoonsgegevens] aan een andere [verwerkingsverantwoordelijke] over te dragen, zonder daarbij te worden gehinderd door de [verwerkingsverantwoordelijke] aan wie de [persoonsgegevens] waren verstrekt.</p></span></span></span>",
                     "id": "16.5",
                     "type": [
                         "task_group"
