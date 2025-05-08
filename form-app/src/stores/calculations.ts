@@ -27,6 +27,8 @@ export interface AssessmentResult {
   required: boolean; // For backward compatibility with UI components
 }
 
+const jexlInstance = new jexl.Jexl();
+
 export const useCalculationStore = defineStore('calculationStore', () => {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
@@ -37,9 +39,7 @@ export const useCalculationStore = defineStore('calculationStore', () => {
   const assessmentResults = ref<AssessmentResult[]>([])
   const isCalculating = ref(false)
   const calculationErrors = ref<string[]>([])
-
-  // Create a new JEXL instance
-  const jexlInstance = new jexl.Jexl()
+  const isInitialized = ref(false)
 
   // Initialize JEXL with custom transforms and functions
   function setupJexl() {
@@ -51,23 +51,23 @@ export const useCalculationStore = defineStore('calculationStore', () => {
 
     jexlInstance.addFunction('weightedCountMap', (values: string[], keys: string[], weights: number[]) => {
       if (!values || !Array.isArray(values)) {
-        return 0;
+        return 0
       }
 
       // Create a map of key -> weight
-      const weightMap: Record<string, number> = {};
+      const weightMap: Record<string, number> = {}
       for (let i = 0; i < keys.length; i++) {
-        weightMap[keys[i]] = weights[i] || 0;
+        weightMap[keys[i]] = weights[i] || 0
       }
 
       // Calculate weighted sum
-      let total = 0;
+      let total = 0
       for (const value of values) {
-        total += weightMap[value] || 0;
+        total += weightMap[value] || 0
       }
 
       return total;
-    });
+    })
 
     // Add answer retrieval function
     jexlInstance.addFunction('answers', (id: string) => {
@@ -93,6 +93,9 @@ export const useCalculationStore = defineStore('calculationStore', () => {
 
       return answer.length
     })
+
+    isInitialized.value = true
+    console.log('JEXL setup complete')
   }
   // Calculate a score for a single task
   async function calculateTaskScore(task: any) {
@@ -212,15 +215,25 @@ export const useCalculationStore = defineStore('calculationStore', () => {
   }
   // Initialize the calculator
   function init() {
-    setupJexl()
-    runCalculations()
+    if (!isInitialized.value) {
+      setupJexl();
+    }
+
+    // Only run calculations if JEXL is initialized
+    if (isInitialized.value) {
+      runCalculations();
+    } else {
+      console.error('Cannot run calculations - JEXL is not initialized');
+    }
   }
 
   // Set up watcher to recalculate when answers change
   watch(
     () => answerStore.answers,
     () => {
-      runCalculations()
+      if (isInitialized.value) {
+        runCalculations();
+      }
     },
     { deep: true }
   )

@@ -408,9 +408,9 @@ tasks:
           scoreKey: "aantal_betrokkenen"
           expression: "answers('1.5.1')" 
           riskScore:
-            - when: "aantal_betrokkenen == true"
+            - when: "bool(aantal_betrokkenen) == true"
               value: 1
-            - when: "aantal_betrokkenen == false"
+            - when: "bool(aantal_betrokkenen) == false"
               value: 0
         references:
           prescanModelId: "11.a"
@@ -674,7 +674,7 @@ tasks:
         repeatable: false
         calculation:
           scoreKey: "internationale_doorgifte"
-          expression: "(answers('2.1.1') == true && ((answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER')) || answers('2.1.8') == true)) ? 2 : ((answers('2.1.1') == true && answers('2.1.8') != true && (answers('0.4.1') != true || (answers('0.4.1') == true && answers('2.1.3') != 'Buiten EER' && answers('2.1.4') != 'Buiten EER'))) || (answers('2.1.1') != true && answers('0.4.1') == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER'))) ? 1 : 0"
+          expression: "(bool(answers('2.1.1')) == true && ((bool(answers('0.4.1')) == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER')) || bool(answers('2.1.8')) == true)) ? 2 : ((bool(answers('2.1.1')) == true && bool(answers('2.1.8')) != true && (bool(answers('0.4.1')) != true || (bool(answers('0.4.1')) == true && answers('2.1.3') != 'Buiten EER' && answers('2.1.4') != 'Buiten EER'))) || (bool(answers('2.1.1')) != true && bool(answers('0.4.1')) == true && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER'))) ? 1 : 0"
           riskScore:
             - when: "internationale_doorgifte == 0"
               value: 0
@@ -959,19 +959,18 @@ assessments:
   - id: "DPIA"
     levels: 
       - level: "required"
-        expression: "
-          (
-            (scores.gewone_persoonsgegeven || 0) +
-            (scores.bijzonder_persoonsgegeven || 0) +
-            (scores.gevoelig_persoonsgegeven || 0) +
-            (scores.betrokkenen || 0) +
-            (scores.aantal_betrokkenen || 0) +
-            (scores.frequentie_verwerking || 0) +
-            (scores.bewaartermijn || 0) +
-            (scores.internationale_doorgifte || 0) +
-            (scores.basisregistratie || 0) +
-            (scores.digitaledienst_minderjarig || 0) 
-          ) > 4|| 
+        expression: " ( 
+          (bool(answers('1.1.1')) && (scores.gewone_persoonsgegeven || 0)) +
+          (bool(answers('1.2.1')) && (scores.bijzonder_persoonsgegeven || 0)) +
+          (bool(answers('1.3.1')) && (scores.gevoelig_persoonsgegeven || 0)) +
+          (scores.betrokkenen || 0) +
+          (scores.aantal_betrokkenen || 0) +
+          (scores.frequentie_verwerking || 0) +
+          (scores.bewaartermijn || 0) +
+          (bool(answers('2.1.1')) && (scores.internationale_doorgifte || 0)) +
+          (bool(answers('5.1.1')) && (scores.basisregistratie || 0)) +
+          (bool(answers('7.1.1')) && (scores.digitaledienst_minderjarig || 0))
+          ) > 4 || 
           (countSelectedOptions('3.1') >= 1) ||
           (countSelectedOptions('4.1') >= 2)"
         result: "DPIA verplicht"
