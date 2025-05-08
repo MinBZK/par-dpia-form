@@ -4,7 +4,7 @@ import UiButton from '@/components/ui/UiButton.vue'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskStore, type FlatTask } from '@/stores/tasks'
-import { renderInstanceLabel, removeTemplatePattern } from '@/utils/taskUtils'
+import { renderInstanceLabel } from '@/utils/taskUtils'
 import { computed, nextTick } from 'vue'
 
 const props = defineProps<{
