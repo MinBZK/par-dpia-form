@@ -198,7 +198,7 @@ const isSigningTask = computed(() => {
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
               <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <div class="rvo-checkbox__group">
+                <div v-if="!isLastTask" class="rvo-checkbox__group">
                   <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
                     <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
                       type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"

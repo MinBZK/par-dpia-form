@@ -139,16 +139,18 @@ JSON-schemas are in the `schemas/` directory.
 Validates the YAML against a schema and optionally exports the validated schema to a JSON. In the examples
 below the schema is validated and exported to a JSON in the assets folder of the frontend application.
 
+#### Prescan DPIA
+
 ```bash
-# Prescan DPIA
 uv run script/schema_validator.py \
     --schema schemas/formSchema.json \
     --source sources/prescan_DPIA.yaml \
     --output form-app/src/assets/PreScanDPIA.json
 ```
 
+#### DPIA
+
 ```bash
-# DPIA
 uv run script/schema_validator.py \
     --schema schemas/formSchema.json \
     --source sources/DPIA.yaml \
@@ -161,16 +163,18 @@ uv run script/schema_validator.py \
 This script injects glossary items from the glossary in the source YAML. It injects glossary items as certain HTML elements with certain styling
 which can be rendered by the frontend application.
 
+#### Prescan DPIA
+
 ```bash
-# Prescan DPIA
 uv run script/definition_enricher.py \
     --source sources/prescan_DPIA.yaml \
     --definitions sources/begrippenkader-dpia.yaml \
     --output form-app/src/assets/PreScanDPIA.json
 ```
 
+#### DPIA
+
 ```bash
-# DPIA
 uv run script/definition_enricher.py \
     --source sources/DPIA.yaml \
     --definitions sources/begrippenkader-dpia.yaml \
@@ -181,8 +185,9 @@ uv run script/definition_enricher.py \
 
 This script combines the two above scripts to validate the script, inject glossary items and export them to a JSON.
 
+#### Prescan DPIA
+
 ```bash
-# Prescan DPIA
 uv run script/run_validate_and_inject.py \
   --schema schemas/formSchema.json \
   --source sources/prescan_DPIA.yaml \
@@ -190,8 +195,9 @@ uv run script/run_validate_and_inject.py \
   --output form-app/src/assets/PreScanDPIA.json
 ```
 
+#### DPIA
+
 ```bash
-# DPIA
 uv run script/run_validate_and_inject.py \
   --schema schemas/formSchema.json \
   --source sources/DPIA.yaml \

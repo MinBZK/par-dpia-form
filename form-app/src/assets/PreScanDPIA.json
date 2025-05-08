@@ -90,7 +90,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -236,7 +235,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -354,7 +352,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -456,7 +453,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -639,7 +635,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -677,7 +672,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -805,7 +799,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -825,7 +818,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -865,7 +857,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -931,7 +922,7 @@
                                 },
                                 {
                                     "label": "Buiten EER",
-                                    "value": "BUiten EER"
+                                    "value": "Buiten EER"
                                 }
                             ],
                             "dependencies": [
@@ -1326,7 +1317,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -1440,7 +1430,6 @@
                                 "prescanModelId": "G",
                                 "DPIA": "5"
                             },
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -1461,7 +1450,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -1513,7 +1501,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -1533,7 +1520,6 @@
                                 "radio_option"
                             ],
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
@@ -1566,7 +1552,6 @@
                             ],
                             "repeatable": false,
                             "valueType": "boolean",
-                            "defaultValue": false,
                             "options": [
                                 {
                                     "value": true,
