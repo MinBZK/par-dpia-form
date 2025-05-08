@@ -9,6 +9,9 @@ import { renderInstanceLabel } from '@/utils/taskUtils'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
 import { generateFilename } from './fileName'
+import type { CalculationStoreType } from '@/stores/calculations'
+
+
 
 // Initialize PDFMake
 (<any>pdfMake).addVirtualFileSystem(pdfFonts)
@@ -25,6 +28,7 @@ const dutchDateFormatter = new Intl.DateTimeFormat('nl-NL', {
 export async function exportToPdf(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
+  calculationStore: CalculationStoreType,
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
@@ -52,12 +56,25 @@ export async function exportToPdf(
     )
   }
 
-  // Then add all other sections except the management summary with sequential numbering
-  let currentSection = 1; // Start with section 2 since management summary is section 1
+  let startSection = 1;
+  if (activeNamespace === FormType.PRE_SCAN && calculationStore) {
+    // Ensure calculation store is initialized
+    if (!calculationStore.assessmentResults.length) {
+      calculationStore.init()
+    }
+
+    contentSections.push(
+      buildResultsSection(calculationStore, startSection)
+    )
+
+    startSection++
+  }
+
+  let currentSection = startSection
   rootTasks.forEach(task => {
     if (task.id !== "19") { // Skip the management summary as we've already added it
       contentSections.push(buildNumberedSection(task, taskStore, answerStore, currentSection))
-      currentSection++; // Increment for the next section
+      currentSection++
     }
   })
 
@@ -193,6 +210,64 @@ export async function exportToPdf(
     return Promise.resolve()
   } catch (error) {
     return Promise.reject(new Error(`Failed to export PDF: ${error}`))
+  }
+}
+
+// Special function to build the results section for Pre-scan
+function buildResultsSection(
+  calculationStore: CalculationStoreType,
+  sectionNumber: number,
+): Content {
+  const contentElements: Content[] = []
+
+  // Add title with section number
+  contentElements.push({
+    text: `${sectionNumber}.  Resultaten`,
+    style: 'header',
+    tocItem: true,
+  })
+
+  // Add description
+  contentElements.push({
+    text: 'Op basis van uw antwoorden zijn de volgende assessments vereist of aanbevolen:',
+    style: 'description',
+  })
+
+  // Get required or recommended assessments
+  const relevantAssessments = calculationStore.assessmentResults.filter(
+    assessment => assessment.required || assessment.level === 'recommended'
+  )
+
+  if (relevantAssessments.length === 0) {
+    contentElements.push({
+      text: "Op basis van de huidige antwoorden zijn er geen assessments vereist of aanbevolen.",
+      style: 'normal',
+    })
+  } else {
+    // For each relevant assessment, add a section
+    for (const assessment of relevantAssessments) {
+      contentElements.push({
+        text: assessment.id,
+        style: 'subHeader',
+        margin: [0, 15, 0, 5],
+      })
+
+      // Format multiline explanation by replacing newlines with proper paragraphs
+      const explanationLines = assessment.explanation.split('\n').filter(line => line.trim() !== '');
+
+      for (const line of explanationLines) {
+        contentElements.push({
+          text: line,
+          style: 'normal',
+          margin: [0, 0, 0, 10],
+        })
+      }
+    }
+  }
+
+  return {
+    stack: contentElements,
+    pageBreak: 'before',
   }
 }
 

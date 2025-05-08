@@ -235,3 +235,5 @@ export const useCalculationStore = defineStore('calculationStore', () => {
     init
   }
 })
+
+export type CalculationStoreType = ReturnType<typeof useCalculationStore>
