@@ -22,6 +22,9 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -66,6 +69,21 @@ jobs:
         run: |
           cd form-app 
           npm run build
+
+      - name: Create version.json for tracking
+        run: |
+          echo '{
+            "version": "${{ github.event.release.tag_name || github.ref_name }}",
+            "deployed_at": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "commit_sha": "'${{ github.sha }}'"
+          }' > form-app/dist/version.json
+          
+          # Verify version.json was created
+          echo "Contents of version.json:"
+          cat form-app/dist/version.json
+          
+          # Verify it exists in the directory
+          ls -la form-app/dist/
       
       # Create ZIP for release attachment
       - name: Create release ZIP
@@ -81,6 +99,7 @@ jobs:
           files: |
             dpia-form-${{ github.event.release.tag_name }}.zip
             form-app/dist/index.html
+            form-app/dist/version.json
       
       # Deploy to GitHub Pages
       - name: Setup Pages
@@ -94,13 +113,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-      
-      # Add version info to deployment
-      - name: Create version.json for troubleshooting
-        if: success()
-        run: |
-          echo '{
-            "version": "${{ github.event.release.tag_name || github.ref_name }}",
-            "deployed_at": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
-            "commit_sha": "'${{ github.sha }}'"
-          }' > form-app/dist/version.json
