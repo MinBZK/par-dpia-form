@@ -15,6 +15,7 @@ import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { type NavigationFunctions } from '@/models/navigation'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '@/stores/tasks'
+import { useCalculationStore } from '@/stores/calculations'
 import { exportToJson } from '@/utils/jsonExport'
 import { exportToPdf } from '@/utils/pdfExport'
 import * as t from 'io-ts'
@@ -35,6 +36,7 @@ const formStarted = ref(false)
 // Store setup
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
+const calculationStore = useCalculationStore()
 
 const { syncInstances } = useTaskDependencies()
 const appPersistence = useAppStatePersistence()
@@ -115,7 +117,7 @@ const handleSaveForm = async (filename: string) => {
 
 const handleExportPdf = async () => {
   try {
-    await exportToPdf(taskStore, answerStore)
+    await exportToPdf(taskStore, answerStore, calculationStore)
   } catch (error) {
     console.error('Failed to export PDF:', error)
   }
