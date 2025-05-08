@@ -77,7 +77,6 @@ tasks:
          type: 
            - radio_option
          valueType: boolean
-         defaultValue: false
          options: 
            - value: true
              label: Ja
@@ -167,7 +166,6 @@ tasks:
         type: 
           - radio_option
         valueType: boolean
-        defaultValue: false
         options: 
           - value: true
             label: Ja
@@ -233,7 +231,6 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        defaultValue: false
         options: 
         - value: true
           label: Ja
@@ -290,7 +287,6 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        defaultValue: false
         options: 
         - value: true
           label: Ja
@@ -402,7 +398,6 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        defaultValue: false
         options:
         - value: true 
           label: Ja
@@ -427,7 +422,6 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        defaultValue: false
         options:
         - value: true 
           label: Ja
@@ -495,7 +489,6 @@ tasks:
       type: 
       - radio_option
       valueType: boolean
-      defaultValue: false
       options:
       - value: true 
         label: Ja
@@ -507,7 +500,6 @@ tasks:
       type: 
       - radio_option
       valueType: boolean
-      defaultValue: false
       options:
       - value: true 
         label: Ja
@@ -531,7 +523,6 @@ tasks:
         type: 
         - radio_option
         valueType: boolean
-        defaultValue: false
         options: 
         - value: true
           label: Ja
@@ -786,7 +777,6 @@ tasks:
           type: 
             - radio_option
           valueType: boolean
-          defaultValue: false
           options: 
             - value: true
               label: Ja
@@ -864,7 +854,7 @@ tasks:
       references:
         prescanModelId: "G"
         DPIA: "5"
-      defaultValue: false
+      
       options: 
       - value: true
         label: Ja
@@ -879,7 +869,6 @@ tasks:
       type:
       - radio_option
       valueType: boolean
-      defaultValue: false
       options: 
       - value: true
         label: Ja
@@ -913,7 +902,6 @@ tasks:
       type:
       - radio_option
       valueType: boolean
-      defaultValue: false
       options: 
       - value: true
         label: Ja
@@ -925,7 +913,6 @@ tasks:
       type:
       - radio_option
       valueType: boolean
-      defaultValue: false
       options: 
       - value: true
         label: Ja
@@ -946,7 +933,6 @@ tasks:
       - radio_option
       repeatable: false
       valueType: boolean
-      defaultValue: false
       options: 
       - value: true
         label: Ja
