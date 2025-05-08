@@ -1,0 +1,106 @@
+name: Release and Deploy
+
+on:
+  release:
+    types: [created, edited]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to deploy (leave empty for latest)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: Install Python dependencies
+        run: pip install pyyaml jsonschema
+          
+      - name: Generate JSON from YAML definitions
+        run: |
+          mkdir -p form-app/src/assets
+          
+          python script/run_validate_and_inject.py \
+            --schema schemas/formSchema.json \
+            --source sources/prescan_DPIA.yaml \
+            --begrippen-yaml sources/begrippenkader-dpia.yaml \
+            --output form-app/src/assets/PreScanDPIA.json
+            
+          python script/run_validate_and_inject.py \
+            --schema schemas/formSchema.json \
+            --source sources/DPIA.yaml \
+            --begrippen-yaml sources/begrippenkader-dpia.yaml \
+            --output form-app/src/assets/DPIA.json
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'form-app/package-lock.json'
+          
+      - name: Install Node dependencies
+        run: cd form-app && npm ci
+        
+      - name: Build the Vue application
+        run: |
+          cd form-app 
+          npm run build
+      
+      # Create ZIP for release attachment
+      - name: Create release ZIP
+        run: |
+          cd form-app/dist
+          zip -r ../../dpia-form-${{ github.event.release.tag_name || github.ref_name }}.zip .
+      
+      # Only execute for release events (not workflow_dispatch)
+      - name: Upload release assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dpia-form-${{ github.event.release.tag_name }}.zip
+            form-app/dist/index.html
+      
+      # Deploy to GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'form-app/dist'
+          
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      # Add version info to deployment
+      - name: Create version.json for troubleshooting
+        if: success()
+        run: |
+          echo '{
+            "version": "${{ github.event.release.tag_name || github.ref_name }}",
+            "deployed_at": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+            "commit_sha": "'${{ github.sha }}'"
+          }' > form-app/dist/version.json
