@@ -323,7 +323,7 @@
                                 },
                                 "expression": {
                                     "type": "string",
-                                    "description": "Expression to evaluate to determine if this level applies"
+                                    "description": "Expression to evaluate all criteria combined"
                                 },
                                 "result": {
                                     "type": "string",
@@ -331,14 +331,39 @@
                                 },
                                 "explanation": {
                                     "type": "string",
-                                    "description": "Detailed explanation for this assessment level"
+                                    "description": "Optional base explanation for this assessment level"
+                                },
+                                "criteria": {
+                                    "type": "array",
+                                    "description": "Individual criteria that can trigger this assessment",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "id": {
+                                                "type": "string",
+                                                "description": "Unique identifier for this criterion"
+                                            },
+                                            "expression": {
+                                                "type": "string",
+                                                "description": "Expression to evaluate if this criterion is met"
+                                            },
+                                            "explanation": {
+                                                "type": "string",
+                                                "description": "Explanation to show when this criterion is met"
+                                            }
+                                        },
+                                        "required": [
+                                            "id",
+                                            "expression",
+                                            "explanation"
+                                        ]
+                                    }
                                 }
                             },
                             "required": [
                                 "level",
                                 "expression",
-                                "result",
-                                "explanation"
+                                "result"
                             ]
                         }
                     }
