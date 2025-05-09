@@ -187,15 +187,15 @@ const isSigningTask = computed(() => {
         <div v-if="formStarted" class="utrecht-button-group rvo-action-groul--position-right" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" @click="handleReset" />
-          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" @click="openSaveModal" />
+            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
+          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs" @click="openSaveModal" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
           <TaskSection :taskId="currentRootTaskId" />
 
-          <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--3xl">
+          <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--xl">
             <!-- Navigation buttons -->
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />

@@ -141,7 +141,7 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Select radio -->
   <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
-    <div class="rvo-layout-margin-vertical--md">
+    <div>
       <div class="rvo-radio-button__group">
         <label
           v-for="option in task.options!"
@@ -185,7 +185,7 @@ const handleCheckboxInput = (event: Event) => {
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
   refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
-    <div v-if="getSourceOptions(task).length > 0" class="rvo-layout-margin-vertical--md">
+    <div v-if="getSourceOptions(task).length > 0">
       <div class="rvo-checkbox__group">
         <label
           v-for="option in getSourceOptions(task)"
@@ -206,7 +206,7 @@ const handleCheckboxInput = (event: Event) => {
         </label>
       </div>
     </div>
-    <div v-else-if="task.options && task.options.length > 0" class="rvo-layout-margin-vertical--md">
+    <div v-else-if="task.options && task.options.length > 0">
       <div class="rvo-checkbox__group">
         <label
           v-for="option in task.options!"
