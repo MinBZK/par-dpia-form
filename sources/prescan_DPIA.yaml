@@ -970,7 +970,7 @@ assessments:
   - id: "DPIA"
     levels: 
       - level: "required"
-        expression: "criteria.wetgeving || criteria.risicoscore || criteria.aplist || criteria.edpblist2" 
+        expression: "criteria.wetgeving || criteria.riskscore || criteria.aplist || criteria.edpblist2" 
         result: "DPIA verplicht"
         criteria:
           - id: "wetgeving"
