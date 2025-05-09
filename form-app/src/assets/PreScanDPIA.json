@@ -1655,7 +1655,7 @@
                         {
                             "id": "edpblist1",
                             "expression": "countSelectedOptions('4.1') == 1",
-                            "explanation": "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+                            "explanation": "omdat er precies 1 item op de EDPB-lijst is geselecteerd."
                         }
                     ]
                 }
