@@ -172,8 +172,6 @@ tasks:
     repeatable: false
     tasks:
       - task: Gaat het systeem categorieën gewone persoonsgegevens verwerken?
-        description: >-
-          Er wordt gesproken van gewone persoonsgegevens als een activiteit de classificatie "bevat gewone persoonsgegevens" heeft. In dat geval wordt deze categorie specifiek vastgelegd. 
         id: "1.1.1"
         type: 
           - radio_option
@@ -237,8 +235,6 @@ tasks:
     repeatable: false
     tasks:
       - task: Gaat het systeem bijzondere persoonsgegevens verwerken? 
-        description: >-
-          Er is sprake van bijzondere persoonsgegevens als een activiteit de classificatie "bijzondere persoonsgegevens" heeft. In dat geval wordt vastgelegd om welk type bijzondere persoonsgegevens het gaat.
         id: "1.2.1"
         type: 
         - radio_option
@@ -293,8 +289,6 @@ tasks:
     repeatable: false
     tasks:
       - task: Gaat het systeem ook andere gevoelige persoonsgegevens verwerken? 
-        description: >-
-          Er is sprake van gevoelige persoonsgegevens als een activiteit de classificatie "gevoelige persoonsgegevens" heeft. In dat geval wordt vastgelegd om welke categorie gevoelige persoonsgegevens het gaat.
         id: "1.3.1"
         type: 
         - radio_option
