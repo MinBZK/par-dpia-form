@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCalculationStore } from '@/stores/calculations'
+import type { AssessmentResult, CriterionResult } from '@/stores/calculations'
 import { computed, onMounted } from 'vue'
 
 const calculationStore = useCalculationStore()
@@ -14,8 +15,14 @@ const hasRequiredOrRecommendedAssessments = computed(() => {
   );
 })
 
-// Extract rendering logic for assessment results
-const renderAssessmentExplanation = (assessment) => {
+interface ExplanationResult {
+  hasCriteria: boolean;
+  intro?: string;
+  points?: string[];
+  text: string;
+}
+
+const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationResult => {
   // Get the correct intro text based on the level
   const introText = assessment.level === 'recommended'
     ? `Een ${assessment.id} wordt aanbevolen omdat:`
@@ -23,13 +30,16 @@ const renderAssessmentExplanation = (assessment) => {
 
   if (assessment.criteria && assessment.criteria.length > 0) {
     return {
+      hasCriteria: true,
       intro: introText,
-      points: assessment.criteria.map(c => c.explanation)
+      points: assessment.criteria.map((c: CriterionResult) => c.explanation),
+      text: assessment.explanation || '' // Provide fallback text
     }
   } else {
     // Fall back to general explanation
     return {
-      text: assessment.explanation
+      hasCriteria: false,
+      text: assessment.explanation || ''
     }
   }
 }
@@ -74,12 +84,11 @@ const renderAssessmentExplanation = (assessment) => {
                 </p>
 
                 <!-- Using the extracted rendering logic -->
-                <template v-if="renderAssessmentExplanation(assessment).points">
+                <template v-if="renderAssessmentExplanation(assessment).hasCriteria">
                   <p>{{ renderAssessmentExplanation(assessment).intro }}</p>
                   <ul class="utrecht-unordered-list">
-                    <li v-for="(point, index) in renderAssessmentExplanation(assessment).points"
-                        :key="index"
-                        class="utrecht-unordered-list__item">
+                    <li v-for="(point, index) in renderAssessmentExplanation(assessment).points" :key="index"
+                      class="utrecht-unordered-list__item">
                       {{ point }}
                     </li>
                   </ul>
