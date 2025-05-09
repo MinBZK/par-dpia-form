@@ -7,11 +7,18 @@ import { useSchemaStore } from '@/stores/schemas'
 import * as jexl from 'jexl'
 
 
+export interface Criterion {
+  id: string;
+  expression: string;
+  explanation: string;
+}
+
 export interface AssessmentLevel {
   level: string;
   expression: string;
   result: string;
   explanation: string;
+  criteria?: Criterion[];
 }
 
 export interface Assessment {
@@ -19,12 +26,19 @@ export interface Assessment {
   levels: AssessmentLevel[];
 }
 
+export interface CriterionResult {
+  id: string;
+  met: boolean;
+  explanation: string;
+}
+
 export interface AssessmentResult {
   id: string;
   level: string;
   result: string;
   explanation: string;
-  required: boolean; // For backward compatibility with UI components
+  required: boolean;
+  criteria?: CriterionResult[];
 }
 
 const jexlInstance = new jexl.Jexl();
@@ -94,6 +108,10 @@ export const useCalculationStore = defineStore('calculationStore', () => {
       return answer.length
     })
 
+    jexlInstance.addFunction('criteriaCheck', (criteriaObj) => {
+      return Object.values(criteriaObj).some(val => val === true)
+    })
+
     isInitialized.value = true
     console.log('JEXL setup complete')
   }
@@ -144,6 +162,46 @@ export const useCalculationStore = defineStore('calculationStore', () => {
     }
   }
 
+  async function evaluateCriteria(criteria: Criterion[], context: any): Promise<CriterionResult[]> {
+    const metCriteria: CriterionResult[] = [];
+    const criteriaResults: Record<string, boolean> = {};
+
+    // Evaluate each criterion
+    for (const criterion of criteria) {
+      try {
+        const isMet = await jexlInstance.eval(criterion.expression, context);
+        criteriaResults[criterion.id] = isMet;
+
+        if (isMet) {
+          metCriteria.push({
+            id: criterion.id,
+            met: true,
+            explanation: criterion.explanation
+          });
+        }
+      } catch (error) {
+        console.error(`Error evaluating criterion ${criterion.id}:`, error);
+        calculationErrors.value.push(`Error in criterion ${criterion.id}: ${error}`);
+      }
+    }
+
+    return metCriteria;
+  }
+
+  function formatExplanation(assessmentId: string, level: string, defaultExplanation: string, metCriteria: CriterionResult[]): string {
+    if (metCriteria.length > 0) {
+      // Different message based on level
+      if (level === "recommended") {
+        return `Een ${assessmentId} wordt aanbevolen omdat:\n• ${metCriteria.map(c => c.explanation).join("\n• ")
+          }`;
+      } else {
+        return `Een ${assessmentId} is verplicht omdat:\n• ${metCriteria.map(c => c.explanation).join("\n• ")
+          }`;
+      }
+    }
+    return defaultExplanation;
+  }
+
 
   async function evaluateAssessments(): Promise<AssessmentResult[] | undefined> {
     assessmentResults.value = []
@@ -154,28 +212,56 @@ export const useCalculationStore = defineStore('calculationStore', () => {
     }
 
     const assessments = schema.assessments as Assessment[]
-
     for (const assessment of assessments) {
       try {
-        const context = { scores: calculatedScores.value }
-        let matchedLevel = null;
+        const context = { scores: calculatedScores.value };
 
         for (const level of assessment.levels) {
-          const result = await jexlInstance.eval(level.expression, context)
-          if (result) {
-            matchedLevel = level;
-            break;
-          }
-        }
+          let result = false;
+          let metCriteria: CriterionResult[] = [];
 
-        if (matchedLevel) {
-          assessmentResults.value.push({
-            id: assessment.id,
-            level: matchedLevel.level,
-            result: matchedLevel.result,
-            explanation: matchedLevel.explanation,
-            required: matchedLevel.level === 'required' || matchedLevel.level === 'recommended'
-          })
+          // Handle criteria-based evaluation
+          if (level.criteria && level.criteria.length > 0) {
+            // Evaluate criteria and get results
+            metCriteria = await evaluateCriteria(level.criteria, context);
+
+            // Prepare context with criteria results
+            const criteriaContext = {
+              ...context,
+              criteria: metCriteria.reduce((obj, c) => {
+                obj[c.id] = c.met;
+                return obj;
+              }, {} as Record<string, boolean>)
+            };
+
+            // Evaluate the main expression
+            result = await jexlInstance.eval(level.expression, criteriaContext);
+          } else {
+            // Legacy evaluation without criteria
+            result = await jexlInstance.eval(level.expression, context);
+          }
+
+          if (result) {
+            // Format explanation based on criteria
+            const explanation = formatExplanation(
+              assessment.id,
+              level.level,
+              level.explanation || '',
+              metCriteria
+            );
+
+            // Add to results
+            assessmentResults.value.push({
+              id: assessment.id,
+              level: level.level,
+              result: level.result,
+              explanation,
+              required: level.level === 'required' || level.level === 'recommended',
+              criteria: metCriteria.length > 0 ? metCriteria : undefined
+            });
+
+            break; // Found a match
+          }
         }
       } catch (error) {
         console.error(`Error evaluating assessment ${assessment.id}:`, error)
@@ -183,8 +269,9 @@ export const useCalculationStore = defineStore('calculationStore', () => {
       }
     }
 
-    // Sort alphabetically by ID
+    // Sort results alphabetically by ID
     assessmentResults.value.sort((a, b) => a.id.localeCompare(b.id))
+    return assessmentResults.value
   }
 
   // Main calculation function

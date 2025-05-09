@@ -650,7 +650,6 @@
                             "task": "Is het totale aantal <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\"><p>Een betrokkene is een [ge\u00efdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].</p><h4>Toelichting:</h4><p>Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.</p><h4>Voorbeeld(en):</h4><p>Medewerkers,  consumenten, cli\u00ebnten, pati\u00ebnten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</p></span></span></span> gelijk aan of groter dan 10.000?",
                             "description": "Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,  kinderen jonger dan 16 jaar, andere <span class=\"aiv-definition\">kwetsbare groepen<span class=\"aiv-definition-text\"><p>Een kwetsbare groep is een groep [betrokkenen] waarvoor de negatieve effecten van een [gegevensverwerking persoonsgegevens] groter kunnen zijn dan voor anderen, of waarbij er een ongelijke machtsverhouding bestaat tussen de [betrokkenen] en de [verwerkingsverantwoordelijke].</p><h4>Toelichting:</h4><p>Kwetsbare betrokkenen zijn bijvoorbeeld kinderen, werknemers, kwetsbaardere segmenten van de bevolking die speciale bescherming behoeven, en andere betrokkenen waarbij een onevenwichtigheid in de relatie tussen de positie van de betrokkene en de verwerkingsverantwoordelijke kan worden vastgesteld.</p><h4>Voorbeeld(en):</h4><p>Gehandicapten, minderheden, kinderen, werknemers, vluchtelingen, asielzoekers, statushouders, pati\u00ebnten, et cetera.</p></span></span></span> (gehandicapten, minderheden, etc.) en <span class=\"aiv-definition\">specificatie categorie betrokkenen<span class=\"aiv-definition-text\"><p>Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</p></span></span></span> (bijv. vanuit uitvoeringswetgeving).",
                             "id": "1.5.1",
-                            "risicoscore_tag": "aantal_betrokkenen",
                             "type": [
                                 "radio_option"
                             ],
@@ -1623,15 +1622,42 @@
             "levels": [
                 {
                     "level": "required",
-                    "expression": " bool(answers('0.1')) || ( (bool(answers('1.1.1')) && (scores.gewone_persoonsgegeven || 0)) + (bool(answers('1.2.1')) && (scores.bijzonder_persoonsgegeven || 0)) + (bool(answers('1.3.1')) && (scores.gevoelig_persoonsgegeven || 0)) + (scores.betrokkenen || 0) + (scores.aantal_betrokkenen || 0) + (scores.frequentie_verwerking || 0) + (scores.bewaartermijn || 0) + (bool(answers('2.1.1')) && (scores.internationale_doorgifte || 0)) + (bool(answers('5.1.1')) && (scores.basisregistratie || 0)) + (bool(answers('7.1.1')) && (scores.digitaledienst_minderjarig || 0)) ) > 4 || (countSelectedOptions('3.1') >= 1) || (countSelectedOptions('4.1') >= 2)",
+                    "expression": "criteria.wetgeving || criteria.risicoscore || criteria.aplist || criteria.edpblist2",
                     "result": "DPIA verplicht",
-                    "explanation": "Een DPIA is verplicht omdat:\n \u2022 de som van de risicoscores groter is dan 4, en/of\n \u2022 er minimaal 1 item op de AP-lijst is geselecteerd, en/of\n \u2022 er minimaal 2 items op de EDPB-lijst zijn geselecteerd.\n"
+                    "criteria": [
+                        {
+                            "id": "wetgeving",
+                            "expression": "bool(answers('0.1'))",
+                            "explanation": "er sprake is van nieuwe wet- of regelgeving"
+                        },
+                        {
+                            "id": "riskscore",
+                            "expression": "( (bool(answers('1.1.1')) && (scores.gewone_persoonsgegeven || 0)) + (bool(answers('1.2.1')) && (scores.bijzonder_persoonsgegeven || 0)) + (bool(answers('1.3.1')) && (scores.gevoelig_persoonsgegeven || 0)) + (scores.betrokkenen || 0) + (scores.aantal_betrokkenen || 0) + (scores.frequentie_verwerking || 0) + (scores.bewaartermijn || 0) + (bool(answers('2.1.1')) && (scores.internationale_doorgifte || 0)) + (bool(answers('5.1.1')) && (scores.basisregistratie || 0)) + (bool(answers('7.1.1')) && (scores.digitaledienst_minderjarig || 0)) ) > 4",
+                            "explanation": "de som van de risicoscores groter is dan 4"
+                        },
+                        {
+                            "id": "aplist",
+                            "expression": "countSelectedOptions('3.1') >= 1",
+                            "explanation": "er minimaal 1 item op de AP-lijst is geselecteerd"
+                        },
+                        {
+                            "id": "edpblist2",
+                            "expression": "countSelectedOptions('4.1') >= 2",
+                            "explanation": "er minimaal 2 items op de EDPB-lijst zijn geselecteerd"
+                        }
+                    ]
                 },
                 {
                     "level": "recommended",
-                    "expression": "countSelectedOptions('4.1') == 1",
+                    "expression": "criteria.edpblist1",
                     "result": "DPIA aanbevolen",
-                    "explanation": "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+                    "criteria": [
+                        {
+                            "id": "edpblist1",
+                            "expression": "countSelectedOptions('4.1') == 1",
+                            "explanation": "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+                        }
+                    ]
                 }
             ]
         },
@@ -1640,9 +1666,20 @@
             "levels": [
                 {
                     "level": "required",
-                    "expression": " bool(answers('2.1.1')) && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER') && answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']",
+                    "expression": "criteria.internationale_doorgifte && criteria.mechanisme",
                     "result": "DTIA verplicht",
-                    "explanation": "Een DTIA is verplicht omdat er sprake is van internationale doorgifte buiten de EER en er gebruik wordt gemaakt van Standaard contractsbepaling of een overig mechanisme."
+                    "criteria": [
+                        {
+                            "id": "internationale_doorgifte",
+                            "expression": "bool(answers('2.1.1')) && (answers('2.1.3') == 'Buiten EER' || answers('2.1.4') == 'Buiten EER')",
+                            "explanation": "er sprake is van internationale doorgifte buiten de EER"
+                        },
+                        {
+                            "id": "mechanisme",
+                            "expression": "answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']",
+                            "explanation": "er gebruik wordt gemaakt van Standaard contractsbepalingen (SCC) of een overig mechanisme"
+                        }
+                    ]
                 }
             ]
         },
@@ -1651,9 +1688,20 @@
             "levels": [
                 {
                     "level": "required",
-                    "expression": "bool(answers('7.1.1')) && bool(answers('7.1.2'))",
+                    "expression": "criteria.digitale_dienst && criteria.minderjarigen",
                     "result": "KIA verplicht",
-                    "explanation": "Een KIA is verplicht omdat er een digitale dienst wordt aangeboden die primair bedoeld is voor gebruik door personen jonger dan 18 jaar."
+                    "criteria": [
+                        {
+                            "id": "digitale_dienst",
+                            "expression": "bool(answers('7.1.1'))",
+                            "explanation": "er een digitale dienst wordt aangeboden"
+                        },
+                        {
+                            "id": "minderjarigen",
+                            "expression": "bool(answers('7.1.2'))",
+                            "explanation": "deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
+                        }
+                    ]
                 }
             ]
         },
@@ -1662,9 +1710,20 @@
             "levels": [
                 {
                     "level": "required",
-                    "expression": "bool(answers('6.1.1')) || bool(answers('6.1.2'))",
+                    "expression": "criteria.algoritme || criteria.ai_systeem",
                     "result": "IAMA verplicht",
-                    "explanation": "Een IAMA is verplicht omdat er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt en/of het een hoog-risico AI-systeem betreft."
+                    "criteria": [
+                        {
+                            "id": "algoritme",
+                            "expression": "bool(answers('6.1.1'))",
+                            "explanation": "er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt"
+                        },
+                        {
+                            "id": "ai_systeem",
+                            "expression": "bool(answers('6.1.2'))",
+                            "explanation": "er sprake is van een hoog-risico AI-systeem"
+                        }
+                    ]
                 }
             ]
         }

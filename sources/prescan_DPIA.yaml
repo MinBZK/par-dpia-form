@@ -970,7 +970,7 @@ assessments:
   - id: "DPIA"
     levels: 
       - level: "required"
-        expression: "criteria.wetgeving || criteria.risicoscore || criteria.aplist || criteria.edpblist" 
+        expression: "criteria.wetgeving || criteria.risicoscore || criteria.aplist || criteria.edpblist2" 
         result: "DPIA verplicht"
         criteria:
           - id: "wetgeving"
@@ -997,11 +997,12 @@ assessments:
             expression: "countSelectedOptions('4.1') >= 2"
             explanation: "er minimaal 2 items op de EDPB-lijst zijn geselecteerd"
       - level: "recommended"
+        expression: "criteria.edpblist1"
         result: "DPIA aanbevolen"
         criteria:
           - id: "edpblist1"
             expression: "countSelectedOptions('4.1') == 1"
-            explanation: "Een DPIA wordt aanbevolen omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+            explanation: "omdat er precies 1 item op de EDPB-lijst is geselecteerd."
   - id: "DTIA"
     levels: 
       - level: "required"
