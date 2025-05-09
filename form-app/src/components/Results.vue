@@ -1,136 +1,73 @@
 <script setup lang="ts">
 import { useCalculationStore } from '@/stores/calculations'
 import { computed, onMounted } from 'vue'
+import AssessmentCard from './AssessmentCard.vue'
+
 const calculationStore = useCalculationStore()
+
 onMounted(() => {
   calculationStore.init()
 })
+
+// Define assessment configurations centrally
+const assessmentConfigs = [
+  {
+    id: 'DPIA',
+    title: 'DPIA',
+    definition: `Een DPIA is een instrument om van een [organisatorische activiteit],
+      waarbij [persoonsgegevens] worden verwerkt, de risico's voor betrokkenen in kaart
+      te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke
+      aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen]
+      zoveel mogelijk te mitigeren.`
+  },
+  {
+    id: 'IAMA',
+    title: 'IAMA',
+    definition: `De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen,
+      dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk
+      zijn voor de ontwikkeling en/of inzet van een [algoritme].
+      <h4>Toelichting:</h4>
+      Het IAMA bevat een groot aantal vragen waarover discussie plaats
+      moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen
+      waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in
+      te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al
+      wordt ingezet kan het IAMA dienen als instrument voor reflectie.`
+  },
+  {
+    id: 'DTIA',
+    title: 'DTIA',
+    definition: `Een DTIA is een onderzoek naar een specifieke [internationale doorgifte],
+      de daaraan verbonden risico's en de mogelijkheden om de geïnventariseerde risico's
+      te mitigeren.`
+  },
+  {
+    id: 'KIA',
+    title: 'KIA',
+    definition: `Een Kinderrechten Impact Assessment (KIA) is een hulpmiddel om te komen
+      tot de best mogelijke beoordeling van de [digitale dienst] in relatie tot de rechten
+      en het welzijn van kinderen.`
+  }
+]
+
+// Get assessment results from store
 const getAssessmentResult = (id: string) => {
   return calculationStore.assessmentResults.find(assessment => assessment.id === id)
 }
-const dpiaResult = computed(() => getAssessmentResult('DPIA'))
-const iamaResult = computed(() => getAssessmentResult('IAMA'))
-const dtiaResult = computed(() => getAssessmentResult('DTIA'))
-const kiaResult = computed(() => getAssessmentResult('KIA'))
 </script>
+
 <template>
   <div class="rvo-layout-grid-container">
     <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
-      <!-- DPIA Card -->
-      <div :class="[
-        'rvo-card',
-        'rvo-card--outline',
-        'rvo-card--padding-md',
-        dpiaResult && dpiaResult.required
-          ? 'rvo-card--full-colour--hemelblauw'
-          : 'rvo-card--full-colour--grijs-100'
-      ]">
-        <div class="rvo-card__content card-content-flex">
-          <h2 class="utrecht-heading-2" :class="dpiaResult && dpiaResult.required ? 'font-white' : 'font-hemelblauw'">
-            <span class="aiv-definition">DPIA
-              <span class="aiv-definition-text">
-                Een DPIA is een instrument om van een [organisatorische activiteit],
-                waarbij [persoonsgegevens] worden verwerkt, de risico's voor betrokkenen in kaart
-                te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke
-                aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen]
-                zoveel mogelijk te mitigeren.
-              </span>
-            </span>
-          </h2>
-          <p v-if="calculationStore.isCalculating">Berekenen...</p>
-          <p v-else-if="dpiaResult" :class="{ 'font-white': dpiaResult.required }">
-            {{ dpiaResult.required ? dpiaResult.explanation : 'Niet verplicht' }}
-          </p>
-          <p v-else>Niet verplicht</p>
-        </div>
-      </div>
-
-      <!-- IAMA Card -->
-      <div :class="[
-        'rvo-card',
-        'rvo-card--outline',
-        'rvo-card--padding-md',
-        iamaResult && iamaResult.required
-          ? 'rvo-card--full-colour--hemelblauw'
-          : 'rvo-card--full-colour--grijs-100'
-      ]">
-        <div class="rvo-card__content card-content-flex">
-          <h2 class="utrecht-heading-2" :class="iamaResult && iamaResult.required ? 'font-white' : 'font-hemelblauw'">
-            <span class="aiv-definition">IAMA
-              <span class="aiv-definition-text">
-                De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen,
-                dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk
-                zijn voor de ontwikkeling en/of inzet van een [algoritme].
-                <h4>Toelichting:</h4>
-                Het IAMA bevat een groot aantal vragen waarover discussie plaats
-                moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen
-                waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in
-                te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al
-                wordt ingezet kan het IAMA dienen als instrument voor reflectie.
-              </span>
-            </span>
-          </h2>
-          <p v-if="calculationStore.isCalculating">Berekenen...</p>
-          <p v-else-if="iamaResult" :class="{ 'font-white': iamaResult.required }">
-            {{ iamaResult.required ? iamaResult.explanation : 'Niet verplicht' }}
-          </p>
-          <p v-else>Niet verplicht</p>
-        </div>
-      </div>
-
-      <!-- DTIA Card -->
-      <div :class="[
-        'rvo-card',
-        'rvo-card--outline',
-        'rvo-card--padding-md',
-        dtiaResult && dtiaResult.required
-          ? 'rvo-card--full-colour--hemelblauw'
-          : 'rvo-card--full-colour--grijs-100'
-      ]">
-        <div class="rvo-card__content card-content-flex">
-          <h2 class="utrecht-heading-2" :class="dtiaResult && dtiaResult.required ? 'font-white' : 'font-hemelblauw'">
-            <span class="aiv-definition">DTIA
-              <span class="aiv-definition-text">
-                Een DTIA is een onderzoek naar een specifieke [internationale doorgifte],
-                de daaraan verbonden risico's en de mogelijkheden om de geïnventariseerde risico's
-                te mitigeren.
-              </span>
-            </span>
-          </h2>
-          <p v-if="calculationStore.isCalculating">Berekenen...</p>
-          <p v-else-if="dtiaResult" :class="{ 'font-white': dtiaResult.required }">
-            {{ dtiaResult.required ? dtiaResult.explanation : 'Niet verplicht' }}
-          </p>
-          <p v-else>Niet verplicht</p>
-        </div>
-      </div>
-
-      <!-- KIA Card -->
-      <div :class="[
-        'rvo-card',
-        'rvo-card--outline',
-        'rvo-card--padding-md',
-        kiaResult && kiaResult.required
-          ? 'rvo-card--full-colour--hemelblauw'
-          : 'rvo-card--full-colour--grijs-100'
-      ]">
-        <div class="rvo-card__content card-content-flex">
-          <h2 class="utrecht-heading-2" :class="kiaResult && kiaResult.required ? 'font-white' : 'font-hemelblauw'">
-            <span class="aiv-definition">KIA
-              <span class="aiv-definition-text">
-                Een Kinderrechten Impact Assessment (KIA) is een hulpmiddel om te komen
-                tot de best mogelijke beoordeling van de [digitale dienst] in relatie tot de rechten
-                en het welzijn van kinderen.
-              </span>
-            </span>
-          </h2>
-          <p v-if="calculationStore.isCalculating">Berekenen...</p>
-          <p v-else-if="kiaResult" :class="{ 'font-white': kiaResult.required }">
-            {{ kiaResult.required ? kiaResult.explanation : 'Niet verplicht' }}
-          </p>
-          <p v-else>Niet verplicht</p>
-        </div>
-      </div>
+      <!-- Dynamically render all assessment cards -->
+      <AssessmentCard
+        v-for="config in assessmentConfigs"
+        :key="config.id"
+        :id="config.id"
+        :title="config.title"
+        :definition="config.definition"
+        :result="getAssessmentResult(config.id)"
+        :isCalculating="calculationStore.isCalculating"
+      />
     </div>
   </div>
 </template>

@@ -13,11 +13,30 @@ const hasRequiredOrRecommendedAssessments = computed(() => {
     assessment.required || assessment.level === 'recommended'
   );
 })
+
+// Extract rendering logic for assessment results
+const renderAssessmentExplanation = (assessment) => {
+  // Get the correct intro text based on the level
+  const introText = assessment.level === 'recommended'
+    ? `Een ${assessment.id} wordt aanbevolen omdat:`
+    : `Een ${assessment.id} is verplicht omdat:`;
+
+  if (assessment.criteria && assessment.criteria.length > 0) {
+    return {
+      intro: introText,
+      points: assessment.criteria.map(c => c.explanation)
+    }
+  } else {
+    // Fall back to general explanation
+    return {
+      text: assessment.explanation
+    }
+  }
+}
 </script>
 
 <template>
   <div class="assessment-results rvo-card">
-
     <div class="rvo-accordion">
       <details class="rvo-accordion__item" :open="hasRequiredOrRecommendedAssessments">
         <summary class="rvo-accordion__item-summary">
@@ -53,7 +72,19 @@ const hasRequiredOrRecommendedAssessments = computed(() => {
                 <p>
                   <strong>{{ assessment.id }}</strong><br>
                 </p>
-                <p v-html="assessment.explanation.replace(/\n/g, '<br>')"></p>
+
+                <!-- Using the extracted rendering logic -->
+                <template v-if="renderAssessmentExplanation(assessment).points">
+                  <p>{{ renderAssessmentExplanation(assessment).intro }}</p>
+                  <ul class="utrecht-unordered-list">
+                    <li v-for="(point, index) in renderAssessmentExplanation(assessment).points"
+                        :key="index"
+                        class="utrecht-unordered-list__item">
+                      {{ point }}
+                    </li>
+                  </ul>
+                </template>
+                <p v-else v-html="renderAssessmentExplanation(assessment).text.replace(/\n/g, '<br>')"></p>
               </div>
             </div>
 
@@ -66,7 +97,6 @@ const hasRequiredOrRecommendedAssessments = computed(() => {
               </ul>
             </div>
           </div>
-
         </div>
       </details>
     </div>

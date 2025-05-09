@@ -126,12 +126,26 @@ export type Task = t.TypeOf<typeof Task>
 export const Tasks = t.array(Task)
 export type Tasks = t.TypeOf<typeof Tasks>
 
-export const AssessmentLevel = t.type({
-  level: t.string,
+export const Criterion = t.type({
+  id: t.string,
   expression: t.string,
-  result: t.string,
-  explanation: t.string,
+  explanation: t.string
 })
+
+export type Criterion = t.TypeOf<typeof Criterion>
+
+export const AssessmentLevel = t.intersection([
+  t.type({
+    level: t.string,
+    expression: t.string,
+    result: t.string,
+  }),
+  t.partial({
+    explanation: t.string,
+    criteria: t.array(Criterion)
+  })
+])
+
 export type AssessmentLevel = t.TypeOf<typeof AssessmentLevel>
 
 export const Assessment = t.type({
