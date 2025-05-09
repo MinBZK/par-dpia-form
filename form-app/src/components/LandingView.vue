@@ -16,7 +16,7 @@ defineProps<{
       <p class="rvo-padding-block-end--lg">
         Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen in mogelijke
         privacyrisico’s. Deze tools helpen je daarbij. Ze zijn gebaseerd op het <a
-          href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA">Rijksmodel DPIA Rijksdienst</a> en sluiten aan
+          href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA">Informatiemodellen voor de DPIA en pre-scan DPIA</a> en <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx">Rapportagemodel DPIA Rijksdienst</a> en sluiten aan
         op rijksbrede kaders, inclusief AI en kinderrechten.
       </p>
 
