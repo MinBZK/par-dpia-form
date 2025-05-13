@@ -4,25 +4,28 @@ Datum: 2025-05-13
 
 ## Status
 
-Voorgesteld - Geaccepteerd
+Geaccepteerd - PAR team
 
-## Context
+## Besluit
 
-Bij het ontwikkelen van het DPIA-formulier zijn enkele inconsistenties geïdentificeerd tussen het huidige formulier (Rapportagemodel) en het onderliggende datamodel. Deze inconsistenties hebben betrekking op:
+We voeren meerdere aanpassingen door in het DPIA-formulier om inconsistenties met het datamodel op te lossen en de formulierfunctionaliteit te verbeteren.
 
-1. **Verwerkingslocaties (vraag 9)**: Het ontbreken van expliciete controle op EU/niet-EU locaties en internationale organisaties, waardoor doorgiftemechanismen en automatische risico-signalering niet worden toegepast.
+## Achtergrond
 
-2. **Doelbinding (vraag 14)**: Het ontbreken van opties om expliciet aan te geven of verdere verwerking toelaatbaar is en op welke grond, of dat deze verenigbaar is met het oorspronkelijke doel.
+Bij het ontwikkelen van het DPIA-formulier zijn enkele inconsistenties geïdentificeerd tussen het huidige formulier (Rapportagemodel) en het onderliggende datamodel. Deze inconsistenties hebben betrekking op verwerkingslocaties, doelbinding, risico's voor betrokkenen en maatregelen. Deze inconsistenties maken dat het formulier niet volledig aansluit bij de wettelijke vereisten en best practices voor DPIA's, en kunnen leiden tot onvolledige risicoanalyses.
 
-3. **Risico's voor betrokkenen (vraag 17)**: Het ontbreken van een discriminatietoets en automatische risicosignalering bij verwerking in derde landen.
+## Overwegingen
 
-4. **Maatregelen (vraag 18)**: Het ontbreken van vragen over de locatie van monitoring/evaluatie en voorzieningen voor verplichte AP-raadpleging bij hoog resterend risico.
+- Wettelijke vereisten vanuit de AVG
+- Gebruiksvriendelijkheid van het formulier
+- Correcte risico-identificatie
+- Efficiëntie van het DPIA-proces
+- Aansluiting bij het bestaande datamodel
+- Impact op het rapportagemodel
 
-Deze inconsistenties maken dat het formulier niet volledig aansluit bij de wettelijke vereisten en best practices voor DPIA's, en kunnen leiden tot onvolledige risicoanalyses.
+## Details
 
-## Beslissing
-
-We besluiten de volgende wijzigingen door te voeren in het DPIA-formulier:
+We implementeren de volgende wijzigingen:
 
 1. **Verwerkingslocaties (vraag 9)**:
    - Toevoegen extra vraag: "Ligt de verwerkingslocatie binnen de EER?" [Ja/Nee]
@@ -47,15 +50,25 @@ We besluiten de volgende wijzigingen door te voeren in het DPIA-formulier:
    - Toevoegen: "In welk land vindt de monitoring en evaluatie van de maatregelen plaats?" [tekstveld]
    - Toevoegen conditioneel (alleen bij resterend risico = "hoog"): "Voeg een verwijzing of beschrijving van het AP-advies toe" [tekstveld]
 
-## Consequenties
+## Impact
 
-### Positieve consequenties:
-- Betere aansluiting bij het datamodel en wettelijke vereisten
-- Duidelijkere structuur voor doelbinding en validatie van verdere verwerking
-- Efficiënter DPIA-proces, wat potentieel tot kostenbesparing kan leiden
+### Gebruikers
+- Duidelijkere instructies voor het invullen van het DPIA-formulier
+- Betere begeleiding bij het identificeren van risico's
+- Uitgebreidere ondersteuning bij juridische compliance
 
-### Negatieve consequenties:
-- Niet meer volledig in lijn met het huidige Rapportagemodel
+### Ontwikkelteam
+- Aanpassingen vereist in frontend (form-app) en datamodel
+- Updates nodig in de begrippenkader-dpia.yaml
+- Aanvullende validatie-regels implementeren
+
+### Datamodel
+- Aanpassingen in schema's voor verwerkingslocaties, doelbinding, risico's en maatregelen
+- Nieuwe velden en relaties toevoegen
+- Automatische risico-identificatie logica implementeren
+
+### Andere componenten
+- Rapportagemodel mogelijk niet meer volledig in lijn - verdere afstemming nodig
 
 ## Alternatieven
 
@@ -63,13 +76,6 @@ We besluiten de volgende wijzigingen door te voeren in het DPIA-formulier:
    - Voordeel: Minder ontwikkelwerk nodig
    - Nadeel: Inconsistenties blijven bestaan, risico op onvolledige DPIA's
 
-2. **Volledige herziening van het formulier**:
-   - Voordeel: Mogelijk nog betere aansluiting bij wettelijke vereisten
-   - Nadeel: Aanzienlijk meer werk, grotere impact op gebruikers
-
-3. **Wachten met aanpassingen tot volgende grote update**:
-   - Voordeel: Kan worden gecombineerd met andere gewenste wijzigingen
-   - Nadeel: Huidige inconsistenties blijven langer bestaan
 
 ## Gerelateerde documenten
 - Het DPIA datamodel

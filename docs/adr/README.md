@@ -1,25 +1,27 @@
-# Architectuur Beslissingen (ADRs)
+# Product Decision Records (PDRs)
 
-Dit document bevat een overzicht van alle beslissingen voor het DPIA-formulier project.
+Dit document bevat een overzicht van alle productbeslissingen voor het DPIA-formulier project.
 
-## Wat is een ADR?
+## Wat is een PDR?
 
-Een Architecture Decision Record (ADR) is een document dat een belangrijke beslissing beschrijft, samen met de context en consequenties.
+Een Product Decision Record (PDR) is een document dat een belangrijke beslissing over het product beschrijft, samen met de achtergrond, overwegingen en impact.
 
-## Waarom gebruiken we ADRs?
+## Waarom gebruiken we PDRs?
 
-ADRs helpen ons om:
-- Belangrijke beslissingen te documenteren
-- De context en redenen achter beslissingen te bewaren
-- Nieuwe teamleden te informeren
+PDRs helpen ons om:
+- Belangrijke productbeslissingen te documenteren
+- De achtergrond en overwegingen achter beslissingen te bewaren
+- Nieuwe teamleden te informeren over waarom bepaalde keuzes zijn gemaakt
 - Consistent te blijven in onze besluitvorming
+- Toekomstige beslissingen beter te kunnen nemen door inzicht in eerdere keuzes
 
-## ADR Index
+## PDR Index
 
 | Nummer | Titel | Status | Datum |
 |--------|-------|--------|-------|
 | [0001](0001-aanpassingen-dpia-formulier-voor-consistentie-met-datamodel.md) | Aanpassingen DPIA-formulier voor consistentie met datamodel | Voorgesteld | 2025-05-13 |
+| [0002](0002-toevoegen-dpia-verplichting-vraag-voor-wet-en-regelgeving.md) | Toevoegen DPIA-verplichting vraag voor wet- en regelgeving | Voorgesteld | 2025-05-13 |
 
 ## Template
 
-Voor nieuwe ADRs, gebruik het [template](template.md).
+Voor nieuwe PDRs, gebruik het [template](template.md).
