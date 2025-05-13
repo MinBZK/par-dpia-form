@@ -3,7 +3,7 @@
 ## 1. Introduction
 
 This document provides a standardized specification for the declaration of structured forms,
-with a specific focus on Data Protection Impact Assessment (DPIA) forms. 
+with a specific focus on Data Protection Impact Assessment (DPIA) forms.
 
 It defines a schema for creating hierarchical form structures that can be used for privacy-related
 assessments and evaluations, including:
@@ -218,7 +218,7 @@ is computed on the basis of the described conditions.
 
 ### 5.2 Assessment results
 The Pre-scan determines if additional assessments are required; these are computed from risk scoring
-calculations as described in section 5.1. An assessment can have different levels, indicating whether 
+calculations as described in section 5.1. An assessment can have different levels, indicating whether
 it is required or recommended. For example:
 
 ```yaml
@@ -231,12 +231,12 @@ assessments:
             (scores.gewone_persoonsgegeven || 0) +
             (scores.bijzonder_persoonsgegeven || 0) +
             # Other scores...
-          ) > 4 || 
+          ) > 4 ||
           (countSelectedOptions('3.1') >= 1) ||
           (countSelectedOptions('4.1') >= 2)"
         result: "DPIA verplicht"
         explanation: "Een DPIA is verplicht omdat ..."
-      
+
       - level: "recommended"
         expression: "countSelectedOptions('4.1') == 1"
         result: "DPIA aanbevolen"

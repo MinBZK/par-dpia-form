@@ -84,12 +84,12 @@
   padding: var(--rvo-alert-padding-sm-padding-block-end);
   position: absolute;
   z-index: 1;
-  
+
   /* Position below the term by default */
   top: 100%;
   right: 0;
   margin-top: 5px;
-  
+
   /* Text styling */
   color: var(--rvo-color-zwart);
   font-family: var(--utrecht-document-font-family);
@@ -98,7 +98,7 @@
   font-style: normal;
   text-align: left;
   line-height: var(--utrecht-document-line-height);
-  
+
   /* Fix for Safari */
   backdrop-filter: blur(0);
 }
@@ -115,9 +115,9 @@
 
 .rvo-theme .utrecht-textarea,
 .rvo-theme .utrecht-textarea--html-textarea {
-  resize: vertical; 
-  width: 100%; 
-  box-sizing: border-box; 
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .rvo-theme .background-grijs-100 {

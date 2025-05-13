@@ -9,6 +9,7 @@ export interface FlatTask {
   type: TaskTypeValue[]
   parentId: string | null
   childrenIds: string[]
+  is_official_id?: boolean
   valueType?: string
   description?: string
   category?: string
@@ -133,6 +134,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         description: task.description,
         category: task.category,
         repeatable: task.repeatable,
+        is_official_id: task.is_official_id,
         options: task.options,
         sources: task.sources,
         dependencies: task.dependencies,

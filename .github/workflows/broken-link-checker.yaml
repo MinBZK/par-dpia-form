@@ -30,6 +30,7 @@ jobs:
             --exclude-mail
             --exclude-loopback
             --exclude "file:///.*/issues.*"
+            --exclude "file:///home/runner/work/.*"
             '**/*.yaml'
             '**/*.md'
             '**/*.ts'

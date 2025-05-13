@@ -30,46 +30,46 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
-        
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          
+
       - name: Install Python dependencies
         run: pip install pyyaml jsonschema
-          
+
       - name: Generate JSON from YAML definitions
         run: |
           mkdir -p form-app/src/assets
-          
+
           python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
             --begrippen-yaml sources/begrippenkader-dpia.yaml \
             --output-json form-app/src/assets/PreScanDPIA.json \
             --output-md docs/questions/questions_prescan_DPIA.md
-            
+
           python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/DPIA.yaml \
             --begrippen-yaml sources/begrippenkader-dpia.yaml \
             --output-json form-app/src/assets/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'form-app/package-lock.json'
-          
+
       - name: Install Node dependencies
         run: cd form-app && npm ci
-        
+
       - name: Build the Vue application
         run: |
-          cd form-app 
+          cd form-app
           npm run build
 
       - name: Create version.json for tracking
@@ -79,20 +79,20 @@ jobs:
             "deployed_at": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
             "commit_sha": "'${{ github.sha }}'"
           }' > form-app/dist/version.json
-          
+
           # Verify version.json was created
           echo "Contents of version.json:"
           cat form-app/dist/version.json
-          
+
           # Verify it exists in the directory
           ls -la form-app/dist/
-      
+
       # Create ZIP for release attachment
       - name: Create release ZIP
         run: |
           cd form-app/dist
           zip -r ../../dpia-form-${{ github.event.release.tag_name || github.ref_name }}.zip .
-      
+
       # Only execute for release events (not workflow_dispatch)
       - name: Upload release assets
         if: github.event_name == 'release'
@@ -102,16 +102,16 @@ jobs:
             dpia-form-${{ github.event.release.tag_name }}.zip
             form-app/dist/index.html
             form-app/dist/version.json
-      
+
       # Deploy to GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'form-app/dist'
-          
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

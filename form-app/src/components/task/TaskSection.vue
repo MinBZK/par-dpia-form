@@ -29,6 +29,21 @@ const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
+// Helper function to check if a DPIA reference (string or array) contains or matches the current task ID
+const hasDpiaReference = (dpiaReference: string | string[], taskId: string): boolean => {
+  // If the reference is a string
+  if (typeof dpiaReference === 'string') {
+    return dpiaReference === taskId || dpiaReference.startsWith(taskId + '.');
+  }
+
+  // If the reference is an array
+  if (Array.isArray(dpiaReference)) {
+    return dpiaReference.some(ref => ref === taskId || ref.startsWith(taskId + '.'));
+  }
+
+  return false;
+}
+
 const hasPreScanReferences = computed(() => {
   if (activeNamespace.value !== FormType.DPIA) return false;
 
@@ -40,10 +55,7 @@ const hasPreScanReferences = computed(() => {
   return preScanTasks.some(task =>
     task.references &&
     task.references.DPIA &&
-    (
-      task.references.DPIA === props.taskId || // Exact match
-      task.references.DPIA.startsWith(props.taskId + '.') // Child task match
-    )
+    hasDpiaReference(task.references.DPIA, props.taskId)
   )
 })
 
@@ -54,11 +66,10 @@ const isRepeatable = (taskId: string) => {
 }
 
 const taskDisplayTitle = (task: FlatTask): string => {
-  if (task.id === '0' || isSigningTask.value) {
-    return task.task
-  } else {
-    return task.id + '. ' + task.task
-  }
+  const shouldSkipIdPrefix = !task.is_official_id ||(task.type && task.type.includes('signing'));
+  return shouldSkipIdPrefix
+    ? task.task
+    : `${task.id}. ${task.task}`;
 }
 
 const missingSourceDependencies = computed(() => {
@@ -76,11 +87,14 @@ const missingSourceDependencies = computed(() => {
       if (!sourceStatus.hasValues) {
         // Get the major section number (e.g., "4" from "4.1.1")
         const mainSectionNumber = sourceId.split('.')[0]
+        const mainTask = taskStore.taskById(mainSectionNumber)
+        const mainTaskHeader = mainTask ? mainTask.task : mainSectionNumber
 
         dependencies.push({
           childId,
           sourceId,
-          sectionNumber: mainSectionNumber
+          sectionNumber: mainSectionNumber,
+          sectionName: mainTaskHeader
         })
       }
     }
@@ -165,7 +179,7 @@ function shouldSkipTask(taskId: string): boolean {
           <p>Voor deze stap is het nodig eerst de volgende stappen in te vullen:</p>
           <ul class="utrecht-unordered-list">
             <li v-for="dep in missingSourceDependencies" :key="dep.sourceId" class="utrecht-unordered-list__item">
-              Stap {{ dep.sectionNumber }}
+              Stap {{ dep.sectionNumber }}: {{ dep.sectionName }}
             </li>
           </ul>
         </div>

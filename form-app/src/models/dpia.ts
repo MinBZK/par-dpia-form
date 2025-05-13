@@ -91,7 +91,7 @@ export type Calculation = t.TypeOf<typeof Calculation>
 
 export const TaskReferences = t.partial({
   prescanModelId: t.string,
-  DPIA: t.string
+  DPIA: t.union([t.string, t.array(t.string)])
 })
 
 export type TaskReferences = t.TypeOf<typeof TaskReferences>;
@@ -106,6 +106,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     }),
     // Optional properties
     t.partial({
+      is_official_id: t.boolean,
       valueType: t.string,
       instance_label_template: t.string,
       description: t.string,

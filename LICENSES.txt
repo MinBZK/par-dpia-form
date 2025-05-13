@@ -1524,4 +1524,3 @@ yoctocolors@2.1.1 [license(s): MIT]
 └── license files: MIT
 
 LICENSES: 0BSD, Apache, Apache-2.0, BSD, BSD-2-Clause, BSD-3-Clause, CC-BY-4.0, CC0-1.0, Eclipse Public License, GPL, ISC, LGPL, MIT, MPL, Public Domain, Python-2.0, SEE LICENSE IN LICENSE.md, Unknown
-

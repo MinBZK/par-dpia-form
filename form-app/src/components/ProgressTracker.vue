@@ -11,11 +11,11 @@ const taskStore = useTaskStore()
 const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
 
 function displayTitle(task: FlatTask): string {
-  if (task.id === '0' || task.type?.includes('signing')) {
-    return task.task
-  } else {
-    return task.id + '. ' + task.task
-  }
+  const shouldSkipIdPrefix = !task.is_official_id || (task.type && task.type.includes('signing'))
+
+  return shouldSkipIdPrefix
+    ? task.task
+    : `${task.id}. ${task.task}`;
 }
 </script>
 
