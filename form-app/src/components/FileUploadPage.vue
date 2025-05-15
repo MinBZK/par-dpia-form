@@ -63,26 +63,21 @@ const formTypeLabel = computed(() => {
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Welkom bij de {{ formTypeLabel }} tool</h1>
+  <h1 class="utrecht-heading-1">Welkom</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-      <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend">
-        Heeft u al een eerdere versie beschikbaar?
-      </legend>
 
-      <div class="utrecht-form-field-description" id="file-upload-helper">
-        Upload een bestaand {{ formTypeLabel }} bestand om bestaande gegevens te hergebruiken.
-      </div>
+      <h2 class="utrecht-heading-2">Start met {{ formTypeLabel }}</h2>
 
+      <p class="utrecht-paragraph rvo-margin-block-end--xl">
+        Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst die helpt bij het inschatten van risico's en geeft op basis daarvan advies over het uitvoeren van een assessment.
+      </p>
+
+      <p class="utrecht-paragraph"><b>Heeft u al een eerdere versie van de DPIA of een pre-scan beschikbaar?</b><br>Upload hieronder een eerder opgeslagen bestand om deze informatie te laden.</p>
       <div class="rvo-layout-margin-vertical--lg">
         <div role="group" aria-labelledby="file-upload-label"
           class="utrecht-form-field utrecht-form-field--text rvo-form-field">
-          <div class="rvo-form-field__label">
-            <label class="rvo-label" id="file-upload-label" for="file-upload-field">
-              Bestand
-            </label>
-          </div>
           <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json" @change="handleFileSelect" />
         </div>
       </div>
@@ -91,7 +86,7 @@ const formTypeLabel = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met de ${formTypeLabel}`" :disabled="isProcessing"
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen`" :disabled="isProcessing"
       @click="startDpia" />
   </div>
 
