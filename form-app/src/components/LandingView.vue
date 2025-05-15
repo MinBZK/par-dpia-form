@@ -11,8 +11,8 @@ defineProps<{
 <template>
   <AppBanner />
   <div class="rvo-layout-column rvo-layout-gap--3xl">
-    <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-      <h1 class="utrecht-heading-1">Ondersteuning bij DPIA’s</h1>
+    <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md rvo-hero">
+      <h1 class="utrecht-heading-1 rvo-padding-block-start--xl">Tooling voor gegevensbescherming</h1>
       <p class="rvo-padding-block-end--lg">
         Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen in mogelijke
         privacyrisico’s. Deze tools helpen je daarbij. Ze zijn gebaseerd op het <a
@@ -24,7 +24,7 @@ defineProps<{
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link">
             <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3">Pre-scan DPIA</h3>
+              <h3 class="utrecht-heading-3">Pre-scan</h3>
               <p class="rvo-padding-block-end--sm">Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst
                 die helpt bij het inschatten van risico’s en geeft op basis daarvan advies over het uitvoeren van een
                 assessment.</p>
