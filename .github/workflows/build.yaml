@@ -28,17 +28,19 @@ jobs:
         run: |
           mkdir -p form-app/src/assets
           
-          python script/run_validate_and_inject.py \
+          python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
             --begrippen-yaml sources/begrippenkader-dpia.yaml \
-            --output form-app/src/assets/PreScanDPIA.json
+            --output-json form-app/src/assets/PreScanDPIA.json \
+            --output-md docs/questions/questions_prescan_DPIA.md
             
-          python script/run_validate_and_inject.py \
+          python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/DPIA.yaml \
             --begrippen-yaml sources/begrippenkader-dpia.yaml \
-            --output form-app/src/assets/DPIA.json
+            --output-json form-app/src/assets/DPIA.json \
+            --output-md docs/questions/questions_DPIA.md
 
           # Verify generated files
           echo "Verifying generated JSON files..."
