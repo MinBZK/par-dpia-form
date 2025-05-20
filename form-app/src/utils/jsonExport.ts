@@ -22,8 +22,11 @@ export async function importFromJson(file: File, activeNamespace: FormType): Pro
           return
         }
 
-        if (!data.taskState[activeNamespace] || !data.answers[activeNamespace]) {
-          reject(new Error(`The uploaded file does not contain ${activeNamespace} data.`))
+        const hasDPIA = data.taskState[FormType.DPIA] && data.answers[FormType.DPIA];
+        const hasPreScan = data.taskState[FormType.PRE_SCAN] && data.answers[FormType.PRE_SCAN];
+
+        if (!hasDPIA && !hasPreScan) {
+          reject(new Error('The uploaded file does not contain valid DPIA or Pre-scan DPIA data.'))
           return
         }
 

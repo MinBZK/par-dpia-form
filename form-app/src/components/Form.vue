@@ -125,9 +125,21 @@ const handleExportPdf = async () => {
 
 const handleStart = (fileData?: DPIASnapshot) => {
   if (fileData) {
+    // Apply state for all namespaces
     appPersistence.applyAppState(fileData)
-    syncInstances.value()
+
+    // Check if the file contains data for the active namespace
+    const hasDataForActiveNamespace = fileData.taskState &&
+      fileData.taskState[props.namespace] &&
+      fileData.answers &&
+      fileData.answers[props.namespace];
+
+    // Synchronize task instances based on the data
+    if (hasDataForActiveNamespace) {
+      syncInstances.value()
+    }
   }
+  // Start the form regardless
   formStarted.value = true
 }
 
@@ -188,7 +200,8 @@ const isSigningTask = computed(() => {
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
             FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
-          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs" @click="openSaveModal" />
+          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
+            @click="openSaveModal" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 

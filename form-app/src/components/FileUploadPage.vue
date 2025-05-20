@@ -68,11 +68,11 @@ const formTypeLabel = computed(() => {
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
       <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend">
-        Heeft u al een eerdere versie beschikbaar?
+        Heeft u al een eerdere versie van de DPIA of pre-scan beschikbaar?
       </legend>
 
       <div class="utrecht-form-field-description" id="file-upload-helper">
-        Upload een bestaand {{ formTypeLabel }} bestand om bestaande gegevens te hergebruiken.
+        Upload hieronder een eerder opgeslagen bestand om deze informatie te laden.
       </div>
 
       <div class="rvo-layout-margin-vertical--lg">

@@ -2,6 +2,7 @@ import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { watch } from 'vue'
+import type { FormType } from '@/models/dpia'
 
 export function useAppStatePersistence() {
   const getStorageKey = (namespace: string) => `app_state_${namespace}`
@@ -67,36 +68,34 @@ export function useAppStatePersistence() {
   }
 
   function applyAppState(snapshot: DPIASnapshot): void {
-    const namespace = taskStore.activeNamespace
+    // Apply state for each namespace in the snapshot
+    if (snapshot.taskState) {
+      for (const namespace of Object.keys(snapshot.taskState) as FormType[]) {
+        const namespaceState = snapshot.taskState[namespace]
 
-    // ONLY apply state if it exists for the current namespace
-    if (
-      snapshot.taskState &&
-      snapshot.taskState[namespace] &&
-      Object.keys(snapshot.taskState[namespace].taskInstances || {}).length > 0
-    ) {
-      const namespaceState = snapshot.taskState[namespace]
+        if (namespaceState && Object.keys(namespaceState.taskInstances || {}).length > 0) {
+          // Apply task state
+          taskStore.currentRootTaskId[namespace] = namespaceState.currentRootTaskId
 
-      // Apply task state
-      taskStore.currentRootTaskId[namespace] = namespaceState.currentRootTaskId
+          // Apply task instances
+          taskStore.taskInstances[namespace] = {}
+          Object.assign(taskStore.taskInstances[namespace], namespaceState.taskInstances)
 
-      // Apply task instances
-      taskStore.taskInstances[namespace] = {}
-      Object.assign(taskStore.taskInstances[namespace], namespaceState.taskInstances)
-
-      // Apply completed tasks
-      taskStore.completedRootTaskIds[namespace] = new Set(namespaceState.completedRootTaskIds)
+          // Apply completed tasks
+          taskStore.completedRootTaskIds[namespace] = new Set(namespaceState.completedRootTaskIds)
+        }
+      }
     }
 
-    // Apply answers for the current namespace only
-    if (
-      snapshot.answers &&
-      snapshot.answers[namespace] &&
-      Object.keys(snapshot.answers[namespace]).length > 0
-    ) {
-      // Create a fresh object to avoid reference issues
-      answerStore.answers[namespace] = {}
-      Object.assign(answerStore.answers[namespace], snapshot.answers[namespace])
+    // Apply answers for each namespace in the snapshot
+    if (snapshot.answers) {
+      for (const namespace of Object.keys(snapshot.answers) as FormType[]) {
+        if (snapshot.answers[namespace] && Object.keys(snapshot.answers[namespace]).length > 0) {
+          // Create a fresh object to avoid reference issues
+          answerStore.answers[namespace] = {}
+          Object.assign(answerStore.answers[namespace], snapshot.answers[namespace])
+        }
+      }
     }
   }
 
