@@ -253,4 +253,4 @@ Required fields MUST be enforced according to the schema definitions.
 
 ## Appendix A
 
-The complete [form JSON schema](schemas/formSchema.json).
+The complete [form JSON schema](../../schemas/formSchema.json).

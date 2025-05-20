@@ -51,11 +51,17 @@ par-dpia-form/
 │
 ├── schemas/                            # JSON schemas for validation
 │   └── formSchema.json                 # Form structure schema
+|
+├── docs/                               # Docs for all documentation
+│   ├── PDR/                            # Folder for all Product Decision Records (PDR)
+│   └── standard/                       # Folder for info on standard 
+│   └── questions/                      # Folder with tables with questions
 │
 ├── script/                             # Processing and validation scripts
 │   ├── schema_validator.py             # Validates YAML against schema
 │   ├── definition_enricher.py          # Adds tooltips to form definitions
-│   └── run_validate_and_inject.py      # Combined processing workflow
+│   ├── generate_md_table_questions.py  # Generates MD tables with questions
+│   └── run_all.py                      # Combined processing workflow
 │
 ├── sources/                            # Source YAML definitions
 │   ├── DPIA.yaml                       # Full DPIA form definition
@@ -64,7 +70,6 @@ par-dpia-form/
 │
 ├── LICENSE                             # EUPL v1.2 License
 ├── README.md                           # Project documentation
-└── form_standard.md                    # Detailed standard specification
 ```
 
 The application flows from the YAML source definitions (in `/sources`), through the processing
@@ -173,7 +178,7 @@ JSON-schemas are in the `schemas/` directory.
 Validates the YAML against a schema and optionally exports the validated schema to a JSON. In the examples
 below the schema is validated and exported to a JSON in the assets folder of the frontend application.
 
-#### Prescan DPIA
+##### Prescan DPIA
 
 ```bash
 uv run script/schema_validator.py \
@@ -182,7 +187,7 @@ uv run script/schema_validator.py \
     --output form-app/src/assets/PreScanDPIA.json
 ```
 
-#### DPIA
+##### DPIA
 
 ```bash
 uv run script/schema_validator.py \
@@ -197,7 +202,7 @@ uv run script/schema_validator.py \
 This script injects glossary items from the glossary in the source YAML. It injects glossary items as certain HTML elements with certain styling
 which can be rendered by the frontend application.
 
-#### Prescan DPIA
+##### Prescan DPIA
 
 ```bash
 uv run script/definition_enricher.py \
@@ -206,7 +211,7 @@ uv run script/definition_enricher.py \
     --output form-app/src/assets/PreScanDPIA.json
 ```
 
-#### DPIA
+##### DPIA
 
 ```bash
 uv run script/definition_enricher.py \
@@ -215,28 +220,54 @@ uv run script/definition_enricher.py \
     --output form-app/src/assets/DPIA.json
 ```
 
-#### Combined Workflow
+#### YAML to Markdown Table Converter
+This script generates a well-structured Markdown table from YAML form definition files. It extracts all questions, their types, options, and relationships to provide a comprehensive overview of the form structure. The table includes the original question IDs, the question text (with visual hierarchy), answer types, available options, and related questions.
 
-This script combines the two above scripts to validate the script, inject glossary items and export them to a JSON.
+The DPIA questions can be checked [here](docs/questions/questions_DPIA.md) and the Pre-scan DPIA questions can be checked [here](docs/questions/questions_prescan_DPIA.md).
 
-#### Prescan DPIA
+##### Prescan DPIA
 
 ```bash
-uv run script/run_validate_and_inject.py \
+uv run script/generate_md_table_questions.py \
+  --source sources/prescan_DPIA.yaml \
+  --output docs/questions/questions_prescan_DPIA.md
+```
+
+##### DPIA
+
+```bash
+uv run script/generate_md_table_questions.py \
+  --source sources/DPIA.yaml \
+  --output docs/questions/questions_DPIA.md
+```
+
+#### Combined Workflow
+
+This script combines the three above scripts to:
+1. Validate the script and export them to a JSON
+2. Inject glossary items and export them to a JSON
+3. Create questions markdown documents
+
+##### Prescan DPIA
+
+```bash
+uv run script/run_all.py \
   --schema schemas/formSchema.json \
   --source sources/prescan_DPIA.yaml \
   --begrippen-yaml sources/begrippenkader-dpia.yaml \
-  --output form-app/src/assets/PreScanDPIA.json
+  --output-json form-app/src/assets/PreScanDPIA.json \
+  --output-md docs/questions/questions_prescan_DPIA.md
 ```
 
-#### DPIA
+##### DPIA
 
 ```bash
-uv run script/run_validate_and_inject.py \
+uv run script/run_all.py \
   --schema schemas/formSchema.json \
   --source sources/DPIA.yaml \
   --begrippen-yaml sources/begrippenkader-dpia.yaml \
-  --output form-app/src/assets/DPIA.json
+  --output-json form-app/src/assets/DPIA.json \
+  --output-md docs/questions/questions_DPIA.md
 ```
 
 ## Known Limitations
