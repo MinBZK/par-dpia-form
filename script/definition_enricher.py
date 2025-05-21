@@ -41,6 +41,13 @@ def create_term_map(begrippenkader):
         if isinstance(alt_spellingen, str):
             alt_spellingen = [alt_spellingen]
 
+        # Get plural forms (meervoudsvormen) - NEW CODE
+        meervoudsvormen = metadata.get("meervoudsvormen", [])
+        if meervoudsvormen is None:
+            meervoudsvormen = []
+        if isinstance(meervoudsvormen, str):
+            meervoudsvormen = [meervoudsvormen]
+
         # Store main term information - use lowercase for keys
         term_info = {
             "id": term_id,
@@ -50,11 +57,27 @@ def create_term_map(begrippenkader):
             "voorbeelden": voorbeelden,
             "is_alternatief_term": False,
             "is_alternatief_spelling": False,
+            "is_meervoudsvorm": False,  # NEW CODE
             "hoofdterm": None,
             "alt_type": "",
         }
 
         term_map[term.lower()] = term_info
+
+        # Store plural forms with reference to main term - NEW CODE
+        for meervoud in meervoudsvormen:
+            if meervoud and isinstance(meervoud, str):
+                term_map[meervoud.lower()] = {
+                    "term": meervoud,  # Keep original capitalization for display
+                    "definition": definition_text,
+                    "toelichting": toelichting,
+                    "voorbeelden": voorbeelden,
+                    "is_alternatief_term": False,
+                    "is_alternatief_spelling": False,
+                    "is_meervoudsvorm": True,  # This is a plural form
+                    "hoofdterm": term,
+                    "alt_type": "meervoud",
+                }
 
         # Store alternative spellings with reference to main term - use lowercase for keys
         for alt_spelling in alt_spellingen:
@@ -66,6 +89,7 @@ def create_term_map(begrippenkader):
                     "voorbeelden": voorbeelden,
                     "is_alternatief_term": False,
                     "is_alternatief_spelling": True,
+                    "is_meervoudsvorm": False,
                     "hoofdterm": term,
                     "alt_type": "spelling",
                 }
@@ -88,6 +112,7 @@ def create_term_map(begrippenkader):
                 "voorbeelden": main_term_info["voorbeelden"],
                 "is_alternatief_term": True,
                 "is_alternatief_spelling": False,
+                "is_meervoudsvorm": False,
                 "hoofdterm": main_term_info["term"],
                 "alt_type": "term",
             }
@@ -101,8 +126,9 @@ def inject_terms(text, term_map):
 
     Matching priority:
     1. Hoofdtermen (longest first)
-    2. Alternatieve spellingen (longest first)
-    3. Alternatieve termen (longest first)
+    2. Hoofdtermen meervoudsvormen (longest first)
+    3. Alternatieve spellingen (longest first)
+    4. Alternatieve termen (longest first)
 
     All matching is case-insensitive, but original capitalization is preserved.
     Terms inside existing <span class="aiv-definition"> tags are NOT processed.
@@ -113,12 +139,15 @@ def inject_terms(text, term_map):
 
     # Group terms by type
     hoofdtermen = []
+    meervoudsvormen = []  # NEW: separate list for plural forms
     alt_spellingen = []
     alt_termen = []
 
     for term_key, term_data in term_map.items():
         # Term keys are already lowercase from create_term_map
-        if term_data.get("is_alternatief_spelling", False):
+        if term_data.get("is_meervoudsvorm", False):  # NEW: check for plural forms
+            meervoudsvormen.append(term_key)
+        elif term_data.get("is_alternatief_spelling", False):
             alt_spellingen.append(term_key)
         elif term_data.get("is_alternatief_term", False):
             alt_termen.append(term_key)
@@ -127,11 +156,17 @@ def inject_terms(text, term_map):
 
     # Sort each category by length (longest first)
     hoofdtermen.sort(key=len, reverse=True)
+    meervoudsvormen.sort(key=len, reverse=True)  # NEW: sort plural forms
     alt_spellingen.sort(key=len, reverse=True)
     alt_termen.sort(key=len, reverse=True)
 
-    # Combine all term lists in processing order
-    all_term_lists = [hoofdtermen, alt_spellingen, alt_termen]
+    # Combine all term lists in processing order with the new priority
+    all_term_lists = [
+        hoofdtermen,
+        meervoudsvormen,
+        alt_spellingen,
+        alt_termen,
+    ]  # Updated order
 
     # Create a record of all matched positions to prevent overlapping/nested tags
     matched_positions = set()
@@ -149,7 +184,7 @@ def inject_terms(text, term_map):
             matched_positions.add(pos)
 
     # Process each term list in order
-    for term_list in all_term_lists:
+    for term_list_index, term_list in enumerate(all_term_lists):
         if not term_list:
             continue
 
@@ -158,8 +193,9 @@ def inject_terms(text, term_map):
             # Create pattern for this specific term with word boundaries
             term_pattern = r"\b" + re.escape(term) + r"\b"
 
-            # Find all matches for this term
-            for match in re.finditer(term_pattern, text, re.IGNORECASE):
+            # Find all matches for this term in the current state of the text
+            current_text = "".join(chars)
+            for match in re.finditer(term_pattern, current_text, re.IGNORECASE):
                 start, end = match.span()
 
                 # Skip if any part of this match overlaps with positions already matched
@@ -173,7 +209,7 @@ def inject_terms(text, term_map):
                     continue
 
                 # This is a valid match that doesn't overlap with existing spans
-                matched_text = text[start:end]
+                matched_text = current_text[start:end]
                 term_lower = matched_text.lower()
 
                 # Get the term data
@@ -220,30 +256,43 @@ def inject_terms(text, term_map):
                 ):
                     term_html += f"\n<br><i>Dit is een alternatieve spelling van {term_data.get('hoofdterm')}</i>"
 
+                # Add plural form information - NEW CODE
+                if term_data.get("is_meervoudsvorm", False) and term_data.get(
+                    "hoofdterm"
+                ):
+                    term_html += f"\n<br><i>Dit is een meervoudsvorm van {term_data.get('hoofdterm')}</i>"
+
                 term_html += "</span></span>"
 
-                # Replace the matched text in the chars array
-                for i in range(start, end):
-                    # Mark all positions as matched to prevent future matches here
-                    matched_positions.add(i)
-
-                # Replace the original text with HTML
+                # Replace the matched text with the HTML in chars list
                 chars[start:end] = list(term_html)
 
-                # Update the text and matched_positions to reflect the new positions
-                text = "".join(chars)
+                # Mark these positions as matched
+                for i in range(start, start + len(term_html)):
+                    matched_positions.add(i)
 
-                # We need to recalculate matched_positions based on the new text
-                matched_positions = set()
-                chars = list(text)
+                # Update the text based on the current state of chars
+                current_text = "".join(chars)
 
-                # Re-find all spans after this replacement and mark their positions
-                for span_match in re.finditer(span_pattern, text, re.DOTALL):
+                # We need to re-find all spans after this replacement
+                # to properly update matched_positions for the next iterations
+                updated_matched_positions = set()
+                for span_match in re.finditer(span_pattern, current_text, re.DOTALL):
                     s, e = span_match.span()
                     for pos in range(s, e):
-                        matched_positions.add(pos)
+                        updated_matched_positions.add(pos)
 
-    return text
+                # Add the original matched positions that weren't part of spans
+                for pos in matched_positions:
+                    if pos < start or pos >= start + len(term_html):
+                        updated_matched_positions.add(pos)
+
+                # Update with the new positions
+                matched_positions = updated_matched_positions
+                chars = list(current_text)
+
+    # Return the final text with all replacements
+    return "".join(chars)
 
 
 def process_dpia(dpia_data, term_map):

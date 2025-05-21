@@ -1,0 +1,86 @@
+name: Check for broken links and sync YAML
+on:
+  # Run daily at 9:00 AM
+  schedule:
+    - cron: '0 9 * * *'
+  # Run on PRs to main
+  pull_request:
+    branches: [ main ]
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Link Checker
+        id: lychee
+        uses: lycheeverse/lychee-action@v1.5.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Target specific files and improve the arguments
+          args: >-
+            --verbose
+            --no-progress
+            --exclude-mail
+            --exclude-loopback
+            --exclude "file:///.*/issues.*"
+            --exclude "file:///home/runner/work/.*"
+            '**/*.yaml'
+            '**/*.md'
+            '**/*.ts'
+            '**/*.vue'
+          # Output file for creating issues
+          output: ./lychee/out.md
+          # Fail if any link is broken
+          fail: true
+
+      # Only create an issue when broken links are found AND running on schedule/manual
+      - name: Create Issue (Only on schedule or manual run)
+        if: ${{ failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Broken links detected
+          content-filepath: ./lychee/out.md
+          labels: broken-links
+
+  sync-yaml:
+    runs-on: ubuntu-latest
+    # Allow this job to continue even if the check-links job fails
+    needs: check-links
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          # Ensure we have the latest code with full history for proper commits
+          fetch-depth: 0
+
+      - name: Download YAML file
+        run: |
+          # Replace with your actual URL and destination path
+          curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader-dpia.yaml
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git add path/to/destination/file.yaml
+          git diff --staged --quiet || echo "changes=true" >> $GITHUB_ENV
+
+      - name: Commit and push if changed
+        if: env.changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Auto-sync YAML file from external source"
+
+          # Only push if we're on the main branch or this is a scheduled/manual run
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            git push
+          else
+            echo "Changes detected but not pushing as this is a PR build"
+          fi
