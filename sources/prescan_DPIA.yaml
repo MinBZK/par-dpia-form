@@ -73,12 +73,12 @@ tasks:
       type:
         - select_option
       options:
-        - value: Toestemming betrokkene
-        - value: Noodzakelijk voor overeenkomst
-        - value: Wettelijke plicht
-        - value: Vitaal belang
-        - value: Taak van algemeen belang
-        - value: Gerechtvaardigd belang
+        - value: Rechtsgrond toestemming
+        - value: Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms
+        - value: Rechtsgrond wettelijke verplichting
+        - value: Rechtsgrond vitaal belang
+        - value: Rechtsgrond taak van algemeen belang
+        - value: Rechtsgrond gerechtvaardigd belang
       references:
         prescanModelId: "3"
         DPIA: "11.1.1"
