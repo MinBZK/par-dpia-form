@@ -576,14 +576,13 @@ tasks:
      Rechtsgrond
    description: |
      Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan.
-
      De rechtsgronden zijn:
-      • <strong>Toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
-      • <strong>Noodzakelijk voor overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
-      • <strong>Noodzakelijk om te voldoen aan een wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
-      • <strong>Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
-      • <strong>Noodzakelijk voor de vervulling van een taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
-      • <strong>Noodzakelijk voor de behartiging van een gerechtvaardigd belang</strong>:
+      • <strong>Rechtsgrond toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
+      • <strong>Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
+      • <strong>Rechtsgrond wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
+      • <strong>Rechtsgrond vitaal belang</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
+      • <strong>Rechtsgrond taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
+      • <strong>Rechtsgrond gerechtvaardigd belang</strong>:
         (1) Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.
         (2) Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.
    id: "11"
@@ -616,12 +615,12 @@ tasks:
               type:
                 - select_option
               options:
-                - value: Toestemming
-                - value: Noodzakelijk voor de uitvoering van de overeenkomst
-                - value: Noodzakelijk om te voldoen aan een wettelijke verplichting
-                - value: Noodzakelijk om de vitale belangen te beschermen
-                - value: Noodzakelijk voor de vervulling van een taak van algemeen belang
-                - value: Noodzakelijk voor de behartiging van een gerechtvaardigd belang
+              - value: Rechtsgrond toestemming
+              - value: Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms
+              - value: Rechtsgrond wettelijke verplichting
+              - value: Rechtsgrond vitaal belang
+              - value: Rechtsgrond taak van algemeen belang
+              - value: Rechtsgrond gerechtvaardigd belang
               repeatable: false
             - task: Toelichting op de rechtsgrond
               id: "11.1.1.2"
