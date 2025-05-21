@@ -6,7 +6,7 @@
 | 0.1 |   Scope | radio_option | True; False |  |
 | 0.2 |   Beschrijving van de verwerking | open_text |  | prescanModelId: 1; DPIA: 1.1 |
 | 0.3 |   Doel gegevensverwerking | open_text |  | prescanModelId: 2; DPIA: ['5.1', '10'] |
-| 0.4 |   Wat is de grondslag voor de verwerking? | select_option | Toestemming betrokkene; Noodzakelijk voor overeenkomst; Wettelijke plicht; Vitaal belang; Taak van algemeen belang; Gerechtvaardigd belang | prescanModelId: 3; DPIA: 11.1.1 |
+| 0.4 |   Wat is de grondslag voor de verwerking? | select_option | Rechtsgrond toestemming; Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms; Rechtsgrond wettelijke verplichting; Rechtsgrond vitaal belang; Rechtsgrond taak van algemeen belang; Rechtsgrond gerechtvaardigd belang | prescanModelId: 3; DPIA: 11.1.1 |
 | 0.5 |   Cloudgebruik | task_group |  |  |
 | 0.5.1 |     Is er sprake van cloudgebruik? | radio_option | True; False |  |
 | 0.5.2 |     Selecteer een of meer van onderstaande opties | checkbox_option | Een Saas, IaaS of PaaS oplossing; Cloudopslag van data; Een applicatie die gebruik maakt van een subverwerker voor cloudopslag (bijv. Azure, AWS, Google Cloud); On premise toepassing met functionaliteiten van het internet vanuit de cloud (hybrid cloud) | Show if 0.5.1; prescanModelId: 4; DPIA: 4 |

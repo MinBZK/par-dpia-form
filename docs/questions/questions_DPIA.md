@@ -17,12 +17,12 @@
 | 2.1.6 |     Bron betrokkenen | radio_option | False; True |  |
 | 2.1.7 |     Partij naam | text_input |  | Show if 2.1.6 |
 | 2.1.8 |     Bron tool/platform | text_input |  | Show if 2.1.6 |
-| 2.1.9 |     Verstrekkingsgrond | text_input |  | Show if 2.1.6 |
+| 2.1.9 |     Rechtsgrond verstrekking | text_input |  | Show if 2.1.6 |
 | 2.3 |   Aanvullende informatie over de persoonsgegevens | open_text |  |  |
 | 3 | Gegevensverwerking | task_group |  |  |
 | 3.1 |   Gegevensverwerking, Categorieën betrokkenen & persoonsgegevens | task_group |  |  |
-| 3.1.1 |     Naam van de gegevensverwerking | text_input |  |  |
-| 3.1.2 |     Beschrijving van de gegevensverwerking | text_input |  |  |
+| 3.1.1 |     Gegevensverwerking naam | text_input |  |  |
+| 3.1.2 |     Gegevensverwerking beschrijving | text_input |  |  |
 | 3.1.3 |     Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
 | 3.2 |   Aanvullende informatie over de gegevensverwerking | open_text |  |  |
 | 3.3 |   Samenhang gegevensverwerkingen | task_group |  |  |
@@ -36,20 +36,20 @@
 | 6.1 |   Gegevensverwerking betrokken partijen | task_group |  | Copy from 3.1.1 |
 | 6.1.1 |     Betrokken partij | task_group |  |  |
 | 6.1.1.1 |       Partij naam | text_input |  |  |
-| 6.1.1.2 |       Partij rol | select_option | verwerkingsverantwoordelijke; gezamenlijke verwerkingsverantwoordelijke; verwerker; sub-verwerker; verstrekker; ontvanger; betrokkene; derde |  |
+| 6.1.1.2 |       Partij rol | checkbox_option | Verwerkingsverantwoordelijke; Gezamenlijke verwerkingsverantwoordelijke; Verwerker; Sub-verwerker; Derde; Verstrekker; Ontvanger |  |
 | 6.1.1.3 |       Functies/afdelingen | text_input |  |  |
 | 6.1.1.4 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
 | 6.1.1.5 |       Categorieën betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 6.2 |   Aanvullende informatie over de betrokken partijen | open_text |  |  |
 | 7 | Belangen bij de gegevensverwerkingen | task_group |  |  |
-| 7.1 |   Betrokken partij, belangen, uitkomst consultatie betrokkenen | task_group |  | Copy from 6.1.1.1 |
-| 7.1.1 |     Belang, uitkomst consultatie betrokkenen | open_text |  |  |
+| 7.1 |   Betrokken partij, belangen, uitkomst consultatie van betrokkenen | task_group |  | Copy from 6.1.1.1 |
+| 7.1.1 |     Belang van betrokken partij en uitkomst consultatie van betrokkenen | open_text |  |  |
 | 7.2 |   Aanvullende informatie over de belangen | open_text |  |  |
 | 8 | Verwerkingslocaties | task_group |  |  |
 | 8.1 |   Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen | task_group |  | Copy from 3.1.1 |
 | 8.1.1 |     Verwerkingslocaties | task_group |  |  |
 | 8.1.1.1 |       Verwerkingslocatie | text_input |  |  |
-| 8.1.1.2 |       Doorgiftemechanisme | select_option | Adequaatheidsbesluit; Binding Corporate Rules (BCR); Standaard contractsbepalingen (SCC); Artikel 49 AVG uitzondering; Niet van toepassing (binnen EER) |  |
+| 8.1.1.2 |       Doorgiftemechanisme | select_option | Adequaatheidsbesluit; Standaard contractsbepaling (SCC); binding corporate rules/bindend bedrijfsvoorschrift (bcr); Goedgekeurde certificeringsmechanisme; Goedgekeurde gedragscode; Juridisch bindend en afdwingbaar instrument; uitzondering artikel 49 avg; Overig mechanisme |  |
 | 8.1.1.3 |       Maatregelen | text_input |  |  |
 | 8.2 |   Aanvullende informatie over de verwerkingslocaties | open_text |  |  |
 | 9 | Juridisch en beleidsmatig kader | task_group |  |  |
@@ -64,13 +64,13 @@
 | 10.1.1.1 |       Verwerkingsdoeleinde | text_input |  | Copy from 5.1.1 |
 | 10.1.1.2 |       Categorie betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 10.1.1.3 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
-| 10.1.1.4 |       Bewaartermijn/archiveringsperiode | text_input |  |  |
+| 10.1.1.4 |       Bewaartermijn/archiveringsperiode | select_option | Aantal jaren; Jaar; Minder dan 1 maand; Minder dan 1 week; Minder dan 24 uur |  |
 | 10.1.1.5 |       Motivatie bewaartermijn | open_text |  |  |
 | 10.2 |   Aanvullende informatie over de bewaartermijnen | open_text |  |  |
 | 11 | Rechtsgrond | task_group |  |  |
 | 11.1 |   Gegevensverwerking, Rechtsgrond, toelichting op de rechtsgrond | task_group |  | Copy from 3.1.1 |
 | 11.1.1 |     Rechtsgrond | task_group |  |  |
-| 11.1.1.1 |       Rechtsgrond | select_option | Toestemming; Noodzakelijk voor de uitvoering van de overeenkomst; Noodzakelijk om te voldoen aan een wettelijke verplichting; Noodzakelijk om de vitale belangen te beschermen; Noodzakelijk voor de vervulling van een taak van algemeen belang; Noodzakelijk voor de behartiging van een gerechtvaardigd belang |  |
+| 11.1.1.1 |       Rechtsgrond | select_option | Rechtsgrond toestemming; Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms; Rechtsgrond wettelijke verplichting; Rechtsgrond vitaal belang; Rechtsgrond taak van algemeen belang; Rechtsgrond gerechtvaardigd belang |  |
 | 11.1.1.2 |       Toelichting op de rechtsgrond | open_text |  |  |
 | 11.2 |   Aanvullende informatie over de rechtsgronden | open_text |  |  |
 | 12 | Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers | task_group |  |  |
@@ -80,11 +80,11 @@
 | 12.1.2.1 |       Gegevensverwerking | checkbox_option |  | Options from 3.1.1 |
 | 12.1.2.2 |       Categorie betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 12.1.2.3 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
-| 12.1.2.4 |       Type bijzondere persoonsgegevens | select_option | Ras of etnische afkomst; Politieke opvattingen; Religieuze of levensbeschouwelijke overtuigingen; Lidmaatschap van een vakbond; Genetische gegevens; Biometrische gegevens; Gezondheidsgegevens; Seksuele gerichtheid; Strafrechtelijke gegevens; Nationaal identificatienummer |  |
-| 12.2.2.4 |       Doorbrekingsgrond | open_text |  |  |
+| 12.1.2.4 |       Categorie bijzondere persoonsgegevens | select_option | Ras of etnische afkomst; Politieke opvattingen; Religieuze of levensbeschouwelijke overtuigingen; Lidmaatschap van een vakbond; Genetische gegevens; Biometrische gegevens; Gezondheidsgegevens; Seksuele gerichtheid; Strafrechtelijke gegevens; Nationaal identificatienummer |  |
+| 12.1.2.5 |       Doorbrekingsgrond | open_text |  |  |
 | 12.2 |   Strafrechtelijke persoonsgegevens | task_group |  |  |
 | 12.2.1 |     Strafrechtelijke persoonsgegevens | radio_option | False; True |  |
-| 12.2.2 |     Strafrechtelijke persoonsgegegevens | task_group |  | Show if 12.2.1 |
+| 12.2.2 |     Strafrechtelijke persoonsgegevens | task_group |  | Show if 12.2.1 |
 | 12.2.2.1 |       Gegevensverwerking | checkbox_option |  | Options from 3.1.1 |
 | 12.2.2.2 |       Categorie betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 12.2.2.3 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
@@ -103,7 +103,9 @@
 | 13.1.1.1 |       Categorie betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 13.1.1.2 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
 | 13.1.1.3 |       Doeleinde | text_input |  |  |
-| 13.1.1.4 |       Oorspronkelijke doeleinde | text_input |  |  |
+| 13.1.1.4 |       Oorspronkelijk doeleinde | text_input |  |  |
+| 13.1.1.5 |       Wat is de beoordeling van de verdere verwerking? | radio_option | Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht; Verenigbaar met oorspronkelijk doeleinde; Niet van toepassing (geen verdere verwerking) |  |
+| 13.1.1.6 |       Specificatie van het wetsartikel voor "Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht" | open_text |  | Show if 13.1.1.5 |
 | 13.2 |   Aanvullende informatie over de verenigbaarheid en toelaatbaarheid | open_text |  |  |
 | 14 | Noodzaak en evenredigheid | task_group |  |  |
 | 14.1 |   De beoordeling van de subsidiariteit | open_text |  |  |
@@ -166,7 +168,9 @@
 | 17.1.2 |     Oorsprong | text_input |  |  |
 | 17.1.3 |     Maatregelen | text_input |  |  |
 | 17.1.4 |     Resterend risico en de risicoinschatting | select_option | laag; midden; hoog |  |
-| 17.1.5 |     Beheerder van de maatregelen | text_input |  |  |
+| 17.1.5 |     Voeg een verwijzing of beschrijving van het advies AP toe | open_text |  | Show if 17.1.4 |
+| 17.1.6 |     In welk land vindt de monitoring en evaluatie van de maatregelen plaats? | text_input |  | Show if 17.1.4 |
+| 17.1.7 |     Beheerder van de maatregelen | text_input |  |  |
 | 17.2 |   Aanvullende informatie over de maatregelen | open_text |  |  |
 | 17.3 |   Onderbouwing acceptatie resterende risico's | open_text |  |  |
 | 18 | Managementsamenvatting | open_text |  |  |

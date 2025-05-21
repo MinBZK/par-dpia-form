@@ -73,22 +73,22 @@
           ],
           "options": [
             {
-              "value": "Toestemming betrokkene"
+              "value": "Rechtsgrond toestemming"
             },
             {
-              "value": "Noodzakelijk voor overeenkomst"
+              "value": "Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms"
             },
             {
-              "value": "Wettelijke plicht"
+              "value": "Rechtsgrond wettelijke verplichting"
             },
             {
-              "value": "Vitaal belang"
+              "value": "Rechtsgrond vitaal belang"
             },
             {
-              "value": "Taak van algemeen belang"
+              "value": "Rechtsgrond taak van algemeen belang"
             },
             {
-              "value": "Gerechtvaardigd belang"
+              "value": "Rechtsgrond gerechtvaardigd belang"
             }
           ],
           "references": {
@@ -663,7 +663,7 @@
           "tasks": [
             {
               "task": "Is het totale aantal <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span> gelijk aan of groter dan 10.000?",
-              "description": "Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, kinderen jonger dan 16 jaar, andere <span class=\"aiv-definition\">kwetsbare groepen<span class=\"aiv-definition-text\">Een kwetsbare groep is een groep [betrokkenen] waarvoor de negatieve effecten van een [gegevensverwerking persoonsgegevens] groter kunnen zijn dan voor anderen, of waarbij er een ongelijke machtsverhouding bestaat tussen de [betrokkenen] en de [verwerkingsverantwoordelijke].\n<br><strong>Toelichting</strong>: Kwetsbare betrokkenen zijn bijvoorbeeld kinderen, werknemers, kwetsbaardere segmenten van de bevolking die speciale bescherming behoeven, en andere betrokkenen waarbij een onevenwichtigheid in de relatie tussen de positie van de betrokkene en de verwerkingsverantwoordelijke kan worden vastgesteld.\n<br><strong>Voorbeeld(en)</strong>: Gehandicapten, minderheden, kinderen, werknemers, vluchtelingen, asielzoekers, statushouders, patiënten, et cetera.\n<br><i>Dit is een meervoudsvorm van Kwetsbare groep</i></span></span> (gehandicapten, minderheden, etc.) en <span class=\"aiv-definition\">specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving).",
+              "description": "Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,\n   kinderen jonger dan 16 jaar, andere <span class=\"aiv-definition\">kwetsbare groepen<span class=\"aiv-definition-text\">Een kwetsbare groep is een groep [betrokkenen] waarvoor de negatieve effecten van een [gegevensverwerking persoonsgegevens] groter kunnen zijn dan voor anderen, of waarbij er een ongelijke machtsverhouding bestaat tussen de [betrokkenen] en de [verwerkingsverantwoordelijke].\n<br><strong>Toelichting</strong>: Kwetsbare betrokkenen zijn bijvoorbeeld kinderen, werknemers, kwetsbaardere segmenten van de bevolking die speciale bescherming behoeven, en andere betrokkenen waarbij een onevenwichtigheid in de relatie tussen de positie van de betrokkene en de verwerkingsverantwoordelijke kan worden vastgesteld.\n<br><strong>Voorbeeld(en)</strong>: Gehandicapten, minderheden, kinderen, werknemers, vluchtelingen, asielzoekers, statushouders, patiënten, et cetera.\n<br><i>Dit is een meervoudsvorm van Kwetsbare groep</i></span></span> (gehandicapten, minderheden, etc.) en <span class=\"aiv-definition\">specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving).",
               "id": "1.5.1",
               "type": [
                 "radio_option"
@@ -700,7 +700,7 @@
             },
             {
               "task": "Is de hoeveelheid gegevens die wordt verwerkt van alle <span class=\"aiv-definition\">betrokkene<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.</span></span> gelijk aan of groter dan 10.000?",
-              "description": "Hieronder vallen gegevens : medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, kinderen jonger dan 16 jaar, andere <span class=\"aiv-definition\">kwetsbare groepen<span class=\"aiv-definition-text\">Een kwetsbare groep is een groep [betrokkenen] waarvoor de negatieve effecten van een [gegevensverwerking persoonsgegevens] groter kunnen zijn dan voor anderen, of waarbij er een ongelijke machtsverhouding bestaat tussen de [betrokkenen] en de [verwerkingsverantwoordelijke].\n<br><strong>Toelichting</strong>: Kwetsbare betrokkenen zijn bijvoorbeeld kinderen, werknemers, kwetsbaardere segmenten van de bevolking die speciale bescherming behoeven, en andere betrokkenen waarbij een onevenwichtigheid in de relatie tussen de positie van de betrokkene en de verwerkingsverantwoordelijke kan worden vastgesteld.\n<br><strong>Voorbeeld(en)</strong>: Gehandicapten, minderheden, kinderen, werknemers, vluchtelingen, asielzoekers, statushouders, patiënten, et cetera.\n<br><i>Dit is een meervoudsvorm van Kwetsbare groep</i></span></span> (gehandicapten, minderheden, etc.) en <span class=\"aiv-definition\">specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving).",
+              "description": "Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, kinderen jonger dan 16 jaar, andere <span class=\"aiv-definition\">kwetsbare groepen<span class=\"aiv-definition-text\">Een kwetsbare groep is een groep [betrokkenen] waarvoor de negatieve effecten van een [gegevensverwerking persoonsgegevens] groter kunnen zijn dan voor anderen, of waarbij er een ongelijke machtsverhouding bestaat tussen de [betrokkenen] en de [verwerkingsverantwoordelijke].\n<br><strong>Toelichting</strong>: Kwetsbare betrokkenen zijn bijvoorbeeld kinderen, werknemers, kwetsbaardere segmenten van de bevolking die speciale bescherming behoeven, en andere betrokkenen waarbij een onevenwichtigheid in de relatie tussen de positie van de betrokkene en de verwerkingsverantwoordelijke kan worden vastgesteld.\n<br><strong>Voorbeeld(en)</strong>: Gehandicapten, minderheden, kinderen, werknemers, vluchtelingen, asielzoekers, statushouders, patiënten, et cetera.\n<br><i>Dit is een meervoudsvorm van Kwetsbare groep</i></span></span> (gehandicapten, minderheden, etc.) en <span class=\"aiv-definition\">specificatie categorie betrokkenen<span class=\"aiv-definition-text\">Een [specificatie categorie betrokkenen] is een beschrijving van een [categorie betrokkenen].</span></span> (bijv. vanuit uitvoeringswetgeving).",
               "id": "1.5.2",
               "type": [
                 "radio_option"
@@ -896,15 +896,15 @@
               ],
               "options": [
                 {
-                  "label": "On premise",
+                  "label": "<span class=\"aiv-definition\">Opslag van gegevens: on premise<span class=\"aiv-definition-text\">On premise is een aanduiding van de [opslag van gegevens] die aangeeft dat die opslag contractueel lokaal plaats vindt, niet in de cloud of in een remote server.</span></span>",
                   "value": "On premise"
                 },
                 {
-                  "label": "Datacenter EER",
+                  "label": "<span class=\"aiv-definition\">Opslag van gegevens: datacenter EER<span class=\"aiv-definition-text\">Datacenter EER is een aanduiding van de [opslag van gegevens] die aangeeft dat die opslag contractueel plaats vindt in een datacenter binnen de [Europese Economische Ruimte].</span></span>",
                   "value": "Datacenter EER"
                 },
                 {
-                  "label": "Buiten EER",
+                  "label": "<span class=\"aiv-definition\">Opslag van gegevens: buiten EER<span class=\"aiv-definition-text\">Buiten EER is een aanduiding van de [opslag van gegevens] die aangeeft dat die opslag contractueel buiten de [Europese Economische Ruimte] plaats vindt.</span></span>",
                   "value": "Buiten EER"
                 }
               ],
