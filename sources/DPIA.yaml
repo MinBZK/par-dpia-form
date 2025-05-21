@@ -1,206 +1,10 @@
-name: DPIA Rapportagemodel Rijksdienstyaml
+name: DPIA Rapportagemodel Rijksdienst
 urn: 'urn:nl:dpia:3.0'
 version: "3.0"
 description: >-
   Data Protection Impact Assessment template following Dutch government model
   version 3.0
 tasks:
- - task: >-
-    Vaststelling
-   id: "0"
-   type:
-     - task_group
-   repeatable: false
-   tasks:
-     - task: Verwerkingsverantwoordelijke
-       id: "0.1"
-       type:
-         - task_group
-       repeatable: true
-       tasks:
-         - task: Organisatie
-           id: "0.1.1"
-           type:
-             - text_input
-           repeatable: false
-         - task: Directie
-           id: "0.1.2"
-           type:
-             - text_input
-           repeatable: false
-         - task: Afdeling
-           id: "0.1.3"
-           type:
-             - text_input
-           repeatable: false
-         - task: Naam
-           id: "0.1.4"
-           type:
-             - text_input
-           repeatable: false
-         - task: Functie
-           id: "0.1.5"
-           type:
-             - text_input
-           repeatable: false
-         - task: Datum ondertekening
-           id: "0.1.6"
-           type:
-             - date
-           repeatable: false
-         - task: Opgesteld door afdeling
-           id: "0.1.7"
-           type:
-             - text_input
-           repeatable: false
-     - task: Advies functionaris voor gegevensbescherming (FG)
-       id: "0.2"
-       type:
-         - task_group
-       repeatable: false
-       tasks:
-         - task: Organisatie
-           id: "0.2.1"
-           type:
-             - text_input
-           repeatable: false
-         - task: Directie
-           id: "0.2.2"
-           type:
-             - text_input
-           repeatable: false
-         - task: Afdeling
-           id: "0.2.3"
-           type:
-             - text_input
-           repeatable: false
-         - task: Naam
-           id: "0.2.4"
-           type:
-             - text_input
-           repeatable: false
-         - task: Functie
-           id: "0.2.5"
-           type:
-             - text_input
-           repeatable: false
-         - task: Datum advies
-           id: "0.2.6"
-           type:
-             - date
-           repeatable: false
-         - task: Advies FG in document (naam document)
-           id: "0.2.7"
-           type:
-             - text_input
-           repeatable: false
-         - task: Advies FG verwerkt in versie (versienummer)
-           id: "0.2.8"
-           type:
-             - text_input
-           repeatable: false
-     - task: Documentbeheerder
-       id: "0.3"
-       type:
-         - task_group
-       repeatable: false
-       tasks:
-         - task: Organisatie
-           id: "0.3.1"
-           type:
-             - text_input
-           repeatable: false
-         - task: Directie
-           id: "0.3.2"
-           type:
-             - text_input
-           repeatable: false
-         - task: Afdeling
-           id: "0.3.3"
-           type:
-             - text_input
-           repeatable: false
-         - task: Naam
-           id: "0.3.4"
-           type:
-             - text_input
-           repeatable: false
-         - task: Functie
-           id: "0.3.5"
-           type:
-             - text_input
-           repeatable: false
-         - task: Opslaglocatie
-           id: "0.3.6"
-           type:
-             - text_input
-           repeatable: false
-     - task: Versie
-       id: "0.4"
-       type:
-         - task_group
-       repeatable: true
-       tasks: 
-        - task: DPIA versie 
-          id: "0.4.1"
-          type: 
-          - text_input
-          repeatable: false
-        - task: Datum 
-          id: "0.4.2"
-          type: 
-          - text_input
-          repeatable: false
-        - task: Toelichting 
-          id: "0.4.3"
-          type: 
-          - text_input
-          repeatable: false
-     - task: Status
-       id: "0.5"
-       type:
-        - select_option
-       options:
-        - value: concept
-        - value: definitief
-       repeatable: false
-     - task: DPIA dossier
-       id: "0.6"
-       type:
-         - task_group
-       repeatable: false
-       tasks:
-          - task: Grootte (aantal documenten)
-            id: "0.6.1"
-            type:
-              - text_input
-            repeatable: false
-          - task: Documenten
-            id: "0.6.2"
-            type:
-              - task_group
-            repeatable: true
-            tasks:
-              - task: Document soort
-                id: "0.6.2.1"
-                type:
-                  - text_input
-                repeatable: false
-              - task: Document naam
-                id: "0.6.2.2"
-                type:
-                  - text_input
-                repeatable: false
-              - task: Document versie
-                id: "0.6.2.3"
-                type:
-                  - text_input
-                repeatable: false
-              - task: Document locatie
-                id: "0.6.2.4"
-                type:
-                  - text_input
-                repeatable: false
  - task: >-
       Inleiding
    description: |
@@ -210,85 +14,88 @@ tasks:
 
      Het Rijksmodel DPIA is <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">hier</a>  te vinden.
 
-     Voeg hier wanneer gewenst een openingsalinea of DPIA inleiding toe. 
+     Voeg hier wanneer gewenst een openingsalinea of DPIA inleiding toe.
      Denk bijvoorbeeld aan:
        • Verwijzing naar het privacybeleid
        • Motivatie achter de uitvoering van deze DPIA
        • Informatie over de manier waarop deze DPIA is opgesteld
-   id: "1"
+   id: "0"
+   is_official_id: false
    type:
-        - open_text 
+        - open_text
    repeatable: false
  - task: >-
       Voorstel
    description: >-
       Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter
       de totstandkoming van het voorstel.
-   id: "2"
+   id: "1"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Voorstel
-          id: "2.1"
+          id: "1.1"
           type:
             - open_text
           repeatable: false
         - task: Afbeeldingen
-          description: Afbeeldingen 
-          id: "2.2"
+          description: Afbeeldingen
+          id: "1.2"
           type:
            - task_group
-          repeatable: true 
+          repeatable: true
           tasks:
           - task: Afbeelding
             description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
-            id: "2.2.1"
+            id: "1.2.1"
             type:
               - text_input
             repeatable: false
  - task: >-
         Persoonsgegevens
    description: >-
-        Beschrijf alle persoonsgegevens die worden verwerkt. 
+        Beschrijf alle persoonsgegevens die worden verwerkt.
         Classificeer deze persoonsgegevens naar: <br>
-        
+
         • Gewoon persoonsgegeven<br>
         • Gevoelig persoonsgegeven<br>
         • Bijzonder persoonsgegeven<br>
         • Strafrechtelijk persoonsgegeven<br>
         • Nationaal identificatienummer<br>
-        
+
         Geef aan wat de bron persoonsgegevens is.
-   id: "3"
+   id: "2"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Persoonsgegevens
-          id: "3.1"
+          id: "2.1"
           type:
             - task_group
           repeatable: true
           tasks:
             - task: Persoonsgegeven
-              id: "3.1.1"
-              type: 
+              id: "2.1.1"
+              type:
                 - text_input
               repeatable: false
             - task: Categorie betrokkene
-              id: "3.1.2"
-              type: 
+              id: "2.1.2"
+              type:
                 - text_input
               repeatable: false
             - task: Categorie persoonsgegevens
-              id: "3.1.3"
-              type: 
+              id: "2.1.3"
+              type:
                 - text_input
               repeatable: false
             - task: Type persoonsgegeven
-              id: "3.1.4"
-              type: 
+              id: "2.1.4"
+              type:
                 - select_option
               options:
                 - value: gewoon
@@ -298,92 +105,93 @@ tasks:
                 - value: nationaal identificatienummer
               repeatable: false
             - task: Oorspronkelijk verwerkingsdoeleinde
-              id: "3.1.5"
-              type: 
+              id: "2.1.5"
+              type:
                 - text_input
               repeatable: false
             - task: Bron betrokkenen
               description: Zijn de persoonsgegevens via een betrokken partij gekomen?
-              id: "3.1.6"
-              type: 
+              id: "2.1.6"
+              type:
                 - radio_option
               valueType: boolean
               options:
                 - value: false
-                  label: Nee 
+                  label: Nee
                 - value: true
                   label: Ja
               repeatable: false
             - task: Partij naam
-              id: "3.1.7"
-              type: 
+              id: "2.1.7"
+              type:
                 - text_input
               repeatable: false
               dependencies:
                 - type: conditional
                   condition:
-                    id: "3.1.6"
+                    id: "2.1.6"
                     operator: equals
                     value: true
                   action: show
             - task: Bron tool/platform
-              id: "3.1.8"
-              type: 
+              id: "2.1.8"
+              type:
                 - text_input
               repeatable: false
               dependencies:
                 - type: conditional
                   condition:
-                    id: "3.1.6"
+                    id: "2.1.6"
                     operator: equals
                     value: true
                   action: show
             - task: Verstrekkingsgrond
-              id: "3.1.9"
-              type: 
+              id: "2.1.9"
+              type:
                 - text_input
               repeatable: false
               dependencies:
                 - type: conditional
                   condition:
-                    id: "3.1.6"
+                    id: "2.1.6"
                     operator: equals
                     value: true
                   action: show
         - task: Aanvullende informatie over de persoonsgegevens
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "3.3"
-          type: 
+          id: "2.3"
+          type:
            - open_text
           repeatable: false
- - task: Gegevensverwerking 
+ - task: Gegevensverwerking
    description: >-
-        Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorieën betrokkenen worden verwerkt per gegevensverwerking. 
+        Geef alle gegevensverwerkingen weer en geef aan welke persoonsgegevens van welke categorieën betrokkenen worden verwerkt per gegevensverwerking.
         Desgewenst kan een stroomschema van de gegevensverwerkingen worden toegevoegd.
-   id: "4"
+   id: "3"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Gegevensverwerking, Categorieën betrokkenen & persoonsgegevens
-          description: Verwerk elke gegevensverwerking afzonderlijk en klik op '+ Voeg extra gegevensverwerking, categorieën betrokkenen & persoonsgegevens' om een nieuwe gegevensverwerking toe te voegen. 
-          id: "4.1"
-          type: 
+          description: Verwerk elke gegevensverwerking afzonderlijk en klik op '+ Voeg extra gegevensverwerking, categorieën betrokkenen & persoonsgegevens' om een nieuwe gegevensverwerking toe te voegen.
+          id: "3.1"
+          type:
             - task_group
           repeatable: true
           tasks:
             - task: Naam van de gegevensverwerking
-              id: "4.1.1"
-              type: 
+              id: "3.1.1"
+              type:
                - text_input
-              repeatable: false 
+              repeatable: false
             - task: Beschrijving van de gegevensverwerking
-              id: "4.1.2"
-              type: 
+              id: "3.1.2"
+              type:
                - text_input
-              repeatable: false 
+              repeatable: false
             - task: Persoonsgegevens
-              id: "4.1.3"
+              id: "3.1.3"
               type:
                 - checkbox_option
               repeatable: false
@@ -391,24 +199,24 @@ tasks:
               dependencies:
                 - type: source_options
                   condition:
-                    id: "3.1.1"
+                    id: "2.1.1"
                     operator: any
                   action: options
         - task: Aanvullende informatie over de gegevensverwerking
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "4.2"
-          type: 
+          id: "3.2"
+          type:
            - open_text
           repeatable: false
         - task: Samenhang gegevensverwerkingen
-          id: "4.3"
+          id: "3.3"
           type:
            - task_group
-          repeatable: true 
+          repeatable: true
           tasks:
-          - task: Samenhang tussen de gegevensverwerkingen 
+          - task: Samenhang tussen de gegevensverwerkingen
             description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
-            id: "4.3.1"
+            id: "3.3.1"
             type:
               - text_input
             repeatable: false
@@ -417,78 +225,81 @@ tasks:
    description: >-
       Beschrijf op welke wijze en met gebruikmaking van welke technieken en methoden van gegevensverwerking de persoonsgegevens worden verwerkt. Benoem, in het
       bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.
-   id: "5"
+   id: "4"
+   is_official_id: true
    type:
       - open_text
    repeatable: false
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
-   id: "6"
+   id: "5"
+   is_official_id: true
    type:
         - task_group
-   repeatable: false 
+   repeatable: false
    tasks:
     - task: Gegevensverwerking & verwerkingsdoeleinde
-      description: De gegevensverwerking naam wordt overgenomen uit vraag 4. 
-      id: "6.1"
-      type: 
+      description: De gegevensverwerking naam wordt overgenomen uit vraag 3.
+      id: "5.1"
+      type:
           - task_group
       repeatable: true
-      instance_label_template: "Gegevensverwerking {4.1.1}"
+      instance_label_template: "Gegevensverwerking {5.1.1}"
       dependencies:
         - type: instance_mapping
           source:
-            id: "4.1.1"
+            id: "3.1.1"
           mapping_type: "one_to_one"
           action: sync_instances
       tasks:
         - task: Verwerkingsdoeleinde
-          id: "6.1.1"
-          type: 
+          id: "5.1.1"
+          type:
             - open_text
           repeatable: true
     - task: Aanvullende informatie over de verwerkingsdoeleinden
       description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-      id: "6.2"
-      type: 
+      id: "5.2"
+      type:
          - open_text
       repeatable: false
  - task: >-
       Betrokken partijen
    description: >-
-    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen. 
-   id: "7"
+    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen.
+   id: "6"
+   is_official_id: true
    type:
       - task_group
    repeatable: false
    tasks:
-      - task: Gegevensverwerking betrokken partijen 
-        id: "7.1"
-        type: 
+      - task: Gegevensverwerking betrokken partijen
+        id: "6.1"
+        type:
          - task_group
-        repeatable: true 
-        instance_label_template: "Gegevensverwerking {4.1.1}"
+        repeatable: true
+        instance_label_template: "Gegevensverwerking {3.1.1}"
         dependencies:
           - type: instance_mapping
             source:
-              id: "4.1.1"
+              id: "3.1.1"
             mapping_type: "one_to_one"
             action: sync_instances
-        tasks: 
+        tasks:
         - task: Betrokken partij
-          id: "7.1.1"
-          type: 
+          id: "6.1.1"
+          type:
             - task_group
-          repeatable: true 
+          repeatable: true
           tasks:
           - task: Partij naam
-            id: "7.1.1.1"
-            type: 
+            id: "6.1.1.1"
+            type:
               - text_input
-            repeatable: false 
+            repeatable: false
           - task: Partij rol
-            id: "7.1.1.2"
-            type: 
+            id: "6.1.1.2"
+            type:
               - select_option
             options:
               - value: verwerkingsverantwoordelijke
@@ -501,12 +312,12 @@ tasks:
               - value: derde
             repeatable: false
           - task: Functies/afdelingen
-            id: "7.1.1.3"
-            type: 
+            id: "6.1.1.3"
+            type:
               - text_input
             repeatable: false
           - task: Persoonsgegevens
-            id: "7.1.1.4"
+            id: "6.1.1.4"
             type:
               - checkbox_option
             repeatable: false
@@ -514,11 +325,11 @@ tasks:
             dependencies:
               - type: source_options
                 condition:
-                  id: "3.1.1"
+                  id: "2.1.1"
                   operator: any
                 action: options
           - task: Categorieën betrokkene
-            id: "7.1.1.5"
+            id: "6.1.1.5"
             type:
               - checkbox_option
             repeatable: false
@@ -526,92 +337,94 @@ tasks:
             dependencies:
               - type: source_options
                 condition:
-                  id: "3.1.2"
+                  id: "2.1.2"
                   operator: any
                 action: options
       - task: Aanvullende informatie over de betrokken partijen
         description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-        id: "7.2"
-        type: 
+        id: "6.2"
+        type:
          - open_text
         repeatable: false
  - task: >-
       Belangen bij de gegevensverwerkingen
-   description: >- 
-      Beschrijf alle belangen die de betrokken partijen hebben bij de gegevensverwerkingen. 
-      Vraag betrokkenen of hun vertegenwoordigers ook naar hun mening over de verwerking indien relevant. 
-      Indien niet relevant, motiveer dit. Licht deze mening toe onder het belang van de betrokkenen. 
-   id: "8"
+   description: >-
+      Beschrijf alle belangen die de betrokken partijen hebben bij de gegevensverwerkingen.
+      Vraag betrokkenen of hun vertegenwoordigers ook naar hun mening over de verwerking indien relevant.
+      Indien niet relevant, motiveer dit. Licht deze mening toe onder het belang van de betrokkenen.
+   id: "7"
+   is_official_id: true
    type:
       - task_group
    repeatable: false
    tasks:
         - task: Betrokken partij, belangen, uitkomst consultatie betrokkenen
-          id: "8.1"
-          type: 
+          id: "7.1"
+          type:
           - task_group
           repeatable: true
-          instance_label_template: "Betrokken partij {7.1.1.1}"
+          instance_label_template: "Betrokken partij {6.1.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "7.1.1.1"
+                id: "6.1.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
           tasks:
             - task: Belang, uitkomst consultatie betrokkenen
-              id: "8.1.1"
-              type: 
+              id: "7.1.1"
+              type:
                 - open_text
-              repeatable: true 
+              repeatable: true
         - task: Aanvullende informatie over de belangen
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "8.2"
-          type: 
+          id: "7.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
     Verwerkingslocaties
    description: >-
-      Benoem in welke landen de gegevensverwerkingen plaatsvinden. 
-      Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn. 
+      Benoem in welke landen de gegevensverwerkingen plaatsvinden.
+      Beschrijf het doorgiftemechanisme dat van toepassing is wanneer verwerkingslocaties zich buiten de Europese Economische Ruimte bevinden en noem of en welke aanvullende maatregelen van toepassing zijn.
 
-      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheids¬besluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG, 
+      Als persoonsgegevens doorgegeven worden naar een land buiten de Europese Economische Ruimte en het gebruikte doorgiftemechanisme op basis van artikel 46 AVG niet gebaseerd is op een adequaatheids¬besluit, Binding Corporate Rules (BCR), standaard contractsbepaling (SCC) of uitzondering artikel 49 AVG,
       is het noodzakelijk om een zogenoemde data transfer impact assessment (DTIA) uit te voeren.
 
       Zie deel III van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Rijksmodel DPIA </a> voor meer informatie over de doorgiftemechanismen.
-   id: "9"
+   id: "8"
+   is_official_id: true
    type:
       - task_group
    repeatable: false
    tasks:
-        - task: Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen 
-          id: "9.1"
-          type: 
+        - task: Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen
+          id: "8.1"
+          type:
           - task_group
-          repeatable: true 
-          instance_label_template: "Gegevensverwerking {4.1.1}"
+          repeatable: true
+          instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "4.1.1"
+                id: "3.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
-          tasks: 
+          tasks:
             - task: Verwerkingslocaties
-              id: "9.1.1"
-              type: 
+              id: "8.1.1"
+              type:
                 - task_group
-              repeatable: true 
+              repeatable: true
               tasks:
               - task: Verwerkingslocatie
-                id: "9.1.1.1"
-                type: 
+                id: "8.1.1.1"
+                type:
                   - text_input
-                repeatable: false 
+                repeatable: false
               - task: Doorgiftemechanisme
-                id: "9.1.1.2"
-                type: 
+                id: "8.1.1.2"
+                type:
                   - select_option
                 options:
                   - value: Adequaatheidsbesluit
@@ -621,104 +434,106 @@ tasks:
                   - value: Niet van toepassing (binnen EER)
                 repeatable: false
               - task: Maatregelen
-                id: "9.1.1.3"
-                type: 
+                id: "8.1.1.3"
+                type:
                   - text_input
-                repeatable: false 
+                repeatable: false
         - task: Aanvullende informatie over de verwerkingslocaties
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "9.2"
-          type: 
+          id: "8.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
      Juridisch en beleidsmatig kader
    description: >-
-      Benoem alle wet- en regelgeving en beleid met mogelijke gevolgen voor de gegevensverwerkingen. 
-      De AVG en de Richtlijn hoeven niet genoemd te worden. 
-   id: "10"
+      Benoem alle wet- en regelgeving en beleid met mogelijke gevolgen voor de gegevensverwerkingen.
+      De AVG en de Richtlijn hoeven niet genoemd te worden.
+   id: "9"
+   is_official_id: true
    type:
       - task_group
    repeatable: false
    tasks:
         - task: Gegevensverwerkingen, juridisch en/of beleidsmatigkader, Wetsartikelen
-          id: "10.1"
+          id: "9.1"
           type:
           - task_group
-          repeatable: true 
-          instance_label_template: "Gegevensverwerking {4.1.1}"
+          repeatable: true
+          instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "4.1.1"
+                id: "3.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
-          tasks: 
+          tasks:
           - task: Juridisch en beleidsmatig kader
-            id: "10.1.1"
-            type: 
+            id: "9.1.1"
+            type:
               - task_group
-            repeatable: true 
+            repeatable: true
             tasks:
             - task: Juridisch en/of beleidsmatig kader
-              id: "10.1.1.1"
-              type: 
+              id: "9.1.1.1"
+              type:
                 - text_input
-              repeatable: false 
+              repeatable: false
             - task: Wetsartikelen
-              id: "10.1.1.2"
-              type: 
+              id: "9.1.1.2"
+              type:
                 - text_input
-              repeatable: false 
+              repeatable: false
         - task: Aanvullende informatie toe over het juridische en beleidsmatig kader
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "10.2"
-          type: 
+          id: "9.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
      Bewaartermijnen
    description: >-
-      Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de verwerkingsdoeleinden. 
-      Motiveer waarom deze bewaartermijnen niet langer zijn dan strikt noodzakelijk ten opzichte van de verwerkingsdoeleinden. 
-      Beschrijf wie toeziet op de bewaartermijn en de mogelijke vernietiging of archivering aan het einde van de bewaartermijn. 
-   id: "11"
+      Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de verwerkingsdoeleinden.
+      Motiveer waarom deze bewaartermijnen niet langer zijn dan strikt noodzakelijk ten opzichte van de verwerkingsdoeleinden.
+      Beschrijf wie toeziet op de bewaartermijn en de mogelijke vernietiging of archivering aan het einde van de bewaartermijn.
+   id: "10"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Gegevensverwerking, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn
-          id: "11.1"
-          type: 
+          id: "10.1"
+          type:
           - task_group
           repeatable: true
-          instance_label_template: "Gegevensverwerking {4.1.1}"
+          instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "4.1.1"
+                id: "3.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
-          tasks: 
+          tasks:
             - task: Bewaartermijnen
-              id: "11.1.1"
-              type: 
+              id: "10.1.1"
+              type:
                 - task_group
               repeatable: true
               tasks:
               - task: Verwerkingsdoeleinde
-                id: "11.1.1.1"
-                type: 
+                id: "10.1.1.1"
+                type:
                   - text_input
                 dependencies:
                 - type: instance_mapping
                   source:
-                    id: "6.1.1"
+                    id: "5.1.1"
                   mapping_type: "one_to_one"
                   action: sync_instances
                 repeatable: false
               - task: Categorie betrokkene
-                id: "11.1.1.2"
+                id: "10.1.1.2"
                 type:
                   - checkbox_option
                 repeatable: false
@@ -726,11 +541,11 @@ tasks:
                 dependencies:
                   - type: source_options
                     condition:
-                      id: "3.1.2"
+                      id: "2.1.2"
                       operator: any
                     action: options
               - task: Persoonsgegevens
-                id: "11.1.1.3"
+                id: "10.1.1.3"
                 type:
                   - checkbox_option
                 repeatable: false
@@ -738,66 +553,67 @@ tasks:
                 dependencies:
                   - type: source_options
                     condition:
-                      id: "3.1.1"
+                      id: "2.1.1"
                       operator: any
                     action: options
               - task: Bewaartermijn/archiveringsperiode
-                id: "11.1.1.4"
-                type: 
+                id: "10.1.1.4"
+                type:
                   - text_input
                 repeatable: false
               - task: Motivatie bewaartermijn
-                id: "11.1.1.5"
-                type: 
+                id: "10.1.1.5"
+                type:
                   - open_text
                 repeatable: false
         - task: Aanvullende informatie over de bewaartermijnen
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "11.2"
-          type: 
+          id: "10.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
      Rechtsgrond
-   description: | 
-     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan. 
-     
+   description: |
+     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan.
+
      De rechtsgronden zijn:
       • <strong>Toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
       • <strong>Noodzakelijk voor overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
       • <strong>Noodzakelijk om te voldoen aan een wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
       • <strong>Noodzakelijk om de vitale belangen van de betrokkene of een ander te beschermen</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
       • <strong>Noodzakelijk voor de vervulling van een taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
-      • <strong>Noodzakelijk voor de behartiging van een gerechtvaardigd belang</strong>:  
+      • <strong>Noodzakelijk voor de behartiging van een gerechtvaardigd belang</strong>:
         (1) Deze grondslag is niet van toepassing op gegevensverwerkingen die worden uitgevoerd in het kader van de publieke taak van een overheidsorgaan.
         (2) Voor deze grondslag is een belangenafweging nodig, voeg deze toe aan de toelichting op de rechtsgrond.
-   id: "12"
+   id: "11"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Gegevensverwerking, Rechtsgrond, toelichting op de rechtsgrond
-          id: "12.1"
+          id: "11.1"
           type:
           - task_group
           repeatable: true
-          instance_label_template: "Gegevensverwerking {4.1.1}"
+          instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "4.1.1"
+                id: "3.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
-          tasks: 
-          - task: Rechtsgrond 
-            id: "12.1.1"
-            type: 
+          tasks:
+          - task: Rechtsgrond
+            id: "11.1.1"
+            type:
               - task_group
             repeatable: true
             tasks:
-            - task: Rechtsgrond 
-              id: "12.1.1.1"
-              type: 
+            - task: Rechtsgrond
+              id: "11.1.1.1"
+              type:
                 - select_option
               options:
                 - value: Toestemming
@@ -807,83 +623,60 @@ tasks:
                 - value: Noodzakelijk voor de vervulling van een taak van algemeen belang
                 - value: Noodzakelijk voor de behartiging van een gerechtvaardigd belang
               repeatable: false
-            - task: Toelichting op de rechtsgrond 
-              id: "12.1.1.2"
-              type: 
+            - task: Toelichting op de rechtsgrond
+              id: "11.1.1.2"
+              type:
                 - open_text
               repeatable: false
         - task: Aanvullende informatie over de rechtsgronden
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "12.2"
-          type: 
+          id: "11.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
      Bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
    description: >-
-      Het verwerken van bijzondere persoonsgegevens of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan. 
-   id: "13"
+      Het verwerken van bijzondere persoonsgegevens of strafrechtelijke persoonsgegevens is in principe verboden. Verwerking is pas mogelijk wanneer een uitzonderingsgrond van toepassing is. Beoordeel of een van de wettelijke uitzonderingen op het verwerkingsverbod van toepassing is. Bij verwerking van een nationaal identificatienummer, beoordeel of dit is toegestaan.
+   id: "12"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: Bijzondere persoonsgegevens
-          id: "13.1"
-          type: 
+          id: "12.1"
+          type:
           - task_group
-          repeatable: false 
-          tasks: 
+          repeatable: false
+          tasks:
             - task: Bijzondere persoonsgegevens
               description: Worden er bijzondere persoonsgegevens verwerkt?
-              id: "13.1.1"
-              type: 
+              id: "12.1.1"
+              type:
                 - radio_option
               valueType: "boolean"
               options:
                 - value: false
-                  label: Nee 
+                  label: Nee
                 - value: true
                   label: Ja
               repeatable: false
             - task: Bijzondere persoonsgegevens
-              id: "13.1.2"
-              type: 
+              id: "12.1.2"
+              type:
                 - task_group
-              repeatable: true 
+              repeatable: true
               dependencies:
                 - type: conditional
                   condition:
-                    id: "13.1.1"
+                    id: "12.1.1"
                     operator: equals
                     value: true
                   action: show
               tasks:
               - task: Gegevensverwerking
-                id: "13.1.2.1"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "4.1.1"
-                      operator: any
-                    action: options
-              - task: Categorie betrokkene
-                id: "13.1.2.2"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "3.1.2"
-                      operator: any
-                    action: options
-              - task: Persoonsgegevens
-                id: "13.1.2.3"
+                id: "12.1.2.1"
                 type:
                   - checkbox_option
                 repeatable: false
@@ -894,9 +687,33 @@ tasks:
                       id: "3.1.1"
                       operator: any
                     action: options
-              - task: Type bijzondere persoonsgegevens 
-                id: "13.1.2.4"
-                type: 
+              - task: Categorie betrokkene
+                id: "12.1.2.2"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
+                id: "12.1.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.1"
+                      operator: any
+                    action: options
+              - task: Type bijzondere persoonsgegevens
+                id: "12.1.2.4"
+                type:
                   - select_option
                 options:
                   - value: Ras of etnische afkomst
@@ -911,67 +728,43 @@ tasks:
                   - value: Nationaal identificatienummer
                 repeatable: false
               - task: Doorbrekingsgrond
-                id: "13.2.2.4"
-                type: 
+                id: "12.2.2.4"
+                type:
                   - open_text
                 repeatable: false
         - task: Strafrechtelijke persoonsgegevens
-          id: "13.2"
-          type: 
+          id: "12.2"
+          type:
           - task_group
-          repeatable: false 
-          tasks: 
+          repeatable: false
+          tasks:
             - task: Strafrechtelijke persoonsgegevens
               description: Worden er strafrechtelijke persoonsgegevens verwerkt?
-              id: "13.2.1"
-              type: 
+              id: "12.2.1"
+              type:
                 - radio_option
               valueType: boolean
               options:
                 - value: false
-                  label: Nee 
+                  label: Nee
                 - value: true
                   label: Ja
               repeatable: false
             - task: Strafrechtelijke persoonsgegegevens
-              id: "13.2.2"
-              type: 
+              id: "12.2.2"
+              type:
                 - task_group
-              repeatable: true 
+              repeatable: true
               dependencies:
                 - type: conditional
                   condition:
-                    id: "13.2.1"
+                    id: "12.2.1"
                     operator: equals
                     value: true
                   action: show
               tasks:
               - task: Gegevensverwerking
-                id: "13.2.2.1"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "4.1.1"
-                      operator: any
-                    action: options
-              - task: Categorie betrokkene
-                id: "13.2.2.2"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "3.1.2"
-                      operator: any
-                    action: options
-              - task: Persoonsgegevens
-                id: "13.2.2.3"
+                id: "12.2.2.1"
                 type:
                   - checkbox_option
                 repeatable: false
@@ -982,68 +775,68 @@ tasks:
                       id: "3.1.1"
                       operator: any
                     action: options
+              - task: Categorie betrokkene
+                id: "12.2.2.2"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
+                id: "12.2.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.1"
+                      operator: any
+                    action: options
               - task: Uitzonderingsgrond
-                id: "13.2.2.4"
-                type: 
+                id: "12.2.2.4"
+                type:
                   - open_text
                 repeatable: false
         - task: Nationale identificatienummers
-          id: "13.3"
-          type: 
+          id: "12.3"
+          type:
           - task_group
-          repeatable: false 
-          tasks: 
+          repeatable: false
+          tasks:
             - task: Nationale identificatienummers
               description: Worden er nationale identificatienummers verwerkt?
-              id: "13.3.1"
-              type: 
+              id: "12.3.1"
+              type:
                 - radio_option
               valueType: boolean
               options:
                 - value: false
-                  label: Nee 
+                  label: Nee
                 - value: true
                   label: Ja
               repeatable: false
             - task: Nationale identificatienummers
-              id: "13.3.2"
-              type: 
+              id: "12.3.2"
+              type:
                 - task_group
-              repeatable: true 
+              repeatable: true
               dependencies:
                 - type: conditional
                   condition:
-                    id: "13.3.1"
+                    id: "12.3.1"
                     operator: equals
                     value: true
                   action: show
               tasks:
               - task: Gegevensverwerking
-                id: "13.3.2.1"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "4.1.1"
-                      operator: any
-                    action: options
-              - task: Categorie betrokkene
-                id: "13.3.2.2"
-                type:
-                  - checkbox_option
-                repeatable: false
-                valueType: "string[]"
-                dependencies:
-                  - type: source_options
-                    condition:
-                      id: "3.1.2"
-                      operator: any
-                    action: options
-              - task: Persoonsgegevens
-                id: "13.3.2.3"
+                id: "12.3.2.1"
                 type:
                   - checkbox_option
                 repeatable: false
@@ -1054,47 +847,72 @@ tasks:
                       id: "3.1.1"
                       operator: any
                     action: options
+              - task: Categorie betrokkene
+                id: "12.3.2.2"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.2"
+                      operator: any
+                    action: options
+              - task: Persoonsgegevens
+                id: "12.3.2.3"
+                type:
+                  - checkbox_option
+                repeatable: false
+                valueType: "string[]"
+                dependencies:
+                  - type: source_options
+                    condition:
+                      id: "2.1.1"
+                      operator: any
+                    action: options
               - task: Uitzonderingsgrond
-                id: "13.3.2.4"
-                type: 
+                id: "12.3.2.4"
+                type:
                   - open_text
                 repeatable: false
         - task: Aanvullende informatie over de bijzondere persoonsgegevens, strafrechtelijke persoonsgegevens en nationale identificatienummers
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "13.4"
-          type: 
+          id: "12.4"
+          type:
            - open_text
           repeatable: false
  - task: >-
      Doelbinding
    description: |
       Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstaatrechtelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld.
-   id: "14"
+   id: "13"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
-        - task: Gegevensverwerking, categorie betrokkenen & persoonsgegevens, doeleinde & oorspronkelijk doeleinde 
-          id: "14.1"
+        - task: Gegevensverwerking, categorie betrokkenen & persoonsgegevens, doeleinde & oorspronkelijk doeleinde
+          id: "13.1"
           type:
           - task_group
-          repeatable: true 
-          instance_label_template: "Gegevensverwerking {4.1.1}"
+          repeatable: true
+          instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
               source:
-                id: "4.1.1"
+                id: "3.1.1"
               mapping_type: "one_to_one"
               action: sync_instances
-          tasks: 
+          tasks:
           - task: Doelbinding
-            id: "14.1.1"
-            type: 
+            id: "13.1.1"
+            type:
               - task_group
             repeatable: true
             tasks:
             - task: Categorie betrokkene
-              id: "14.1.1.1"
+              id: "13.1.1.1"
               type:
                 - checkbox_option
               repeatable: false
@@ -1102,11 +920,11 @@ tasks:
               dependencies:
                 - type: source_options
                   condition:
-                    id: "3.1.2"
+                    id: "2.1.2"
                     operator: any
                   action: options
             - task: Persoonsgegevens
-              id: "14.1.1.2"
+              id: "13.1.1.2"
               type:
                 - checkbox_option
               repeatable: false
@@ -1114,23 +932,23 @@ tasks:
               dependencies:
                 - type: source_options
                   condition:
-                    id: "3.1.1"
+                    id: "2.1.1"
                     operator: any
                   action: options
-            - task: Doeleinde 
-              id: "14.1.1.3"
-              type: 
+            - task: Doeleinde
+              id: "13.1.1.3"
+              type:
                 - text_input
               repeatable: false
-            - task: Oorspronkelijke doeleinde 
-              id: "14.1.1.4"
-              type: 
+            - task: Oorspronkelijke doeleinde
+              id: "13.1.1.4"
+              type:
                 - text_input
               repeatable: false
         - task: Aanvullende informatie over de verenigbaarheid en toelaatbaarheid
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "14.2"
-          type: 
+          id: "13.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
@@ -1139,67 +957,69 @@ tasks:
         Beoordeel of de voorgenomen gegevensverwerkingen noodzakelijk en evenredig zijn voor het verwezenlijken van de verwerkingsdoeleinden.
 
         Ga hierbij in ieder geval in op de subsidiariteit (en daarmee ook noodzaak) en de prortionaliteit (ook wel evenredigheid).
-   id: "15"
+   id: "14"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
         - task: De beoordeling van de subsidiariteit
-          id: "15.1"
+          id: "14.1"
           description: Kunnen de verwerkingsdoeleinden in redelijkheid niet op een andere, voor de betrokkenen minder nadelige wijze, worden verwezenlijkt?
-          type: 
+          type:
             - open_text
           repeatable: false
         - task: De beoordeling van de proportionaliteit
-          id: "15.2"
+          id: "14.2"
           description: "Staat de inbreuk op de persoonlijke levenssfeer en de bescherming van de persoonsgegevens van de betrokkenen in evenredige verhouding tot de verwerkingsdoeleinden?"
-          type: 
+          type:
             - open_text
           repeatable: false
  - task: >-
      Rechten van de betrokkenen
-   description: >- 
-      Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkenen. Als de rechten van de betrokkene worden beperkt, 
+   description: >-
+      Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkenen. Als de rechten van de betrokkene worden beperkt,
       beschrijf op grond van welke wettelijke uitzondering dat is toegestaan.
-   id: "16"
+   id: "15"
+   is_official_id: true
    type:
         - task_group
    repeatable: false
    tasks:
-        - task: Recht van inzage 
-          id: "16.1"
+        - task: Recht van inzage
+          id: "15.1"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.1.1"
-            type: 
+            id: "15.1.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Toelichting op procedure ter invulling van het recht van de betrokkene
-            id: "16.1.2"
-            type: 
+            id: "15.1.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.1.1"
+                  id: "15.1.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.1.3"
-            type: 
+            id: "15.1.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1209,52 +1029,52 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe. 
-            id: "16.1.4"
-            type: 
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.1.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.1.3"
+                  id: "15.1.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht op rectificatie en aanvulling
-          id: "16.2"
+          id: "15.2"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.2.1"
-            type: 
+            id: "15.2.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.2.2"
-            type: 
+            id: "15.2.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.2.1"
+                  id: "15.2.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.2.3"
-            type: 
+            id: "15.2.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1264,51 +1084,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.2.4"
-            type: 
+            id: "15.2.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.2.3"
+                  id: "15.2.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht op vergetelheid
-          id: "16.3"
+          id: "15.3"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.3.1"
-            type: 
+            id: "15.3.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.3.2"
-            type: 
+            id: "15.3.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.3.1"
+                  id: "15.3.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.3.3"
-            type: 
+            id: "15.3.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1318,51 +1138,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.3.4"
-            type: 
+            id: "15.3.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.3.3"
+                  id: "15.3.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht op beperking van de verwerking
-          id: "16.4"
+          id: "15.4"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.4.1"
-            type: 
+            id: "15.4.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.4.2"
-            type: 
+            id: "15.4.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.4.1"
+                  id: "15.4.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.4.3"
-            type: 
+            id: "15.4.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1372,51 +1192,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.4.4"
-            type: 
+            id: "15.4.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.4.3"
+                  id: "15.4.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht op dataportabiliteit
-          id: "16.5"
+          id: "15.5"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.5.1"
-            type: 
+            id: "15.5.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.5.2"
-            type: 
+            id: "15.5.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.5.1"
+                  id: "15.5.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.5.3"
-            type: 
+            id: "15.5.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1426,51 +1246,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.5.4"
-            type: 
+            id: "15.5.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.5.3"
+                  id: "15.5.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht niet onderworpen te worden aan uitsluitend geautomatiseerde besluitvorming
-          id: "16.6"
+          id: "15.6"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.6.1"
-            type: 
+            id: "15.6.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.6.2"
-            type: 
+            id: "15.6.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.6.1"
+                  id: "15.6.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.6.3"
-            type: 
+            id: "15.6.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1480,51 +1300,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.6.4"
-            type: 
+            id: "15.6.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.6.3"
+                  id: "15.6.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht om bezwaar te maken
-          id: "16.7"
+          id: "15.7"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.7.1"
-            type: 
+            id: "15.7.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.7.2"
-            type: 
+            id: "15.7.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.7.1"
+                  id: "15.7.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.7.3"
-            type: 
+            id: "15.7.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1534,51 +1354,51 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.7.4"
-            type: 
+            id: "15.7.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.7.3"
+                  id: "15.7.3"
                   operator: equals
                   value: true
                 action: show
         - task: Recht op duidelijke informatie
-          id: "16.8"
+          id: "15.8"
           type:
            - task_group
           repeatable: false
-          tasks: 
+          tasks:
           - task: Procedures ter uitvoering
-            id: "16.8.1"
-            type: 
+            id: "15.8.1"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
               - value: false
-                label: Nee 
+                label: Nee
               - value: true
                 label: Ja
               - value: null
                 label: Niet van toepassing
             repeatable: false
           - task: Procedure toelichting
-            id: "16.8.2"
-            type: 
+            id: "15.8.2"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.8.1"
+                  id: "15.8.1"
                   operator: equals
                   value: true
                 action: show
           - task: Beperking op grond van wettelijke uitzondering
-            id: "16.8.3"
-            type: 
+            id: "15.8.3"
+            type:
               - radio_option
             valueType: "boolean|null"
             options:
@@ -1588,21 +1408,21 @@ tasks:
                 label: Niet van toepassing
             repeatable: false
           - task: Beperking toelichting
-            id: "16.8.4"
-            type: 
+            id: "15.8.4"
+            type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "16.8.3"
+                  id: "15.8.3"
                   operator: equals
                   value: true
                 action: show
  - task: >-
      Risico’s voor betrokkenen
    description: |
-      Beschrijf en beoordeel de risico’s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen. 
+      Beschrijf en beoordeel de risico’s van de gegevensverwerkingen voor de rechten en vrijheden van betrokkenen.
 
       Ga hierbij in ieder geval in op:
       • welke negatieve gevolgen de gegevensverwerkingen kunnen hebben voor de rechten en vrijheden van de betrokkenen, zoals het verbod op discriminatie;
@@ -1610,37 +1430,38 @@ tasks:
       • de waarschijnlijkheid (kans) dat deze gevolgen zullen intreden;
       • de ernst (impact) van deze gevolgen voor de betrokkenen wanneer deze intreden.
 
-      Gebruik voor de inschatting van de kans, impact en het risico de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden. 
+      Gebruik voor de inschatting van de kans, impact en het risico de niveaus ‘laag’, ‘gemiddeld’ en ‘hoog’. De risico-inschatting wordt bepaald aan de hand van de formule kans x impact. Gebruikmaken van de bijbehorende kleuren is aan te raden.
 
-      De onderstaande matrix kan worden gebruikt voor het vaststellen van het risico voor betrokkenen. 
-   id: "17"
-   sources: 
+      De onderstaande matrix kan worden gebruikt voor het vaststellen van het risico voor betrokkenen.
+   id: "16"
+   is_official_id: true
+   sources:
     - source: risico_matrix.png
       description: >-
-        Deze risicomatrix is illustratief. Risico’s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden. 
+        Deze risicomatrix is illustratief. Risico’s met een lage impact of lage kans worden als laag ingeschat indien het risico niet verder kan worden gemitigeerd. Zo kan bijvoorbeeld de impact van ransomware hoog zijn, maar door het nemen van de juiste technische maatregelen de kans (zeer) laag. Het risico kan dan ten behoeve van de risico-acceptatie als laag beschouwd worden.
    type:
         - task_group
-   repeatable: false 
+   repeatable: false
    tasks:
         - task: Risico's voor de betrokkenen
-          id: "17.1"
-          type: 
+          id: "16.1"
+          type:
           - task_group
           repeatable: true
-          tasks: 
-          - task: Beschrijving van het risico 
-            id: "17.1.1"
-            type: 
+          tasks:
+          - task: Beschrijving van het risico
+            id: "16.1.1"
+            type:
               - open_text
             repeatable: false
-          - task: Oorsprong 
-            id: "17.1.2"
-            type: 
+          - task: Oorsprong
+            id: "16.1.2"
+            type:
               - open_text
             repeatable: false
           - task: Kans
-            id: "17.1.3"
-            type: 
+            id: "16.1.3"
+            type:
               - select_option
             options:
               - value: laag
@@ -1648,13 +1469,13 @@ tasks:
               - value: hoog
             repeatable: false
           - task: Motivatie van de kans
-            id: "17.1.4"
-            type: 
+            id: "16.1.4"
+            type:
               - text_input
             repeatable: false
           - task: Impact
-            id: "17.1.5"
-            type: 
+            id: "16.1.5"
+            type:
               - select_option
             options:
               - value: laag
@@ -1662,29 +1483,29 @@ tasks:
               - value: hoog
             repeatable: false
           - task: Motivatie van de impact
-            id: "17.1.6"
-            type: 
+            id: "16.1.6"
+            type:
               - text_input
             repeatable: false
           - task: Risiconiveau
-            id: "17.1.7"
-            type: 
+            id: "16.1.7"
+            type:
               - select_option
             options:
               - value: laag
               - value: midden
               - value: hoog
             repeatable: false
-          - task: Motivatie van de risicoinschatting 
-            id: "17.1.8"
-            type: 
+          - task: Motivatie van de risicoinschatting
+            id: "16.1.8"
+            type:
               - text_input
             repeatable: false
         - task: >-
             Aanvullende informatie over de risico’s
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-          id: "17.2"
-          type: 
+          id: "16.2"
+          type:
            - open_text
           repeatable: false
  - task: >-
@@ -1694,19 +1515,20 @@ tasks:
       Beschrijf ook de resterende risico's die nog aanwezig zijn na de uitvoering en/of implementatie van de geïdentificeerde maatregelen. Geef per resterend risico aan wat het niveau is van dit risico.
       Geef tot slot een conclusie over de restrisico's. Zijn deze acceptabel? En is er een voorafgaande raadpleging bij de Autoriteit Persoonsgegevens nodig?
       Gebruik voor de inschattingen van de risico's de niveaus 'laag', 'gemiddeld' en 'hoog'. Gebruikmaken van de bijbehorende kleuren is aan te raden.
-   id: "18"
+   id: "17"
+   is_official_id: true
    type:
       - task_group
    repeatable: false
    tasks:
       - task: Risico, Oorsprong, Maatregelen, Resterende risico en risico-inschatting & beheerder van maatregelen
-        id: "18.1"
+        id: "17.1"
         type:
           - task_group
         repeatable: true
         tasks:
           - task: Risico
-            id: "18.1.1"
+            id: "17.1.1"
             type:
               - checkbox_option
             repeatable: false
@@ -1714,21 +1536,21 @@ tasks:
             dependencies:
               - type: source_options
                 condition:
-                  id: "17.1.1"
+                  id: "16.1.1"
                   operator: any
                 action: options
           - task: Oorsprong
-            id: "18.1.2"
+            id: "17.1.2"
             type:
               - text_input
             repeatable: false
           - task: Maatregelen
-            id: "18.1.3"
+            id: "17.1.3"
             type:
               - text_input
             repeatable: false
           - task: Resterend risico en de risicoinschatting
-            id: "18.1.4"
+            id: "17.1.4"
             type:
               - select_option
             options:
@@ -1737,58 +1559,243 @@ tasks:
               - value: hoog
             repeatable: false
           - task: Beheerder van de maatregelen
-            id: "18.1.5"
+            id: "17.1.5"
             type:
               - text_input
             repeatable: false
       - task: >-
           Aanvullende informatie over de maatregelen
         description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
-        id: "18.2"
+        id: "17.2"
         type:
           - open_text
         repeatable: false
       - task: >-
           Onderbouwing acceptatie resterende risico's
-        id: "18.3"
+        id: "17.3"
         type:
           - open_text
         repeatable: false
  - task: >-
-    Managementsamenvatting 
-   id: "19"
+    Managementsamenvatting
+   id: "18"
+   is_official_id: false
    description: |
-        Voeg hier de DPIA managementsamenvatting toe na afronding rapportagemodel. 
+        Voeg hier de DPIA managementsamenvatting toe na afronding rapportagemodel.
         De managementsamenvatting dient de belangrijkste punten te omvatten van de DPIA-rapportage, met name de geïdentificeerde risico’s en (voorgenomen) maatregelen om de risico’s te mitigeren.
-   type: 
+   type:
    - open_text
    repeatable: false
+ -  task: >-
+     Versie, Status, DPIA-dossier, Documentbeheerder en Advies FG
+    id: "19"
+    is_official_id: false
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+    - task: Versie
+      id: "19.1"
+      type:
+         - task_group
+      repeatable: true
+      tasks:
+        - task: DPIA versie
+          id: "19.1.1"
+          type:
+          - text_input
+          repeatable: false
+        - task: Datum
+          id: "19.1.2"
+          type:
+          - date
+          repeatable: false
+        - task: Toelichting
+          id: "19.1.3"
+          type:
+          - text_input
+          repeatable: false
+    - task: Status
+      id: "19.2"
+      type:
+        - select_option
+      options:
+        - value: concept
+        - value: definitief
+      repeatable: false
+    - task: DPIA dossier
+      id: "19.3"
+      type:
+         - task_group
+      repeatable: false
+      tasks:
+          - task: Grootte (aantal documenten)
+            id: "19.3.1"
+            type:
+              - text_input
+            repeatable: false
+          - task: Documenten
+            id: "19.3.2"
+            type:
+              - task_group
+            repeatable: true
+            tasks:
+              - task: Document soort
+                id: "19.3.2.1"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document naam
+                id: "19.3.2.2"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document versie
+                id: "19.3.2.3"
+                type:
+                  - text_input
+                repeatable: false
+              - task: Document locatie
+                id: "19.3.2.4"
+                type:
+                  - text_input
+                repeatable: false
+    - task: Documentbeheerder
+      id: "19.4"
+      type:
+         - task_group
+      repeatable: false
+      tasks:
+         - task: Organisatie
+           id: "19.4.1"
+           type:
+             - text_input
+           repeatable: false
+         - task: Directie
+           id: "19.4.2"
+           type:
+             - text_input
+           repeatable: false
+         - task: Afdeling
+           id: "19.4.3"
+           type:
+             - text_input
+           repeatable: false
+         - task: Naam
+           id: "19.4.4"
+           type:
+             - text_input
+           repeatable: false
+         - task: Functie
+           id: "19.4.5"
+           type:
+             - text_input
+           repeatable: false
+         - task: Opslaglocatie
+           id: "19.4.6"
+           type:
+             - text_input
+           repeatable: false
+    - task: Advies functionaris voor gegevensbescherming (FG)
+      id: "19.5"
+      type:
+         - task_group
+      repeatable: false
+      tasks:
+         - task: Organisatie
+           id: "19.5.1"
+           type:
+             - text_input
+           repeatable: false
+         - task: Directie
+           id: "19.5.2"
+           type:
+             - text_input
+           repeatable: false
+         - task: Afdeling
+           id: "19.5.3"
+           type:
+             - text_input
+           repeatable: false
+         - task: Naam
+           id: "19.5.4"
+           type:
+             - text_input
+           repeatable: false
+         - task: Functie
+           id: "19.5.5"
+           type:
+             - text_input
+           repeatable: false
+         - task: Datum advies
+           id: "19.5.6"
+           type:
+             - date
+           repeatable: false
+         - task: Advies FG in document (naam document)
+           id: "19.5.7"
+           type:
+             - open_text
+           repeatable: false
+         - task: Advies FG verwerkt in versie (versienummer)
+           id: "19.5.8"
+           type:
+             - checkbox_option
+           repeatable: false
+           dependencies:
+              - type: source_options
+                condition:
+                  id: "19.1.1"
+                  operator: any
+                action: options
  - task: >-
-    Ondertekening
-   description: >- 
-    Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden. 
+    Vaststelling en ondertekening
    id: "20"
-   type: 
-   - task_group 
-   repeatable: true 
-   tasks: 
-   - task: Organisatie, directie, afdeling verwerkingsverantwoordelijke(n)
-     id: "0.7.1"
-     type: 
-     - text_input
-     repeatable: false 
-   - task: Naam verwerkingsverantwoordelijke(n)
-     id: "0.7.2"
-     type: 
-     - text_input
-     repeatable: false 
-   - task: Functie verwerkingsverantwoordelijke(n)
-     id: "0.7.3"
-     type: 
-     - text_input
-     repeatable: false 
-   - task: Datum ondertekening
-     id: "0.7.4"
-     type: 
-     - date
-     repeatable: false 
+   is_official_id: false
+   type:
+     - task_group
+   repeatable: false
+   tasks:
+     - task: Verwerkingsverantwoordelijke
+       id: "20.1"
+       type:
+         - task_group
+       repeatable: true
+       tasks:
+         - task: Organisatie
+           id: "20.1.1"
+           type:
+             - text_input
+           repeatable: false
+         - task: Directie
+           id: "20.1.2"
+           type:
+             - text_input
+           repeatable: false
+         - task: Afdeling
+           id: "20.1.3"
+           type:
+             - text_input
+           repeatable: false
+         - task: Naam
+           id: "20.1.4"
+           type:
+             - text_input
+           repeatable: false
+         - task: Functie
+           id: "20.1.5"
+           type:
+             - text_input
+           repeatable: false
+         - task: Datum ondertekening
+           description: >-
+              Om de DPIA formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de DPIA door de verwerkingsverantwoordelijke(n) akkoord is bevonden.
+           id: "20.1.6"
+           type:
+             - date
+           repeatable: false
+         - task: Opgesteld door afdeling
+           id: "20.1.7"
+           type:
+             - text_input
+           repeatable: false

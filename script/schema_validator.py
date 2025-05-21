@@ -15,7 +15,7 @@ class SchemaValidator:
     def __init__(self, base_dir: Path) -> None:
         """
         Initialize validator with base directory and logging configuration.
-        
+
         Args:
             base_dir: Base directory of the project
         """
@@ -28,14 +28,14 @@ class SchemaValidator:
         """Set up logging configuration."""
         logger = logging.getLogger("SchemaValidator")
         logger.setLevel(logging.INFO)
-        
+
         # Create console handler with formatting
         handler = logging.StreamHandler()
         handler.setLevel(logging.INFO)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-        
+
         return logger
 
     def load_schema(self, schema_path: Path) -> dict[str, Any]:
@@ -72,7 +72,7 @@ class SchemaValidator:
     ) -> tuple[bool, list[str], dict[str, Any]]:
         """
         Validate a YAML file against its schema.
-        
+
         Returns:
             Tuple containing:
             - bool: Whether validation was successful
@@ -85,11 +85,11 @@ class SchemaValidator:
                 schema = self.load_schema(schema_path)
             else:
                 schema = self.schemas[schema_path.stem]
-                
+
             # Load and validate YAML
             data = self.load_yaml(yaml_path)
             validate(instance=data, schema=schema)
-            
+
             result = {
                 "file": yaml_path.name,
                 "schema": schema_path.name,
@@ -126,42 +126,49 @@ class SchemaValidator:
 def main() -> None:
     # Get the script's directory and construct paths relative to it
     script_dir = Path(__file__).parent
-    
+
     # Set up argument parser
     parser = argparse.ArgumentParser(description="YAML Schema Validator")
-    parser.add_argument("--schema", type=Path, required=True, 
-                        help="Path to the JSON schema file")
-    parser.add_argument("--source", type=Path, required=True, 
-                        help="Path to the source YAML file")
-    parser.add_argument("--output", type=Path, required=False, default=None,
-                        help="Path to save the validated YAML as JSON")
-    
+    parser.add_argument(
+        "--schema", type=Path, required=True, help="Path to the JSON schema file"
+    )
+    parser.add_argument(
+        "--source", type=Path, required=True, help="Path to the source YAML file"
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=False,
+        default=None,
+        help="Path to save the validated YAML as JSON",
+    )
+
     args = parser.parse_args()
-    
+
     # Initialize validator
     validator = SchemaValidator(script_dir)
-    
+
     try:
         # Validate YAML against schema
         is_valid, errors, data = validator.validate_yaml(args.source, args.schema)
-        
+
         if not is_valid:
             validator.logger.error(f"Validation failed: {errors}")
             sys.exit(1)
-            
+
         validator.logger.info(f"Successfully validated {args.source}")
-        
+
         # Save validated data to JSON if output path is provided
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             with args.output.open("w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
             validator.logger.info(f"Saved validated data to {args.output}")
-            
+
     except Exception:
         validator.logger.exception("Validation failed")
         sys.exit(1)
-        
+
     sys.exit(0)
 
 

@@ -15,26 +15,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-          
+
       - name: Install Python dependencies
         run: pip install pyyaml jsonschema
-          
+
       - name: Generate JSON from YAML definitions
         run: |
           mkdir -p form-app/src/assets
-          
+
           python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/prescan_DPIA.yaml \
             --begrippen-yaml sources/begrippenkader-dpia.yaml \
             --output-json form-app/src/assets/PreScanDPIA.json \
             --output-md docs/questions/questions_prescan_DPIA.md
-            
+
           python script/run_all.py \
             --schema schemas/formSchema.json \
             --source sources/DPIA.yaml \
@@ -48,22 +48,22 @@ jobs:
             echo "::error::One or more JSON files were not generated"
             exit 1
           fi
-          
+
           echo "JSON files successfully generated"
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'form-app/package-lock.json'
-          
+
       - name: Install Node dependencies
         run: cd form-app && npm ci
-        
+
       - name: Build the Vue application
         run: |
-          cd form-app 
+          cd form-app
           npm run build
 
           # Verify build output
@@ -72,6 +72,6 @@ jobs:
             echo "::error::index.html not found in dist directory"
             exit 1
           fi
-          
+
           echo "Listing dist directory content:"
           ls -la dist/

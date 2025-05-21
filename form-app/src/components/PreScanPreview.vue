@@ -26,24 +26,38 @@ const getRootTaskId = (taskId: string): string => {
   return taskId.split('.')[0];
 }
 
+// Check if a reference (or array of references) contains a reference to the current DPIA section
+const hasReferenceToDpiaSection = (reference: string | string[], dpiaRootTaskId: string): boolean => {
+  // If reference is a string, check if its root matches the current DPIA root task ID
+  if (typeof reference === 'string') {
+    return getRootTaskId(reference) === dpiaRootTaskId;
+  }
+
+  // If reference is an array, check if any of the references' roots match the current DPIA root task ID
+  if (Array.isArray(reference)) {
+    return reference.some(ref => getRootTaskId(ref) === dpiaRootTaskId);
+  }
+
+  return false;
+}
+
 // Find and load all Pre-scan answers that reference tasks within this DPIA root task section
 const loadPreScanAnswers = () => {
   preScanAnswers.value = []
-
   if (!props.dpiaTaskId) return
 
   const dpiaRootTaskId = getRootTaskId(props.dpiaTaskId)
-
   const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN))
 
   for (const task of preScanTasks) {
     if (task.references && task.references.DPIA) {
-      const referencedDpiaRootTaskId = getRootTaskId(task.references.DPIA)
-
-      if (referencedDpiaRootTaskId === dpiaRootTaskId) {
+      // Check if the task references the current DPIA section
+      if (hasReferenceToDpiaSection(task.references.DPIA, dpiaRootTaskId)) {
         const instanceIds = taskStore.getInstanceIdsForTaskFromNamespace(FormType.PRE_SCAN, task.id)
+
         if (instanceIds.length > 0) {
           const answer = answerStore.getAnswerFromNamespace(FormType.PRE_SCAN, instanceIds[0])
+
           if (answer !== null && answer !== undefined) {
             preScanAnswers.value.push({
               taskId: task.id,
@@ -59,7 +73,6 @@ const loadPreScanAnswers = () => {
 
 onMounted(loadPreScanAnswers)
 watch(() => props.dpiaTaskId, loadPreScanAnswers)
-
 
 // Format answer for display
 const formatAnswer = (answer: string | string[] | null): string => {
@@ -80,7 +93,6 @@ const formatAnswer = (answer: string | string[] | null): string => {
   return answer;
 }
 </script>
-
 <template>
   <div v-if="hasPreScanData" class="rvo-accordion">
     <details class="rvo-accordion__item" open>
@@ -110,4 +122,3 @@ const formatAnswer = (answer: string | string[] | null): string => {
     </details>
   </div>
 </template>
-

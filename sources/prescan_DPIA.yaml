@@ -3,10 +3,10 @@ urn: 'urn:nl:prescan:2.0'
 version: "2.0"
 description: >-
   Een Pre-scan DPIA is een vastlegging van de impact die een bepaalde gegevensverwerking heeft of kan hebben op de privacy van burgers.
-tasks: 
+tasks:
 - task: Inleiding
   description: >-
-    Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG. 
+    Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG.
     Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren.<br><br>
     De Pre-scan DPIA geeft inzicht in zaken zoals:<br>
     • Categorieën persoonsgegevens<br>
@@ -14,59 +14,65 @@ tasks:
     • Rechtsgrond<br>
     • Proportionaliteit van de verwerking<br>
     • Bijzondere aandachtspunten zoals verwerking buiten de Europese Economische Ruimte (EER)<br><br>
-    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), en een Impact Assessment Mensenrechten en Algoritmes (IAMA) 
-    en welke andere privacy producten: een verwerkersovereenkomst, Standard Contractual Clauses.
+    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), en een Impact Assessment Mensenrechten en Algoritmes (IAMA)
+    en welke andere privacy producten: een verwerkersovereenkomst, Standard Contractual Clauses.<br><br>
+    Om je te helpen inzicht te krijgen in de voortgang van je pre-scan, is onderaan elke pagina een uitklapbaar gedeelte 'Tussenresultaten pre-scan' toegevoegd.
+    Hier zie je direct welke assessments op basis van je huidige antwoorden verplicht of aangeraden zijn.
+    Zodra je voldoende informatie hebt verzameld of weet welke assessments van toepassing zijn, kun je het proces versnellen door op 'Markeer als voltooid' te klikken en vervolgens naar 'Volgende stap' te gaan.
+    Je hoeft dan de overige vragen niet meer te beantwoorden.
   id: "0"
-  category: Inleiding/Algemeen 
-  type: 
+  category: Inleiding/Algemeen
+  type:
     - task_group
   repeatable: false
-  tasks: 
+  tasks:
     - task: Scope
-      description: Betreft de scope nieuwe wet- of regelgeving? 
+      description: Betreft de scope nieuwe wet- of regelgeving?
       id: "0.1"
       repeatable: false
-      type: 
+      type:
         - radio_option
       valueType: boolean
-      options: 
+      options:
         - value: true
           label: Ja
         - value: false
           label: Nee
-    - task: Beschrijving van de verwerking 
+    - task: Beschrijving van de verwerking
       description: >-
-        Geef een korte beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het. 
-        Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe. 
-        Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie. 
+        Geef een korte beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het.
+        Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe.
+        Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie.
         Deze input kun je hergebruiken voor paragraaf 1 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.<br>
-        Beschrijf het proces waar de beoogde verwerkingen van persoonsgegevens deel van uitmaken. 
-        Noem daarbij de stappen op hoofdlijnen, betrokken partijen, en welke systemen of applicaties gebruikt zullen worden. 
+        Beschrijf het proces waar de beoogde verwerkingen van persoonsgegevens deel van uitmaken.
+        Noem daarbij de stappen op hoofdlijnen, betrokken partijen, en welke systemen of applicaties gebruikt zullen worden.
       id: "0.2"
       repeatable: false
-      type: 
+      type:
         - open_text
       references:
         prescanModelId: "1"
-        DPIA: "2.1"
+        DPIA: "1.1"
     - task: Doel gegevensverwerking
       description: >-
-        Welk doel wil de organisatie bereiken met de gegevensverwerking? 
+        Welk doel wil de organisatie bereiken met de gegevensverwerking?
         Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
       repeatable: false
-      type: 
+      type:
         - open_text
       references:
         prescanModelId: "2"
-        DPIA: "6.1"
-    - task: Wat is de grondslag voor de verwerking? 
+        DPIA:
+        - "5.1"
+        - "10"
+    - task: Wat is de grondslag voor de verwerking?
       description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.4"
       repeatable: false
-      type: 
+      type:
         - select_option
-      options: 
+      options:
         - value: Toestemming betrokkene
         - value: Noodzakelijk voor overeenkomst
         - value: Wettelijke plicht
@@ -75,96 +81,99 @@ tasks:
         - value: Gerechtvaardigd belang
       references:
         prescanModelId: "3"
-        DPIA: "12.1.1"
+        DPIA: "11.1.1"
     - task: "Cloudgebruik"
       id: "0.5"
-      type: 
+      type:
         - task_group
       repeatable: false
       tasks:
-       - task: Is er sprake van cloudgebruik? 
-         description: Een alternatieve aanduiding is cloudoplossing. 
+       - task: Is er sprake van cloudgebruik?
+         description: Een alternatieve aanduiding is cloudoplossing.
          id: "0.5.1"
          repeatable: false
-         type: 
+         type:
            - radio_option
          valueType: boolean
-         options: 
+         options:
            - value: true
              label: Ja
            - value: false
              label: Nee
-       - task: Selecteer een of meer van onderstaande opties 
+       - task: Selecteer een of meer van onderstaande opties
          description: >-
-            Met Infrastructure as a Service (IaaS) huurt u een IT-infrastructuur (servers en virtuele machines (VM's)), opslag, netwerken, besturingssystemen) bij een cloudprovider op basis van betaling per gebruik. 
-            Platform as a Service (PaaS) verwijst naar diensten die bestaan uit de levering op aanvraag van een omgeving voor het ontwikkelen, testen, leveren en beheren van softwaretoepassingen. 
-            Software-as-a-Service (SaaS) is een methode voor de levering op aanvraag van softwaretoepassingen via het internet, en doorgaans op basis van een abonnement. 
+            Met Infrastructure as a Service (IaaS) huurt u een IT-infrastructuur (servers en virtuele machines (VM's)), opslag, netwerken, besturingssystemen) bij een cloudprovider op basis van betaling per gebruik.
+            Platform as a Service (PaaS) verwijst naar diensten die bestaan uit de levering op aanvraag van een omgeving voor het ontwikkelen, testen, leveren en beheren van softwaretoepassingen.
+            Software-as-a-Service (SaaS) is een methode voor de levering op aanvraag van softwaretoepassingen via het internet, en doorgaans op basis van een abonnement.
             Zie ook <a href="https://www.pianoo.nl/nl/sectoren/ict/ict-categorieen/cloudoplossingen-iaas-paas-saas" target="_blank">Pianoo</a>.
          id: "0.5.2"
-         type: 
+         type:
            - checkbox_option
          repeatable: false
-         options: 
-           - value: Een Saas, IaaS of PaaS oplossing 
-           - value: Cloudopslag van data 
+         options:
+           - value: Een Saas, IaaS of PaaS oplossing
+           - value: Cloudopslag van data
            - value: Een applicatie die gebruik maakt van een subverwerker voor cloudopslag (bijv. Azure, AWS, Google Cloud)
            - value: On premise toepassing met functionaliteiten van het internet vanuit de cloud (hybrid cloud)
-         dependencies: 
-           - type: conditional 
-             condition: 
+         dependencies:
+           - type: conditional
+             condition:
                id: "0.5.1"
-               operator: equals 
-               value: true 
+               operator: equals
+               value: true
              action: show
          references:
            prescanModelId: "4"
-       - task: Welke vorm van cloud betreft het? 
+           DPIA: "4"
+       - task: Welke vorm van cloud betreft het?
          id: "0.5.3"
          repeatable: false
-         type: 
+         type:
            - radio_option
-         options: 
+         options:
            - label: Public cloud
              value: Public cloud
            - label: Private cloud
              value: Private cloud
            - label: Hybrid
              value: Hybrid
-         dependencies: 
-           - type: conditional 
-             condition: 
+         dependencies:
+           - type: conditional
+             condition:
                id: "0.5.1"
-               operator: equals 
-               value: true 
+               operator: equals
+               value: true
              action: show
          references:
            prescanModelId: "5"
+           DPIA: "4"
        - task: Gaat het om materieel public cloudgebruik voor de primaire taak?
          id: "0.5.4"
-         type: 
+         type:
            - radio_option
-         options: 
+         options:
            - value: true
              label: Ja
            - value: false
              label: Nee
-         dependencies: 
-           - type: conditional 
-             condition: 
+         dependencies:
+           - type: conditional
+             condition:
                id: "0.5.1"
-               operator: equals 
-               value: true 
+               operator: equals
+               value: true
              action: show
          repeatable: false
          references:
            prescanModelId: "6"
+           DPIA: "4"
 - task: Gegevensverwerking
   id: "1"
   category: Gegevensverwerking
-  type: 
+  type:
     - task_group
   repeatable: false
-  tasks: 
+  tasks:
   - task: Gewone persoonsgegevens
     id: "1.1"
     type:
@@ -173,12 +182,12 @@ tasks:
     tasks:
       - task: Gaat het systeem categorieën gewone persoonsgegevens verwerken?
         description: >-
-          Er wordt gesproken van gewone persoonsgegevens als een activiteit de classificatie "bevat gewone persoonsgegevens" heeft. In dat geval wordt deze categorie specifiek vastgelegd. 
+          Er wordt gesproken van gewone persoonsgegevens als een activiteit de classificatie "bevat gewone persoonsgegevens" heeft. In dat geval wordt deze categorie specifiek vastgelegd.
         id: "1.1.1"
-        type: 
+        type:
           - radio_option
         valueType: boolean
-        options: 
+        options:
           - value: true
             label: Ja
           - value: false
@@ -186,11 +195,11 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "7"
-      - task: Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer één of meer opties. 
+      - task: Gaat het systeem een van onderstaande gewone persoonsgegevens verwerken? Selecteer één of meer opties.
         id: "1.1.2"
-        type: 
+        type:
         - checkbox_option
-        options: 
+        options:
           - value: 'Categorie gewone persoonsgegevens: Apparaat- en internetgegevens'
           - value: 'Categorie gewone persoonsgegevens: Content'
           - value: 'Categorie gewone persoonsgegevens: Demografische gegevens'
@@ -209,41 +218,44 @@ tasks:
             - when: "gewone_persoonsgegeven >= 6"
               value: 1
         repeatable: false
-        dependencies: 
-          - type: conditional 
-            condition: 
+        dependencies:
+          - type: conditional
+            condition:
               id: "1.1.1"
-              operator: equals 
-              value: true 
+              operator: equals
+              value: true
             action: show
         references:
           prescanModelId: "7"
+          DPIA: "2.1.3" #Categorie Persoonsgegeven
       - task: Specificeer
         id: "1.1.3"
         type:
         - open_text
-        dependencies: 
-        - type: conditional 
-          condition: 
+        dependencies:
+        - type: conditional
+          condition:
             id: "1.1.2"
-            operator: contains 
+            operator: contains
             value: "'Categorie gewone persoonsgegevens: Overige'"
           action: show
         repeatable: false
+        references:
+          DPIA: "2.1.3" #Categorie persoonsgegeven
   - task: Bijzondere persoonsgegevens
     id: "1.2"
     type:
       - task_group
     repeatable: false
     tasks:
-      - task: Gaat het systeem bijzondere persoonsgegevens verwerken? 
+      - task: Gaat het systeem bijzondere persoonsgegevens verwerken?
         description: >-
           Er is sprake van bijzondere persoonsgegevens als een activiteit de classificatie "bijzondere persoonsgegevens" heeft. In dat geval wordt vastgelegd om welk type bijzondere persoonsgegevens het gaat.
         id: "1.2.1"
-        type: 
+        type:
         - radio_option
         valueType: boolean
-        options: 
+        options:
         - value: true
           label: Ja
         - value: false
@@ -251,12 +263,12 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "8"
-          DPIA: "13.1.1"
-      - task: Gaat het systeem een van onderstaande bijzondere persoonsgegevens verwerken? Selecteer één of meer opties. 
+          DPIA: "12.1.1" #Type bijzondere persoonsgegevens
+      - task: Gaat het systeem een van onderstaande bijzondere persoonsgegevens verwerken? Selecteer één of meer opties.
         id: "1.2.2"
-        type: 
+        type:
         - checkbox_option
-        options: 
+        options:
         - value: 'Type bijzondere persoonsgegevens: Biometrische gegevens met het oog op de unieke identificatie van een persoon'
         - value: 'Type bijzondere persoonsgegevens: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid'
         - value: 'Type bijzondere persoonsgegevens: Gegevens over gezondheid'
@@ -265,12 +277,12 @@ tasks:
         - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit politieke opvattingen blijken'
         - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit ras of etnische afkomst blijkt'
         - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken'
-        dependencies: 
-        - type: conditional 
-          condition: 
+        dependencies:
+        - type: conditional
+          condition:
             id: "1.2.1"
-            operator: equals 
-            value: true 
+            operator: equals
+            value: true
           action: show
         repeatable: false
         calculation:
@@ -285,21 +297,23 @@ tasks:
               value: 2
         references:
           prescanModelId: "8"
-          DPIA: "13.1.2.4"
+          DPIA:
+          - "2.1.3"
+          - "12.1.2.4"
   - task: Overige gevoelige persoonsgegevens
     id: "1.3"
     type:
       - task_group
     repeatable: false
     tasks:
-      - task: Gaat het systeem ook andere gevoelige persoonsgegevens verwerken? 
+      - task: Gaat het systeem ook andere gevoelige persoonsgegevens verwerken?
         description: >-
           Er is sprake van gevoelige persoonsgegevens als een activiteit de classificatie "gevoelige persoonsgegevens" heeft. In dat geval wordt vastgelegd om welke categorie gevoelige persoonsgegevens het gaat.
         id: "1.3.1"
-        type: 
+        type:
         - radio_option
         valueType: boolean
-        options: 
+        options:
         - value: true
           label: Ja
         - value: false
@@ -307,11 +321,11 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "9"
-      - task: Gaat het systeem een van onderstaande gevoelige persoonsgegevens verwerken? Selecteer één of meer opties. 
+      - task: Gaat het systeem een van onderstaande gevoelige persoonsgegevens verwerken? Selecteer één of meer opties.
         id: "1.3.2"
-        type: 
+        type:
         - checkbox_option
-        options: 
+        options:
           - value: 'Categorie gevoelige persoonsgegevens: Surfgedrag'
           - value: 'Categorie gevoelige persoonsgegevens: Gegevens over de financiële situatie van de betrokkene'
           - value: 'Categorie gevoelige persoonsgegevens: Gegevens die kunnen worden gebruikt voor (identiteits)fraude'
@@ -331,29 +345,30 @@ tasks:
               value: 1
             - when: "gevoelig_persoonsgegeven > 6"
               value: 2
-        dependencies: 
-        - type: conditional 
-          condition: 
+        dependencies:
+        - type: conditional
+          condition:
             id: "1.3.1"
-            operator: equals 
-            value: true 
+            operator: equals
+            value: true
           action: show
         repeatable: false
         references:
           prescanModelId: "9"
+          DPIA: "2.1.3" #Categorie persoonsgegevens
   - task: Categorieën betrokkene
     description: >-
       Er wordt ook vastgelegd welke categorie betrokkenen onderwerp zijn van de gegevens die worden verwerkt, evenals het aantal betrokkenen in die categorie.
-    id: "1.4" 
-    type: 
+    id: "1.4"
+    type:
     - task_group
     repeatable: false
     tasks:
-      - task: Welke categorieën betrokkene kun je onderscheiden? 
+      - task: Welke categorieën betrokkene kun je onderscheiden?
         id: "1.4.1"
         type:
         - checkbox_option
-        options: 
+        options:
           - value: 'Categorie betrokkenen: Medewerkers/bewindspersonen'
           - value: 'Categorie betrokkenen: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie'
           - value: 'Categorie betrokkenen: Kinderen jonger dan 16 jaar'
@@ -378,46 +393,47 @@ tasks:
               value: 1
             - when: "betrokkenen >= 4"
               value: 2
-        repeatable: false 
+        repeatable: false
         references:
           prescanModelId: "10"
+          DPIA: "2.1.2"
       - task: Specificeer
         id: "1.4.2"
         type:
         - open_text
-        dependencies: 
-        - type: conditional 
-          condition: 
+        dependencies:
+        - type: conditional
+          condition:
             id: "1.4.1"
-            operator: contains 
+            operator: contains
             value: "'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'"
           action: show
-        repeatable: false 
-  - task: Wat is naar schatting de omvang van de gegevensset/de verwerking? 
+        repeatable: false
+  - task: Wat is naar schatting de omvang van de gegevensset/de verwerking?
     id: "1.5"
-    type: 
+    type:
     - task_group
     repeatable: false
     references:
       prescanModelId: "11"
-    tasks: 
+    tasks:
       - task: Is het totale aantal betrokkenen gelijk aan of groter dan 10.000?
-        description: >- 
-          Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, 
+        description: >-
+          Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,
           kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
         id: "1.5.1"
-        type: 
+        type:
         - radio_option
         valueType: boolean
         options:
-        - value: true 
+        - value: true
           label: Ja
         - value: false
           label: Nee
         repeatable: false
         calculation:
           scoreKey: "aantal_betrokkenen"
-          expression: "answers('1.5.1')" 
+          expression: "answers('1.5.1')"
           riskScore:
             - when: "bool(aantal_betrokkenen) == true"
               value: 1
@@ -425,26 +441,26 @@ tasks:
               value: 0
         references:
           prescanModelId: "11.a"
-      - task: Is de hoeveelheid gegevens die wordt verwerkt van alle betrokkene gelijk aan of groter dan 10.000? #RM: deze vraag heeft geen invloed op de uitkomst. 
-        description: >- 
-            Hieronder vallen gegevens : medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie, 
+      - task: Is de hoeveelheid gegevens die wordt verwerkt van alle betrokkene gelijk aan of groter dan 10.000? #RM: deze vraag heeft geen invloed op de uitkomst.
+        description: >-
+            Hieronder vallen gegevens : medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,
             kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
         id: "1.5.2"
-        type: 
+        type:
         - radio_option
         valueType: boolean
         options:
-        - value: true 
+        - value: true
           label: Ja
         - value: false
           label: Nee
         repeatable: false
         references:
           prescanModelId: "11.b"
-      - task: Frequentie van verwerking 
+      - task: Frequentie van verwerking
         id: "1.5.3"
-        type: 
-        - select_option 
+        type:
+        - select_option
         options:
           - value: 'Continu'
           - value: 'Vaker dan maandelijks'
@@ -463,9 +479,9 @@ tasks:
             value: 1
         references:
           prescanModelId: "11.c"
-      - task: Wat is de bewaartermijn van de gegevens? 
+      - task: Wat is de bewaartermijn van de gegevens?
         id: "1.5.4"
-        type: 
+        type:
         - select_option
         options:
           - value: 'Aantal jaren'
@@ -479,62 +495,32 @@ tasks:
           scoreKey: "bewaartermijn"
           riskScore:
             - when: "bewaartermijn == null"
-              value: 0  
+              value: 0
             - when: "bewaartermijn in ['Minder dan 24 uur', 'Minder dan 1 week', 'Minder dan 1 maand']"
               value: 0
             - when: "bewaartermijn in ['Jaar', 'Aantal jaren']"
               value: 1
         references:
           prescanModelId: "11.c"
-          DPIA: "11.1.1.4"
-  - task: Zijn de volgende gebruikersgroepen betrokken bij de verwerking? 
-    id: "1.6"
-    type:
-    - task_group
-    repeatable: false
-    references:
-      prescanModelId: "12"
-    tasks: 
-    - task: Afnemers van de dienst? Bijvoorbeeld burgers die een dienst van de overheid afnamen. 
-      id: "1.6.1"
-      type: 
-      - radio_option
-      valueType: boolean
-      options:
-      - value: true 
-        label: Ja
-      - value: false
-        label: Nee
-      repeatable: false
-    - task: Afnemers van de informatie? Bijvoorbeeld (collega)overheidsorganan die informatie uit de applicatie of het proces halen? 
-      id: "1.6.2"
-      type: 
-      - radio_option
-      valueType: boolean
-      options:
-      - value: true 
-        label: Ja
-      - value: false
-        label: Nee
-      repeatable: false
-- task: Internationale doorgiften 
+          DPIA: "10.1.1.4"
+- task: Internationale doorgiften
   id: "2"
-  type: 
+  type:
   - task_group
   repeatable: false
-  tasks: 
+  tasks:
   - task: Internationale doorgiften
     id: "2.1"
     type:
       - task_group
     repeatable: false
     tasks:
-      - task: Is er sprake van internationale doorgifte buiten de Europese Economische Ruimte (EER)? 
+      - task: Is er sprake van internationale doorgifte buiten de Europese Economische Ruimte (EER)?
         id: "2.1.1"
-        type: 
+        type:
         - radio_option
         valueType: boolean
-        options: 
+        options:
         - value: true
           label: Ja
         - value: false
@@ -542,42 +528,42 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "13"
-      - task: Waar is het hoofdkantoor van de cloudprovider gevestigd? 
+      - task: Waar is het hoofdkantoor van de cloudprovider gevestigd?
         id: "2.1.2"
-        type: 
+        type:
         - radio_option
-        options: 
+        options:
         - value: Binnen EER
           label: Binnen EER
-        - value: Buiten EER 
-          label: Buiten EER 
-        dependencies: 
-          - type: conditional 
-            condition: 
+        - value: Buiten EER
+          label: Buiten EER
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
         references:
           prescanModelId: "14"
-          DPIA: "9.1.1"
-      - task: Waar vindt de opslag van de gegevens contractueel plaats? 
+          DPIA: "8.1.1"
+      - task: Waar vindt de opslag van de gegevens contractueel plaats?
         id: "2.1.3"
-        type: 
+        type:
         - radio_option
-        options: 
-        - label: On premise 
+        options:
+        - label: On premise
           value: On premise
         - label: Datacenter EER
           value: Datacenter EER
-        - label: Buiten EER 
+        - label: Buiten EER
           value: Buiten EER
-        dependencies: 
-          - type: conditional 
-            condition: 
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
@@ -585,68 +571,68 @@ tasks:
           prescanModelId: "15"
       - task: Van waaruit wordt er support geleverd?
         id: "2.1.4"
-        type: 
+        type:
         - radio_option
-        options: 
+        options:
         - value: Binnen EER
           label: Binnen EER
-        - value: Buiten EER 
-          label: Buiten EER 
-        dependencies: 
-          - type: conditional 
-            condition: 
+        - value: Buiten EER
+          label: Buiten EER
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
         references:
           prescanModelId: "16"
-      - task: Waar worden telemetrie en/of diagnostische gegevens verwerkt? 
+      - task: Waar worden telemetrie en/of diagnostische gegevens verwerkt?
         id: "2.1.5"
-        type: 
+        type:
         - radio_option
-        options: 
+        options:
         - value: Binnen EER
           label: Binnen EER
-        - value: Buiten EER 
-          label: Buiten EER 
-        dependencies: 
-          - type: conditional 
-            condition: 
+        - value: Buiten EER
+          label: Buiten EER
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
         references:
           prescanModelId: "17"
-      - task: Mechanisme(s) voor doorgifte 
+      - task: Mechanisme(s) voor doorgifte
         id: "2.1.6"
-        type: 
+        type:
         - radio_option
-        options: 
+        options:
         - value: Adequaatheidsbesluit
-          label: Adequaatheidsbesluit
+          label: "Doorgiftemechanisme: Adequaatheidsbesluit"
         - value: Standaard contractsbepaling (SCC)
-          label: Standaard contractsbepaling (SCC)
+          label: "Doorgiftemechanisme: Standaard contractsbepaling"
         - value: binding corporate rules/bindend bedrijfsvoorschrift (bcr)
-          label: binding corporate rules/bindend bedrijfsvoorschrift (bcr)
-        - value: Goedgekeurde certificeringsmechanisme 
-          label: Goedgekeurde certificeringsmechanisme
-        - value: Goedgekeurde gedragscode 
-          label: Goedgekeurde gedragscode
-        - value: Juridisch bindend en afdwingbaar instrument 
-          label: Juridisch bindend en afdwingbaar instrument
-        - value: uitzondering artikel 49 avg 
-          label: uitzondering artikel 49 avg
+          label: "Doorgiftemechanisme: Bindend bedrijfsvoorschrift"
+        - value: Goedgekeurde certificeringsmechanisme
+          label: "Doorgiftemechanisme: Goedgekeurd certificeringsmechanisme"
+        - value: Goedgekeurde gedragscode
+          label: "Doorgiftemechanisme: Goedgekeurde gedragscode"
+        - value: Juridisch bindend en afdwingbaar instrument
+          label: "Doorgiftemechanisme: Juridisch bindend en afdwingbaar instrument"
+        - value: uitzondering artikel 49 avg
+          label: "Doorgiftemechanisme: Uitzondering artikel 49 avg"
         - value: Overig mechanisme
-          label: Overig mechanisme
-        dependencies: 
-          - type: conditional 
-            condition: 
+          label: "Doorgiftemechanisme: Overig mechanisme"
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
@@ -656,30 +642,30 @@ tasks:
         id: "2.1.7"
         type:
         - text_input
-        dependencies: 
-        - type: conditional 
-          condition: 
+        dependencies:
+        - type: conditional
+          condition:
             id: "2.1.6"
-            operator: equals 
+            operator: equals
             value: Overig mechanisme
           action: show
         repeatable: false
         references:
           prescanModelId: "18"
-      - task: Bevat de doorgifte ook bijzondere persoonsgegevens? 
+      - task: Bevat de doorgifte ook bijzondere persoonsgegevens?
         id: "2.1.8"
-        type: 
+        type:
         - radio_option
-        options: 
+        options:
         - value: true
           label: Ja
         - value: false
           label: Nee
-        dependencies: 
-          - type: conditional 
-            condition: 
+        dependencies:
+          - type: conditional
+            condition:
               id: "2.1.1"
-              operator: equals 
+              operator: equals
               value: true
             action: show
         repeatable: false
@@ -697,17 +683,17 @@ tasks:
           prescanModelId: "19"
 - task: Lijst AP
   id: "3"
-  type: 
+  type:
   - task_group
   repeatable: false
-  tasks: 
-  - task: Welke groepen betrokkenen kun je onderscheiden? 
+  tasks:
+  - task: Welke groepen betrokkenen kun je onderscheiden?
     description: >-
       Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de Autoriteit Persoonsgegevens (AP). Deze lijst bevat soorten gegevensverwerkingen waarvoor een DPIA verplicht is.
     id: "3.1"
-    type: 
+    type:
     - checkbox_option
-    options: 
+    options:
       - value: 'Lijst AP: Biometrische gegevens'
       - value: 'Lijst AP: Cameratoezicht'
       - value: 'Lijst AP: Communicatiegegevens'
@@ -738,17 +724,17 @@ tasks:
       prescanModelId: "D"
 - task: Lijst EDPB
   id: "4"
-  type: 
+  type:
   - task_group
   repeatable: false
-  tasks: 
-  - task: Welke categorieën betrokkenen kun je onderscheiden? 
+  tasks:
+  - task: Welke categorieën betrokkenen kun je onderscheiden?
     id: "4.1"
-    description: >- 
+    description: >-
      Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is.
-    type: 
+    type:
     - checkbox_option
-    options: 
+    options:
       - value: 'Lijst EDPB: Bijzondere persoonsgegevens of zeer gevoelige persoonsgegevens'
       - value: 'Lijst EDPB: Blokkering van een dienst, recht of contract'
       - value: 'Lijst EDPB: Geautomatiseerde besluitvorming'
@@ -769,9 +755,9 @@ tasks:
     repeatable: false
     references:
       prescanModelId: "E"
-- task: Basisregistratie #should be removed, where can we find this info? 
+- task: Basisregistratie #should be removed, where can we find this info?
   id: "5"
-  type: 
+  type:
     - task_group
   repeatable: false
   references:
@@ -783,22 +769,22 @@ tasks:
         - task_group
       repeatable: false
       tasks:
-        - task: Betreft het een basisregistratie? 
+        - task: Betreft het een basisregistratie?
           id: "5.1.1"
-          type: 
+          type:
             - radio_option
           valueType: boolean
-          options: 
+          options:
             - value: true
               label: Ja
             - value: false
               label: Nee
           repeatable: false
-        - task: Van welke basisregistraties wordt gebruik gemaakt? 
+        - task: Van welke basisregistraties wordt gebruik gemaakt?
           id: "5.1.2"
-          type: 
+          type:
             - checkbox_option
-          options: 
+          options:
             - value: 'Basisregistratie: Basisregistratie Grootschalige Topografie (BGT)'
             - value: 'Basisregistratie: Basisregistratie Inkomen (BRI)'
             - value: 'Basisregistratie: Basisregistratie Kadaster (BRK)'
@@ -809,11 +795,11 @@ tasks:
             - value: 'Basisregistratie: Basisregistratie Waarde Onroerende Zaken (WOZ)'
             - value: 'Basisregistratie: Handelsregister (HR)'
             - value: 'Basisregistratie: Basisregistratie Adressen en Gebouwen (BAG)'
-          dependencies: 
-            - type: conditional 
-              condition: 
+          dependencies:
+            - type: conditional
+              condition:
                 id: "5.1.1"
-                operator: equals 
+                operator: equals
                 value: true
               action: show
           repeatable: false
@@ -846,59 +832,58 @@ tasks:
     Bij het verwerken van persoonsgegevens kan gebruik worden gemaakt van een algoritme. Als dat gebeurt, wordt genoteerd dat er sprake is van inzet van een algoritme, en of dit algoritme een AI-systeem betreft.
     Wanneer het algoritme valt onder de definitie van een AI-systeem, ontstaat een IAMA-verplichting.
   id: "6"
-  type: 
+  type:
   - task_group
   repeatable: false
   tasks:
   - task: Algoritmes en AI
     id: "6.1"
-    type: 
+    type:
     - task_group
     repeatable: false
     tasks:
-    - task: Wordt er gebruik gemaakt van een algoritme? 
-      description: Indien overheidsorganisaties gebruik maken van een algoritme waarbij persoonsgegevens worden verwerkt, dan is het uitvoeren van een Impact Assessment Mensenrechten en Algoritmen (IAMA) sterk aanbevolen. 
+    - task: Wordt er gebruik gemaakt van een algoritme?
+      description: Indien overheidsorganisaties gebruik maken van een algoritme waarbij persoonsgegevens worden verwerkt, dan is het uitvoeren van een Impact Assessment Mensenrechten en Algoritmen (IAMA) sterk aanbevolen.
       id: "6.1.1"
       type:
       - radio_option
       valueType: boolean
       references:
         prescanModelId: "G"
-        DPIA: "5"
-      
-      options: 
+        DPIA: "4"
+      options:
       - value: true
         label: Ja
       - value: false
-        label: Nee 
-      repeatable: false 
+        label: Nee
+      repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
-      description: Indien overheidsorganisaties een AI-systeem met een hoog risico in de zin van de EU AI-verordening gebruiken of in gebruik willen nemen, 
-        is het uitvoeren van een IAMA sterk aanbevolen. Met ingang van 2 augustus 2026 verplicht artikel 27 van de EU AI-verordening gebruikers van een AI-systeem met een hoog risico om voorafgaand aan ingebruikneming een Fundamental Rights Impact Assessment (FRIA) uit te voeren. 
+      description: Indien overheidsorganisaties een AI-systeem met een hoog risico in de zin van de EU AI-verordening gebruiken of in gebruik willen nemen,
+        is het uitvoeren van een IAMA sterk aanbevolen. Met ingang van 2 augustus 2026 verplicht artikel 27 van de EU AI-verordening gebruikers van een AI-systeem met een hoog risico om voorafgaand aan ingebruikneming een Fundamental Rights Impact Assessment (FRIA) uit te voeren.
         Indien bij de verwerking van persoonsgegevens gebruik wordt gemaakt van een AI-systeem, dan stelt de AI-verordening mogelijk aanvullende vereisten. Raadpleeg het  <a href="https://minbzk.github.io/Algoritmekader/" target="_blank">Algoritmekader</a> voor meer informatie.
       id: "6.1.2"
       type:
       - radio_option
       valueType: boolean
-      options: 
+      options:
       - value: true
         label: Ja
       - value: false
-        label: Nee 
+        label: Nee
       repeatable: false
-      dependencies: 
-      - type: conditional 
-        condition: 
+      dependencies:
+      - type: conditional
+        condition:
           id: "6.1.1"
-          operator: equals 
+          operator: equals
           value: true
         action: show
 - task: Kinderrechten
-  description: >- 
+  description: >-
     Bij het verwerken van persoonsgegevens kan er een digitale dienst worden aangeboden die gericht is op personen jonger dan 18 jaar.<br>
     Als de dienst primair bedoeld is voor deze doelgroep, moet een Kinderrechten Impact Assessment (KIA) worden uitgevoerd. In dat geval is er sprake van een KIA-verplichting.
   id: "7"
-  type: 
+  type:
   - task_group
   repeatable: false
   tasks:
@@ -908,53 +893,53 @@ tasks:
       - task_group
     repeatable: false
     tasks:
-    - task: Biedt u een digitale dienst aan of gebruikt u deze? 
+    - task: Biedt u een digitale dienst aan of gebruikt u deze?
       id: "7.1.1"
       type:
       - radio_option
       valueType: boolean
-      options: 
+      options:
       - value: true
         label: Ja
       - value: false
-        label: Nee 
+        label: Nee
       repeatable: false
     - task: Biedt u een digitale dienst aan die primair bedoeld is voor gebruik door personen jonger dan 18 jaar?
       id: "7.1.2"
       type:
       - radio_option
       valueType: boolean
-      options: 
+      options:
       - value: true
         label: Ja
       - value: false
-        label: Nee 
+        label: Nee
       repeatable: false
-      dependencies: 
-        - type: conditional 
-          condition: 
+      dependencies:
+        - type: conditional
+          condition:
             id: "7.1.1"
-            operator: equals 
-            value: true 
+            operator: equals
+            value: true
           action: show
-    - task: Kunt u aantonen dat de dienst niet zal worden gebruikt door personen jonger dan 18 jaar of deze niet wordt ingezet bij personen jonger dan 18 jaar? 
+    - task: Kunt u aantonen dat de dienst niet zal worden gebruikt door personen jonger dan 18 jaar of deze niet wordt ingezet bij personen jonger dan 18 jaar?
       description: Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst.
       id: "7.1.3"
       type:
       - radio_option
       repeatable: false
       valueType: boolean
-      options: 
+      options:
       - value: true
         label: Ja
       - value: false
-        label: Nee 
-      dependencies: 
-        - type: conditional 
-          condition: 
+        label: Nee
+      dependencies:
+        - type: conditional
+          condition:
             id: "7.1.1"
-            operator: equals 
-            value: true 
+            operator: equals
+            value: true
           action: show
           calculation:
             scoreKey: "digitaledienst_minderjarig"
@@ -968,16 +953,16 @@ tasks:
                 value: 2
 assessments:
   - id: "DPIA"
-    levels: 
+    levels:
       - level: "required"
-        expression: "criteria.wetgeving || criteria.riskscore || criteria.aplist || criteria.edpblist2" 
+        expression: "criteria.wetgeving || criteria.riskscore || criteria.aplist || criteria.edpblist2"
         result: "DPIA verplicht"
         criteria:
           - id: "wetgeving"
             expression: "bool(answers('0.1'))"
             explanation: "er sprake is van nieuwe wet- of regelgeving"
           - id: "riskscore"
-            expression: "( 
+            expression: "(
               (bool(answers('1.1.1')) && (scores.gewone_persoonsgegeven || 0)) +
               (bool(answers('1.2.1')) && (scores.bijzonder_persoonsgegeven || 0)) +
               (bool(answers('1.3.1')) && (scores.gevoelig_persoonsgegeven || 0)) +
@@ -1004,7 +989,7 @@ assessments:
             expression: "countSelectedOptions('4.1') == 1"
             explanation: "omdat er precies 1 item op de EDPB-lijst is geselecteerd."
   - id: "DTIA"
-    levels: 
+    levels:
       - level: "required"
         expression: "criteria.internationale_doorgifte && criteria.mechanisme"
         result: "DTIA verplicht"
@@ -1016,10 +1001,10 @@ assessments:
             expression: "answers('2.1.6') in ['Standaard contractsbepaling (SCC)', 'Overig mechanisme']"
             explanation: "er gebruik wordt gemaakt van Standaard contractsbepalingen (SCC) of een overig mechanisme"
   - id: "KIA"
-    levels: 
+    levels:
       - level: "required"
         expression: "criteria.digitale_dienst && criteria.minderjarigen"
-        result: "KIA verplicht" 
+        result: "KIA verplicht"
         criteria:
           - id: "digitale_dienst"
             expression: "bool(answers('7.1.1'))"
@@ -1028,10 +1013,10 @@ assessments:
             expression: "bool(answers('7.1.2'))"
             explanation: "deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
   - id: "IAMA"
-    levels: 
+    levels:
       - level: "required"
         expression: "criteria.algoritme || criteria.ai_systeem"
-        result: "IAMA verplicht"
+        result: "IAMA mogelijk verplicht"
         criteria:
           - id: "algoritme"
             expression: "bool(answers('6.1.1'))"

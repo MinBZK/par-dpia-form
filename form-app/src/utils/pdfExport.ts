@@ -47,36 +47,10 @@ export async function exportToPdf(
   }
 
   // Ordered content array for PDF
-  const contentSections: Content[] = []
+  const contentSections: Content[] = activeNamespace === FormType.DPIA
+    ? buildDpiaContentSections(taskStore, answerStore)
+    : buildPreScanContentSections(taskStore, answerStore, calculationStore)
 
-  // First add the management summary if it exists (as chapter 0)
-  if (managementSummaryTask) {
-    contentSections.push(
-      buildManagementSummarySection(managementSummaryTask, taskStore, answerStore)
-    )
-  }
-
-  let startSection = 1;
-  if (activeNamespace === FormType.PRE_SCAN && calculationStore) {
-    // Ensure calculation store is initialized
-    if (!calculationStore.assessmentResults.length) {
-      calculationStore.init()
-    }
-
-    contentSections.push(
-      buildResultsSection(calculationStore, startSection)
-    )
-
-    startSection++
-  }
-
-  let currentSection = startSection
-  rootTasks.forEach(task => {
-    if (task.id !== "19") { // Skip the management summary as we've already added it
-      contentSections.push(buildNumberedSection(task, taskStore, answerStore, currentSection))
-      currentSection++
-    }
-  })
 
   const dpiaStyleDictionary: StyleDictionary = {
     title: {
@@ -213,6 +187,71 @@ export async function exportToPdf(
   }
 }
 
+function buildDpiaContentSections(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType
+): Content[] {
+  const rootTasks = taskStore.getRootTasks
+  const contentSections: Content[] = []
+
+  // Find special tasks by ID
+  const metadataTask = rootTasks.find(task => task.id === "19") // Version, Status, DPIA-dossier, etc.
+  const signingTask = rootTasks.find(task => task.id === "20") // Signing
+  const managementSummaryTask = rootTasks.find(task => task.id === "18") // Management summary
+
+  // Get official tasks (numbered sections)
+  const officialTasks = rootTasks.filter(task =>
+    task.is_official_id &&
+    !task.type.includes('signing')
+  )
+
+  // 1. Add "Versie, Status, DPIA-dossier..." section (19)
+  if (metadataTask) {
+    contentSections.push(buildUnNumberedSection(metadataTask, taskStore, answerStore))
+  }
+
+  // 2. Add "Vaststelling en ondertekening" section (20)
+  if (signingTask) {
+    contentSections.push(buildUnNumberedSection(signingTask, taskStore, answerStore))
+  }
+
+  // 3. Add "Managementsamenvatting" section (18)
+  if (managementSummaryTask) {
+    contentSections.push(buildUnNumberedSection(managementSummaryTask, taskStore, answerStore))
+  }
+
+  // 4. Add numbered sections (1-17)
+  let sectionNumber = 1
+  for (const task of officialTasks) {
+    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
+    sectionNumber++
+  }
+
+  return contentSections
+}
+
+function buildPreScanContentSections(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+  calculationStore: CalculationStoreType
+): Content[] {
+  // Get non-signing root tasks
+  const rootTasks = taskStore.getRootTasks.filter(task => !task.type.includes('signing'))
+  const contentSections: Content[] = []
+
+  // 1. Add results section first
+  contentSections.push(buildResultsSection(calculationStore, 1))
+
+  // 2. Add all other sections with incremented section numbers
+  let sectionNumber = 2
+  for (const task of rootTasks) {
+    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
+    sectionNumber++
+  }
+
+  return contentSections
+}
+
 // Special function to build the results section for Pre-scan
 function buildResultsSection(
   calculationStore: CalculationStoreType,
@@ -272,7 +311,7 @@ function buildResultsSection(
 }
 
 // Special function to build the management summary section
-function buildManagementSummarySection(
+function buildUnNumberedSection(
   task: FlatTask,
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,

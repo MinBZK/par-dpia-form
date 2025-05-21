@@ -22,6 +22,10 @@
                     "type": "string",
                     "pattern": "^[0-9]+(\\.[0-9]+)*"
                 },
+                "is_official_id": {
+                    "type": "boolean",
+                    "description": "Optional to declare if the ID matches with the Rapportagemodel DPIA"
+                },
                 "type": {
                     "type": "array",
                     "items": {
@@ -92,7 +96,17 @@
                     "type": "object",
                     "description": "References to external systems or documents",
                     "additionalProperties": {
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        ]
                     },
                     "examples": [
                         {

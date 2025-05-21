@@ -6,7 +6,7 @@ A standalone web application for completing Data Protection Impact Assessments (
 
 ## Introduction
 
-The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA forms and generating reports without requiring installation or server hosting. 
+The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA forms and generating reports without requiring installation or server hosting.
 The Pre-scan DPIA form help organizations evaluate privacy risks associated with data processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten Impact Assessment) is necessary.
 
 ## Key features
@@ -54,7 +54,7 @@ par-dpia-form/
 |
 ├── docs/                               # Docs for all documentation
 │   ├── PDR/                            # Folder for all Product Decision Records (PDR)
-│   └── standard/                       # Folder for info on standard 
+│   └── standard/                       # Folder for info on standard
 │   └── questions/                      # Folder with tables with questions
 │
 ├── script/                             # Processing and validation scripts
@@ -84,7 +84,7 @@ and ultimately produces a standalone HTML file that can be used without installa
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/MinBZK/par-dpia-form.git 
+git clone https://github.com/MinBZK/par-dpia-form.git
 cd par-dpia-form
 ```
 
@@ -151,7 +151,7 @@ Tools for validating YAML files against JSON schemas and enriching content with 
 
 Install `uv`, a Python package manager:
 
-```bash 
+```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 or see instructions on the [uv website](https://docs.astral.sh/uv/getting-started/installation/).
@@ -159,7 +159,7 @@ or see instructions on the [uv website](https://docs.astral.sh/uv/getting-starte
 ### Components
 
 - `schema_validator.py` - Validates YAML files against JSON schemas
-- `sync_begrippenkader.py` - Manages the glossary (begrippenkader) 
+- `sync_begrippenkader.py` - Manages the glossary (begrippenkader)
 - `definition_enricher.py` - Enriches data with tooltip definitions
 - `run_sync_validate_and_inject.py` - Combines all functionalities
 
@@ -167,7 +167,7 @@ or see instructions on the [uv website](https://docs.astral.sh/uv/getting-starte
 
 The `sources/` directory contains DPIA form specifications:
 - `DPIA.yaml` - Tasks within the DPIA
-- `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA 
+- `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA
 - `begrippenkader-dpia.yaml` - Glossary items
 
 JSON-schemas are in the `schemas/` directory.

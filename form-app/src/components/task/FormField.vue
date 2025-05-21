@@ -3,6 +3,7 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
+import { useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -13,8 +14,26 @@ const props = defineProps<{
 }>()
 
 const answerStore = useAnswerStore()
+const taskStore = useTaskStore()
+const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 
-const { getSourceOptions, getDependencySourceTaskId} = useTaskDependencies()
+function getSourceTaskId(task: FlatTask): string {
+  const sourceIdWithPath = getDependencySourceTaskId.value(task);
+  return sourceIdWithPath?.split('.')[0] || '';
+}
+
+const dependencyTaskName = computed(() => {
+  const sourceId = getSourceTaskId(props.task);
+  if (!sourceId) return '';
+
+  try {
+    const sourceTask = taskStore.taskById(sourceId);
+    return sourceTask.task;
+  } catch (error) {
+    return '';
+  }
+});
+
 
 function convertStringValue(value: string | null, typeSpec: string): null | string | boolean {
   if (value === null) return null
@@ -158,7 +177,7 @@ const handleCheckboxInput = (event: Event) => {
             class="utrecht-radio-button"
             @change="handleRadioInput"
           />
-          {{ option.label }}
+          <span v-html="option.label"</span>
         </label>
       </div>
     </div>
@@ -196,7 +215,7 @@ const handleCheckboxInput = (event: Event) => {
           <input
             :id="`${task.id}-${instanceId}-${option}`"
             :value="option"
-            :checked="!currentValue || (currentValue as string[]).includes(option)"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option)"
             :name="`group-${task.id}-${instanceId}`"
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
@@ -217,7 +236,7 @@ const handleCheckboxInput = (event: Event) => {
           <input
             :id="`${task.id}-${instanceId}-${safeString(option.value)}`"
             :value="option.value"
-            :checked="!currentValue ? false : (currentValue as string[]).includes(safeString(option.value))"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
             :name="`group-${task.id}-${instanceId}`"
             @change="handleCheckboxInput"
             class="rvo-checkbox__input"
@@ -228,8 +247,13 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
     <div v-else>
-      Vul eerst vraag {{ getDependencySourceTaskId(task)?.split('.')[0] || '' }} in.
-    </div>
+      <div v-if="!['0', '18', '19', '20'].includes(getSourceTaskId(task))">
+        Vul eerst sectie {{ getSourceTaskId(task) }}: "{{ dependencyTaskName }}" in.
+      </div>
+      <div v-else>
+        Vul eerst sectie "{{ dependencyTaskName }}" in.
+      </div>
+      </div>
   </div>
 
 
