@@ -145,7 +145,7 @@ tasks:
                     operator: equals
                     value: true
                   action: show
-            - task: Verstrekkingsgrond
+            - task: Rechtsgrond verstrekking
               id: "2.1.9"
               type:
                 - text_input
@@ -180,12 +180,12 @@ tasks:
             - task_group
           repeatable: true
           tasks:
-            - task: Naam van de gegevensverwerking
+            - task: Gegevensverwerking naam
               id: "3.1.1"
               type:
                - text_input
               repeatable: false
-            - task: Beschrijving van de gegevensverwerking
+            - task: Gegevensverwerking beschrijving
               id: "3.1.2"
               type:
                - text_input
@@ -224,7 +224,15 @@ tasks:
     Technieken en methoden van de gegevensverwerkingen
    description: >-
       Beschrijf op welke wijze en met gebruikmaking van welke technieken en methoden van gegevensverwerking de persoonsgegevens worden verwerkt. Benoem, in het
-      bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.
+      bijzonder, of sprake is van (semi-) geautomatiseerde besluitvorming, profilering, een cloudoplossing, kunstmatige intelligentie en algoritmen of big data-verwerkingen.<br><br>
+
+      Sommige technieken en methoden vereisen dat er extra gegevens worden vastgelegd. Dat gebeurt in de volgende gevallen:<br>
+      • Indien er sprake is van de inzet van een algoritme, dan is de DPIA een DPIA met algoritme. Daarbij wordt een algoritme toelichting vastgelegd, evenals een aanduiding of er sprake is van inzet van een AI-systeem.<br>
+      • Indien er sprake is van een Big data-verwerking, dan is de DPIA dus een DPIA met big data-verwerking en wordt er een Big data-verwerking toelichting vastgelegd.<br>
+      • Indien er sprake is van een Cloudoplossing, dan is de DPIA dus een DPIA met cloudoplossing en wordt er een [Cloudoplossing toelichting](#cloudoplossing toelichting) vastgelegd.<br>
+      • Indien er sprake is van [geautomatiseerde besluitvorming](#geautomatiseerde besluitvorming), dan is de DPIA dus een DPIA met geautomatiseerde besluitvorming en wordt er een geautomatiseerde besluitvorming toelichting vastgelegd.<br>
+      • Indien er sprake is van profilering, dan is de DPIA dus een DPIA met profilering en wordt er een Profilering toelichting vastgelegd.
+      Er kan sprake zijn van de gelijktijdige inzet van meerdere technieken en methoden.
    id: "4"
    is_official_id: true
    type:
@@ -299,17 +307,26 @@ tasks:
             repeatable: false
           - task: Partij rol
             id: "6.1.1.2"
+            description: >-
+                Primaire AVG-rollen zijn verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker of sub-verwerker, en derde.
+                Procesrollen bij gegevensoverdracht zijn verstrekker en ontvanger.
             type:
-              - select_option
+              - checkbox_option
             options:
-              - value: verwerkingsverantwoordelijke
-              - value: gezamenlijke verwerkingsverantwoordelijke
-              - value: verwerker
-              - value: sub-verwerker
-              - value: verstrekker
-              - value: ontvanger
-              - value: betrokkene
-              - value: derde
+              - value: Verwerkingsverantwoordelijke
+                label: Verwerkingsverantwoordelijke
+              - value: Gezamenlijke verwerkingsverantwoordelijke
+                label: Gezamenlijke verwerkingsverantwoordelijke
+              - value: Verwerker
+                label: Verwerker
+              - value: Sub-verwerker
+                label: Sub-verwerker
+              - value: Derde
+                label: Derde
+              - value: Verstrekker
+                label: Verstrekker
+              - value: Ontvanger
+                label: Ontvanger
             repeatable: false
           - task: Functies/afdelingen
             id: "6.1.1.3"
@@ -358,7 +375,7 @@ tasks:
       - task_group
    repeatable: false
    tasks:
-        - task: Betrokken partij, belangen, uitkomst consultatie betrokkenen
+        - task: Betrokken partij, belangen, uitkomst consultatie van betrokkenen
           id: "7.1"
           type:
           - task_group
@@ -371,7 +388,7 @@ tasks:
               mapping_type: "one_to_one"
               action: sync_instances
           tasks:
-            - task: Belang, uitkomst consultatie betrokkenen
+            - task: Belang van betrokken partij en uitkomst consultatie van betrokkenen
               id: "7.1.1"
               type:
                 - open_text
@@ -427,11 +444,22 @@ tasks:
                 type:
                   - select_option
                 options:
-                  - value: Adequaatheidsbesluit
-                  - value: Binding Corporate Rules (BCR)
-                  - value: Standaard contractsbepalingen (SCC)
-                  - value: Artikel 49 AVG uitzondering
-                  - value: Niet van toepassing (binnen EER)
+                - value: Adequaatheidsbesluit
+                  label: "Doorgiftemechanisme: Adequaatheidsbesluit"
+                - value: Standaard contractsbepaling (SCC)
+                  label: "Doorgiftemechanisme: Standaard contractsbepaling"
+                - value: binding corporate rules/bindend bedrijfsvoorschrift (bcr)
+                  label: "Doorgiftemechanisme: Bindend bedrijfsvoorschrift"
+                - value: Goedgekeurde certificeringsmechanisme
+                  label: "Doorgiftemechanisme: Goedgekeurd certificeringsmechanisme"
+                - value: Goedgekeurde gedragscode
+                  label: "Doorgiftemechanisme: Goedgekeurde gedragscode"
+                - value: Juridisch bindend en afdwingbaar instrument
+                  label: "Doorgiftemechanisme: Juridisch bindend en afdwingbaar instrument"
+                - value: uitzondering artikel 49 avg
+                  label: "Doorgiftemechanisme: Uitzondering artikel 49 avg"
+                - value: Overig mechanisme
+                  label: "Doorgiftemechanisme: Overig mechanisme"
                 repeatable: false
               - task: Maatregelen
                 id: "8.1.1.3"
@@ -559,7 +587,13 @@ tasks:
               - task: Bewaartermijn/archiveringsperiode
                 id: "10.1.1.4"
                 type:
-                  - text_input
+                - select_option
+                options:
+                  - value: 'Aantal jaren'
+                  - value: 'Jaar'
+                  - value: 'Minder dan 1 maand'
+                  - value: 'Minder dan 1 week'
+                  - value: 'Minder dan 24 uur'
                 repeatable: false
               - task: Motivatie bewaartermijn
                 id: "10.1.1.5"
@@ -575,10 +609,10 @@ tasks:
  - task: >-
      Rechtsgrond
    description: |
-     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan.
+     Bepaal op welke rechtsgronden de gegevensverwerkingen worden gebaseerd. Voeg de rechtsgronden voor bijzondere persoonsgegevens hier expliciet toe. Iedere rechtsgrond moet aan bepaalde voorwaarden voldoen, voeg in de toelichting op de rechtsgrond toe hoe aan deze voorwaarden wordt voldaan.<br>
      De rechtsgronden zijn:
       • <strong>Rechtsgrond toestemming</strong>: Voor toestemming is nodig dat deze op ondubbelzinnige wijze vrij wordt gegeven voor een specifieke verwerking. Licht toe hoe hieraan wordt voldaan.
-      • <strong>Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
+      • <strong>Rechtsgrond noodzakelijk voor de uitvoering van een overeenkomst</strong>: Hier moet sprake zijn van een overeenkomst met de betrokkene, geef aan van wat voor overeenkomst sprake is.
       • <strong>Rechtsgrond wettelijke verplichting</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
       • <strong>Rechtsgrond vitaal belang</strong>: Hiervan kan sprake zijn wanneer iemands leven of gezondheid in gevaar is en die persoon niet in staat is om toestemming te geven.
       • <strong>Rechtsgrond taak van algemeen belang</strong>: Geef aan welke EU- of Nederlandse wetsbepalingen van toepassing zijn.
@@ -710,7 +744,7 @@ tasks:
                       id: "2.1.1"
                       operator: any
                     action: options
-              - task: Type bijzondere persoonsgegevens
+              - task: Categorie bijzondere persoonsgegevens
                 id: "12.1.2.4"
                 type:
                   - select_option
@@ -727,7 +761,8 @@ tasks:
                   - value: Nationaal identificatienummer
                 repeatable: false
               - task: Doorbrekingsgrond
-                id: "12.2.2.4"
+                description: Voor elke categorie bijzondere persoonsgegevens wordt een doorbrekingsgrond vastgelegd, en de wet- en regelgeving die de doorbrekingsgrond beschrijft.
+                id: "12.1.2.5"
                 type:
                   - open_text
                 repeatable: false
@@ -749,7 +784,7 @@ tasks:
                 - value: true
                   label: Ja
               repeatable: false
-            - task: Strafrechtelijke persoonsgegegevens
+            - task: Strafrechtelijke persoonsgegevens
               id: "12.2.2"
               type:
                 - task_group
@@ -939,11 +974,35 @@ tasks:
               type:
                 - text_input
               repeatable: false
-            - task: Oorspronkelijke doeleinde
+            - task: Oorspronkelijk doeleinde
               id: "13.1.1.4"
               type:
                 - text_input
               repeatable: false
+            - task: Wat is de beoordeling van de verdere verwerking?
+              id: "13.1.1.5"
+              type:
+                - radio_option
+              options:
+                - value: Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht
+                  label: Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht
+                - value: Verenigbaar met oorspronkelijk doeleinde
+                  label: Verenigbaar met oorspronkelijk doeleinde
+                - value: Niet van toepassing (geen verdere verwerking)
+                  label: Niet van toepassing (geen verdere verwerking)
+              repeatable: false
+            - task: Specificatie van het wetsartikel voor "Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht"
+              id: "13.1.1.6"
+              type:
+                - open_text
+              repeatable: false
+              dependencies:
+              - type: conditional
+                condition:
+                  id: "13.1.1.5"
+                  operator: equals
+                  value: Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht
+                action: show
         - task: Aanvullende informatie over de verenigbaarheid en toelaatbaarheid
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "13.2"
@@ -1557,8 +1616,32 @@ tasks:
               - value: midden
               - value: hoog
             repeatable: false
-          - task: Beheerder van de maatregelen
+          - task: Voeg een verwijzing of beschrijving van het advies AP toe
             id: "17.1.5"
+            repeatable: false
+            type:
+              - open_text
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "17.1.4"
+                  operator: equals
+                  value: hoog
+                action: show
+          - task: In welk land vindt de monitoring en evaluatie van de maatregelen plaats?
+            id: "17.1.6"
+            repeatable: false
+            type:
+              - text_input
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "17.1.4"
+                  operator: equals
+                  value: hoog
+                action: show
+          - task: Beheerder van de maatregelen
+            id: "17.1.7"
             type:
               - text_input
             repeatable: false

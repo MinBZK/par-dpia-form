@@ -420,7 +420,7 @@ tasks:
       - task: Is het totale aantal betrokkenen gelijk aan of groter dan 10.000?
         description: >-
           Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,
-          kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
+             kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
         id: "1.5.1"
         type:
         - radio_option
@@ -443,8 +443,8 @@ tasks:
           prescanModelId: "11.a"
       - task: Is de hoeveelheid gegevens die wordt verwerkt van alle betrokkene gelijk aan of groter dan 10.000? #RM: deze vraag heeft geen invloed op de uitkomst.
         description: >-
-            Hieronder vallen gegevens : medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,
-            kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
+          Hieronder vallen: medewerkers/bewindspersonen, burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie,
+          kinderen jonger dan 16 jaar, andere kwetsbare groepen (gehandicapten, minderheden, etc.) en specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving).
         id: "1.5.2"
         type:
         - radio_option
@@ -553,11 +553,11 @@ tasks:
         type:
         - radio_option
         options:
-        - label: On premise
+        - label: 'Opslag van gegevens: on premise'
           value: On premise
-        - label: Datacenter EER
+        - label: 'Opslag van gegevens: datacenter EER'
           value: Datacenter EER
-        - label: Buiten EER
+        - label: 'Opslag van gegevens: buiten EER'
           value: Buiten EER
         dependencies:
           - type: conditional
