@@ -64,8 +64,8 @@ tasks:
       references:
         prescanModelId: "2"
         DPIA:
-        - "5.1"
-        - "10"
+        - "5.1.1"
+        - "10.1.1.1"
     - task: Wat is de grondslag voor de verwerking?
       description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.4"
@@ -81,7 +81,7 @@ tasks:
         - value: Rechtsgrond gerechtvaardigd belang
       references:
         prescanModelId: "3"
-        DPIA: "11.1.1"
+        DPIA: "11.1.1.1"
     - task: "Cloudgebruik"
       id: "0.5"
       type:
@@ -547,7 +547,7 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "14"
-          DPIA: "8.1.1"
+          DPIA: "8.1.1.1"
       - task: Waar vindt de opslag van de gegevens contractueel plaats?
         id: "2.1.3"
         type:
@@ -638,6 +638,7 @@ tasks:
         repeatable: false
         references:
           prescanModelId: "18"
+          DPIA: "8.1.1.2"
       - task: Specificatie overig doorgiftemechanisme
         id: "2.1.7"
         type:
