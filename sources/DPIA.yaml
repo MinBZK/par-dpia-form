@@ -744,24 +744,22 @@ tasks:
                       id: "2.1.1"
                       operator: any
                     action: options
-              - task: Categorie bijzondere persoonsgegevens
+              - task: Type bijzondere persoonsgegevens
                 id: "12.1.2.4"
                 type:
                   - select_option
                 options:
-                  - value: Ras of etnische afkomst
-                  - value: Politieke opvattingen
-                  - value: Religieuze of levensbeschouwelijke overtuigingen
-                  - value: Lidmaatschap van een vakbond
-                  - value: Genetische gegevens
-                  - value: Biometrische gegevens
-                  - value: Gezondheidsgegevens
-                  - value: Seksuele gerichtheid
-                  - value: Strafrechtelijke gegevens
-                  - value: Nationaal identificatienummer
+                - value: 'Type bijzondere persoonsgegevens: Biometrische gegevens met het oog op de unieke identificatie van een persoon'
+                - value: 'Type bijzondere persoonsgegevens: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid'
+                - value: 'Type bijzondere persoonsgegevens: Gegevens over gezondheid'
+                - value: 'Type bijzondere persoonsgegevens: Genetische gegevens'
+                - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt'
+                - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit politieke opvattingen blijken'
+                - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit ras of etnische afkomst blijkt'
+                - value: 'Type bijzondere persoonsgegevens: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken'
                 repeatable: false
               - task: Doorbrekingsgrond
-                description: Voor elke categorie bijzondere persoonsgegevens wordt een doorbrekingsgrond vastgelegd, en de wet- en regelgeving die de doorbrekingsgrond beschrijft.
+                description: Voor elke type bijzondere persoonsgegevens wordt een doorbrekingsgrond vastgelegd, en de wet- en regelgeving die de doorbrekingsgrond beschrijft.
                 id: "12.1.2.5"
                 type:
                   - open_text

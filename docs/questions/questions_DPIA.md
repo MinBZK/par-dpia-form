@@ -80,7 +80,7 @@
 | 12.1.2.1 |       Gegevensverwerking | checkbox_option |  | Options from 3.1.1 |
 | 12.1.2.2 |       Categorie betrokkene | checkbox_option |  | Options from 2.1.2 |
 | 12.1.2.3 |       Persoonsgegevens | checkbox_option |  | Options from 2.1.1 |
-| 12.1.2.4 |       Categorie bijzondere persoonsgegevens | select_option | Ras of etnische afkomst; Politieke opvattingen; Religieuze of levensbeschouwelijke overtuigingen; Lidmaatschap van een vakbond; Genetische gegevens; Biometrische gegevens; Gezondheidsgegevens; Seksuele gerichtheid; Strafrechtelijke gegevens; Nationaal identificatienummer |  |
+| 12.1.2.4 |       Type bijzondere persoonsgegevens | select_option | Type bijzondere persoonsgegevens: Biometrische gegevens met het oog op de unieke identificatie van een persoon; Type bijzondere persoonsgegevens: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid; Type bijzondere persoonsgegevens: Gegevens over gezondheid; Type bijzondere persoonsgegevens: Genetische gegevens; Type bijzondere persoonsgegevens: Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt; Type bijzondere persoonsgegevens: Persoonsgegevens waaruit politieke opvattingen blijken; Type bijzondere persoonsgegevens: Persoonsgegevens waaruit ras of etnische afkomst blijkt; Type bijzondere persoonsgegevens: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken |  |
 | 12.1.2.5 |       Doorbrekingsgrond | open_text |  |  |
 | 12.2 |   Strafrechtelijke persoonsgegevens | task_group |  |  |
 | 12.2.1 |     Strafrechtelijke persoonsgegevens | radio_option | False; True |  |

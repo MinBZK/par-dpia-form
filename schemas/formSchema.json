@@ -98,12 +98,68 @@
                     "additionalProperties": {
                         "anyOf": [
                             {
-                                "type": "string"
+                                "type": "string",
+                                "description": "Simple string reference (e.g., for prescanModelId)"
                             },
                             {
                                 "type": "array",
                                 "items": {
                                     "type": "string"
+                                },
+                                "description": "Array of string references"
+                            },
+                            {
+                                "type": "object",
+                                "description": "Object reference with type (Option 1: single reference with type)",
+                                "properties": {
+                                    "id": {
+                                        "type": "string",
+                                        "description": "The reference identifier"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pre-fill",
+                                            "pre-view",
+                                            "direct takeover"
+                                        ],
+                                        "description": "The type of reference"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "type"
+                                ],
+                                "additionalProperties": false
+                            },
+                            {
+                                "type": "array",
+                                "description": "Array of object references with types (Option 2: multiple references with types)",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {
+                                            "type": "string",
+                                            "description": "The reference identifier"
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "enum": [
+                                                "pre-fill",
+                                                "pre-view",
+                                                "one-to-one",
+                                                "one-to-many",
+                                                "many-to-one",
+                                                "many-to-many"
+                                            ],
+                                            "description": "The type of reference"
+                                        }
+                                    },
+                                    "required": [
+                                        "id",
+                                        "type"
+                                    ],
+                                    "additionalProperties": false
                                 }
                             }
                         ]
@@ -111,11 +167,27 @@
                     "examples": [
                         {
                             "DPIA": "12.1.1",
-                            "prescan": "3"
+                            "prescanModelId": "3"
                         },
                         {
-                            "source": "section_5",
-                            "target": "section_6"
+                            "DPIA": {
+                                "id": "12.1.1",
+                                "type": "pre-fill"
+                            },
+                            "prescanModelId": "3"
+                        },
+                        {
+                            "DPIA": [
+                                {
+                                    "id": "12.1.1",
+                                    "type": "pre-fill"
+                                },
+                                {
+                                    "id": "12.1.2",
+                                    "type": "pre-view"
+                                }
+                            ],
+                            "prescanModelId": "3"
                         }
                     ]
                 },

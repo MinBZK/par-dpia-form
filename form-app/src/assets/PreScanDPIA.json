@@ -44,7 +44,12 @@
           ],
           "references": {
             "prescanModelId": "1",
-            "DPIA": "1.1"
+            "DPIA": [
+              {
+                "id": "1.1",
+                "type": "one-to-one"
+              }
+            ]
           }
         },
         {
@@ -58,8 +63,10 @@
           "references": {
             "prescanModelId": "2",
             "DPIA": [
-              "5.1",
-              "10"
+              {
+                "id": "5.1.1",
+                "type": "one-to-many"
+              }
             ]
           }
         },
@@ -93,7 +100,12 @@
           ],
           "references": {
             "prescanModelId": "3",
-            "DPIA": "11.1.1"
+            "DPIA": [
+              {
+                "id": "11.1.1.1",
+                "type": "pre-fill"
+              }
+            ]
           }
         },
         {
@@ -159,7 +171,12 @@
               ],
               "references": {
                 "prescanModelId": "4",
-                "DPIA": "4"
+                "DPIA": [
+                  {
+                    "id": "4",
+                    "type": "pre-view"
+                  }
+                ]
               }
             },
             {
@@ -196,7 +213,12 @@
               ],
               "references": {
                 "prescanModelId": "5",
-                "DPIA": "4"
+                "DPIA": [
+                  {
+                    "id": "4",
+                    "type": "pre-view"
+                  }
+                ]
               }
             },
             {
@@ -229,7 +251,12 @@
               "repeatable": false,
               "references": {
                 "prescanModelId": "6",
-                "DPIA": "4"
+                "DPIA": [
+                  {
+                    "id": "4",
+                    "type": "pre-view"
+                  }
+                ]
               }
             }
           ]
@@ -339,7 +366,12 @@
               ],
               "references": {
                 "prescanModelId": "7",
-                "DPIA": "2.1.3"
+                "DPIA": [
+                  {
+                    "id": "2.1.3",
+                    "type": "pre-view"
+                  }
+                ]
               }
             },
             {
@@ -361,7 +393,12 @@
               ],
               "repeatable": false,
               "references": {
-                "DPIA": "2.1.3"
+                "DPIA": [
+                  {
+                    "id": "2.1.3",
+                    "type": "pre-view"
+                  }
+                ]
               }
             }
           ]
@@ -395,7 +432,12 @@
               "repeatable": false,
               "references": {
                 "prescanModelId": "8",
-                "DPIA": "12.1.1"
+                "DPIA": [
+                  {
+                    "id": "12.1.1",
+                    "type": "pre-fill"
+                  }
+                ]
               }
             },
             {
@@ -406,28 +448,28 @@
               ],
               "options": [
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: Biometrische gegevens met het oog op de unieke identificatie van een <span class=\"aiv-definition\">persoon<span class=\"aiv-definition-text\">Een natuurlijk persoon is een levend mens.\n<br><strong>Toelichting</strong>: Informatie over overleden personen, rechtspersonen, dieren, zaken en objecten zijn in principe geen persoonsgegeven.\n<br><i>Dit is een alternatieve spelling van Natuurlijk persoon</i></span></span>"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Biometrische gegevens met het oog op de unieke identificatie van een persoon<span class=\"aiv-definition-text\">Biometrische gegevens met het oog op de unieke identificatie van een persoon zijn [bijzondere persoonsgegevens] die het resultaat zijn van een specifieke technische verwerking met fysieke, fysiologische of gedragsgerelateerde kenmerken van een persoon op grond waarvan eenduidige identificatie van die persoon mogelijk is of wordt bevestigd.\n<br><strong>Toelichting</strong>: Gegevens zoals foto's, vingerafdrukken, irispatroon, gezichtsprofiel, looppatroon en stemgeluid vallen alleen onder de definitie van biometrische gegevens wanneer zij worden verwerkt met behulp van bepaalde technische middelen die de unieke identificatie of authenticatie mogelijk maken.\n<br><strong>Voorbeeld(en)</strong>: Vingerafdrukken, irispatroon, gezichtsprofiel, looppatroon en stemgeluid.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid<span class=\"aiv-definition-text\">Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid zijn [bijzondere persoonsgegevens] met betrekking tot iemands seksueel gedrag of seksuele gerichtheid.\n<br><strong>Toelichting</strong>: Het kan ook gaan over gegevens die indirect iets over iemands seksueel gedrag of seksuele gerichtheid zeggen, zoals een bezoekerslijst van een gay bar of het ledenbestand van het COC.\n<br><strong>Voorbeeld(en)</strong>: Lidmaatschap van LGBT belangenvereniging, bezoekersregistratie van LBGT bar, lidmaatschapslijst parenclub, bestellingen bij een sexshop.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: Gegevens over gezondheid"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Gegevens over gezondheid<span class=\"aiv-definition-text\">Gegevens over gezondheid zijn [bijzondere persoonsgegevens] over de fysieke of mentale gezondheid van een persoon.\n<br><strong>Toelichting</strong>: Inclusief gegevens over verleende gezondheidsdiensten waarmee informatie over iemands gezondheidstoestand wordt gegeven.\n<br><strong>Voorbeeld(en)</strong>: Gewicht, hartslag, handicap, ziekterisico, verleende gezondheidsdiensten.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: Genetische gegevens"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Genetische gegevens<span class=\"aiv-definition-text\">Genetische gegevens zijn [bijzondere persoonsgegevens] over overgeërfde of verworven genetische kenmerken van een persoon die unieke informatie verschaffen over de fysiologie of gezondheid en die met name voortkomen uit een analyse van een biologisch monster van die persoon.\n<br><strong>Toelichting</strong>: Deze gegevens geven zeer gevoelige informatie prijs over iemands gezondheid, afkomst, toekomstig ziekteverloop of aanwezigheid bij bepaalde delicten. Het gaat hierbij niet alleen om persoonsgegevens van de persoon van wie biologische monsters zijn afgenomen, maar mogelijk ook over alle genetisch verwante personen zoals kinderen, ouders, neven en nichten, et cetera.\n<br><strong>Voorbeeld(en)</strong>: Chromosomen, DNA of RNA-profielen, genetische testresultaten (bijvoorbeeld voor erfelijke ziektes), informatie verkregen via bloed- of speekseltesten, genoomdata van sequencing, gegevens gebruikt voor verwantschapsonderzoek of stamboomonderzoek.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: <span class=\"aiv-definition\">Persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> waaruit het lidmaatschap van een vakbond blijkt"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt<span class=\"aiv-definition-text\">Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt zijn [bijzondere persoonsgegevens] waaruit het lidmaatschap van een vakbond blijkt.\n<br><strong>Toelichting</strong>: Hieronder vallen niet alleen gegevens over het lidmaatschap zelf, maar ook indirecte gegevens waaruit het lidmaatschap zou kunnen worden afgeleid, zoals gegevens over bijvoorbeeld contributiebetalingen, deelname aan vakbondsbijeenkomsten, de ontvangst van een bijdrage werkgever voor de contributie of lidmaatschap van de ondernemingsraad namens de vakbond.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: <span class=\"aiv-definition\">Persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> waaruit politieke opvattingen blijken"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Persoonsgegevens waaruit politieke opvattingen blijken<span class=\"aiv-definition-text\">Persoonsgegevens waaruit politieke opvattingen blijken zijn [bijzondere persoonsgegevens] waaruit kan worden afgeleid wat de politieke oriëntatie is van een persoon.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens waaruit iemands mening over politieke onderwerpen, d.w.z. over hoe de maatschappij zou moeten worden ingericht, kan worden afgeleid.\n<br><strong>Voorbeeld(en)</strong>: Stemgedrag, uitlatingen over politieke partijen, uitlatingen over politieke standpunten, een post op social media over een maatschappelijk onderwerp, lidmaatschap van een organisatie met bepaalde politieke opvattingen zoals een milieuorganisatie, bepaalde kerk of vakbond, of politieke partij.</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: <span class=\"aiv-definition\">Persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> waaruit ras of etnische afkomst blijkt"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Persoonsgegevens waaruit ras of etnische afkomst blijkt<span class=\"aiv-definition-text\">Persoonsgegevens waaruit ras of etnische afkomst blijkt zijn [bijzondere persoonsgegevens] waaruit direct of indirect een afkomst of [etniciteit] is af te leiden.\n<br><strong>Toelichting</strong>: Sommige gewone gegevens kunnen indirect alsnog informatie geven over etnische afkomst, zoals postcode, achternaam of de basisschool waar iemand op heeft gezeten. Daarnaast zijn er gegevens die zowel als informatie over religie als over etnische afkomst kunnen worden gezien (bijv. of iemand Joods of Islamitisch is).\n\nIn een onderzoek naar het gebruik van afkomstgerelateerde indicatoren binnen de overheid (n.a.v. \"Motie #21\") zijn de volgende indicatoren gebruikt:\n\n* Nationaliteit\n* Etniciteit\n* Geboorteland\n* Land van herkomst\n* Geboorteland ouders\n* Woonland\n<br><strong>Voorbeeld(en)</strong>: Bij het onderzoek naar Motie 21 werd met name gekeken naar nationaliteit, etniciteit, geboorteland, land van herkomst, geboorteland ouders en woonland. Andere voorbeelden zijn achternaam (Bosnisch/Servisch) of religie (Joods, Islamitisch)</span></span>"
                 },
                 {
-                  "value": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>: <span class=\"aiv-definition\">Persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> waaruit religieuze of levensbeschouwelijke overtuigingen blijken"
+                  "value": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken<span class=\"aiv-definition-text\">Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken zijn [bijzondere persoonsgegevens] waaruit religieuze of levensbeschouwelijke overtuigingen blijken.\n<br><strong>Toelichting</strong>: Dit omvat alle gegevens waaruit direct of indirect een religieuze of levensbeschouwelijke overtuiging is af te leiden. Een religieuze of levensbeschouwelijke overtuiging is een samenhangend stelsel van opvattingen over het leven, de mens en de wereld dat voor een persoon van wezenlijk belang is en richting geeft aan diens handelen.\n<br><strong>Voorbeeld(en)</strong>: Lidmaatschap van een kerk, lidmaatschap van het humanistisch verbond, lidmaatschap van een organisatie die verbonden is aan een religieuze of levensbeschouwelijke beweging.</span></span>"
                 }
               ],
               "dependencies": [
@@ -463,8 +505,14 @@
               "references": {
                 "prescanModelId": "8",
                 "DPIA": [
-                  "2.1.3",
-                  "12.1.2.4"
+                  {
+                    "id": "2.1.3",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "12.1.2.4",
+                    "type": "pre-fill"
+                  }
                 ]
               }
             }
@@ -568,7 +616,12 @@
               "repeatable": false,
               "references": {
                 "prescanModelId": "9",
-                "DPIA": "2.1.3"
+                "DPIA": [
+                  {
+                    "id": "2.1.3",
+                    "type": "pre-view"
+                  }
+                ]
               }
             }
           ]
@@ -626,7 +679,12 @@
               "repeatable": false,
               "references": {
                 "prescanModelId": "10",
-                "DPIA": "2.1.2"
+                "DPIA": [
+                  {
+                    "id": "2.1.2",
+                    "type": "pre-view"
+                  }
+                ]
               }
             },
             {
@@ -646,7 +704,16 @@
                   "action": "show"
                 }
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "prescanModelId": "10",
+                "DPIA": [
+                  {
+                    "id": "2.1.2",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -810,7 +877,12 @@
               },
               "references": {
                 "prescanModelId": "11.c",
-                "DPIA": "10.1.1.4"
+                "DPIA": [
+                  {
+                    "id": "10.1.1.4",
+                    "type": "pre-fill"
+                  }
+                ]
               }
             }
           ]
@@ -885,7 +957,12 @@
               "repeatable": false,
               "references": {
                 "prescanModelId": "14",
-                "DPIA": "8.1.1"
+                "DPIA": [
+                  {
+                    "id": "8.1.1.1",
+                    "type": "pre-fill"
+                  }
+                ]
               }
             },
             {
@@ -1041,7 +1118,13 @@
               ],
               "repeatable": false,
               "references": {
-                "prescanModelId": "18"
+                "prescanModelId": "18",
+                "DPIA": [
+                  {
+                    "id": "8.1.1.2",
+                    "type": "pre-fill"
+                  }
+                ]
               }
             },
             {
@@ -1204,7 +1287,13 @@
           },
           "repeatable": false,
           "references": {
-            "prescanModelId": "D"
+            "prescanModelId": "D",
+            "DPIA": [
+              {
+                "id": "16.1.1",
+                "type": "many-to-many"
+              }
+            ]
           }
         }
       ]
@@ -1269,7 +1358,13 @@
           },
           "repeatable": false,
           "references": {
-            "prescanModelId": "E"
+            "prescanModelId": "E",
+            "DPIA": [
+              {
+                "id": "16.1.1",
+                "type": "many-to-many"
+              }
+            ]
           }
         }
       ]
@@ -1411,7 +1506,12 @@
               "valueType": "boolean",
               "references": {
                 "prescanModelId": "G",
-                "DPIA": "4"
+                "DPIA": [
+                  {
+                    "id": "4",
+                    "type": "pre-view"
+                  }
+                ]
               },
               "options": [
                 {
