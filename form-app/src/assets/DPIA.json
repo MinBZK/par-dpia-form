@@ -1083,48 +1083,42 @@
                   ]
                 },
                 {
-                  "task": "<span class=\"aiv-definition\">Categorie bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een categorie bijzondere persoonsgegevens is een [classificatie] van de categorie waartoe een [bijzonder persoonsgegeven] behoort.\n<br><strong>Toelichting</strong>: In de AVG is een limitatieve opsomming opgenomen van bijzondere persoonsgegevens in artikel 9 lid 1: Ras of etnische afkomst, politieke opvattingen, religieuze of levensbeschouwelijke overtuigingen, het lidmaatschap van een vakbond, genetische gegevens, biometrische gegevens met het oog op de unieke identificatie van een persoon, gegevens over gezondheid, gegevens met betrekking tot seksueel gedrag of seksuele gerichtheid.</span></span>",
+                  "task": "Type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span>",
                   "id": "12.1.2.4",
                   "type": [
                     "select_option"
                   ],
                   "options": [
                     {
-                      "value": "Ras of etnische afkomst"
+                      "value": "Type bijzondere persoonsgegevens: Biometrische gegevens met het oog op de unieke identificatie van een persoon"
                     },
                     {
-                      "value": "Politieke opvattingen"
+                      "value": "Type bijzondere persoonsgegevens: Gegevens met betrekking tot iemands seksueel gedrag of seksuele gerichtheid"
                     },
                     {
-                      "value": "Religieuze of levensbeschouwelijke overtuigingen"
+                      "value": "Type bijzondere persoonsgegevens: Gegevens over gezondheid"
                     },
                     {
-                      "value": "Lidmaatschap van een vakbond"
+                      "value": "Type bijzondere persoonsgegevens: Genetische gegevens"
                     },
                     {
-                      "value": "Genetische gegevens"
+                      "value": "Type bijzondere persoonsgegevens: Persoonsgegevens waaruit het lidmaatschap van een vakbond blijkt"
                     },
                     {
-                      "value": "Biometrische gegevens"
+                      "value": "Type bijzondere persoonsgegevens: Persoonsgegevens waaruit politieke opvattingen blijken"
                     },
                     {
-                      "value": "Gezondheidsgegevens"
+                      "value": "Type bijzondere persoonsgegevens: Persoonsgegevens waaruit ras of etnische afkomst blijkt"
                     },
                     {
-                      "value": "Seksuele gerichtheid"
-                    },
-                    {
-                      "value": "Strafrechtelijke gegevens"
-                    },
-                    {
-                      "value": "Nationaal identificatienummer"
+                      "value": "Type bijzondere persoonsgegevens: Persoonsgegevens waaruit religieuze of levensbeschouwelijke overtuigingen blijken"
                     }
                   ],
                   "repeatable": false
                 },
                 {
                   "task": "<span class=\"aiv-definition\">Doorbrekingsgrond<span class=\"aiv-definition-text\">Een doorbrekingsgrond is een wettelijke bepaling waarmee het verbod om [bijzondere persoonsgegevens] te verwerken wordt opgeheven.\n<br><strong>Toelichting</strong>: Een doorbrekingsgrond wordt niet letterlijk genoemd in de wet, maar volgt uit de systematiek van de wet, met name artikel 9 lid 1 en lid 2 van de AVG.</span></span>",
-                  "description": "Voor elke <span class=\"aiv-definition\">categorie bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een categorie bijzondere persoonsgegevens is een [classificatie] van de categorie waartoe een [bijzonder persoonsgegeven] behoort.\n<br><strong>Toelichting</strong>: In de AVG is een limitatieve opsomming opgenomen van bijzondere persoonsgegevens in artikel 9 lid 1: Ras of etnische afkomst, politieke opvattingen, religieuze of levensbeschouwelijke overtuigingen, het lidmaatschap van een vakbond, genetische gegevens, biometrische gegevens met het oog op de unieke identificatie van een persoon, gegevens over gezondheid, gegevens met betrekking tot seksueel gedrag of seksuele gerichtheid.</span></span> wordt een <span class=\"aiv-definition\">doorbrekingsgrond<span class=\"aiv-definition-text\">Een doorbrekingsgrond is een wettelijke bepaling waarmee het verbod om [bijzondere persoonsgegevens] te verwerken wordt opgeheven.\n<br><strong>Toelichting</strong>: Een doorbrekingsgrond wordt niet letterlijk genoemd in de wet, maar volgt uit de systematiek van de wet, met name artikel 9 lid 1 en lid 2 van de AVG.</span></span> vastgelegd, en de <span class=\"aiv-definition\">wet- en regelgeving<span class=\"aiv-definition-text\">Wet- en regelgeving omvat zowel [wetgeving] als [regelgeving]\n<br><strong>Toelichting</strong>: We verwijzen naar wet- en regelgeving op de officiële naam van de wet, met vermelding van het artikel-, lid- en eventuele sub-nummer.</span></span> die de doorbrekingsgrond beschrijft.",
+                  "description": "Voor elke type <span class=\"aiv-definition\">bijzondere persoonsgegevens<span class=\"aiv-definition-text\">Een bijzonder persoonsgegeven is een [persoonsgegeven] dat in principe verboden is om te verwerken, volgend uit artikel 9, AVG.\n<br><strong>Toelichting</strong>: Het gaat hier om gegevens die grote risico's voor de betrokkenen kunnen opleveren indien er misbruik van de gegevens wordt gemaakt, of zelfs als deze algemeen bekend worden. Om bijzondere persoonsgegevens toch rechtmatig te verwerken moet een doorbrekingsgrond uit de AVG van toepassing zijn.\n<br><strong>Voorbeeld(en)</strong>: Het adressenbestand van een kerkblad, gegevens die via een apothekers-app worden verwerkt, ziekte- en verzuimgegevens van werknemers en de ledenlijst van een politieke partij.\n<br><i>Dit is een meervoudsvorm van Bijzonder persoonsgegeven</i></span></span> wordt een <span class=\"aiv-definition\">doorbrekingsgrond<span class=\"aiv-definition-text\">Een doorbrekingsgrond is een wettelijke bepaling waarmee het verbod om [bijzondere persoonsgegevens] te verwerken wordt opgeheven.\n<br><strong>Toelichting</strong>: Een doorbrekingsgrond wordt niet letterlijk genoemd in de wet, maar volgt uit de systematiek van de wet, met name artikel 9 lid 1 en lid 2 van de AVG.</span></span> vastgelegd, en de <span class=\"aiv-definition\">wet- en regelgeving<span class=\"aiv-definition-text\">Wet- en regelgeving omvat zowel [wetgeving] als [regelgeving]\n<br><strong>Toelichting</strong>: We verwijzen naar wet- en regelgeving op de officiële naam van de wet, met vermelding van het artikel-, lid- en eventuele sub-nummer.</span></span> die de doorbrekingsgrond beschrijft.",
                   "id": "12.1.2.5",
                   "type": [
                     "open_text"
