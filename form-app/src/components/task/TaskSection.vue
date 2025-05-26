@@ -31,14 +31,11 @@ const activeNamespace = computed(() => taskStore.activeNamespace)
 
 // Helper function to check if a DPIA reference (string or array) contains or matches the current task ID
 const hasDpiaReference = (dpiaReference: string | string[], taskId: string): boolean => {
-  // If the reference is a string
-  if (typeof dpiaReference === 'string') {
-    return dpiaReference === taskId || dpiaReference.startsWith(taskId + '.');
-  }
-
   // If the reference is an array
   if (Array.isArray(dpiaReference)) {
-    return dpiaReference.some(ref => ref === taskId || ref.startsWith(taskId + '.'));
+    return dpiaReference.some(ref => ref.id === taskId || ref.id.startsWith(taskId + '.'));
+  } else {
+    return dpiaReference.id === taskId || dpiaReference.id.startsWith(taskId + '.');
   }
 
   return false;
@@ -66,7 +63,7 @@ const isRepeatable = (taskId: string) => {
 }
 
 const taskDisplayTitle = (task: FlatTask): string => {
-  const shouldSkipIdPrefix = !task.is_official_id ||(task.type && task.type.includes('signing'));
+  const shouldSkipIdPrefix = !task.is_official_id || (task.type && task.type.includes('signing'));
   return shouldSkipIdPrefix
     ? task.task
     : `${task.id}. ${task.task}`;
