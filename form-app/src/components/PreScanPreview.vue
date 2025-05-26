@@ -28,14 +28,11 @@ const getRootTaskId = (taskId: string): string => {
 
 // Check if a reference (or array of references) contains a reference to the current DPIA section
 const hasReferenceToDpiaSection = (reference: string | string[], dpiaRootTaskId: string): boolean => {
-  // If reference is a string, check if its root matches the current DPIA root task ID
-  if (typeof reference === 'string') {
-    return getRootTaskId(reference) === dpiaRootTaskId;
-  }
-
   // If reference is an array, check if any of the references' roots match the current DPIA root task ID
   if (Array.isArray(reference)) {
-    return reference.some(ref => getRootTaskId(ref) === dpiaRootTaskId);
+    return reference.some(ref => getRootTaskId(ref.id) === dpiaRootTaskId);
+  } else {
+    return getRootTaskId(reference.id) === dpiaRootTaskId;
   }
 
   return false;
