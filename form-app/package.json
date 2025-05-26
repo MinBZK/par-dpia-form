@@ -27,7 +27,7 @@
     "vue": "^3.5.14"
   },
   "devDependencies": {
-    "@tsconfig/node22": "^22.0.1",
+    "@tsconfig/node22": "^22.0.2",
     "@types/jexl": "^2.3.4",
     "@types/node": "^22.15.19",
     "@vitejs/plugin-vue": "^5.2.4",
