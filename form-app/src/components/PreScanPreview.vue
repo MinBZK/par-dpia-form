@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { FormType } from '@/models/dpia.ts'
+import { usePreScanReferences, type PreScanReference } from '@/composables/usePreScanReferences'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
@@ -18,6 +19,7 @@ interface PreScanDataItem {
   answer: string | string[] | null;
 }
 
+const { getPreviewDataForSection } = usePreScanReferences()
 const preScanAnswers = ref<PreScanDataItem[]>([])
 const hasPreScanData = computed(() => preScanAnswers.value.length > 0)
 
@@ -26,47 +28,11 @@ const getRootTaskId = (taskId: string): string => {
   return taskId.split('.')[0];
 }
 
-// Check if a reference (or array of references) contains a reference to the current DPIA section
-const hasReferenceToDpiaSection = (reference: string | string[], dpiaRootTaskId: string): boolean => {
-  // If reference is an array, check if any of the references' roots match the current DPIA root task ID
-  if (Array.isArray(reference)) {
-    return reference.some(ref => getRootTaskId(ref.id) === dpiaRootTaskId);
-  } else {
-    return getRootTaskId(reference.id) === dpiaRootTaskId;
-  }
-
-  return false;
-}
-
-// Find and load all Pre-scan answers that reference tasks within this DPIA root task section
+// Load Pre-scan answers that reference this DPIA section
 const loadPreScanAnswers = () => {
-  preScanAnswers.value = []
-  if (!props.dpiaTaskId) return
-
-  const dpiaRootTaskId = getRootTaskId(props.dpiaTaskId)
-  const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN))
-
-  for (const task of preScanTasks) {
-    if (task.references && task.references.DPIA) {
-      // Check if the task references the current DPIA section
-      if (hasReferenceToDpiaSection(task.references.DPIA, dpiaRootTaskId)) {
-        const instanceIds = taskStore.getInstanceIdsForTaskFromNamespace(FormType.PRE_SCAN, task.id)
-
-        if (instanceIds.length > 0) {
-          const answer = answerStore.getAnswerFromNamespace(FormType.PRE_SCAN, instanceIds[0])
-
-          if (answer !== null && answer !== undefined) {
-            preScanAnswers.value.push({
-              taskId: task.id,
-              taskTitle: getPlainTextWithoutDefinitions(task.task),
-              answer: answer
-            })
-          }
-        }
-      }
-    }
-  }
+  preScanAnswers.value = getPreviewDataForSection(props.dpiaTaskId)
 }
+
 
 onMounted(loadPreScanAnswers)
 watch(() => props.dpiaTaskId, loadPreScanAnswers)

@@ -3,7 +3,9 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
+import { FormType } from '@/models/dpia.ts';
 import { useTaskStore } from '@/stores/tasks'
+import { usePreScanReferences } from '@/composables/usePreScanReferences'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -16,6 +18,7 @@ const props = defineProps<{
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
+const { getPreScanValueForTask } = usePreScanReferences()
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -50,6 +53,17 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
+
+  const referencedValue = getPreScanValueForTask(props.task)
+
+  // If there's a referenced value and no stored answer yet,
+  // STORE IT IMMEDIATELY and then return it
+  if (referencedValue !== null && storedAnswer === null) {
+    // Store the value in the answer store
+    answerStore.setAnswer(props.instanceId, String(referencedValue))
+    // Return the newly stored value
+    return referencedValue
+  }
 
   // If there is no stored answer but a default value exists, use the default value.
   if (storedAnswer === null && props.task.defaultValue !== undefined) {
@@ -131,53 +145,30 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
-    <input
-      :id="`field-${task.id}-${instanceId}`"
-      type="text"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg"
-      dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-      :value="currentValue"
-      @input="handleTextInput"
-    />
+    <input :id="`field-${task.id}-${instanceId}`" type="text"
+      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
+      @input="handleTextInput" />
   </div>
 
   <!-- Text area -->
-  <div
-    v-if="hasType('open_text')"
-    class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md"
-  >
-    <textarea
-      :id="`field-${task.id}-${instanceId}`"
-      class="utrecht-textarea utrecht-textarea--html-textarea"
-      dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-      rows="5"
+  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
+    <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
       :value="currentValue as string | number | readonly string[] | null | undefined"
-      @input="handleTextInput"
-    ></textarea>
+      @input="handleTextInput"></textarea>
   </div>
 
   <!-- Select radio -->
   <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
     <div>
       <div class="rvo-radio-button__group">
-        <label
-          v-for="option in task.options!"
-          :key="String(option.value || '')"
-          class="rvo-radio-button"
-          :for="`${task.id}-${instanceId}-${option.value}`"
-        >
-          <input
-            :id="`${task.id}-${instanceId}-${option.value}`"
-            :value="option.value"
-            :checked="currentValue === option.value"
-            :name="`group-${task.id}-${instanceId}`"
-            type="radio"
-            class="utrecht-radio-button"
-            @change="handleRadioInput"
-          />
-          <span v-html="option.label"</span>
+        <label v-for="option in task.options!" :key="String(option.value || '')" class="rvo-radio-button"
+          :for="`${task.id}-${instanceId}-${option.value}`">
+          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
+            :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
+            class="utrecht-radio-button" @change="handleRadioInput" />
+          <span v-html="option.label" </span>
         </label>
       </div>
     </div>
@@ -186,15 +177,12 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select dropdown -->
   <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
     <div class="rvo-select-wrapper">
-      <select
-        :id="`field-${task.id}-${instanceId}`"
-        class="utrecht-select utrecht-select--html-select"
-        :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-        :value="currentValue"
-        @input="handleSelectInput"
-      >
+      <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
+        :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
+        @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
-        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value" v-html="option.value">
+        <option v-for="option in task.options" :key="String(option.value || '')" :value="option.value"
+          v-html="option.value">
         </option>
       </select>
     </div>
@@ -206,42 +194,24 @@ const handleCheckboxInput = (event: Event) => {
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0">
       <div class="rvo-checkbox__group">
-        <label
-          v-for="option in getSourceOptions(task)"
-          :key="option"
-          class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instanceId}-${option}`"
-        >
-          <input
-            :id="`${task.id}-${instanceId}-${option}`"
-            :value="option"
+        <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
+          :for="`${task.id}-${instanceId}-${option}`">
+          <input :id="`${task.id}-${instanceId}-${option}`" :value="option"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option)"
-            :name="`group-${task.id}-${instanceId}`"
-            @change="handleCheckboxInput"
-            class="rvo-checkbox__input"
-            type="checkbox"
-          />
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
           <span v-html="option"></span>
         </label>
       </div>
     </div>
     <div v-else-if="task.options && task.options.length > 0">
       <div class="rvo-checkbox__group">
-        <label
-          v-for="option in task.options!"
-          :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instanceId}-${safeString(option.value)}`"
-        >
-          <input
-            :id="`${task.id}-${instanceId}-${safeString(option.value)}`"
-            :value="option.value"
+        <label v-for="option in task.options!" :key="safeString(option.value)"
+          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-${safeString(option.value)}`">
+          <input :id="`${task.id}-${instanceId}-${safeString(option.value)}`" :value="option.value"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
-            :name="`group-${task.id}-${instanceId}`"
-            @change="handleCheckboxInput"
-            class="rvo-checkbox__input"
-            type="checkbox"
-          />
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
           <span v-html="option.value"></span>
         </label>
       </div>
@@ -253,21 +223,16 @@ const handleCheckboxInput = (event: Event) => {
       <div v-else>
         Vul eerst sectie "{{ dependencyTaskName }}" in.
       </div>
-      </div>
+    </div>
   </div>
 
 
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
-    <input
-      :id="`field-${task.id}-${instanceId}`"
-      type="date"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md"
-      dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-      :value="currentValue"
-      @input="handleTextInput"
-    />
+    <input :id="`field-${task.id}-${instanceId}`" type="date"
+      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
+      @input="handleTextInput" />
   </div>
 </template>
