@@ -5,7 +5,7 @@ from pathlib import Path
 
 from schema_validator import SchemaValidator
 from definition_enricher import DefinitionEnricher
-from generate_md_table_questions import process_yaml_file, generate_markdown_table
+from generate_md_table_tasks import process_yaml_file, generate_markdown_table
 
 
 def main() -> None:
