@@ -23,6 +23,7 @@ def extract_task_info(task, parent_path=""):
 
     task_id = task["id"]
     task_text = task.get("task", "")
+    task_description = task.get("description", "")
     task_type = (
         ", ".join(task.get("type", []))
         if isinstance(task.get("type", []), list)
@@ -72,6 +73,7 @@ def extract_task_info(task, parent_path=""):
         {
             "id": task_id,
             "text": task_text,
+            "description": task_description,
             "type": task_type,
             "options": options_str,
             "related": related_str,
@@ -128,19 +130,38 @@ def generate_markdown_table(tasks, file_name):
         Markdown string
     """
     # Initialize markdown string with heading
-    md = f"# Question Overview for {file_name}\n\n"
+    md = f"# Task Overview for {file_name}\n\n"
 
     # Add table headers
-    md += "| Question ID | Question | Type | Options | Related Questions |\n"
-    md += "|------------|----------|------|---------|-------------------|\n"
+    md += "| Task ID | Task | Description | Type | Options | Related tasks |\n"
+    md += "|------------|----------|-------------------|------|---------|-------------------|\n"
 
     # Add rows for each task
     for task in tasks:
-        # Indent question text based on depth to show hierarchy
+        # Indent task text based on depth to show hierarchy
         indent = "  " * task["depth"]
-        question_text = f"{indent}{task['text']}"
+        task_text = f"{indent}{task['text']}"
 
-        md += f"| {task['id']} | {question_text} | {task['type']} | {task['options']} | {task['related']} |\n"
+        # Check if task_id is "singular" (no dots)
+        task_id = str(task["id"])
+        is_singular = "." not in task_id
+
+        # Process description
+        description = task["description"]
+
+        # Replace newlines and multiple spaces to prevent table formatting issues
+        description = description.replace("\n", " ").replace("\r", " ")
+        description = " ".join(description.split())  # Remove multiple spaces
+
+        # Truncate description only for singular task IDs
+        if is_singular and len(description) > 100:
+            description = description[:97] + "..."
+
+        # Escape pipe characters that could break the table
+        description = description.replace("|", "\\|")
+        task_text = task_text.replace("|", "\\|")
+
+        md += f"| {task['id']} | {task_text} | {description} | {task['type']} | {task['options']} | {task['related']} |\n"
 
     return md
 
@@ -152,12 +173,12 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-  python generate_md_table_questions.py --source sources/DPIA.yaml --output docs/DPIA_questions.md
+  python generate_md_table_tasks.py --source sources/DPIA.yaml --output docs/DPIA_tasks.md
 
   # Similar to the validate and inject script format:
-  python generate_md_table_questions.py \\
+  python generate_md_table_tasks.py \\
     --source sources/DPIA.yaml \\
-    --output docs/DPIA_questions.md
+    --output docs/tasks/tasks_DPIA.md
         """,
     )
     parser.add_argument("--source", required=True, help="Path to the source YAML file")
@@ -178,7 +199,7 @@ def main():
         output_file = args.output
     else:
         base_name = os.path.splitext(os.path.basename(yaml_file))[0]
-        output_file = f"{base_name}_questions.md"
+        output_file = f"tasks_{base_name}.md"
 
     # Ensure output file has .md extension
     if not output_file.endswith(".md"):

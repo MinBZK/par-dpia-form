@@ -221,24 +221,24 @@ uv run script/definition_enricher.py \
 ```
 
 #### YAML to Markdown Table Converter
-This script generates a well-structured Markdown table from YAML form definition files. It extracts all questions, their types, options, and relationships to provide a comprehensive overview of the form structure. The table includes the original question IDs, the question text (with visual hierarchy), answer types, available options, and related questions.
+This script generates a well-structured Markdown table from YAML form definition files. It extracts all tasks, their types, options, and relationships to provide a comprehensive overview of the form structure. The table includes the original task IDs, the task text (with visual hierarchy), answer types, available options, and related tasks.
 
-The DPIA questions can be checked [here](docs/questions/questions_DPIA.md) and the Pre-scan DPIA questions can be checked [here](docs/questions/questions_prescan_DPIA.md).
+The DPIA tasks can be checked [here](docs/tasks/tasks_DPIA.md) and the Pre-scan DPIA tasks can be checked [here](docs/tasks/tasks_prescan_DPIA.md).
 
 ##### Prescan DPIA
 
 ```bash
-uv run script/generate_md_table_questions.py \
+uv run script/generate_md_table_tasks.py \
   --source sources/prescan_DPIA.yaml \
-  --output docs/questions/questions_prescan_DPIA.md
+  --output docs/tasks/tasks_prescan_DPIA.md
 ```
 
 ##### DPIA
 
 ```bash
-uv run script/generate_md_table_questions.py \
+uv run script/generate_md_table_tasks.py \
   --source sources/DPIA.yaml \
-  --output docs/questions/questions_DPIA.md
+  --output docs/tasks/tasks_DPIA.md
 ```
 
 #### Combined Workflow
@@ -246,7 +246,7 @@ uv run script/generate_md_table_questions.py \
 This script combines the three above scripts to:
 1. Validate the script and export them to a JSON
 2. Inject glossary items and export them to a JSON
-3. Create questions markdown documents
+3. Create tasks markdown documents
 
 ##### Prescan DPIA
 
