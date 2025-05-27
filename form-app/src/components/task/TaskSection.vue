@@ -50,7 +50,7 @@ const isRepeatable = (taskId: string) => {
 }
 
 const taskDisplayTitle = (task: FlatTask): string => {
-  const shouldSkipIdPrefix = (task.is_official_id === false) || (task.type && task.type.includes('signing'));
+  const shouldSkipIdPrefix = !task.is_official_id || (task.type && task.type.includes('signing'));
   return shouldSkipIdPrefix
     ? task.task
     : `${task.id}. ${task.task}`;
