@@ -5,6 +5,7 @@ import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 import { useSchemaStore } from '@/stores/schemas'
 import * as jexl from 'jexl'
+import { FormType } from '@/models/dpia'
 
 
 export interface Criterion {
@@ -318,7 +319,7 @@ export const useCalculationStore = defineStore('calculationStore', () => {
   watch(
     () => answerStore.answers,
     () => {
-      if (isInitialized.value) {
+      if (isInitialized.value && answerStore.activeNamespace === FormType.PRE_SCAN) {
         runCalculations();
       }
     },

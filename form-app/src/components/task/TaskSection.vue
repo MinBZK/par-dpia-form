@@ -29,21 +29,6 @@ const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
-// Helper function to check if a DPIA reference (string or array) contains or matches the current task ID
-const hasDpiaReference = (dpiaReference: string | string[], taskId: string): boolean => {
-  // If the reference is a string
-  if (typeof dpiaReference === 'string') {
-    return dpiaReference === taskId || dpiaReference.startsWith(taskId + '.');
-  }
-
-  // If the reference is an array
-  if (Array.isArray(dpiaReference)) {
-    return dpiaReference.some(ref => ref === taskId || ref.startsWith(taskId + '.'));
-  }
-
-  return false;
-}
-
 const hasPreScanReferences = computed(() => {
   if (activeNamespace.value !== FormType.DPIA) return false;
 
@@ -54,8 +39,7 @@ const hasPreScanReferences = computed(() => {
   // If we're looking at root task "1", check for references to "1", "1.1", "1.2", etc.
   return preScanTasks.some(task =>
     task.references &&
-    task.references.DPIA &&
-    hasDpiaReference(task.references.DPIA, props.taskId)
+    task.references.DPIA
   )
 })
 
@@ -66,7 +50,7 @@ const isRepeatable = (taskId: string) => {
 }
 
 const taskDisplayTitle = (task: FlatTask): string => {
-  const shouldSkipIdPrefix = !task.is_official_id ||(task.type && task.type.includes('signing'));
+  const shouldSkipIdPrefix = !task.is_official_id || (task.type && task.type.includes('signing'));
   return shouldSkipIdPrefix
     ? task.task
     : `${task.id}. ${task.task}`;

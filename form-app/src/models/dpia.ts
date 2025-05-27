@@ -89,12 +89,27 @@ export const Calculation = t.intersection([
 
 export type Calculation = t.TypeOf<typeof Calculation>
 
-export const TaskReferences = t.partial({
-  prescanModelId: t.string,
-  DPIA: t.union([t.string, t.array(t.string)])
+export const ReferenceType = t.union([
+  t.literal('pre-view'),
+  t.literal('pre-fill'),
+  t.literal('one-to-one'),
+  t.literal('one-to-many'),
+  t.literal('many-to-many'),
+])
+
+export const TaskReference = t.type({
+  id: t.string,
+  type: ReferenceType
 })
 
-export type TaskReferences = t.TypeOf<typeof TaskReferences>;
+export const TaskReferences = t.partial({
+  prescanModelId: t.string,
+  DPIA: t.array(TaskReference)
+})
+
+export type TaskReferences = t.TypeOf<typeof TaskReferences>
+export type ReferenceType = t.TypeOf<typeof ReferenceType>
+export type TaskReference = t.TypeOf<typeof TaskReference>
 
 export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
   t.intersection([
