@@ -25,6 +25,14 @@ const dutchDateFormatter = new Intl.DateTimeFormat('nl-NL', {
   minute: '2-digit'
 })
 
+// Get colors from RVO library
+const RVO_COLORS = {
+  DONKER_BLAUW: '#01689B',
+  ZWART: '#000000',
+  DONKER_GRIJS: '#535353',
+  MEDIUM_GRIJS: '#999999',
+}
+
 export async function exportToPdf(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
@@ -57,47 +65,50 @@ export async function exportToPdf(
       fontSize: 28,
       bold: true,
       margin: [0, 0, 0, 10],
-      color: '#154273', // RVO blue
+      color: RVO_COLORS.DONKER_BLAUW,
     },
     subtitle: {
       fontSize: 18,
       margin: [0, 15, 0, 0],
-      color: '#333333',
+      color: RVO_COLORS.DONKER_GRIJS,
     },
     subsubtitle: {
       fontSize: 14,
       margin: [0, 40, 0, 0],
-      color: '#666666',
+      color: RVO_COLORS.MEDIUM_GRIJS,
       italics: true,
     },
     header: {
       fontSize: 24,
       bold: true,
       margin: [0, 0, 0, 20],
-      color: '#154273', // RVO blue
+      color: RVO_COLORS.DONKER_BLAUW,
     },
     subHeader: {
       fontSize: 16,
       bold: true,
       margin: [0, 15, 0, 10],
-      color: '#154273', // RVO blue
+      color: RVO_COLORS.DONKER_BLAUW,
     },
     subSubHeader: {
       fontSize: 14,
       bold: true,
       margin: [0, 10, 0, 5],
+      color: RVO_COLORS.DONKER_GRIJS,
     },
     description: {
       fontSize: 11,
       margin: [0, 0, 0, 15],
+      color: RVO_COLORS.DONKER_GRIJS,
     },
     normal: {
       fontSize: 11,
+      color: RVO_COLORS.DONKER_GRIJS,
     },
     tableHeader: {
       fontSize: 12,
       bold: true,
-      color: '#154273',
+      color: RVO_COLORS.DONKER_BLAUW,
     },
     tableExample: {
       margin: [0, 5, 0, 15],
