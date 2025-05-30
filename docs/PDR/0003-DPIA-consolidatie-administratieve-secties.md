@@ -1,4 +1,4 @@
-# 3. Consolidatie van administratieve secties in DPIA-tool
+# 3. Consolidatie van administratieve secties in invulhulp DPIA
 
 Document: DPIA
 Datum: 2025-05-20
@@ -11,8 +11,8 @@ Datum: 2025-05-20
 
 De administratieve secties in het DPIA document worden geconsolideerd naar twee locaties:
 
-1. De secties Vaststelling, Versie, Documentbeheerder, Advies FG en status worden onder één kopje aan het einde van de DPIA-tool.
-2. De secties Ondertekening en verwerkingsverantwoordelijke worden onder één kopje aan het einde van de DPIA-tool.
+1. De secties Vaststelling, Versie, Documentbeheerder, Advies FG en status worden onder één kopje aan het einde van de invulhulp DPIA.
+2. De secties Ondertekening en verwerkingsverantwoordelijke worden onder één kopje aan het einde van de invulhulp DPIA.
 
  ## Achtergrond
 
