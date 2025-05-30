@@ -12,7 +12,7 @@
         <a class="rvo-link" id="version-link" href="https://github.com/MinBZK/par-dpia-form"
           >Bètaversie</a
         >
-        De DPIA-tool is in ontwikkeling.
+        De invulhulp DPIA is in ontwikkeling.
       </div>
     </div>
   </div>

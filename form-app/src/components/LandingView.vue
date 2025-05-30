@@ -12,34 +12,73 @@ defineProps<{
   <AppBanner />
   <div class="rvo-layout-column rvo-layout-gap--3xl rvo-margin-block-start--xl">
     <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-      <h1 class="utrecht-heading-1">Ondersteuning bij gegevensbescherming</h1>
-      <p class="rvo-padding-block-end--lg">
-        Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen in mogelijke
-        privacyrisico's. Deze tools helpen je daarbij. Ze zijn gebaseerd op het <a
-          href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA">Informatiemodellen voor de DPIA en pre-scan DPIA</a> en <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx">Rapportagemodel DPIA Rijksdienst</a> en sluiten aan
-        op rijksbrede kaders, inclusief AI en kinderrechten.
-      </p>
-
-      <div class="rvo-layout-grid-container">
+      <h1 class="utrecht-heading-1">Invulhulp voor pre-scan en DPIA</h1>
+      <div class="rvo-layout-grid-container rvo-margin-inline-end--md">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
             <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3 ">Pre-scan</h3>
-              <p class="rvo-padding-block-end--sm">Toets snel of een DPIA, DTIA, IAMA of KIA nodig is op basis van risico’s.</p>
+              <h2 class="utrecht-heading-2 rvo-margin--none">Pre-scan</h2>
+              <p class="rvo-padding-block-end--sm">Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
               <UiButton variant="primary" label="Start pre-scan" class="card-button"
                 @click="navigation.goToPreScanDPIA" />
             </div>
           </div>
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
             <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3">DPIA</h3>
-              <p class="rvo-padding-block-end--sm">Voer een DPIA uit volgens het model van de Rijksoverheid, stap voor stap.</p>
+              <h2 class="utrecht-heading-2 rvo-margin--none">DPIA</h2>
+              <p class="rvo-padding-block-end--sm">Vul stap voor stap het rijksmodel DPIA in.</p>
               <UiButton variant="primary" label="Start DPIA" class="card-button"
                 @click="navigation.goToDPIA" />
             </div>
           </div>
         </div>
       </div>
+
+      <div class="rvo-margin-block-end--xl rvo-margin-block-start--xl">
+        <h2 class="utrecht-heading-2">Waarom een DPIA?</h2>
+        <p>
+          Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen in mogelijke privacyrisico's.
+          Een DPIA is het instrument om van projecten waarbij persoonsgegevens worden verwerkt of beleid en regelgeving die kunnen leiden tot verwerking van persoonsgegevens de risico's voor de rechten en vrijheden van betrokkenen in kaart te brengen en te beoordelen in hoeverre de huidige maatregelen voldoen en welke aanvullende maatregelen genomen moeten worden om de risico's zoveel mogelijk te verminderen.
+          Hiervoor is een rijksbreed model ontwikkeld.
+        </p>
+      </div>
+      <div class="rvo-margin-block-end--xl">
+        <h2 class="utrecht-heading-2">Wanneer voer je een DPIA uit?</h2>
+        <p>
+          Een DPIA moet in een vroegtijdig stadium van de beleids- of projectontwikkeling worden uitgevoerd. Op dat moment is het namelijk nog mogelijk om met open vizier na te denken over de effecten en bestaat er nog voldoende gelegenheid om de uitgangspunten van het voorstel zonder grote nadelige consequenties te herzien. Dit voorkomt ook latere, kostbare aanpassingen in processen, herontwerp van systemen of zelfs stopzetten van een project.
+        </p>
+      </div>
+      <div class="rvo-margin-block-end--md">
+        <h3 class="utrecht-heading-3">Wettelijke verplichting</h3>
+        <p>In de volgende gevallen is het verplicht om een DPIA uit te voeren:</p>
+        <ol>
+          <li>Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of</li>
+          <li>wanneer sprake is van een verplichting op basis van departementaal beleid; of</li>
+          <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
+        </ol>
+      </div>
+      <div class="rvo-margin-block-end--xl">
+        <h2 class="utrecht-heading-2">Pre-scan als hulpmiddel</h2>
+        <p>
+          De Prescan DPIA is bedoeld als hulpmiddel om te bepalen of er volgens stap 3 een DPIA moet worden gemaakt.
+        </p>
+      </div>
+      <div class="rvo-margin-block-end--xl">
+        <h2 class="utrecht-heading-2">Over deze tools</h2>
+        <p>
+          De tools zoals die op deze pagina staan helpen je bij het initieel invullen van de DPIA. Ze zijn gebaseerd op het <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank">Informatiemodellen voor de DPIA en pre-scan DPIA</a> en <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank">Rapportagemodel DPIA Rijksdienst</a> en sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten. Het is een hulpmiddel, maar omvat niet het hele proces van een DPIA. Het product van deze tools kan je importeren als Word-document en omvat alle relevante blokken die in het rapportagemodel DPIA moeten staan.
+        </p>
+      </div>
+
+      <p>
+        Meer uitleg over de pre-scan kan je vinden in de <a href="#" target="_blank">handreiking pre-scan DPIA</a>.<br>
+        Meer uitleg over het rapportagemodel DPIA in dit document: <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank">Model DPIA Rijksdienst</a>.
+      </p>
+      <p>
+        Zie ook:<br>
+        <a href="https://www.rijksportaal.nl/onderwerpen/privacy-adviseurs-rijk" target="_blank">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a><br>
+        <a href="https://www.kcbr.nl/kennisbank/data-protection-impact-assessment" target="_blank">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a>
+      </p>
 
       <div class="rvo-layout-margin-vertical--xl">
         <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour-wit">
@@ -62,6 +101,7 @@ defineProps<{
           </p>
         </div>
       </div>
+
     </div>
   </div>
 </template>

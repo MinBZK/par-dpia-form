@@ -148,8 +148,8 @@ export async function exportToPdf(
       // Document metadata
       info: {
         title: `${formType} Rapportagemodel`,
-        author: `DPIA Rapportagemodel Editor`,
-        creator: `DPIA Rapportagemodel Editor`,
+        author: `Invulhulp DPIA`,
+        creator: `Invulhulp DPIA`,
       },
 
       // Page styling
