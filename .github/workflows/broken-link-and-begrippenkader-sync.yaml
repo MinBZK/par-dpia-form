@@ -30,6 +30,7 @@ jobs:
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
+            --exclude "https://rijksportaal.overheid-i.nl/.*"
             '**/*.yaml'
             '**/*.md'
             '**/*.ts'

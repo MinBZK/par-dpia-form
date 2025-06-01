@@ -76,8 +76,8 @@ defineProps<{
       </p>
       <p>
         Zie ook:<br>
-        <a href="https://www.rijksportaal.nl/onderwerpen/privacy-adviseurs-rijk" target="_blank">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a><br>
-        <a href="https://www.kcbr.nl/kennisbank/data-protection-impact-assessment" target="_blank">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a>
+        <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a><br>
+        <a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a>
       </p>
 
       <div class="rvo-layout-margin-vertical--xl">
