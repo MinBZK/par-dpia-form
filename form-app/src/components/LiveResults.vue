@@ -25,17 +25,14 @@ interface ExplanationResult {
 const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationResult => {
   // Get the correct intro text based on the level and assessment type
   let introText;
-  // RM: Dit is een beetje messy met al die verschillende benamingen, donderdag bij de PAR checken
   if (assessment.level === 'recommended') {
     introText = `Een ${assessment.id} wordt aanbevolen omdat:`;
   } else {
-    // Check if the assessment is IAMA
     if (assessment.id === 'IAMA') {
-      introText = `Een ${assessment.id} is mogelijk verplicht omdat:`;
-    } if (assessment.id === 'KIA') {
-      introText = `Een ${assessment.id} is aan te raden omdat:`;
-    }
-    else {
+      introText = `Een ${assessment.id} is sterk aanbevolen omdat:`;
+    } else if (assessment.id === 'KIA') {
+      introText = `Een ${assessment.id} is aanbevolen omdat:`;
+    } else {
       introText = `Een ${assessment.id} is verplicht omdat:`;
     }
   }
