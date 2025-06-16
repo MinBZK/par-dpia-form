@@ -870,7 +870,6 @@ tasks:
 - task: Algoritmes/AI
   description: >-
     Bij het verwerken van persoonsgegevens kan gebruik worden gemaakt van een algoritme. Als dat gebeurt, wordt genoteerd dat er sprake is van inzet van een algoritme, en of dit algoritme een AI-systeem betreft.
-    Wanneer het algoritme valt onder de definitie van een AI-systeem, ontstaat een IAMA-verplichting.
   id: "6"
   type:
   - task_group
@@ -902,7 +901,7 @@ tasks:
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
       description: Indien overheidsorganisaties een AI-systeem met een hoog risico in de zin van de EU AI-verordening gebruiken of in gebruik willen nemen,
         is het uitvoeren van een IAMA sterk aanbevolen. Met ingang van 2 augustus 2026 verplicht artikel 27 van de EU AI-verordening gebruikers van een AI-systeem met een hoog risico om voorafgaand aan ingebruikneming een Fundamental Rights Impact Assessment (FRIA) uit te voeren.
-        Indien bij de verwerking van persoonsgegevens gebruik wordt gemaakt van een AI-systeem, dan stelt de AI-verordening mogelijk aanvullende vereisten. Raadpleeg het  <a href="https://minbzk.github.io/Algoritmekader/" target="_blank">Algoritmekader</a> voor meer informatie.
+        Indien bij de verwerking van persoonsgegevens gebruik wordt gemaakt van een AI-systeem, dan stelt de AI-verordening mogelijk aanvullende vereisten. Raadpleeg de <a href="https://ai-verordening-beslishulp.apps.digilab.network" target="_blank">Beslishulp AI-verordening</a> en het <a href="https://minbzk.github.io/Algoritmekader/" target="_blank">Algoritmekader</a> voor meer informatie.
       id: "6.1.2"
       type:
       - radio_option
