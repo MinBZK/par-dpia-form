@@ -56,13 +56,11 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # Updated to v4
+        uses: actions/checkout@v4
         with:
-          # Ensure we have the latest code with full history for proper commits
           fetch-depth: 0
       - name: Download YAML file
         run: |
-          # Replace with your actual URL and destination path
           curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader-dpia.yaml
       - name: Check for changes
         id: git-check
@@ -73,8 +71,15 @@ jobs:
           else
             echo "changes=false" >> $GITHUB_ENV
           fi
-      - name: Create Pull Request
-        if: env.changes == 'true'
+      - name: Commit directly (when in PR)
+        if: env.changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Auto-sync YAML file from external source"
+          git push
+      - name: Create Pull Request (when scheduled or manual)
+        if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: peter-evans/create-pull-request@v5
         with:
           base: main
