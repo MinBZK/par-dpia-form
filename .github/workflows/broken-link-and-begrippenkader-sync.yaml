@@ -56,32 +56,34 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4  # Updated to v4
         with:
           # Ensure we have the latest code with full history for proper commits
           fetch-depth: 0
-
       - name: Download YAML file
         run: |
           # Replace with your actual URL and destination path
           curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader-dpia.yaml
-
       - name: Check for changes
         id: git-check
         run: |
           git add sources/begrippenkader-dpia.yaml
-          git diff --staged --quiet || echo "changes=true" >> $GITHUB_ENV
-
-      - name: Commit and push if changed
-        if: env.changes == 'true'
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git commit -m "Auto-sync YAML file from external source"
-
-          # Only push if we're on the main branch or this is a scheduled/manual run
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            git push
+          if ! git diff --staged --quiet; then
+            echo "changes=true" >> $GITHUB_ENV
           else
-            echo "Changes detected but not pushing as this is a PR build"
+            echo "changes=false" >> $GITHUB_ENV
           fi
+      - name: Create Pull Request
+        if: env.changes == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "Auto-sync YAML file from external source"
+          title: "Auto-sync YAML file from external source"
+          body: |
+            Automated sync of `begrippenkader-dpia.yaml` from external source.
+
+            Source: https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml
+
+            This PR was created automatically by the sync-yaml workflow.
+          branch: auto-sync-yaml-${{ github.run_number }}
+          delete-branch: true
