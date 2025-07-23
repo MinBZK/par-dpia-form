@@ -4,7 +4,7 @@ Datum: 2025-05-13
 
 ## Status
 
-Geaccepteerd - PAR team
+Goedgekeurd - PAR team
 
 ## Besluit
 
