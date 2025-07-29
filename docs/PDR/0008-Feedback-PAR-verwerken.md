@@ -26,16 +26,13 @@ Het PAR team heeft uitgebreide feedback gegeven op het DPIA invulmodel na evalua
 De volgende verbeteringen worden doorgevoerd:
 
 ### Structurele aanpassingen
-- Managementsamenvatting verplaatsen naar het einde van het proces (logischer voor invullers)
 - Samenhang gegevensverwerkingen verduidelijken
 
 ### Tekstuele correcties
-- Typefout "Gegevensverwerking Ge?" corrigeren in sectie 5. Verwerkingsdoeleinden
 - "Functionarissen/afdelingen" wijzigen naar "functies/afdelingen" in sectie 6. Betrokken partijen
 
 ### Ontbrekende informatie toevoegen
 - Uitleg van sectie 1.1.7 06. Betrokken partijen toevoegen aan invulmodel (inclusief rolbeperkingen)
-- Extra toelichting bij "2. Persoonsgegevens" opnemen in gegevensmodel
 - Verwerkingsdoeleinde overnemen uit sectie 5 naar sectie 10 (bewaartermijn)
 
 ### Functionaliteit uitbreiden

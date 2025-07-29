@@ -101,9 +101,16 @@ def create_term_map(begrippenkader):
     for item in alt_terms:
         term = item["term"]
         voorkeur_id = item["voorkeur_id"]
-        # Check if main term exists in our map - use lowercase for lookup
-        if isinstance(voorkeur_id, str) and voorkeur_id.lower() in term_map:
-            main_term_info = term_map[voorkeur_id.lower()]
+        # Check if main term exists in our map - search by ID, not by lowercased voorkeur_id
+        main_term_info = None
+        if isinstance(voorkeur_id, str):
+            # Find the term with matching ID
+            for term_key, term_data in term_map.items():
+                if term_data.get("id") == voorkeur_id:
+                    main_term_info = term_data
+                    break
+
+        if main_term_info:
             term_map[term.lower()] = {
                 "id": "",
                 "term": term,  # Keep original capitalization for display
@@ -137,36 +144,14 @@ def inject_terms(text, term_map):
     if not text or not isinstance(text, str):
         return text
 
-    # Group terms by type
-    hoofdtermen = []
-    meervoudsvormen = []  # NEW: separate list for plural forms
-    alt_spellingen = []
-    alt_termen = []
+    # Collect all terms and sort by length (longest first) to ensure proper priority
+    # This ensures that longer terms are always matched before shorter ones,
+    # regardless of their type (hoofdterm, alternative term, etc.)
+    all_terms = list(term_map.keys())
+    all_terms.sort(key=len, reverse=True)
 
-    for term_key, term_data in term_map.items():
-        # Term keys are already lowercase from create_term_map
-        if term_data.get("is_meervoudsvorm", False):  # NEW: check for plural forms
-            meervoudsvormen.append(term_key)
-        elif term_data.get("is_alternatief_spelling", False):
-            alt_spellingen.append(term_key)
-        elif term_data.get("is_alternatief_term", False):
-            alt_termen.append(term_key)
-        else:
-            hoofdtermen.append(term_key)
-
-    # Sort each category by length (longest first)
-    hoofdtermen.sort(key=len, reverse=True)
-    meervoudsvormen.sort(key=len, reverse=True)  # NEW: sort plural forms
-    alt_spellingen.sort(key=len, reverse=True)
-    alt_termen.sort(key=len, reverse=True)
-
-    # Combine all term lists in processing order with the new priority
-    all_term_lists = [
-        hoofdtermen,
-        meervoudsvormen,
-        alt_spellingen,
-        alt_termen,
-    ]  # Updated order
+    # Convert to the expected format for the rest of the function
+    all_term_lists = [all_terms]
 
     # Create a record of all matched positions to prevent overlapping/nested tags
     matched_positions = set()
@@ -532,9 +517,9 @@ if __name__ == "__main__":
     print("uit het begrippenkader met HTML-tags voor definities.")
     print("")
     print("Prioriteit van term-matching:")
-    print("1. Hoofdtermen (langste eerst)")
-    print("2. Alternatieve spellingen (langste eerst)")
-    print("3. Alternatieve termen (langste eerst)")
+    print("1. Alle termen gesorteerd op lengte (langste eerst)")
+    print("   - Dit zorgt ervoor dat langere termen altijd voorrang krijgen")
+    print("   - Ongeacht of het hoofdtermen, alternatieve termen, of spellingen zijn")
     print("")
     print("Alle matching gebeurt hoofdletter-ongevoelig, maar de oorspronkelijke")
     print("hoofdletters in de tekst blijven behouden.")

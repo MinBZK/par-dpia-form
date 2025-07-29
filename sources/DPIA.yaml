@@ -65,7 +65,12 @@ tasks:
         • Strafrechtelijk persoonsgegeven<br>
         • Nationaal identificatienummer<br>
 
-        Geef aan wat de bron persoonsgegevens is.
+        Geef aan wat de bron persoonsgegevens is.<br><br>
+
+        <strong>Toelichting:</strong> Bij het beschrijven van persoonsgegevens is het belangrijk om specifiek te zijn.
+        Vermeld niet alleen het type gegeven (bijvoorbeeld 'naam'), maar ook de context waarin het wordt gebruikt
+        en waarom het noodzakelijk is voor het verwerkingsdoel. Voor bijzondere persoonsgegevens is extra
+        motivatie vereist conform artikel 9 AVG.
    id: "2"
    is_official_id: true
    type:
@@ -215,7 +220,11 @@ tasks:
           repeatable: true
           tasks:
           - task: Samenhang tussen de gegevensverwerkingen
-            description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
+            description: >-
+              Beschrijf hier hoe de verschillende gegevensverwerkingen met elkaar samenhangen.
+              Geef aan welke verwerkingen elkaar beïnvloeden, welke gegevens tussen verwerkingen worden uitgewisseld,
+              en hoe de verwerkingen samen bijdragen aan het hoofddoel. Voor visualisatie kunt u een link toevoegen
+              naar een schema of diagram dat is opgeslagen in een samenwerkruimte, gedeelde map of andere specifieke opslaglocatie.
             id: "3.3.1"
             type:
               - text_input
@@ -274,7 +283,17 @@ tasks:
  - task: >-
       Betrokken partijen
    description: >-
-    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functionarissen/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen.
+    Benoem alle partijen die betrokken zijn en deel deze in per gegevensverwerking. Deel deze partijen in onder de rollen: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functies/afdelingen binnen deze partijen toegang krijgen tot welke persoonsgegevens van welke categorieën betrokkenen.<br><br>
+
+    <strong>Uitleg bij partij rollen:</strong><br>
+    • <strong>Verwerkingsverantwoordelijke:</strong> De partij die het doel en de middelen van de verwerking vaststelt<br>
+    • <strong>Gezamenlijke verwerkingsverantwoordelijke:</strong> Partijen die samen het doel en de middelen vaststellen<br>
+    • <strong>Verwerker:</strong> Partij die persoonsgegevens verwerkt namens de verwerkingsverantwoordelijke<br>
+    • <strong>Sub-verwerker:</strong> Verwerker die wordt ingeschakeld door een andere verwerker<br>
+    • <strong>Verstrekker/Ontvanger:</strong> Partijen die gegevens uitwisselen in het verwerkingsproces<br>
+    • <strong>Derde:</strong> Partij die niet onder de directe verantwoordelijkheid van de verwerkingsverantwoordelijke valt<br><br>
+
+    Let op: Bij het benoemen van functies/afdelingen moeten rolbeperkingen worden meegenomen, zoals toegangsrechten en autorisatieniveaus.
    id: "6"
    is_official_id: true
    type:
