@@ -37,7 +37,8 @@
                             "checkbox_option",
                             "radio_option",
                             "task_group",
-                            "date"
+                            "date",
+                            "display_text"
                         ]
                     }
                 },
