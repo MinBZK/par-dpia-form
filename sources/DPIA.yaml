@@ -88,7 +88,7 @@ tasks:
               type:
                 - text_input
               repeatable: false
-            - task: Categorie betrokkene
+            - task: Categorie betrokkenen
               id: "2.1.2"
               type:
                 - text_input
@@ -571,7 +571,7 @@ tasks:
               - task: Verwerkingsdoeleinde
                 id: "10.1.1.1"
                 type:
-                  - text_input
+                  - display_text
                 dependencies:
                 - type: instance_mapping
                   source:
@@ -1563,6 +1563,7 @@ tasks:
               - text_input
             repeatable: false
           - task: Risiconiveau
+            description: Het risiconiveau wordt automatisch berekend op basis van de ingevoerde kans en impact.
             id: "16.1.7"
             type:
               - select_option

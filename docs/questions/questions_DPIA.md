@@ -10,7 +10,7 @@
 | 2 | Persoonsgegevens | Beschrijf alle persoonsgegevens die worden verwerkt. Classificeer deze persoonsgegevens naar: <br... | task_group |  |  |
 | 2.1 |   Persoonsgegevens |  | task_group |  |  |
 | 2.1.1 |     Persoonsgegeven |  | text_input |  |  |
-| 2.1.2 |     Categorie betrokkene |  | text_input |  |  |
+| 2.1.2 |     Categorie betrokkenen |  | text_input |  |  |
 | 2.1.3 |     Categorie persoonsgegevens |  | text_input |  |  |
 | 2.1.4 |     Type persoonsgegeven |  | select_option | gewoon; gevoelig; bijzonder; strafrechtelijk; nationaal identificatienummer |  |
 | 2.1.5 |     Oorspronkelijk verwerkingsdoeleinde |  | text_input |  |  |
@@ -61,7 +61,7 @@
 | 10 | Bewaartermijnen | Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de v... | task_group |  |  |
 | 10.1 |   Gegevensverwerking, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn |  | task_group |  | Copy from 3.1.1 |
 | 10.1.1 |     Bewaartermijnen |  | task_group |  |  |
-| 10.1.1.1 |       Verwerkingsdoeleinde |  | text_input |  | Copy from 5.1.1 |
+| 10.1.1.1 |       Verwerkingsdoeleinde |  | display_text |  | Copy from 5.1.1 |
 | 10.1.1.2 |       Categorie betrokkene |  | checkbox_option |  | Options from 2.1.2 |
 | 10.1.1.3 |       Persoonsgegevens |  | checkbox_option |  | Options from 2.1.1 |
 | 10.1.1.4 |       Bewaartermijn/archiveringsperiode |  | select_option | Aantal jaren; Jaar; Minder dan 1 maand; Minder dan 1 week; Minder dan 24 uur |  |
@@ -159,7 +159,7 @@
 | 16.1.4 |     Motivatie van de kans |  | text_input |  |  |
 | 16.1.5 |     Impact |  | select_option | laag; midden; hoog |  |
 | 16.1.6 |     Motivatie van de impact |  | text_input |  |  |
-| 16.1.7 |     Risiconiveau |  | select_option | laag; midden; hoog |  |
+| 16.1.7 |     Risiconiveau | Het risiconiveau wordt automatisch berekend op basis van de ingevoerde kans en impact. | select_option | laag; midden; hoog |  |
 | 16.1.8 |     Motivatie van de risicoinschatting |  | text_input |  |  |
 | 16.2 |   Aanvullende informatie over de risico’s | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
 | 17 | Maatregelen | Beoordeel welke technische, organisatorische en juridische maatregelen in redelijkheid kunnen wor... | task_group |  |  |
