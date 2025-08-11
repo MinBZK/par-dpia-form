@@ -1,0 +1,39 @@
+publiccodeYmlVersion: "0.3"
+name: Invulhulp voor pre-scan en DPIA
+url: "https://github.com/MinBZK/par-dpia-form"
+landingURL: "https://minbzk.github.io/par-dpia-form/"
+softwareType: standalone/web
+releaseDate: "2025-06-02"
+platforms:
+  - web
+categories:
+  - it-development
+developmentStatus: beta
+description:
+  en:
+    longDescription: >
+      The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA
+      forms and generating reports without requiring installation or server hosting.
+      The Pre-scan DPIA form help organizations evaluate privacy risks associated with data
+      processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact
+      Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten
+      Impact Assessment) is necessary.
+    shortDescription: A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
+    features:
+      - Web form
+legal:
+  license: EUPL-1.2
+intendedAudience:
+  countries:
+    - nl
+  scope:
+    - government
+localisation:
+  availableLanguages:
+    - nl
+  localisationReady: false
+maintenance:
+  type: internal
+  contacts:
+    - name: TODO
+      email: TODO
