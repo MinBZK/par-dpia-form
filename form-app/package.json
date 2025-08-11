@@ -30,7 +30,7 @@
     "@tsconfig/node22": "^22.0.2",
     "@types/jexl": "^2.3.4",
     "@types/node": "^24.0.3",
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue": "^6.0.1",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/tsconfig": "^0.7.0",
