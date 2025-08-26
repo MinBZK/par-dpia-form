@@ -15,7 +15,7 @@
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
     "@nl-rvo/component-library-css": "^4.8.0",
-    "@nl-rvo/design-tokens": "^1.9.0",
+    "@nl-rvo/design-tokens": "^1.10.0",
     "@types/pdfmake": "^0.2.11",
     "fp-ts": "^2.16.10",
     "io-ts": "^2.2.22",
