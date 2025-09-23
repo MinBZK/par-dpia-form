@@ -114,7 +114,7 @@ tasks:
               type:
                 - text_input
               repeatable: false
-            - task: Bron betrokkenen
+            - task: Bron persoonsgegevens
               description: Zijn de persoonsgegevens via een betrokken partij gekomen?
               id: "2.1.6"
               type:
@@ -221,10 +221,8 @@ tasks:
           tasks:
           - task: Samenhang tussen de gegevensverwerkingen
             description: >-
-              Beschrijf hier hoe de verschillende gegevensverwerkingen met elkaar samenhangen.
-              Geef aan welke verwerkingen elkaar beïnvloeden, welke gegevens tussen verwerkingen worden uitgewisseld,
-              en hoe de verwerkingen samen bijdragen aan het hoofddoel. Voor visualisatie kunt u een link toevoegen
-              naar een schema of diagram dat is opgeslagen in een samenwerkruimte, gedeelde map of andere specifieke opslaglocatie.
+
+              Omdat de gegevensverwerkingen binnen het voorstel gecompliceerd kunnen zijn en het niet altijd gemakkelijk is om het geheel van gegevensverwerkingen in woorden uit te drukken is het van belang om de gegevensverwerkingen te visualiseren, bijvoorbeeld aan de hand van een input-proces-output model, stroomschema of workflow.
             id: "3.3.1"
             type:
               - text_input
@@ -292,6 +290,10 @@ tasks:
     • <strong>Sub-verwerker:</strong> Verwerker die wordt ingeschakeld door een andere verwerker<br>
     • <strong>Verstrekker/Ontvanger:</strong> Partijen die gegevens uitwisselen in het verwerkingsproces<br>
     • <strong>Derde:</strong> Partij die niet onder de directe verantwoordelijkheid van de verwerkingsverantwoordelijke valt<br><br>
+    Een verwerker kan niet tegelijkertijd sub-verwerker zijn, daarom is bij die rol een keuze te maken voor één van die rollen.
+    Een gezamenlijke verwerkingsverantwoordelijke kan alleen een partij zijn die al
+    Alleen een verwerkingsverantwoordelijke kan een verstrekker zijn.
+    Iedereen kan ook ontvanger zijn.
 
     Let op: Bij het benoemen van functies/afdelingen moeten rolbeperkingen worden meegenomen, zoals toegangsrechten en autorisatieniveaus.
    id: "6"
@@ -1077,8 +1079,6 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
           - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.1.2"
@@ -1092,29 +1092,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.1.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
             description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
-            id: "15.1.4"
+            id: "15.1.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.1.3"
+                  id: "15.1.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht op rectificatie en aanvulling
           id: "15.2"
@@ -1132,10 +1121,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.2.2"
             type:
               - open_text
@@ -1147,28 +1134,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.2.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.2.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.2.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.2.3"
+                  id: "15.2.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht op vergetelheid
           id: "15.3"
@@ -1186,10 +1163,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.3.2"
             type:
               - open_text
@@ -1201,28 +1176,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.3.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.3.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.3.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.3.3"
+                  id: "15.3.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht op beperking van de verwerking
           id: "15.4"
@@ -1240,10 +1205,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.4.2"
             type:
               - open_text
@@ -1255,28 +1218,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.4.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.4.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.4.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.4.3"
+                  id: "15.4.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht op dataportabiliteit
           id: "15.5"
@@ -1294,10 +1247,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.5.2"
             type:
               - open_text
@@ -1309,28 +1260,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.5.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.5.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.5.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.5.3"
+                  id: "15.5.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht niet onderworpen te worden aan uitsluitend geautomatiseerde besluitvorming
           id: "15.6"
@@ -1348,10 +1289,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.6.2"
             type:
               - open_text
@@ -1363,28 +1302,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.6.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.6.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.6.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.6.3"
+                  id: "15.6.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht om bezwaar te maken
           id: "15.7"
@@ -1402,10 +1331,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.7.2"
             type:
               - open_text
@@ -1417,28 +1344,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.7.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.7.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.7.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.7.3"
+                  id: "15.7.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
         - task: Recht op duidelijke informatie
           id: "15.8"
@@ -1456,10 +1373,8 @@ tasks:
                 label: Nee
               - value: true
                 label: Ja
-              - value: null
-                label: Niet van toepassing
             repeatable: false
-          - task: Procedure toelichting
+          - task: Toelichting op procedure ter invulling van het recht van de betrokkene
             id: "15.8.2"
             type:
               - open_text
@@ -1471,28 +1386,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
-          - task: Beperking op grond van wettelijke uitzondering
-            id: "15.8.3"
-            type:
-              - radio_option
-            valueType: "boolean|null"
-            options:
-              - value: true
-                label: Ja
-              - value: null
-                label: Niet van toepassing
-            repeatable: false
           - task: Beperking toelichting
-            id: "15.8.4"
+            description: Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe.
+            id: "15.8.3"
             type:
               - open_text
             repeatable: false
             dependencies:
               - type: conditional
                 condition:
-                  id: "15.8.3"
+                  id: "15.8.1"
                   operator: equals
-                  value: true
+                  value: false
                 action: show
  - task: >-
      Risico’s voor betrokkenen

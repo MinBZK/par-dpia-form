@@ -130,7 +130,7 @@
               "repeatable": false
             },
             {
-              "task": "<span class=\"aiv-definition\">Bron<span class=\"aiv-definition-text\">Bron persoonsgegevens is een [classificatie] die aangeeft of een [persoonsgegeven] direct van de [betrokkene] komt, of via een [betrokken partij].\n<br><strong>Toelichting</strong>: Het is van belang dat bekend is wat de herkomst is van de persoonsgegevens. De privacyregelgeving geeft namelijk als beginsel dat persoonsgegevens niet verder mogen worden verwerkt op een wijze die onverenigbaar is met de doeleinden waarvoor ze zijn verkregen of wanneer dit is voorzien in Unie- of Nederlands recht. Met andere woorden: de verwerking van persoonsgegevens voor andere doeleinden dan die waarvoor de persoonsgegevens aanvankelijk zijn verzameld, mag enkel indien de verwerking verenigbaar is met de doeleinden waarvoor de persoonsgegevens aanvankelijk zijn verzameld of in overeenstemming is met Unie- of lidstatelijk recht dat direct toeziet op desbetreffende verwerking van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: De persoonsgegevens worden verkregen via een interne database. De database is opgenomen in een Microsoft Excel-bestand. De database is in beheer van organisatie x. Organisatie x verwerkt deze persoonsgegevens met doeleinde y.\n<br><i>Dit is een alternatieve term van Bron persoonsgegevens</i></span></span> <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>",
+              "task": "<span class=\"aiv-definition\">Bron persoonsgegevens<span class=\"aiv-definition-text\">Bron persoonsgegevens is een [classificatie] die aangeeft of een [persoonsgegeven] direct van de [betrokkene] komt, of via een [betrokken partij].\n<br><strong>Toelichting</strong>: Het is van belang dat bekend is wat de herkomst is van de persoonsgegevens. De privacyregelgeving geeft namelijk als beginsel dat persoonsgegevens niet verder mogen worden verwerkt op een wijze die onverenigbaar is met de doeleinden waarvoor ze zijn verkregen of wanneer dit is voorzien in Unie- of Nederlands recht. Met andere woorden: de verwerking van persoonsgegevens voor andere doeleinden dan die waarvoor de persoonsgegevens aanvankelijk zijn verzameld, mag enkel indien de verwerking verenigbaar is met de doeleinden waarvoor de persoonsgegevens aanvankelijk zijn verzameld of in overeenstemming is met Unie- of lidstatelijk recht dat direct toeziet op desbetreffende verwerking van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: De persoonsgegevens worden verkregen via een interne database. De database is opgenomen in een Microsoft Excel-bestand. De database is in beheer van organisatie x. Organisatie x verwerkt deze persoonsgegevens met doeleinde y.</span></span>",
               "description": "Zijn de <span class=\"aiv-definition\">persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> via een <span class=\"aiv-definition\">betrokken partij<span class=\"aiv-definition-text\">Een betrokken partij bij een gegevensverwerking is een [partij] die in een [AVG-rol] betrokken is bij een [gegevensverwerking persoonsgegevens].\n<br><i>Dit is een alternatieve term van Betrokken partij bij gegevensverwerking</i></span></span> gekomen?",
               "id": "2.1.6",
               "type": [
@@ -294,7 +294,7 @@
           "tasks": [
             {
               "task": "Samenhang tussen de <span class=\"aiv-definition\">gegevensverwerkingen<span class=\"aiv-definition-text\">Een gegevensverwerking persoonsgegevens is een gegevensverwerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].\n<br><strong>Toelichting</strong>: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde procedés. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: Verzoek om informatie, betaling/transactie.\n<br><i>Dit is een alternatieve term van Gegevensverwerking persoonsgegevens</i></span></span>",
-              "description": "Beschrijf hier hoe de verschillende <span class=\"aiv-definition\">gegevensverwerkingen<span class=\"aiv-definition-text\">Een gegevensverwerking persoonsgegevens is een gegevensverwerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].\n<br><strong>Toelichting</strong>: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde procedés. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: Verzoek om informatie, betaling/transactie.\n<br><i>Dit is een alternatieve term van Gegevensverwerking persoonsgegevens</i></span></span> met elkaar samenhangen. Geef aan welke verwerkingen elkaar beïnvloeden, welke gegevens tussen verwerkingen worden uitgewisseld, en hoe de verwerkingen samen bijdragen aan het hoofddoel. Voor visualisatie kunt u een link toevoegen naar een schema of diagram dat is opgeslagen in een samenwerkruimte, gedeelde map of andere specifieke opslaglocatie.",
+              "description": "\nOmdat de <span class=\"aiv-definition\">gegevensverwerkingen<span class=\"aiv-definition-text\">Een gegevensverwerking persoonsgegevens is een gegevensverwerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].\n<br><strong>Toelichting</strong>: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde procedés. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: Verzoek om informatie, betaling/transactie.\n<br><i>Dit is een alternatieve term van Gegevensverwerking persoonsgegevens</i></span></span> binnen het <span class=\"aiv-definition\">voorstel<span class=\"aiv-definition-text\">Het voorstel is een beschrijving van waar een [DPIA] over gaat, op hoofdlijnen, hoe het voorstel tot stand is gekomen en wat de beweegredenen zijn achter de totstandkoming van het voorstel.\n<br><strong>Toelichting</strong>: Met een korte en bondige beschrijving van de gegevensverwerkingen, wordt de reikwijdte van het DPIA-rapport duidelijk. Ten behoeve van de duidelijkheid en de reikwijdte kan het ook nuttig zijn om expliciet aan te geven waar de DPIA in ieder geval niet over gaat.\n\nTer controle of de beschrijving van het voorstel compleet is kunnen de volgende punten worden nagegaan:\n\n1. Wat is de aanleiding voor het voorstel; \n2. Vervangt of vernieuwt het voorstel een bestaande situatie en is deze bestaande situatie beschreven in relatie tot de nieuwe situatie;\n3. Welke departementen en organisaties zijn betrokken bij het voorstel;\n4. Is bij het voorstel sprake van privacy by design en privacy by default en is beschreven hoe deze beginselen geïmplementeerd zijn; en\n5. Wat zijn de redenen dat het voorstel op deze manier tot stand is gekomen en wordt uitgevoerd?</span></span> gecompliceerd kunnen zijn en het niet altijd gemakkelijk is om het geheel van gegevensverwerkingen in woorden uit te drukken is het van belang om de gegevensverwerkingen te visualiseren, bijvoorbeeld aan de hand van een input-proces-output model, <span class=\"aiv-definition\">stroomschema<span class=\"aiv-definition-text\">Een stroomschema is een visualisatie van [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Omdat de gegevensverwerkingen binnen het voorstel gecompliceerd kunnen zijn en het niet altijd gemakkelijk is om het geheel van gegevensverwerkingen in woorden uit te drukken is het van belang om de gegevensverwerkingen te visualiseren, bijvoorbeeld aan de hand van een input-proces-output model, stroomschema of workflow.\n\nEen duidelijk stroomschema kan namelijk in een oogopslag laten zien hoe de gegevensverwerkingen binnen het proces lopen, waardoor gemakkelijk het overzicht kan worden bewaard in de DPIA. Verder kan ook gerefereerd worden naar het gebruikte stroomschema in de rest van de DPIA.\n\nOm de duidelijkheid van het stroomschema te vergroten kan aan de volgende elementen worden gedacht:\n\n* Benoem alle betrokken partijen in het stroomschema. Op die manier is het duidelijk welke partij verantwoordelijk of onderdeel is bij desbetreffende gegevensverwerking en wanneer de partijen precies worden betrokken bij de gegevensverwerkingen. Geef ook aan wat de AVG-rol is van iedere betrokken partij.\n* Wanneer het stroomschema groter is dan de reikwijdte van de DPIA, geef duidelijk aan in het stroomschema over welke gegevensverwerkingen de DPIA gaat.\n* Voeg per gegevensverwerking toe of specifieke applicaties, software, online platformen of cloud opslag wordt gebruikt.\n<br><strong>Voorbeeld(en)</strong>: Zie kennisbron voor voorbeeld.</span></span> of workflow.",
               "id": "3.3.1",
               "type": [
                 "text_input"
@@ -368,7 +368,7 @@
     },
     {
       "task": "Betrokken partijen",
-      "description": "Benoem alle <span class=\"aiv-definition\">partijen<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.\n<br><i>Dit is een alternatieve term van Partij</i></span></span> die betrokken zijn en deel deze in per <span class=\"aiv-definition\">gegevensverwerking<span class=\"aiv-definition-text\">Een gegevensverwerking persoonsgegevens is een gegevensverwerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].\n<br><strong>Toelichting</strong>: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde procedés. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: Verzoek om informatie, betaling/transactie.\n<br><i>Dit is een alternatieve term van Gegevensverwerking persoonsgegevens</i></span></span>. Deel deze partijen in onder de rollen: <span class=\"aiv-definition\">verwerkingsverantwoordelijke<span class=\"aiv-definition-text\">Een verwerkingsverantwoordelijke is een [partij] die/dat het [verwerkingsdoeleinde] van en de middelen voor de [gegevensverwerking persoonsgegevens] vaststelt.\n<br><strong>Toelichting</strong>: De verwerkingsverantwoordelijke is verantwoordelijk voor het uitvoeren van een DPIA. Formeel is de betreffende minister de verwerkingsverantwoordelijke voor gegevensverwerkingen door een onderdeel van de Rijksdienst. In de praktijk zal de bevoegdheid om te beslissen of en op welke wijze persoonsgegevens worden verwerkt zijn gemandateerd, bijvoorbeeld aan een directeur-generaal of een directeur. De gemandateerde functionaris is dan verantwoordelijk voor de uitvoering van een DPIA.\n\nEen verwerkingsverantwoordelijke kan niet zelf een verwerker, derde of sub-verwerker zijn in dezelfde gegevensverwerking.</span></span>, <span class=\"aiv-definition\">gezamenlijke verwerkingsverantwoordelijke<span class=\"aiv-definition-text\">Een gezamenlijke verwerkingsverantwoordelijke is een [verwerkingsverantwoordelijke] die met één of meer andere [verwerkingsverantwoordelijken] gezamenlijk de [verwerkingsdoeleinden] en middelen van de [gegevensverwerking persoonsgegevens] bepaalt.\n<br><strong>Toelichting</strong>: Wanneer twee of meer verwerkingsverantwoordelijken gezamenlijk de doeleinden en middelen van de verwerking bepalen, dan zijn zij gezamenlijke verwerkingsverantwoordelijken en moeten zij onderling vastleggen wie waarvoor verantwoordelijk en aansprakelijk is.\n\nEen belangrijk criterium voor de beoordeling of sprake is van gezamenlijke verwerkingsverantwoordelijkheid is het volgende: is het mogelijk voor het verwerkingsproces of processen die in deze DPIA worden beoordeeld om door te gaan zonder de samenwerking tussen de twee (of meer) organisaties? Wanneer sprake is van onlosmakelijke processen, dan is waarschijnlijk sprake van gezamenlijke verwerkingsverantwoordelijkheid.\n\nHet is dus niet automatisch zo dat twee verwerkingsverantwoordelijken op dezelfde gegevensverwerking ook gezamenlijk verwerkingsverantwoordelijk zijn. Het is wel zo dat een gezamenlijk verwerkingsverantwoordelijke ook een verwerkingsverantwoordelijke is.</span></span>, <span class=\"aiv-definition\">verwerker<span class=\"aiv-definition-text\">Een verwerker is een [partij] die/dat ten behoeve van de [verwerkingsverantwoordelijke] [persoonsgegevens] verwerkt.\n<br><strong>Toelichting</strong>: Dat betekent dat de verwerker persoonsgegevens verwerkt direct onder instructies van de verwerkingsverantwoordelijke.\nDe verwerker is een persoon of organisatie buiten de organisatie van de verwerkingsverantwoordelijke.\nEen partij is alleen verwerker voor zover het verwerken van persoonsgegevens de primaire opdracht vanuit een andere organisatie is. En deze partij niet rechtstreeks onder het gezag van die organisatie valt.\nAls een onderdeel van de Rijksdienst of een organisatie buiten de Rijksdienst optreedt als verwerker in de zin van de AVG is dat onderdeel of die organisatie niet verantwoordelijk voor de DPIA. Wel is de verwerker verplicht de verwerkingsverantwoordelijke desgevraagd bijstand te verlenen. Veelal zal de betrokkenheid van de verwerker nodig zijn om de DPIA te kunnen uitvoeren.\nEen verwerker kan geen derde, sub-verwerker of verwerkingsverantwoordelijke zijn in dezelfde gegevensverwerking.</span></span>, <span class=\"aiv-definition\">sub-verwerker<span class=\"aiv-definition-text\">De sub-verwerker is de [partij] die primair de opdracht krijgt van de [verwerker] of een andere sub-verwerker om [persoonsgegevens] te verwerken.\n<br><strong>Toelichting</strong>: Een sub-verwerker is de verwerker van de verwerker, of van een andere sub-verwerker.\n\nEen sub-verwerker kan niet zelf een verwerker, derde of verwerkingsverantwoordelijke zijn in dezelfde gegevensverwerking.\n<br><strong>Voorbeeld(en)</strong>: Hostingpartij van de verwerker</span></span>, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functies/afdelingen binnen deze partijen toegang krijgen tot welke <span class=\"aiv-definition\">persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> van welke categorieën <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>.<br><br>\n<strong>Uitleg bij partij rollen:</strong><br> • <strong>Verwerkingsverantwoordelijke:</strong> De <span class=\"aiv-definition\">partij<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.</span></span> die het <span class=\"aiv-definition\">doel<span class=\"aiv-definition-text\">Het verwerkingsdoeleinde is het resultaat dat wordt beoogd met een [gegevensverwerking persoonsgegevens]. Een verwerkingsdoeleinde is altijd welbepaald, uitdrukkelijk omschreven en gerechtvaardigd.\n<br><strong>Toelichting</strong>: Per gegevensverwerking is er één verwerkingsdoeleinde van toepassing, waaronder de gehele gegevensverwerking plaatsvindt. Dit is het primaire verwerkingsdoeleinde. Als er een ander verwerkingsdoeleinde ontstaat waarvoor de gegevens ook moeten worden verwerkt, is dat een andere gegevensverwerking.\n<br><strong>Voorbeeld(en)</strong>: Beveiligen van gebouwen en objecten, behandelen van personeelszaken, opsporen van strafbare feiten, direct marketing, het innen van vorderingen, het doen van leveringen en bestellingen, identificatie en authenticatie, het voorbereiden en nemen van Awb-besluiten en het behandelen van geschillen, voldoen aan verzoek van de betrokkene om informatie te geven, voldoen aan verzoek van de betrokkene om tot betaling over te gaan en te waarborgen dat de betaling bij betrokkene aan komt, het aanvragen van een verblijfsvergunning voor een minderjarig kind.\n<br><i>Dit is een alternatieve term van Verwerkingsdoeleinde</i></span></span> en de middelen van de verwerking vaststelt<br> • <strong>Gezamenlijke verwerkingsverantwoordelijke:</strong> Partijen die samen het doel en de middelen vaststellen<br> • <strong>Verwerker:</strong> Partij die persoonsgegevens verwerkt namens de verwerkingsverantwoordelijke<br> • <strong>Sub-verwerker:</strong> Verwerker die wordt ingeschakeld door een andere verwerker<br> • <strong><span class=\"aiv-definition\">Verstrekker<span class=\"aiv-definition-text\">Een  verstrekker is een [partij] die/dat [persoonsgegevens] verstrekt aan een andere [partij].\n<br><strong>Toelichting</strong>: Het gaat hier dus om de verstrekking van gegevens van de ene verwerkingsverantwoordelijke aan een andere verwerkingsverantwoordelijke.\nAlleen een verwerkingsverantwoordelijke kan de rol van verstrekker krijgen.</span></span>/<span class=\"aiv-definition\">Ontvanger<span class=\"aiv-definition-text\">Een ontvanger is een [partij] met wie de [persoonsgegevens] worden gedeeld.\n<br><strong>Toelichting</strong>: Het gaat hier om de overdracht van gegevens tussen de partijen die betrokken zijn bij de gegevensverwerking, en niet om de formele overdracht naar een andere verwerkingsverantwoordelijke (de verstrekking).</span></span>:</strong> Partijen die gegevens uitwisselen in het verwerkingsproces<br> • <strong>Derde:</strong> Partij die niet onder de directe verantwoordelijkheid van de verwerkingsverantwoordelijke valt<br><br>\nLet op: Bij het benoemen van functies/<span class=\"aiv-definition\">afdelingen<span class=\"aiv-definition-text\">Een afdeling is een [organisatorische eenheid] die een onderdeel vormt van de afdelingshiërarchie van een organisatie.\n<br><i>Dit is een alternatieve term van Afdeling</i></span></span> moeten rolbeperkingen worden meegenomen, zoals toegangsrechten en autorisatieniveaus.",
+      "description": "Benoem alle <span class=\"aiv-definition\">partijen<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.\n<br><i>Dit is een alternatieve term van Partij</i></span></span> die betrokken zijn en deel deze in per <span class=\"aiv-definition\">gegevensverwerking<span class=\"aiv-definition-text\">Een gegevensverwerking persoonsgegevens is een gegevensverwerking of een geheel van bewerkingen met betrekking tot [persoonsgegevens] of een geheel van [persoonsgegevens].\n<br><strong>Toelichting</strong>: De bewerking of het geheel van bewerkingen wordt al dan niet uitgevoerd via geautomatiseerde procedés. Voorbeelden zijn het verzamelen, vastleggen, ordenen, structureren, opslaan, bijwerken of wijzigen, opvragen, raadplegen, gebruiken, verstrekken door middel van doorzending, verspreiden of op andere wijze ter beschikking stellen, aligneren of combineren, afschermen, wissen of vernietigen van persoonsgegevens.\n<br><strong>Voorbeeld(en)</strong>: Verzoek om informatie, betaling/transactie.\n<br><i>Dit is een alternatieve term van Gegevensverwerking persoonsgegevens</i></span></span>. Deel deze partijen in onder de rollen: <span class=\"aiv-definition\">verwerkingsverantwoordelijke<span class=\"aiv-definition-text\">Een verwerkingsverantwoordelijke is een [partij] die/dat het [verwerkingsdoeleinde] van en de middelen voor de [gegevensverwerking persoonsgegevens] vaststelt.\n<br><strong>Toelichting</strong>: De verwerkingsverantwoordelijke is verantwoordelijk voor het uitvoeren van een DPIA. Formeel is de betreffende minister de verwerkingsverantwoordelijke voor gegevensverwerkingen door een onderdeel van de Rijksdienst. In de praktijk zal de bevoegdheid om te beslissen of en op welke wijze persoonsgegevens worden verwerkt zijn gemandateerd, bijvoorbeeld aan een directeur-generaal of een directeur. De gemandateerde functionaris is dan verantwoordelijk voor de uitvoering van een DPIA.\n\nEen verwerkingsverantwoordelijke kan niet zelf een verwerker, derde of sub-verwerker zijn in dezelfde gegevensverwerking.</span></span>, <span class=\"aiv-definition\">gezamenlijke verwerkingsverantwoordelijke<span class=\"aiv-definition-text\">Een gezamenlijke verwerkingsverantwoordelijke is een [verwerkingsverantwoordelijke] die met één of meer andere [verwerkingsverantwoordelijken] gezamenlijk de [verwerkingsdoeleinden] en middelen van de [gegevensverwerking persoonsgegevens] bepaalt.\n<br><strong>Toelichting</strong>: Wanneer twee of meer verwerkingsverantwoordelijken gezamenlijk de doeleinden en middelen van de verwerking bepalen, dan zijn zij gezamenlijke verwerkingsverantwoordelijken en moeten zij onderling vastleggen wie waarvoor verantwoordelijk en aansprakelijk is.\n\nEen belangrijk criterium voor de beoordeling of sprake is van gezamenlijke verwerkingsverantwoordelijkheid is het volgende: is het mogelijk voor het verwerkingsproces of processen die in deze DPIA worden beoordeeld om door te gaan zonder de samenwerking tussen de twee (of meer) organisaties? Wanneer sprake is van onlosmakelijke processen, dan is waarschijnlijk sprake van gezamenlijke verwerkingsverantwoordelijkheid.\n\nHet is dus niet automatisch zo dat twee verwerkingsverantwoordelijken op dezelfde gegevensverwerking ook gezamenlijk verwerkingsverantwoordelijk zijn. Het is wel zo dat een gezamenlijk verwerkingsverantwoordelijke ook een verwerkingsverantwoordelijke is.</span></span>, <span class=\"aiv-definition\">verwerker<span class=\"aiv-definition-text\">Een verwerker is een [partij] die/dat ten behoeve van de [verwerkingsverantwoordelijke] [persoonsgegevens] verwerkt.\n<br><strong>Toelichting</strong>: Dat betekent dat de verwerker persoonsgegevens verwerkt direct onder instructies van de verwerkingsverantwoordelijke.\nDe verwerker is een persoon of organisatie buiten de organisatie van de verwerkingsverantwoordelijke.\nEen partij is alleen verwerker voor zover het verwerken van persoonsgegevens de primaire opdracht vanuit een andere organisatie is. En deze partij niet rechtstreeks onder het gezag van die organisatie valt.\nAls een onderdeel van de Rijksdienst of een organisatie buiten de Rijksdienst optreedt als verwerker in de zin van de AVG is dat onderdeel of die organisatie niet verantwoordelijk voor de DPIA. Wel is de verwerker verplicht de verwerkingsverantwoordelijke desgevraagd bijstand te verlenen. Veelal zal de betrokkenheid van de verwerker nodig zijn om de DPIA te kunnen uitvoeren.\nEen verwerker kan geen derde, sub-verwerker of verwerkingsverantwoordelijke zijn in dezelfde gegevensverwerking.</span></span>, <span class=\"aiv-definition\">sub-verwerker<span class=\"aiv-definition-text\">De sub-verwerker is de [partij] die primair de opdracht krijgt van de [verwerker] of een andere sub-verwerker om [persoonsgegevens] te verwerken.\n<br><strong>Toelichting</strong>: Een sub-verwerker is de verwerker van de verwerker, of van een andere sub-verwerker.\n\nEen sub-verwerker kan niet zelf een verwerker, derde of verwerkingsverantwoordelijke zijn in dezelfde gegevensverwerking.\n<br><strong>Voorbeeld(en)</strong>: Hostingpartij van de verwerker</span></span>, verstrekker, ontvanger, en derde. Wanneer bekend, benoem ook welke functies/afdelingen binnen deze partijen toegang krijgen tot welke <span class=\"aiv-definition\">persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> van welke categorieën <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>.<br><br>\n<strong>Uitleg bij <span class=\"aiv-definition\">partij<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.</span></span> rollen:</strong><br> • <strong>Verwerkingsverantwoordelijke:</strong> De partij die het doel en de middelen van de verwerking vaststelt<br> • <strong>Gezamenlijke verwerkingsverantwoordelijke:</strong> Partijen die samen het doel en de middelen vaststellen<br> • <strong>Verwerker:</strong> Partij die persoonsgegevens verwerkt namens de verwerkingsverantwoordelijke<br> • <strong>Sub-verwerker:</strong> Verwerker die wordt ingeschakeld door een andere verwerker<br> • <strong><span class=\"aiv-definition\">Verstrekker<span class=\"aiv-definition-text\">Een  verstrekker is een [partij] die/dat [persoonsgegevens] verstrekt aan een andere [partij].\n<br><strong>Toelichting</strong>: Het gaat hier dus om de verstrekking van gegevens van de ene verwerkingsverantwoordelijke aan een andere verwerkingsverantwoordelijke.\nAlleen een verwerkingsverantwoordelijke kan de rol van verstrekker krijgen.</span></span>/<span class=\"aiv-definition\">Ontvanger<span class=\"aiv-definition-text\">Een ontvanger is een [partij] met wie de [persoonsgegevens] worden gedeeld.\n<br><strong>Toelichting</strong>: Het gaat hier om de overdracht van gegevens tussen de partijen die betrokken zijn bij de gegevensverwerking, en niet om de formele overdracht naar een andere verwerkingsverantwoordelijke (de verstrekking).</span></span>:</strong> Partijen die gegevens uitwisselen in het verwerkingsproces<br> • <strong><span class=\"aiv-definition\">Derde<span class=\"aiv-definition-text\">Een derde is een [partij] die geen [betrokkene], [verwerkingsverantwoordelijke], [verwerker], [sub-verwerker] of een persoon is die rechtstreeks onder gezag van de [verwerkingsverantwoordelijke] of de [verwerker] gemachtigd is om de [persoonsgegevens] te verwerken. De derde is wel een [partij] die betrokken is bij de [gegevensverwerking persoonsgegevens], maar daar niet op een directe manier mee te maken heeft.\n<br><strong>Toelichting</strong>: De derde komt bijvoorbeeld naar voren bij de juridische grondslag ‘gerechtvaardigd belang van een derde’. Op basis van deze juridische grondslag kan een verwerkingsverantwoordelijke gegevens verwerken op basis van de belangen van een derde.\n\nEen derde kan ook een ontvanger zijn.</span></span>:</strong> Partij die niet onder de directe verantwoordelijkheid van de verwerkingsverantwoordelijke valt<br><br> Een verwerker kan niet tegelijkertijd sub-verwerker zijn, daarom is bij die <span class=\"aiv-definition\">rol<span class=\"aiv-definition-text\">Een AVG-rol is een hoedanigheid waarin een [partij] betrokken kan zijn bij een [gegevensverwerking persoonsgegevens].\n<br><strong>Toelichting</strong>: De AVG-rollen zijn: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger en derde. \n\nDe rollen van verstrekker en ontvanger zijn geen formeel in de AVG vastgelegde rollen maar rollen die een partij kan spelen in het proces.\n<br><i>Dit is een alternatieve term van AVG-rol</i></span></span> een keuze te maken voor één van die rollen. Een gezamenlijke verwerkingsverantwoordelijke kan alleen een partij zijn die al Alleen een verwerkingsverantwoordelijke kan een verstrekker zijn. Iedereen kan ook ontvanger zijn.\nLet op: Bij het benoemen van functies/<span class=\"aiv-definition\">afdelingen<span class=\"aiv-definition-text\">Een afdeling is een [organisatorische eenheid] die een onderdeel vormt van de afdelingshiërarchie van een organisatie.\n<br><i>Dit is een alternatieve term van Afdeling</i></span></span> moeten rolbeperkingen worden meegenomen, zoals toegangsrechten en autorisatieniveaus.",
       "id": "6",
       "is_official_id": true,
       "type": [
@@ -1582,10 +1582,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -1610,28 +1606,9 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.1.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
               "description": "Voeg hier de <span class=\"aiv-definition\">rechtsgrond voor beperking op recht van de betrokkene<span class=\"aiv-definition-text\">Een rechtsgrond voor beperking op recht van de betrokkene is een [wetsartikel over beperking op recht van de betrokkene] waarop een [beperking op recht van de betrokkene] is gebaseerd.\n<br><strong>Toelichting</strong>: De verwerkingsverantwoordelijke kan de verplichtingen en rechten, bedoeld in de artikelen 12 tot en met 21 en artikel 34 van de AVG, buiten toepassing laten voor zover zulks noodzakelijk en evenredig is ter waarborging van:\na. de nationale veiligheid;\nb. landsverdediging;\nc. de openbare veiligheid;\nd. de voorkoming, het onderzoek, de opsporing en de vervolging van strafbare feiten of de tenuitvoerlegging van straffen, met inbegrip van de bescherming tegen en de voorkoming van gevaren voor de openbare veiligheid;\ne. andere belangrijke doelstellingen van algemeen belang van de Europese Unie of van Nederland, met name een belangrijk economisch of financieel belang van de Europese Unie of van Nederland, met inbegrip van monetaire, budgettaire en fiscale aangelegenheden, volksgezondheid en sociale zekerheid;\nf. de bescherming van de onafhankelijkheid van de rechter en gerechtelijke procedures;\ng. de voorkoming, het onderzoek, de opsporing en de vervolging van schendingen van de beroepscodes voor gereglementeerde beroepen;\nh. een taak op het gebied van toezicht, inspectie of regelgeving die verband houdt, al is het incidenteel, met de uitoefening van het openbaar gezag in de gevallen, bedoeld in de onderdelen a, b, c, d, e en g;\ni. de bescherming van de betrokkene of van de rechten en vrijheden van anderen; of\nj. de inning van civielrechtelijke vorderingen.</span></span> toe.",
-              "id": "15.1.4",
+              "id": "15.1.3",
               "type": [
                 "open_text"
               ],
@@ -1640,9 +1617,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.1.3",
+                    "id": "15.1.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -1673,10 +1650,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -1701,27 +1674,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.2.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.2.4",
+              "id": "15.2.3",
               "type": [
                 "open_text"
               ],
@@ -1730,9 +1684,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.2.3",
+                    "id": "15.2.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -1763,10 +1717,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -1791,27 +1741,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.3.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.3.4",
+              "id": "15.3.3",
               "type": [
                 "open_text"
               ],
@@ -1820,9 +1751,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.3.3",
+                    "id": "15.3.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -1853,10 +1784,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -1881,27 +1808,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.4.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.4.4",
+              "id": "15.4.3",
               "type": [
                 "open_text"
               ],
@@ -1910,9 +1818,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.4.3",
+                    "id": "15.4.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -1943,10 +1851,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -1971,27 +1875,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.5.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.5.4",
+              "id": "15.5.3",
               "type": [
                 "open_text"
               ],
@@ -2000,9 +1885,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.5.3",
+                    "id": "15.5.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -2033,10 +1918,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -2061,27 +1942,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.6.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.6.4",
+              "id": "15.6.3",
               "type": [
                 "open_text"
               ],
@@ -2090,9 +1952,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.6.3",
+                    "id": "15.6.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -2123,10 +1985,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -2151,27 +2009,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.7.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.7.4",
+              "id": "15.7.3",
               "type": [
                 "open_text"
               ],
@@ -2180,9 +2019,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.7.3",
+                    "id": "15.7.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }
@@ -2213,10 +2052,6 @@
                 {
                   "value": true,
                   "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
                 }
               ],
               "repeatable": false
@@ -2241,27 +2076,8 @@
               ]
             },
             {
-              "task": "Beperking op grond van wettelijke uitzondering",
-              "id": "15.8.3",
-              "type": [
-                "radio_option"
-              ],
-              "valueType": "boolean|null",
-              "options": [
-                {
-                  "value": true,
-                  "label": "Ja"
-                },
-                {
-                  "value": null,
-                  "label": "Niet van toepassing"
-                }
-              ],
-              "repeatable": false
-            },
-            {
               "task": "Beperking toelichting",
-              "id": "15.8.4",
+              "id": "15.8.3",
               "type": [
                 "open_text"
               ],
@@ -2270,9 +2086,9 @@
                 {
                   "type": "conditional",
                   "condition": {
-                    "id": "15.8.3",
+                    "id": "15.8.1",
                     "operator": "equals",
-                    "value": true
+                    "value": false
                   },
                   "action": "show"
                 }

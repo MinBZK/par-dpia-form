@@ -14,7 +14,7 @@
 | 2.1.3 |     Categorie persoonsgegevens |  | text_input |  |  |
 | 2.1.4 |     Type persoonsgegeven |  | select_option | gewoon; gevoelig; bijzonder; strafrechtelijk; nationaal identificatienummer |  |
 | 2.1.5 |     Oorspronkelijk verwerkingsdoeleinde |  | text_input |  |  |
-| 2.1.6 |     Bron betrokkenen | Zijn de persoonsgegevens via een betrokken partij gekomen? | radio_option | False; True |  |
+| 2.1.6 |     Bron persoonsgegevens | Zijn de persoonsgegevens via een betrokken partij gekomen? | radio_option | False; True |  |
 | 2.1.7 |     Partij naam |  | text_input |  | Show if 2.1.6 |
 | 2.1.8 |     Bron tool/platform |  | text_input |  | Show if 2.1.6 |
 | 2.1.9 |     Rechtsgrond verstrekking |  | text_input |  | Show if 2.1.6 |
@@ -26,7 +26,7 @@
 | 3.1.3 |     Persoonsgegevens |  | checkbox_option |  | Options from 2.1.1 |
 | 3.2 |   Aanvullende informatie over de gegevensverwerking | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
 | 3.3 |   Samenhang gegevensverwerkingen |  | task_group |  |  |
-| 3.3.1 |     Samenhang tussen de gegevensverwerkingen | Beschrijf hier hoe de verschillende gegevensverwerkingen met elkaar samenhangen. Geef aan welke verwerkingen elkaar beïnvloeden, welke gegevens tussen verwerkingen worden uitgewisseld, en hoe de verwerkingen samen bijdragen aan het hoofddoel. Voor visualisatie kunt u een link toevoegen naar een schema of diagram dat is opgeslagen in een samenwerkruimte, gedeelde map of andere specifieke opslaglocatie. | text_input |  |  |
+| 3.3.1 |     Samenhang tussen de gegevensverwerkingen | Omdat de gegevensverwerkingen binnen het voorstel gecompliceerd kunnen zijn en het niet altijd gemakkelijk is om het geheel van gegevensverwerkingen in woorden uit te drukken is het van belang om de gegevensverwerkingen te visualiseren, bijvoorbeeld aan de hand van een input-proces-output model, stroomschema of workflow. | text_input |  |  |
 | 4 | Technieken en methoden van de gegevensverwerkingen | Beschrijf op welke wijze en met gebruikmaking van welke technieken en methoden van gegevensverwer... | open_text |  |  |
 | 5 | Verwerkingsdoeleinden | Beschrijf de doeleinden van alle gegevensverwerkingen. | task_group |  |  |
 | 5.1 |   Gegevensverwerking & verwerkingsdoeleinde | De gegevensverwerking naam wordt overgenomen uit vraag 3. | task_group |  | Copy from 3.1.1 |
@@ -112,45 +112,37 @@
 | 14.2 |   De beoordeling van de proportionaliteit | Staat de inbreuk op de persoonlijke levenssfeer en de bescherming van de persoonsgegevens van de betrokkenen in evenredige verhouding tot de verwerkingsdoeleinden? | open_text |  |  |
 | 15 | Rechten van de betrokkenen | Beschrijf de procedure waarmee invulling wordt gegeven aan de rechten van de betrokkenen. Als de ... | task_group |  |  |
 | 15.1 |   Recht van inzage |  | task_group |  |  |
-| 15.1.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.1.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.1.2 |     Toelichting op procedure ter invulling van het recht van de betrokkene |  | open_text |  | Show if 15.1.1 |
-| 15.1.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.1.4 |     Beperking toelichting | Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe. | open_text |  | Show if 15.1.3 |
+| 15.1.3 |     Beperking toelichting | Voeg hier de rechtsgrond voor beperking op recht van de betrokkene toe. | open_text |  | Show if 15.1.1 |
 | 15.2 |   Recht op rectificatie en aanvulling |  | task_group |  |  |
-| 15.2.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.2.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.2.2 |     Procedure toelichting |  | open_text |  | Show if 15.2.1 |
-| 15.2.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.2.4 |     Beperking toelichting |  | open_text |  | Show if 15.2.3 |
+| 15.2.3 |     Beperking toelichting |  | open_text |  | Show if 15.2.1 |
 | 15.3 |   Recht op vergetelheid |  | task_group |  |  |
-| 15.3.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.3.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.3.2 |     Procedure toelichting |  | open_text |  | Show if 15.3.1 |
-| 15.3.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.3.4 |     Beperking toelichting |  | open_text |  | Show if 15.3.3 |
+| 15.3.3 |     Beperking toelichting |  | open_text |  | Show if 15.3.1 |
 | 15.4 |   Recht op beperking van de verwerking |  | task_group |  |  |
-| 15.4.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.4.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.4.2 |     Procedure toelichting |  | open_text |  | Show if 15.4.1 |
-| 15.4.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.4.4 |     Beperking toelichting |  | open_text |  | Show if 15.4.3 |
+| 15.4.3 |     Beperking toelichting |  | open_text |  | Show if 15.4.1 |
 | 15.5 |   Recht op dataportabiliteit |  | task_group |  |  |
-| 15.5.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.5.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.5.2 |     Procedure toelichting |  | open_text |  | Show if 15.5.1 |
-| 15.5.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.5.4 |     Beperking toelichting |  | open_text |  | Show if 15.5.3 |
+| 15.5.3 |     Beperking toelichting |  | open_text |  | Show if 15.5.1 |
 | 15.6 |   Recht niet onderworpen te worden aan uitsluitend geautomatiseerde besluitvorming |  | task_group |  |  |
-| 15.6.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.6.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.6.2 |     Procedure toelichting |  | open_text |  | Show if 15.6.1 |
-| 15.6.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.6.4 |     Beperking toelichting |  | open_text |  | Show if 15.6.3 |
+| 15.6.3 |     Beperking toelichting |  | open_text |  | Show if 15.6.1 |
 | 15.7 |   Recht om bezwaar te maken |  | task_group |  |  |
-| 15.7.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.7.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.7.2 |     Procedure toelichting |  | open_text |  | Show if 15.7.1 |
-| 15.7.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.7.4 |     Beperking toelichting |  | open_text |  | Show if 15.7.3 |
+| 15.7.3 |     Beperking toelichting |  | open_text |  | Show if 15.7.1 |
 | 15.8 |   Recht op duidelijke informatie |  | task_group |  |  |
-| 15.8.1 |     Procedures ter uitvoering |  | radio_option | False; True; None |  |
+| 15.8.1 |     Procedures ter uitvoering |  | radio_option | False; True |  |
 | 15.8.2 |     Procedure toelichting |  | open_text |  | Show if 15.8.1 |
-| 15.8.3 |     Beperking op grond van wettelijke uitzondering |  | radio_option | True; None |  |
-| 15.8.4 |     Beperking toelichting |  | open_text |  | Show if 15.8.3 |
+| 15.8.3 |     Beperking toelichting |  | open_text |  | Show if 15.8.1 |
 | 16 | Risico’s voor betrokkenen | Beschrijf en beoordeel de risico’s van de gegevensverwerkingen voor de rechten en vrijheden van b... | task_group |  |  |
 | 16.1 |   Risico's voor de betrokkenen |  | task_group |  |  |
 | 16.1.1 |     Beschrijving van het risico |  | open_text |  |  |

@@ -12,7 +12,6 @@ tasks:
     • Categorieën persoonsgegevens<br>
     • Doelen van de verwerking<br>
     • Rechtsgrond<br>
-    • Proportionaliteit van de verwerking<br>
     • Bijzondere aandachtspunten zoals verwerking buiten de Europese Economische Ruimte (EER)<br><br>
     Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), en een Impact Assessment Mensenrechten en Algoritmes (IAMA)
     en welke andere privacy producten: een verwerkersovereenkomst, Standard Contractual Clauses.<br><br>
@@ -57,7 +56,7 @@ tasks:
           type: "one-to-one"
     - task: Doel gegevensverwerking
       description: >-
-        Welk doel wil de organisatie bereiken met de gegevensverwerking?
+        WBeschrijf kort het initiële doel van de gegevensverwerking
         Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
       repeatable: false
@@ -68,33 +67,15 @@ tasks:
         DPIA:
         - id: "5.1.1"
           type: "one-to-many"
-    - task: Wat is de grondslag voor de verwerking?
-      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
-      id: "0.4"
-      repeatable: false
-      type:
-        - select_option
-      options:
-        - value: Rechtsgrond toestemming
-        - value: Rechtsgrond noodzakelijk voor de uitvoering van een overeenkoms
-        - value: Rechtsgrond wettelijke verplichting
-        - value: Rechtsgrond vitaal belang
-        - value: Rechtsgrond taak van algemeen belang
-        - value: Rechtsgrond gerechtvaardigd belang
-      references:
-        prescanModelId: "3"
-        DPIA:
-        - id: "11.1.1.1"
-          type: "pre-fill"
     - task: "Cloudgebruik"
-      id: "0.5"
+      id: "0.4"
       type:
         - task_group
       repeatable: false
       tasks:
        - task: Is er sprake van cloudgebruik?
          description: Een alternatieve aanduiding is cloudoplossing.
-         id: "0.5.1"
+         id: "0.4.1"
          repeatable: false
          type:
            - radio_option
@@ -110,7 +91,7 @@ tasks:
             Platform as a Service (PaaS) verwijst naar diensten die bestaan uit de levering op aanvraag van een omgeving voor het ontwikkelen, testen, leveren en beheren van softwaretoepassingen.
             Software-as-a-Service (SaaS) is een methode voor de levering op aanvraag van softwaretoepassingen via het internet, en doorgaans op basis van een abonnement.
             Zie ook <a href="https://www.pianoo.nl/nl/sectoren/ict/ict-categorieen/cloudoplossingen-iaas-paas-saas" target="_blank">Pianoo</a>.
-         id: "0.5.2"
+         id: "0.4.2"
          type:
            - checkbox_option
          repeatable: false
@@ -122,7 +103,7 @@ tasks:
          dependencies:
            - type: conditional
              condition:
-               id: "0.5.1"
+               id: "0.4.1"
                operator: equals
                value: true
              action: show
@@ -132,7 +113,7 @@ tasks:
            - id: "4"
              type: "pre-view"
        - task: Welke vorm van cloud betreft het?
-         id: "0.5.3"
+         id: "0.4.3"
          repeatable: false
          type:
            - radio_option
@@ -146,7 +127,7 @@ tasks:
          dependencies:
            - type: conditional
              condition:
-               id: "0.5.1"
+               id: "0.4.1"
                operator: equals
                value: true
              action: show
@@ -156,7 +137,7 @@ tasks:
            - id: "4"
              type: "pre-view"
        - task: Gaat het om materieel public cloudgebruik voor de primaire taak?
-         id: "0.5.4"
+         id: "0.4.4"
          type:
            - radio_option
          options:
@@ -167,7 +148,7 @@ tasks:
          dependencies:
            - type: conditional
              condition:
-               id: "0.5.1"
+               id: "0.4.1"
                operator: equals
                value: true
              action: show
