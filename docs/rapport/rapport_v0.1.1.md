@@ -3,7 +3,7 @@ title: Rapport invulhulp DPIA
 Status: Definitief
 Versie: 0.1.1
 Datum: 17 juli 2025
-Contact: 
+Contact:
 - robbert.bos@rijksoverheid.nl
 - ravi.meijer@rijksoverheid.nl
 - RIG@rijksoverheid.nl
@@ -11,7 +11,7 @@ GitHub: https://github.com/MinBZK/par-dpia-form
 Tool: https://minbzk.github.io/par-dpia-form/
 ---
 
-# 1. Inleiding 
+# 1. Inleiding
 
 In dit rapport presenteren we onze bevindingen en aanbevelingen met betrekking
 tot de ontwikkelde invulhulp DPIA. Deze tool is specifiek ontworpen om het
@@ -202,4 +202,3 @@ kunnen bieden via de Rijkscloud. Met betrekking tot doorontwikkeling proberen we
 in dat voorstel op een praktische manier te beschrijven hoe we ondersteuning
 kunnen bieden nu we een eerste versie van deze invulhulp DPIA hebben
 opgeleverd.
-

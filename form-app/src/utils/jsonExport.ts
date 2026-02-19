@@ -38,7 +38,7 @@ export async function importFromJson(file: File): Promise<DPIASnapshot> {
         }
 
         resolve(data)
-      } catch (error) {
+      } catch {
         reject(new Error('Er is een fout opgetreden bij het verwerken van het bestand.'))
       }
     }

@@ -87,17 +87,16 @@ defineProps<{
             <strong>Opslaan en delen van je DPIA</strong>
           </div>
           <p>
-            Tijdens het invullen kun je je voortgang opslaan als een bestand op je eigen computer.
+            Tijdens het invullen kun je je voortgang exporteren als PDF. Dit PDF-bestand bevat zowel het leesbare rapport als je ingevulde gegevens.
           </p>
           <p>
-            Wat kun je <strong> wel </strong> met het opgeslagen bestand? <br />
-            ✅ Je kunt dit bestand later opnieuw openen om verder te werken. <br />
+            Wat kun je <strong> wel </strong> met het geëxporteerde PDF-bestand? <br />
+            ✅ Je kunt het PDF-bestand later opnieuw uploaden om verder te werken. <br />
             ✅ Je kunt het ook delen met een collega zodat die verder kan gaan. <br />
           </p>
           <p>
-            Wat kun je <strong> niet </strong> met het opgeslagen bestand? <br />
-            ❌ Je kunt het bestand niet openen in Word. <br />
-            ❌ Je kunt het bestand niet direct bewerken buiten deze tool. <br />
+            Wat kun je <strong> niet </strong> met het geëxporteerde PDF-bestand? <br />
+            ❌ Je kunt de ingevulde gegevens niet direct bewerken buiten deze tool. <br />
           </p>
         </div>
       </div>
