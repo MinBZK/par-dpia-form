@@ -14,6 +14,7 @@ export const TaskTypeValue = t.union([
   t.literal('select_option'),
   t.literal('radio_option'),
   t.literal('checkbox_option'),
+  t.literal('display_text'),
 ])
 export type TaskTypeValue = t.TypeOf<typeof TaskTypeValue>
 

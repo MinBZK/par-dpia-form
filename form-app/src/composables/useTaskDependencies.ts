@@ -98,6 +98,46 @@ export function useTaskDependencies() {
     }
   })
 
+  const getValueCopySourceValue = computed(() => {
+    return (task: FlatTask, instanceId: string): string | null => {
+      if (!hasDependencyOfType.value(task, "instance_mapping")) return null
+
+      const sourceDep = task.dependencies?.find(d => d.type === 'instance_mapping')
+      const sourceTaskId = sourceDep?.source?.id
+      if (!sourceTaskId) return null
+
+      // Get the current instance to find the mapped source instance
+      const currentInstance = taskStore.getInstanceById(instanceId)
+      if (!currentInstance?.mappedFromInstanceId) return null
+
+      // Check if we need to combine multiple values:
+      // - Source task is repeatable (multiple instances possible)
+      // - Target task is not repeatable (single field to fill)
+      const sourceTask = taskStore.taskById(sourceTaskId)
+      if (sourceTask.repeatable && !task.repeatable) {
+        // Find the parent instance that this source instance belongs to
+        const sourceInstance = taskStore.getInstanceById(currentInstance.mappedFromInstanceId)
+        if (!sourceInstance?.parentInstanceId) return null
+
+        // Get all instances of the source task that belong to the same parent
+        const allSourceInstances = taskStore.getInstancesForTask(sourceTaskId, sourceInstance.parentInstanceId)
+
+        // Collect all non-empty values
+        const allValues = allSourceInstances
+          .map(instance => answerStore.getAnswer(instance.id))
+          .filter(value => value && String(value).trim() !== '')
+          .map(value => String(value).trim())
+
+        // Return combined values, or null if no values
+        return allValues.length > 0 ? allValues.join('; ') : null
+      }
+
+      // For other mappings, use the single mapped value
+      const sourceValue = answerStore.getAnswer(currentInstance.mappedFromInstanceId)
+      return sourceValue ? String(sourceValue) : null
+    }
+  })
+
   const syncInstances = computed(() => {
     return (): void => {
       const namespace = taskStore.activeNamespace
@@ -151,6 +191,7 @@ export function useTaskDependencies() {
     getDependencySourceTaskId,
     canUserCreateInstances,
     getSourceOptions,
+    getValueCopySourceValue,
     syncInstances,
   }
 }

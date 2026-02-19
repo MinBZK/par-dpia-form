@@ -3,9 +3,9 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
-import { FormType } from '@/models/dpia.ts';
 import { useTaskStore } from '@/stores/tasks'
 import { usePreScanReferences } from '@/composables/usePreScanReferences'
+import { useRiskCalculation } from '@/composables/useRiskCalculation'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -17,8 +17,9 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
-const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
+const { getSourceOptions, getDependencySourceTaskId, getValueCopySourceValue } = useTaskDependencies()
 const { getPreScanValueForTask } = usePreScanReferences()
+const { getRiskCalculationValue } = useRiskCalculation()
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -32,7 +33,7 @@ const dependencyTaskName = computed(() => {
   try {
     const sourceTask = taskStore.taskById(sourceId);
     return sourceTask.task;
-  } catch (error) {
+  } catch {
     return '';
   }
 });
@@ -53,8 +54,31 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
-
   const referencedValue = getPreScanValueForTask(props.task)
+
+  // Check for instance_mapping dependency value copy
+  const instanceMappingValue = getValueCopySourceValue.value(props.task, props.instanceId)
+
+  // Check for risk calculation value
+  const riskCalculationValue = getRiskCalculationValue.value(props.task, props.instanceId)
+
+  // If there's a risk calculation value, always use it (and update stored answer if different)
+  if (riskCalculationValue !== null) {
+    if (storedAnswer !== riskCalculationValue) {
+      // Update the stored value if it's different
+      answerStore.setAnswer(props.instanceId, riskCalculationValue)
+    }
+    return riskCalculationValue
+  }
+
+  // If there's an instance mapping value, always use it (and update stored answer if different)
+  if (instanceMappingValue !== null) {
+    if (storedAnswer !== instanceMappingValue) {
+      // Update the stored value if it's different
+      answerStore.setAnswer(props.instanceId, instanceMappingValue)
+    }
+    return instanceMappingValue
+  }
 
   // If there's a referenced value and no stored answer yet,
   // STORE IT IMMEDIATELY and then return it
@@ -133,6 +157,17 @@ const handleCheckboxInput = (event: Event) => {
   }
   answerStore.setAnswer(props.instanceId, selectedValues)
 }
+
+// Display text styling and content
+const getDisplayTextStyle = () => {
+  // Default styling for display_text fields (like verwerkingsdoeleinden)
+  return 'background-color: #f8f9fa; padding: 0.75rem; border: 1px solid #dee2e6; border-radius: 0.25rem; font-style: italic; color: #495057;'
+}
+
+const getDisplayTextContent = () => {
+  // For display_text fields (like verwerkingsdoeleinden)
+  return currentValue.value || 'Geen waarde beschikbaar'
+}
 </script>
 
 <template>
@@ -168,7 +203,7 @@ const handleCheckboxInput = (event: Event) => {
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
             class="utrecht-radio-button" @change="handleRadioInput" />
-          <span v-html="option.label" </span>
+          <span v-html="option.label"></span>
         </label>
       </div>
     </div>
@@ -234,5 +269,15 @@ const handleCheckboxInput = (event: Event) => {
       class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
       @input="handleTextInput" />
+  </div>
+
+  <!-- Display text (read-only) -->
+  <div v-else-if="hasType('display_text')" class="field-group rvo-margin-block-end--md">
+    <div :id="`field-${task.id}-${instanceId}`"
+      class="utrecht-paragraph rvo-paragraph rvo-display-text"
+      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+      :style="getDisplayTextStyle()">
+      {{ getDisplayTextContent() }}
+    </div>
   </div>
 </template>
