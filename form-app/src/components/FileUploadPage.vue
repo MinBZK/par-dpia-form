@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { importFromJson } from '@/utils/jsonExport'
+import { importFromPdf } from '@/utils/pdfImport'
 import { useTaskStore } from '@/stores/tasks'
 
 const emit = defineEmits<{
@@ -30,12 +31,21 @@ const uploadText = computed(() => {
   }
 })
 
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
-  console.log(target)
   if (target.files && target.files.length > 0) {
     uploadedFile.value = target.files[0]
     fileUploadError.value = null
+  }
+}
+
+const clearFile = () => {
+  uploadedFile.value = null
+  fileUploadError.value = null
+  if (fileInputRef.value) {
+    fileInputRef.value.value = ''
   }
 }
 
@@ -46,7 +56,10 @@ const startDpia = async () => {
   try {
     if (uploadedFile.value) {
       try {
-        const fileData = await importFromJson(uploadedFile.value, taskStore.activeNamespace)
+        const isPdf = uploadedFile.value.name.toLowerCase().endsWith('.pdf')
+        const fileData = isPdf
+          ? await importFromPdf(uploadedFile.value)
+          : await importFromJson(uploadedFile.value)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -96,7 +109,9 @@ const formTypeLabel = computed(() => {
               {{ uploadText }}
             </label>
           </div>
-          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json" @change="handleFileSelect" />
+          <input id="file-upload-field" ref="fileInputRef" type="file" class="rvo-file-input" accept=".json,.pdf" @change="handleFileSelect" />
+          <UiButton v-if="uploadedFile" variant="tertiary" label="Bestand verwijderen" icon="verwijderen" size="xs"
+            @click="clearFile" />
         </div>
       </div>
     </fieldset>
