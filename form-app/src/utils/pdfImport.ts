@@ -2,13 +2,6 @@ import { PDFDocument, PDFName, PDFString, PDFHexString } from 'pdf-lib'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { FormType } from '@/models/dpia.ts'
 
-async function computeSha256Hex(data: string): Promise<string> {
-  const encoded = new TextEncoder().encode(data)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
 function extractInfoStringValue(infoDict: unknown, key: string): string | undefined {
   if (!infoDict || typeof infoDict !== 'object' || !('lookup' in infoDict)) return undefined
   const dict = infoDict as { lookup(key: ReturnType<typeof PDFName.of>): unknown }
@@ -29,7 +22,13 @@ function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
 
 export async function importFromPdf(file: File): Promise<DPIASnapshot> {
   const arrayBuffer = await readFileAsArrayBuffer(file)
-  const pdfDoc = await PDFDocument.load(arrayBuffer)
+
+  let pdfDoc
+  try {
+    pdfDoc = await PDFDocument.load(arrayBuffer)
+  } catch {
+    throw new Error('Het PDF-bestand is beschadigd of ongeldig.')
+  }
 
   const infoRef = pdfDoc.context.trailerInfo.Info
   if (!infoRef) {
@@ -43,25 +42,19 @@ export async function importFromPdf(file: File): Promise<DPIASnapshot> {
     throw new Error('Dit PDF-bestand bevat geen DPIA-gegevens.')
   }
 
-  const storedChecksum = extractInfoStringValue(infoDict, 'DPIAChecksum')
-  if (storedChecksum) {
-    const computedChecksum = await computeSha256Hex(dpiaDataRaw)
-    if (computedChecksum !== storedChecksum) {
-      throw new Error(
-        'Dit PDF-bestand is aangepast nadat het is geëxporteerd. De gegevens kunnen niet betrouwbaar worden ingelezen.',
-      )
-    }
-  }
-
   let data: DPIASnapshot
   try {
     data = JSON.parse(dpiaDataRaw) as DPIASnapshot
   } catch {
-    throw new Error('De DPIA-gegevens in dit PDF-bestand zijn ongeldig.')
+    throw new Error(
+      'Dit PDF-bestand is aangepast nadat het is geëxporteerd. De gegevens kunnen niet betrouwbaar worden ingelezen.',
+    )
   }
 
   if (!data.metadata || !data.taskState || !data.answers) {
-    throw new Error('Het bestand heeft niet het verwachte formaat voor een DPIA-export.')
+    throw new Error(
+      'Dit PDF-bestand is aangepast nadat het is geëxporteerd. De gegevens kunnen niet betrouwbaar worden ingelezen.',
+    )
   }
 
   const hasDPIA = data.taskState[FormType.DPIA] && data.answers[FormType.DPIA]

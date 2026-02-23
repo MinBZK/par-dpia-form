@@ -14,17 +14,7 @@ import { buildSnapshot } from './jsonExport'
 
 interface DPIADocumentInfo extends TDocumentInformation {
   DPIAData: string
-  DPIAChecksum: string
 }
-
-async function computeSha256Hex(data: string): Promise<string> {
-  const encoded = new TextEncoder().encode(data)
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-
 
 // Initialize PDFMake
 (<any>pdfMake).addVirtualFileSystem(pdfFonts)
@@ -47,10 +37,9 @@ export async function exportToPdf(
   const activeNamespace = taskStore.activeNamespace
   const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
 
-  // Build snapshot and compute checksum for embedding in PDF metadata
+  // Build snapshot for embedding in PDF metadata
   const snapshot = buildSnapshot(taskStore, answerStore)
   const snapshotJson = JSON.stringify(snapshot)
-  const checksum = await computeSha256Hex(snapshotJson)
 
   let rootTasks = taskStore.rootTaskIds[activeNamespace]
     .map(id => taskStore.flatTasks[activeNamespace][id])
@@ -169,7 +158,6 @@ export async function exportToPdf(
         author: `Invulhulp DPIA`,
         creator: `Invulhulp DPIA`,
         DPIAData: snapshotJson,
-        DPIAChecksum: checksum,
       } as DPIADocumentInfo,
 
       // Page styling
