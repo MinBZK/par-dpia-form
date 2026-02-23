@@ -21,6 +21,7 @@
     "io-ts": "^2.2.22",
     "jexl": "^2.3.0",
     "nanoid": "^5.1.5",
+    "pdf-lib": "^1.17.1",
     "pdfmake": "^0.2.20",
     "pinia": "^3.0.3",
     "string-strip-html": "^13.4.12",

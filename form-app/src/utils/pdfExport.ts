@@ -3,15 +3,18 @@ import { type AnswerStoreType } from '@/stores/answers'
 import { FormType } from '@/models/dpia.ts'
 import * as pdfMake from 'pdfmake/build/pdfmake'
 import * as pdfFonts from 'pdfmake/build/vfs_fonts'
-import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
+import type { StyleDictionary, TDocumentDefinitions, Content, TDocumentInformation } from 'pdfmake/interfaces'
 import FontService from '@/services/fontService.ts'
 import { renderInstanceLabel } from '@/utils/taskUtils'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { hasInstanceMapping, shouldShowTask } from '@/utils/dependency'
 import { generateFilename } from './fileName'
 import type { CalculationStoreType } from '@/stores/calculations'
+import { buildSnapshot } from './jsonExport'
 
-
+interface DPIADocumentInfo extends TDocumentInformation {
+  DPIAData: string
+}
 
 // Initialize PDFMake
 (<any>pdfMake).addVirtualFileSystem(pdfFonts)
@@ -33,6 +36,10 @@ export async function exportToPdf(
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
   const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+
+  // Build snapshot for embedding in PDF metadata
+  const snapshot = buildSnapshot(taskStore, answerStore)
+  const snapshotJson = JSON.stringify(snapshot)
 
   let rootTasks = taskStore.rootTaskIds[activeNamespace]
     .map(id => taskStore.flatTasks[activeNamespace][id])
@@ -145,12 +152,13 @@ export async function exportToPdf(
         }
       },
 
-      // Document metadata
+      // Document metadata (includes embedded DPIA data for re-import)
       info: {
         title: `${formType} Rapportagemodel`,
         author: `Invulhulp DPIA`,
         creator: `Invulhulp DPIA`,
-      },
+        DPIAData: snapshotJson,
+      } as DPIADocumentInfo,
 
       // Page styling
       pageSize: 'A4',
