@@ -210,7 +210,7 @@ function shouldSkipTask(taskId: string): boolean {
       </div>
 
       <!-- Single task: render the task itself -->
-      <TaskItem v-else :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
+      <TaskItem v-else-if="!taskIsOfTaskType(task, 'task_group')" :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
     </div>
   </div>
 </template>

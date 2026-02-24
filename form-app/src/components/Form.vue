@@ -31,7 +31,7 @@ const props = defineProps<{
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
-const formStarted = ref(false)
+const formStarted = ref(props.namespace === FormType.IAMA)
 
 // Store setup
 const taskStore = useTaskStore()
@@ -162,7 +162,7 @@ const handleReset = () => {
   }
 
   // 5. Reset UI state
-  formStarted.value = false
+  formStarted.value = props.namespace === FormType.IAMA
 }
 
 const isSigningTask = computed(() => {
@@ -199,7 +199,7 @@ const isSigningTask = computed(() => {
         <div v-if="formStarted" class="utrecht-button-group rvo-action-groul--position-right" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
+            FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
           <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
             @click="openSaveModal" />
         </div>

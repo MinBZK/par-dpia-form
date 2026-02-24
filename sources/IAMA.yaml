@@ -1,0 +1,949 @@
+name: Impact Assessment Mensenrechten en Algoritmes
+urn: 'urn:nl:iama:2.0'
+version: "2.0"
+description: >-
+  Impact Assessment Mensenrechten en Algoritmes (IAMA) versie 2. Het IAMA helpt
+  overheidsorganisaties bij het beoordelen van de impact van algoritmes op
+  mensenrechten en publieke waarden, voorafgaand aan de ontwikkeling of inzet
+  van een algoritme.
+tasks:
+  - task: Inleiding – Toepassing van het IAMA
+    description: |
+      Het Impact Assessment Mensenrechten en Algoritmes ('IAMA') is een instrument voor discussie en besluitvorming. Het instrument faciliteert een interdisciplinaire dialoog door degenen die betrokken zijn bij de ontwikkeling en/of inzet van een algoritmisch systeem. Het IAMA kan worden toegepast op AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten. Omwille van de leesbaarheid wordt in het IAMA de term 'algoritme' gebruikt. Voor een verdere uitleg over deze definities kan het IAMA-toelichtingsdocument geraadpleegd worden.
+
+      Het IAMA stuurt het projectteam aan om een advies te formuleren over het al dan niet inzetten van een algoritme, en over de voorwaarden waaraan die inzet zou moeten voldoen. Het IAMA is gericht op het inschatten van de impact van het algoritme op grondrechten en biedt daarnaast ruimte voor het aan bod laten komen van andere relevante aandachtspunten rondom de inzet van het algoritme, in een vroegtijdig stadium en op een gestructureerde manier. Daardoor wordt tegengegaan dat al te snel een algoritme wordt ingezet terwijl de consequenties daarvan niet goed zijn bekeken, met de daarbij behorende risico's, zoals die van onzorgvuldigheid, ineffectiviteit of inbreuk op grondrechten.
+
+      Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> extra houvast en verdieping.
+
+      Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.
+    id: "0"
+    is_official_id: false
+    type:
+      - task_group
+    repeatable: false
+
+  - task: Toepassingsbereik IAMA
+    description: |
+      Het IAMA is een grondrechtenbeoordeling voor impactvolle algoritmes en hoog-risico AI-systemen. De Europese AI-verordening bepaalt welke AI-systemen als hoog-risico moeten worden geclassificeerd. Hiervoor gelden specifieke vereisten, waaronder een beoordeling van de gevolgen voor grondrechten (artikel 27 AI-verordening). Het IAMA is een instrument om invulling te geven aan een dergelijke grondrechtenbeoordeling. Bij de vragen in het IAMA die corresponderen met de verschillende vereisten uit artikel 27 van de AI-verordening is dat aangegeven door middel van een 'art. 27 AI-verordening'-icoontje. #
+
+      Het IAMA is ook geschikt om een grondrechtenbeoordeling te geven bij impactvolle algoritmes die niet vallen in de categorie hoog-risico AI-systemen of die buiten het bereik van de AI-verordening vallen. Een impactvol algoritme is volgens de Handreiking Algoritmeregister een algoritme met directe rechtsgevolgen voor mensen of organisaties of een algoritme dat beïnvloedt hoe de overheid een persoon of groep categoriseert.
+
+      Bij de inzet van generatieve AI of General Purpose AI kan de uitvoering van het IAMA in de praktijk soms moeilijk blijken. Dit zijn AI-systemen waar bijna altijd gebruik wordt gemaakt van een voorgetraind model van een externe leverancier. Hierdoor is het doorgaans onmogelijk om te weten wat de trainingsdata zijn, hoe de trainingsprocedure is gelopen en welke bias er in het model zit. Ook is het van belang voor het doorlopen van het IAMA dat het AI-systeem dat getoetst wordt een heldere doelbinding heeft. Dit is doorgaans moeilijker met General Purpose AI. Het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> biedt extra handvatten voor de toepassing van het IAMA op generatieve AI en General Purpose AI.
+    id: "0.1"
+    is_official_id: false
+    type:
+      - task_group
+    repeatable: false
+
+  - task: Instructie
+    description: |
+      <strong>Vooraf</strong>
+
+      De discussie over de verschillende vragen moet plaatsvinden in een breed samengesteld team waarin mensen met verschillende specialisaties en achtergronden zitting hebben. In het team moeten in elk geval de volgende functies betrokken worden:
+        • Projectleider
+        • Data scientist
+        • Jurist
+
+      Hoewel bovengenoemde functies de kern beslaan van het team, is het cruciaal dat er meerdere functies betrokken worden bij dit proces. Een interdisciplinair en breed team is het uitganspunt. Voor houvast hierbij: zie de functietabel in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Voor een soepel proces wordt aangeraden het IAMA in te vullen met een groep van 4-7 personen, die op locatie aanwezig zijn en het IAMA gezamenlijk bespreken onder leiding van een gespreksleider. Een jurist die uitzoekwerk kan doen op het gebied van grondrechten is voor deel 4 onmisbaar.
+
+      Voor het invullen van het IAMA, het ophalen van de benodigde informatie en reflectie op het waarom en hoe van de inzet van het algoritme, is tijd nodig. Wees op tijd met het inplannen van de sessies voor het IAMA en doe dit niet vlak voor een opleverdeadline. Het IAMA is geen afvinklijstje, maar een instrument voor dialoog, reflectie en besluitvorming.
+
+      <strong>Tijdens</strong>
+
+      Het wordt sterk aangeraden het proces in verschillende bijeenkomsten op te knippen, bijvoorbeeld een sessie van twee uur voor deel 1 en 2 en een sessie van twee uur voor deel 3 en subonderdeel 4.1. Voor subonderdeel 4.2 zal een jurist hoogstwaarschijnlijk uitzoekwerk moeten verrichten. Wanneer dat is gedaan, kan een laatste sessie worden gepland van een uur voor de resterende vragen van deel 4 en de afsluiting.
+
+      Het is de bedoeling om in teamverband de vragen door te nemen en de antwoorden in het IAMA-document vast te leggen. Per vraag moeten de antwoorden en de belangrijkste overwegingen en gemaakte keuzes worden vastgelegd. Als meer houvast of uitleg gewenst is bij een specifiek subonderdeel, kan het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> worden geraadpleegd.
+
+      <strong>Na afloop</strong>
+
+      Het IAMA stuurt het team aan om een advies te formuleren over het al dan niet inzetten van het algoritme, en over de voorwaarden waaraan inzet zou moeten voldoen. Dit advies kan ter goedkeuring worden voorgelegd aan de inhoudelijk of politiek verantwoordelijke(n). Deze verantwoordelijke dient eveneens te besluiten over acceptatie van eventuele restrisico's. Het ingevulde IAMA kan dienen als naslagwerk en ter verantwoording van het besluitvormingsproces rondom de ontwikkeling en de implementatie van het algoritme.
+    id: "0.2"
+    is_official_id: false
+    type:
+      - task_group
+    repeatable: false
+
+  - task: Nadere Toelichting
+    description: |
+      Nadere toelichting op verscheidene aspecten uit het IAMA kan worden gevonden in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Hierin wordt uitgebreide houvast gegeven voor de beantwoording van specifieke vragen, de werkwijze van het toepassen van het IAMA en de relatie met de AI-verordening.
+
+      Voor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente versie van het <a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank">Algoritmekader</a>. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA. 
+    id: "0.3"
+    is_official_id: false
+    type:
+      - task_group
+    repeatable: false
+  - task: Deel 1 – Waarom?
+    id: "1"
+    is_official_id: true
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Aanleiding en doelstelling
+        id: "1.1"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Aanleiding
+            description: >-
+              Wat is de aanleiding geweest voor de ontwikkeling van het
+              algoritme? Voor welk probleem moet het algoritme een oplossing
+              bieden?
+            id: "1.1.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Doelstelling
+            description: >-
+              Wat is het doel dat bereikt dient te worden met de inzet van het
+              algoritme? Wat is hierbij het hoofddoel en wat zijn subdoelen?
+            id: "1.1.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Publieke waarden
+        id: "1.2"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Positief geraakte publieke waarden
+            description: >-
+              Wat zijn de publieke waarden die mogelijk positief geraakt worden
+              door de inzet van het algoritme?
+            id: "1.2.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Negatief geraakte publieke waarden
+            description: >-
+              Wat zijn de publieke waarden die mogelijk negatief geraakt worden
+              door de inzet van het algoritme?
+            id: "1.2.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Wettelijke grondslag
+        id: "1.3"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Verboden AI-systeem
+            description: >-
+              Is het algoritme een verboden AI-systeem in de zin van artikel 5
+              van de AI-verordening?
+            id: "1.3.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Wettelijke taak en grondslag
+            description: >-
+              Wordt het algoritme gebruikt om een wettelijke taak uit te voeren?
+              Zo ja, wat is de wettelijke grondslag?
+            id: "1.3.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Verantwoordelijkheden
+        id: "1.4"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Betrokken partijen en verantwoordelijkheden
+            description: >-
+              Welke partijen en/of functies zijn er bij het algoritme betrokken?
+              Hoe zijn de verantwoordelijkheden belegd?
+            id: "1.4.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Eindverantwoordelijke
+            description: Wie is eindverantwoordelijk voor het algoritme?
+            id: "1.4.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Exitstrategie
+            description: >-
+              Is er een exitstrategie wanneer in de toekomst blijkt dat het
+              algoritme niet meer gewenst of nodig is? Hoe ziet deze
+              exitstrategie eruit?
+            id: "1.4.3"
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Deel 2 – Wat?
+    id: "2"
+    is_official_id: true
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Type algoritme
+        id: "2.1"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Type algoritme
+            description: >-
+              Wat voor type algoritme wordt ontwikkeld of gebruikt? Maak ten
+              minste onderscheid tussen zelflerend en niet-zelflerend.
+            id: "2.1.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Alternatieven en geschiktheid
+            description: >-
+              Welke alternatieven zijn er? Waarom is dit type algoritme het meest
+              geschikt voor de geformuleerde doelstellingen?
+            id: "2.1.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Totstandkoming algoritme – Niet-zelflerend
+        id: "2.2A"
+        description: Beantwoord de onderstaande vragen als het algoritme niet-zelflerend is.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Totstandkoming beslisregels
+            description: Hoe zijn de beslisregels tot stand gekomen?
+            id: "2.2A.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Aannames en bias in beslisregels
+            description: Welke aannames en bias liggen in deze beslisregels besloten?
+            id: "2.2A.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Dataminimalisatie
+            description: >-
+              Hoe wordt dataminimalisatie gewaarborgd? Zijn alle indicatoren
+              nodig om tot een goed resultaat te komen?
+            id: "2.2A.3"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Totstandkoming algoritme – Zelflerend
+        id: "2.2B"
+        description: Beantwoord de onderstaande vragen als het algoritme zelflerend is.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Databronnen voor training en testen
+            description: >-
+              Welke databronnen worden/zijn gebruikt om het model te trainen en
+              testen?
+            id: "2.2B.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Kwaliteit en betrouwbaarheid trainings- en testdata
+            description: >-
+              Zijn de kwaliteit en betrouwbaarheid van de trainings- en testdata
+              voldoende voor de beoogde toepassing? Leg uit.
+            id: "2.2B.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Representativiteit trainings- en testdata
+            description: >-
+              Zijn de trainings- en testdata representatief voor de context
+              waarin het algoritme ingezet gaat worden? Hoe verschillen de
+              trainingsdata en testdata van de data die bij inzet als input
+              dienen?
+            id: "2.2B.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Dataminimalisatie
+            description: >-
+              Hoe wordt dataminimalisatie gewaarborgd? Zijn alle data nodig om
+              tot een goed resultaat te komen?
+            id: "2.2B.4"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Inzet algoritme
+        id: "2.3"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Inputdata en databronnen
+            description: >-
+              Wat voor type data gaan gebruikt worden als input voor het
+              algoritme wanneer het in de praktijk wordt ingezet en uit welke
+              bronnen zijn de data afkomstig?
+            id: "2.3.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Kwaliteit en betrouwbaarheid inputdata
+            description: >-
+              Zijn de kwaliteit en betrouwbaarheid van de data die als input
+              worden gebruikt voor het algoritme voldoende voor de beoogde
+              toepassing? Leg uit.
+            id: "2.3.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Aannames en bias in inputdata
+            description: >-
+              Welke aannames en bias liggen besloten in de data die als input
+              worden gebruikt voor het algoritme?
+            id: "2.3.3"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Kwaliteit en accuraatheid
+        id: "2.4"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Kwaliteitsbepaling en metrics
+            description: >-
+              Hoe wordt de kwaliteit van het algoritme bepaald? Welke metric of
+              metrics zijn leidend en waarom?
+            id: "2.4.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Kwaliteitsdrempel
+            description: >-
+              Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de
+              metrics horen daarbij? Leg uit.
+            id: "2.4.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Ongewenste uitkomsten bij fouten
+            description: >-
+              Tot welke ongewenste uitkomsten kunnen fouten van het algoritme
+              leiden? Wat zijn de gevolgen van deze ongewenste uitkomsten?
+            id: "2.4.3"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Data governance en -beveiliging
+        id: "2.5"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Afspraken met externe partij
+            description: >-
+              Als het algoritme is ontwikkeld door een externe partij: zijn er
+              heldere afspraken gemaakt over eigenaarschap en beheer van het
+              algoritme? Wat zijn die afspraken?
+            id: "2.5.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Beveiliging van data
+            description: >-
+              Zijn de data voldoende beveiligd? Maak hierin onderscheid tussen
+              de inputdata en de outputdata en leg uit.
+            id: "2.5.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Toegangscontrole
+            description: >-
+              Is er controle op de toegang tot de data? Maak hierin onderscheid
+              tussen de inputdata en de outputdata en leg uit.
+            id: "2.5.3"
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Deel 3 – Hoe?
+    id: "3"
+    is_official_id: true
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Gebruikscontext
+        id: "3.1"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Proces en beslissingen
+            description: >-
+              Hoe ziet het proces eruit waar het algoritme een onderdeel van is?
+              Wat gebeurt er met de uitkomsten van het algoritme en welke
+              beslissingen worden daarop gebaseerd?
+            id: "3.1.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Tijdsperiode van inzet
+            description: >-
+              Tijd/periode: wanneer gaat het algoritme ingezet worden? Hoe lang
+              is de periode dat het ingezet wordt?
+            id: "3.1.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Frequentie van inzet
+            description: Hoe frequent gaat het algoritme ingezet worden?
+            id: "3.1.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Plaats van inzet
+            description: >-
+              Waar vindt inzet van het algoritme plaats? Is dat bijvoorbeeld in
+              een bepaald geografisch gebied en/of bij een bepaalde groep
+              personen of dossiers?
+            id: "3.1.4"
+            type:
+              - open_text
+            repeatable: false
+          - task: Neveneffecten
+            description: >-
+              Levert de inzet van dit algoritme mogelijk (onbedoelde)
+              neveneffecten op bij andere algoritmes of organisatorische
+              processen? Is er voldoende rekening gehouden met die
+              neveneffecten? Leg uit.
+            id: "3.1.5"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: De rol van de medewerker
+        id: "3.2"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Menselijke tussenkomst
+            description: >-
+              Welke rol spelen medewerkers in het proces waar het algoritme een
+              onderdeel van is ('menselijke tussenkomst')?
+            id: "3.2.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Afwijken van algoritme-uitkomst
+            description: >-
+              Is het mogelijk voor de medewerker om af te wijken van de uitkomst
+              van het algoritme (indien nodig)? Leg uit.
+            id: "3.2.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: AI-geletterdheid medewerkers
+            description: >-
+              Zijn de betrokken medewerkers voldoende AI-geletterd om met het
+              algoritme om te gaan? Hebben medewerkers nieuwe kennis en
+              vaardigheden nodig en hoe wordt gezorgd dat ze die krijgen?
+            id: "3.2.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Risico voor kennis en kunde
+            description: >-
+              Vormt de inzet van het algoritme een risico voor de huidige kennis
+              en kunde van de medewerker? Leg uit.
+            id: "3.2.4"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Communicatie
+        id: "3.3"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Interne communicatiestrategie
+            description: >-
+              Op welke manier gaat er binnen de organisatie gecommuniceerd worden
+              over de inzet van het algoritme?
+            id: "3.3.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Externe communicatiestrategie
+            description: >-
+              Wat is de externe communicatiestrategie over het algoritme en het
+              proces eromheen?
+            id: "3.3.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Verantwoordelijke voor communicatie
+            description: >-
+              Wie is/zijn verantwoordelijk voor deze communicatiestrategieën?
+            id: "3.3.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Uitlegbaarheid en begrijpelijkheid
+            description: >-
+              Hoe uitlegbaar en begrijpelijk is het algoritme voor betrokkenen?
+            id: "3.3.4"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Monitoring en evaluatie
+        id: "3.4"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Monitoring gedurende levenscyclus
+            description: >-
+              Hoe wordt de inzet van het algoritme gemonitord gedurende de
+              levenscyclus? Wat zijn de mogelijkheden voor bijsturing als blijkt
+              dat de geïdentificeerde risico's zich daadwerkelijk manifesteren?
+            id: "3.4.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Meldmogelijkheid medewerkers
+            description: >-
+              Kunnen medewerkers op een laagdrempelige manier melding maken
+              wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe
+              worden deze mensen dan gehoord? Leg uit.
+            id: "3.4.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Meldmogelijkheid betrokkenen
+            description: >-
+              Kunnen betrokkenen op een laagdrempelige manier melding maken
+              wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe
+              worden deze mensen dan gehoord? Leg uit.
+            id: "3.4.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Function creep
+            description: >-
+              Bestaat er een risico dat het algoritme wordt ingezet voor andere
+              doeleinden dan waar het oorspronkelijk voor is bedoeld ('function
+              creep')? Zo ja, hoe wordt dit risico gemitigeerd?
+            id: "3.4.4"
+            type:
+              - open_text
+            repeatable: false
+          - task: Succescriteria
+            description: >-
+              Wanneer is de inzet van het algoritme een succes? Op basis waarvan
+              wordt dit bepaald? Op welk(e) moment(en) wordt dit bepaald?
+            id: "3.4.5"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Impact op betrokkenen en maatschappij
+        id: "3.5"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Geraakte mensen en groepen
+            description: >-
+              Welke mensen en/of groepen worden mogelijk geraakt door de inzet
+              van het algoritme?
+            id: "3.5.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Risico's en nadelige effecten
+            description: >-
+              Welke risico's of nadelige effecten introduceert de inzet van het
+              algoritme voor deze mensen en/of groepen? Let ook op de geraakte
+              publieke waarden (1.2.1).
+            id: "3.5.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Positieve effecten
+            description: >-
+              Welke positieve effecten introduceert de inzet van het algoritme
+              voor deze mensen en/of groepen? Let ook op de gediende publieke
+              waarden (1.2.2).
+            id: "3.5.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Inspraak betrokkenen
+            description: >-
+              Op welke manier hebben betrokkenen de mogelijkheid tot inspraak?
+              Worden ze actief betrokken?
+            id: "3.5.4"
+            type:
+              - open_text
+            repeatable: false
+          - task: Opt-out mogelijkheid
+            description: >-
+              Is er een opt-out voor betrokkenen? Hoe is dit ingeregeld?
+            id: "3.5.5"
+            type:
+              - open_text
+            repeatable: false
+          - task: Ongewenste maatschappelijke effecten
+            description: >-
+              Zou de inzet van dit (soort) algoritme(s) kunnen leiden tot
+              ongewenste maatschappelijke effecten? Hoe acceptabel zijn deze
+              ongewenste effecten? Leg uit.
+            id: "3.5.6"
+            type:
+              - open_text
+            repeatable: false
+          - task: Overige zorgen
+            description: >-
+              Zijn er zorgen over dit algoritme die tot dusver niet (genoeg) aan
+              bod zijn gekomen? Zo ja, wat zijn deze zorgen en hoe kunnen deze
+              weggenomen worden?
+            id: "3.5.7"
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Deel 4 – Mensenrechten
+    id: "4"
+    is_official_id: true
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Toepasselijke grondrechten
+        id: "4.1"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Brainstorm grondrechten
+            description: >-
+              Welke grondrechten en aspecten van grondrechten kunnen potentieel
+              door het algoritme worden aangetast (negatieve impact) of juist
+              beschermd (positieve impact)?
+            id: "4.1.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Verfijning grondrechten
+            description: >-
+              Op welke (aspecten van) grondrechten zal het algoritme realistisch
+              gezien écht impact hebben (negatief of positief)?
+            id: "4.1.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Specifieke wetgeving
+        id: "4.2"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Hoog-risico AI-systeem
+            description: >-
+              Is het algoritme een hoog-risico AI-systeem in de zin van de
+              AI-verordening? Zo ja, toets dan of is voldaan aan de eisen van
+              hoofdstuk 2 van de AI-verordening.
+            id: "4.2.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: DPIA verplichting
+            description: >-
+              Maakt het algoritme gebruik van persoonsgegevens en is een DPIA
+              verplicht? (Gebruik hiervoor bijvoorbeeld de pre-scan DPIA.) Zo
+              ja, voer dan een DPIA uit.
+            id: "4.2.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Discriminatoir profiel
+            description: >-
+              Levert het algoritme een (direct of indirect) onderscheid of
+              potentieel discriminatoir profiel op dat binnen het
+              toepassingsbereik van de gelijkebehandelingswetgeving valt
+              (Algemene wet gelijke behandeling, Wet gelijke behandeling op
+              grond van handicap en chronische ziekte, etc.)?
+            id: "4.2.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Andere wettelijke bepalingen
+            description: >-
+              Zijn er andere specifieke wettelijke bepalingen van toepassing op
+              de grondrechteninbreuk, zoals de Algemene wet bestuursrecht,
+              strafprocesrecht, civiel procesrecht, DSA, DMA, IE-wetgeving,
+              mediawetgeving, consumentenrecht, milieuwetgeving?
+            id: "4.2.4"
+            type:
+              - open_text
+            repeatable: false
+          - task: Relevante rechtspraak
+            description: >-
+              Is er specifieke nationale of Europese rechtspraak beschikbaar
+              waarin concrete criteria en factoren worden aangereikt om de
+              negatieve impact op het grondrecht te kunnen beoordelen?
+            id: "4.2.5"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Ernst van de inbreuk
+        id: "4.3"
+        description: >-
+          NB: de vragen 4.3–4.5 hoeven alleen te worden beantwoord als en voor
+          zover er negatieve impact is op grondrechten waarop geen specifieke
+          wetgeving of rechtspraak van toepassing is, of als de toepassing
+          van specifieke wetgeving of rechtspraak geen volledig of bevredigend
+          antwoord heeft opgeleverd.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Belang van het grondrecht
+            description: >-
+              Hoe 'belangrijk' is het (aspect van het) grondrecht waarop het
+              algoritme negatieve impact heeft? Leg uit of het gaat om een heel
+              belangrijk (aspect van een) grondrecht, een niet zo belangrijk
+              (aspect van een) grondrecht, of iets ertussenin.
+            id: "4.3.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Omvang van de negatieve impact
+            description: >-
+              Hoe groot is de verwachte negatieve impact op het (aspect van het)
+              grondrecht? Leg uit of het grondrecht heel vergaand wordt
+              ingeperkt, of dat de invloed van het algoritme beperkt zal zijn.
+            id: "4.3.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Ernst van de inbreuk
+            description: >-
+              Hoe 'ernstig' is de verwachte inbreuk op het grondrecht als de
+              antwoorden op vragen 4.3.1 en 4.3.2 in onderlinge samenhang worden
+              bekeken? Is de inbreuk te zien als 'ernstig', 'medium' of 'licht'?
+            id: "4.3.3"
+            type:
+              - select_option
+            options:
+              - value: ernstig
+                label: Ernstig
+              - value: medium
+                label: Medium
+              - value: licht
+                label: Licht
+            repeatable: false
+
+      - task: Doeltreffendheid/effectiviteit/geschiktheid
+        id: "4.4"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Doelbereiking algoritme
+            description: >-
+              Kijk nog een keer naar de doelen zoals die bij vraag 1.1.2 zijn
+              geformuleerd. Gaat het algoritme vrijwel zeker de doelen bereiken,
+              of is dit heel onduidelijk of onwaarschijnlijk?
+            id: "4.4.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Redelijkheid van de inzet
+            description: >-
+              Is het redelijk om het algoritme in te zetten als rekening wordt
+              gehouden met: (1) de verwachte doeltreffendheid/effectiviteit/
+              geschiktheid, in samenhang met (2) de ernst van de
+              grondrechteninbreuk die het resultaat is van het algoritme
+              (vraag 4.3.3)?
+            id: "4.4.2"
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Noodzakelijkheid/subsidiariteit
+        id: "4.5"
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Alternatieven voor het algoritme
+            description: >-
+              Zouden de bij vraag 1.1.2 geformuleerde doelen ook kunnen worden
+              bereikt zonder inzet van het algoritme? Zijn er andere
+              (beleids)instrumenten beschikbaar die ook bruikbaar zouden zijn en
+              die de grondrechten minder vergaand aantasten ('subsidiariteit')?
+            id: "4.5.1"
+            type:
+              - open_text
+            repeatable: false
+          - task: Aanpassingen om inbreuk te verminderen
+            description: >-
+              Kunnen er aanpassingen worden gemaakt aan het algoritme (of de
+              inbedding/toepassing ervan) waardoor de inbreuk op het grondrecht
+              minder ernstig wordt? Zo ja, welke aanpassingen zijn dit?
+            id: "4.5.2"
+            type:
+              - open_text
+            repeatable: false
+          - task: Restrisico's na maatregelen
+            description: >-
+              Welke restrisico's blijven er voor het grondrecht over als alle bij
+              vraag 4.5.2 bedachte maatregelen doorgevoerd zijn?
+            id: "4.5.3"
+            type:
+              - open_text
+            repeatable: false
+          - task: Redelijkheid van inzet na maatregelen
+            description: >-
+              Is het redelijk om het algoritme in te zetten als rekening wordt
+              gehouden met: (1) de noodzaak van de inzet van dit specifieke
+              algoritme, de beschikbare alternatieven en de eventuele
+              aanpassingen (vragen 4.5.1–4.5.3), in samenhang met (2) de ernst
+              van de grondrechteninbreuk die het resultaat is van het algoritme
+              (vraag 4.3.3)?
+            id: "4.5.4"
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Deel 5 – Afsluiting
+    id: "5"
+    is_official_id: true
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: (A) Belangenafweging
+        id: "5.A"
+        description: >-
+          Maak een overzicht van wat er in de 'schalen' komt te liggen van de
+          balans, rekening houdend met de actiepunten die zijn geformuleerd
+          in de voorgaande delen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Gediende belangen
+            id: "5.A.grp-gediend"
+            is_official_id: false
+            type:
+              - task_group
+            repeatable: false
+            tasks:
+              - task: Positieve belangen
+                description: >-
+                  Welke belangen worden met het algoritme gediend? (Kijk hierbij
+                  naar de doelen (vraag 1.1.2), de geïdentificeerde positief geraakte
+                  publieke waarden (vraag 1.2.1), de grondrechten waarop het
+                  algoritme mogelijk positieve impact heeft (vraag 4.1.2), en de
+                  belangen van de eigen organisatie.)
+                id: "5.A.1"
+                type:
+                  - open_text
+                repeatable: false
+              - task: Zwaarwegendheid gediende belangen
+                description: >-
+                  Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? (Zie
+                  de toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te
+                  beantwoorden.)
+                id: "5.A.3"
+                type:
+                  - open_text
+                repeatable: false
+              - task: Waarschijnlijkheid van belangen
+                description: >-
+                    Hoe waarschijnlijk is het dat deze belangen worden gediend met de
+                    inzet van het algoritme? (Zie ook vraag 4.4.1.)
+                id: "5.A.5"
+                type:
+                  - open_text
+                repeatable: false
+              - task: Noodzakelijkheid van de inzet
+                description: >-
+                  Hoe noodzakelijk is het om dit algoritme in te zetten om deze
+                  belangen te dienen? (Zie ook vraag 4.5.1.)
+                id: "5.A.6"
+                type:
+                  - open_text
+                repeatable: false
+          - task: Geschade belangen
+            id: "5.A.grp-geschaad"
+            is_official_id: false
+            type:
+              - task_group
+            repeatable: false
+            tasks:
+              - task: Belangen
+                description: >-
+                  Welke belangen worden door het algoritme geschaad? (Kijk hierbij
+                  naar de effecten voor groepen of individuen (vraag 3.5.2), de
+                  relevante maatschappelijke belangen (vraag 3.5.6), de ernst van de
+                  verwachte grondrechteninbreuk (vraag 4.3.3), en de belangen van de
+                  eigen organisatie.)
+                id: "5.A.2"
+                type:
+                  - open_text
+                repeatable: false
+              - task: Zwaarwegendheid geschade belangen
+                description: >-
+                  Hoe concreet en hoe zwaarwegend zijn de schadende belangen? (Zie de
+                  toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te
+                  beantwoorden.)
+                id: "5.A.4"
+                type:
+                  - open_text
+                repeatable: false
+        
+
+      - task: (B) Advies over inzet algoritme
+        id: "5.B"
+        description: >-
+          Schrijf op basis van het bij (A) gemaakte overzicht en in het licht
+          van de geformuleerde actiepunten en antwoorden op de vragen een advies
+          over de vraag of het algoritme wel of niet moet worden ingezet, en
+          onder welke voorwaarden. Daarin moet in ieder geval expliciet aandacht
+          worden besteed aan de vraag of en waarom de inzet van het algoritme
+          een redelijk evenwicht zal opleveren tussen de betrokken belangen.
+        type:
+          - open_text
+        repeatable: false
+
+      - task: (C) Restrisico's en acceptatie
+        id: "5.C"
+        description: >-
+          Het kan zijn dat er een restrisico voor bepaalde grondrechten of
+          andere belangen blijft bestaan, ook nadat alle actiepunten zijn
+          uitgevoerd en alle mitigerende maatregelen zijn geïmplementeerd. Maak
+          hiervan een overzicht en zorg ervoor dat de inhoudelijk of politiek
+          verantwoordelijke deze restrisico's doorneemt en vervolgens bewust
+          accepteert of afwijst.
+        type:
+          - open_text
+        repeatable: false

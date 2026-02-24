@@ -1,0 +1,1037 @@
+{
+  "name": "Impact Assessment Mensenrechten en Algoritmes",
+  "urn": "urn:nl:iama:2.0",
+  "version": "2.0",
+  "description": "<span class=\"aiv-definition\">Impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> Assessment Mensenrechten en Algoritmes (IAMA) <span class=\"aiv-definition\">versie<span class=\"aiv-definition-text\">Een versie is een afzonderlijk [informatieobject] uit een reeks die door opeenvolgende wijzigingen is ontstaan.\n<br><strong>Toelichting</strong>: Een versie van bijvoorbeeld een DPIA is een afzonderlijk informatieobject. Dit omdat versies kunnen verschillen en wel zo dat er - door eerdere wijziging - belangrijke informatie verloren kan zijn gegaan.</span></span> 2. Het IAMA helpt overheidsorganisaties bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand aan de ontwikkeling of inzet van een <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>.",
+  "tasks": [
+    {
+      "task": "Inleiding – Toepassing van het IAMA",
+      "description": "Het <span class=\"aiv-definition\">Impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> Assessment Mensenrechten en <span class=\"aiv-definition\">Algoritmes<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.\n<br><i>Dit is een alternatieve term van Algoritme</i></span></span> ('<span class=\"aiv-definition\">IAMA<span class=\"aiv-definition-text\">De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen, dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk zijn voor de ontwikkeling en/of inzet van een [algoritme].\n<br><strong>Toelichting</strong>: Het IAMA bevat een groot aantal vragen waarover discussie plaats moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al wordt ingezet kan het IAMA dienen als instrument voor reflectie.</span></span>') is een instrument voor discussie en besluitvorming. Het instrument faciliteert een interdisciplinaire dialoog door degenen die betrokken zijn bij de ontwikkeling en/of inzet van een algoritmisch systeem. Het IAMA kan worden toegepast op AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten. Omwille van de leesbaarheid wordt in het IAMA de term '<span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>' gebruikt. Voor een verdere uitleg over deze definities kan het IAMA-toelichtingsdocument geraadpleegd worden.\n\nHet IAMA stuurt het projectteam aan om een advies te formuleren over het al dan niet inzetten van een algoritme, en over de voorwaarden waaraan die inzet zou moeten voldoen. Het IAMA is gericht op het inschatten van de impact van het algoritme op grondrechten en biedt daarnaast ruimte voor het aan bod laten komen van andere relevante aandachtspunten rondom de inzet van het algoritme, in een vroegtijdig stadium en op een gestructureerde manier. Daardoor wordt tegengegaan dat al te snel een algoritme wordt ingezet terwijl de consequenties daarvan niet goed zijn bekeken, met de daarbij behorende risico's, zoals die van onzorgvuldigheid, ineffectiviteit of inbreuk op grondrechten.\n\nAls er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> extra houvast en verdieping.\n\nHet huidige IAMA v2 is een actualisatie van de oorspronkelijke <span class=\"aiv-definition\">versie<span class=\"aiv-definition-text\">Een versie is een afzonderlijk [informatieobject] uit een reeks die door opeenvolgende wijzigingen is ontstaan.\n<br><strong>Toelichting</strong>: Een versie van bijvoorbeeld een DPIA is een afzonderlijk informatieobject. Dit omdat versies kunnen verschillen en wel zo dat er - door eerdere wijziging - belangrijke informatie verloren kan zijn gegaan.</span></span>. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.\n",
+      "id": "0",
+      "is_official_id": false,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false
+    },
+    {
+      "task": "Toepassingsbereik IAMA",
+      "description": "Het <span class=\"aiv-definition\">IAMA<span class=\"aiv-definition-text\">De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen, dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk zijn voor de ontwikkeling en/of inzet van een [algoritme].\n<br><strong>Toelichting</strong>: Het IAMA bevat een groot aantal vragen waarover discussie plaats moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al wordt ingezet kan het IAMA dienen als instrument voor reflectie.</span></span> is een grondrechtenbeoordeling voor impactvolle <span class=\"aiv-definition\">algoritmes<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.\n<br><i>Dit is een alternatieve term van Algoritme</i></span></span> en hoog-risico AI-systemen. De Europese AI-verordening bepaalt welke AI-systemen als hoog-risico moeten worden geclassificeerd. Hiervoor gelden specifieke vereisten, waaronder een beoordeling van de gevolgen voor grondrechten (artikel 27 AI-verordening). Het IAMA is een instrument om invulling te geven aan een dergelijke grondrechtenbeoordeling. Bij de vragen in het IAMA die corresponderen met de verschillende vereisten uit artikel 27 van de AI-verordening is dat aangegeven door middel van een 'art. 27 AI-verordening'-icoontje. #\n\nHet IAMA is ook geschikt om een grondrechtenbeoordeling te geven bij impactvolle algoritmes die niet vallen in de categorie hoog-risico AI-systemen of die buiten het bereik van de AI-verordening vallen. Een impactvol <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> is volgens de Handreiking Algoritmeregister een algoritme met directe rechtsgevolgen voor mensen of organisaties of een algoritme dat beïnvloedt hoe de overheid een persoon of groep categoriseert.\n\nBij de inzet van generatieve AI of General Purpose AI kan de uitvoering van het IAMA in de praktijk soms moeilijk blijken. Dit zijn AI-systemen waar bijna altijd gebruik wordt gemaakt van een voorgetraind model van een externe leverancier. Hierdoor is het doorgaans onmogelijk om te weten wat de trainingsdata zijn, hoe de trainingsprocedure is gelopen en welke bias er in het model zit. Ook is het van belang voor het doorlopen van het IAMA dat het <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span> dat getoetst wordt een heldere <span class=\"aiv-definition\">doelbinding<span class=\"aiv-definition-text\">Doelbinding geldt wanneer het [verwerkingsdoeleinde] van een verdere [gegevensverwerking persoonsgegevens] als [verenigbaar] wordt beschouwd met de [oorspronkelijke verwerkingsdoeleinden] van de [persoonsgegevens] in die [gegevensverwerking persoonsgegevens].\n<br><strong>Toelichting</strong>: Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstatelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld.</span></span> heeft. Dit is doorgaans moeilijker met General Purpose AI. Het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> biedt extra handvatten voor de toepassing van het IAMA op generatieve AI en General Purpose AI.\n",
+      "id": "0.1",
+      "is_official_id": false,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false
+    },
+    {
+      "task": "Instructie",
+      "description": "<strong>Vooraf</strong>\n\nDe discussie over de verschillende vragen moet plaatsvinden in een breed samengesteld team waarin mensen met verschillende specialisaties en achtergronden zitting hebben. In het team moeten in elk geval de volgende <span class=\"aiv-definition\">functies<span class=\"aiv-definition-text\">Een functie is een set van taken, bevoegdheden en verantwoordelijkheden, die gedefinieerd is in termen van het werk van de [organisatorische eenheid] van de betreffende persoon.\n<br><i>Dit is een alternatieve term van Functie</i></span></span> betrokken worden:\n  • Projectleider\n  • Data scientist\n  • Jurist\n\nHoewel bovengenoemde functies de kern beslaan van het team, is het cruciaal dat er meerdere functies betrokken worden bij dit proces. Een interdisciplinair en breed team is het uitganspunt. Voor houvast hierbij: zie de functietabel in het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\"><span class=\"aiv-definition\">IAMA<span class=\"aiv-definition-text\">De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen, dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk zijn voor de ontwikkeling en/of inzet van een [algoritme].\n<br><strong>Toelichting</strong>: Het IAMA bevat een groot aantal vragen waarover discussie plaats moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al wordt ingezet kan het IAMA dienen als instrument voor reflectie.</span></span>-toelichtingsdocument</a>. Voor een soepel proces wordt aangeraden het IAMA in te vullen met een groep van 4-7 personen, die op locatie aanwezig zijn en het IAMA gezamenlijk bespreken onder leiding van een gespreksleider. Een jurist die uitzoekwerk kan doen op het gebied van grondrechten is voor deel 4 onmisbaar.\n\nVoor het invullen van het IAMA, het ophalen van de benodigde informatie en reflectie op het waarom en hoe van de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>, is tijd nodig. Wees op tijd met het inplannen van de sessies voor het IAMA en doe dit niet vlak voor een opleverdeadline. Het IAMA is geen afvinklijstje, maar een instrument voor dialoog, reflectie en besluitvorming.\n\n<strong>Tijdens</strong>\n\nHet wordt sterk aangeraden het proces in verschillende bijeenkomsten op te knippen, bijvoorbeeld een sessie van twee uur voor deel 1 en 2 en een sessie van twee uur voor deel 3 en subonderdeel 4.1. Voor subonderdeel 4.2 zal een jurist hoogstwaarschijnlijk uitzoekwerk moeten verrichten. Wanneer dat is gedaan, kan een laatste sessie worden gepland van een uur voor de resterende vragen van deel 4 en de afsluiting.\n\nHet is de bedoeling om in teamverband de vragen door te nemen en de antwoorden in het IAMA-<span class=\"aiv-definition\">document<span class=\"aiv-definition-text\">Een document is een [informatieobject] dat eenvoudig kan worden gedeeld met andere partijen, en (ook) voor mensen leesbare tekst bevat.\n<br><strong>Toelichting</strong>: Een verwijzing naar een document waaraan wordt gerefereerd wordt minimaal gespecificeerd door toevoeging van de locatie, de naam en de versie. Het soort document is een belangrijk kenmerk om te bepalen of en hoe het document kan worden gelezen.</span></span> vast te leggen. Per vraag moeten de antwoorden en de belangrijkste overwegingen en gemaakte keuzes worden vastgelegd. Als meer houvast of uitleg gewenst is bij een specifiek subonderdeel, kan het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> worden geraadpleegd.\n\n<strong>Na afloop</strong>\n\nHet IAMA stuurt het team aan om een advies te formuleren over het al dan niet inzetten van het algoritme, en over de voorwaarden waaraan inzet zou moeten voldoen. Dit advies kan ter goedkeuring worden voorgelegd aan de inhoudelijk of politiek verantwoordelijke(n). Deze verantwoordelijke dient eveneens te besluiten over acceptatie van eventuele <span class=\"aiv-definition\">restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>'s. Het ingevulde IAMA kan dienen als naslagwerk en ter verantwoording van het besluitvormingsproces rondom de ontwikkeling en de implementatie van het algoritme.\n",
+      "id": "0.2",
+      "is_official_id": false,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false
+    },
+    {
+      "task": "Nadere Toelichting",
+      "description": "Nadere toelichting op verscheidene aspecten uit het <span class=\"aiv-definition\">IAMA<span class=\"aiv-definition-text\">De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen, dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk zijn voor de ontwikkeling en/of inzet van een [algoritme].\n<br><strong>Toelichting</strong>: Het IAMA bevat een groot aantal vragen waarover discussie plaats moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al wordt ingezet kan het IAMA dienen als instrument voor reflectie.</span></span> kan worden gevonden in het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a>. Hierin wordt uitgebreide houvast gegeven voor de beantwoording van specifieke vragen, de werkwijze van het toepassen van het IAMA en de relatie met de AI-verordening.\n\nVoor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente <span class=\"aiv-definition\">versie<span class=\"aiv-definition-text\">Een versie is een afzonderlijk [informatieobject] uit een reeks die door opeenvolgende wijzigingen is ontstaan.\n<br><strong>Toelichting</strong>: Een versie van bijvoorbeeld een DPIA is een afzonderlijk informatieobject. Dit omdat versies kunnen verschillen en wel zo dat er - door eerdere wijziging - belangrijke informatie verloren kan zijn gegaan.</span></span> van het <a href=\"https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/\" target=\"_blank\">Algoritmekader</a>. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA. \n",
+      "id": "0.3",
+      "is_official_id": false,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false
+    },
+    {
+      "task": "Deel 1 – Waarom?",
+      "id": "1",
+      "is_official_id": true,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false,
+      "tasks": [
+        {
+          "task": "Aanleiding en doelstelling",
+          "id": "1.1",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Aanleiding",
+              "description": "Wat is de aanleiding geweest voor de ontwikkeling van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>? Voor welk probleem moet het algoritme een oplossing bieden?",
+              "id": "1.1.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Doelstelling",
+              "description": "Wat is het <span class=\"aiv-definition\">doel<span class=\"aiv-definition-text\">Het verwerkingsdoeleinde is het resultaat dat wordt beoogd met een [gegevensverwerking persoonsgegevens]. Een verwerkingsdoeleinde is altijd welbepaald, uitdrukkelijk omschreven en gerechtvaardigd.\n<br><strong>Toelichting</strong>: Per gegevensverwerking is er één verwerkingsdoeleinde van toepassing, waaronder de gehele gegevensverwerking plaatsvindt. Dit is het primaire verwerkingsdoeleinde. Als er een ander verwerkingsdoeleinde ontstaat waarvoor de gegevens ook moeten worden verwerkt, is dat een andere gegevensverwerking.\n<br><strong>Voorbeeld(en)</strong>: Beveiligen van gebouwen en objecten, behandelen van personeelszaken, opsporen van strafbare feiten, direct marketing, het innen van vorderingen, het doen van leveringen en bestellingen, identificatie en authenticatie, het voorbereiden en nemen van Awb-besluiten en het behandelen van geschillen, voldoen aan verzoek van de betrokkene om informatie te geven, voldoen aan verzoek van de betrokkene om tot betaling over te gaan en te waarborgen dat de betaling bij betrokkene aan komt, het aanvragen van een verblijfsvergunning voor een minderjarig kind.\n<br><i>Dit is een alternatieve term van Verwerkingsdoeleinde</i></span></span> dat bereikt dient te worden met de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>? Wat is hierbij het hoofddoel en wat zijn subdoelen?",
+              "id": "1.1.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Publieke waarden",
+          "id": "1.2",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Positief geraakte publieke waarden",
+              "description": "Wat zijn de publieke waarden die mogelijk positief geraakt worden door de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "1.2.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Negatief geraakte publieke waarden",
+              "description": "Wat zijn de publieke waarden die mogelijk negatief geraakt worden door de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "1.2.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Wettelijke <span class=\"aiv-definition\">grondslag<span class=\"aiv-definition-text\">Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking persoonsgegevens] als rechtmatig kan worden beschouwd.\n<br><strong>Toelichting</strong>: Per gegevensverwerking is er één rechtsgrond van toepassing, waaronder de gehele gegevensverwerking plaatsvindt. Dit is de sterkste rechtsgrond die van toepassing is.\n<br><i>Dit is een alternatieve term van Rechtsgrond</i></span></span>",
+          "id": "1.3",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Verboden <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span>",
+              "description": "Is het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een verboden <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span> in de zin van artikel 5 van de AI-verordening?",
+              "id": "1.3.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Wettelijke taak en <span class=\"aiv-definition\">grondslag<span class=\"aiv-definition-text\">Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking persoonsgegevens] als rechtmatig kan worden beschouwd.\n<br><strong>Toelichting</strong>: Per gegevensverwerking is er één rechtsgrond van toepassing, waaronder de gehele gegevensverwerking plaatsvindt. Dit is de sterkste rechtsgrond die van toepassing is.\n<br><i>Dit is een alternatieve term van Rechtsgrond</i></span></span>",
+              "description": "Wordt het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> gebruikt om een wettelijke taak uit te voeren? Zo ja, wat is de wettelijke <span class=\"aiv-definition\">grondslag<span class=\"aiv-definition-text\">Een rechtsgrond is een voorwaarde waaraan moet zijn voldaan voordat een [gegevensverwerking persoonsgegevens] als rechtmatig kan worden beschouwd.\n<br><strong>Toelichting</strong>: Per gegevensverwerking is er één rechtsgrond van toepassing, waaronder de gehele gegevensverwerking plaatsvindt. Dit is de sterkste rechtsgrond die van toepassing is.\n<br><i>Dit is een alternatieve term van Rechtsgrond</i></span></span>?",
+              "id": "1.3.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Verantwoordelijkheden",
+          "id": "1.4",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Betrokken <span class=\"aiv-definition\">partijen<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.\n<br><i>Dit is een alternatieve term van Partij</i></span></span> en verantwoordelijkheden",
+              "description": "Welke <span class=\"aiv-definition\">partijen<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.\n<br><i>Dit is een alternatieve term van Partij</i></span></span> en/of functies zijn er bij het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> betrokken? Hoe zijn de verantwoordelijkheden belegd?",
+              "id": "1.4.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Eindverantwoordelijke",
+              "description": "Wie is eindverantwoordelijk voor het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "1.4.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Exitstrategie",
+              "description": "Is er een exitstrategie wanneer in de toekomst blijkt dat het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> niet meer gewenst of nodig is? Hoe ziet deze exitstrategie eruit?",
+              "id": "1.4.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "Deel 2 – Wat?",
+      "id": "2",
+      "is_official_id": true,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false,
+      "tasks": [
+        {
+          "task": "Type <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+          "id": "2.1",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Type <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+              "description": "Wat voor type <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> wordt ontwikkeld of gebruikt? Maak ten minste onderscheid tussen zelflerend en niet-zelflerend.",
+              "id": "2.1.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Alternatieven en geschiktheid",
+              "description": "Welke alternatieven zijn er? Waarom is dit type <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> het meest geschikt voor de geformuleerde doelstellingen?",
+              "id": "2.1.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Totstandkoming <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> – Niet-zelflerend",
+          "id": "2.2A",
+          "description": "Beantwoord de onderstaande vragen als het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> niet-zelflerend is.",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Totstandkoming beslisregels",
+              "description": "Hoe zijn de beslisregels tot stand gekomen?",
+              "id": "2.2A.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Aannames en bias in beslisregels",
+              "description": "Welke aannames en bias liggen in deze beslisregels besloten?",
+              "id": "2.2A.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Dataminimalisatie",
+              "description": "Hoe wordt dataminimalisatie gewaarborgd? Zijn alle indicatoren nodig om tot een goed resultaat te komen?",
+              "id": "2.2A.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Totstandkoming <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> – Zelflerend",
+          "id": "2.2B",
+          "description": "Beantwoord de onderstaande vragen als het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> zelflerend is.",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Databronnen voor training en testen",
+              "description": "Welke databronnen worden/zijn gebruikt om het model te trainen en testen?",
+              "id": "2.2B.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Kwaliteit en betrouwbaarheid trainings- en testdata",
+              "description": "Zijn de kwaliteit en betrouwbaarheid van de trainings- en testdata voldoende voor de beoogde toepassing? Leg uit.",
+              "id": "2.2B.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Representativiteit trainings- en testdata",
+              "description": "Zijn de trainings- en testdata representatief voor de context waarin het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> ingezet gaat worden? Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?",
+              "id": "2.2B.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Dataminimalisatie",
+              "description": "Hoe wordt dataminimalisatie gewaarborgd? Zijn alle data nodig om tot een goed resultaat te komen?",
+              "id": "2.2B.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Inzet <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+          "id": "2.3",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Inputdata en databronnen",
+              "description": "Wat voor type data gaan gebruikt worden als input voor het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> wanneer het in de praktijk wordt ingezet en uit welke bronnen zijn de data afkomstig?",
+              "id": "2.3.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Kwaliteit en betrouwbaarheid inputdata",
+              "description": "Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> voldoende voor de beoogde toepassing? Leg uit.",
+              "id": "2.3.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Aannames en bias in inputdata",
+              "description": "Welke aannames en bias liggen besloten in de data die als input worden gebruikt voor het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "2.3.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Kwaliteit en accuraatheid",
+          "id": "2.4",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Kwaliteitsbepaling en metrics",
+              "description": "Hoe wordt de kwaliteit van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> bepaald? Welke metric of metrics zijn leidend en waarom?",
+              "id": "2.4.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Kwaliteitsdrempel",
+              "description": "Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de metrics horen daarbij? Leg uit.",
+              "id": "2.4.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Ongewenste uitkomsten bij fouten",
+              "description": "Tot welke ongewenste uitkomsten kunnen fouten van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> leiden? Wat zijn de gevolgen van deze ongewenste uitkomsten?",
+              "id": "2.4.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Data governance en -beveiliging",
+          "id": "2.5",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Afspraken met externe <span class=\"aiv-definition\">partij<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.</span></span>",
+              "description": "Als het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> is ontwikkeld door een externe <span class=\"aiv-definition\">partij<span class=\"aiv-definition-text\">Een partij is een [natuurlijk persoon], een rechtspersoon of een overheidsorgaan.</span></span>: zijn er heldere afspraken gemaakt over eigenaarschap en beheer van het algoritme? Wat zijn die afspraken?",
+              "id": "2.5.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Beveiliging van data",
+              "description": "Zijn de data voldoende beveiligd? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.",
+              "id": "2.5.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Toegangscontrole",
+              "description": "Is er controle op de toegang tot de data? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.",
+              "id": "2.5.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "Deel 3 – Hoe?",
+      "id": "3",
+      "is_official_id": true,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false,
+      "tasks": [
+        {
+          "task": "Gebruikscontext",
+          "id": "3.1",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Proces en beslissingen",
+              "description": "Hoe ziet het proces eruit waar het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een onderdeel van is? Wat gebeurt er met de uitkomsten van het algoritme en welke beslissingen worden daarop gebaseerd?",
+              "id": "3.1.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Tijdsperiode van inzet",
+              "description": "Tijd/periode: wanneer gaat het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> ingezet worden? Hoe lang is de periode dat het ingezet wordt?",
+              "id": "3.1.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Frequentie van inzet",
+              "description": "Hoe frequent gaat het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> ingezet worden?",
+              "id": "3.1.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Plaats van inzet",
+              "description": "Waar vindt inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> plaats? Is dat bijvoorbeeld in een bepaald geografisch gebied en/of bij een bepaalde groep personen of dossiers?",
+              "id": "3.1.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Neveneffecten",
+              "description": "Levert de inzet van dit <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> mogelijk (onbedoelde) neveneffecten op bij andere <span class=\"aiv-definition\">algoritmes<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.\n<br><i>Dit is een alternatieve term van Algoritme</i></span></span> of organisatorische processen? Is er voldoende rekening gehouden met die neveneffecten? Leg uit.",
+              "id": "3.1.5",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "De <span class=\"aiv-definition\">rol<span class=\"aiv-definition-text\">Een AVG-rol is een hoedanigheid waarin een [partij] betrokken kan zijn bij een [gegevensverwerking persoonsgegevens].\n<br><strong>Toelichting</strong>: De AVG-rollen zijn: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger en derde. \n\nDe rollen van verstrekker en ontvanger zijn geen formeel in de AVG vastgelegde rollen maar rollen die een partij kan spelen in het proces.\n<br><i>Dit is een alternatieve term van AVG-rol</i></span></span> van de medewerker",
+          "id": "3.2",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Menselijke tussenkomst",
+              "description": "Welke <span class=\"aiv-definition\">rol<span class=\"aiv-definition-text\">Een AVG-rol is een hoedanigheid waarin een [partij] betrokken kan zijn bij een [gegevensverwerking persoonsgegevens].\n<br><strong>Toelichting</strong>: De AVG-rollen zijn: verwerkingsverantwoordelijke, gezamenlijke verwerkingsverantwoordelijke, verwerker, sub-verwerker, verstrekker, ontvanger en derde. \n\nDe rollen van verstrekker en ontvanger zijn geen formeel in de AVG vastgelegde rollen maar rollen die een partij kan spelen in het proces.\n<br><i>Dit is een alternatieve term van AVG-rol</i></span></span> spelen medewerkers in het proces waar het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een onderdeel van is ('menselijke tussenkomst')?",
+              "id": "3.2.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Afwijken van <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>-uitkomst",
+              "description": "Is het mogelijk voor de medewerker om af te wijken van de uitkomst van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> (indien nodig)? Leg uit.",
+              "id": "3.2.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "AI-geletterdheid medewerkers",
+              "description": "Zijn de betrokken medewerkers voldoende AI-geletterd om met het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> om te gaan? Hebben medewerkers nieuwe kennis en vaardigheden nodig en hoe wordt gezorgd dat ze die krijgen?",
+              "id": "3.2.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Risico voor kennis en kunde",
+              "description": "Vormt de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een risico voor de huidige kennis en kunde van de medewerker? Leg uit.",
+              "id": "3.2.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Communicatie",
+          "id": "3.3",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Interne communicatiestrategie",
+              "description": "Op welke manier gaat er binnen de organisatie gecommuniceerd worden over de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "3.3.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Externe communicatiestrategie",
+              "description": "Wat is de externe communicatiestrategie over het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> en het proces eromheen?",
+              "id": "3.3.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Verantwoordelijke voor communicatie",
+              "description": "Wie is/zijn verantwoordelijk voor deze communicatiestrategieën?",
+              "id": "3.3.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Uitlegbaarheid en begrijpelijkheid",
+              "description": "Hoe uitlegbaar en begrijpelijk is het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> voor <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>?",
+              "id": "3.3.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Monitoring en evaluatie",
+          "id": "3.4",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Monitoring gedurende levenscyclus",
+              "description": "Hoe wordt de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> gemonitord gedurende de levenscyclus? Wat zijn de mogelijkheden voor bijsturing als blijkt dat de geïdentificeerde risico's zich daadwerkelijk manifesteren?",
+              "id": "3.4.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Meldmogelijkheid medewerkers",
+              "description": "Kunnen medewerkers op een laagdrempelige manier melding maken wanneer iets niet in orde lijkt te zijn rond het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> en hoe worden deze mensen dan gehoord? Leg uit.",
+              "id": "3.4.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Meldmogelijkheid <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>",
+              "description": "Kunnen <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span> op een laagdrempelige manier melding maken wanneer iets niet in orde lijkt te zijn rond het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> en hoe worden deze mensen dan gehoord? Leg uit.",
+              "id": "3.4.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Function creep",
+              "description": "Bestaat er een risico dat het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> wordt ingezet voor andere doeleinden dan waar het oorspronkelijk voor is bedoeld ('function creep')? Zo ja, hoe wordt dit risico gemitigeerd?",
+              "id": "3.4.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Succescriteria",
+              "description": "Wanneer is de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een succes? Op basis waarvan wordt dit bepaald? Op welk(e) moment(en) wordt dit bepaald?",
+              "id": "3.4.5",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "<span class=\"aiv-definition\">Impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> op <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span> en maatschappij",
+          "id": "3.5",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Geraakte mensen en groepen",
+              "description": "Welke mensen en/of groepen worden mogelijk geraakt door de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>?",
+              "id": "3.5.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Risico's en nadelige effecten",
+              "description": "Welke risico's of nadelige effecten introduceert de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (1.2.1).",
+              "id": "3.5.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Positieve effecten",
+              "description": "Welke positieve effecten introduceert de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.2).",
+              "id": "3.5.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Inspraak <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>",
+              "description": "Op welke manier hebben <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span> de mogelijkheid tot inspraak? Worden ze actief betrokken?",
+              "id": "3.5.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Opt-out mogelijkheid",
+              "description": "Is er een opt-out voor <span class=\"aiv-definition\">betrokkenen<span class=\"aiv-definition-text\">Een betrokkene is een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon] binnen de [gegevensverwerkingen].\n<br><strong>Toelichting</strong>: Betrokkenen zijn dus de natuurlijke personen over wie de gegevens gaan die worden verwerkt.\n<br><strong>Voorbeeld(en)</strong>: Medewerkers,  consumenten, cliënten, patiënten, zakelijke contacten, bezoekers, gebruikers, ingezetenen van een gemeente.\n<br><i>Dit is een alternatieve term van Betrokkene</i></span></span>? Hoe is dit ingeregeld?",
+              "id": "3.5.5",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Ongewenste maatschappelijke effecten",
+              "description": "Zou de inzet van dit (soort) <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>(s) kunnen leiden tot ongewenste maatschappelijke effecten? Hoe acceptabel zijn deze ongewenste effecten? Leg uit.",
+              "id": "3.5.6",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Overige zorgen",
+              "description": "Zijn er zorgen over dit <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> die tot dusver niet (genoeg) aan bod zijn gekomen? Zo ja, wat zijn deze zorgen en hoe kunnen deze weggenomen worden?",
+              "id": "3.5.7",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "Deel 4 – Mensenrechten",
+      "id": "4",
+      "is_official_id": true,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false,
+      "tasks": [
+        {
+          "task": "Toepasselijke grondrechten",
+          "id": "4.1",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Brainstorm grondrechten",
+              "description": "Welke grondrechten en aspecten van grondrechten kunnen potentieel door het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> worden aangetast (negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span>) of juist beschermd (positieve impact)?",
+              "id": "4.1.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Verfijning grondrechten",
+              "description": "Op welke (aspecten van) grondrechten zal het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> realistisch gezien écht <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> hebben (negatief of positief)?",
+              "id": "4.1.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Specifieke <span class=\"aiv-definition\">wetgeving<span class=\"aiv-definition-text\">Wetgeving omvat alle wetten die door een bevoegde wetgevende instantie zijn vastgesteld.\n<br><strong>Toelichting</strong>: In Nederland is dit voornamelijk het parlement (Staten-Generaal), bestaande uit de Eerste en Tweede Kamer. Wetgeving vormt de basis van het juridisch kader en regelt het gedrag van burgers, bedrijven en overheidsinstanties.</span></span>",
+          "id": "4.2",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Hoog-risico <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span>",
+              "description": "Is het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een hoog-risico <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span> in de zin van de AI-verordening? Zo ja, toets dan of is voldaan aan de eisen van hoofdstuk 2 van de AI-verordening.",
+              "id": "4.2.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "<span class=\"aiv-definition\">DPIA<span class=\"aiv-definition-text\">Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de risico’s voor betrokkenen  in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen] zoveel mogelijk te mitigeren.\n<br><strong>Toelichting</strong>: Hoewel een DPIA een verplichting is op basis van de AVG en voornamelijk ziet op het beoordelen van privacyrisico’s, dient een DPIA breder opgevat te worden.\n\nHet kan gaan om zowel voorgenomen als reeds actieve projecten, regelgeving en beleid. Normaliter wordt een DPIA uitgevoerd, voordat desbetreffende projecten, regelgeving of beleid actief zijn. Echter, hier wordt in de praktijk om uiteenlopende redenen van afgeweken. Daarom wordt in het Model en het Rapportagemodel niet gesproken over voorgenomen gegevensverwerkingen, projecten, regelgeving of beleid, maar is dit op neutrale wijze opgenomen als gegevensverwerking, project, regelgeving of beleid. Dit betekent echter niet dat het juridisch verantwoord is om een DPIA pas te starten of af te ronden als de verwerking van persoonsgegevens al is gestart. Artikel 35 lid 1 van de AVG noemt dat een DPIA uitgevoerd moet worden voordat gestart wordt met de verwerking van persoonsgegevens.\n\nHet doel van een DPIA is om bij de verwerking van persoonsgegevens een zo goed en duidelijk mogelijk beeld te hebben wat de risico’s zijn bij het verwerken van desbetreffende persoonsgegevens en welke risico mitigerende maatregelen genomen worden om die risico’s zoveel mogelijk te mitigeren. Daarnaast is de DPIA zo opgezet dat het beoordelen van deze onderwerpen stapsgewijs en gestructureerd plaatsvindt.\n\nBij het bepalen van passende maatregelen die genomen dienen te worden om de naleving van de privacyregelgeving aan te tonen, dienen ook de uitkomsten van de DPIA in acht te worden genomen.\n\nEen voltooide DPIA bestaat uit:\n\nA. Beschrijving algemene kenmerken gegevensverwerkingen: een beschrijving van de verwerkingen en de verwerkingsdoeleinden;\nB. Beoordeling rechtmatigheid gegevensverwerkingen: een beoordeling en onderbouwing van de rechtsgrond, de noodzaak, evenredigheid en verenigbaarheid van de verwerkingen in relatie tot de verwerkingsdoeleinden;\nC. Beschrijving en beoordeling risico’s voor betrokkenen: een beoordeling van de gevolgen en risico’s van de verwerkingen voor de rechten en vrijheden van de betrokkenen; en\nD. Beschrijving voorgenomen maatregelen: de voorgenomen maatregelen om deze gevolgen en risico’s van de verwerkingen aan te pakken.\n\nEen DPIA moet worden uitgevoerd:\n\n1. Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of\n2. Wanneer sprake is van een verplichting op basis van departementaal beleid; of\n3. Wanneer er gebruik gemaakt wordt van een publieke cloudvoorziening in specifieke omstandigheden, zie voor meer informatie het cloudbeleid ; of\n4. Bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.\n\nHet laatste punt dient te worden beoordeeld aan de hand van de AVG en de DPIA-criteria die zijn opgesteld door de EDPB en de AP zoals hieronder nader toegelicht.\n\n**Algemene verordening gegevensbescherming (AVG)**\n\nEen DPIA zoals toegelicht onder paragraaf 1.1 is in ieder geval vereist in de volgende gevallen:\na. Een systematische en uitgebreide beoordeling van persoonlijke aspecten, die is gebaseerd op geautomatiseerde verwerking, en waarop besluiten worden gebaseerd waaraan rechtsgevolgen zijn verbonden of die de betrokkenen op vergelijkbare wijze wezenlijk treffen;\nb. Grootschalige verwerking van bijzondere categorieën van persoonsgegevens of van gegevens met betrekking tot strafrechtelijke veroordelingen en strafbare feiten;\nc. Stelselmatige en grootschalige monitoring van openbaar toegankelijke ruimten;\nd. Wanneer de toezichthoudende autoriteit heeft geoordeeld dat een DPIA verplicht is.\n \n**Europees Comité voor gegevensbescherming (European Data Protection Board – EDPB)**\n\nDe EDPB heeft in aanvulling op bovenstaande punten criteria opgesteld aan de hand waarvan kan worden beoordeeld of sprake is van een hoog risico. Wanneer aan twee van de criteria wordt voldaan, dan is het waarschijnlijk verplicht om een DPIA uit te voeren. Wanneer aan één van de criteria wordt voldaan, dan moet beoordeeld worden of sprake is van een hoog risico, in welk geval het ook verplicht is om een DPIA uit te voeren. Wanneer wordt besloten geen DPIA uit te voeren, dan dient een beoordeling met onderbouwing schriftelijk plaats te vinden en moet deze worden vastgelegd.\nWanneer een gegevensverwerking raakt aan grote politiek-bestuurlijke en maatschappelijke vraagstukken is een DPIA te allen tijde gewenst.\n\n**Autoriteit Persoonsgegevens (AP)**\n\nNaast de criteria van de EDPB, heeft de AP een lijst van gegevensverwerkingen opgesteld waarvoor het uitvoeren van een DPIA verplicht is.\n\nEen DPIA is niet verplicht in de volgende gevallen:\n\na. De verwerking vindt zijn rechtsgrond in een wettelijke verplichting of een taak van algemeen belang, en in het kader van het vaststellen van deze rechtsgrond al een DPIA is verricht;\nb. Wanneer de AP heeft geoordeeld dat een DPIA niet verplicht is.\n  - Volgens de AP hoeft geen DPIA te worden uitgevoerd wanneer de gegevensverwerking waarschijnlijk geen hoog risico oplevert of sterk lijkt op een andere gegevensverwerking waarvoor al een DPIA is uitgevoerd.\n\nHoewel in het geval onder (a) een DPIA niet verplicht is, kan het toch wenselijk zijn om deze uit te voeren, als in de uitvoering nader invulling wordt gegeven aan zaken die op het niveau van de regelgeving niet aan de orde zijn geweest, bijvoorbeeld de keuze voor een bepaald ICT-systeem en bepaalde beveiligingsmaatregelen.\n\nEen DPIA kan betrekking hebben op een enkele soort gegevensverwerking. Een DPIA kan ook zien op een reeks vergelijkbare verwerkingen die vergelijkbare risico’s inhouden. Een DPIA hoeft zich dus niet te beperken tot een enkel proces, product of verwerkingsverantwoordelijke, bijvoorbeeld wanneer overheidsorganen een gemeenschappelijke applicatie of verwerkingsomgeving willen opzetten.\n\nOm te bepalen of een DPIA verplicht is kan gebruik gemaakt wordt van de Pre-scan DPIA of de tool in het register van verwerkingsactiviteiten.</span></span> verplichting",
+              "description": "Maakt het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> gebruik van <span class=\"aiv-definition\">persoonsgegevens<span class=\"aiv-definition-text\">Een persoonsgegeven is informatie over een [geïdentificeerde natuurlijk persoon] of [identificeerbare natuurlijk persoon]\n<br><strong>Toelichting</strong>: De natuurlijk persoon in kwestie is de Betrokkene. Als identificeerbaar wordt beschouwd een natuurlijk persoon die direct of indirect kan worden geïdentificeerd, met name aan de hand van een identificator zoals een naam, een identificatienummer, locatiegegevens, een online identificator of van een of meer elementen die kenmerkend zijn voor de fysieke, fysiologische, genetische, psychische, economische, culturele of sociale identiteit van die natuurlijk persoon.\n<br><strong>Voorbeeld(en)</strong>: Voornaam, achternaam, voorvoegsel, initialen, huisadres, telefoonnummer, e-mailadres, leeftijd, geboortedatum en -plaats, geslacht, nationaliteit, IQ, IP-adres, MAC-adres, metadata, locatie-informatie, geografische informatie, loggegevens, bankrekeningnummer en -saldo, inkomens- en vermogensgegevens, loonschaal, kredietwaardigheid, winst eenmanszaak, KvK-nummer, zakelijk e-mailadres, verslag van een functioneringsgesprek, documentatie over negatief gedrag op de werkvloer, klant- of personeelsnummer, gestelde vraag, opname gesprek, voertuigidentificatienummer, persoonlijke voorkeuren.\n<br><i>Dit is een alternatieve term van Persoonsgegeven</i></span></span> en is een <span class=\"aiv-definition\">DPIA<span class=\"aiv-definition-text\">Een DPIA is een instrument om van een [organisatorische activiteit], waarbij [persoonsgegevens] worden verwerkt, de risico’s voor betrokkenen  in kaart te brengen en te beoordelen in hoeverre de huidige [maatregelen] voldoen en welke aanvullende [maatregelen] genomen moeten worden om elk [risico voor betrokkenen] zoveel mogelijk te mitigeren.\n<br><strong>Toelichting</strong>: Hoewel een DPIA een verplichting is op basis van de AVG en voornamelijk ziet op het beoordelen van privacyrisico’s, dient een DPIA breder opgevat te worden.\n\nHet kan gaan om zowel voorgenomen als reeds actieve projecten, regelgeving en beleid. Normaliter wordt een DPIA uitgevoerd, voordat desbetreffende projecten, regelgeving of beleid actief zijn. Echter, hier wordt in de praktijk om uiteenlopende redenen van afgeweken. Daarom wordt in het Model en het Rapportagemodel niet gesproken over voorgenomen gegevensverwerkingen, projecten, regelgeving of beleid, maar is dit op neutrale wijze opgenomen als gegevensverwerking, project, regelgeving of beleid. Dit betekent echter niet dat het juridisch verantwoord is om een DPIA pas te starten of af te ronden als de verwerking van persoonsgegevens al is gestart. Artikel 35 lid 1 van de AVG noemt dat een DPIA uitgevoerd moet worden voordat gestart wordt met de verwerking van persoonsgegevens.\n\nHet doel van een DPIA is om bij de verwerking van persoonsgegevens een zo goed en duidelijk mogelijk beeld te hebben wat de risico’s zijn bij het verwerken van desbetreffende persoonsgegevens en welke risico mitigerende maatregelen genomen worden om die risico’s zoveel mogelijk te mitigeren. Daarnaast is de DPIA zo opgezet dat het beoordelen van deze onderwerpen stapsgewijs en gestructureerd plaatsvindt.\n\nBij het bepalen van passende maatregelen die genomen dienen te worden om de naleving van de privacyregelgeving aan te tonen, dienen ook de uitkomsten van de DPIA in acht te worden genomen.\n\nEen voltooide DPIA bestaat uit:\n\nA. Beschrijving algemene kenmerken gegevensverwerkingen: een beschrijving van de verwerkingen en de verwerkingsdoeleinden;\nB. Beoordeling rechtmatigheid gegevensverwerkingen: een beoordeling en onderbouwing van de rechtsgrond, de noodzaak, evenredigheid en verenigbaarheid van de verwerkingen in relatie tot de verwerkingsdoeleinden;\nC. Beschrijving en beoordeling risico’s voor betrokkenen: een beoordeling van de gevolgen en risico’s van de verwerkingen voor de rechten en vrijheden van de betrokkenen; en\nD. Beschrijving voorgenomen maatregelen: de voorgenomen maatregelen om deze gevolgen en risico’s van de verwerkingen aan te pakken.\n\nEen DPIA moet worden uitgevoerd:\n\n1. Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of\n2. Wanneer sprake is van een verplichting op basis van departementaal beleid; of\n3. Wanneer er gebruik gemaakt wordt van een publieke cloudvoorziening in specifieke omstandigheden, zie voor meer informatie het cloudbeleid ; of\n4. Bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.\n\nHet laatste punt dient te worden beoordeeld aan de hand van de AVG en de DPIA-criteria die zijn opgesteld door de EDPB en de AP zoals hieronder nader toegelicht.\n\n**Algemene verordening gegevensbescherming (AVG)**\n\nEen DPIA zoals toegelicht onder paragraaf 1.1 is in ieder geval vereist in de volgende gevallen:\na. Een systematische en uitgebreide beoordeling van persoonlijke aspecten, die is gebaseerd op geautomatiseerde verwerking, en waarop besluiten worden gebaseerd waaraan rechtsgevolgen zijn verbonden of die de betrokkenen op vergelijkbare wijze wezenlijk treffen;\nb. Grootschalige verwerking van bijzondere categorieën van persoonsgegevens of van gegevens met betrekking tot strafrechtelijke veroordelingen en strafbare feiten;\nc. Stelselmatige en grootschalige monitoring van openbaar toegankelijke ruimten;\nd. Wanneer de toezichthoudende autoriteit heeft geoordeeld dat een DPIA verplicht is.\n \n**Europees Comité voor gegevensbescherming (European Data Protection Board – EDPB)**\n\nDe EDPB heeft in aanvulling op bovenstaande punten criteria opgesteld aan de hand waarvan kan worden beoordeeld of sprake is van een hoog risico. Wanneer aan twee van de criteria wordt voldaan, dan is het waarschijnlijk verplicht om een DPIA uit te voeren. Wanneer aan één van de criteria wordt voldaan, dan moet beoordeeld worden of sprake is van een hoog risico, in welk geval het ook verplicht is om een DPIA uit te voeren. Wanneer wordt besloten geen DPIA uit te voeren, dan dient een beoordeling met onderbouwing schriftelijk plaats te vinden en moet deze worden vastgelegd.\nWanneer een gegevensverwerking raakt aan grote politiek-bestuurlijke en maatschappelijke vraagstukken is een DPIA te allen tijde gewenst.\n\n**Autoriteit Persoonsgegevens (AP)**\n\nNaast de criteria van de EDPB, heeft de AP een lijst van gegevensverwerkingen opgesteld waarvoor het uitvoeren van een DPIA verplicht is.\n\nEen DPIA is niet verplicht in de volgende gevallen:\n\na. De verwerking vindt zijn rechtsgrond in een wettelijke verplichting of een taak van algemeen belang, en in het kader van het vaststellen van deze rechtsgrond al een DPIA is verricht;\nb. Wanneer de AP heeft geoordeeld dat een DPIA niet verplicht is.\n  - Volgens de AP hoeft geen DPIA te worden uitgevoerd wanneer de gegevensverwerking waarschijnlijk geen hoog risico oplevert of sterk lijkt op een andere gegevensverwerking waarvoor al een DPIA is uitgevoerd.\n\nHoewel in het geval onder (a) een DPIA niet verplicht is, kan het toch wenselijk zijn om deze uit te voeren, als in de uitvoering nader invulling wordt gegeven aan zaken die op het niveau van de regelgeving niet aan de orde zijn geweest, bijvoorbeeld de keuze voor een bepaald ICT-systeem en bepaalde beveiligingsmaatregelen.\n\nEen DPIA kan betrekking hebben op een enkele soort gegevensverwerking. Een DPIA kan ook zien op een reeks vergelijkbare verwerkingen die vergelijkbare risico’s inhouden. Een DPIA hoeft zich dus niet te beperken tot een enkel proces, product of verwerkingsverantwoordelijke, bijvoorbeeld wanneer overheidsorganen een gemeenschappelijke applicatie of verwerkingsomgeving willen opzetten.\n\nOm te bepalen of een DPIA verplicht is kan gebruik gemaakt wordt van de Pre-scan DPIA of de tool in het register van verwerkingsactiviteiten.</span></span> verplicht? (Gebruik hiervoor bijvoorbeeld de <span class=\"aiv-definition\">pre-scan DPIA<span class=\"aiv-definition-text\">De Pre-scan DPIA is een instrument aan de hand waarvan voor een [organisatorische activiteit] van [persoonsgegevens] bepaald kan worden of het verplicht is een [DPIA], [DTIA], [IAMA] of [KIA] uit te voeren en op welke aspecten van de [gegevensverwerking persoonsgegevens] mogelijke risico's zijn voorzien.</span></span>.) Zo ja, voer dan een DPIA uit.",
+              "id": "4.2.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Discriminatoir profiel",
+              "description": "Levert het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> een (direct of indirect) onderscheid of potentieel discriminatoir profiel op dat binnen het toepassingsbereik van de gelijkebehandelingswetgeving valt (Algemene wet gelijke behandeling, Wet gelijke behandeling op grond van handicap en chronische ziekte, etc.)?",
+              "id": "4.2.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Andere wettelijke bepalingen",
+              "description": "Zijn er andere specifieke wettelijke bepalingen van toepassing op de grondrechteninbreuk, zoals de Algemene wet bestuursrecht, strafprocesrecht, civiel procesrecht, DSA, DMA, IE-<span class=\"aiv-definition\">wetgeving<span class=\"aiv-definition-text\">Wetgeving omvat alle wetten die door een bevoegde wetgevende instantie zijn vastgesteld.\n<br><strong>Toelichting</strong>: In Nederland is dit voornamelijk het parlement (Staten-Generaal), bestaande uit de Eerste en Tweede Kamer. Wetgeving vormt de basis van het juridisch kader en regelt het gedrag van burgers, bedrijven en overheidsinstanties.</span></span>, mediawetgeving, consumentenrecht, milieuwetgeving?",
+              "id": "4.2.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Relevante rechtspraak",
+              "description": "Is er specifieke nationale of Europese rechtspraak beschikbaar waarin concrete criteria en factoren worden aangereikt om de negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> op het grondrecht te kunnen beoordelen?",
+              "id": "4.2.5",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Ernst van de inbreuk",
+          "id": "4.3",
+          "description": "NB: de vragen 4.3–4.5 hoeven alleen te worden beantwoord als en voor zover er negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> is op grondrechten waarop geen specifieke <span class=\"aiv-definition\">wetgeving<span class=\"aiv-definition-text\">Wetgeving omvat alle wetten die door een bevoegde wetgevende instantie zijn vastgesteld.\n<br><strong>Toelichting</strong>: In Nederland is dit voornamelijk het parlement (Staten-Generaal), bestaande uit de Eerste en Tweede Kamer. Wetgeving vormt de basis van het juridisch kader en regelt het gedrag van burgers, bedrijven en overheidsinstanties.</span></span> of rechtspraak van toepassing is, of als de toepassing van specifieke wetgeving of rechtspraak geen volledig of bevredigend antwoord heeft opgeleverd.",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "<span class=\"aiv-definition\">Belang<span class=\"aiv-definition-text\">Een belang van een betrokken partij is hetgene waaraan een [betrokken partij bij gegevensverwerking] waarde hecht (en daarom wil behouden of bereiken) met betrekking tot een [gegevensverwerking persoonsgegevens] waar de [DPIA] betrekking op heeft.\n<br><strong>Toelichting</strong>: Elk aspect of gevolg van de gegevensverwerking va de persoonsgegevens waar een bij de gegevensverwerking betrokken partij voor- of nadeel van kan ondervinden kan een belang zijn voor die partij.\n<br><strong>Voorbeeld(en)</strong>: Bedrijfsbelangen, Financiële en commerciële belangen, Het handhaven van juridische vorderingen, Toezicht op medewerkers ten behoeve van de veiligheid Managementdoeleinden, (nationale of openbare) veiligheid, zoals de preventie van fraude, misbruik en netwerkbeveiliging, Gezondheidsredenen.\n<br><i>Dit is een alternatieve spelling van Belang van betrokken partij</i></span></span> van het grondrecht",
+              "description": "Hoe 'belangrijk' is het (aspect van het) grondrecht waarop het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> heeft? Leg uit of het gaat om een heel belangrijk (aspect van een) grondrecht, een niet zo belangrijk (aspect van een) grondrecht, of iets ertussenin.",
+              "id": "4.3.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Omvang van de negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span>",
+              "description": "Hoe groot is de verwachte negatieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> op het (aspect van het) grondrecht? Leg uit of het grondrecht heel vergaand wordt ingeperkt, of dat de invloed van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> beperkt zal zijn.",
+              "id": "4.3.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Ernst van de inbreuk",
+              "description": "Hoe 'ernstig' is de verwachte inbreuk op het grondrecht als de antwoorden op vragen 4.3.1 en 4.3.2 in onderlinge samenhang worden bekeken? Is de inbreuk te zien als 'ernstig', 'medium' of 'licht'?",
+              "id": "4.3.3",
+              "type": [
+                "select_option"
+              ],
+              "options": [
+                {
+                  "value": "ernstig",
+                  "label": "Ernstig"
+                },
+                {
+                  "value": "medium",
+                  "label": "Medium"
+                },
+                {
+                  "value": "licht",
+                  "label": "Licht"
+                }
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Doeltreffendheid/effectiviteit/geschiktheid",
+          "id": "4.4",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Doelbereiking <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+              "description": "Kijk nog een keer naar de doelen zoals die bij vraag 1.1.2 zijn geformuleerd. Gaat het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> vrijwel zeker de doelen bereiken, of is dit heel onduidelijk of onwaarschijnlijk?",
+              "id": "4.4.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Redelijkheid van de inzet",
+              "description": "Is het redelijk om het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> in te zetten als rekening wordt gehouden met: (1) de verwachte doeltreffendheid/effectiviteit/ geschiktheid, in samenhang met (2) de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
+              "id": "4.4.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        },
+        {
+          "task": "Noodzakelijkheid/<span class=\"aiv-definition\">subsidiariteit<span class=\"aiv-definition-text\">Subsidiariteit is een beginsel dat stelt dat de [gegevensverwerkingen] alleen zijn toegestaan als de [verwerkingsdoeleinden] niet met minder ingrijpende middelen kunnen worden bereikt.\n<br><strong>Toelichting</strong>: Ter beoordeling van de subsidiariteit kunnen de volgende vragen worden gesteld:\n\n1. Kunnen de verwerkingsdoeleinden in redelijkheid niet op een andere, voor de betrokkenen minder nadelige wijze, worden verwezenlijkt?\n  i. Kunnen minder persoonsgegevens worden verwerkt en hetzelfde doeleinde worden bereikt?\n  ii. Zijn er wellicht manieren om minder gevoelige persoonsgegevens te verwerken?\n  iii. Kunnen de persoonsgegevens in het proces gepseudonimiseerd of geanonimiseerd worden?\n  iv. Kunnen de persoonsgegevens met minder partijen worden gedeeld of minder lang worden bewaard?\n\n2. Zijn er alternatieve minder privacy invasieve verwerkingsprocessen onderzocht en gedocumenteerd?\n  v. Welke alternatieven zijn overwogen en waarom zijn deze alternatieven niet gekozen?\n  vi. Zijn alternatieven overwogen die hetzelfde doeleinde kunnen bereiken met minder persoonsgegevens?\n  vii. Zijn alternatieven overwogen waarbij de gehele dienst binnen Nederland of de EU uitgevoerd kan worden?\n  viii. Zijn alternatieven overwogen waarbij de verwerker geen gebruikmaakt van sub-verwerkers buiten de EU?</span></span>",
+          "id": "4.5",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Alternatieven voor het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+              "description": "Zouden de bij vraag 1.1.2 geformuleerde doelen ook kunnen worden bereikt zonder inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>? Zijn er andere (beleids)instrumenten beschikbaar die ook bruikbaar zouden zijn en die de grondrechten minder vergaand aantasten ('<span class=\"aiv-definition\">subsidiariteit<span class=\"aiv-definition-text\">Subsidiariteit is een beginsel dat stelt dat de [gegevensverwerkingen] alleen zijn toegestaan als de [verwerkingsdoeleinden] niet met minder ingrijpende middelen kunnen worden bereikt.\n<br><strong>Toelichting</strong>: Ter beoordeling van de subsidiariteit kunnen de volgende vragen worden gesteld:\n\n1. Kunnen de verwerkingsdoeleinden in redelijkheid niet op een andere, voor de betrokkenen minder nadelige wijze, worden verwezenlijkt?\n  i. Kunnen minder persoonsgegevens worden verwerkt en hetzelfde doeleinde worden bereikt?\n  ii. Zijn er wellicht manieren om minder gevoelige persoonsgegevens te verwerken?\n  iii. Kunnen de persoonsgegevens in het proces gepseudonimiseerd of geanonimiseerd worden?\n  iv. Kunnen de persoonsgegevens met minder partijen worden gedeeld of minder lang worden bewaard?\n\n2. Zijn er alternatieve minder privacy invasieve verwerkingsprocessen onderzocht en gedocumenteerd?\n  v. Welke alternatieven zijn overwogen en waarom zijn deze alternatieven niet gekozen?\n  vi. Zijn alternatieven overwogen die hetzelfde doeleinde kunnen bereiken met minder persoonsgegevens?\n  vii. Zijn alternatieven overwogen waarbij de gehele dienst binnen Nederland of de EU uitgevoerd kan worden?\n  viii. Zijn alternatieven overwogen waarbij de verwerker geen gebruikmaakt van sub-verwerkers buiten de EU?</span></span>')?",
+              "id": "4.5.1",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Aanpassingen om inbreuk te verminderen",
+              "description": "Kunnen er aanpassingen worden gemaakt aan het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> (of de inbedding/toepassing ervan) waardoor de inbreuk op het grondrecht minder ernstig wordt? Zo ja, welke aanpassingen zijn dit?",
+              "id": "4.5.2",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "<span class=\"aiv-definition\">Restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>'s na <span class=\"aiv-definition\">maatregelen<span class=\"aiv-definition-text\">Een maatregel is een bestaande of voorgenomen, passende maatregel om een beschreven [risico voor betrokkenen] van de [gegevensverwerkingen] aan te pakken.\n<br><strong>Toelichting</strong>: In het begrip ‘passend’ ligt besloten dat de beveiliging in overeenstemming is met de stand van de techniek. Het begrip ‘passend’ duidt mede op een proportionaliteit tussen de maatregelen en de risico’s. Naarmate deze risico’s groter zijn, worden zwaardere eisen gesteld aan de beveiliging van de persoonsgegevens. Er is geen verplichting om altijd de zwaarste beveiliging te nemen. Enkel is vereist dat de maatregelen met het oog op de beschikbare technologie en uitvoeringskosten redelijk zijn.\n<br><i>Dit is een alternatieve term van Maatregel</i></span></span>",
+              "description": "Welke <span class=\"aiv-definition\">restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>'s blijven er voor het grondrecht over als alle bij vraag 4.5.2 bedachte <span class=\"aiv-definition\">maatregelen<span class=\"aiv-definition-text\">Een maatregel is een bestaande of voorgenomen, passende maatregel om een beschreven [risico voor betrokkenen] van de [gegevensverwerkingen] aan te pakken.\n<br><strong>Toelichting</strong>: In het begrip ‘passend’ ligt besloten dat de beveiliging in overeenstemming is met de stand van de techniek. Het begrip ‘passend’ duidt mede op een proportionaliteit tussen de maatregelen en de risico’s. Naarmate deze risico’s groter zijn, worden zwaardere eisen gesteld aan de beveiliging van de persoonsgegevens. Er is geen verplichting om altijd de zwaarste beveiliging te nemen. Enkel is vereist dat de maatregelen met het oog op de beschikbare technologie en uitvoeringskosten redelijk zijn.\n<br><i>Dit is een alternatieve term van Maatregel</i></span></span> doorgevoerd zijn?",
+              "id": "4.5.3",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            },
+            {
+              "task": "Redelijkheid van inzet na <span class=\"aiv-definition\">maatregelen<span class=\"aiv-definition-text\">Een maatregel is een bestaande of voorgenomen, passende maatregel om een beschreven [risico voor betrokkenen] van de [gegevensverwerkingen] aan te pakken.\n<br><strong>Toelichting</strong>: In het begrip ‘passend’ ligt besloten dat de beveiliging in overeenstemming is met de stand van de techniek. Het begrip ‘passend’ duidt mede op een proportionaliteit tussen de maatregelen en de risico’s. Naarmate deze risico’s groter zijn, worden zwaardere eisen gesteld aan de beveiliging van de persoonsgegevens. Er is geen verplichting om altijd de zwaarste beveiliging te nemen. Enkel is vereist dat de maatregelen met het oog op de beschikbare technologie en uitvoeringskosten redelijk zijn.\n<br><i>Dit is een alternatieve term van Maatregel</i></span></span>",
+              "description": "Is het redelijk om het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> in te zetten als rekening wordt gehouden met: (1) de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met (2) de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
+              "id": "4.5.4",
+              "type": [
+                "open_text"
+              ],
+              "repeatable": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "Deel 5 – Afsluiting",
+      "id": "5",
+      "is_official_id": true,
+      "type": [
+        "task_group"
+      ],
+      "repeatable": false,
+      "tasks": [
+        {
+          "task": "(A) <span class=\"aiv-definition\">Belangenafweging<span class=\"aiv-definition-text\">Een belangenafweging is het op waarde schatten van twee vaak tegenstrijdige [belangen] en bepalen welk [belang] het zwaarst weegt.</span></span>",
+          "id": "5.A",
+          "description": "Maak een overzicht van wat er in de 'schalen' komt te liggen van de balans, rekening houdend met de actiepunten die zijn geformuleerd in de voorgaande delen.",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Gediende belangen",
+              "id": "5.A.grp-gediend",
+              "is_official_id": false,
+              "type": [
+                "task_group"
+              ],
+              "repeatable": false,
+              "tasks": [
+                {
+                  "task": "Positieve belangen",
+                  "description": "Welke belangen worden met het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> gediend? (Kijk hierbij naar de doelen (vraag 1.1.2), de geïdentificeerde positief geraakte publieke waarden (vraag 1.2.1), de grondrechten waarop het algoritme mogelijk positieve <span class=\"aiv-definition\">impact<span class=\"aiv-definition-text\">De impact is de ernst van de gevolgen voor de [betrokkenen] wanneer deze intreden.\n<br><strong>Toelichting</strong>: De impact/ernst van de risico’s hangt af van de context van de verwerkingen: de aard van de persoonsgegevens, de aard van de verwerkingen en de doeleinden waarvoor de gegevens worden verwerkt.</span></span> heeft (vraag 4.1.2), en de belangen van de eigen organisatie.)",
+                  "id": "5.A.1",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "Zwaarwegendheid gediende belangen",
+                  "description": "Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? (Zie de toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te beantwoorden.)",
+                  "id": "5.A.3",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "Waarschijnlijkheid van belangen",
+                  "description": "Hoe waarschijnlijk is het dat deze belangen worden gediend met de inzet van het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>? (Zie ook vraag 4.4.1.)",
+                  "id": "5.A.5",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "Noodzakelijkheid van de inzet",
+                  "description": "Hoe noodzakelijk is het om dit <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> in te zetten om deze belangen te dienen? (Zie ook vraag 4.5.1.)",
+                  "id": "5.A.6",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                }
+              ]
+            },
+            {
+              "task": "Geschade belangen",
+              "id": "5.A.grp-geschaad",
+              "is_official_id": false,
+              "type": [
+                "task_group"
+              ],
+              "repeatable": false,
+              "tasks": [
+                {
+                  "task": "Belangen",
+                  "description": "Welke belangen worden door het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> geschaad? (Kijk hierbij naar de effecten voor groepen of individuen (vraag 3.5.2), de relevante maatschappelijke belangen (vraag 3.5.6), de ernst van de verwachte grondrechteninbreuk (vraag 4.3.3), en de belangen van de eigen organisatie.)",
+                  "id": "5.A.2",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "Zwaarwegendheid geschade belangen",
+                  "description": "Hoe concreet en hoe zwaarwegend zijn de schadende belangen? (Zie de toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te beantwoorden.)",
+                  "id": "5.A.4",
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "task": "(B) Advies over inzet <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span>",
+          "id": "5.B",
+          "description": "Schrijf op basis van het bij (A) gemaakte overzicht en in het licht van de geformuleerde actiepunten en antwoorden op de vragen een advies over de vraag of het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> wel of niet moet worden ingezet, en onder welke voorwaarden. Daarin moet in ieder geval expliciet aandacht worden besteed aan de vraag of en waarom de inzet van het algoritme een redelijk evenwicht zal opleveren tussen de betrokken belangen.",
+          "type": [
+            "open_text"
+          ],
+          "repeatable": false
+        },
+        {
+          "task": "(C) <span class=\"aiv-definition\">Restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>'s en acceptatie",
+          "id": "5.C",
+          "description": "Het kan zijn dat er een <span class=\"aiv-definition\">restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span> voor bepaalde grondrechten of andere belangen blijft bestaan, ook nadat alle actiepunten zijn uitgevoerd en alle mitigerende <span class=\"aiv-definition\">maatregelen<span class=\"aiv-definition-text\">Een maatregel is een bestaande of voorgenomen, passende maatregel om een beschreven [risico voor betrokkenen] van de [gegevensverwerkingen] aan te pakken.\n<br><strong>Toelichting</strong>: In het begrip ‘passend’ ligt besloten dat de beveiliging in overeenstemming is met de stand van de techniek. Het begrip ‘passend’ duidt mede op een proportionaliteit tussen de maatregelen en de risico’s. Naarmate deze risico’s groter zijn, worden zwaardere eisen gesteld aan de beveiliging van de persoonsgegevens. Er is geen verplichting om altijd de zwaarste beveiliging te nemen. Enkel is vereist dat de maatregelen met het oog op de beschikbare technologie en uitvoeringskosten redelijk zijn.\n<br><i>Dit is een alternatieve term van Maatregel</i></span></span> zijn geïmplementeerd. Maak hiervan een overzicht en zorg ervoor dat de inhoudelijk of politiek verantwoordelijke deze restrisico's doorneemt en vervolgens bewust accepteert of afwijst.",
+          "type": [
+            "open_text"
+          ],
+          "repeatable": false
+        }
+      ]
+    }
+  ]
+}
