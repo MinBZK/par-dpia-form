@@ -32,7 +32,7 @@ export async function exportToPdf(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'
 
   let rootTasks = taskStore.rootTaskIds[activeNamespace]
     .map(id => taskStore.flatTasks[activeNamespace][id])
@@ -114,7 +114,7 @@ export async function exportToPdf(
           stack: [
             { text: formType, style: 'title' },
             {
-              text: `Gegenereerd met de 'DPIA Rapportagemodel Editor' op ${dutchDateFormatter.format(new Date())}`,
+              text: `Gegenereerd met de 'Invulhulp voor pre-scan, DPIA en IAMA' op ${dutchDateFormatter.format(new Date())}`,
               style: 'subsubtitle',
             },
           ],
