@@ -12,7 +12,7 @@
         <a class="rvo-link" id="version-link" href="https://github.com/MinBZK/par-dpia-form"
           >Bètaversie</a
         >
-        De invulhulp DPIA is in ontwikkeling.
+        De invulhulp voor pre-scan, DPIA en IAMA is in ontwikkeling.
       </div>
     </div>
   </div>

@@ -13,13 +13,13 @@ tasks:
 
       Het IAMA stuurt het projectteam aan om een advies te formuleren over het al dan niet inzetten van een algoritme, en over de voorwaarden waaraan die inzet zou moeten voldoen. Het IAMA is gericht op het inschatten van de impact van het algoritme op grondrechten en biedt daarnaast ruimte voor het aan bod laten komen van andere relevante aandachtspunten rondom de inzet van het algoritme, in een vroegtijdig stadium en op een gestructureerde manier. Daardoor wordt tegengegaan dat al te snel een algoritme wordt ingezet terwijl de consequenties daarvan niet goed zijn bekeken, met de daarbij behorende risico's, zoals die van onzorgvuldigheid, ineffectiviteit of inbreuk op grondrechten.
 
-      Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het IAMA-toelichtingsdocument extra houvast en verdieping.
+      Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> extra houvast en verdieping.
 
       Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.
     id: "0"
     is_official_id: false
     type:
-      - open_text
+      - task_group
     repeatable: false
 
   - task: Toepassingsbereik IAMA
@@ -28,50 +28,50 @@ tasks:
 
       Het IAMA is ook geschikt om een grondrechtenbeoordeling te geven bij impactvolle algoritmes die niet vallen in de categorie hoog-risico AI-systemen of die buiten het bereik van de AI-verordening vallen. Een impactvol algoritme is volgens de Handreiking Algoritmeregister een algoritme met directe rechtsgevolgen voor mensen of organisaties of een algoritme dat beïnvloedt hoe de overheid een persoon of groep categoriseert.
 
-      Bij de inzet van generatieve AI of General Purpose AI kan de uitvoering van het IAMA in de praktijk soms moeilijk blijken. Dit zijn AI-systemen waar bijna altijd gebruik wordt gemaakt van een voorgetraind model van een externe leverancier. Hierdoor is het doorgaans onmogelijk om te weten wat de trainingsdata zijn, hoe de trainingsprocedure is gelopen en welke bias er in het model zit. Ook is het van belang voor het doorlopen van het IAMA dat het AI-systeem dat getoetst wordt een heldere doelbinding heeft. Dit is doorgaans moeilijker met General Purpose AI. Het IAMA-toelichtingsdocument biedt extra handvatten voor de toepassing van het IAMA op generatieve AI en General Purpose AI.
+      Bij de inzet van generatieve AI of General Purpose AI kan de uitvoering van het IAMA in de praktijk soms moeilijk blijken. Dit zijn AI-systemen waar bijna altijd gebruik wordt gemaakt van een voorgetraind model van een externe leverancier. Hierdoor is het doorgaans onmogelijk om te weten wat de trainingsdata zijn, hoe de trainingsprocedure is gelopen en welke bias er in het model zit. Ook is het van belang voor het doorlopen van het IAMA dat het AI-systeem dat getoetst wordt een heldere doelbinding heeft. Dit is doorgaans moeilijker met General Purpose AI. Het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> biedt extra handvatten voor de toepassing van het IAMA op generatieve AI en General Purpose AI.
     id: "0.1"
     is_official_id: false
     type:
-      - open_text
+      - task_group
     repeatable: false
 
   - task: Instructie
     description: |
-      **Vooraf**
+      <strong>Vooraf</strong>
 
       De discussie over de verschillende vragen moet plaatsvinden in een breed samengesteld team waarin mensen met verschillende specialisaties en achtergronden zitting hebben. In het team moeten in elk geval de volgende functies betrokken worden:
         • Projectleider
         • Data scientist
         • Jurist
 
-      Hoewel bovengenoemde functies de kern beslaan van het team, is het cruciaal dat er meerdere functies betrokken worden bij dit proces. Een interdisciplinair en breed team is het uitganspunt. Voor houvast hierbij: zie de functietabel in het IAMA-toelichtingsdocument. Voor een soepel proces wordt aangeraden het IAMA in te vullen met een groep van 4-7 personen, die op locatie aanwezig zijn en het IAMA gezamenlijk bespreken onder leiding van een gespreksleider. Een jurist die uitzoekwerk kan doen op het gebied van grondrechten is voor deel 4 onmisbaar.
+      Hoewel bovengenoemde functies de kern beslaan van het team, is het cruciaal dat er meerdere functies betrokken worden bij dit proces. Een interdisciplinair en breed team is het uitganspunt. Voor houvast hierbij: zie de functietabel in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Voor een soepel proces wordt aangeraden het IAMA in te vullen met een groep van 4-7 personen, die op locatie aanwezig zijn en het IAMA gezamenlijk bespreken onder leiding van een gespreksleider. Een jurist die uitzoekwerk kan doen op het gebied van grondrechten is voor deel 4 onmisbaar.
 
       Voor het invullen van het IAMA, het ophalen van de benodigde informatie en reflectie op het waarom en hoe van de inzet van het algoritme, is tijd nodig. Wees op tijd met het inplannen van de sessies voor het IAMA en doe dit niet vlak voor een opleverdeadline. Het IAMA is geen afvinklijstje, maar een instrument voor dialoog, reflectie en besluitvorming.
 
-      **Tijdens**
+      <strong>Tijdens</strong>
 
       Het wordt sterk aangeraden het proces in verschillende bijeenkomsten op te knippen, bijvoorbeeld een sessie van twee uur voor deel 1 en 2 en een sessie van twee uur voor deel 3 en subonderdeel 4.1. Voor subonderdeel 4.2 zal een jurist hoogstwaarschijnlijk uitzoekwerk moeten verrichten. Wanneer dat is gedaan, kan een laatste sessie worden gepland van een uur voor de resterende vragen van deel 4 en de afsluiting.
 
-      Het is de bedoeling om in teamverband de vragen door te nemen en de antwoorden in het IAMA-document vast te leggen. Per vraag moeten de antwoorden en de belangrijkste overwegingen en gemaakte keuzes worden vastgelegd. Als meer houvast of uitleg gewenst is bij een specifiek subonderdeel, kan het IAMA-toelichtingsdocument worden geraadpleegd.
+      Het is de bedoeling om in teamverband de vragen door te nemen en de antwoorden in het IAMA-document vast te leggen. Per vraag moeten de antwoorden en de belangrijkste overwegingen en gemaakte keuzes worden vastgelegd. Als meer houvast of uitleg gewenst is bij een specifiek subonderdeel, kan het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> worden geraadpleegd.
 
-      **Na afloop**
+      <strong>Na afloop</strong>
 
       Het IAMA stuurt het team aan om een advies te formuleren over het al dan niet inzetten van het algoritme, en over de voorwaarden waaraan inzet zou moeten voldoen. Dit advies kan ter goedkeuring worden voorgelegd aan de inhoudelijk of politiek verantwoordelijke(n). Deze verantwoordelijke dient eveneens te besluiten over acceptatie van eventuele restrisico's. Het ingevulde IAMA kan dienen als naslagwerk en ter verantwoording van het besluitvormingsproces rondom de ontwikkeling en de implementatie van het algoritme.
     id: "0.2"
     is_official_id: false
     type:
-      - open_text
+      - task_group
     repeatable: false
 
   - task: Nadere Toelichting
     description: |
-      Nadere toelichting op verscheidene aspecten uit het IAMA kan worden gevonden in het IAMA-toelichtingsdocument. Hierin wordt uitgebreide houvast gegeven voor de beantwoording van specifieke vragen, de werkwijze van het toepassen van het IAMA en de relatie met de AI-verordening.
+      Nadere toelichting op verscheidene aspecten uit het IAMA kan worden gevonden in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Hierin wordt uitgebreide houvast gegeven voor de beantwoording van specifieke vragen, de werkwijze van het toepassen van het IAMA en de relatie met de AI-verordening.
 
-      Voor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente versie van het Algoritmekader van het ministerie van Binnenlandse Zaken en Koninkrijksrelaties. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA, te raadplegen via <a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank">https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/</a>.
+      Voor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente versie van het <a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank">Algoritmekader</a>. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA. 
     id: "0.3"
     is_official_id: false
     type:
-      - open_text
+      - task_group
     repeatable: false
   - task: Deel 1 – Waarom?
     id: "1"
