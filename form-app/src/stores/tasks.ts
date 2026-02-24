@@ -46,26 +46,32 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const flatTasks = ref<Record<FormType, Record<string, FlatTask>>>({
     [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.IAMA]: {},
   })
   const taskInstances = ref<Record<FormType, Record<string, TaskInstance>>>({
     [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.IAMA]: {},
   })
   const currentRootTaskId = ref<Record<FormType, string>>({
     [FormType.DPIA]: "0",
     [FormType.PRE_SCAN]: "0",
+    [FormType.IAMA]: "0",
   })
   const rootTaskIds = ref<Record<FormType, string[]>>({
     [FormType.DPIA]: [],
     [FormType.PRE_SCAN]: [],
+    [FormType.IAMA]: [],
   })
   const isInitialized = ref<Record<FormType, boolean>>({
     [FormType.DPIA]: false,
     [FormType.PRE_SCAN]: false,
+    [FormType.IAMA]: false,
   })
   const completedRootTaskIds = ref<Record<FormType, Set<string>>>({
     [FormType.DPIA]: new Set(),
     [FormType.PRE_SCAN]: new Set(),
+    [FormType.IAMA]: new Set(),
   })
 
   /**

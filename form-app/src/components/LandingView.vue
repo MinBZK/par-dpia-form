@@ -12,7 +12,7 @@ defineProps<{
   <AppBanner />
   <div class="rvo-layout-column rvo-layout-gap--3xl rvo-margin-block-start--xl">
     <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-      <h1 class="utrecht-heading-1">Invulhulp voor pre-scan en DPIA</h1>
+      <h1 class="utrecht-heading-1">Invulhulp voor pre-scan, DPIA en IAMA</h1>
       <div class="rvo-layout-grid-container rvo-margin-inline-end--md">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
@@ -29,6 +29,14 @@ defineProps<{
               <p class="rvo-padding-block-end--sm">Vul stap voor stap het rijksmodel DPIA in.</p>
               <UiButton variant="primary" label="Start DPIA" class="card-button"
                 @click="navigation.goToDPIA" />
+            </div>
+          </div>
+          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
+            <div class="rvo-card__content card-content-flex">
+              <h2 class="utrecht-heading-2 rvo-margin--none">IAMA</h2>
+              <p class="rvo-padding-block-end--sm">Vul stap voor stap het Impact Assessment Mensenrechten en Algoritmes in.</p>
+              <UiButton variant="primary" label="Start IAMA" class="card-button"
+                @click="navigation.goToIAMA" />
             </div>
           </div>
         </div>
