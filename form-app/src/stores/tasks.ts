@@ -283,18 +283,20 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function nextRootTask() {
-    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
-    const nextId = currentId + 1
-    if (nextId < rootTaskIds.value[activeNamespace.value].length) {
-      setRootTask(nextId.toString())
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const nextIndex = currentIndex + 1
+    if (nextIndex < ids.length) {
+      setRootTask(ids[nextIndex])
     }
   }
 
   function previousRootTask() {
-    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
-    const nextId = currentId - 1
-    if (nextId >= 0) {
-      setRootTask(nextId.toString())
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const prevIndex = currentIndex - 1
+    if (prevIndex >= 0) {
+      setRootTask(ids[prevIndex])
     }
   }
 
