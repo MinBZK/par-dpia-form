@@ -67,7 +67,7 @@ tasks:
     description: |
       Nadere toelichting op verscheidene aspecten uit het IAMA kan worden gevonden in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Hierin wordt uitgebreide houvast gegeven voor de beantwoording van specifieke vragen, de werkwijze van het toepassen van het IAMA en de relatie met de AI-verordening.
 
-      Voor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente versie van het <a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank">Algoritmekader</a>. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA. 
+      Voor een overzicht van de belangrijkste wettelijke vereisten wordt verwezen naar de meest recente versie van het <a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank">Algoritmekader</a>. Daarin staat ook een overzicht van aanbevolen hulpmiddelen, die tevens nuttig kunnen zijn voor het toepassen van het IAMA.
     id: "0.3"
     is_official_id: false
     type:
@@ -920,7 +920,7 @@ tasks:
                 type:
                   - open_text
                 repeatable: false
-        
+
 
       - task: (B) Advies over inzet algoritme
         id: "5.B"

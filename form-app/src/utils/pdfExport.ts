@@ -1,8 +1,8 @@
 import { type FlatTask, type TaskStoreType } from '@/stores/tasks'
 import { type AnswerStoreType } from '@/stores/answers'
 import { FormType } from '@/models/dpia.ts'
-import * as pdfMake from 'pdfmake/build/pdfmake'
-import * as pdfFonts from 'pdfmake/build/vfs_fonts'
+import pdfMake from 'pdfmake/build/pdfmake'
+import pdfFonts from 'pdfmake/build/vfs_fonts'
 import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
 import FontService from '@/services/fontService.ts'
 import { renderInstanceLabel } from '@/utils/taskUtils'
@@ -14,7 +14,8 @@ import type { CalculationStoreType } from '@/stores/calculations'
 
 
 // Initialize PDFMake
-(<any>pdfMake).addVirtualFileSystem(pdfFonts)
+// @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
+pdfMake.addVirtualFileSystem(pdfFonts)
 
 const dutchDateFormatter = new Intl.DateTimeFormat('nl-NL', {
   weekday: 'long',
@@ -179,7 +180,12 @@ export async function exportToPdf(
 
     const vfs = await FontService.getVFS()
 
-    pdfMake.createPdf(docDefinition, undefined, fontDefinitions, vfs).download(actualFilename)
+    // pdfmake 0.3: register fonts and VFS on the instance before creating PDF
+    // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
+    pdfMake.addFonts(fontDefinitions)
+    // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
+    pdfMake.addVirtualFileSystem(vfs)
+    pdfMake.createPdf(docDefinition).download(actualFilename)
 
     return Promise.resolve()
   } catch (error) {

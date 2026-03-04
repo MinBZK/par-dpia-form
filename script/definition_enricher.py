@@ -184,7 +184,7 @@ def inject_terms(text, term_map):
             matched_positions.add(pos)
 
     # Mark positions inside any HTML tag (<...>) so terms in attributes (e.g. href URLs) are not enriched
-    for match in re.finditer(r'<[^>]+>', text, re.DOTALL):
+    for match in re.finditer(r"<[^>]+>", text, re.DOTALL):
         start, end = match.span()
         for pos in range(start, end):
             matched_positions.add(pos)
@@ -289,7 +289,7 @@ def inject_terms(text, term_map):
                         updated_matched_positions.add(pos)
 
                 # Re-mark positions inside HTML tags to keep protecting URLs in attributes
-                for html_match in re.finditer(r'<[^>]+>', current_text, re.DOTALL):
+                for html_match in re.finditer(r"<[^>]+>", current_text, re.DOTALL):
                     s, e = html_match.span()
                     for pos in range(s, e):
                         updated_matched_positions.add(pos)
