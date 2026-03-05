@@ -2,16 +2,16 @@
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
 
-A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
+A standalone web application for completing Data Protection Impact Assessments (DPIA), Pre-scan DPIAs, and Impact Assessments Mensenrechten en Algoritmes (IAMA), following the Dutch government's Rijksmodel DPIA framework.
 
 ## Introduction
 
-The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA forms and generating reports without requiring installation or server hosting.
-The Pre-scan DPIA form help organizations evaluate privacy risks associated with data processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten Impact Assessment) is necessary.
+The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA, DPIA and IAMA forms and generating reports without requiring installation or server hosting.
+The Pre-scan DPIA form helps organizations evaluate privacy risks associated with data processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten Impact Assessment) is necessary.
 
 ## Key features
 
-- 🌐 Complete DPIA and Pre-scan DPIA forms directly in your browser.
+- 🌐 Complete DPIA, Pre-scan DPIA, and IAMA forms directly in your browser.
 - 💾 Save progress as a JSON file that can be shared with colleagues.
 - ⏱️ Continue work from previously saved sessions.
 - 📄 Export completed forms as PDF.
@@ -60,13 +60,16 @@ par-dpia-form/
 ├── script/                             # Processing and validation scripts
 │   ├── schema_validator.py             # Validates YAML against schema
 │   ├── definition_enricher.py          # Adds tooltips to form definitions
+│   ├── convert_definitions_from_AK.py  # Syncs definitions from Algoritmekader
 │   ├── generate_md_table_questions.py  # Generates MD tables with questions
 │   └── run_all.py                      # Combined processing workflow
 │
 ├── sources/                            # Source YAML definitions
 │   ├── DPIA.yaml                       # Full DPIA form definition
 │   ├── prescan_DPIA.yaml               # Pre-scan DPIA definition
-│   └── begrippenkader-dpia.yaml        # Glossary and term definitions
+│   ├── IAMA.yaml                       # IAMA form definition
+│   ├── begrippenkader-dpia.yaml        # Glossary for DPIA/Pre-scan (synced from J&V)
+│   └── begrippenkader-iama.yaml        # Glossary for IAMA (synced from Algoritmekader)
 │
 ├── LICENSE                             # EUPL v1.2 License
 ├── README.md                           # Project documentation
@@ -159,16 +162,18 @@ or see instructions on the [uv website](https://docs.astral.sh/uv/getting-starte
 ### Components
 
 - `schema_validator.py` - Validates YAML files against JSON schemas
-- `sync_begrippenkader.py` - Manages the glossary (begrippenkader)
 - `definition_enricher.py` - Enriches data with tooltip definitions
-- `run_sync_validate_and_inject.py` - Combines all functionalities
+- `convert_definitions_from_AK.py` - Downloads and converts definitions from the [Algoritmekader](https://github.com/MinBZK/Algoritmekader) begrippenlijst into YAML
+- `run_all.py` - Combines all functionalities
 
 ### Form Definitions
 
-The `sources/` directory contains DPIA form specifications:
+The `sources/` directory contains form specifications:
 - `DPIA.yaml` - Tasks within the DPIA
 - `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA
-- `begrippenkader-dpia.yaml` - Glossary items
+- `IAMA.yaml` - Tasks within the IAMA
+- `begrippenkader-dpia.yaml` - Glossary items for DPIA/Pre-scan (synced from [J&V](https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml))
+- `begrippenkader-iama.yaml` - Glossary items for IAMA (synced from [Algoritmekader](https://github.com/MinBZK/Algoritmekader/blob/main/includes/begrippenlijst.md))
 
 JSON-schemas are in the `schemas/` directory.
 
@@ -196,6 +201,14 @@ uv run script/schema_validator.py \
     --output form-app/src/assets/DPIA.json
 ```
 
+##### IAMA
+
+```bash
+uv run script/schema_validator.py \
+    --schema schemas/formSchema.json \
+    --source sources/IAMA.yaml \
+    --output form-app/src/assets/IAMA.json
+```
 
 #### Definition Enrichment
 
@@ -219,6 +232,25 @@ uv run script/definition_enricher.py \
     --definitions sources/begrippenkader-dpia.yaml \
     --output form-app/src/assets/DPIA.json
 ```
+
+##### IAMA
+
+```bash
+uv run script/definition_enricher.py \
+    --source sources/IAMA.yaml \
+    --definitions sources/begrippenkader-iama.yaml \
+    --output form-app/src/assets/IAMA.json
+```
+
+#### Syncing Algoritmekader Definitions
+
+Downloads the latest definitions from the Algoritmekader begrippenlijst and converts them to YAML:
+
+```bash
+uv run script/convert_definitions_from_AK.py --output sources/begrippenkader-iama.yaml
+```
+
+This is also run automatically by the GitHub Actions sync workflow.
 
 #### YAML to Markdown Table Converter
 This script generates a well-structured Markdown table from YAML form definition files. It extracts all tasks, their types, options, and relationships to provide a comprehensive overview of the form structure. The table includes the original task IDs, the task text (with visual hierarchy), answer types, available options, and related tasks.
@@ -268,6 +300,17 @@ uv run script/run_all.py \
   --begrippen-yaml sources/begrippenkader-dpia.yaml \
   --output-json form-app/src/assets/DPIA.json \
   --output-md docs/questions/questions_DPIA.md
+```
+
+##### IAMA
+
+```bash
+uv run script/run_all.py \
+  --schema schemas/formSchema.json \
+  --source sources/IAMA.yaml \
+  --begrippen-yaml sources/begrippenkader-iama.yaml \
+  --output-json form-app/src/assets/IAMA.json \
+  --output-md docs/questions/questions_IAMA.md
 ```
 
 ## Known Limitations
