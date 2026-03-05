@@ -31,7 +31,7 @@ const props = defineProps<{
 const error = ref<string | null>(null)
 const isLoading = ref(true)
 const isSaveModalOpen = ref(false)
-const formStarted = ref(props.namespace === FormType.IAMA)
+const formStarted = ref(false)
 
 // Store setup
 const taskStore = useTaskStore()
@@ -162,12 +162,16 @@ const handleReset = () => {
   }
 
   // 5. Reset UI state
-  formStarted.value = props.namespace === FormType.IAMA
+  formStarted.value = false
 }
 
 const isSigningTask = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'signing')
+})
+
+const isIntroductionStep = computed(() => {
+  return props.namespace === FormType.IAMA && currentRootTaskId.value === '0'
 })
 </script>
 
@@ -191,7 +195,7 @@ const isSigningTask = computed(() => {
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN" />
+          FormType.PRE_SCAN || namespace === FormType.IAMA" />
 
       </nav>
 
@@ -213,7 +217,7 @@ const isSigningTask = computed(() => {
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
               <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <div v-if="!isLastTask" class="rvo-checkbox__group">
+                <div v-if="!isLastTask && !isIntroductionStep" class="rvo-checkbox__group">
                   <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
                     <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
                       type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"

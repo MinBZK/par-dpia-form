@@ -25,6 +25,11 @@ const shouldShowChildren = computed(
   () => taskIsOfTaskType(task.value, 'task_group') && (task.value.childrenIds?.length || 0) > 0,
 )
 
+const isInfoOnlyChild = (childId: string): boolean => {
+  const child = taskStore.taskById(childId)
+  return taskIsOfTaskType(child, 'task_group') && child.childrenIds.length === 0 && !!child.description
+}
+
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
@@ -190,21 +195,47 @@ function shouldSkipTask(taskId: string): boolean {
         <template v-for="childId in task.childrenIds" :key="childId">
           <template v-if="!shouldSkipTask(childId)">
 
-            <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
-              <!--Single task (no children): render the task itself -->
-              <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
-                :instanceId="instanceId" :showDescription="true" />
-
-              <!-- Nested task group (has children): render children as TaskGroup -->
-              <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
-            </template>
-
-            <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-              class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
-            ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                @click="handleAddRepeatableTask(childId)" />
+            <!-- Info-only child (task_group with description, no children): render as accordion -->
+            <div v-if="isInfoOnlyChild(childId)" class="rvo-accordion">
+              <details class="rvo-accordion__item">
+                <summary class="rvo-accordion__item-summary">
+                  <div class="rvo-accordion__item-icon">
+                    <span
+                      class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
+                      role="img" aria-label="Uitklappen"></span>
+                    <span
+                      class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
+                      role="img" aria-label="Inklappen"></span>
+                  </div>
+                  <div class="rvo-accordion__item-title-container">
+                    <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+                      {{ taskStore.taskById(childId).task }}
+                    </h3>
+                  </div>
+                </summary>
+                <div class="rvo-accordion__content">
+                  <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+                </div>
+              </details>
             </div>
+
+            <template v-else>
+              <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
+                <!--Single task (no children): render the task itself -->
+                <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
+                  :instanceId="instanceId" :showDescription="true" />
+
+                <!-- Nested task group (has children): render children as TaskGroup -->
+                <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+              </template>
+
+              <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+                class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+                <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
+              ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+                  @click="handleAddRepeatableTask(childId)" />
+              </div>
+            </template>
           </template>
         </template>
       </div>

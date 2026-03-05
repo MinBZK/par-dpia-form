@@ -12,8 +12,8 @@
       "type": [
         "task_group"
       ],
-      "repeatable": false
-    },
+      "repeatable": false,
+      "tasks": [
     {
       "task": "Toepassingsbereik IAMA",
       "description": "Het <span class=\"aiv-definition\">IAMA<span class=\"aiv-definition-text\">De IAMA is een instrument voor discussie en besluitvorming voor overheidsorganen, dat een interdisciplinaire dialoog mogelijk maakt door degenen die verantwoordelijk zijn voor de ontwikkeling en/of inzet van een [algoritme].\n<br><strong>Toelichting</strong>: Het IAMA bevat een groot aantal vragen waarover discussie plaats moet vinden en waarop een antwoord moet worden geformuleerd in alle gevallen waarin een overheidsorgaan overweegt een algoritme te (laten) ontwikkelen, in te kopen, aan te passen en/of in te gaan zetten. Ook wanneer een algoritme al wordt ingezet kan het IAMA dienen als instrument voor reflectie.</span></span> is een grondrechtenbeoordeling voor impactvolle <span class=\"aiv-definition\">algoritmes<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.\n<br><i>Dit is een alternatieve term van Algoritme</i></span></span> en hoog-risico AI-systemen. De Europese AI-verordening bepaalt welke AI-systemen als hoog-risico moeten worden geclassificeerd. Hiervoor gelden specifieke vereisten, waaronder een beoordeling van de gevolgen voor grondrechten (artikel 27 AI-verordening). Het IAMA is een instrument om invulling te geven aan een dergelijke grondrechtenbeoordeling. Bij de vragen in het IAMA die corresponderen met de verschillende vereisten uit artikel 27 van de AI-verordening is dat aangegeven door middel van een 'art. 27 AI-verordening'-icoontje. #\n\nHet IAMA is ook geschikt om een grondrechtenbeoordeling te geven bij impactvolle algoritmes die niet vallen in de categorie hoog-risico AI-systemen of die buiten het bereik van de AI-verordening vallen. Een impactvol <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een algoritme is een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.\n<br><strong>Toelichting</strong>: Algoritmen bestaan uit een reeks, meestal wiskundige, instructies. Wanneer deze instructies een bepaalde input krijgen, dan gaat deze door deze instructies heen en er volgt een output op basis van die instructies.</span></span> is volgens de Handreiking Algoritmeregister een algoritme met directe rechtsgevolgen voor mensen of organisaties of een algoritme dat beïnvloedt hoe de overheid een persoon of groep categoriseert.\n\nBij de inzet van generatieve AI of General Purpose AI kan de uitvoering van het IAMA in de praktijk soms moeilijk blijken. Dit zijn AI-systemen waar bijna altijd gebruik wordt gemaakt van een voorgetraind model van een externe leverancier. Hierdoor is het doorgaans onmogelijk om te weten wat de trainingsdata zijn, hoe de trainingsprocedure is gelopen en welke bias er in het model zit. Ook is het van belang voor het doorlopen van het IAMA dat het <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een AI-systeem is een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren.\n<br><strong>Toelichting</strong>: Output zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.\n\nAI is software die is ontwikkeld aan de hand van een of meer technieken en benaderingen, die voor een bepaalde reeks door mensen gedefinieerde doelstellingen een resultaat kan genereren, zoals inhoud, voorspellingen, aanbevelingen of beslissingen. Deze kunnen van invloed zijn op de omgeving waarmee interactie plaatsvindt tussen de software en de betrokkenen.</span></span> dat getoetst wordt een heldere <span class=\"aiv-definition\">doelbinding<span class=\"aiv-definition-text\">Doelbinding geldt wanneer het [verwerkingsdoeleinde] van een verdere [gegevensverwerking persoonsgegevens] als [verenigbaar] wordt beschouwd met de [oorspronkelijke verwerkingsdoeleinden] van de [persoonsgegevens] in die [gegevensverwerking persoonsgegevens].\n<br><strong>Toelichting</strong>: Als de persoonsgegevens voor een ander doeleinde worden verwerkt dan het doeleinde waarvoor de persoonsgegevens oorspronkelijk zijn verzameld, beoordeel of deze (nieuwe) verdere verwerking toelaatbaar is op grond van Unie- of lidstatelijk recht, dan wel verenigbaar is met het doel waarvoor de persoonsgegevens oorspronkelijk zijn verzameld.</span></span> heeft. Dit is doorgaans moeilijker met General Purpose AI. Het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> biedt extra handvatten voor de toepassing van het IAMA op generatieve AI en General Purpose AI.\n",
@@ -43,11 +43,13 @@
         "task_group"
       ],
       "repeatable": false
+    }
+  ]
     },
     {
       "task": "Deel 1 – Waarom?",
       "id": "1",
-      "is_official_id": true,
+      "is_official_id": false,
       "type": [
         "task_group"
       ],
@@ -179,7 +181,7 @@
     {
       "task": "Deel 2 – Wat?",
       "id": "2",
-      "is_official_id": true,
+      "is_official_id": false,
       "type": [
         "task_group"
       ],
@@ -414,7 +416,7 @@
     {
       "task": "Deel 3 – Hoe?",
       "id": "3",
-      "is_official_id": true,
+      "is_official_id": false,
       "type": [
         "task_group"
       ],
@@ -700,7 +702,7 @@
     {
       "task": "Deel 4 – Mensenrechten",
       "id": "4",
-      "is_official_id": true,
+      "is_official_id": false,
       "type": [
         "task_group"
       ],
@@ -920,7 +922,7 @@
     {
       "task": "Deel 5 – Afsluiting",
       "id": "5",
-      "is_official_id": true,
+      "is_official_id": false,
       "type": [
         "task_group"
       ],
@@ -1023,7 +1025,7 @@
           "repeatable": false
         },
         {
-          "task": "(C) <span class=\"aiv-definition\">Restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>'s en acceptatie",
+          "task": "(C) <span class=\"aiv-definition\">Restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span>’s en acceptatie",
           "id": "5.C",
           "description": "Het kan zijn dat er een <span class=\"aiv-definition\">restrisico<span class=\"aiv-definition-text\">Een resterend risico voor betrokkenen is een [risico voor betrokkenen] dat nog aanwezig is na de uitvoering en/of implementatie van de geïdentificeerde [maatregelen].\n<br><strong>Toelichting</strong>: Risico’s volledig reduceren is niet mogelijk. Dit betekent dat er altijd een resterend risico zal overblijven.\n<br><i>Dit is een alternatieve spelling van Resterend risico voor betrokkenen</i></span></span> voor bepaalde grondrechten of andere belangen blijft bestaan, ook nadat alle actiepunten zijn uitgevoerd en alle mitigerende <span class=\"aiv-definition\">maatregelen<span class=\"aiv-definition-text\">Een maatregel is een bestaande of voorgenomen, passende maatregel om een beschreven [risico voor betrokkenen] van de [gegevensverwerkingen] aan te pakken.\n<br><strong>Toelichting</strong>: In het begrip ‘passend’ ligt besloten dat de beveiliging in overeenstemming is met de stand van de techniek. Het begrip ‘passend’ duidt mede op een proportionaliteit tussen de maatregelen en de risico’s. Naarmate deze risico’s groter zijn, worden zwaardere eisen gesteld aan de beveiliging van de persoonsgegevens. Er is geen verplichting om altijd de zwaarste beveiliging te nemen. Enkel is vereist dat de maatregelen met het oog op de beschikbare technologie en uitvoeringskosten redelijk zijn.\n<br><i>Dit is een alternatieve term van Maatregel</i></span></span> zijn geïmplementeerd. Maak hiervan een overzicht en zorg ervoor dat de inhoudelijk of politiek verantwoordelijke deze restrisico's doorneemt en vervolgens bewust accepteert of afwijst.",
           "type": [
