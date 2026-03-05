@@ -37,6 +37,12 @@ const navigationFunctions: NavigationFunctions = {
     taskStore.isInitialized[FormType.PRE_SCAN] = false
     navigateTo(ViewState.PreScanDPIA)
   },
+  goToIAMA: () => {
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.isInitialized[FormType.IAMA] = false
+    navigateTo(ViewState.IAMA)
+  },
 }
 </script>
 
@@ -58,5 +64,13 @@ const navigationFunctions: NavigationFunctions = {
     :navigation="navigationFunctions"
     :namespace="FormType.PRE_SCAN"
     :validData="schemaStore.getSchema(FormType.PRE_SCAN)"
+  />
+
+  <!-- IAMA Form -->
+  <Form
+    v-if="currentView === ViewState.IAMA"
+    :navigation="navigationFunctions"
+    :namespace="FormType.IAMA"
+    :validData="schemaStore.getSchema(FormType.IAMA)"
   />
 </template>

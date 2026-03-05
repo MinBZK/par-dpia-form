@@ -2,7 +2,8 @@ import * as t from 'io-ts'
 
 export enum FormType {
   DPIA = 'dpia',
-  PRE_SCAN = 'prescan'
+  PRE_SCAN = 'prescan',
+  IAMA = 'iama',
 }
 
 export const TaskTypeValue = t.union([

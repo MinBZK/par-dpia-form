@@ -1,4 +1,4 @@
-name: Check for broken links and sync YAML
+name: Check for broken links and sync definitions
 on:
   # Run daily at 9:00 AM
   schedule:
@@ -49,9 +49,8 @@ jobs:
           content-filepath: ./lychee/out.md
           labels: broken-links
 
-  sync-yaml:
+  sync-begrippenkader-dpia:
     runs-on: ubuntu-latest
-    # Allow this job to continue even if the check-links job fails
     needs: check-links
     if: always()
     steps:
@@ -76,20 +75,69 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "Auto-sync YAML file from external source"
+          git commit -m "Auto-sync begrippenkader-dpia.yaml from external source"
           git push
       - name: Create Pull Request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: peter-evans/create-pull-request@v5
         with:
           base: main
-          commit-message: "Auto-sync YAML file from external source"
-          title: "Auto-sync YAML file from external source"
+          commit-message: "Auto-sync begrippenkader-dpia.yaml from external source"
+          title: "Auto-sync begrippenkader-dpia.yaml from external source"
           body: |
             Automated sync of `begrippenkader-dpia.yaml` from external source.
 
             Source: https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml
 
-            This PR was created automatically by the sync-yaml workflow.
-          branch: auto-sync-yaml-${{ github.run_number }}
+            This PR was created automatically by the sync workflow.
+          branch: auto-sync-begrippenkader-dpia-${{ github.run_number }}
+          delete-branch: true
+
+  sync-begrippenkader-iama:
+    runs-on: ubuntu-latest
+    needs: check-links
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: pip install pyyaml
+      - name: Sync Algoritmekader definitions
+        run: |
+          python script/convert_definitions_from_AK.py --output sources/begrippenkader-iama.yaml
+      - name: Check for changes
+        run: |
+          git add sources/begrippenkader-iama.yaml
+          if ! git diff --staged --quiet; then
+            echo "changes=true" >> $GITHUB_ENV
+          else
+            echo "changes=false" >> $GITHUB_ENV
+          fi
+      - name: Commit directly (when in PR)
+        if: env.changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Auto-sync begrippenkader-iama.yaml from Algoritmekader"
+          git push
+      - name: Create Pull Request (when scheduled or manual)
+        if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: main
+          commit-message: "Auto-sync begrippenkader-iama.yaml from Algoritmekader"
+          title: "Auto-sync begrippenkader-iama.yaml from Algoritmekader"
+          body: |
+            Automated sync of IAMA definitions from the Algoritmekader begrippenlijst.
+
+            Source: https://github.com/MinBZK/Algoritmekader/blob/main/includes/begrippenlijst.md
+
+            This PR was created automatically by the sync workflow.
+          branch: auto-sync-begrippenkader-iama-${{ github.run_number }}
           delete-branch: true

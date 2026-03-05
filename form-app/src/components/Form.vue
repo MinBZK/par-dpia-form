@@ -169,6 +169,10 @@ const isSigningTask = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'signing')
 })
+
+const isIntroductionStep = computed(() => {
+  return props.namespace === FormType.IAMA && currentRootTaskId.value === '0'
+})
 </script>
 
 <template>
@@ -191,7 +195,7 @@ const isSigningTask = computed(() => {
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN" />
+          FormType.PRE_SCAN || namespace === FormType.IAMA" />
 
       </nav>
 
@@ -199,7 +203,7 @@ const isSigningTask = computed(() => {
         <div v-if="formStarted" class="utrecht-button-group rvo-action-groul--position-right" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
+            FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
           <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
             @click="openSaveModal" />
         </div>
@@ -213,7 +217,7 @@ const isSigningTask = computed(() => {
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
               <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <div v-if="!isLastTask" class="rvo-checkbox__group">
+                <div v-if="!isLastTask && !isIntroductionStep" class="rvo-checkbox__group">
                   <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
                     <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
                       type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
