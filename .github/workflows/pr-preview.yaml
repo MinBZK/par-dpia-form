@@ -2,67 +2,106 @@ name: PR Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+  workflow_dispatch:
 
-concurrency: preview-${{ github.ref }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
-permissions:
-  contents: write
-  pull-requests: write
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/preview
 
 jobs:
-  preview:
+  build:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.meta.outputs.tags }}
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        if: github.event.action != 'closed'
-        uses: actions/setup-python@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
         with:
-          python-version: '3.12'
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Python dependencies
-        if: github.event.action != 'closed'
-        run: pip install pyyaml jsonschema
-
-      - name: Generate JSON from YAML definitions
-        if: github.event.action != 'closed'
-        run: |
-          mkdir -p form-app/src/assets
-
-          python script/run_all.py \
-            --schema schemas/formSchema.json \
-            --source sources/prescan_DPIA.yaml \
-            --begrippen-yaml sources/begrippenkader-dpia.yaml \
-            --output-json form-app/src/assets/PreScanDPIA.json \
-            --output-md docs/questions/questions_prescan_DPIA.md
-
-          python script/run_all.py \
-            --schema schemas/formSchema.json \
-            --source sources/DPIA.yaml \
-            --begrippen-yaml sources/begrippenkader-dpia.yaml \
-            --output-json form-app/src/assets/DPIA.json \
-            --output-md docs/questions/questions_DPIA.md
-
-      - name: Set up Node.js
-        if: github.event.action != 'closed'
-        uses: actions/setup-node@v4
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'form-app/package-lock.json'
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=short,prefix=pr-${{ github.event.pull_request.number }}-
 
-      - name: Install Node dependencies
-        if: github.event.action != 'closed'
-        run: cd form-app && npm ci
-
-      - name: Build the Vue application
-        if: github.event.action != 'closed'
-        run: cd form-app && npm run build
-
-      - name: Deploy PR preview
-        uses: rossjrw/pr-preview-action@v1
+      - name: Build and push container image
+        uses: docker/build-push-action@v6
         with:
-          source-dir: form-app/dist/
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    needs: build
+    environment:
+      name: pr-${{ github.event.pull_request.number }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Deploy to ZAD
+        id: deploy
+        uses: RijksICTGilde/zad-actions/deploy@v3
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: dt-9s2
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          component: web
+          image: ${{ needs.build.outputs.image }}
+          comment-on-pr: true
+          qr-code: true
+          wait-for-ready: true
+
+  cleanup-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+      packages: delete
+      pull-requests: write
+    steps:
+      - name: Cleanup ZAD deployment
+        uses: RijksICTGilde/zad-actions/cleanup@v3
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: dt-9s2
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          delete-github-env: true
+          delete-github-deployments: true
+          delete-pr-comment: true
+          delete-container: true
+          container-org: ${{ github.repository_owner }}
+          container-name: ${{ github.event.repository.name }}/preview
+          container-tag: pr-${{ github.event.pull_request.number }}
+          github-admin-token: ${{ secrets.GITHUB_ADMIN_TOKEN }}
