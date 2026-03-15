@@ -5,7 +5,7 @@ import AppHeader from '../components/AppHeader.vue'
 
 const { isAuthenticated, login } = useAuth()
 const router = useRouter()
-const standaloneUrl = import.meta.env.VITE_STANDALONE_URL || '/standalone/'
+const standaloneUrl = import.meta.env.VITE_STANDALONE_URL || '/invulhulpen/'
 
 async function goToProjects() {
   if (isAuthenticated.value) {

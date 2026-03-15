@@ -2,7 +2,7 @@
   "extraKnownMarketplaces": {
     "assessment-tools": {
       "source": {
-        "source": "local",
+        "source": "directory",
         "path": "./.claude/plugins"
       }
     }
