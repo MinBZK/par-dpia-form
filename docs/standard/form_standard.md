@@ -253,4 +253,4 @@ Required fields MUST be enforced according to the schema definitions.
 
 ## Appendix A
 
-The complete [form JSON schema](../../schemas/assessmentSchema.json).
+The complete [form JSON schema](../../schemas/assessment-definition.v1.schema.json).

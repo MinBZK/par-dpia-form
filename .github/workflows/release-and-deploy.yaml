@@ -41,14 +41,14 @@ jobs:
           mkdir -p sources/generated
 
           python script/run_all.py \
-            --schema schemas/assessmentSchema.json \
+            --schema schemas/assessment-definition.v1.schema.json \
             --source sources/prescan_dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json \
             --output-md docs/questions/questions_prescan_DPIA.md
 
           python script/run_all.py \
-            --schema schemas/assessmentSchema.json \
+            --schema schemas/assessment-definition.v1.schema.json \
             --source sources/dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json \

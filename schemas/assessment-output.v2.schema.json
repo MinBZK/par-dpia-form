@@ -1,0 +1,91 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json",
+    "title": "Assessment Output",
+    "description": "Output format for a completed or in-progress assessment. Contains metadata and answers. Instance IDs use the format 'taskId' (non-repeatable) or 'taskId[index]' (repeatable, zero-based). The URN in metadata identifies the assessment definition and version.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "const": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json",
+            "description": "Reference to the JSON Schema that describes this output format"
+        },
+        "metadata": {
+            "type": "object",
+            "description": "Output metadata including URN identifier of the assessment definition",
+            "properties": {
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of when this output was created"
+                },
+                "urn": {
+                    "type": "string",
+                    "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+$",
+                    "description": "URN identifier of the assessment definition including version (e.g. 'urn:nl:dpia:3.0'). Composed from the definition's urn + version fields.",
+                    "examples": ["urn:nl:dpia:3.0", "urn:nl:prescan:2.0"]
+                },
+                "createdBy": {
+                    "type": "object",
+                    "description": "User who created this export (optional, for audit exports)",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Display name of the user"
+                        },
+                        "email": {
+                            "type": "string",
+                            "format": "email",
+                            "description": "Email address of the user"
+                        }
+                    },
+                    "required": ["name"]
+                }
+            },
+            "required": ["createdAt", "urn"]
+        },
+        "answers": {
+            "type": "object",
+            "description": "User answers keyed by instance ID (e.g. '2.1.3' or '2.1.1[0]')",
+            "propertyNames": {
+                "$ref": "#/$defs/instanceId"
+            },
+            "additionalProperties": {
+                "$ref": "#/$defs/answer"
+            }
+        }
+    },
+    "required": ["$schema", "metadata", "answers"],
+    "$defs": {
+        "instanceId": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]+)*(\\[[0-9]+\\])?$",
+            "description": "Task instance identifier. Non-repeatable: 'taskId' (e.g. '2.1.3'). Repeatable: 'taskId[index]' (e.g. '2.1.1[0]'). Index is zero-based.",
+            "examples": ["2.1.3", "2.1.1[0]", "2.1.1[1]", "0", "1.2"]
+        },
+        "answer": {
+            "type": "object",
+            "description": "A single answer value with metadata",
+            "properties": {
+                "value": {
+                    "description": "The answer value. Type depends on the field: string for text/date/radio, string[] for checkboxes, null for cleared answers.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } },
+                        { "type": "null" }
+                    ]
+                },
+                "lastEditedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of when this answer was last modified"
+                },
+                "lastEditedBy": {
+                    "type": "string",
+                    "description": "Display name of the user who last edited this answer (optional, for audit exports)"
+                }
+            },
+            "required": ["value", "lastEditedAt"]
+        }
+    }
+}

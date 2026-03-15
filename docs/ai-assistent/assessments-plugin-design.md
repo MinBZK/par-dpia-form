@@ -37,7 +37,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 **Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `dpia.yaml` of `prescan_dpia.yaml`.
 
 **Inhoud**:
-- Structuur van `schemas/assessmentSchema.json`:
+- Structuur van `schemas/assessment-definition.v1.schema.json`:
   - Top-level velden: `name`, `description`, `urn` (patroon: `urn:nl:<type>:<versie>`), `version`, `tasks`, `assessments`
   - Task-structuur: `task`, `id` (patroon: `^[0-9]+(\.[0-9]+)*`), `type` (array), `repeatable` (verplicht), `description`, `category`
   - Veldtypes: `text_input`, `open_text`, `select_option`, `checkbox_option`, `radio_option`, `task_group`, `date`
@@ -64,14 +64,14 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
   - Criteria: `id`, `expression` (jexl), `explanation`
 - ID-nummering: genest hiërarchisch (`2.1.3`), `is_official_id` geeft aan of ID overeenkomt met het Rapportagemodel DPIA
 - Repeatable tasks: `repeatable: true` met optioneel `instance_label_template` (bijv. `"Gegevensverwerking {4.1.1}"`)
-- Instructie: verwijs altijd naar `schemas/assessmentSchema.json` als bron van waarheid
+- Instructie: verwijs altijd naar `schemas/assessment-definition.v1.schema.json` als bron van waarheid
 
 ### Skill 2: begrippenkader-schema-yaml
 
 **Triggert bij**: bewerken van `sources/begrippenkader_dpia.yaml`, toevoegen/wijzigen van definities, vragen over de begrippenkader-structuur.
 
 **Inhoud**:
-- Structuur van `schemas/begrippenkaderSchema.json`:
+- Structuur van `schemas/begrippenkader.v1.schema.json`:
   - Top-level: `schema_version`, `name`, `description`, `urn` (patroon: `^urn:nl:dpia:[\d\.]+:begrippenkader:\d+\.\d+$`), `language` (alleen "nl"), `owners[]`, `glossary[]`, `metadata`
   - `owners[]`: `organization`, `name`, `email`, `role` (allemaal verplicht)
   - `glossary[]` items: `id` (patroon: `^[a-z0-9_]+$`), `name`, `category`, `definition` (allemaal verplicht)
@@ -178,9 +178,9 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 
 **Taken:**
 1. **Schema-validatie** — draai bestaande scripts:
-   - `python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/dpia.yaml`
-   - `python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/prescan_dpia.yaml`
-   - `python script/schema_validator.py --schema schemas/begrippenkaderSchema.json --source sources/begrippenkader_dpia.yaml`
+   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml`
+   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml`
+   - `python script/schema_validator.py --schema schemas/begrippenkader.v1.schema.json --source sources/begrippenkader_dpia.yaml`
 2. **Definitie-enrichment test** — draai `script/definition_enricher.py` om te verifiëren dat de enrichment nog werkt na wijzigingen
 3. **Cross-referentie checks** (door de agent zelf):
    - Alle `dependencies[].condition.id` verwijzen naar bestaande task IDs

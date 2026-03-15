@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessmentSchema.json",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-definition.v1.schema.json",
     "type": "object",
     "defs": {
         "task": {
@@ -375,7 +375,9 @@
         },
         "urn": {
             "type": "string",
-            "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+(:[0-9]+\\.[0-9]+)?$"
+            "pattern": "^urn:nl:[a-z]+$",
+            "description": "URN identifier without version (e.g. 'urn:nl:dpia'). Version is in the separate 'version' field.",
+            "examples": ["urn:nl:dpia", "urn:nl:prescan"]
         },
         "tasks": {
             "type": "array",

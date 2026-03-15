@@ -2,9 +2,12 @@ import { watch } from 'vue'
 import {
   useAnswerStore,
   useTaskStore,
+  useSchemaStore,
+  FormType,
+  OUTPUT_SCHEMA_URL,
   type PersistenceProvider,
   type DPIASnapshot,
-  type FormType,
+  migrateSnapshotV1toV2,
 } from '@par-assessment/core'
 
 function getStorageKey(namespace: string): string {
@@ -18,10 +21,13 @@ export function createLocalPersistence(): PersistenceProvider {
   function saveAppState(): void {
     try {
       const namespace = taskStore.activeNamespace
+      const schemaStore = useSchemaStore()
       const dpiaSnapshot: DPIASnapshot = {
+        $schema: OUTPUT_SCHEMA_URL,
         metadata: {
-          savedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
           activeNamespace: namespace,
+          urn: schemaStore.getUrn(namespace),
         },
 
         taskState: {
@@ -54,7 +60,15 @@ export function createLocalPersistence(): PersistenceProvider {
         return null
       }
 
-      const parsedState = JSON.parse(dpiaSnapshotData) as DPIASnapshot
+      const schemaStore = useSchemaStore()
+      const urnLookup: Record<string, string> = {}
+      try { urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA) } catch { /* schema not loaded */ }
+      try { urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN) } catch { /* schema not loaded */ }
+
+      const parsedState = migrateSnapshotV1toV2(
+        JSON.parse(dpiaSnapshotData) as DPIASnapshot,
+        urnLookup,
+      )
 
       if (
         parsedState.taskState &&

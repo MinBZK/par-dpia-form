@@ -2,9 +2,12 @@ import { type Answer } from '../stores/answers'
 import { type TaskInstance } from '../stores/tasks'
 import { FormType } from './dpia'
 
+export const OUTPUT_SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+
 export interface DPIASnapshotMetadata {
-  savedAt: string
+  createdAt: string
   activeNamespace?: FormType
+  urn?: string
 }
 
 export interface DPIATaskState {
@@ -13,9 +16,21 @@ export interface DPIATaskState {
   taskInstances: Record<string, TaskInstance>
 }
 
-// Contains namespaced state
+// Contains namespaced state (used for persistence — localStorage, API)
 export interface DPIASnapshot {
+  $schema?: string
   metadata: DPIASnapshotMetadata
-  taskState: Partial<Record<FormType, DPIATaskState>>
+  taskState?: Partial<Record<FormType, DPIATaskState>>
   answers: Partial<Record<FormType, Record<string, Answer>>>
+}
+
+// Clean export format (used for JSON file download)
+export interface AssessmentOutput {
+  $schema: string
+  metadata: {
+    createdAt: string
+    urn: string
+    createdBy?: { name: string; email?: string }
+  }
+  answers: Record<string, Answer>
 }

@@ -1,5 +1,5 @@
 name: Pre-scan DPIA
-urn: 'urn:nl:prescan:2.0'
+urn: 'urn:nl:prescan'
 version: "2.0"
 description: >-
   Een Pre-scan DPIA is een vastlegging van de impact die een bepaalde gegevensverwerking heeft of kan hebben op de privacy van burgers.

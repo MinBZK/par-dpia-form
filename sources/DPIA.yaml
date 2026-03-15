@@ -1,5 +1,5 @@
 name: DPIA Rapportagemodel Rijksdienst
-urn: 'urn:nl:dpia:3.0'
+urn: 'urn:nl:dpia'
 version: "3.0"
 description: >-
   Data Protection Impact Assessment template following Dutch government model

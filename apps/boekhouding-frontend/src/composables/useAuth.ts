@@ -41,7 +41,7 @@ export function useAuth() {
   }
 
   async function login() {
-    await keycloak.login({ redirectUri: window.location.href })
+    await keycloak.login({ redirectUri: `${window.location.origin}/projecten` })
   }
 
   async function getToken(): Promise<string> {

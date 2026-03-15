@@ -103,7 +103,7 @@ Vereist [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python pa
 ```bash
 # Valideer en genereer JSON voor standalone formulier
 uv run script/run_all.py \
-  --schema schemas/assessmentSchema.json \
+  --schema schemas/assessment-definition.v1.schema.json \
   --source sources/dpia.yaml \
   --begrippen-yaml sources/begrippenkader_dpia.yaml \
   --output-json form-app/src/assets/DPIA.json \

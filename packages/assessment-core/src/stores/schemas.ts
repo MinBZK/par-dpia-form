@@ -84,11 +84,18 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     return null
   }
 
+  function getUrn(namespace: FormType): string {
+    const schema = getSchema(namespace)
+    if (!schema) throw new Error(`Schema not loaded for namespace: ${namespace}`)
+    return `${schema.urn}:${schema.version}`
+  }
+
   return {
     isInitialized,
     hasErrors,
     errorMessage,
     init,
-    getSchema
+    getSchema,
+    getUrn
   }
 })

@@ -6,7 +6,7 @@ version: 0.1.0
 
 # Assessment Schema YAML
 
-Guide for editing YAML assessment sources (`sources/dpia.yaml`, `sources/prescan_dpia.yaml`) that conform to `schemas/assessmentSchema.json`.
+Guide for editing YAML assessment sources (`sources/dpia.yaml`, `sources/prescan_dpia.yaml`) that conform to `schemas/assessment-definition.v1.schema.json`.
 
 ## Top-level Structure
 
@@ -171,8 +171,8 @@ assessments:
 After editing YAML sources, validate with:
 
 ```bash
-python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/dpia.yaml
-python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/prescan_dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml
 ```
 
-The schema file `schemas/assessmentSchema.json` is the source of truth. Always read it when unsure about allowed values.
+The schema file `schemas/assessment-definition.v1.schema.json` is the source of truth. Always read it when unsure about allowed values.

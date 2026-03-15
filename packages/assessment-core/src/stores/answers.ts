@@ -6,7 +6,8 @@ export type AnswerValue = string | string[] | null
 
 export interface Answer {
   value: AnswerValue
-  timestamp: string
+  lastEditedAt: string
+  lastEditedBy?: string
 }
 
 export const useAnswerStore = defineStore('AnswerStore', () => {
@@ -41,7 +42,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   function setAnswer(instanceId: string, value: AnswerValue): void {
     const answer: Answer = {
       value,
-      timestamp: new Date().toISOString(),
+      lastEditedAt: new Date().toISOString(),
     }
     answers.value[activeNamespace.value][instanceId] = answer
   }

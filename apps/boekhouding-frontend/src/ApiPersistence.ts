@@ -2,9 +2,12 @@ import { watch } from 'vue'
 import {
   useAnswerStore,
   useTaskStore,
+  useSchemaStore,
   FormType,
+  OUTPUT_SCHEMA_URL,
   type PersistenceProvider,
   type DPIASnapshot,
+  migrateSnapshotV1toV2,
 } from '@par-assessment/core'
 import { assessments } from './api'
 
@@ -18,10 +21,13 @@ export function createApiPersistence(assessmentId: string): PersistenceProvider 
 
   function buildSnapshot(): DPIASnapshot {
     const namespace = taskStore.activeNamespace
+    const schemaStore = useSchemaStore()
     const snapshot: DPIASnapshot = {
+      $schema: OUTPUT_SCHEMA_URL,
       metadata: {
-        savedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         activeNamespace: namespace,
+        urn: schemaStore.getUrn(namespace),
       },
       taskState: {
         [namespace]: {
@@ -81,7 +87,12 @@ export function createApiPersistence(assessmentId: string): PersistenceProvider 
     try {
       const form = await assessments.get(assessmentId)
       if (form.snapshot) {
-        const snapshot = form.snapshot as DPIASnapshot
+        const schemaStore = useSchemaStore()
+        const urnLookup: Record<string, string> = {}
+        try { urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA) } catch { /* schema not loaded */ }
+        try { urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN) } catch { /* schema not loaded */ }
+
+        const snapshot = migrateSnapshotV1toV2(form.snapshot as DPIASnapshot, urnLookup)
         if (
           snapshot.taskState &&
           snapshot.taskState[namespace] &&
@@ -124,7 +135,7 @@ export function createApiPersistence(assessmentId: string): PersistenceProvider 
   async function clearSavedState(namespace: FormType): Promise<void> {
     try {
       const emptySnapshot: DPIASnapshot = {
-        metadata: { savedAt: new Date().toISOString(), activeNamespace: namespace },
+        metadata: { createdAt: new Date().toISOString(), activeNamespace: namespace },
         taskState: {},
         answers: {},
       }

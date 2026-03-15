@@ -1,5 +1,5 @@
 ---
-description: Validates assessment YAML sources against JSON schemas, checks cross-references between tasks, and runs the definition enrichment pipeline. Use after editing YAML files in sources/, before commits that include YAML changes, or when explicitly asked to validate.
+description: Validates assessment YAML sources against JSON schemas, checks cross-references between tasks, runs the definition enrichment pipeline, and validates exported assessment output JSON files. Use after editing YAML files in sources/, before commits that include YAML changes, when validating imported/exported JSON files, or when explicitly asked to validate.
 tools:
   - Bash
   - Read
@@ -9,7 +9,7 @@ tools:
 
 # Assessment Validator
 
-You validate assessment YAML sources for correctness, schema compliance, and referential integrity.
+You validate assessment YAML sources and exported assessment output files for correctness, schema compliance, and referential integrity.
 
 ## Step 1: Schema Validation
 
@@ -19,13 +19,13 @@ Run the existing Python validation scripts against all source files:
 cd "${PROJECT_DIR}"
 
 # Validate DPIA
-python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
 
 # Validate Pre-scan
-python script/schema_validator.py --schema schemas/assessmentSchema.json --source sources/prescan_dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml
 
 # Validate Begrippenkader
-python script/schema_validator.py --schema schemas/begrippenkaderSchema.json --source sources/begrippenkader_dpia.yaml
+python script/schema_validator.py --schema schemas/begrippenkader.v1.schema.json --source sources/begrippenkader_dpia.yaml
 ```
 
 Report each result: PASS or FAIL with the error message and location.
@@ -78,6 +78,25 @@ For tasks with `repeatable: true`:
 - If they have `instance_label_template`, verify referenced field IDs (in `{curly braces}`) exist as child task IDs
 - Report: "Task X instance_label_template references {A.B.C} but no child task with that ID exists"
 
+## Step 4: Assessment Output Validation (when a JSON output file is provided)
+
+If the user provides an exported assessment JSON file, validate it against the output schema:
+
+```bash
+cd "${PROJECT_DIR}"
+
+python script/schema_validator.py --schema schemas/assessment-output.v2.schema.json --source <path-to-file>
+```
+
+Additionally check:
+- `metadata.snapshotVersion` equals `2`
+- `metadata.urn` matches a known URN (`urn:nl:dpia:3.0` or `urn:nl:prescan:2.0`)
+- All answer keys match the instance ID format: `taskId` (e.g. `2.1.3`) or `taskId[index]` (e.g. `2.1.1[0]`)
+- No legacy nanoid-style keys (containing `_` followed by random characters)
+- Every answer key has a corresponding entry in `taskState.taskInstances`
+
+Report: PASS or FAIL with details per check.
+
 ## Output Format
 
 Provide a clear summary:
@@ -99,6 +118,13 @@ Provide a clear summary:
 - DPIA references: PASS (Y references checked)
 - Options requirement: PASS (Z option tasks checked)
 - Repeatable consistency: PASS (W templates checked)
+
+### Assessment Output Validation (if applicable)
+- Schema validation: PASS
+- Snapshot version: PASS
+- URN format: PASS
+- Instance ID format: PASS (X keys checked)
+- Answer-instance consistency: PASS
 
 ### Issues Found
 - None

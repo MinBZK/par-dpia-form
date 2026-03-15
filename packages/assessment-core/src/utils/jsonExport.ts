@@ -1,8 +1,10 @@
-import { type DPIASnapshot } from '../models/dpiaSnapshot'
+import { type DPIASnapshot, type AssessmentOutput, OUTPUT_SCHEMA_URL } from '../models/dpiaSnapshot'
 import { type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType } from '../stores/answers'
 import { FormType } from '../models/dpia'
 import { generateFilename } from './fileName'
+import { useSchemaStore } from '../stores/schemas'
+import { migrateSnapshotV1toV2 } from './snapshotMigration'
 
 export async function importFromJson(file: File, activeNamespace: FormType): Promise<DPIASnapshot> {
   return new Promise((resolve, reject) => {
@@ -17,20 +19,25 @@ export async function importFromJson(file: File, activeNamespace: FormType): Pro
 
         const data = JSON.parse(event.target.result) as DPIASnapshot
 
-        if (!data.metadata || !data.taskState || !data.answers) {
+        if (!data.metadata || !data.answers) {
           reject(new Error('File contains format incompatible with DPIASnapshot structure'))
           return
         }
 
-        const hasDPIA = data.taskState[FormType.DPIA] && data.answers[FormType.DPIA];
-        const hasPreScan = data.taskState[FormType.PRE_SCAN] && data.answers[FormType.PRE_SCAN];
+        const hasDPIA = data.answers[FormType.DPIA];
+        const hasPreScan = data.answers[FormType.PRE_SCAN];
 
         if (!hasDPIA && !hasPreScan) {
           reject(new Error('The uploaded file does not contain valid DPIA or Pre-scan DPIA data.'))
           return
         }
 
-        resolve(data)
+        const schemaStore = useSchemaStore()
+        const urnLookup: Record<string, string> = {}
+        if (hasDPIA) urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA)
+        if (hasPreScan) urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN)
+
+        resolve(migrateSnapshotV1toV2(data, urnLookup))
       } catch (error) {
         if (error instanceof Error) {
           reject(error)
@@ -54,29 +61,22 @@ export async function exportToJson(
   try {
     // Create snapshot data
     const activeNamespace = taskStore.activeNamespace
+    const schemaStore = useSchemaStore()
 
-    const snapshotData: DPIASnapshot = {
+    const outputData: AssessmentOutput = {
+      $schema: OUTPUT_SCHEMA_URL,
       metadata: {
-        savedAt: new Date().toISOString(),
-        activeNamespace
+        createdAt: new Date().toISOString(),
+        urn: schemaStore.getUrn(activeNamespace),
       },
-      taskState: {
-        [activeNamespace]: {
-          currentRootTaskId: taskStore.currentRootTaskId[activeNamespace],
-          taskInstances: taskStore.taskInstances[activeNamespace],
-          completedRootTaskIds: Array.from(taskStore.completedRootTaskIds[activeNamespace]),
-        }
-      },
-      answers: {
-        [activeNamespace]: answerStore.answers[activeNamespace]
-      }
+      answers: answerStore.answers[activeNamespace] || {},
     }
 
     // Use provided filename or generate default
     const actualFilename = filename || generateFilename(activeNamespace, 'json')
 
     // Download the file
-    await downloadJsonFile(snapshotData, actualFilename)
+    await downloadJsonFile(outputData, actualFilename)
 
     return Promise.resolve()
   } catch (error) {

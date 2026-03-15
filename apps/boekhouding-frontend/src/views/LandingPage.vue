@@ -32,7 +32,7 @@ async function goToProjects() {
             </p>
             <a
               :href="standaloneUrl"
-              class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md landing-button-link"
+              class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
             >
               Start zonder account
             </a>

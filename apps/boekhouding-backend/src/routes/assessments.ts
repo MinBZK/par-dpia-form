@@ -373,8 +373,31 @@ export async function assessmentRoutes(app: FastifyInstance) {
 }
 
 /**
+ * Parse an instance ID into taskId and optional index.
+ * "2.1.3" → { taskId: "2.1.3" }
+ * "2.1.3[0]" → { taskId: "2.1.3", index: 0 }
+ */
+function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
+  const match = instanceId.match(/^(.+)\[(\d+)\]$/)
+  if (match) return { taskId: match[1], index: parseInt(match[2]) }
+  return { taskId: instanceId }
+}
+
+/**
+ * Build a URN-based field identifier for the assessment_edits table.
+ * Example: "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0"
+ */
+function buildFieldUrn(urn: string, instanceId: string): string {
+  const { taskId, index } = parseInstanceId(instanceId)
+  let fieldUrn = `${urn}?=task_id=${taskId}`
+  if (index !== undefined) fieldUrn += `&task_index=${index}`
+  return fieldUrn
+}
+
+/**
  * Compares two snapshots and produces field-level edit records.
  * Compares answer changes and completed section changes.
+ * Uses URN-based field identifiers when available.
  */
 function diffSnapshots(
   oldSnapshot: unknown,
@@ -396,6 +419,9 @@ function diffSnapshots(
     newValue: unknown
   }> = []
 
+  const newMeta = (newSnapshot as any)?.metadata || {}
+  const urn: string | undefined = newMeta.urn
+
   const oldAnswers = (oldSnapshot as any)?.answers || {}
   const newAnswers = (newSnapshot as any)?.answers || {}
 
@@ -412,9 +438,10 @@ function diffSnapshots(
       const newVal = newNs[key]
 
       if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        const fieldId = urn ? buildFieldUrn(urn, key) : `${ns}.${key}`
         edits.push({
           assessmentInstanceId,
-          fieldId: `${ns}.${key}`,
+          fieldId,
           userId,
           oldValue: oldVal ?? null,
           newValue: newVal ?? null,
@@ -434,9 +461,10 @@ function diffSnapshots(
 
     for (const id of newCompleted) {
       if (!oldCompleted.has(id)) {
+        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
         edits.push({
           assessmentInstanceId,
-          fieldId: `${ns}.completed.${id}`,
+          fieldId,
           userId,
           oldValue: false,
           newValue: true,
@@ -445,9 +473,10 @@ function diffSnapshots(
     }
     for (const id of oldCompleted) {
       if (!newCompleted.has(id)) {
+        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
         edits.push({
           assessmentInstanceId,
-          fieldId: `${ns}.completed.${id}`,
+          fieldId,
           userId,
           oldValue: true,
           newValue: false,

@@ -133,7 +133,11 @@ dialog::backdrop {
 }
 
 /* Fix anchor elements styled as buttons (RVO button classes don't fully reset anchor defaults) */
-a.utrecht-button,
+a.utrecht-button {
+  text-decoration: none;
+  color: var(--_utrecht-button-color);
+}
+
 a.card-link {
   text-decoration: none;
   color: inherit;

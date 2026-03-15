@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/begrippenkaderSchema.json",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/begrippenkader.v1.schema.json",
     "type": "object",
     "properties": {
         "schema_version": {

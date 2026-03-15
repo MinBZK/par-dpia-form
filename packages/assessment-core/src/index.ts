@@ -3,12 +3,13 @@ import './assets/base.css'
 
 // Models
 export { FormType, DPIA } from './models/dpia'
-export type { DPIASnapshot } from './models/dpiaSnapshot'
+export { OUTPUT_SCHEMA_URL } from './models/dpiaSnapshot'
+export type { DPIASnapshot, DPIASnapshotMetadata, AssessmentOutput } from './models/dpiaSnapshot'
 export { ViewState } from './models/navigation'
 export type { NavigationFunctions } from './models/navigation'
 
 // Stores
-export { useTaskStore, taskIsOfTaskType } from './stores/tasks'
+export { useTaskStore, taskIsOfTaskType, buildInstanceId, parseInstanceId } from './stores/tasks'
 export type { FlatTask, TaskInstance, TaskStoreType } from './stores/tasks'
 export { useAnswerStore } from './stores/answers'
 export type { AnswerStoreType } from './stores/answers'
@@ -27,6 +28,7 @@ export { PERSISTENCE_KEY, EXPORT_KEY } from './persistence'
 export type { PersistenceProvider, ExportProvider } from './persistence'
 
 // Utils
+export { migrateSnapshotV1toV2 } from './utils/snapshotMigration'
 export { exportToJson } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
 export { exportToPdf } from './utils/pdfExport'

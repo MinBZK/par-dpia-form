@@ -6,7 +6,7 @@ version: 0.1.0
 
 # Begrippenkader Schema YAML
 
-Guide for editing the begrippenkader (`sources/begrippenkader_dpia.yaml`) that conforms to `schemas/begrippenkaderSchema.json`.
+Guide for editing the begrippenkader (`sources/begrippenkader_dpia.yaml`) that conforms to `schemas/begrippenkader.v1.schema.json`.
 
 ## Top-level Structure
 
@@ -105,7 +105,7 @@ python script/definition_enricher.py \
 
 ```bash
 python script/schema_validator.py \
-  --schema schemas/begrippenkaderSchema.json \
+  --schema schemas/begrippenkader.v1.schema.json \
   --source sources/begrippenkader_dpia.yaml
 ```
 

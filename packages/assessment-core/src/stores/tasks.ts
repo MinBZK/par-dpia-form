@@ -3,6 +3,16 @@ import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+export function buildInstanceId(taskId: string, index?: number): string {
+  return index !== undefined ? `${taskId}[${index}]` : taskId
+}
+
+export function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
+  const match = instanceId.match(/^(.+)\[(\d+)\]$/)
+  if (match) return { taskId: match[1], index: parseInt(match[2]) }
+  return { taskId: instanceId }
+}
+
 export interface FlatTask {
   id: string
   task: string
@@ -165,15 +175,34 @@ export const useTaskStore = defineStore('TaskStore', () => {
     parentInstanceId?: string,
     forceNewGroupId: boolean = false,
   ): string {
-    const instanceId = taskId + '_' + nanoid()
+    const task = flatTasks.value[activeNamespace.value][taskId]
+    const ns = activeNamespace.value
+
+    // Determine instance ID: repeatable tasks get [index], non-repeatable just taskId
+    let instanceId: string
+    if (task?.repeatable && forceNewGroupId) {
+      // New repeatable instance — count existing instances with the same taskId
+      const existingCount = Object.values(taskInstances.value[ns])
+        .filter(inst => inst.taskId === taskId)
+        .length
+      instanceId = buildInstanceId(taskId, existingCount)
+    } else if (task?.repeatable) {
+      // First repeatable instance during default init
+      const existingCount = Object.values(taskInstances.value[ns])
+        .filter(inst => inst.taskId === taskId)
+        .length
+      instanceId = buildInstanceId(taskId, existingCount)
+    } else {
+      instanceId = taskId
+    }
 
     let groupId
     if (parentInstanceId && !forceNewGroupId) {
-      groupId = taskInstances.value[activeNamespace.value][parentInstanceId].groupId
+      groupId = taskInstances.value[ns][parentInstanceId].groupId
     } else {
       groupId = taskId + '_' + nanoid()
     }
-    taskInstances.value[activeNamespace.value][instanceId] = {
+    taskInstances.value[ns][instanceId] = {
       id: instanceId,
       taskId,
       parentInstanceId: parentInstanceId || null,
@@ -181,11 +210,11 @@ export const useTaskStore = defineStore('TaskStore', () => {
       groupId,
     }
 
-    if (parentInstanceId && taskInstances.value[activeNamespace.value][parentInstanceId]) {
-      taskInstances.value[activeNamespace.value][parentInstanceId].childInstanceIds.push(instanceId)
+    if (parentInstanceId && taskInstances.value[ns][parentInstanceId]) {
+      taskInstances.value[ns][parentInstanceId].childInstanceIds.push(instanceId)
     }
 
-    const childTaskIds = flatTasks.value[activeNamespace.value][taskId].childrenIds
+    const childTaskIds = flatTasks.value[ns][taskId].childrenIds
     if (childTaskIds.length > 0) {
       childTaskIds.forEach((childTaskId) => {
         createTaskInstance(childTaskId, instanceId)
