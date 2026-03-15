@@ -17,7 +17,7 @@ pnpm monorepo met workspaces:
 - Taal: code in het Engels, UI-teksten en foutmeldingen in het Nederlands
 - Comments in code: Engels
 - Styling: RVO component library CSS (`@nl-rvo/component-library-css`), geen `<style scoped>` in Vue-componenten
-- Package scope: `@par-assessment/*`
+- Package scope: `@overheid-assessment/*`
 - Node 22, pnpm (via `corepack enable`)
 - Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan
 
@@ -49,7 +49,7 @@ pnpm dev
 - Vue 3 Composition API, TypeScript, Vite
 - Auth: `keycloak-js` met `onLoad: 'check-sso'` (publieke pagina's zonder login, router guard voor beschermde routes)
 - API-calls via `api.ts` naar `/api/v1/`, Bearer token via `useAuth().getToken()`
-- Gedeelde componenten komen uit `@par-assessment/core`
+- Gedeelde componenten komen uit `@overheid-assessment/core`
 - Dialogen: native `<dialog>` met `showModal()` (focus trap automatisch, `::backdrop` voor overlay). Geen handmatige backdrop-divs of `.open` property.
 - RVO buttons: `utrecht-button utrecht-button--primary-action utrecht-button--rvo-md` (NIET `--rvo-primary-action`). Varianten: `--primary-action`, `--secondary-action`, `--rvo-tertiary-action`. Sizes: `--rvo-xs`, `--rvo-md`
 

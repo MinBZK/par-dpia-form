@@ -1,5 +1,5 @@
 {
-  "name": "@par-assessment/boekhouding-backend",
+  "name": "@overheid-assessment/boekhouding-backend",
   "version": "0.0.1",
   "private": true,
   "type": "module",

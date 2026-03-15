@@ -8,7 +8,7 @@ import {
   type PersistenceProvider,
   type DPIASnapshot,
   migrateSnapshotV1toV2,
-} from '@par-assessment/core'
+} from '@overheid-assessment/core'
 
 function getStorageKey(namespace: string): string {
   return `app_state_${namespace}`

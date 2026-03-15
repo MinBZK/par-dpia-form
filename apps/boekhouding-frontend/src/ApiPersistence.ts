@@ -8,7 +8,7 @@ import {
   type PersistenceProvider,
   type DPIASnapshot,
   migrateSnapshotV1toV2,
-} from '@par-assessment/core'
+} from '@overheid-assessment/core'
 import { assessments } from './api'
 
 const DEBOUNCE_MS = 2000

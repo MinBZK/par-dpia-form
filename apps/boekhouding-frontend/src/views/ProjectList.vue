@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, type Project } from '../api'
-import { UiButton } from '@par-assessment/core'
+import { UiButton } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 

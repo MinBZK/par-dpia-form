@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { useSchemaStore } from '@par-assessment/core'
+import { useSchemaStore } from '@overheid-assessment/core'
 import { useAuth } from './composables/useAuth'
 
 import '@nl-rvo/assets/fonts/index.css'

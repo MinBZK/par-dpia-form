@@ -1,5 +1,5 @@
 {
-  "name": "@par-assessment/boekhouding-frontend",
+  "name": "@overheid-assessment/boekhouding-frontend",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "@nl-rvo/assets": "^1.0.0-alpha.360",
     "@nl-rvo/component-library-css": "4.8.0",
     "@nl-rvo/design-tokens": "1.9.0",
-    "@par-assessment/core": "workspace:*",
+    "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.40.0",
     "pdfmake": "^0.3.6",
     "keycloak-js": "^26.0.7",

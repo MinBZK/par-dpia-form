@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AppBanner, UiButton, type NavigationFunctions } from '@par-assessment/core'
+import { AppBanner, UiButton, type NavigationFunctions } from '@overheid-assessment/core'
 
 defineProps<{
   navigation: NavigationFunctions

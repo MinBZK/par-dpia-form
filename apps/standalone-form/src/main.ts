@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { useSchemaStore } from '@par-assessment/core'
+import { useSchemaStore } from '@overheid-assessment/core'
 
 import dpiaJson from '../../../sources/generated/DPIA.json'
 import preScanJson from '../../../sources/generated/PreScanDPIA.json'

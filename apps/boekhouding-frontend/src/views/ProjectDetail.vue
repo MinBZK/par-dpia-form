@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type DPIASnapshot } from '@par-assessment/core'
+import { FormType, type DPIASnapshot } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 

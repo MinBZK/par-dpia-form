@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { AppBanner } from '@par-assessment/core'
+import { AppBanner } from '@overheid-assessment/core'
 import { useAuth } from './composables/useAuth'
 
 const { isAuthenticated } = useAuth()

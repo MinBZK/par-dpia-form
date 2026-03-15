@@ -15,4 +15,4 @@ RUN pnpm install --frozen-lockfile || pnpm install
 
 WORKDIR /app
 EXPOSE 5174
-CMD ["pnpm", "--filter", "@par-assessment/boekhouding-frontend", "dev"]
+CMD ["pnpm", "--filter", "@overheid-assessment/boekhouding-frontend", "dev"]

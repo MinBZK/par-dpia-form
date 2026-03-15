@@ -2,16 +2,16 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter standalone-form dev",
-    "dev:backend": "pnpm --filter @par-assessment/boekhouding-backend dev",
-    "dev:frontend": "pnpm --filter @par-assessment/boekhouding-frontend dev",
+    "dev:backend": "pnpm --filter @overheid-assessment/boekhouding-backend dev",
+    "dev:frontend": "pnpm --filter @overheid-assessment/boekhouding-frontend dev",
     "build:standalone": "pnpm --filter standalone-form build",
-    "build:backend": "pnpm --filter @par-assessment/boekhouding-backend build",
-    "build:frontend": "pnpm --filter @par-assessment/boekhouding-frontend build",
+    "build:backend": "pnpm --filter @overheid-assessment/boekhouding-backend build",
+    "build:frontend": "pnpm --filter @overheid-assessment/boekhouding-frontend build",
     "type-check": "pnpm --filter standalone-form type-check",
     "lint": "pnpm --filter standalone-form lint",
     "format": "pnpm --filter standalone-form format",
-    "db:generate": "pnpm --filter @par-assessment/boekhouding-backend db:generate",
-    "db:migrate": "pnpm --filter @par-assessment/boekhouding-backend db:migrate"
+    "db:generate": "pnpm --filter @overheid-assessment/boekhouding-backend db:generate",
+    "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate"
   },
   "dependencies": {
     "jexl": "^2.3.0"

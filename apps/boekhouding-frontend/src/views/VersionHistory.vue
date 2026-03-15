@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions } from '@par-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 

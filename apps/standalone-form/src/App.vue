@@ -12,7 +12,7 @@ import {
   EXPORT_KEY,
   exportToPdf,
   type NavigationFunctions,
-} from '@par-assessment/core'
+} from '@overheid-assessment/core'
 import LandingView from './components/LandingView.vue'
 import { createLocalPersistence } from './LocalPersistence'
 

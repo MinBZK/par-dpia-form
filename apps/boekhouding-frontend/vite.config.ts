@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [vue()],
   resolve: {
     alias: {
-      '@par-assessment/core': fileURLToPath(new URL('../../packages/assessment-core/src/index.ts', import.meta.url)),
+      '@overheid-assessment/core': fileURLToPath(new URL('../../packages/assessment-core/src/index.ts', import.meta.url)),
     },
   },
   server: {

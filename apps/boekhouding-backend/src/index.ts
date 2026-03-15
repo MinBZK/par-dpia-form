@@ -30,7 +30,7 @@ await app.register(helmet, {
 })
 
 await app.register(cors, config.cors)
-await app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
+await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
 
 await app.register(swagger, {
   openapi: {
@@ -57,6 +57,42 @@ await app.register(swagger, {
           bearerFormat: 'JWT',
         },
       },
+      responses: {
+        TooManyRequests: {
+          description: 'Rate limit overschreden (max 300 requests per minuut)',
+          content: {
+            'application/problem+json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string', example: 'https://httpproblems.com/http-status/429' },
+                  title: { type: 'string', example: 'Te veel verzoeken' },
+                  status: { type: 'integer', example: 429 },
+                  detail: {
+                    type: 'string',
+                    example: 'Maximaal aantal verzoeken overschreden. Probeer het later opnieuw.',
+                  },
+                  instance: { type: 'string', example: '/api/v1/projects' },
+                },
+              },
+            },
+          },
+          headers: {
+            'Retry-After': {
+              description: 'Seconden tot de rate limit reset',
+              schema: { type: 'integer' },
+            },
+            'X-RateLimit-Limit': {
+              description: 'Maximum aantal requests per tijdvenster',
+              schema: { type: 'integer', example: 300 },
+            },
+            'X-RateLimit-Remaining': {
+              description: 'Resterend aantal requests in huidig tijdvenster',
+              schema: { type: 'integer' },
+            },
+          },
+        },
+      },
     },
     security: [{ bearerAuth: [] }],
   },
@@ -64,6 +100,24 @@ await app.register(swagger, {
 
 await app.register(swaggerUi, {
   routePrefix: '/api/docs',
+  logo: { content: Buffer.from(''), type: 'image/svg+xml' },
+  theme: {
+    title: 'Assessment Boekhouding API',
+    css: [
+      {
+        filename: 'custom.css',
+        content: '.topbar, .servers-title, .servers { display: none !important; }',
+      },
+    ],
+  },
+  uiConfig: {
+    docExpansion: 'list',
+    deepLinking: true,
+    displayRequestDuration: true,
+    persistAuthorization: true,
+    tryItOutEnabled: true,
+    syntaxHighlight: { theme: 'monokai' },
+  },
 })
 
 app.addHook('onSend', async (_request, reply) => {

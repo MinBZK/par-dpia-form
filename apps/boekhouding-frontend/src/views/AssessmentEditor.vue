@@ -12,7 +12,7 @@ import {
   exportToMarkdown,
   PERSISTENCE_KEY,
   type NavigationFunctions,
-} from '@par-assessment/core'
+} from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
@@ -193,7 +193,7 @@ const handleVersionHistory = () => {
 
 const handleDownloadPdf = async () => {
   menuOpen.value = false
-  const { exportToPdf } = await import('@par-assessment/core')
+  const { exportToPdf } = await import('@overheid-assessment/core')
   await exportToPdf(taskStore, answerStore, calculationStore)
 }
 
