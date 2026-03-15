@@ -1,0 +1,13 @@
+{
+  "name": "assessment-tools",
+  "owner": {
+    "name": "MinBZK"
+  },
+  "plugins": [
+    {
+      "name": "assessments",
+      "source": "./assessments",
+      "description": "Domeinkennis en tooling voor privacy-assessments bij de overheid: DPIA, Pre-scan DPIA en begrippenkader. Bevat skills voor assessment-schema's, begrippendefinities, UI-componenten en rapportage-export, plus een validatie-agent."
+    }
+  ]
+}

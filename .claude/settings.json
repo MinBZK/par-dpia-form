@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "assessment-tools": {
+      "source": {
+        "source": "local",
+        "path": "./.claude/plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "assessments@assessment-tools": true
+  }
+}
