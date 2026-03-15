@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/form-app/"
+    directory: "/apps/standalone-form/"
     schedule:
       interval: weekly
     ignore:

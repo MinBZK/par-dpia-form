@@ -1,0 +1,35 @@
+# Stage 1: build
+FROM node:22-alpine AS build
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy workspace config and package manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages/assessment-core/package.json packages/assessment-core/
+COPY apps/standalone-form/package.json apps/standalone-form/
+COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
+COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
+
+# Install all dependencies (including devDependencies for build)
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Copy source needed for build
+COPY packages/assessment-core/ packages/assessment-core/
+COPY sources/generated/ sources/generated/
+COPY apps/boekhouding-frontend/ apps/boekhouding-frontend/
+
+# Build static assets
+WORKDIR /app/apps/boekhouding-frontend
+RUN npx vite build
+
+# Stage 2: serve static files with nginx
+FROM nginx:alpine
+
+COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
+
+# SPA fallback: serve index.html for all routes
+RUN printf 'server {\n  listen 5174;\n  root /usr/share/nginx/html;\n  location / {\n    try_files $uri $uri/ /index.html;\n  }\n}\n' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 5174

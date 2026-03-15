@@ -14,6 +14,18 @@ coverage
 *.local
 reports/
 
+# Build output
+apps/**/dist/
+packages/**/dist/
+backend/dist/
+
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+
+
 /cypress/videos/
 /cypress/screenshots/
 
@@ -33,3 +45,9 @@ reports/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Generated assessment JSON (built from sources/*.yaml)
+sources/generated/
+
+# Playwright
+.playwright-mcp

@@ -1,0 +1,218 @@
+.rvo-theme {
+  background-color: var(--utrecht-document-background-color);
+  color: var(--utrecht-document-color);
+  font-family: var(--utrecht-document-font-family);
+  font-size: var(--utrecht-document-font-size);
+  font-weight: var(--utrecht-document-font-weight);
+  line-height: var(--utrecht-document-line-height);
+}
+
+.form-input-container {
+  position: relative;
+}
+
+@media (min-width: 1080px) {
+  .rvo-theme .rvo-sidebar-layout {
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.rvo-theme .utrecht-textbox--lg {
+  width: 100%;
+}
+
+.rvo-theme .small-text {
+  font-size: var(--rvo-font-size-xs);
+}
+
+.rvo-theme .preserve-whitespace {
+    white-space: pre-line;
+}
+
+.rvo-theme .button-group-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.rvo-theme .button-group-container .utrecht-button-group {
+  margin-inline-start: auto;
+}
+
+.rvo-theme .rvo-accordion__item-summary {
+  align-items: flex-start;
+}
+
+.rvo-theme .rvo-accordion__item-summary .rvo-accordion__item-icon {
+  margin-block-start: 0.4em;
+}
+
+.rvo-theme .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.rvo-theme .save-modal {
+  background-color: white;
+  border-radius: 4px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.rvo-theme .rvo-icon--with-spacing-right {
+  margin-right: 0.5rem;
+}
+
+.aiv-definition {
+  position: relative;
+  display: inline-block;
+  border-bottom: 2px dotted black;
+  cursor: help;
+}
+
+.aiv-definition .aiv-definition-text {
+  visibility: hidden;
+  min-width: 500px;
+  max-width: 1000px;
+  background-color: var(--rvo-color-wit);
+  color: var(--rvo-color-zwart);
+  filter: drop-shadow(0 4px 4px rgba(115, 142, 171, 0.5));
+  text-align: left;
+  border-radius: var(--rvo-border-radius-xl);
+  border: 1px solid var(--rvo-color-grijs-200);
+  padding: var(--rvo-alert-padding-sm-padding-block-end);
+  position: absolute;
+  z-index: 1;
+
+  /* Position below the term by default */
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+
+  /* Text styling */
+  color: var(--rvo-color-zwart);
+  font-family: var(--utrecht-document-font-family);
+  font-size: var(--utrecht-document-font-size);
+  font-weight: var(--utrecht-document-font-weight);
+  font-style: normal;
+  text-align: left;
+  line-height: var(--utrecht-document-line-height);
+
+  /* Fix for Safari */
+  backdrop-filter: blur(0);
+}
+
+/* Make the tooltip visible on hover */
+.aiv-definition:hover .aiv-definition-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.rvo-theme .rvo-icon--with-spacing-left {
+  margin-left: 0.5rem;
+}
+
+.rvo-theme .utrecht-textarea,
+.rvo-theme .utrecht-textarea--html-textarea {
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--utrecht-textbox-padding-block-start, 12px) var(--utrecht-textbox-padding-inline-end, 12px) var(--utrecht-textbox-padding-block-end, 12px) var(--utrecht-textbox-padding-inline-start, 12px);
+}
+
+.rvo-theme .background-grijs-100 {
+  background-color: var(--rvo-color-grijs-100) !important;
+}
+
+.rvo-theme .background-grijs-200 {
+  background-color: var(--rvo-color-grijs-200) !important;
+}
+
+.rvo-theme .card-content-flex {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.rvo-theme .card-button {
+  margin-top: auto;
+}
+
+.rvo-theme .font-hemelblauw {
+ color: var(--rvo-color-hemelblauw);
+}
+
+.rvo-theme .font-white {
+ color: var(--rvo-color-wit);
+}
+
+/* Override RVO's :invalid styling on required empty fields — red border should only
+   appear after user interaction (:user-invalid), not on page load. We reset the
+   invalid border to match the normal border (logoblauw). This includes the
+   :focus:invalid compound selector that RVO uses (lines 3544-3550 of RVO's index.css). */
+.rvo-theme .utrecht-textbox--html-input:invalid,
+.rvo-theme .utrecht-textbox:invalid,
+.rvo-theme .utrecht-textbox:focus.utrecht-textbox:invalid,
+.rvo-theme .utrecht-textbox:focus.utrecht-textbox--html-input:invalid,
+.rvo-theme .utrecht-textbox--focus.utrecht-textbox:invalid {
+  --utrecht-textbox-invalid-border-color: var(--rvo-color-logoblauw, #154273);
+  --utrecht-textbox-invalid-border-width: var(--utrecht-form-control-border-width, 1px);
+  --rvo-textbox-invalid-focus-border-color: var(--rvo-color-logoblauw, #154273);
+  --rvo-textbox-invalid-focus-outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw));
+  border-color: var(--rvo-color-logoblauw, #154273) !important;
+  border-width: 1px;
+  outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw)) !important;
+}
+
+.rvo-theme .utrecht-textbox:user-invalid,
+.rvo-theme .utrecht-select:user-invalid,
+.rvo-theme .utrecht-textbox:focus:user-invalid {
+  border-color: #d52b1e !important;
+  outline-color: var(--rvo-color-rood) !important;
+}
+
+.rvo-theme .utrecht-button--icon-gap {
+  gap: 0.25rem;
+}
+
+.rvo-theme .utrecht-button--align-content {
+  margin-inline-start: -12px;
+}
+
+/* Fix: progress tracker connecting line should stretch to full step height
+   when step text wraps to multiple lines. RVO draws the line as a 40px SVG
+   in a ::before with top:20px, height:40px — this overshoots the default
+   36px step by 24px to connect to the next circle. For taller steps, we
+   keep the same start (top) and overshoot (bottom:-24px) but let height
+   auto-stretch between them, and repeat the SVG to fill the gap. */
+.rvo-theme .rvo-progress-tracker__step--straight.rvo-image-bg-progress-tracker-line-straight--before::before {
+  height: auto;
+  bottom: -24px;
+  background-repeat: repeat-y;
+}
+
+/* Align the small end-dot center (10.5px) with the large circle center (14px).
+   Default RVO positions the sm dot at 9px, putting its center at 19.5px.
+   Correct position: 14 - 10.5 = 3.5px */
+.rvo-theme .rvo-progress-tracker__step--sm.rvo-progress-tracker__step--end::after {
+  background-position: 3.5px calc(50% + 1px);
+}
+
+/* Compact alert: reduce list indent so bullets align with start of text */
+.rvo-alert .utrecht-unordered-list {
+  margin-block: 0.25rem 0;
+  padding-inline-start: 1.25rem;
+}

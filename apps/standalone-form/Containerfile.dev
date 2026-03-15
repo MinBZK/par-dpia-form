@@ -1,0 +1,16 @@
+FROM node:22-alpine
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy workspace config and manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages/assessment-core/package.json packages/assessment-core/
+COPY apps/standalone-form/package.json apps/standalone-form/
+
+RUN pnpm install --frozen-lockfile || pnpm install
+
+WORKDIR /app
+EXPOSE 5175
+CMD ["pnpm", "--filter", "standalone-form", "dev"]

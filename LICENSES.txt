@@ -1,3 +1,15 @@
+MinBZK Assessments
+===================
+Licentie: EUPL-1.2 (European Union Public Licence v. 1.2)
+Zie LICENSE voor de volledige licentietekst.
+
+Licentiehouder: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties (BZK)
+Repository: https://github.com/MinBZK/par-dpia-form
+
+
+Licenties van gebruikte bibliotheken
+=====================================
+
 @ampproject/remapping@2.3.0 [license(s): Apache, Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache

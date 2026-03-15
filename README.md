@@ -1,304 +1,132 @@
-# par-dpia-form
+# PAR Assessments
+
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
 
-A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
+Webapplicatie voor het uitvoeren van DPIA- en Pre-scan DPIA-assessments, volgens het Rijksmodel DPIA van de Nederlandse overheid. Gebouwd met het [RVO component library](https://nl-design-system.github.io/rvo/).
 
-## Introduction
+## Kenmerken
 
-The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA forms and generating reports without requiring installation or server hosting.
-The Pre-scan DPIA form help organizations evaluate privacy risks associated with data processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten Impact Assessment) is necessary.
+- DPIA en Pre-scan DPIA invullen in de browser als losstaande applicatie
+- Samenwerken aan DPIA's en Pre-scan DPIA's via de Assessment Boekhouding:
+  - Samenwerken aan assessments met meerdere gebruikers
+  - Projectbeheer met rollen (eigenaar, bewerker, kijker)
+  - Voortgang opslaan en later hervatten
+  - PDF-export van ingevulde assessments
 
-## Key features
+## Architectuur
 
-- 🌐 Complete DPIA and Pre-scan DPIA forms directly in your browser.
-- 💾 Save progress as a JSON file that can be shared with colleagues.
-- ⏱️ Continue work from previously saved sessions.
-- 📄 Export completed forms as PDF.
-- 📦 No installation or hosting required.
+pnpm monorepo:
 
-## High level overview
+| Package                      | Omschrijving                                                                    |
+|------------------------------|---------------------------------------------------------------------------------|
+| `packages/assessment-core`   | Gedeelde assessment-engine: formulierweergave, navigatie, validatie, PDF-export |
+| `apps/boekhouding-frontend`  | Vue 3 SPA — projectbeheer, samenwerken, Keycloak-login                          |
+| `apps/boekhouding-backend`   | Fastify REST API — PostgreSQL, JWT-authenticatie                                |
+| `apps/standalone-form`       | Standalone formulier — draait zonder backend, exporteert als single HTML        |
+| `sources/`                   | YAML-bronbestanden voor DPIA en Pre-scan assessments                            |
 
-The restrictions imposed on the project are that the forms must be accessible *without any installation
-or hosting*. A standalone HTML file with all necessary styling and javascript embedded in it fulfills
-this requirement and was hence chosen as a suitable, albeit nonstandard, solution. This HTML file is served
-via [GitHub Pages](https://minbzk.github.io/par-dpia-form/).
+### Technologie
 
-Form definitions are declared in YAML. A Vue 3 application loads these YAML definitions and renders
-the form. Users can provide answers, export their progress into a JSON file, load their saved JSON state
-into the application and export the questions and answers to a PDF report.
+- **Frontend**: Vue 3 (Composition API), TypeScript, Vite, Pinia
+- **Backend**: Fastify 5, Drizzle ORM, PostgreSQL 17
+- **Auth**: Keycloak (OIDC), JWT-verificatie via `jose`
+- **Styling**: RVO Design System
+- **Standalone**: Vite single-file build — alles (HTML, CSS, JS) in één bestand
+- **PDF**: pdfmake
 
-## Repository structure
+## Aan de slag
 
-```
-par-dpia-form/
-├── .github/                            # GitHub-specific configurations
-│   ├── workflows/                      # GitHub Actions workflow definitions
-│   │   ├── build.yaml                  # CI workflow - verify builds
-│   │   └── release-and-deploy.yaml     # Release triggered deployments
-│   └── dependabot.yaml                 # Dependency update configuration
-│
-├── form-app/                           # Main Vue application
-│   ├── src/                            # Source code
-│   │   ├── assets/                     # Generated JSON files
-│   │   ├── components/                 # Vue components
-│   │   ├── models/                     # TypeScript data models
-│   │   ├── stores/                     # Pinia state management
-│   │   └── utils/                      # Helper utilities
-│   ├── dist/                           # Build output
-│   │   └── index.html                  # Standalone application file
-│   └── package.json                    # NPM dependencies
-│
-├── schemas/                            # JSON schemas for validation
-│   └── formSchema.json                 # Form structure schema
-|
-├── docs/                               # Docs for all documentation
-│   ├── PDR/                            # Folder for all Product Decision Records (PDR)
-│   └── standard/                       # Folder for info on standard
-│   └── questions/                      # Folder with tables with questions
-│
-├── script/                             # Processing and validation scripts
-│   ├── schema_validator.py             # Validates YAML against schema
-│   ├── definition_enricher.py          # Adds tooltips to form definitions
-│   ├── generate_md_table_questions.py  # Generates MD tables with questions
-│   └── run_all.py                      # Combined processing workflow
-│
-├── sources/                            # Source YAML definitions
-│   ├── DPIA.yaml                       # Full DPIA form definition
-│   ├── prescan_DPIA.yaml               # Pre-scan DPIA definition
-│   └── begrippenkader-dpia.yaml        # Glossary and term definitions
-│
-├── LICENSE                             # EUPL v1.2 License
-├── README.md                           # Project documentation
-```
+### Vereisten
 
-The application flows from the YAML source definitions (in `/sources`), through the processing
-scripts (in `/script`), into the Vue application (in `/form-app`),
-and ultimately produces a standalone HTML file that can be used without installation.
+- Podman of Docker
 
+### Volledige stack
 
-## Vue App
-
-### Running locally
-
-1. Clone the repository:
+Start PostgreSQL, Keycloak en de applicatie:
 
 ```bash
-git clone https://github.com/MinBZK/par-dpia-form.git
-cd par-dpia-form
+podman compose up -d
 ```
 
-2. Install dependencies:
+| Service          | URL                                              |
+|------------------|--------------------------------------------------|
+| Frontend         | http://localhost:5174                            |
+| Backend API      | http://localhost:3000                            |
+| Keycloak admin   | http://localhost:8080 (`admin` / `admin`)        |
+
+Testgebruikers: `jan@example.com` / `welkom123`, `piet@example.com` / `welkom123`
+
+### Standalone formulier
+
+Voor ontwikkeling zonder backend (vereist Node.js 22+ en [pnpm](https://pnpm.io/installation)):
 
 ```bash
-cd form-app
-npm install
+corepack enable
+pnpm install
+pnpm dev
 ```
 
-3. Start the development server:
+### Bouwen
 
 ```bash
-npm run dev
+pnpm build:standalone   # Standalone HTML-bestand
+pnpm build:backend      # Backend
+pnpm build:frontend     # Frontend
 ```
 
-4. Open your browser and navigate to the URL specified in the output of the above command.
+## Commando's
 
-### Building the application
+| Commando              | Omschrijving                              |
+|-----------------------|-------------------------------------------|
+| `pnpm dev`            | Start standalone formulier                |
+| `pnpm dev:backend`    | Start backend (vereist PostgreSQL)        |
+| `pnpm dev:frontend`   | Start frontend                            |
+| `pnpm db:generate`    | Genereer database-migraties               |
+| `pnpm db:migrate`     | Voer migraties uit                        |
+| `pnpm lint`           | Lint de code                              |
 
-This project uses `vite-plugin-singlefile` to build the single HTML file that can be deployed anywhere:
+## Assessment-bronbestanden
 
-```bash
-cd form-app
-npm run build
-```
+De `sources/` directory bevat de assessment-definities in YAML:
 
-This will generate a standalone HTML file at `form-app/dist/index.html` that contains all necessary CSS,
-JavaScript and assets. There is a GitHub Action that deploys this to GitHub Pages when a release is created.
+| Bestand                      | Omschrijving                      |
+|------------------------------|-----------------------------------|
+| `dpia.yaml`                  | Volledige DPIA-definitie          |
+| `prescan_dpia.yaml`          | Pre-scan DPIA-definitie           |
+| `begrippenkader_dpia.yaml`   | Begrippenlijst met tooltips       |
 
-### Technical details
+### YAML verwerken
 
-#### Key technologies
-
-- Vue 3: Frontend framework with Composition API
-- TypeScript: Type-safe JavaScript
-- Pinia: Vue State management
-- PDF Make: PDF generation
-- Vite: Build tool
-- RVO Design System: UI components and styling
-
-#### State management
-
-The application uses Pinia stores to manage:
-
-- Form tasks and instances (`TaskStore`)
-- User answers (`AnswerStore`)
-- Form schemas (`SchemaStore`)
-- Auto-calculated results (`CalculationStore`)
-
-
-#### Persistence
-
-User progress is saved:
-
-- Locally in browser local storage for the current session.
-- As downloadable JSON files for long-term storage and sharing.
-
-## Scripts
-
-Tools for validating YAML files against JSON schemas and enriching content with tooltip definitions.
-
-### Prerequisites
-
-Install `uv`, a Python package manager:
+Vereist [uv](https://docs.astral.sh/uv/getting-started/installation/) (Python package manager).
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-or see instructions on the [uv website](https://docs.astral.sh/uv/getting-started/installation/).
-
-### Components
-
-- `schema_validator.py` - Validates YAML files against JSON schemas
-- `sync_begrippenkader.py` - Manages the glossary (begrippenkader)
-- `definition_enricher.py` - Enriches data with tooltip definitions
-- `run_sync_validate_and_inject.py` - Combines all functionalities
-
-### Form Definitions
-
-The `sources/` directory contains DPIA form specifications:
-- `DPIA.yaml` - Tasks within the DPIA
-- `prescan_DPIA.yaml` - Tasks within the pre-scan DPIA
-- `begrippenkader-dpia.yaml` - Glossary items
-
-JSON-schemas are in the `schemas/` directory.
-
-### Usage
-
-#### Schema Validation
-Validates the YAML against a schema and optionally exports the validated schema to a JSON. In the examples
-below the schema is validated and exported to a JSON in the assets folder of the frontend application.
-
-##### Prescan DPIA
-
-```bash
-uv run script/schema_validator.py \
-    --schema schemas/formSchema.json \
-    --source sources/prescan_DPIA.yaml \
-    --output form-app/src/assets/PreScanDPIA.json
-```
-
-##### DPIA
-
-```bash
-uv run script/schema_validator.py \
-    --schema schemas/formSchema.json \
-    --source sources/DPIA.yaml \
-    --output form-app/src/assets/DPIA.json
-```
-
-
-#### Definition Enrichment
-
-This script injects glossary items from the glossary in the source YAML. It injects glossary items as certain HTML elements with certain styling
-which can be rendered by the frontend application.
-
-##### Prescan DPIA
-
-```bash
-uv run script/definition_enricher.py \
-    --source sources/prescan_DPIA.yaml \
-    --definitions sources/begrippenkader-dpia.yaml \
-    --output form-app/src/assets/PreScanDPIA.json
-```
-
-##### DPIA
-
-```bash
-uv run script/definition_enricher.py \
-    --source sources/DPIA.yaml \
-    --definitions sources/begrippenkader-dpia.yaml \
-    --output form-app/src/assets/DPIA.json
-```
-
-#### YAML to Markdown Table Converter
-This script generates a well-structured Markdown table from YAML form definition files. It extracts all tasks, their types, options, and relationships to provide a comprehensive overview of the form structure. The table includes the original task IDs, the task text (with visual hierarchy), answer types, available options, and related tasks.
-
-The DPIA tasks can be checked [here](docs/tasks/tasks_DPIA.md) and the Pre-scan DPIA tasks can be checked [here](docs/tasks/tasks_prescan_DPIA.md).
-
-##### Prescan DPIA
-
-```bash
-uv run script/generate_md_table_tasks.py \
-  --source sources/prescan_DPIA.yaml \
-  --output docs/tasks/tasks_prescan_DPIA.md
-```
-
-##### DPIA
-
-```bash
-uv run script/generate_md_table_tasks.py \
-  --source sources/DPIA.yaml \
-  --output docs/tasks/tasks_DPIA.md
-```
-
-#### Combined Workflow
-
-This script combines the three above scripts to:
-1. Validate the script and export them to a JSON
-2. Inject glossary items and export them to a JSON
-3. Create tasks markdown documents
-
-##### Prescan DPIA
-
-```bash
+# Valideer en genereer JSON voor standalone formulier
 uv run script/run_all.py \
-  --schema schemas/formSchema.json \
-  --source sources/prescan_DPIA.yaml \
-  --begrippen-yaml sources/begrippenkader-dpia.yaml \
-  --output-json form-app/src/assets/PreScanDPIA.json \
-  --output-md docs/questions/questions_prescan_DPIA.md
-```
-
-##### DPIA
-
-```bash
-uv run script/run_all.py \
-  --schema schemas/formSchema.json \
-  --source sources/DPIA.yaml \
-  --begrippen-yaml sources/begrippenkader-dpia.yaml \
+  --schema schemas/assessmentSchema.json \
+  --source sources/dpia.yaml \
+  --begrippen-yaml sources/begrippenkader_dpia.yaml \
   --output-json form-app/src/assets/DPIA.json \
   --output-md docs/questions/questions_DPIA.md
 ```
 
-## Known Limitations
+## Standaarden en compliance
 
-While we strive to make this application as robust as possible, there are some known limitations in the current implementation:
+De Assessment Boekhouding conformeert aan de volgende overheidsstandaarden:
 
-### Testing Coverage
-- The application currently lacks comprehensive automated testing
-- Unit tests, component tests, and end-to-end tests need to be implemented
-- Future work should include test coverage reporting and minimum thresholds
+| Standaard | Status |
+|-----------|--------|
+| [NL GOV API Design Rules](https://logius-standaarden.github.io/API-Design-Rules/) | URI-versioning (`/api/v1/`), `application/problem+json`, security headers, `API-Version` header |
+| [WCAG 2.2 AA](https://www.w3.org/TR/WCAG22/) | Gedeeltelijk — actieve verbetering, zie [toegankelijkheidsverklaring](apps/boekhouding-frontend/src/views/AccessibilityStatement.vue) |
+| [BIO2](https://www.digitaleoverheid.nl/overzicht-van-alle-onderwerpen/cybersecurity/bio-en-ensia/) | JWT audience-validatie, rate limiting, input-validatie, security headers |
+| [AVG / GDPR](https://autoriteitpersoonsgegevens.nl/) | Dataminimalisatie, RBAC, auditlog, [privacyverklaring](apps/boekhouding-frontend/src/views/PrivacyStatement.vue) |
+| [EUPL-1.2](LICENSE) | Open source licentie conform open-tenzij beleid |
 
-### Schema Management
-- Schema versioning is not fully implemented for form definitions
-- There is no automated migration path between different schema versions
-- Forms created with older schema versions may not be compatible with newer application versions
-- Schema evolution strategy needs to be formalized for long-term maintenance
+### Privacy en gegevensverwerking
 
-### Media Handling
-- File or image uploading is not currently supported in form inputs
-- No storage mechanism exists for handling uploaded media
-- Future versions could integrate with file storage solutions or implement base64 encoding for simple use cases
+Zie [docs/gegevensverwerking.md](docs/gegevensverwerking.md) voor een overzicht van verwerkte persoonsgegevens, rechtsgrond en bewaartermijnen.
 
-### Performance Considerations
-- The application may experience performance issues with very large or complex forms
-- All form data is stored in memory and as a single file, which may not scale for enterprise use cases
-- No backend persistence layer is implemented for multi-user collaboration due to the restrictions posed on this project.
+## Documentatie
 
-### Accessibility
-- While the application uses the RVO design system which has accessibility features, comprehensive accessibility testing has not been performed
-- WCAG compliance has not been formally verified
-
-### Browser Compatibility
-- The application is primarily tested on modern browsers
-- Compatibility with older browsers or mobile devices may vary
+- [Product Decision Records](docs/PDR/README.md) — productbeslissingen en achtergrond
+- [Gegevensverwerking](docs/gegevensverwerking.md) — privacy en dataminimalisatie

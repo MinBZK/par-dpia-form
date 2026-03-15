@@ -59,7 +59,7 @@ We implementeren de volgende wijzigingen:
 
 ### Ontwikkelteam
 - Aanpassingen vereist in frontend (form-app) en datamodel
-- Updates nodig in de begrippenkader-dpia.yaml
+- Updates nodig in de begrippenkader_dpia.yaml
 - Aanvullende validatie-regels implementeren
 
 ### Datamodel

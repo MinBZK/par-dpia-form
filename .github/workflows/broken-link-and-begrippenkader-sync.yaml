@@ -61,11 +61,11 @@ jobs:
           fetch-depth: 0
       - name: Download YAML file
         run: |
-          curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader-dpia.yaml
+          curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader_dpia.yaml
       - name: Check for changes
         id: git-check
         run: |
-          git add sources/begrippenkader-dpia.yaml
+          git add sources/begrippenkader_dpia.yaml
           if ! git diff --staged --quiet; then
             echo "changes=true" >> $GITHUB_ENV
           else
@@ -86,7 +86,7 @@ jobs:
           commit-message: "Auto-sync YAML file from external source"
           title: "Auto-sync YAML file from external source"
           body: |
-            Automated sync of `begrippenkader-dpia.yaml` from external source.
+            Automated sync of `begrippenkader_dpia.yaml` from external source.
 
             Source: https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml
 

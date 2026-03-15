@@ -173,11 +173,11 @@ def parse_arguments():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Example usage:
-  python generate_md_table_tasks.py --source sources/DPIA.yaml --output docs/DPIA_tasks.md
+  python generate_md_table_tasks.py --source sources/dpia.yaml --output docs/DPIA_tasks.md
 
   # Similar to the validate and inject script format:
   python generate_md_table_tasks.py \\
-    --source sources/DPIA.yaml \\
+    --source sources/dpia.yaml \\
     --output docs/tasks/tasks_DPIA.md
         """,
     )

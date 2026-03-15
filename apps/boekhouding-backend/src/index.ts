@@ -1,0 +1,116 @@
+import Fastify from 'fastify'
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+import rateLimit from '@fastify/rate-limit'
+import swagger from '@fastify/swagger'
+import swaggerUi from '@fastify/swagger-ui'
+import { config } from './config.js'
+import { projectRoutes } from './routes/projects.js'
+import { memberRoutes } from './routes/members.js'
+import { assessmentRoutes } from './routes/assessments.js'
+
+const API_VERSION = '1.0.0'
+
+const app = Fastify({
+  logger: true,
+  bodyLimit: 5 * 1024 * 1024, // 5 MB max request body
+})
+
+await app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
+})
+
+await app.register(cors, config.cors)
+await app.register(rateLimit, { max: 100, timeWindow: '1 minute' })
+
+await app.register(swagger, {
+  openapi: {
+    info: {
+      title: 'Assessment Boekhouding API',
+      description: 'REST API voor het beheren van assessments en projecten waarin assessments gegroepeerd kunnen worden.',
+      version: API_VERSION,
+      contact: {
+        name: 'Assessment Boekhouding — MinBZK',
+        url: 'https://assessments.rijksapp.nl',
+        email: 'RIG@rijksoverheid.nl',
+      },
+    },
+    servers: [{ url: '/' }],
+    tags: [
+      { name: 'assessments', description: 'Assessments beheren' },
+      { name: 'projects', description: 'Projecten en leden beheren' },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [{ bearerAuth: [] }],
+  },
+})
+
+await app.register(swaggerUi, {
+  routePrefix: '/api/docs',
+})
+
+app.addHook('onSend', async (_request, reply) => {
+  reply.header('API-Version', API_VERSION)
+  reply.header('Cache-Control', 'no-store')
+})
+
+app.setErrorHandler(async (error: { statusCode?: number; message?: string }, request, reply) => {
+  const status = error.statusCode ?? 500
+
+  if (status === 429) {
+    return reply.status(429).type('application/problem+json').send({
+      type: 'https://httpproblems.com/http-status/429',
+      title: 'Te veel verzoeken',
+      status: 429,
+      detail: 'Maximaal aantal verzoeken overschreden. Probeer het later opnieuw.',
+      instance: request.url,
+    })
+  }
+
+  app.log.error(error)
+  return reply.status(status).type('application/problem+json').send({
+    type: `https://httpproblems.com/http-status/${status}`,
+    title: status >= 500 ? 'Interne serverfout' : 'Verzoek mislukt',
+    status,
+    detail: status >= 500 ? 'Er is een onverwachte fout opgetreden.' : (error.message || 'Onbekende fout'),
+    instance: request.url,
+  })
+})
+
+await app.register(projectRoutes, { prefix: '/api/v1/projects' })
+await app.register(memberRoutes, { prefix: '/api/v1/projects' })
+await app.register(assessmentRoutes, { prefix: '/api/v1' })
+
+app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
+
+app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
+  return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)
+})
+
+app.get('/api/openapi.json', { schema: { hide: true } }, async (_request, reply) => {
+  return reply.send(app.swagger())
+})
+
+try {
+  await app.listen({ port: config.port, host: config.host })
+} catch (err) {
+  app.log.error(err)
+  process.exit(1)
+}
