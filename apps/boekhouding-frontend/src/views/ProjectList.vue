@@ -27,10 +27,7 @@ onMounted(async () => {
 const handleCreate = async () => {
   if (!newProjectName.value) return
   const project = await projectsApi.create(newProjectName.value, newProjectDescription.value)
-  projectList.value.push(project)
-  newProjectName.value = ''
-  newProjectDescription.value = ''
-  showCreateForm.value = false
+  router.push(`/project/${project.id}`)
 }
 
 </script>
