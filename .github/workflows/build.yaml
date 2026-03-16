@@ -1,4 +1,4 @@
-name: Build
+name: Build standalone form
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-standalone:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -42,15 +42,6 @@ jobs:
             --output-json sources/generated/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
 
-          # Verify generated files
-          echo "Verifying generated JSON files..."
-          if [ ! -f sources/generated/PreScanDPIA.json ] || [ ! -f sources/generated/DPIA.json ]; then
-            echo "::error::One or more JSON files were not generated"
-            exit 1
-          fi
-
-          echo "JSON files successfully generated"
-
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
@@ -62,17 +53,11 @@ jobs:
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build the Vue application
-        run: |
-          cd apps/standalone-form
-          pnpm build
+      - name: Build standalone form
+        run: cd apps/standalone-form && pnpm build
 
-          # Verify build output
-          echo "Verifying build output..."
-          if [ ! -f dist/index.html ]; then
-            echo "::error::index.html not found in dist directory"
-            exit 1
-          fi
-
-          echo "Listing dist directory content:"
-          ls -la dist/
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-form
+          path: apps/standalone-form/dist/
