@@ -699,3 +699,53 @@ a.card-link:hover {
   overflow: hidden;
   min-height: 2.5rem;
 }
+
+.confirm-dialog__content--wide {
+  max-width: 56rem;
+}
+
+/* ConflictResolutionDialog */
+.conflict-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+
+.conflict-table th {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 2px solid var(--rvo-color-grijs-300, #ccc);
+  font-weight: 600;
+}
+
+.conflict-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  vertical-align: top;
+}
+
+.conflict-field {
+  font-weight: 500;
+  width: 30%;
+}
+
+.conflict-value {
+  width: 35%;
+}
+
+.conflict-value--selected {
+  background-color: #e6f4ea;
+}
+
+.conflict-radio {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.conflict-radio input[type="radio"] {
+  flex-shrink: 0;
+  margin-top: 0.2em;
+}

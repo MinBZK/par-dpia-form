@@ -2,11 +2,12 @@ CREATE TYPE "public"."assessment_type" AS ENUM('dpia', 'prescan');--> statement-
 CREATE TYPE "public"."project_role" AS ENUM('owner', 'editor', 'viewer');--> statement-breakpoint
 CREATE TABLE "assessment_edits" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"assessment_instance_id" uuid NOT NULL,
+	"assessment_version_id" uuid NOT NULL,
 	"field_id" text NOT NULL,
-	"user_id" uuid NOT NULL,
+	"edit_type" text DEFAULT 'answer_change' NOT NULL,
 	"old_value" jsonb,
 	"new_value" jsonb,
+	"edited_by" uuid NOT NULL,
 	"edited_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -17,6 +18,7 @@ CREATE TABLE "assessment_instances" (
 	"name" text NOT NULL,
 	"created_by" uuid NOT NULL,
 	"current_version" integer DEFAULT 1 NOT NULL,
+	"cached_state" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -25,7 +27,6 @@ CREATE TABLE "assessment_versions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"assessment_instance_id" uuid NOT NULL,
 	"version" integer NOT NULL,
-	"snapshot" jsonb NOT NULL,
 	"saved_by" uuid NOT NULL,
 	"saved_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"change_description" text
@@ -59,8 +60,8 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_oidc_sub_unique" UNIQUE("oidc_sub")
 );
 --> statement-breakpoint
-ALTER TABLE "assessment_edits" ADD CONSTRAINT "assessment_edits_assessment_instance_id_assessment_instances_id_fk" FOREIGN KEY ("assessment_instance_id") REFERENCES "public"."assessment_instances"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "assessment_edits" ADD CONSTRAINT "assessment_edits_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "assessment_edits" ADD CONSTRAINT "assessment_edits_assessment_version_id_assessment_versions_id_fk" FOREIGN KEY ("assessment_version_id") REFERENCES "public"."assessment_versions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "assessment_edits" ADD CONSTRAINT "assessment_edits_edited_by_users_id_fk" FOREIGN KEY ("edited_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assessment_instances" ADD CONSTRAINT "assessment_instances_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assessment_instances" ADD CONSTRAINT "assessment_instances_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assessment_versions" ADD CONSTRAINT "assessment_versions_assessment_instance_id_assessment_instances_id_fk" FOREIGN KEY ("assessment_instance_id") REFERENCES "public"."assessment_instances"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

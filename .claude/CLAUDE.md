@@ -58,12 +58,13 @@ pnpm dev
 - Credentials dev: `parassessment` / `parassessment`
 - Schema in `apps/boekhouding-backend/src/db/schema.ts`
 - Na schemawijziging: `pnpm db:generate` en controleer gegenereerde SQL (Drizzle kan DROP+CREATE genereren i.p.v. ALTER TABLE RENAME)
+- Testdata: `pnpm db:seed` (script in `scripts/seed-dev.ts`, niet in productie-code). Idempotent — kan herhaaldelijk gedraaid worden. Vereist draaiende PostgreSQL.
 
 ## Keycloak dev-omgeving
 
 - Config: `compose-dev-keycloak.json` (realm import bij eerste start)
 - Admin: `admin` / `admin` op http://localhost:8080
-- Testgebruikers: `jan@example.com` / `welkom123`, `piet@example.com` / `welkom123`
+- Testgebruikers: `sam@example.com` / `welkom123`, `noor@example.com` / `welkom123`
 - Na wijziging realm config: `podman compose down -v && podman compose up -d` (volumes verwijderen zodat reimport plaatsvindt)
 - Na wijziging backend/frontend code in containers: `podman compose up -d --build` (herbouw images)
 

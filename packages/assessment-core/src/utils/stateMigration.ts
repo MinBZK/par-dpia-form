@@ -1,19 +1,19 @@
-import { type DPIASnapshot, type DPIATaskState, OUTPUT_SCHEMA_URL } from '../models/dpiaSnapshot'
+import { type AssessmentState, type DPIATaskState, OUTPUT_SCHEMA_URL } from '../models/assessmentState'
 import { type TaskInstance } from '../stores/tasks'
 import { type FormType } from '../models/dpia'
 import { type Answer } from '../stores/answers'
 
 /**
- * Detect whether a snapshot is v1 (nanoid-based keys).
+ * Detect whether a state is v1 (nanoid-based keys).
  * V1 keys look like "2.1.3_xK9mQ7p" — taskId followed by underscore and nanoid.
  * V2 keys look like "2.1.3" or "2.1.3[0]".
  */
-function isV1Snapshot(snapshot: DPIASnapshot): boolean {
-  if (snapshot.$schema) return false
+function isV1State(state: AssessmentState): boolean {
+  if (state.$schema) return false
 
   // Check answer keys for nanoid pattern (taskId_randomchars)
-  for (const ns of Object.keys(snapshot.answers || {})) {
-    const answers = snapshot.answers[ns as FormType]
+  for (const ns of Object.keys(state.answers || {})) {
+    const answers = state.answers[ns as FormType]
     if (!answers) continue
     for (const key of Object.keys(answers)) {
       if (key.includes('_') && !key.startsWith('completed.')) return true
@@ -21,10 +21,10 @@ function isV1Snapshot(snapshot: DPIASnapshot): boolean {
   }
 
   // Check taskInstance keys
-  for (const ns of Object.keys(snapshot.taskState ?? {})) {
-    const state = snapshot.taskState?.[ns as FormType]
-    if (!state) continue
-    for (const key of Object.keys(state.taskInstances || {})) {
+  for (const ns of Object.keys(state.taskState ?? {})) {
+    const taskState = state.taskState?.[ns as FormType]
+    if (!taskState) continue
+    for (const key of Object.keys(taskState.taskInstances || {})) {
       if (key.includes('_')) return true
     }
   }
@@ -42,41 +42,41 @@ function parseV1InstanceId(instanceId: string): string {
 }
 
 /**
- * Migrate a v1 snapshot (nanoid-based keys) to v2 (taskId / taskId[index] keys).
+ * Migrate a v1 state (nanoid-based keys) to v2 (taskId / taskId[index] keys).
  *
- * @param snapshot The snapshot to migrate
+ * @param state The state to migrate
  * @param urnLookup Mapping from FormType to URN string (e.g. { "dpia": "urn:nl:dpia:3.0" })
- * @returns The migrated snapshot (same reference if already v2)
+ * @returns The migrated state (same reference if already v2)
  */
-export function migrateSnapshotV1toV2(
-  snapshot: DPIASnapshot,
+export function migrateStateV1toV2(
+  state: AssessmentState,
   urnLookup: Record<string, string>,
-): DPIASnapshot {
-  if (!isV1Snapshot(snapshot)) return snapshot
+): AssessmentState {
+  if (!isV1State(state)) return state
 
-  const migratedSnapshot: DPIASnapshot = {
+  const migratedState: AssessmentState = {
     $schema: OUTPUT_SCHEMA_URL,
     metadata: {
-      ...snapshot.metadata,
-      urn: urnLookup[snapshot.metadata.activeNamespace || 'dpia'] || snapshot.metadata.urn,
+      ...state.metadata,
+      urn: urnLookup[state.metadata.activeNamespace || 'dpia'] || state.metadata.urn,
     },
     taskState: {},
     answers: {},
   }
 
   // Build old→new ID mapping per namespace
-  for (const ns of Object.keys(snapshot.taskState ?? {}) as FormType[]) {
-    const state = snapshot.taskState?.[ns]
-    if (!state) continue
+  for (const ns of Object.keys(state.taskState ?? {}) as FormType[]) {
+    const taskState = state.taskState?.[ns]
+    if (!taskState) continue
 
     const oldToNew = new Map<string, string>()
     const taskIdCounters = new Map<string, number>()
 
     // First pass: determine new IDs for all instances
     // Sort by old ID to maintain deterministic ordering
-    const sortedOldIds = Object.keys(state.taskInstances).sort()
+    const sortedOldIds = Object.keys(taskState.taskInstances).sort()
     for (const oldId of sortedOldIds) {
-      const instance = state.taskInstances[oldId]
+      const instance = taskState.taskInstances[oldId]
       const taskId = instance.taskId
 
       // Count instances per taskId to determine if indexing is needed
@@ -93,7 +93,7 @@ export function migrateSnapshotV1toV2(
     // Third pass: assign new IDs
     const assignedCounters = new Map<string, number>()
     for (const oldId of sortedOldIds) {
-      const instance = state.taskInstances[oldId]
+      const instance = taskState.taskInstances[oldId]
       const taskId = instance.taskId
 
       let newId: string
@@ -111,7 +111,7 @@ export function migrateSnapshotV1toV2(
     // Migrate task instances
     const newInstances: Record<string, TaskInstance> = {}
     for (const oldId of sortedOldIds) {
-      const instance = state.taskInstances[oldId]
+      const instance = taskState.taskInstances[oldId]
       const newId = oldToNew.get(oldId)!
 
       newInstances[newId] = {
@@ -131,24 +131,24 @@ export function migrateSnapshotV1toV2(
     }
 
     const newTaskState: DPIATaskState = {
-      currentRootTaskId: state.currentRootTaskId,
-      completedRootTaskIds: [...state.completedRootTaskIds],
+      currentRootTaskId: taskState.currentRootTaskId,
+      completedRootTaskIds: [...taskState.completedRootTaskIds],
       taskInstances: newInstances,
     }
-    if (!migratedSnapshot.taskState) migratedSnapshot.taskState = {}
-    migratedSnapshot.taskState[ns] = newTaskState
+    if (!migratedState.taskState) migratedState.taskState = {}
+    migratedState.taskState[ns] = newTaskState
 
     // Migrate answers
-    const oldAnswers = snapshot.answers[ns]
+    const oldAnswers = state.answers[ns]
     if (oldAnswers) {
       const newAnswers: Record<string, Answer> = {}
       for (const [oldKey, answer] of Object.entries(oldAnswers)) {
         const newKey = oldToNew.get(oldKey) ?? oldKey
         newAnswers[newKey] = answer
       }
-      migratedSnapshot.answers[ns] = newAnswers
+      migratedState.answers[ns] = newAnswers
     }
   }
 
-  return migratedSnapshot
+  return migratedState
 }

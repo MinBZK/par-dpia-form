@@ -103,7 +103,7 @@ export interface AssessmentInstance {
   currentVersion: number
   createdAt: string
   updatedAt: string
-  snapshot?: unknown
+  state?: unknown
 }
 
 export interface AssessmentVersion {
@@ -113,7 +113,18 @@ export interface AssessmentVersion {
   savedByName: string
   savedAt: string
   changeDescription: string | null
-  snapshot?: unknown
+  state?: unknown
+}
+
+export interface VersionEdit {
+  id: string
+  fieldId: string
+  editType: string
+  oldValue: unknown
+  newValue: unknown
+  editedBy: string
+  editedAt: string
+  version: number
 }
 
 export const assessments = {
@@ -121,15 +132,15 @@ export const assessments = {
     request<AssessmentInstance[]>(`/api/v1/projects/${projectId}/assessments`),
   get: (assessmentId: string) =>
     request<AssessmentInstance>(`/api/v1/assessments/${assessmentId}`),
-  create: (projectId: string, assessmentType: 'dpia' | 'prescan', name?: string, snapshot?: unknown) =>
+  create: (projectId: string, assessmentType: 'dpia' | 'prescan', name?: string, state?: unknown) =>
     request<AssessmentInstance>(`/api/v1/projects/${projectId}/assessments`, {
       method: 'POST',
-      body: JSON.stringify({ assessmentType, ...(name && { name }), snapshot }),
+      body: JSON.stringify({ assessmentType, ...(name && { name }), state }),
     }),
-  update: (assessmentId: string, snapshot: unknown, changeDescription?: string) =>
+  update: (assessmentId: string, state: unknown, options?: { changeDescription?: string; expectedVersion?: number; newVersion?: boolean }) =>
     request<AssessmentInstance>(`/api/v1/assessments/${assessmentId}`, {
       method: 'PUT',
-      body: JSON.stringify({ snapshot, changeDescription }),
+      body: JSON.stringify({ state, ...options }),
     }),
   rename: (assessmentId: string, name: string) =>
     request<AssessmentInstance>(`/api/v1/assessments/${assessmentId}`, {
@@ -140,8 +151,10 @@ export const assessments = {
     request<void>(`/api/v1/assessments/${assessmentId}`, { method: 'DELETE' }),
   versions: (assessmentId: string) =>
     request<AssessmentVersion[]>(`/api/v1/assessments/${assessmentId}/versions`),
-  version: (assessmentId: string, version: number) =>
-    request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}`),
+  version: (assessmentId: string, version: number, options?: { includeState?: boolean }) =>
+    request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}${options?.includeState ? '?includeState=true' : ''}`),
+  versionEdits: (assessmentId: string, version: number) =>
+    request<VersionEdit[]>(`/api/v1/assessments/${assessmentId}/versions/${version}/edits`),
   updateVersionDescription: (assessmentId: string, version: number, changeDescription: string) =>
     request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}`, {
       method: 'PATCH',

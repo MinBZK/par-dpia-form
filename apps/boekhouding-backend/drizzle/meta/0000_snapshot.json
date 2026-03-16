@@ -1,5 +1,5 @@
 {
-  "id": "c84d6a27-96b1-4f3a-866e-fb8f229ddb66",
+  "id": "3a77bda7-c81b-458e-b824-715b1b7e9fff",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -15,8 +15,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "assessment_instance_id": {
-          "name": "assessment_instance_id",
+        "assessment_version_id": {
+          "name": "assessment_version_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -27,11 +27,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
+        "edit_type": {
+          "name": "edit_type",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'answer_change'"
         },
         "old_value": {
           "name": "old_value",
@@ -45,6 +46,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "edited_by": {
+          "name": "edited_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
         "edited_at": {
           "name": "edited_at",
           "type": "timestamp with time zone",
@@ -55,12 +62,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "assessment_edits_assessment_instance_id_assessment_instances_id_fk": {
-          "name": "assessment_edits_assessment_instance_id_assessment_instances_id_fk",
+        "assessment_edits_assessment_version_id_assessment_versions_id_fk": {
+          "name": "assessment_edits_assessment_version_id_assessment_versions_id_fk",
           "tableFrom": "assessment_edits",
-          "tableTo": "assessment_instances",
+          "tableTo": "assessment_versions",
           "columnsFrom": [
-            "assessment_instance_id"
+            "assessment_version_id"
           ],
           "columnsTo": [
             "id"
@@ -68,12 +75,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "assessment_edits_user_id_users_id_fk": {
-          "name": "assessment_edits_user_id_users_id_fk",
+        "assessment_edits_edited_by_users_id_fk": {
+          "name": "assessment_edits_edited_by_users_id_fk",
           "tableFrom": "assessment_edits",
           "tableTo": "users",
           "columnsFrom": [
-            "user_id"
+            "edited_by"
           ],
           "columnsTo": [
             "id"
@@ -130,6 +137,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": 1
+        },
+        "cached_state": {
+          "name": "cached_state",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -201,12 +214,6 @@
         "version": {
           "name": "version",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "snapshot": {
-          "name": "snapshot",
-          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },

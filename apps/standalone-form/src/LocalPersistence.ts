@@ -6,8 +6,8 @@ import {
   FormType,
   OUTPUT_SCHEMA_URL,
   type PersistenceProvider,
-  type DPIASnapshot,
-  migrateSnapshotV1toV2,
+  type AssessmentState,
+  migrateStateV1toV2,
 } from '@overheid-assessment/core'
 
 function getStorageKey(namespace: string): string {
@@ -22,7 +22,7 @@ export function createLocalPersistence(): PersistenceProvider {
     try {
       const namespace = taskStore.activeNamespace
       const schemaStore = useSchemaStore()
-      const dpiaSnapshot: DPIASnapshot = {
+      const state: AssessmentState = {
         $schema: OUTPUT_SCHEMA_URL,
         metadata: {
           createdAt: new Date().toISOString(),
@@ -44,19 +44,19 @@ export function createLocalPersistence(): PersistenceProvider {
       }
 
       const storageKey = getStorageKey(namespace)
-      localStorage.setItem(storageKey, JSON.stringify(dpiaSnapshot))
+      localStorage.setItem(storageKey, JSON.stringify(state))
     } catch (error) {
       console.error('Failed to save app state to local storage:', error)
     }
   }
 
-  function loadAppState(): DPIASnapshot | null {
+  function loadAppState(): AssessmentState | null {
     try {
       const namespace = taskStore.activeNamespace
       const storageKey = getStorageKey(namespace)
-      const dpiaSnapshotData = localStorage.getItem(storageKey)
+      const stateData = localStorage.getItem(storageKey)
 
-      if (!dpiaSnapshotData) {
+      if (!stateData) {
         return null
       }
 
@@ -65,8 +65,8 @@ export function createLocalPersistence(): PersistenceProvider {
       try { urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA) } catch { /* schema not loaded */ }
       try { urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN) } catch { /* schema not loaded */ }
 
-      const parsedState = migrateSnapshotV1toV2(
-        JSON.parse(dpiaSnapshotData) as DPIASnapshot,
+      const parsedState = migrateStateV1toV2(
+        JSON.parse(stateData) as AssessmentState,
         urnLookup,
       )
 
@@ -84,10 +84,10 @@ export function createLocalPersistence(): PersistenceProvider {
     return null
   }
 
-  function applyAppState(snapshot: DPIASnapshot): void {
-    if (snapshot.taskState) {
-      for (const namespace of Object.keys(snapshot.taskState) as FormType[]) {
-        const namespaceState = snapshot.taskState[namespace]
+  function applyAppState(state: AssessmentState): void {
+    if (state.taskState) {
+      for (const namespace of Object.keys(state.taskState) as FormType[]) {
+        const namespaceState = state.taskState[namespace]
 
         if (namespaceState && Object.keys(namespaceState.taskInstances || {}).length > 0) {
           taskStore.currentRootTaskId[namespace] = namespaceState.currentRootTaskId
@@ -98,11 +98,11 @@ export function createLocalPersistence(): PersistenceProvider {
       }
     }
 
-    if (snapshot.answers) {
-      for (const namespace of Object.keys(snapshot.answers) as FormType[]) {
-        if (snapshot.answers[namespace] && Object.keys(snapshot.answers[namespace]).length > 0) {
+    if (state.answers) {
+      for (const namespace of Object.keys(state.answers) as FormType[]) {
+        if (state.answers[namespace] && Object.keys(state.answers[namespace]).length > 0) {
           answerStore.answers[namespace] = {}
-          Object.assign(answerStore.answers[namespace], snapshot.answers[namespace])
+          Object.assign(answerStore.answers[namespace], state.answers[namespace])
         }
       }
     }

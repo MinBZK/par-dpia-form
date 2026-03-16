@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { assessments as assessmentsApi, type AssessmentVersion } from '../api'
+import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
 import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
@@ -26,6 +26,7 @@ const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
 const canEdit = computed(() => role.value === 'owner' || role.value === 'editor')
+const canRestore = computed(() => role.value === 'owner')
 
 // Expandable diff state
 const expandedVersion = ref<number | null>(null)
@@ -63,19 +64,19 @@ async function handleFieldRestore() {
   const ns = field.fieldId.substring(0, dotIndex)
   const key = field.fieldId.substring(dotIndex + 1)
 
-  // Fetch the current (latest) snapshot from the API so we only modify the one field
+  // Fetch the current (latest) state from the API so we only modify the one field
   const assessment = await assessmentsApi.get(props.assessmentId)
-  const snapshot = JSON.parse(JSON.stringify(assessment.snapshot || {}))
+  const currentState = JSON.parse(JSON.stringify(assessment.state || {}))
 
   if (key.startsWith('completed.')) {
     const taskId = key.substring('completed.'.length)
     // Ensure path exists
-    if (!snapshot.taskState) snapshot.taskState = {}
-    if (!snapshot.taskState[ns]) snapshot.taskState[ns] = { completedRootTaskIds: [] }
-    if (!Array.isArray(snapshot.taskState[ns].completedRootTaskIds)) {
-      snapshot.taskState[ns].completedRootTaskIds = []
+    if (!currentState.taskState) currentState.taskState = {}
+    if (!currentState.taskState[ns]) currentState.taskState[ns] = { completedRootTaskIds: [] }
+    if (!Array.isArray(currentState.taskState[ns].completedRootTaskIds)) {
+      currentState.taskState[ns].completedRootTaskIds = []
     }
-    const completedIds: string[] = snapshot.taskState[ns].completedRootTaskIds
+    const completedIds: string[] = currentState.taskState[ns].completedRootTaskIds
     if (field.rawOldValue === true) {
       if (!completedIds.includes(taskId)) completedIds.push(taskId)
     } else {
@@ -83,23 +84,23 @@ async function handleFieldRestore() {
       if (idx !== -1) completedIds.splice(idx, 1)
     }
   } else {
-    if (!snapshot.answers) snapshot.answers = {}
-    if (!snapshot.answers[ns]) snapshot.answers[ns] = {}
+    if (!currentState.answers) currentState.answers = {}
+    if (!currentState.answers[ns]) currentState.answers[ns] = {}
     const rawVal = field.rawOldValue as { value?: unknown; timestamp?: string } | null | undefined
     if (rawVal && typeof rawVal === 'object' && 'value' in rawVal) {
-      snapshot.answers[ns][key] = { value: rawVal.value, timestamp: new Date().toISOString() }
+      currentState.answers[ns][key] = { value: rawVal.value, timestamp: new Date().toISOString() }
     } else {
-      delete snapshot.answers[ns][key]
+      delete currentState.answers[ns][key]
     }
   }
 
-  snapshot.metadata = { ...snapshot.metadata, savedAt: new Date().toISOString() }
+  currentState.metadata = { ...currentState.metadata, savedAt: new Date().toISOString() }
 
   const originVer = field.originVersion ?? (version! - 1)
   const restoreDesc = key.startsWith('completed.')
     ? `Status uit versie ${originVer} hersteld`
     : `Antwoord uit versie ${originVer} hersteld`
-  await assessmentsApi.update(props.assessmentId, snapshot, restoreDesc)
+  await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
 
   // Refresh version list
   versions.value = await assessmentsApi.versions(props.assessmentId)
@@ -213,16 +214,38 @@ const restoreConfirmed = computed(() =>
 
 async function handleRestore() {
   if (!restoreConfirmed.value || restoreModalVersion.value === null) return
-  const versionData = await assessmentsApi.version(props.assessmentId, restoreModalVersion.value)
-  if (versionData.snapshot) {
-    await assessmentsApi.update(
-      props.assessmentId,
-      versionData.snapshot,
-      `Hersteld naar versie ${restoreModalVersion.value}`,
-    )
-    restoreModalOpen.value = false
-    router.push(`/assessment/${props.assessmentId}`)
+  const [versionData, currentAssessment] = await Promise.all([
+    assessmentsApi.version(props.assessmentId, restoreModalVersion.value, { includeState: true }),
+    assessmentsApi.get(props.assessmentId),
+  ])
+
+  const restoredState = (versionData.state || {}) as Record<string, unknown>
+  const currentState = (currentAssessment.state || {}) as Record<string, unknown>
+
+  // rebuildState() reconstructs answers + taskState from edits, but metadata
+  // (activeNamespace, urn) is not tracked in edits. Carry over from current state.
+  if (currentState.metadata) {
+    restoredState.metadata = currentState.metadata
   }
+  if (currentState.$schema && !restoredState.$schema) {
+    restoredState.$schema = currentState.$schema
+  }
+
+  // Verify the restored state has usable content
+  const hasAnswers = restoredState.answers && Object.keys(restoredState.answers as object).length > 0
+  const hasTaskState = restoredState.taskState && Object.keys(restoredState.taskState as object).length > 0
+  if (!hasAnswers && !hasTaskState) {
+    alert('Deze versie bevat geen herstelbare gegevens.')
+    return
+  }
+
+  await assessmentsApi.update(
+    props.assessmentId,
+    restoredState,
+    { changeDescription: `Hersteld naar versie ${restoreModalVersion.value}`, newVersion: true, expectedVersion: currentAssessment.currentVersion },
+  )
+  restoreModalOpen.value = false
+  router.push(`/assessment/${props.assessmentId}`)
 }
 
 // Field label lookup
@@ -293,6 +316,11 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
+function stripHtml(str: string): string {
+  if (!str.includes('<')) return str
+  return str.replace(/<[^>]*>/g, '')
+}
+
 function formatValue(val: unknown, options: Record<string, string> | null): string {
   if (val === null || val === undefined) return 'Leeg'
   if (typeof val === 'boolean') return val ? 'Ja' : 'Nee'
@@ -308,16 +336,16 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
         if (Array.isArray(parsed)) return formatValue(parsed, options)
       } catch { /* not JSON, treat as plain string */ }
     }
-    if (options && options[val]) return escapeHtml(options[val])
+    if (options && options[val]) return escapeHtml(stripHtml(options[val]))
     if (isoDatePattern.test(val)) return formatTimestamp(val)
-    return escapeHtml(val)
+    return escapeHtml(stripHtml(val))
   }
 
   if (Array.isArray(val)) {
     if (val.length === 0) return 'Geen selectie'
     const items = options
-      ? val.map((v) => options[String(v)] || String(v))
-      : val.map(String)
+      ? val.map((v) => stripHtml(options[String(v)] || String(v)))
+      : val.map((v) => stripHtml(String(v)))
     return '<ul style="margin: 0; padding-left: 1.25rem;">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>'
   }
 
@@ -333,14 +361,14 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
           parts.push('Geen selectie')
         } else {
           const items = options
-            ? v.map((item) => options[String(item)] || String(item))
-            : v.map(String)
+            ? v.map((item) => stripHtml(options[String(item)] || String(item)))
+            : v.map((item) => stripHtml(String(item)))
           parts.push('<ul style="margin: 0; padding-left: 1.25rem;">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>')
         }
       } else {
         const formatted = typeof v === 'boolean' ? (v ? 'Ja' : 'Nee')
           : v === 'true' ? 'Ja' : v === 'false' ? 'Nee'
-          : typeof v === 'string' ? escapeHtml(v) : escapeHtml(JSON.stringify(v))
+          : typeof v === 'string' ? escapeHtml(stripHtml(v)) : escapeHtml(JSON.stringify(v))
         parts.push(formatted)
       }
     }
@@ -349,7 +377,7 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
 
     // Any remaining keys
     for (const [k, v] of Object.entries(obj)) {
-      if (k === 'value' || k === 'timestamp' || v === null || v === undefined || v === '') continue
+      if (k === 'value' || k === 'timestamp' || k === 'lastEditedAt' || v === null || v === undefined || v === '') continue
       const formatted = typeof v === 'string' && isoDatePattern.test(v)
         ? formatTimestamp(v)
         : typeof v === 'boolean' ? (v ? 'Ja' : 'Nee')
@@ -364,7 +392,36 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
   return escapeHtml(String(val))
 }
 
-// Diff
+/**
+ * Parse a URN-based field ID into namespace and key for label lookup.
+ * "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0" → { namespace: "dpia", key: "2.1.3[0]" }
+ * Falls back to dot-format parsing: "dpia.2.1" → { namespace: "dpia", key: "2.1" }
+ */
+function parseFieldId(fieldId: string): { namespace: string; key: string } | null {
+  if (fieldId.startsWith('urn:')) {
+    const match = fieldId.match(/^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
+    if (!match) return null
+    const namespace = match[1] === 'prescan_dpia' ? 'prescan' : match[1]
+    const taskId = match[2]
+    const index = match[3]
+    const key = index !== undefined ? `${taskId}[${index}]` : taskId
+    return { namespace, key }
+  }
+  const dotIndex = fieldId.indexOf('.')
+  if (dotIndex === -1) return null
+  return { namespace: fieldId.substring(0, dotIndex), key: fieldId.substring(dotIndex + 1) }
+}
+
+/**
+ * Convert a fieldId (URN or dot-format) to dot-format for label lookup.
+ */
+function toDotFieldId(fieldId: string): string {
+  const parsed = parseFieldId(fieldId)
+  if (!parsed) return fieldId
+  return `${parsed.namespace}.${parsed.key}`
+}
+
+// Diff — fetch edits from the API instead of diffing full states
 async function toggleDiff(version: number) {
   if (expandedVersion.value === version) {
     expandedVersion.value = null
@@ -380,14 +437,8 @@ async function toggleDiff(version: number) {
 
   diffLoading.value = true
   try {
-    const [current, previous] = await Promise.all([
-      assessmentsApi.version(props.assessmentId, version),
-      assessmentsApi.version(props.assessmentId, version - 1),
-    ])
-    const fields = computeDiff(previous.snapshot, current.snapshot)
-    diffFields.value = fields
-    // Resolve actual origin version for each changed field
-    await resolveOriginVersions(fields, version, previous.snapshot)
+    const edits = await assessmentsApi.versionEdits(props.assessmentId, version)
+    diffFields.value = mapEditsToDiffFields(edits, version)
   } catch {
     diffFields.value = []
   } finally {
@@ -395,132 +446,75 @@ async function toggleDiff(version: number) {
   }
 }
 
-function computeDiff(
-  oldSnapshot: unknown,
-  newSnapshot: unknown,
+function mapEditsToDiffFields(
+  edits: VersionEdit[],
+  version: number,
 ): Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> {
-  const result: Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
-  const oldAnswers = (oldSnapshot as any)?.answers || {}
-  const newAnswers = (newSnapshot as any)?.answers || {}
-  const allNamespaces = new Set([...Object.keys(oldAnswers), ...Object.keys(newAnswers)])
+  // During consolidation, multiple edits for the same field can exist within one version.
+  // Collapse them to show only the net change: first oldValue → last newValue.
+  // If the net result is no change, skip the field entirely.
+  const relevant = edits.filter(edit =>
+    edit.editType !== 'initial_state' &&
+    edit.editType !== 'task_instance_add' &&
+    edit.editType !== 'task_instance_remove',
+  )
 
-  for (const ns of allNamespaces) {
-    const oldNs = oldAnswers[ns] || {}
-    const newNs = newAnswers[ns] || {}
-    const allKeys = new Set([...Object.keys(oldNs), ...Object.keys(newNs)])
-
-    for (const key of allKeys) {
-      const oldVal = oldNs[key]
-      const newVal = newNs[key]
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        const fieldId = `${ns}.${key}`
-        const options = getFieldOptions(fieldId)
-        result.push({
-          fieldId,
-          label: getFieldLabel(fieldId),
-          oldValue: formatValue(oldVal, options),
-          newValue: formatValue(newVal, options),
-          rawOldValue: oldVal,
-          canRestore: true,
-        })
-      }
+  const collapsed = new Map<string, { editType: string; fieldId: string; oldValue: unknown; newValue: unknown }>()
+  for (const edit of relevant) {
+    const dotId = toDotFieldId(edit.fieldId)
+    const existing = collapsed.get(dotId)
+    if (existing) {
+      // Keep original oldValue, update newValue to latest
+      existing.newValue = edit.newValue
+    } else {
+      collapsed.set(dotId, {
+        editType: edit.editType,
+        fieldId: edit.fieldId,
+        oldValue: edit.oldValue,
+        newValue: edit.newValue,
+      })
     }
   }
 
-  // Compare completed sections
-  const oldTaskState = (oldSnapshot as any)?.taskState || {}
-  const newTaskState = (newSnapshot as any)?.taskState || {}
-  const taskNamespaces = new Set([...Object.keys(oldTaskState), ...Object.keys(newTaskState)])
+  const result: Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
 
-  for (const ns of taskNamespaces) {
-    const oldCompleted = new Set<string>(oldTaskState[ns]?.completedRootTaskIds || [])
-    const newCompleted = new Set<string>(newTaskState[ns]?.completedRootTaskIds || [])
+  for (const [dotId, edit] of collapsed) {
+    // Skip if net result is no change
+    if (JSON.stringify(edit.oldValue) === JSON.stringify(edit.newValue)) continue
 
-    for (const id of newCompleted) {
-      if (!oldCompleted.has(id)) {
-        const formType = ns === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
-        const task = taskStore.getTaskByIdFromNamespace(formType, id)
-        const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : id
-        result.push({ fieldId: `${ns}.completed.${id}`, label: `Status sectie ${id} "${name}"`, oldValue: 'Niet voltooid', newValue: 'Voltooid', rawOldValue: false, canRestore: true })
-      }
+    const options = getFieldOptions(dotId)
+
+    if (edit.editType === 'section_complete') {
+      const parsed = parseFieldId(edit.fieldId)
+      const taskId = parsed ? (parsed.key.startsWith('completed.') ? parsed.key.substring('completed.'.length) : parsed.key) : edit.fieldId
+      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+      const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
+      const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
+      result.push({
+        fieldId: dotId,
+        label: `Status sectie ${taskId} "${name}"`,
+        oldValue: edit.oldValue === true ? 'Voltooid' : 'Niet voltooid',
+        newValue: edit.newValue === true ? 'Voltooid' : 'Niet voltooid',
+        rawOldValue: edit.oldValue,
+        originVersion: version - 1,
+        canRestore: true,
+      })
+      continue
     }
-    for (const id of oldCompleted) {
-      if (!newCompleted.has(id)) {
-        const formType = ns === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
-        const task = taskStore.getTaskByIdFromNamespace(formType, id)
-        const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : id
-        result.push({ fieldId: `${ns}.completed.${id}`, label: `Status sectie ${id} "${name}"`, oldValue: 'Voltooid', newValue: 'Niet voltooid', rawOldValue: true, canRestore: true })
-      }
-    }
+
+    // answer_change
+    result.push({
+      fieldId: dotId,
+      label: getFieldLabel(dotId),
+      oldValue: formatValue(edit.oldValue, options),
+      newValue: formatValue(edit.newValue, options),
+      rawOldValue: edit.oldValue,
+      originVersion: version - 1,
+      canRestore: true,
+    })
   }
 
   return result
-}
-
-// Walk backwards through versions to find when each field's old value was actually set.
-// This gives the true "origin version" instead of always showing version N-1.
-async function resolveOriginVersions(
-  fields: Array<{ fieldId: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }>,
-  currentVersion: number,
-  prevSnapshot: unknown,
-) {
-  const toResolve = fields.filter(f => f.canRestore)
-  if (toResolve.length === 0 || currentVersion <= 2) {
-    for (const field of toResolve) {
-      field.originVersion = 1
-      const v1 = versions.value.find(v => v.version === 1)
-      if (v1) field.oldTimestamp = formatTimestamp(v1.savedAt)
-    }
-    return
-  }
-
-  const resolved = new Map<string, number>()
-
-  // Walk backwards from version N-1 comparing with N-2, then N-2 with N-3, etc.
-  // prevSnapshot starts as the already-fetched version N-1 snapshot.
-  let newerSnap = prevSnapshot
-  for (let v = currentVersion - 2; v >= 1; v--) {
-    if (toResolve.every(f => resolved.has(f.fieldId))) break
-
-    const olderVersion = await assessmentsApi.version(props.assessmentId, v)
-    const olderSnap = olderVersion.snapshot as any
-
-    for (const field of toResolve) {
-      if (resolved.has(field.fieldId)) continue
-
-      const dotIndex = field.fieldId.indexOf('.')
-      const ns = field.fieldId.substring(0, dotIndex)
-      const key = field.fieldId.substring(dotIndex + 1)
-
-      if (key.startsWith('completed.')) {
-        const taskId = key.substring('completed.'.length)
-        const olderCompleted = new Set<string>(olderSnap?.taskState?.[ns]?.completedRootTaskIds || [])
-        const newerCompleted = new Set<string>((newerSnap as any)?.taskState?.[ns]?.completedRootTaskIds || [])
-        if (olderCompleted.has(taskId) !== newerCompleted.has(taskId)) {
-          // Value changed at version v+1
-          resolved.set(field.fieldId, v + 1)
-        }
-      } else {
-        const olderVal = olderSnap?.answers?.[ns]?.[key]
-        const newerVal = (newerSnap as any)?.answers?.[ns]?.[key]
-        if (JSON.stringify(olderVal) !== JSON.stringify(newerVal)) {
-          resolved.set(field.fieldId, v + 1)
-        }
-      }
-    }
-
-    newerSnap = olderSnap
-  }
-
-  // Unresolved fields: value was already present in version 1
-  for (const field of toResolve) {
-    const origin = resolved.get(field.fieldId) ?? 1
-    field.originVersion = origin
-    const originVersion = versions.value.find(v => v.version === origin)
-    if (originVersion) {
-      field.oldTimestamp = formatTimestamp(originVersion.savedAt)
-    }
-  }
 }
 </script>
 
@@ -590,10 +584,12 @@ async function resolveOriginVersions(
                   <button class="kebab-menu__item" role="menuitem" @mousedown="openMenuVersion = null; openDescModal(version.version, version.changeDescription)">
                     {{ version.changeDescription ? 'Beschrijving bewerken' : 'Beschrijving toevoegen' }}
                   </button>
-                  <div class="kebab-menu__divider"></div>
-                  <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="openMenuVersion = null; openRestoreModal(version.version)">
-                    Herstellen naar deze versie
-                  </button>
+                  <template v-if="canRestore">
+                    <div class="kebab-menu__divider"></div>
+                    <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="openMenuVersion = null; openRestoreModal(version.version)">
+                      Herstellen naar deze versie
+                    </button>
+                  </template>
                 </div>
               </div>
             </span>
@@ -631,7 +627,7 @@ async function resolveOriginVersions(
                         <em class="diff-timestamp">
                           <template v-if="field.oldTimestamp">{{ field.oldTimestamp }} · </template>versie {{ field.originVersion ?? (expandedVersion! - 1) }}
                         </em>
-                        <div v-if="canEdit" class="kebab-menu diff-kebab" @focusout="openMenuField = null">
+                        <div v-if="canRestore" class="kebab-menu diff-kebab" @focusout="openMenuField = null">
                           <button
                             class="kebab-menu__trigger"
                             aria-haspopup="true"

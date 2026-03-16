@@ -38,6 +38,7 @@ export const assessmentInstances = pgTable('assessment_instances', {
   name: text('name').notNull(),
   createdBy: uuid('created_by').notNull().references(() => users.id),
   currentVersion: integer('current_version').notNull().default(1),
+  cachedState: jsonb('cached_state'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
@@ -46,7 +47,6 @@ export const assessmentVersions = pgTable('assessment_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
   assessmentInstanceId: uuid('assessment_instance_id').notNull().references(() => assessmentInstances.id, { onDelete: 'cascade' }),
   version: integer('version').notNull(),
-  snapshot: jsonb('snapshot').notNull(),
   savedBy: uuid('saved_by').notNull().references(() => users.id),
   savedAt: timestamp('saved_at', { withTimezone: true }).notNull().defaultNow(),
   changeDescription: text('change_description'),
@@ -56,10 +56,11 @@ export const assessmentVersions = pgTable('assessment_versions', {
 
 export const assessmentEdits = pgTable('assessment_edits', {
   id: uuid('id').primaryKey().defaultRandom(),
-  assessmentInstanceId: uuid('assessment_instance_id').notNull().references(() => assessmentInstances.id, { onDelete: 'cascade' }),
+  assessmentVersionId: uuid('assessment_version_id').notNull().references(() => assessmentVersions.id, { onDelete: 'cascade' }),
   fieldId: text('field_id').notNull(),
-  userId: uuid('user_id').notNull().references(() => users.id),
+  editType: text('edit_type').notNull().default('answer_change'),
   oldValue: jsonb('old_value'),
   newValue: jsonb('new_value'),
+  editedBy: uuid('edited_by').notNull().references(() => users.id),
   editedAt: timestamp('edited_at', { withTimezone: true }).notNull().defaultNow(),
 })

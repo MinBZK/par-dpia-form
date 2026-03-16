@@ -3,8 +3,8 @@ import './assets/base.css'
 
 // Models
 export { FormType, DPIA } from './models/dpia'
-export { OUTPUT_SCHEMA_URL } from './models/dpiaSnapshot'
-export type { DPIASnapshot, DPIASnapshotMetadata, AssessmentOutput } from './models/dpiaSnapshot'
+export { OUTPUT_SCHEMA_URL } from './models/assessmentState'
+export type { AssessmentState, AssessmentStateMetadata, AssessmentOutput } from './models/assessmentState'
 export { ViewState } from './models/navigation'
 export type { NavigationFunctions } from './models/navigation'
 
@@ -28,7 +28,7 @@ export { PERSISTENCE_KEY, EXPORT_KEY } from './persistence'
 export type { PersistenceProvider, ExportProvider } from './persistence'
 
 // Utils
-export { migrateSnapshotV1toV2 } from './utils/snapshotMigration'
+export { migrateStateV1toV2 } from './utils/stateMigration'
 export { exportToJson } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
 export { exportToPdf } from './utils/pdfExport'

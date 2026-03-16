@@ -1,10 +1,12 @@
 import type { FastifyInstance, FastifyReply } from 'fastify'
 import { db } from '../db/connection.js'
 import { assessmentInstances, assessmentVersions, assessmentEdits, projectMembers, users } from '../db/schema.js'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, asc } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
 import type { ProjectRole } from '../middleware/projectAccess.js'
+import { diffStates } from '../utils/diffStates.js'
+import { rebuildState } from '../utils/rebuildState.js'
 
 const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, editor: 1, owner: 2 }
 const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', editor: 'bewerker', owner: 'eigenaar' }
@@ -81,7 +83,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Create a new assessment instance
   app.post<{
     Params: { projectId: string }
-    Body: { name?: string; assessmentType: 'dpia' | 'prescan'; snapshot?: unknown }
+    Body: { name?: string; assessmentType: 'dpia' | 'prescan'; state?: unknown }
   }>('/projects/:projectId/assessments', {
     schema: {
       tags: ['assessments'],
@@ -91,7 +93,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
         properties: {
           assessmentType: { type: 'string', enum: ['dpia', 'prescan'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
-          snapshot: { type: 'object' },
+          state: { type: 'object' },
         },
         additionalProperties: false,
       },
@@ -99,7 +101,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     preHandler: [requireProjectAccess('editor')],
   }, async (request, reply) => {
     const { projectId } = request.params
-    const { name, assessmentType, snapshot } = request.body
+    const { name, assessmentType, state } = request.body
     const userId = request.user!.id
 
     // Auto-generate name if not provided
@@ -118,17 +120,28 @@ export async function assessmentRoutes(app: FastifyInstance) {
       finalName = existing.length === 0 ? baseLabel : `${baseLabel} ${existing.length + 1}`
     }
 
+    const initialState = state || {}
+
     const [assessment] = await db
       .insert(assessmentInstances)
-      .values({ projectId, name: finalName, assessmentType, createdBy: userId })
+      .values({ projectId, name: finalName, assessmentType, createdBy: userId, cachedState: initialState })
       .returning()
 
-    // Create initial version
-    await db.insert(assessmentVersions).values({
+    // Create initial version checkpoint
+    const [initialVersion] = await db.insert(assessmentVersions).values({
       assessmentInstanceId: assessment.id,
       version: 1,
-      snapshot: snapshot || {},
       savedBy: userId,
+    }).returning()
+
+    // Record initial_state edit so state can be rebuilt from edits alone
+    await db.insert(assessmentEdits).values({
+      assessmentVersionId: initialVersion.id,
+      fieldId: '__initial__',
+      editType: 'initial_state',
+      oldValue: null,
+      newValue: initialState,
+      editedBy: userId,
     })
 
     return reply.status(201).send(assessment)
@@ -142,32 +155,27 @@ export async function assessmentRoutes(app: FastifyInstance) {
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
 
-    // Get latest version snapshot
-    const [latestVersion] = await db
-      .select()
-      .from(assessmentVersions)
-      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
-      .orderBy(desc(assessmentVersions.version))
-      .limit(1)
-
-    return { ...result.assessment, role: result.role, snapshot: latestVersion?.snapshot || null }
+    return { ...result.assessment, role: result.role, state: result.assessment.cachedState || null }
   })
 
-  // Update assessment (save new version)
+  // Update assessment (save state)
   app.put<{
     Params: { assessmentId: string }
-    Body: { snapshot?: unknown; changeDescription?: string; name?: string }
+    Body: { state?: unknown; changeDescription?: string; name?: string; expectedVersion?: number; newVersion?: boolean }
   }>('/assessments/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
-    const { snapshot, changeDescription, name } = request.body
+    const { state, changeDescription, name, expectedVersion, newVersion: forceNewVersion } = request.body
     const userId = request.user!.id
 
-    const result = await requireAssessmentAccess(assessmentId, userId, 'editor', request.url, reply)
+    // Restore actions (newVersion + changeDescription) require owner role
+    const isRestore = forceNewVersion && changeDescription
+    const minimumRole = isRestore ? 'owner' as const : 'editor' as const
+    const result = await requireAssessmentAccess(assessmentId, userId, minimumRole, request.url, reply)
     if (!result) return
     const { assessment } = result
 
-    // Name-only update (no new version needed)
-    if (name && !snapshot) {
+    // Name-only update (no version needed)
+    if (name && !state) {
       const [updated] = await db
         .update(assessmentInstances)
         .set({ name, updatedAt: new Date() })
@@ -176,7 +184,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
       return updated
     }
 
-    if (!snapshot) {
+    if (!state) {
       return reply.status(400).type('application/problem+json').send({
         type: 'https://httpproblems.com/http-status/400',
         title: 'Ongeldig verzoek',
@@ -186,56 +194,67 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
     }
 
-    // Get previous snapshot for comparison
-    const [previousVersion] = await db
-      .select({ snapshot: assessmentVersions.snapshot })
-      .from(assessmentVersions)
-      .where(
-        and(
-          eq(assessmentVersions.assessmentInstanceId, assessmentId),
-          eq(assessmentVersions.version, assessment.currentVersion),
-        ),
-      )
-      .limit(1)
+    // Optimistic locking — expectedVersion is required for state saves.
+    // This check MUST run before anything else to prevent stale saves.
+    if (expectedVersion === undefined) {
+      return reply.status(400).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/400',
+        title: 'Ongeldig verzoek',
+        status: 400,
+        detail: 'expectedVersion is verplicht bij het opslaan van gegevens',
+        instance: request.url,
+      })
+    }
+    if (assessment.currentVersion !== expectedVersion) {
+      return reply.status(409).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/409',
+        title: 'Conflict',
+        status: 409,
+        detail: 'Assessment is gewijzigd door een andere gebruiker',
+        instance: request.url,
+        currentVersion: assessment.currentVersion,
+      })
+    }
 
-    // Skip saving if snapshot is identical to current version
-    const edits = previousVersion
-      ? diffSnapshots(previousVersion.snapshot, snapshot, assessmentId, userId)
+    // Diff against cachedState (no extra query needed)
+    const previousState = assessment.cachedState
+    const edits = previousState
+      ? diffStates(previousState, state, userId)
       : []
 
-    // No answer changes: update current version's snapshot in place (saves taskState like
-    // navigation position and completed sections without creating a new version)
-    if (previousVersion && edits.length === 0 && !changeDescription) {
+    // No content changes: update cachedState only (saves UI-state like
+    // navigation position without creating a new version)
+    if (previousState && edits.length === 0 && !changeDescription) {
       await db
-        .update(assessmentVersions)
-        .set({ snapshot })
-        .where(
-          and(
-            eq(assessmentVersions.assessmentInstanceId, assessmentId),
-            eq(assessmentVersions.version, assessment.currentVersion),
-          ),
-        )
+        .update(assessmentInstances)
+        .set({ cachedState: state, updatedAt: new Date() })
+        .where(eq(assessmentInstances.id, assessmentId))
       return assessment
     }
 
-    const newVersion = assessment.currentVersion + 1
+    const nextVersion = assessment.currentVersion + 1
 
-    // Log field-level changes
-    if (edits.length > 0) {
-      await db.insert(assessmentEdits).values(edits)
-    }
-
-    // Save new version
-    await db.insert(assessmentVersions).values({
+    // Create new version checkpoint
+    const [versionRow] = await db.insert(assessmentVersions).values({
       assessmentInstanceId: assessmentId,
-      version: newVersion,
-      snapshot,
+      version: nextVersion,
       savedBy: userId,
       changeDescription,
-    })
+    }).returning()
 
-    // Update assessment instance (include name if provided)
-    const updateData: Record<string, unknown> = { currentVersion: newVersion, updatedAt: new Date() }
+    // Log field-level changes linked to the new version
+    if (edits.length > 0) {
+      await db.insert(assessmentEdits).values(
+        edits.map(edit => ({ ...edit, assessmentVersionId: versionRow.id })),
+      )
+    }
+
+    // Update assessment instance: cachedState + currentVersion
+    const updateData: Record<string, unknown> = {
+      currentVersion: nextVersion,
+      cachedState: state,
+      updatedAt: new Date(),
+    }
     if (name) updateData.name = name
 
     const [updated] = await db
@@ -287,15 +306,23 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get specific version
   app.get<{
     Params: { assessmentId: string; version: string }
+    Querystring: { includeState?: string }
   }>('/assessments/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const versionNum = parseInt(version, 10)
+    const includeState = request.query.includeState === 'true'
 
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
 
     const [versionData] = await db
-      .select()
+      .select({
+        id: assessmentVersions.id,
+        version: assessmentVersions.version,
+        savedBy: assessmentVersions.savedBy,
+        savedAt: assessmentVersions.savedAt,
+        changeDescription: assessmentVersions.changeDescription,
+      })
       .from(assessmentVersions)
       .where(
         and(
@@ -315,7 +342,60 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
     }
 
+    if (includeState) {
+      const state = await rebuildState(assessmentId, versionNum)
+      return { ...versionData, state }
+    }
+
     return versionData
+  })
+
+  // Get edits for a specific version
+  app.get<{
+    Params: { assessmentId: string; version: string }
+  }>('/assessments/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    const { assessmentId, version } = request.params
+    const versionNum = parseInt(version, 10)
+
+    const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
+    if (!result) return
+
+    const [versionRow] = await db
+      .select({ id: assessmentVersions.id })
+      .from(assessmentVersions)
+      .where(
+        and(
+          eq(assessmentVersions.assessmentInstanceId, assessmentId),
+          eq(assessmentVersions.version, versionNum),
+        ),
+      )
+      .limit(1)
+
+    if (!versionRow) {
+      return reply.status(404).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/404',
+        title: 'Niet gevonden',
+        status: 404,
+        detail: 'Versie niet gevonden',
+        instance: request.url,
+      })
+    }
+
+    const edits = await db
+      .select({
+        id: assessmentEdits.id,
+        fieldId: assessmentEdits.fieldId,
+        editType: assessmentEdits.editType,
+        oldValue: assessmentEdits.oldValue,
+        newValue: assessmentEdits.newValue,
+        editedBy: assessmentEdits.editedBy,
+        editedAt: assessmentEdits.editedAt,
+      })
+      .from(assessmentEdits)
+      .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
+      .orderBy(asc(assessmentEdits.editedAt))
+
+    return edits.map(edit => ({ ...edit, version: versionNum }))
   })
 
   // Update version description
@@ -365,125 +445,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
     const edits = await db
       .select()
       .from(assessmentEdits)
-      .where(eq(assessmentEdits.assessmentInstanceId, assessmentId))
+      .innerJoin(assessmentVersions, eq(assessmentEdits.assessmentVersionId, assessmentVersions.id))
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentEdits.editedAt))
 
     return edits
   })
 }
 
-/**
- * Parse an instance ID into taskId and optional index.
- * "2.1.3" → { taskId: "2.1.3" }
- * "2.1.3[0]" → { taskId: "2.1.3", index: 0 }
- */
-function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
-  const match = instanceId.match(/^(.+)\[(\d+)\]$/)
-  if (match) return { taskId: match[1], index: parseInt(match[2]) }
-  return { taskId: instanceId }
-}
-
-/**
- * Build a URN-based field identifier for the assessment_edits table.
- * Example: "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0"
- */
-function buildFieldUrn(urn: string, instanceId: string): string {
-  const { taskId, index } = parseInstanceId(instanceId)
-  let fieldUrn = `${urn}?=task_id=${taskId}`
-  if (index !== undefined) fieldUrn += `&task_index=${index}`
-  return fieldUrn
-}
-
-/**
- * Compares two snapshots and produces field-level edit records.
- * Compares answer changes and completed section changes.
- * Uses URN-based field identifiers when available.
- */
-function diffSnapshots(
-  oldSnapshot: unknown,
-  newSnapshot: unknown,
-  assessmentInstanceId: string,
-  userId: string,
-): Array<{
-  assessmentInstanceId: string
-  fieldId: string
-  userId: string
-  oldValue: unknown
-  newValue: unknown
-}> {
-  const edits: Array<{
-    assessmentInstanceId: string
-    fieldId: string
-    userId: string
-    oldValue: unknown
-    newValue: unknown
-  }> = []
-
-  const newMeta = (newSnapshot as any)?.metadata || {}
-  const urn: string | undefined = newMeta.urn
-
-  const oldAnswers = (oldSnapshot as any)?.answers || {}
-  const newAnswers = (newSnapshot as any)?.answers || {}
-
-  // Compare answers across namespaces
-  const allNamespaces = new Set([...Object.keys(oldAnswers), ...Object.keys(newAnswers)])
-
-  for (const ns of allNamespaces) {
-    const oldNs = oldAnswers[ns] || {}
-    const newNs = newAnswers[ns] || {}
-    const allKeys = new Set([...Object.keys(oldNs), ...Object.keys(newNs)])
-
-    for (const key of allKeys) {
-      const oldVal = oldNs[key]
-      const newVal = newNs[key]
-
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        const fieldId = urn ? buildFieldUrn(urn, key) : `${ns}.${key}`
-        edits.push({
-          assessmentInstanceId,
-          fieldId,
-          userId,
-          oldValue: oldVal ?? null,
-          newValue: newVal ?? null,
-        })
-      }
-    }
-  }
-
-  // Compare completed sections across namespaces
-  const oldTaskState = (oldSnapshot as any)?.taskState || {}
-  const newTaskState = (newSnapshot as any)?.taskState || {}
-  const taskNamespaces = new Set([...Object.keys(oldTaskState), ...Object.keys(newTaskState)])
-
-  for (const ns of taskNamespaces) {
-    const oldCompleted = new Set<string>(oldTaskState[ns]?.completedRootTaskIds || [])
-    const newCompleted = new Set<string>(newTaskState[ns]?.completedRootTaskIds || [])
-
-    for (const id of newCompleted) {
-      if (!oldCompleted.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
-        edits.push({
-          assessmentInstanceId,
-          fieldId,
-          userId,
-          oldValue: false,
-          newValue: true,
-        })
-      }
-    }
-    for (const id of oldCompleted) {
-      if (!newCompleted.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
-        edits.push({
-          assessmentInstanceId,
-          fieldId,
-          userId,
-          oldValue: true,
-          newValue: false,
-        })
-      }
-    }
-  }
-
-  return edits
-}

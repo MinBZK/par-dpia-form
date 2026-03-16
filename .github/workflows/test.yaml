@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate assessment JSON sources
+        run: |
+          pip install pyyaml jsonschema
+          mkdir -p sources/generated
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v1.schema.json \
+            --source sources/prescan_dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/PreScanDPIA.json
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v1.schema.json \
+            --source sources/dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/DPIA.json
+
+      - name: Type check backend
+        run: cd apps/boekhouding-backend && npx tsc --noEmit
+
+      - name: Type check frontend
+        run: cd apps/boekhouding-frontend && npx vue-tsc --noEmit
+
+      - name: Type check standalone form
+        run: cd apps/standalone-form && npx vue-tsc --noEmit
+
+      - name: Run backend tests
+        run: pnpm --filter boekhouding-backend test

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type DPIASnapshot } from '@overheid-assessment/core'
+import { FormType, type AssessmentState } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -169,11 +169,11 @@ const readFileAsJson = (file: File): Promise<unknown> => {
   })
 }
 
-const buildPrescanSnapshot = (prescanTaskState: unknown, prescanAnswers: unknown): DPIASnapshot => {
+const buildPrescanState = (prescanTaskState: unknown, prescanAnswers: unknown): AssessmentState => {
   return {
-    metadata: { savedAt: new Date().toISOString(), activeNamespace: FormType.DPIA },
-    taskState: { [FormType.PRE_SCAN]: prescanTaskState } as DPIASnapshot['taskState'],
-    answers: { [FormType.PRE_SCAN]: prescanAnswers } as DPIASnapshot['answers'],
+    metadata: { createdAt: new Date().toISOString(), activeNamespace: FormType.DPIA },
+    taskState: { [FormType.PRE_SCAN]: prescanTaskState } as AssessmentState['taskState'],
+    answers: { [FormType.PRE_SCAN]: prescanAnswers } as AssessmentState['answers'],
   }
 }
 
@@ -209,16 +209,16 @@ const submitDpiaDialog = async () => {
       return
     }
     const prescanForm = await assessmentsApi.get(selectedPrescanId.value)
-    const snapshot = prescanForm.snapshot as DPIASnapshot | undefined
-    if (!snapshot?.taskState?.[FormType.PRE_SCAN] || !snapshot?.answers?.[FormType.PRE_SCAN]) {
+    const prescanState = prescanForm.state as AssessmentState | undefined
+    if (!prescanState?.taskState?.[FormType.PRE_SCAN] || !prescanState?.answers?.[FormType.PRE_SCAN]) {
       dialogError.value = 'De geselecteerde pre-scan bevat geen ingevulde gegevens'
       return
     }
-    const initialSnapshot = buildPrescanSnapshot(
-      snapshot.taskState[FormType.PRE_SCAN],
-      snapshot.answers[FormType.PRE_SCAN],
+    const initialState = buildPrescanState(
+      prescanState.taskState[FormType.PRE_SCAN],
+      prescanState.answers[FormType.PRE_SCAN],
     )
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialSnapshot)
+    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -229,17 +229,17 @@ const submitDpiaDialog = async () => {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
-    const json = await readFileAsJson(uploadFile.value) as DPIASnapshot
+    const json = await readFileAsJson(uploadFile.value) as AssessmentState
     const prescanAnswers = json.answers?.[FormType.PRE_SCAN]
     if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
       dialogError.value = 'Het bestand bevat geen pre-scan antwoorden'
       return
     }
-    const initialSnapshot = buildPrescanSnapshot(
+    const initialState = buildPrescanState(
       json.taskState?.[FormType.PRE_SCAN],
       prescanAnswers,
     )
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialSnapshot)
+    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -250,7 +250,7 @@ const submitDpiaDialog = async () => {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
-    const json = await readFileAsJson(uploadFile.value) as DPIASnapshot
+    const json = await readFileAsJson(uploadFile.value) as AssessmentState
     const dpiaAnswers = json.answers?.[FormType.DPIA]
     if (!dpiaAnswers || Object.keys(dpiaAnswers).length === 0) {
       dialogError.value = 'Het bestand bevat geen DPIA-antwoorden'
@@ -274,7 +274,7 @@ const submitPrescanDialog = async () => {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
-    const json = await readFileAsJson(uploadFile.value) as DPIASnapshot
+    const json = await readFileAsJson(uploadFile.value) as AssessmentState
     const prescanAnswers = json.answers?.[FormType.PRE_SCAN]
     if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
       dialogError.value = 'Het bestand bevat geen pre-scan antwoorden'

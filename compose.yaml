@@ -62,7 +62,7 @@ services:
       context: .
       dockerfile: apps/standalone-form/Containerfile.dev
     ports:
-      - "5176:5175"
+      - "5175:5175"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5175/ || exit 1"]
       interval: 5s

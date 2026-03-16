@@ -4,7 +4,7 @@ import { FormType } from './dpia'
 
 export const OUTPUT_SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
 
-export interface DPIASnapshotMetadata {
+export interface AssessmentStateMetadata {
   createdAt: string
   activeNamespace?: FormType
   urn?: string
@@ -17,9 +17,9 @@ export interface DPIATaskState {
 }
 
 // Contains namespaced state (used for persistence — localStorage, API)
-export interface DPIASnapshot {
+export interface AssessmentState {
   $schema?: string
-  metadata: DPIASnapshotMetadata
+  metadata: AssessmentStateMetadata
   taskState?: Partial<Record<FormType, DPIATaskState>>
   answers: Partial<Record<FormType, Record<string, Answer>>>
 }

@@ -1,8 +1,31 @@
 version: 2
 updates:
+  # npm — alle workspaces via root lockfile
   - package-ecosystem: "npm"
-    directory: "/apps/standalone-form/"
+    directory: "/"
     schedule:
       interval: weekly
     ignore:
       - dependency-name: "typescript"
+
+  # Container images
+  - package-ecosystem: "docker"
+    directory: "/apps/boekhouding-backend/"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "docker"
+    directory: "/apps/boekhouding-frontend/"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: weekly
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly

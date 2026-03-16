@@ -1,11 +1,11 @@
 import type { InjectionKey } from 'vue'
-import type { DPIASnapshot } from './models/dpiaSnapshot'
+import type { AssessmentState } from './models/assessmentState'
 import type { FormType } from './models/dpia'
 
 export interface PersistenceProvider {
   saveAppState(): void | Promise<void>
-  loadAppState(namespace?: FormType): DPIASnapshot | null | Promise<DPIASnapshot | null>
-  applyAppState(snapshot: DPIASnapshot): void
+  loadAppState(namespace?: FormType): AssessmentState | null | Promise<AssessmentState | null>
+  applyAppState(state: AssessmentState): void
   clearSavedState(namespace?: FormType): void | Promise<void>
   setupWatchers(): (() => void) | void
   /** Cancel any pending debounce and save immediately */

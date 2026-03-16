@@ -39,23 +39,37 @@ pnpm monorepo:
 
 ### Vereisten
 
-- Podman of Docker
+- **Volledige stack**: Podman of Docker
+- **Standalone formulier**: Node.js 22+ en [pnpm](https://pnpm.io/installation) (via `corepack enable`)
 
 ### Volledige stack
 
-Start PostgreSQL, Keycloak en de applicatie:
+Start PostgreSQL, Keycloak en de applicatie met één commando. Wil je alleen een formulier invullen zonder backend? Zie [Standalone formulier](#standalone-formulier).
 
 ```bash
 podman compose up -d
 ```
 
-| Service          | URL                                              |
-|------------------|--------------------------------------------------|
-| Frontend         | http://localhost:5174                            |
-| Backend API      | http://localhost:3000                            |
-| Keycloak admin   | http://localhost:8080 (`admin` / `admin`)        |
+| Service              | URL                                              |
+|----------------------|--------------------------------------------------|
+| Frontend             | http://localhost:5174                            |
+| Backend API          | http://localhost:3000                            |
+| Standalone formulier | http://localhost:5175                            |
+| Keycloak admin       | http://localhost:8080 (`admin` / `admin`)        |
 
-Testgebruikers: `jan@example.com` / `welkom123`, `piet@example.com` / `welkom123`
+Testgebruikers: `sam@example.com` / `welkom123`, `noor@example.com` / `welkom123`
+
+Vul de database met realistische testdata (vereist Node.js 22+ en pnpm):
+
+```bash
+corepack enable
+pnpm install
+cd apps/boekhouding-backend
+pnpm db:migrate   # eenmalig, na eerste start
+pnpm db:seed      # idempotent, kan herhaaldelijk gedraaid worden
+```
+
+Dit maakt drie projecten aan (een pre-scan met antwoorden, een DPIA met versiegeschiedenis, en een leeg project) gekoppeld aan de testgebruikers.
 
 ### Standalone formulier
 
@@ -84,6 +98,7 @@ pnpm build:frontend     # Frontend
 | `pnpm dev:frontend`   | Start frontend                            |
 | `pnpm db:generate`    | Genereer database-migraties               |
 | `pnpm db:migrate`     | Voer migraties uit                        |
+| `pnpm db:seed`        | Vul database met testdata (idempotent)    |
 | `pnpm lint`           | Lint de code                              |
 
 ## Assessment-bronbestanden

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import UiButton from './ui/UiButton.vue'
-import { type DPIASnapshot } from '../models/dpiaSnapshot'
+import { type AssessmentState } from '../models/assessmentState'
 import { importFromJson } from '../utils/jsonExport'
 import { useTaskStore } from '../stores/tasks'
 
 const emit = defineEmits<{
-  (e: 'start', fileData?: DPIASnapshot): void
+  (e: 'start', fileData?: AssessmentState): void
 }>()
 
 const uploadedFile = ref<File | null>(null)

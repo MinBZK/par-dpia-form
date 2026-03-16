@@ -10,7 +10,7 @@ import LiveResults from './LiveResults.vue'
 import { useTaskDependencies } from '../composables/useTaskDependencies'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
 import { DPIA, FormType } from '../models/dpia'
-import { type DPIASnapshot } from '../models/dpiaSnapshot'
+import { type AssessmentState } from '../models/assessmentState'
 import { type NavigationFunctions } from '../models/navigation'
 import { useAnswerStore } from '../stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
@@ -159,7 +159,7 @@ const handleExportPdf = async () => {
   }
 }
 
-const handleStart = (fileData?: DPIASnapshot) => {
+const handleStart = (fileData?: AssessmentState) => {
   if (fileData) {
     // Apply state for all namespaces
     persistence.applyAppState(fileData)
@@ -209,8 +209,8 @@ const isSigningTask = computed(() => {
 
 <template>
   <Banner v-if="showBanner" />
-  <div v-if="isLoading">
-    <p>Ophalen van taken ...</p>
+  <div v-if="isLoading" class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md">
+    <p>Ophalen van taken...</p>
   </div>
 
   <!-- Show decoding error if decoding has failed. -->

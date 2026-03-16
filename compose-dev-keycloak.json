@@ -112,10 +112,10 @@
   ],
   "users": [
     {
-      "username": "jan@example.com",
-      "email": "jan@example.com",
-      "firstName": "Jan",
-      "lastName": "de Vries",
+      "username": "sam@example.com",
+      "email": "sam@example.com",
+      "firstName": "Sam",
+      "lastName": "van der Berg",
       "enabled": true,
       "emailVerified": true,
       "credentials": [
@@ -127,10 +127,10 @@
       ]
     },
     {
-      "username": "piet@example.com",
-      "email": "piet@example.com",
-      "firstName": "Piet",
-      "lastName": "Bakker",
+      "username": "noor@example.com",
+      "email": "noor@example.com",
+      "firstName": "Noor",
+      "lastName": "Dijkstra",
       "enabled": true,
       "emailVerified": true,
       "credentials": [

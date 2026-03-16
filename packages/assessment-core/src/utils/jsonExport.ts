@@ -1,12 +1,12 @@
-import { type DPIASnapshot, type AssessmentOutput, OUTPUT_SCHEMA_URL } from '../models/dpiaSnapshot'
+import { type AssessmentState, type AssessmentOutput, OUTPUT_SCHEMA_URL } from '../models/assessmentState'
 import { type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType } from '../stores/answers'
 import { FormType } from '../models/dpia'
 import { generateFilename } from './fileName'
 import { useSchemaStore } from '../stores/schemas'
-import { migrateSnapshotV1toV2 } from './snapshotMigration'
+import { migrateStateV1toV2 } from './stateMigration'
 
-export async function importFromJson(file: File, activeNamespace: FormType): Promise<DPIASnapshot> {
+export async function importFromJson(file: File, activeNamespace: FormType): Promise<AssessmentState> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 
@@ -17,10 +17,10 @@ export async function importFromJson(file: File, activeNamespace: FormType): Pro
           return
         }
 
-        const data = JSON.parse(event.target.result) as DPIASnapshot
+        const data = JSON.parse(event.target.result) as AssessmentState
 
         if (!data.metadata || !data.answers) {
-          reject(new Error('File contains format incompatible with DPIASnapshot structure'))
+          reject(new Error('File contains format incompatible with AssessmentState structure'))
           return
         }
 
@@ -37,7 +37,7 @@ export async function importFromJson(file: File, activeNamespace: FormType): Pro
         if (hasDPIA) urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA)
         if (hasPreScan) urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN)
 
-        resolve(migrateSnapshotV1toV2(data, urnLookup))
+        resolve(migrateStateV1toV2(data, urnLookup))
       } catch (error) {
         if (error instanceof Error) {
           reject(error)
@@ -59,7 +59,7 @@ export async function exportToJson(
   filename?: string,
 ): Promise<void> {
   try {
-    // Create snapshot data
+    // Create output data
     const activeNamespace = taskStore.activeNamespace
     const schemaStore = useSchemaStore()
 

@@ -17,6 +17,7 @@ import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
+import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
 
 const props = defineProps<{
   assessmentId: string
@@ -56,8 +57,12 @@ watch(deleteModalOpen, (open) => {
 })
 
 // Provide API persistence for this assessment
-const persistence = createApiPersistence(props.assessmentId)
+const { conflictState, ...persistence } = createApiPersistence(props.assessmentId)
 provide(PERSISTENCE_KEY, persistence)
+
+function handleConflictResolve(resolutions: Map<string, 'mine' | 'theirs'>) {
+  conflictState.resolve(resolutions)
+}
 
 // Map assessment_type to FormType enum
 const assessmentTypeMap: Record<string, FormType> = {
@@ -95,11 +100,11 @@ onMounted(async () => {
     taskStore.setActiveNamespace(namespace)
     answerStore.setActiveNamespace(namespace)
 
-    // If this is a DPIA with PRE_SCAN data in the snapshot, initialize the PRE_SCAN
+    // If this is a DPIA with PRE_SCAN data in the state, initialize the PRE_SCAN
     // task structure so that usePreScanReferences can find pre-scan tasks and answers.
-    if (namespace === FormType.DPIA && assessment.value.snapshot) {
-      const snapshot = assessment.value.snapshot as { answers?: Record<string, unknown> }
-      if (snapshot.answers?.[FormType.PRE_SCAN] && Object.keys(snapshot.answers[FormType.PRE_SCAN] as object).length > 0) {
+    if (namespace === FormType.DPIA && assessment.value.state) {
+      const loadedState = assessment.value.state as { answers?: Record<string, unknown> }
+      if (loadedState.answers?.[FormType.PRE_SCAN] && Object.keys(loadedState.answers[FormType.PRE_SCAN] as object).length > 0) {
         const preScanSchema = schemaStore.getSchema(FormType.PRE_SCAN)
         if (preScanSchema && !taskStore.isInitialized[FormType.PRE_SCAN]) {
           const prevNamespace = taskStore.activeNamespace
@@ -313,6 +318,13 @@ const confirmDelete = async () => {
       />
     </div>
   </template>
+
+  <!-- Conflict resolution modal -->
+  <ConflictResolutionDialog
+    :active="conflictState.active"
+    :fields="conflictState.fields"
+    @resolve="handleConflictResolve"
+  />
 
   <!-- Delete confirmation modal -->
   <dialog ref="deleteDialogRef" class="confirm-dialog" @close="deleteModalOpen = false; deleteConfirmInput = ''">
