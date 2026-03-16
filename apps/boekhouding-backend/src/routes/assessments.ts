@@ -497,4 +497,3 @@ export async function assessmentRoutes(app: FastifyInstance) {
     return edits
   })
 }
-

@@ -32,11 +32,13 @@ def main() -> None:
             name = pkg.get("name", "unknown")
             versions = pkg.get("versions", [])
             version = versions[0] if versions else "?"
-            all_packages.append({
-                "name": name,
-                "version": version,
-                "license": license_type,
-            })
+            all_packages.append(
+                {
+                    "name": name,
+                    "version": version,
+                    "license": license_type,
+                }
+            )
 
     all_packages.sort(key=lambda p: p["name"].lower())
 
@@ -54,7 +56,9 @@ def main() -> None:
     with open("LICENSES.txt", "w") as f:
         f.write(output)
 
-    print(f"LICENSES.txt gegenereerd: {len(all_packages)} packages, {len(license_types)} licentietypes")
+    print(
+        f"LICENSES.txt gegenereerd: {len(all_packages)} packages, {len(license_types)} licentietypes"
+    )
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@
   "compilerOptions": {
     "composite": true,
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",

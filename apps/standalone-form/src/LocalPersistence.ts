@@ -108,8 +108,9 @@ export function createLocalPersistence(): PersistenceProvider {
     }
   }
 
-  function clearSavedState(namespace: string): void {
-    const storageKey = getStorageKey(namespace)
+  function clearSavedState(namespace?: FormType): void {
+    const ns = namespace ?? taskStore.activeNamespace
+    const storageKey = getStorageKey(ns)
     localStorage.removeItem(storageKey)
   }
 

@@ -24,12 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -55,19 +55,20 @@ jobs:
             --output-md docs/questions/questions_DPIA.md
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'apps/standalone-form/package-lock.json'
+          node-version: '22'
+
+      - name: Enable pnpm via corepack
+        run: corepack enable
 
       - name: Install Node dependencies
-        run: cd apps/standalone-form && npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build the Vue application
         run: |
           cd apps/standalone-form
-          npm run build
+          pnpm build
 
       - name: Create version.json for tracking
         run: |
