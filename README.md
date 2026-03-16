@@ -47,7 +47,8 @@ pnpm monorepo:
 Start PostgreSQL, Keycloak en de applicatie met één commando. Wil je alleen een formulier invullen zonder backend? Zie [Standalone formulier](#standalone-formulier).
 
 ```bash
-podman compose up -d
+podman compose -f containers/compose.dev.yaml up -d
+pnpm db:seed  # testdata laden (idempotent)
 ```
 
 | Service              | URL                                              |
@@ -59,17 +60,7 @@ podman compose up -d
 
 Testgebruikers: `sam@example.com` / `welkom123`, `noor@example.com` / `welkom123`
 
-Vul de database met realistische testdata (vereist Node.js 22+ en pnpm):
-
-```bash
-corepack enable
-pnpm install
-cd apps/boekhouding-backend
-pnpm db:migrate   # eenmalig, na eerste start
-pnpm db:seed      # idempotent, kan herhaaldelijk gedraaid worden
-```
-
-Dit maakt drie projecten aan (een pre-scan met antwoorden, een DPIA met versiegeschiedenis, en een leeg project) gekoppeld aan de testgebruikers.
+De seed maakt drie projecten aan (een pre-scan met antwoorden, een DPIA met versiegeschiedenis, en een leeg project) gekoppeld aan de testgebruikers. Database-migraties draaien automatisch bij het starten van de backend container.
 
 ### Standalone formulier
 

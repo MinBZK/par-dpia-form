@@ -1,0 +1,6 @@
+{
+  "keycloakUrl": "${OIDC_URL}",
+  "keycloakRealm": "${OIDC_REALM}",
+  "keycloakClientId": "${OIDC_CLIENT_ID}",
+  "standaloneUrl": "${STANDALONE_URL}"
+}

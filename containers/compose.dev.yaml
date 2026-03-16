@@ -35,8 +35,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: apps/boekhouding-backend/Containerfile
+      context: ..
+      dockerfile: containers/backend/Containerfile
     ports:
       - "3000:3000"
     healthcheck:
@@ -45,11 +45,12 @@ services:
       timeout: 3s
       retries: 5
     environment:
-      DATABASE_URL: postgresql://parassessment:parassessment@postgres:5432/parassessment
+      DATABASE_SERVER_FULL: postgresql://parassessment:parassessment@postgres:5432/parassessment
       CORS_ORIGIN: http://localhost:5174
-      KEYCLOAK_ISSUER: http://localhost:8080/realms/assessment-boekhouding
-      KEYCLOAK_JWKS_URI: http://keycloak:8080/realms/assessment-boekhouding/protocol/openid-connect/certs
-      KEYCLOAK_AUDIENCE: boekhouding-frontend
+      OIDC_URL: http://localhost:8080
+      OIDC_INTERNAL_URL: http://keycloak:8080
+      OIDC_REALM: assessment-boekhouding
+      OIDC_CLIENT_ID: boekhouding-frontend
       NODE_ENV: development
     depends_on:
       postgres:
@@ -59,8 +60,8 @@ services:
 
   standalone:
     build:
-      context: .
-      dockerfile: apps/standalone-form/Containerfile.dev
+      context: ..
+      dockerfile: containers/standalone/Containerfile.dev
     ports:
       - "5175:5175"
     healthcheck:
@@ -70,16 +71,16 @@ services:
       retries: 5
     command: ["pnpm", "--filter", "standalone-form", "dev"]
     volumes:
-      - ./packages/assessment-core/src:/app/packages/assessment-core/src
-      - ./apps/standalone-form/src:/app/apps/standalone-form/src
-      - ./apps/standalone-form/index.html:/app/apps/standalone-form/index.html
-      - ./apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
-      - ./sources:/app/sources
+      - ../packages/assessment-core/src:/app/packages/assessment-core/src
+      - ../apps/standalone-form/src:/app/apps/standalone-form/src
+      - ../apps/standalone-form/index.html:/app/apps/standalone-form/index.html
+      - ../apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
+      - ../sources:/app/sources
 
   frontend:
     build:
-      context: .
-      dockerfile: apps/boekhouding-frontend/Containerfile.dev
+      context: ..
+      dockerfile: containers/frontend/Containerfile.dev
     ports:
       - "5174:5174"
     healthcheck:
@@ -94,11 +95,11 @@ services:
       VITE_KEYCLOAK_REALM: assessment-boekhouding
       VITE_KEYCLOAK_CLIENT_ID: boekhouding-frontend
     volumes:
-      - ./packages/assessment-core/src:/app/packages/assessment-core/src
-      - ./apps/boekhouding-frontend/src:/app/apps/boekhouding-frontend/src
-      - ./apps/boekhouding-frontend/index.html:/app/apps/boekhouding-frontend/index.html
-      - ./apps/boekhouding-frontend/vite.config.ts:/app/apps/boekhouding-frontend/vite.config.ts
-      - ./sources:/app/sources
+      - ../packages/assessment-core/src:/app/packages/assessment-core/src
+      - ../apps/boekhouding-frontend/src:/app/apps/boekhouding-frontend/src
+      - ../apps/boekhouding-frontend/index.html:/app/apps/boekhouding-frontend/index.html
+      - ../apps/boekhouding-frontend/vite.config.ts:/app/apps/boekhouding-frontend/vite.config.ts
+      - ../sources:/app/sources
     depends_on:
       - backend
 

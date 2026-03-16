@@ -11,6 +11,7 @@ pnpm monorepo met workspaces:
 - `apps/boekhouding-backend` — Fastify REST API, PostgreSQL via Drizzle ORM
 - `apps/standalone-form` — standalone formulier zonder backend (single HTML export)
 - `sources/` — YAML-bronnen voor DPIA en Pre-scan assessments
+- `containers/` — Containerfiles, nginx.conf, compose.yaml voor development en productie
 
 ## Conventies
 
@@ -25,7 +26,8 @@ pnpm monorepo met workspaces:
 
 ```bash
 # Volledige stack (backend + frontend + Keycloak + PostgreSQL)
-podman compose up -d
+podman compose -f containers/compose.dev.yaml up -d
+pnpm db:seed  # testdata laden (idempotent, na eerste keer optioneel)
 
 # Alleen standalone formulier (geen backend nodig)
 corepack enable   # activeert pnpm via Node.js
@@ -62,11 +64,23 @@ pnpm dev
 
 ## Keycloak dev-omgeving
 
-- Config: `compose-dev-keycloak.json` (realm import bij eerste start)
+- Config: `containers/compose-dev-keycloak.json` (realm import bij eerste start)
 - Admin: `admin` / `admin` op http://localhost:8080
 - Testgebruikers: `sam@example.com` / `welkom123`, `noor@example.com` / `welkom123`
-- Na wijziging realm config: `podman compose down -v && podman compose up -d` (volumes verwijderen zodat reimport plaatsvindt)
-- Na wijziging backend/frontend code in containers: `podman compose up -d --build` (herbouw images)
+- Na wijziging realm config: `podman compose -f containers/compose.dev.yaml down -v && podman compose -f containers/compose.dev.yaml up -d`
+- Na wijziging backend/frontend code in containers: `podman compose -f containers/compose.dev.yaml up -d --build`
+
+## Containers & CI/CD
+
+- Container config: `containers/` directory met Containerfiles, nginx.conf, compose.dev.yaml
+- Frontend: `nginxinc/nginx-unprivileged` op poort 8080, security headers conform NCSC/BIO2
+- Lokaal bouwen: `podman build -f containers/frontend/Containerfile -t frontend .` (vereist `sources/generated/`)
+- CI: GitHub Actions workflows in `.github/workflows/`:
+  - `build-standalone.yaml` — bouwt standalone formulier (main branch)
+  - `build-containers.yaml` — bouwt frontend + backend containers → GHCR (experimenteel branch)
+  - `release-and-deploy.yaml` — release naar GitHub Pages
+  - `test.yaml` — type-check en tests
+- GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
 
 ## Debugging en verificatie
 

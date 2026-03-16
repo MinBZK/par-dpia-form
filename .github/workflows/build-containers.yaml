@@ -1,0 +1,128 @@
+name: Build Experimental Containers
+
+on:
+  push:
+    branches:
+      - experimenteel/samenwerken
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+
+jobs:
+  generate-sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+
+      - name: Install Python dependencies
+        run: pip install pyyaml jsonschema
+
+      - name: Generate JSON from YAML definitions
+        run: |
+          mkdir -p sources/generated
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v1.schema.json \
+            --source sources/prescan_dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/PreScanDPIA.json \
+            --output-md docs/questions/questions_prescan_DPIA.md
+
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v1.schema.json \
+            --source sources/dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/DPIA.json \
+            --output-md docs/questions/questions_DPIA.md
+
+      - name: Upload generated sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-sources
+          path: sources/generated/
+          retention-days: 1
+
+  build-backend:
+    needs: generate-sources
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download generated sources
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-sources
+          path: sources/generated/
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.BACKEND_IMAGE }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/backend/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-frontend:
+    needs: generate-sources
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download generated sources
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-sources
+          path: sources/generated/
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.FRONTEND_IMAGE }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/frontend/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

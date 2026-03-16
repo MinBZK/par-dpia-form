@@ -44,8 +44,8 @@ const handleCreate = async () => {
       <p>Projecten laden...</p>
     </div>
 
-    <div v-else-if="error" class="rvo-alert rvo-alert--warning rvo-margin-block-end--lg">
-      <p>{{ error }}</p>
+    <div v-else-if="error" class="rvo-alert rvo-alert--warning">
+      {{ error }}
     </div>
 
     <template v-else>

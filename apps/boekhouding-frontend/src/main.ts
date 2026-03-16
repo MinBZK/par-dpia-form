@@ -2,6 +2,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { useSchemaStore } from '@overheid-assessment/core'
+import { loadConfig } from './config'
 import { useAuth } from './composables/useAuth'
 
 import '@nl-rvo/assets/fonts/index.css'
@@ -11,6 +12,7 @@ import '@nl-rvo/component-library-css/dist/index.css'
 import '@nl-rvo/design-tokens/dist/index.css'
 import './assets/app.css'
 
+await loadConfig()
 const { init } = useAuth()
 
 // Keycloak redirects to login page before the app mounts.

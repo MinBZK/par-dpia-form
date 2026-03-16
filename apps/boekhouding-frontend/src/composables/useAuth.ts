@@ -1,20 +1,24 @@
 import { ref, computed } from 'vue'
 import Keycloak from 'keycloak-js'
+import { getConfig } from '../config'
 
-const keycloak = new Keycloak({
-  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
-  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'assessment-boekhouding',
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'boekhouding-frontend',
-})
+let keycloak: Keycloak
 
 const user = ref<{ id: string; email: string; displayName: string } | null>(null)
 const initialized = ref(false)
 
 export function useAuth() {
-  const isAuthenticated = computed(() => keycloak.authenticated === true)
+  const isAuthenticated = computed(() => keycloak?.authenticated === true)
 
   async function init() {
     if (initialized.value) return
+
+    const config = getConfig()
+    keycloak = new Keycloak({
+      url: config.keycloakUrl,
+      realm: config.keycloakRealm,
+      clientId: config.keycloakClientId,
+    })
 
     const authenticated = await keycloak.init({
       onLoad: 'check-sso',
