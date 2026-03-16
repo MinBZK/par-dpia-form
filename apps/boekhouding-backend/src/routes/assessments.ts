@@ -131,7 +131,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     const [initialVersion] = await db.insert(assessmentVersions).values({
       assessmentInstanceId: assessment.id,
       version: 1,
-      savedBy: userId,
+      createdBy: userId,
     }).returning()
 
     // Record initial_state edit so state can be rebuilt from edits alone
@@ -232,13 +232,56 @@ export async function assessmentRoutes(app: FastifyInstance) {
       return assessment
     }
 
+    // Check if we can consolidate into the latest version (same user, < 15 min, no special flags)
+    const CONSOLIDATION_WINDOW_MS = 15 * 60 * 1000
+    const [lastVersion] = await db
+      .select()
+      .from(assessmentVersions)
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
+      .orderBy(desc(assessmentVersions.version))
+      .limit(1)
+
+    const canConsolidate = lastVersion
+      && lastVersion.createdBy === userId
+      && !forceNewVersion
+      && !changeDescription
+      && (Date.now() - lastVersion.createdAt.getTime()) < CONSOLIDATION_WINDOW_MS
+
+    if (canConsolidate) {
+      // Consolidate: add edits to existing version, update timestamps
+      if (edits.length > 0) {
+        await db.insert(assessmentEdits).values(
+          edits.map(edit => ({ ...edit, assessmentVersionId: lastVersion.id })),
+        )
+      }
+
+      await db
+        .update(assessmentVersions)
+        .set({ updatedAt: new Date() })
+        .where(eq(assessmentVersions.id, lastVersion.id))
+
+      const updateData: Record<string, unknown> = {
+        cachedState: state,
+        updatedAt: new Date(),
+      }
+      if (name) updateData.name = name
+
+      const [updated] = await db
+        .update(assessmentInstances)
+        .set(updateData)
+        .where(eq(assessmentInstances.id, assessmentId))
+        .returning()
+
+      return updated
+    }
+
+    // New version
     const nextVersion = assessment.currentVersion + 1
 
-    // Create new version checkpoint
     const [versionRow] = await db.insert(assessmentVersions).values({
       assessmentInstanceId: assessmentId,
       version: nextVersion,
-      savedBy: userId,
+      createdBy: userId,
       changeDescription,
     }).returning()
 
@@ -290,13 +333,14 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .select({
         id: assessmentVersions.id,
         version: assessmentVersions.version,
-        savedBy: assessmentVersions.savedBy,
-        savedByName: users.displayName,
-        savedAt: assessmentVersions.savedAt,
+        createdBy: assessmentVersions.createdBy,
+        createdByName: users.displayName,
+        createdAt: assessmentVersions.createdAt,
+        updatedAt: assessmentVersions.updatedAt,
         changeDescription: assessmentVersions.changeDescription,
       })
       .from(assessmentVersions)
-      .innerJoin(users, eq(assessmentVersions.savedBy, users.id))
+      .innerJoin(users, eq(assessmentVersions.createdBy, users.id))
       .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentVersions.version))
 
@@ -319,8 +363,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .select({
         id: assessmentVersions.id,
         version: assessmentVersions.version,
-        savedBy: assessmentVersions.savedBy,
-        savedAt: assessmentVersions.savedAt,
+        createdBy: assessmentVersions.createdBy,
+        createdAt: assessmentVersions.createdAt,
+        updatedAt: assessmentVersions.updatedAt,
         changeDescription: assessmentVersions.changeDescription,
       })
       .from(assessmentVersions)

@@ -4,44 +4,60 @@ import { diffStates } from '../src/utils/diffStates.js'
 const USER_A = 'user-a'
 const USER_B = 'user-b'
 
+const CONSOLIDATION_WINDOW_MS = 15 * 60 * 1000
+
 describe('version consolidation logic', () => {
   // These tests verify the decision logic that the PUT route uses.
   // The route consolidates (updates in-place) when:
-  //   1. Same user as current version's savedBy
+  //   1. Same user as current version's createdBy
   //   2. No forceNewVersion flag
   //   3. No changeDescription (like a restore)
+  //   4. Version was created less than 15 minutes ago
   // Otherwise it creates a new version.
 
   describe('consolidation decision', () => {
-    // Simulating the decision logic from the route
     function shouldConsolidate(
-      currentVersionSavedBy: string,
+      currentVersionCreatedBy: string,
       requestUserId: string,
       forceNewVersion: boolean,
       changeDescription?: string,
+      elapsedMs: number = 0,
     ): boolean {
-      const sameUser = currentVersionSavedBy === requestUserId
-      return sameUser && !forceNewVersion && !changeDescription
+      const sameUser = currentVersionCreatedBy === requestUserId
+      const withinWindow = elapsedMs < CONSOLIDATION_WINDOW_MS
+      return sameUser && !forceNewVersion && !changeDescription && withinWindow
     }
 
-    it('consolidates when same user, no flags', () => {
-      expect(shouldConsolidate(USER_A, USER_A, false)).toBe(true)
+    it('consolidates when same user, no flags, within time window', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 0)).toBe(true)
+    })
+
+    it('consolidates when same user, 14 minutes elapsed', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 14 * 60 * 1000)).toBe(true)
+    })
+
+    it('does not consolidate when same user but > 15 minutes elapsed', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 16 * 60 * 1000)).toBe(false)
+    })
+
+    it('does not consolidate at exactly 15 minutes', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 15 * 60 * 1000)).toBe(false)
     })
 
     it('does not consolidate when different user', () => {
-      expect(shouldConsolidate(USER_A, USER_B, false)).toBe(false)
+      expect(shouldConsolidate(USER_A, USER_B, false, undefined, 0)).toBe(false)
+    })
+
+    it('does not consolidate when different user even within time window', () => {
+      expect(shouldConsolidate(USER_A, USER_B, false, undefined, 5 * 60 * 1000)).toBe(false)
     })
 
     it('does not consolidate when forceNewVersion is true', () => {
-      expect(shouldConsolidate(USER_A, USER_A, true)).toBe(false)
+      expect(shouldConsolidate(USER_A, USER_A, true, undefined, 0)).toBe(false)
     })
 
     it('does not consolidate when changeDescription is set (e.g. restore)', () => {
-      expect(shouldConsolidate(USER_A, USER_A, false, 'Hersteld naar versie 3')).toBe(false)
-    })
-
-    it('does not consolidate when different user even with no flags', () => {
-      expect(shouldConsolidate(USER_B, USER_A, false, undefined)).toBe(false)
+      expect(shouldConsolidate(USER_A, USER_A, false, 'Hersteld naar versie 3', 0)).toBe(false)
     })
   })
 
@@ -115,6 +131,80 @@ describe('version consolidation logic', () => {
         oldValue: { value: 'user-a-version' },
         newValue: { value: 'user-b-version' },
       })
+    })
+  })
+
+  describe('consolidation preserves edit history correctly', () => {
+    it('consolidated saves produce independent edits that can be collapsed in the UI', () => {
+      // User changes field A in save 1, then changes field A again in save 2 (consolidated)
+      // Both edits are stored — the UI collapses them (first old → last new)
+      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'first' } } } }
+      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'second' } } } }
+      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'third' } } } }
+
+      const edits1 = diffStates(state0, state1, USER_A)
+      const edits2 = diffStates(state1, state2, USER_A)
+
+      // Both produce edits — in a consolidated version these would be stored together
+      expect(edits1).toHaveLength(1)
+      expect(edits2).toHaveLength(1)
+
+      // The full chain is preserved: first→second, second→third
+      expect(edits1[0]).toMatchObject({ oldValue: { value: 'first' }, newValue: { value: 'second' } })
+      expect(edits2[0]).toMatchObject({ oldValue: { value: 'second' }, newValue: { value: 'third' } })
+    })
+
+    it('same field edited twice produces two edits that the UI can collapse to net change', () => {
+      // User changes field 1.1 to "aap", then corrects to "beer" in a second consolidated save
+      const state0 = { metadata: {}, answers: { dpia: {} } }
+      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'aap' } } } }
+      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'beer' } } } }
+
+      const edits1 = diffStates(state0, state1, USER_A)
+      const edits2 = diffStates(state1, state2, USER_A)
+
+      // Both edits exist independently (stored in same version during consolidation)
+      expect(edits1).toHaveLength(1)
+      expect(edits2).toHaveLength(1)
+      expect(edits1[0]).toMatchObject({ fieldId: 'dpia.1.1', oldValue: null, newValue: { value: 'aap' } })
+      expect(edits2[0]).toMatchObject({ fieldId: 'dpia.1.1', oldValue: { value: 'aap' }, newValue: { value: 'beer' } })
+
+      // When the UI collapses these: first oldValue (null) → last newValue ({value: 'beer'})
+      // This is the net change the user sees in the diff view
+    })
+
+    it('same field edited back to original produces two edits that cancel out', () => {
+      // User changes field, then changes it back — net diff is nothing
+      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'original' } } } }
+      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'changed' } } } }
+      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'original' } } } }
+
+      const edits1 = diffStates(state0, state1, USER_A)
+      const edits2 = diffStates(state1, state2, USER_A)
+
+      // Both edits are stored...
+      expect(edits1).toHaveLength(1)
+      expect(edits2).toHaveLength(1)
+
+      // ...but the UI collapse would see: oldValue={value:'original'} → newValue={value:'original'}
+      // and skip the field since JSON.stringify matches. This is handled in VersionHistory.vue.
+    })
+
+    it('mixed field edits across consolidated saves track each field independently', () => {
+      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'a' }, '1.2': { value: 'x' } } } }
+      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' }, '1.2': { value: 'x' } } } }
+      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' }, '1.2': { value: 'y' } } } }
+
+      const edits1 = diffStates(state0, state1, USER_A)
+      const edits2 = diffStates(state1, state2, USER_A)
+
+      // Save 1 changes field 1.1 only
+      expect(edits1).toHaveLength(1)
+      expect(edits1[0].fieldId).toBe('dpia.1.1')
+
+      // Save 2 changes field 1.2 only
+      expect(edits2).toHaveLength(1)
+      expect(edits2[0].fieldId).toBe('dpia.1.2')
     })
   })
 

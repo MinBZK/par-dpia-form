@@ -170,6 +170,31 @@ describe('rebuildState replay logic', () => {
     expect((result as any).taskState.dpia.completedRootTaskIds).toContain('1')
   })
 
+  it('rebuild with same field edited multiple times in a consolidated version uses last value', () => {
+    // During consolidation, the same field may have multiple edits within one version.
+    // rebuildState replays in order, so the last edit for a field wins.
+    const result = replayEdits([
+      { fieldId: '__initial__', editType: 'initial_state', newValue: initialState },
+      // First save: user types "aap"
+      { fieldId: 'dpia.1.1', editType: 'answer_change', newValue: { value: 'aap' } },
+      // Second save (consolidated): user corrects to "beer"
+      { fieldId: 'dpia.1.1', editType: 'answer_change', newValue: { value: 'beer' } },
+      // Third save (consolidated): user changes again to "citroen"
+      { fieldId: 'dpia.1.1', editType: 'answer_change', newValue: { value: 'citroen' } },
+    ])
+    // Final state should have the last value
+    expect((result as any).answers.dpia['1.1']).toEqual({ value: 'citroen' })
+  })
+
+  it('rebuild with field added then removed in same consolidated version results in no field', () => {
+    const result = replayEdits([
+      { fieldId: '__initial__', editType: 'initial_state', newValue: initialState },
+      { fieldId: 'dpia.1.1', editType: 'answer_change', newValue: { value: 'temp' } },
+      { fieldId: 'dpia.1.1', editType: 'answer_change', newValue: null },
+    ])
+    expect((result as any).answers.dpia['1.1']).toBeUndefined()
+  })
+
   it('handles URN-based field IDs', () => {
     const result = replayEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initialState },

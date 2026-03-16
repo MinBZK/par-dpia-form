@@ -27,8 +27,9 @@ CREATE TABLE "assessment_versions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"assessment_instance_id" uuid NOT NULL,
 	"version" integer NOT NULL,
-	"saved_by" uuid NOT NULL,
-	"saved_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" uuid NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"change_description" text
 );
 --> statement-breakpoint
@@ -65,7 +66,7 @@ ALTER TABLE "assessment_edits" ADD CONSTRAINT "assessment_edits_edited_by_users_
 ALTER TABLE "assessment_instances" ADD CONSTRAINT "assessment_instances_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assessment_instances" ADD CONSTRAINT "assessment_instances_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "assessment_versions" ADD CONSTRAINT "assessment_versions_assessment_instance_id_assessment_instances_id_fk" FOREIGN KEY ("assessment_instance_id") REFERENCES "public"."assessment_instances"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "assessment_versions" ADD CONSTRAINT "assessment_versions_saved_by_users_id_fk" FOREIGN KEY ("saved_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "assessment_versions" ADD CONSTRAINT "assessment_versions_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_members" ADD CONSTRAINT "project_members_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "project_members" ADD CONSTRAINT "project_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "projects" ADD CONSTRAINT "projects_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

@@ -14,7 +14,7 @@ import { assessments, ApiError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
 import type { ConflictField } from './components/ConflictResolutionDialog.vue'
 
-const DEBOUNCE_MS = 2000
+const DEBOUNCE_MS = 500
 
 export interface ConflictState {
   active: boolean

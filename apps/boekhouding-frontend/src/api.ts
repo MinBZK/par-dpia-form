@@ -109,9 +109,10 @@ export interface AssessmentInstance {
 export interface AssessmentVersion {
   id: string
   version: number
-  savedBy: string
-  savedByName: string
-  savedAt: string
+  createdBy: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
   changeDescription: string | null
   state?: unknown
 }

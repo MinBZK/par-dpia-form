@@ -555,8 +555,8 @@ function mapEditsToDiffFields(
               </button>
             </span>
             <span class="version-col--nr">{{ version.version }}</span>
-            <span class="version-col--date">{{ formatDate(version.savedAt) }}</span>
-            <span class="version-col--who">{{ version.savedByName }}</span>
+            <span class="version-col--date">{{ formatDate(version.updatedAt) }}</span>
+            <span class="version-col--who">{{ version.createdByName }}</span>
             <span class="version-col--desc">
               <button
                 v-if="canEdit && version.changeDescription"

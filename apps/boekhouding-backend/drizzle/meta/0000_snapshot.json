@@ -217,14 +217,21 @@
           "primaryKey": false,
           "notNull": true
         },
-        "saved_by": {
-          "name": "saved_by",
+        "created_by": {
+          "name": "created_by",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "saved_at": {
-          "name": "saved_at",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -274,12 +281,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "assessment_versions_saved_by_users_id_fk": {
-          "name": "assessment_versions_saved_by_users_id_fk",
+        "assessment_versions_created_by_users_id_fk": {
+          "name": "assessment_versions_created_by_users_id_fk",
           "tableFrom": "assessment_versions",
           "tableTo": "users",
           "columnsFrom": [
-            "saved_by"
+            "created_by"
           ],
           "columnsTo": [
             "id"

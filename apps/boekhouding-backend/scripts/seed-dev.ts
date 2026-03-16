@@ -82,8 +82,7 @@ const [prescanInstance] = await db.insert(assessmentInstances).values({
 await db.insert(assessmentVersions).values({
   assessmentInstanceId: prescanInstance.id,
   version: 1,
-  state: prescanState,
-  savedBy: sam.id,
+  createdBy: sam.id,
   changeDescription: 'Eerste versie met basisgegevens ingevuld',
 })
 
@@ -159,15 +158,13 @@ await db.insert(assessmentVersions).values([
   {
     assessmentInstanceId: dpiaInstance.id,
     version: 1,
-    state: dpiaStateV1,
-    savedBy: noor.id,
+    createdBy: noor.id,
     changeDescription: 'Inleiding toegevoegd',
   },
   {
     assessmentInstanceId: dpiaInstance.id,
     version: 2,
-    state: dpiaStateV2,
-    savedBy: noor.id,
+    createdBy: noor.id,
     changeDescription: 'Voorstel uitgewerkt met details over camerasysteem',
   },
 ])

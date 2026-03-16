@@ -47,8 +47,9 @@ export const assessmentVersions = pgTable('assessment_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
   assessmentInstanceId: uuid('assessment_instance_id').notNull().references(() => assessmentInstances.id, { onDelete: 'cascade' }),
   version: integer('version').notNull(),
-  savedBy: uuid('saved_by').notNull().references(() => users.id),
-  savedAt: timestamp('saved_at', { withTimezone: true }).notNull().defaultNow(),
+  createdBy: uuid('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   changeDescription: text('change_description'),
 }, (table) => [
   uniqueIndex('assessment_version_unique').on(table.assessmentInstanceId, table.version),
