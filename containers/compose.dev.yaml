@@ -50,7 +50,7 @@ services:
       OIDC_URL: http://localhost:8080
       OIDC_INTERNAL_URL: http://keycloak:8080
       OIDC_REALM: assessment-boekhouding
-      OIDC_CLIENT_ID: boekhouding-frontend
+      OIDC_PUBLIC_CLIENT_ID: boekhouding-frontend
       NODE_ENV: development
     depends_on:
       postgres:

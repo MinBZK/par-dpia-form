@@ -37,12 +37,12 @@ ZAD ondersteunt geen init containers of jobs. De backend container draait migrat
 
 De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container start gegenereerd via `envsubst` uit env vars. In development (Vite dev server) wordt teruggevallen op `VITE_*` env vars.
 
-| Variabele        | Default                  | ZAD                           |
-|------------------|--------------------------|-------------------------------|
-| `OIDC_URL`       | `http://localhost:8080`  | Auto-inject door ZAD Keycloak |
-| `OIDC_REALM`     | `assessment-boekhouding` | Auto-inject door ZAD Keycloak |
-| `OIDC_CLIENT_ID` | `boekhouding-frontend`   | Auto-inject door ZAD Keycloak |
-| `STANDALONE_URL` | `/invulhulpen/`          | Default is correct            |
+| Variabele               | Default                  | ZAD                           |
+|-------------------------|--------------------------|-------------------------------|
+| `OIDC_URL`              | `http://localhost:8080`  | Auto-inject door ZAD Keycloak |
+| `OIDC_REALM`            | `assessment-boekhouding` | Auto-inject door ZAD Keycloak |
+| `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend`   | Auto-inject door ZAD Keycloak |
+| `STANDALONE_URL`        | `/invulhulpen/`          | Default is correct            |
 
 ### Backend (runtime)
 

@@ -13,6 +13,6 @@ export const config = {
   keycloak: {
     issuer: `${oidcUrl}/realms/${oidcRealm}`,
     jwksUri: `${oidcInternalUrl}/realms/${oidcRealm}/protocol/openid-connect/certs`,
-    audience: process.env.OIDC_CLIENT_ID || 'boekhouding-frontend',
+    audience: process.env.OIDC_PUBLIC_CLIENT_ID || 'boekhouding-frontend',
   },
 }

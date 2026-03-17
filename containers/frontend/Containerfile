@@ -52,7 +52,7 @@ COPY --chmod=755 containers/frontend/entrypoint.sh /entrypoint.sh
 
 ENV OIDC_URL=http://localhost:8080
 ENV OIDC_REALM=assessment-boekhouding
-ENV OIDC_CLIENT_ID=boekhouding-frontend
+ENV OIDC_PUBLIC_CLIENT_ID=boekhouding-frontend
 ENV STANDALONE_URL=/invulhulpen/
 
 EXPOSE 8080
