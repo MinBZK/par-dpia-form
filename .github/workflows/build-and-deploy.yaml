@@ -1,18 +1,20 @@
-name: Build Containers
+name: Build and Deploy
 
 on:
-  push:
-    branches:
-      - experimenteel/samenwerken
+  pull_request:
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
   BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+  PROJECT_ID: asses-k2n
+  DEPLOYMENT_NAME: productie
 
 jobs:
   generate-sources:
+    if: github.event.pull_request.number == 283 || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -50,6 +52,8 @@ jobs:
   build-backend:
     needs: generate-sources
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
     permissions:
       contents: read
       packages: write
@@ -87,9 +91,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Set image reference
+        id: image-ref
+        run: echo "image=${{ env.BACKEND_IMAGE }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
   build-frontend:
     needs: generate-sources
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
     permissions:
       contents: read
       packages: write
@@ -126,3 +136,31 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Set image reference
+        id: image-ref
+        run: echo "image=${{ env.FRONTEND_IMAGE }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Deploy frontend to ZAD
+        uses: RijksICTGilde/zad-actions/deploy@v2
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          component: frontend
+          image: ${{ needs.build-frontend.outputs.image }}
+
+      - name: Deploy backend to ZAD
+        uses: RijksICTGilde/zad-actions/deploy@v2
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          component: api
+          image: ${{ needs.build-backend.outputs.image }}
