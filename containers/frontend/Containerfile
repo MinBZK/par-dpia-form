@@ -26,6 +26,10 @@ COPY apps/boekhouding-frontend/ apps/boekhouding-frontend/
 WORKDIR /app/apps/standalone-form
 RUN npx vite build
 
+RUN mkdir -p /app/apps/boekhouding-frontend/public && \
+    cp /app/apps/boekhouding-frontend/node_modules/@nl-rvo/assets/images/favicon/favicon.ico \
+       /app/apps/boekhouding-frontend/public/favicon.ico
+
 # Build frontend SPA
 WORKDIR /app/apps/boekhouding-frontend
 RUN npx vite build

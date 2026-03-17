@@ -1,4 +1,4 @@
-name: Build Experimental Containers
+name: Build Containers
 
 on:
   push:
