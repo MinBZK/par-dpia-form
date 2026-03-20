@@ -109,7 +109,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h2 class="utrecht-heading-2">Klacht indienen</h2>
     <p>
       Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen
-      bij de <a href="https://autoriteitpersoonsgegevens.nl/klacht-indienen" target="_blank" rel="noopener">Autoriteit Persoonsgegevens</a>.
+      bij de <a href="https://www.autoriteitpersoonsgegevens.nl/een-tip-of-klacht-indienen-bij-de-ap" target="_blank" rel="noopener">Autoriteit Persoonsgegevens</a>.
     </p>
 
     <h2 class="utrecht-heading-2">Contact</h2>
