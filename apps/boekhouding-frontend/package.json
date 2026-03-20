@@ -8,7 +8,8 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "test": "vitest run"
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
@@ -16,8 +17,8 @@
     "@nl-rvo/design-tokens": "1.9.0",
     "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.40.0",
-    "pdfmake": "^0.3.6",
     "keycloak-js": "^26.0.7",
+    "pdfmake": "^0.3.6",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
@@ -28,6 +29,7 @@
     "npm-run-all2": "^8.0.4",
     "typescript": "~5.7.3",
     "vite": "^7.3.1",
+    "vitest": "^4.1.0",
     "vue-tsc": "^2.2.10"
   }
 }

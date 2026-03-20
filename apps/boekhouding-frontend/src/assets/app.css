@@ -367,6 +367,7 @@ a.card-link:hover {
 }
 
 .start-dialog__option-hint {
+  display: block;
   color: var(--rvo-color-grijs-400);
   font-size: var(--rvo-font-size-sm, 0.875rem);
 }

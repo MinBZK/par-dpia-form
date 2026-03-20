@@ -10,6 +10,7 @@ import {
   useCalculationStore,
   exportToJson,
   exportToMarkdown,
+  exportToPdf,
   PERSISTENCE_KEY,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
@@ -198,7 +199,6 @@ const handleVersionHistory = () => {
 
 const handleDownloadPdf = async () => {
   menuOpen.value = false
-  const { exportToPdf } = await import('@overheid-assessment/core')
   await exportToPdf(taskStore, answerStore, calculationStore)
 }
 

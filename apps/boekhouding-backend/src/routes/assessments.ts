@@ -242,6 +242,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .limit(1)
 
     const canConsolidate = lastVersion
+      && lastVersion.version !== 1
       && lastVersion.createdBy === userId
       && !forceNewVersion
       && !changeDescription

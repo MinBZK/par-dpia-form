@@ -8,6 +8,7 @@ import {
   type PersistenceProvider,
   type AssessmentState,
   migrateStateV1toV2,
+  applyStateToStores,
 } from '@overheid-assessment/core'
 
 function getStorageKey(namespace: string): string {
@@ -85,27 +86,7 @@ export function createLocalPersistence(): PersistenceProvider {
   }
 
   function applyAppState(state: AssessmentState): void {
-    if (state.taskState) {
-      for (const namespace of Object.keys(state.taskState) as FormType[]) {
-        const namespaceState = state.taskState[namespace]
-
-        if (namespaceState && Object.keys(namespaceState.taskInstances || {}).length > 0) {
-          taskStore.currentRootTaskId[namespace] = namespaceState.currentRootTaskId
-          taskStore.taskInstances[namespace] = {}
-          Object.assign(taskStore.taskInstances[namespace], namespaceState.taskInstances)
-          taskStore.completedRootTaskIds[namespace] = new Set(namespaceState.completedRootTaskIds)
-        }
-      }
-    }
-
-    if (state.answers) {
-      for (const namespace of Object.keys(state.answers) as FormType[]) {
-        if (state.answers[namespace] && Object.keys(state.answers[namespace]).length > 0) {
-          answerStore.answers[namespace] = {}
-          Object.assign(answerStore.answers[namespace], state.answers[namespace])
-        }
-      }
-    }
+    applyStateToStores(state, taskStore, answerStore)
   }
 
   function clearSavedState(namespace?: FormType): void {

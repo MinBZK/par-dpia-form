@@ -7,10 +7,7 @@ import {
   useTaskStore,
   useAnswerStore,
   useSchemaStore,
-  useCalculationStore,
   PERSISTENCE_KEY,
-  EXPORT_KEY,
-  exportToPdf,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import LandingView from './components/LandingView.vue'
@@ -26,15 +23,9 @@ import '@nl-rvo/design-tokens/dist/index.css'
 const persistence = createLocalPersistence()
 provide(PERSISTENCE_KEY, persistence)
 
-// Provide PDF export to Form.vue
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 const schemaStore = useSchemaStore()
-const calculationStore = useCalculationStore()
-
-provide(EXPORT_KEY, {
-  exportToPdf: () => exportToPdf(taskStore, answerStore, calculationStore),
-})
 
 const currentView = ref<ViewState>(ViewState.Landing)
 

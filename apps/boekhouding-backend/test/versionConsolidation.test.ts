@@ -22,14 +22,23 @@ describe('version consolidation logic', () => {
       forceNewVersion: boolean,
       changeDescription?: string,
       elapsedMs: number = 0,
+      versionNumber: number = 2,
     ): boolean {
       const sameUser = currentVersionCreatedBy === requestUserId
       const withinWindow = elapsedMs < CONSOLIDATION_WINDOW_MS
-      return sameUser && !forceNewVersion && !changeDescription && withinWindow
+      return versionNumber !== 1 && sameUser && !forceNewVersion && !changeDescription && withinWindow
     }
 
     it('consolidates when same user, no flags, within time window', () => {
       expect(shouldConsolidate(USER_A, USER_A, false, undefined, 0)).toBe(true)
+    })
+
+    it('never consolidates into version 1 (initial/imported state)', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 0, 1)).toBe(false)
+    })
+
+    it('consolidates into version 2 under same conditions', () => {
+      expect(shouldConsolidate(USER_A, USER_A, false, undefined, 0, 2)).toBe(true)
     })
 
     it('consolidates when same user, 14 minutes elapsed', () => {

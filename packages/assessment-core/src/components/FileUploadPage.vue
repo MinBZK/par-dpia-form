@@ -46,7 +46,7 @@ const startDpia = async () => {
   try {
     if (uploadedFile.value) {
       try {
-        const fileData = await importFromJson(uploadedFile.value, taskStore.activeNamespace)
+        const fileData = await importFromJson(uploadedFile.value)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {

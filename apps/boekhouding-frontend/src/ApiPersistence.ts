@@ -9,6 +9,7 @@ import {
   type AssessmentState,
   migrateStateV1toV2,
   getPlainTextWithoutDefinitions,
+  applyStateToStores,
 } from '@overheid-assessment/core'
 import { assessments, ApiError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
@@ -385,7 +386,6 @@ export function createApiPersistence(assessmentId: string) {
         if (!state.answers[namespace]) state.answers[namespace] = {}
         if (!state.taskState) state.taskState = {}
 
-        lastSavedState = JSON.parse(JSON.stringify(state))
         return state
       }
 
@@ -398,31 +398,7 @@ export function createApiPersistence(assessmentId: string) {
   }
 
   function applyAppState(state: AssessmentState): void {
-    if (state.taskState) {
-      for (const namespace of Object.keys(state.taskState) as FormType[]) {
-        const namespaceState = state.taskState[namespace]
-
-        if (namespaceState && Object.keys(namespaceState.taskInstances || {}).length > 0) {
-          // Only update currentRootTaskId if it's valid — rebuildState produces
-          // empty string which crashes task navigation
-          if (namespaceState.currentRootTaskId) {
-            taskStore.currentRootTaskId[namespace] = namespaceState.currentRootTaskId
-          }
-          taskStore.taskInstances[namespace] = {}
-          Object.assign(taskStore.taskInstances[namespace], namespaceState.taskInstances)
-          taskStore.completedRootTaskIds[namespace] = new Set(namespaceState.completedRootTaskIds)
-        }
-      }
-    }
-
-    if (state.answers) {
-      for (const namespace of Object.keys(state.answers) as FormType[]) {
-        if (state.answers[namespace] && Object.keys(state.answers[namespace]).length > 0) {
-          answerStore.answers[namespace] = {}
-          Object.assign(answerStore.answers[namespace], state.answers[namespace])
-        }
-      }
-    }
+    applyStateToStores(state, taskStore, answerStore)
   }
 
   async function clearSavedState(namespace: FormType): Promise<void> {
@@ -478,6 +454,7 @@ export function createApiPersistence(assessmentId: string) {
     clearSavedState,
     setupWatchers,
     flushSave,
+    snapshotBaseline: () => { lastSavedState = JSON.parse(JSON.stringify(buildState())) },
   }
 
   return { ...persistence, conflictState }

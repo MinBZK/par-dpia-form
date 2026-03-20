@@ -10,13 +10,14 @@ import LiveResults from './LiveResults.vue'
 import { useTaskDependencies } from '../composables/useTaskDependencies'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
 import { DPIA, FormType } from '../models/dpia'
-import { type AssessmentState } from '../models/assessmentState'
-import { type NavigationFunctions } from '../models/navigation'
+import type { AssessmentState } from '../models/assessmentState'
+import type { NavigationFunctions } from '../models/navigation'
 import { useAnswerStore } from '../stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { useCalculationStore } from '../stores/calculations'
 import { exportToJson } from '../utils/jsonExport'
-import { PERSISTENCE_KEY, EXPORT_KEY } from '../persistence'
+import { exportToPdf } from '../utils/pdfExport'
+import { PERSISTENCE_KEY } from '../persistence'
 import * as t from 'io-ts'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
@@ -48,9 +49,8 @@ const calculationStore = useCalculationStore()
 
 const { syncInstances } = useTaskDependencies()
 
-// Inject persistence and export providers
+// Inject persistence provider
 const persistence = inject(PERSISTENCE_KEY)!
-const exportProvider = inject(EXPORT_KEY, null)
 
 // Initialize tasks on component mount
 onMounted(async () => {
@@ -60,7 +60,7 @@ onMounted(async () => {
 
     // Step 1: Initialize tasks from DPIA.json.
     if (!props.validData) {
-      error.value = `No valid schema data available for ${props.namespace}`
+      error.value = `Geen geldige schemadata beschikbaar voor ${props.namespace}`
       isLoading.value = false
       return
     }
@@ -81,18 +81,25 @@ onMounted(async () => {
       formStarted.value = true
     }
 
-    // Step 5: Set up watchers for automatic saving.
+    // Step 5: Sync task instances based on their dependencies.
+    syncInstances.value()
+
+    // Step 6: Snapshot baseline AFTER full initialization so that
+    // initialization-related changes (syncInstances, etc.) are not
+    // treated as user changes in the diff.
+    if (persistence.snapshotBaseline) {
+      persistence.snapshotBaseline()
+    }
+
+    // Step 7: Set up watchers for automatic saving (after snapshot).
     const teardown = persistence.setupWatchers()
     if (teardown) onBeforeUnmount(teardown)
-
-    // Step 6: Sync task instances based on their dependencies.
-    syncInstances.value()
 
   } catch (e: unknown) {
     if (e instanceof Error) {
       error.value = e.message
     } else {
-      error.value = 'An unknown error occurred'
+      error.value = 'Er is een onbekende fout opgetreden'
     }
   } finally {
     isLoading.value = false
@@ -107,10 +114,7 @@ onBeforeUnmount(() => {
 // Sync instances whenever answers change
 watch(
   () => answerStore.answers,
-  () => {
-    // Sync instances whenever answers change
-    syncInstances.value()
-  },
+  () => syncInstances.value(),
   { deep: true },
 )
 
@@ -136,24 +140,13 @@ const openSaveModal = () => {
 const closeSaveModal = () => {
   isSaveModalOpen.value = false
 }
-const handleSaveForm = async (filename: string) => {
-  console.log('Saving form with filename:', filename)
-  try {
-    // This will now export only the active namespace data
-    await exportToJson(taskStore, answerStore, filename)
-  } catch (error) {
-    //TODO: Make user friendly error
-    console.error('Failed to save form data:', error)
-  }
+const handleSaveForm = (filename: string) => {
+  exportToJson(taskStore, answerStore, filename)
 }
 
 const handleExportPdf = async () => {
   try {
-    if (exportProvider?.exportToPdf) {
-      await exportProvider.exportToPdf()
-    } else {
-      console.warn('No PDF export provider available')
-    }
+    await exportToPdf(taskStore, answerStore, calculationStore)
   } catch (error) {
     console.error('Failed to export PDF:', error)
   }
@@ -232,7 +225,7 @@ const isSigningTask = computed(() => {
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-        <div v-if="formStarted && showFileActions" class="utrecht-button-group rvo-action-groul--position-right" role="group"
+        <div v-if="formStarted && showFileActions" class="utrecht-button-group" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
             FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
@@ -246,17 +239,17 @@ const isSigningTask = computed(() => {
 
           <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--xl">
             <!-- Navigation buttons -->
-            <div class="button-group-container">
+            <div class="button-group-container" role="group" aria-label="Formulier navigatie">
               <UiButton v-if="!isFirstTask" variant="secondary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-              <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <div v-if="!isLastTask" class="rvo-checkbox__group">
-                  <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
-                    <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
-                      type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
-                      @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
-                    Markeer als voltooid
-                  </label>
-                </div>
+              <div v-if="!isLastTask" class="button-group-container__completed">
+                <label class="rvo-checkbox rvo-checkbox--not-checked" :for="`${currentRootTaskId}-completed`">
+                  <input :id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
+                    type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
+                    @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
+                  Markeer als voltooid
+                </label>
+              </div>
+              <div class="button-group-container__end">
                 <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
                   label="Volgende stap" @click="goToNext" />
                 <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />

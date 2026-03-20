@@ -26,17 +26,43 @@
 }
 
 .rvo-theme .preserve-whitespace {
-    white-space: pre-line;
+  white-space: pre-line;
 }
 
 .rvo-theme .button-group-container {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  gap: var(--rvo-space-md);
   width: 100%;
 }
 
-.rvo-theme .button-group-container .utrecht-button-group {
+.rvo-theme .button-group-container__completed {
   margin-inline-start: auto;
+}
+
+.rvo-theme .button-group-container__completed + .button-group-container__end {
+  margin-inline-start: 0;
+}
+
+.rvo-theme .button-group-container__end {
+  display: flex;
+  align-items: center;
+  gap: var(--rvo-space-md);
+  margin-inline-start: auto;
+}
+
+@media (max-width: 480px) {
+  .rvo-theme .button-group-container__completed {
+    margin-inline-start: 0;
+    order: -1;
+    flex-basis: 100%;
+  }
+  .rvo-theme .button-group-container__end,
+  .rvo-theme .button-group-container__completed + .button-group-container__end {
+    margin-inline-start: auto;
+  }
 }
 
 .rvo-theme .rvo-accordion__item-summary {

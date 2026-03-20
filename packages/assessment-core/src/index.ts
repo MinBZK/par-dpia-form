@@ -24,12 +24,14 @@ export { usePreScanReferences } from './composables/usePreScanReferences'
 export type { PreScanReference } from './composables/usePreScanReferences'
 
 // Persistence
-export { PERSISTENCE_KEY, EXPORT_KEY } from './persistence'
-export type { PersistenceProvider, ExportProvider } from './persistence'
+export { PERSISTENCE_KEY } from './persistence'
+export type { PersistenceProvider } from './persistence'
 
 // Utils
 export { migrateStateV1toV2 } from './utils/stateMigration'
-export { exportToJson } from './utils/jsonExport'
+export { parseAndValidateImport } from './utils/importDetect'
+export { applyStateToStores } from './utils/applyState'
+export { exportToJson, buildOutputData } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
 export { exportToPdf } from './utils/pdfExport'
 export { generateFilename } from './utils/fileName'

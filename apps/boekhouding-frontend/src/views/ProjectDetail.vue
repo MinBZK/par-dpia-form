@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState } from '@overheid-assessment/core'
+import { FormType, type AssessmentState, parseAndValidateImport } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -24,7 +24,7 @@ const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 const startDialogRef = ref<HTMLDialogElement | null>(null)
 const dialogOpen = ref(false)
 const dialogAssessmentType = ref<'dpia' | 'prescan'>('dpia')
-const dialogOption = ref<'empty' | 'prescan-project' | 'prescan-upload' | 'dpia-upload' | 'prescan-json-upload'>('empty')
+const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
 const dialogError = ref<string | null>(null)
@@ -154,21 +154,6 @@ const onFileChange = (event: Event) => {
   dialogError.value = null
 }
 
-const readFileAsJson = (file: File): Promise<unknown> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        resolve(JSON.parse(reader.result as string))
-      } catch {
-        reject(new Error('Ongeldig JSON-bestand'))
-      }
-    }
-    reader.onerror = () => reject(new Error('Kan bestand niet lezen'))
-    reader.readAsText(file)
-  })
-}
-
 const buildPrescanState = (prescanTaskState: unknown, prescanAnswers: unknown): AssessmentState => {
   return {
     metadata: { createdAt: new Date().toISOString(), activeNamespace: FormType.DPIA },
@@ -223,40 +208,21 @@ const submitDpiaDialog = async () => {
     return
   }
 
-  if (dialogOption.value === 'prescan-upload') {
-    // Option 2b: Upload pre-scan JSON
+  if (dialogOption.value === 'import') {
+    // Auto-detect: DPIA or pre-scan via URN, namespace, or answer keys
     if (!uploadFile.value) {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
-    const json = await readFileAsJson(uploadFile.value) as AssessmentState
-    const prescanAnswers = json.answers?.[FormType.PRE_SCAN]
-    if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
-      dialogError.value = 'Het bestand bevat geen pre-scan antwoorden'
-      return
-    }
-    const initialState = buildPrescanState(
-      json.taskState?.[FormType.PRE_SCAN],
-      prescanAnswers,
-    )
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
-    router.push(`/assessment/${form.id}`)
-    return
-  }
+    const text = await uploadFile.value.text()
+    const state = parseAndValidateImport(text)
+    const isDpia = state.answers?.[FormType.DPIA] && Object.keys(state.answers[FormType.DPIA]!).length > 0
 
-  if (dialogOption.value === 'dpia-upload') {
-    // Option 3: Import existing DPIA JSON
-    if (!uploadFile.value) {
-      dialogError.value = 'Selecteer een JSON-bestand'
-      return
-    }
-    const json = await readFileAsJson(uploadFile.value) as AssessmentState
-    const dpiaAnswers = json.answers?.[FormType.DPIA]
-    if (!dpiaAnswers || Object.keys(dpiaAnswers).length === 0) {
-      dialogError.value = 'Het bestand bevat geen DPIA-antwoorden'
-      return
-    }
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, json)
+    const initialState = isDpia
+      ? state
+      : buildPrescanState(state.taskState?.[FormType.PRE_SCAN], state.answers?.[FormType.PRE_SCAN])
+
+    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -274,13 +240,15 @@ const submitPrescanDialog = async () => {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
-    const json = await readFileAsJson(uploadFile.value) as AssessmentState
-    const prescanAnswers = json.answers?.[FormType.PRE_SCAN]
-    if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
+    const text = await uploadFile.value.text()
+    const state = parseAndValidateImport(text)
+
+    if (!state.answers?.[FormType.PRE_SCAN] || Object.keys(state.answers[FormType.PRE_SCAN]!).length === 0) {
       dialogError.value = 'Het bestand bevat geen pre-scan antwoorden'
       return
     }
-    const form = await assessmentsApi.create(props.projectId, 'prescan', undefined, json)
+
+    const form = await assessmentsApi.create(props.projectId, 'prescan', undefined, state)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -437,15 +405,12 @@ const formatDate = (dateStr: string) =>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
-            <span class="start-dialog__option-label">Start met een lege DPIA</span>
+            <span class="start-dialog__option-label">Start een nieuwe DPIA</span>
           </label>
 
-          <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="prescan-project" name="startOption" :disabled="existingPrescans.length === 0" />
-            <span class="start-dialog__option-label">
-              Neem antwoorden over uit een pre-scan
-              <span v-if="existingPrescans.length === 0" class="start-dialog__option-hint">(geen pre-scans in dit project)</span>
-            </span>
+          <label v-if="existingPrescans.length > 0" class="start-dialog__option">
+            <input type="radio" v-model="dialogOption" value="prescan-project" name="startOption" />
+            <span class="start-dialog__option-label">Neem antwoorden over uit een pre-scan</span>
           </label>
 
           <div v-if="dialogOption === 'prescan-project' && existingPrescans.length > 0" class="start-dialog__sub-options">
@@ -460,21 +425,18 @@ const formatDate = (dateStr: string) =>
           </div>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="prescan-upload" name="startOption" />
-            <span class="start-dialog__option-label">Upload een pre-scan JSON-bestand</span>
+            <input type="radio" v-model="dialogOption" value="import" name="startOption" />
+            <span class="start-dialog__option-label">
+              Importeer een bestaande DPIA of pre-scan
+              <span class="start-dialog__option-hint">Upload een JSON-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
+            </span>
           </label>
 
-          <div v-if="dialogOption === 'prescan-upload'" class="start-dialog__sub-options">
-            <input ref="fileInput" type="file" accept=".json" @change="onFileChange" />
-          </div>
-
-          <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="dpia-upload" name="startOption" />
-            <span class="start-dialog__option-label">Importeer een bestaande DPIA (JSON-bestand)</span>
-          </label>
-
-          <div v-if="dialogOption === 'dpia-upload'" class="start-dialog__sub-options">
-            <input ref="fileInput" type="file" accept=".json" @change="onFileChange" />
+          <div v-if="dialogOption === 'import'" class="start-dialog__sub-options">
+            <label>
+              <span class="rvo-visually-hidden">Selecteer een JSON-bestand</span>
+              <input ref="fileInput" type="file" accept=".json" @change="onFileChange" />
+            </label>
           </div>
         </fieldset>
       </template>
@@ -486,7 +448,7 @@ const formatDate = (dateStr: string) =>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
-            <span class="start-dialog__option-label">Start met een lege pre-scan</span>
+            <span class="start-dialog__option-label">Start een nieuwe pre-scan</span>
           </label>
 
           <label class="start-dialog__option">
@@ -495,7 +457,10 @@ const formatDate = (dateStr: string) =>
           </label>
 
           <div v-if="dialogOption === 'prescan-json-upload'" class="start-dialog__sub-options">
-            <input ref="fileInput" type="file" accept=".json" @change="onFileChange" />
+            <label>
+              <span class="rvo-visually-hidden">Selecteer een JSON-bestand</span>
+              <input ref="fileInput" type="file" accept=".json" @change="onFileChange" />
+            </label>
           </div>
         </fieldset>
       </template>

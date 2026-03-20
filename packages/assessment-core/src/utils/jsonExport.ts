@@ -1,109 +1,63 @@
 import { type AssessmentState, type AssessmentOutput, OUTPUT_SCHEMA_URL } from '../models/assessmentState'
-import { type TaskStoreType } from '../stores/tasks'
-import { type AnswerStoreType } from '../stores/answers'
+import type { TaskStoreType } from '../stores/tasks'
+import type { AnswerStoreType } from '../stores/answers'
 import { FormType } from '../models/dpia'
 import { generateFilename } from './fileName'
 import { useSchemaStore } from '../stores/schemas'
-import { migrateStateV1toV2 } from './stateMigration'
+import { parseAndValidateImport } from './importDetect'
 
-export async function importFromJson(file: File, activeNamespace: FormType): Promise<AssessmentState> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
+export async function importFromJson(file: File): Promise<AssessmentState> {
+  const text = await file.text()
+  const data = parseAndValidateImport(text)
 
-    reader.onload = (event) => {
-      try {
-        if (!event.target || typeof event.target.result !== 'string') {
-          reject(new Error('Could not read given file'))
-          return
-        }
+  const schemaStore = useSchemaStore()
+  const ns = data.metadata.activeNamespace
+  if (ns && !data.metadata.urn) {
+    data.metadata.urn = schemaStore.getUrn(ns as FormType)
+  }
 
-        const data = JSON.parse(event.target.result) as AssessmentState
-
-        if (!data.metadata || !data.answers) {
-          reject(new Error('File contains format incompatible with AssessmentState structure'))
-          return
-        }
-
-        const hasDPIA = data.answers[FormType.DPIA];
-        const hasPreScan = data.answers[FormType.PRE_SCAN];
-
-        if (!hasDPIA && !hasPreScan) {
-          reject(new Error('The uploaded file does not contain valid DPIA or Pre-scan DPIA data.'))
-          return
-        }
-
-        const schemaStore = useSchemaStore()
-        const urnLookup: Record<string, string> = {}
-        if (hasDPIA) urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA)
-        if (hasPreScan) urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN)
-
-        resolve(migrateStateV1toV2(data, urnLookup))
-      } catch (error) {
-        if (error instanceof Error) {
-          reject(error)
-        } else {
-          reject(new Error('Could not process file'))
-        }
-      }
-    }
-    reader.onerror = () => {
-      reject(new Error('There was an error reading the file'))
-    }
-    reader.readAsText(file)
-  })
+  return data
 }
 
-export async function exportToJson(
+export function buildOutputData(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): AssessmentOutput {
+  const activeNamespace = taskStore.activeNamespace
+  const schemaStore = useSchemaStore()
+
+  const completedTasks = Array.from(taskStore.completedRootTaskIds[activeNamespace]).sort((a, b) => parseInt(a) - parseInt(b))
+
+  return {
+    $schema: OUTPUT_SCHEMA_URL,
+    metadata: {
+      createdAt: new Date().toISOString(),
+      urn: schemaStore.getUrn(activeNamespace),
+      ...(completedTasks.length > 0 && { completedTasks }),
+    },
+    answers: answerStore.answers[activeNamespace] || {},
+  }
+}
+
+export function exportToJson(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
   filename?: string,
-): Promise<void> {
-  try {
-    // Create output data
-    const activeNamespace = taskStore.activeNamespace
-    const schemaStore = useSchemaStore()
-
-    const outputData: AssessmentOutput = {
-      $schema: OUTPUT_SCHEMA_URL,
-      metadata: {
-        createdAt: new Date().toISOString(),
-        urn: schemaStore.getUrn(activeNamespace),
-      },
-      answers: answerStore.answers[activeNamespace] || {},
-    }
-
-    // Use provided filename or generate default
-    const actualFilename = filename || generateFilename(activeNamespace, 'json')
-
-    // Download the file
-    await downloadJsonFile(outputData, actualFilename)
-
-    return Promise.resolve()
-  } catch (error) {
-    console.error('Failed to export JSON:', error)
-    return Promise.reject(new Error('Failed to export to JSON'))
-  }
+): void {
+  const outputData = buildOutputData(taskStore, answerStore)
+  const actualFilename = filename || generateFilename(taskStore.activeNamespace, 'json')
+  downloadJsonFile(outputData, actualFilename)
 }
 
-export function downloadJsonFile(data: unknown, filename: string): Promise<void> {
-  try {
-    const jsonString = JSON.stringify(data, null, 4)
-    const blob = new Blob([jsonString], { type: 'application/json' })
+export function downloadJsonFile(data: unknown, filename: string): void {
+  const jsonString = JSON.stringify(data, null, 4)
+  const blob = new Blob([jsonString], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
 
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
 
-    document.body.appendChild(link)
-    link.click()
-
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-
-    return Promise.resolve()
-  } catch (error) {
-    console.error('Error in creating download file:', error)
-    return Promise.reject(new Error('Failed to create download file'))
-  }
+  URL.revokeObjectURL(url)
 }

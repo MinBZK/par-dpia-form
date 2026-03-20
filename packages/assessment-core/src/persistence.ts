@@ -10,16 +10,10 @@ export interface PersistenceProvider {
   setupWatchers(): (() => void) | void
   /** Cancel any pending debounce and save immediately */
   flushSave?(): void | Promise<void>
+  /** Snapshot the current store state as the baseline for change tracking.
+   *  Called after full initialization (apply + syncInstances) to avoid
+   *  initialization-related diffs being treated as user changes. */
+  snapshotBaseline?(): void
 }
 
 export const PERSISTENCE_KEY = Symbol('persistence') as InjectionKey<PersistenceProvider>
-
-/**
- * Provider for export functionality (PDF export, etc.)
- * Each app variant provides its own implementation.
- */
-export interface ExportProvider {
-  exportToPdf: () => Promise<void>
-}
-
-export const EXPORT_KEY = Symbol('export') as InjectionKey<ExportProvider>

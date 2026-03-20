@@ -31,6 +31,7 @@ export interface AssessmentOutput {
     createdAt: string
     urn: string
     createdBy?: { name: string; email?: string }
+    completedTasks?: string[]
   }
   answers: Record<string, Answer>
 }

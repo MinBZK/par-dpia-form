@@ -18,10 +18,16 @@
     "pinia": "^3.0.3",
     "vue": "^3.5.17"
   },
+  "scripts": {
+    "test": "vitest run"
+  },
   "devDependencies": {
     "@types/jexl": "^2.3.4",
     "@types/pdfmake": "^0.2.13",
     "@vue/tsconfig": "^0.7.0",
-    "typescript": "~5.7.3"
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "typescript": "~5.7.3",
+    "vitest": "^4.1.0"
   }
 }
