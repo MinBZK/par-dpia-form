@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, detectImportType } from '@overheid-assessment/core'
+import { FormType, type AssessmentState, parseAndValidateImport, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -103,10 +103,7 @@ const saveName = async () => {
 }
 
 const autosizeTextarea = () => {
-  const el = descriptionInput.value
-  if (!el) return
-  el.style.height = 'auto'
-  el.style.height = el.scrollHeight + 'px'
+  if (descriptionInput.value) autoGrowTextarea(descriptionInput.value)
 }
 
 const startEditDescription = async () => {

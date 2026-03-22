@@ -61,3 +61,6 @@ export { default as ImageField } from './components/task/ImageField.vue'
 // Image utils
 export { resizeImageToDataUri } from './utils/imageResize'
 export type { ImageResizeOptions } from './utils/imageResize'
+
+// DOM utils
+export { autoGrowTextarea } from './utils/autoGrowTextarea'

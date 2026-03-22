@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
+import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { useAnswerStore, isImageValue, type ImageValue } from '../../stores/answers'
 import { type FlatTask } from '../../stores/tasks'
 import { resizeImageToDataUri } from '../../utils/imageResize'
@@ -110,6 +111,16 @@ function handleDragLeave() {
 function triggerFileSelect() {
   fileInput.value?.click()
 }
+
+const descriptionRef = ref<HTMLTextAreaElement | null>(null)
+
+watch(() => imageData.value?.description, () => {
+  nextTick(() => {
+    if (descriptionRef.value) {
+      autoGrowTextarea(descriptionRef.value)
+    }
+  })
+})
 </script>
 
 <template>
@@ -179,6 +190,7 @@ function triggerFileSelect() {
           <label class="rvo-label" :for="`image-description-${instanceId}`">Omschrijving (optioneel)</label>
         </div>
         <textarea
+          ref="descriptionRef"
           :id="`image-description-${instanceId}`"
           class="utrecht-textarea utrecht-textarea--html-textarea"
           dir="auto"
@@ -186,6 +198,7 @@ function triggerFileSelect() {
           placeholder="Bijv. Overzicht van datastromen tussen systemen"
           :value="imageData!.description || ''"
           @change="updateMetadata('description', ($event.target as HTMLTextAreaElement).value)"
+          @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
         ></textarea>
 
         <div class="rvo-form-field__label">

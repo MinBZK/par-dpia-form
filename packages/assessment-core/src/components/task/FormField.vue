@@ -7,7 +7,8 @@ import { FormType } from '../../models/dpia';
 import { useTaskStore } from '../../stores/tasks'
 import { usePreScanReferences } from '../../composables/usePreScanReferences'
 import ImageField from './ImageField.vue'
-import { computed } from 'vue'
+import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
+import { computed, ref, onMounted, nextTick, watch } from 'vue'
 
 const props = defineProps<{
   task: FlatTask
@@ -100,10 +101,31 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
 
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+onMounted(() => {
+  nextTick(() => {
+    if (textareaRef.value) {
+      autoGrowTextarea(textareaRef.value)
+    }
+  })
+})
+
+watch(currentValue, () => {
+  nextTick(() => {
+    if (textareaRef.value) {
+      autoGrowTextarea(textareaRef.value)
+    }
+  })
+})
+
 // Text input and textarea handler
 const handleTextInput = (event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
   answerStore.setAnswer(props.instanceId, target.value)
+  if (target instanceof HTMLTextAreaElement) {
+    autoGrowTextarea(target)
+  }
 }
 
 // Select handler
@@ -154,7 +176,8 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Text area -->
   <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
-    <textarea :id="`field-${task.id}-${instanceId}`" class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
+    <textarea ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
+      class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
       :value="currentValue as string | number | readonly string[] | null | undefined"
       @input="handleTextInput"></textarea>

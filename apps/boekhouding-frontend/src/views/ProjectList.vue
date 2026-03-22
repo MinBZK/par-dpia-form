@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, type Project } from '../api'
-import { UiButton } from '@overheid-assessment/core'
+import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -81,7 +81,9 @@ const handleCreate = async () => {
         </div>
         <div class="rvo-form-field rvo-margin-block-end--md">
           <label class="rvo-form-field__label" for="projectDesc">Beschrijving (optioneel)</label>
-          <textarea id="projectDesc" v-model="newProjectDescription" class="utrecht-textarea utrecht-textarea--html-textarea" rows="2"></textarea>
+          <textarea id="projectDesc" v-model="newProjectDescription" class="utrecht-textarea utrecht-textarea--html-textarea" rows="2"
+            @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
+          ></textarea>
         </div>
         <div class="utrecht-button-group">
           <UiButton variant="primary" type="submit" label="Project toevoegen" />
