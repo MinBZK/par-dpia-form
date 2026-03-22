@@ -252,8 +252,6 @@
   transition: border-color 0.15s, background-color 0.15s;
 }
 
-
-
 .rvo-theme .image-dropzone:hover,
 .rvo-theme .image-dropzone:focus-visible {
   border-color: var(--rvo-color-hemelblauw);

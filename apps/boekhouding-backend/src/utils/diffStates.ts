@@ -73,8 +73,8 @@ function diffGroupedArrays(
           fieldId,
           editType: !oldEl ? 'instance_added' : 'instance_removed',
           editedBy,
-          oldValue: (!oldEl ? null : (Object.keys(fields).length > 0 ? fields : null)),
-          newValue: (!newEl ? null : (Object.keys(fields).length > 0 ? fields : null)),
+          oldValue: !oldEl ? null : (Object.keys(fields).length > 0 ? fields : null),
+          newValue: !newEl ? null : (Object.keys(fields).length > 0 ? fields : null),
         })
       }
       continue
@@ -91,8 +91,8 @@ function diffGroupedArrays(
           fieldId,
           editType: 'answer_change',
           editedBy,
-          oldValue: (oldVal ?? null),
-          newValue: (newVal ?? null),
+          oldValue: oldVal ?? null,
+          newValue: newVal ?? null,
         })
       }
     }
@@ -140,8 +140,8 @@ export function diffStates(
         fieldId,
         editType: 'answer_change',
         editedBy,
-        oldValue: (oldVal ?? null),
-        newValue: (newVal ?? null),
+        oldValue: oldVal ?? null,
+        newValue: newVal ?? null,
       })
     }
   }

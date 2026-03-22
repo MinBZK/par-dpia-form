@@ -1,10 +1,13 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
-import { type AnswerStoreType, isImageValue } from '../stores/answers'
+import { type AnswerStoreType, type ImageValue, isImageValue } from '../stores/answers'
 import { FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions } from './stripHtml'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
+
+let imageRefCounter = 0
+let imageRefLines: string[] = []
 
 export async function exportToMarkdown(
   taskStore: TaskStoreType,
@@ -24,12 +27,20 @@ export async function exportToMarkdown(
   lines.push('---')
   lines.push('')
 
+  imageRefCounter = 0
+  imageRefLines = []
   const rootTasks = taskStore.getRootTasks.filter(task => !task.type.includes('signing'))
 
   if (activeNamespace === FormType.DPIA) {
     buildDpiaSections(lines, rootTasks, taskStore, answerStore)
   } else {
     buildPreScanSections(lines, rootTasks, taskStore, answerStore)
+  }
+
+  // Append image data URIs as reference-style links at the end
+  if (imageRefLines.length > 0) {
+    lines.push('')
+    lines.push(...imageRefLines)
   }
 
   const md = lines.join('\n')
@@ -226,10 +237,14 @@ function processTaskWithInstances(
   }
 }
 
-function formatImageValue(value: { data: string; title?: string; description?: string; source?: string }): string {
+function formatImageValue(value: ImageValue): string {
   const parts: string[] = []
   if (value.title) parts.push(`**${value.title}**\n`)
-  parts.push(`![${value.title || 'Afbeelding'}](${value.data})\n`)
+  const altText = (value.title || 'Afbeelding').replace(/[\[\]()]/g, '\\$&')
+  imageRefCounter++
+  const refId = `img-${imageRefCounter}`
+  imageRefLines.push(`[${refId}]: ${value.data}`)
+  parts.push(`![${altText}][${refId}]\n`)
   if (value.description) parts.push(`*${value.description}*\n`)
   if (value.source) parts.push(`*Bron: ${value.source}*\n`)
   return parts.join('\n')

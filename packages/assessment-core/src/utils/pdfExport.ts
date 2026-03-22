@@ -1,5 +1,6 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType, isImageValue, type ImageValue } from '../stores/answers'
+import { convertWebpToPng } from './imageResize'
 import { type CalculationStoreType } from '../stores/calculations'
 import { FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions } from './stripHtml'
@@ -31,6 +32,10 @@ export async function exportToPdf(
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
   const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+
+  // Pre-convert WebP images to PNG (pdfmake only supports JPEG/PNG)
+  pdfImageCache.clear()
+  await preConvertImages(answerStore, activeNamespace)
 
   const contentSections: Content[] = activeNamespace === FormType.DPIA
     ? buildDpiaContentSections(taskStore, answerStore)
@@ -171,6 +176,8 @@ export async function exportToPdf(
     return Promise.resolve()
   } catch (error) {
     return Promise.reject(new Error(`Failed to export PDF: ${error}`))
+  } finally {
+    pdfImageCache.clear()
   }
 }
 
@@ -369,12 +376,35 @@ function formatAnswerValue(value: any): string {
 // A4 (595pt) minus page margins (70+70) = 455pt usable content width
 const CONTENT_WIDTH = 455
 
+// Cache for WebP→PNG converted images (populated before content building)
+const pdfImageCache = new Map<string, string>()
+
+async function preConvertImages(answerStore: AnswerStoreType, namespace: FormType) {
+  const answers = answerStore.answers[namespace] || {}
+  const conversions: Promise<void>[] = []
+
+  for (const answer of Object.values(answers)) {
+    if (isImageValue(answer.value) && answer.value.data.startsWith('data:image/webp')) {
+      const webpData = answer.value.data
+      conversions.push(
+        convertWebpToPng(webpData).then(png => { pdfImageCache.set(webpData, png) }),
+      )
+    }
+  }
+
+  await Promise.all(conversions)
+}
+
+function getPdfImageData(dataUri: string): string {
+  return pdfImageCache.get(dataUri) ?? dataUri
+}
+
 function buildImageContent(img: ImageValue): Content {
   const elements: Content[] = []
   if (img.title) {
     elements.push({ text: img.title, bold: true, margin: [0, 5, 0, 3] })
   }
-  elements.push({ image: img.data, fit: [CONTENT_WIDTH, 700], margin: [0, 3, 0, 3] })
+  elements.push({ image: getPdfImageData(img.data), fit: [CONTENT_WIDTH, 700], margin: [0, 3, 0, 3] })
   if (img.description) {
     elements.push({ text: img.description, italics: true, margin: [0, 3, 0, 3] })
   }

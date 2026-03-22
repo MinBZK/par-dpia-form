@@ -468,9 +468,9 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
       // ImageValue: render as thumbnail
       if (typeof v === 'object' && v !== null && 'data' in (v as Record<string, unknown>)) {
         const img = v as Record<string, unknown>
-        if (typeof img.data === 'string' && (img.data as string).startsWith('data:image/')) {
+        if (typeof img.data === 'string' && /^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(img.data as string)) {
           const alt = escapeHtml(String(img.title || 'Afbeelding'))
-          let html = `<img src="${img.data}" alt="${alt}" class="diff-image">`
+          let html = `<img src="${(img.data as string).replace(/"/g, '&quot;')}" alt="${alt}" class="diff-image">`
           const meta: string[] = []
           if (img.title) meta.push(`<strong>${escapeHtml(String(img.title))}</strong>`)
           if (img.description) meta.push(escapeHtml(String(img.description)).replace(/\n/g, ' '))

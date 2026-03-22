@@ -37,4 +37,12 @@ describe('isImageValue', () => {
   it('returns false for Answer wrapper (has value, not data)', () => {
     expect(isImageValue({ value: 'data:image/png;base64,abc' })).toBe(false)
   })
+
+  it('returns false for SVG data URI (XSS prevention)', () => {
+    expect(isImageValue({ data: 'data:image/svg+xml;base64,PHN2Zy...' })).toBe(false)
+  })
+
+  it('returns true for WebP data URI', () => {
+    expect(isImageValue({ data: 'data:image/webp;base64,UklGR...' })).toBe(true)
+  })
 })

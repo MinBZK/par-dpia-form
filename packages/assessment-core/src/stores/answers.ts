@@ -10,13 +10,15 @@ export type ImageValue = {
 }
 
 export function isImageValue(value: unknown): value is ImageValue {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'data' in value &&
-    typeof (value as Record<string, unknown>).data === 'string' &&
-    ((value as Record<string, unknown>).data as string).startsWith('data:image/')
-  )
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('data' in value) ||
+    typeof (value as Record<string, unknown>).data !== 'string'
+  ) return false
+  const data = (value as Record<string, unknown>).data as string
+  // Accept raster image data URIs only — reject SVG to prevent XSS via imported JSON
+  return data.startsWith('data:image/') && !data.startsWith('data:image/svg')
 }
 
 export type AnswerValue = string | string[] | ImageValue | null

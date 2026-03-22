@@ -119,6 +119,7 @@ function triggerFileSelect() {
       type="file"
       accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
       hidden
+      :aria-label="label ? undefined : 'Afbeelding uploaden'"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
       @change="handleFileSelect"
     />
@@ -133,7 +134,7 @@ function triggerFileSelect() {
     </div>
 
     <!-- Processing indicator -->
-    <p v-if="isProcessing">Bezig met verwerken...</p>
+    <p v-if="isProcessing" role="status" aria-live="polite">Bezig met verwerken...</p>
 
     <!-- Error message -->
     <div v-if="errorMessage" class="rvo-alert rvo-alert--warning rvo-alert--inline rvo-margin-block-end--md" role="alert">
@@ -212,6 +213,7 @@ function triggerFileSelect() {
       @drop.prevent="handleDrop"
       role="button"
       tabindex="0"
+      :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
       @keydown.enter="triggerFileSelect"
       @keydown.space.prevent="triggerFileSelect"
     >

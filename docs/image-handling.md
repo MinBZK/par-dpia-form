@@ -44,22 +44,28 @@ De `ImageValue` wordt opgeslagen als de `value` eigenschap van een `Answer`, naa
 
 | Formaat             | Verwerking                                            |
 |---------------------|-------------------------------------------------------|
-| PNG                 | Blijft PNG (lossless, behoudt transparantie)          |
-| JPEG                | Blijft JPEG (quality 0.85)                            |
-| WebP                | Geconverteerd via canvas                              |
-| GIF                 | Geconverteerd via canvas (alleen eerste frame)         |
-| SVG                 | Gerasterd naar PNG op 2x resolutie voor scherpe tekst |
-| Overig (PDF, etc.)  | Geweigerd met foutmelding                             |
+| PNG                 | Lossless WebP (kleiner dan PNG, geen kwaliteitsverlies) |
+| JPEG                | Lossy WebP (quality 0.85)                               |
+| WebP                | Opnieuw gecomprimeerd via canvas (stript metadata)      |
+| GIF                 | Lossless WebP (alleen eerste frame)                     |
+| SVG                 | Gerasterd op 2x resolutie, lossless WebP                |
+| Overig (PDF, etc.)  | Geweigerd met foutmelding                               |
 
 ## Resize-strategie
 
 Afbeeldingen worden verkleind tot binnen configureerbare maximale afmetingen (standaard: 1200x900 pixels).
 
-1. **SVG**: Gerasterd naar PNG op 2x resolutie, daarna passend binnen maximale afmetingen
-2. **Binnen limieten**: Toch verwerkt via canvas (voor metadata-verwijdering), uitvoer in oorspronkelijk formaat
-3. **Verkleining nodig**: Verkleind met behoud van beeldverhouding, formaat behouden (PNG blijft PNG, JPEG blijft JPEG)
-4. **Nog steeds te groot**: PNG valt terug naar JPEG; JPEG-kwaliteit wordt stapsgewijs verlaagd (minimaal 0.5)
+Alle afbeeldingen worden opgeslagen als WebP voor optimale bestandsgrootte. WebP is ~25-30% kleiner dan JPEG bij vergelijkbare kwaliteit, en ~25-35% kleiner dan PNG voor lossless compressie ([bron: Google Developers](https://developers.google.com/speed/webp/docs/webp_study)).
+
+1. **Foto's (JPEG)**: Lossy WebP (quality 0.85) — efficiënt voor fotografisch materiaal
+2. **Diagrammen (PNG, SVG, WebP, GIF)**: Lossless WebP (quality 1.0) eerst — scherpe lijnen en tekst zonder artefacten
+3. **SVG**: Gerasterd op 2x resolutie voor scherpe tekst, opgeslagen als lossless WebP
+4. **Te groot na lossless**: Automatische fallback naar lossy WebP met afnemende quality (0.85 → 0.45)
 5. **Maximale grootte**: 2 MB base64 (configureerbaar). Afbeeldingen die na alle compressie groter zijn worden geweigerd.
+
+### PDF-compatibiliteit
+
+pdfmake ondersteunt alleen JPEG en PNG. Bij PDF-export worden WebP afbeeldingen automatisch on-the-fly geconverteerd naar PNG via de Canvas API. De originele WebP data in de assessment-state wordt niet gewijzigd.
 
 ## SVG-beveiliging
 
@@ -92,16 +98,20 @@ Afbeeldingen worden als losse blokken gerenderd (niet in tabelcellen) met:
 
 ### Markdown
 
-Afbeeldingen worden buiten tabellen gerenderd (base64 in tabelcellen breekt de opmaak):
+Afbeeldingen worden buiten tabellen gerenderd. De base64 data staat als referentie onderaan het document zodat de tekst leesbaar blijft:
 
 ```markdown
 **Titel**
 
-![Titel](data:image/png;base64,...)
+![Titel][img-1]
 
 *Omschrijving*
 
 *Bron: Bronvermelding*
+
+...rest van document...
+
+[img-1]: data:image/webp;base64,...
 ```
 
 ## Schema
