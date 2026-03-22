@@ -101,17 +101,23 @@ onMounted(async () => {
     taskStore.setActiveNamespace(namespace)
     answerStore.setActiveNamespace(namespace)
 
-    // If this is a DPIA with PRE_SCAN data in the state, initialize the PRE_SCAN
-    // task structure so that usePreScanReferences can find pre-scan tasks and answers.
+    // If this is a DPIA with embedded pre-scan answers, initialize the PRE_SCAN
+    // task structure and load answers so usePreScanReferences can work.
     if (namespace === FormType.DPIA && assessment.value.state) {
-      const loadedState = assessment.value.state as { answers?: Record<string, unknown> }
-      if (loadedState.answers?.[FormType.PRE_SCAN] && Object.keys(loadedState.answers[FormType.PRE_SCAN] as object).length > 0) {
+      const loadedState = assessment.value.state as Record<string, unknown>
+      // Support both new `_prescanAnswers` field and old `answers.prescan` format
+      const prescanAnswers = (loadedState._prescanAnswers
+        ?? (loadedState.answers as Record<string, unknown>)?.[FormType.PRE_SCAN]) as Record<string, unknown> | undefined
+      if (prescanAnswers && Object.keys(prescanAnswers).length > 0) {
         const preScanSchema = schemaStore.getSchema(FormType.PRE_SCAN)
         if (preScanSchema && !taskStore.isInitialized[FormType.PRE_SCAN]) {
           const prevNamespace = taskStore.activeNamespace
           taskStore.setActiveNamespace(FormType.PRE_SCAN)
+          answerStore.setActiveNamespace(FormType.PRE_SCAN)
           taskStore.init(preScanSchema.tasks)
+          answerStore.answers[FormType.PRE_SCAN] = prescanAnswers as any
           taskStore.setActiveNamespace(prevNamespace)
+          answerStore.setActiveNamespace(prevNamespace)
         }
       }
     }

@@ -246,6 +246,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
       && lastVersion.createdBy === userId
       && !forceNewVersion
       && !changeDescription
+      && !lastVersion.changeDescription
       && (Date.now() - lastVersion.createdAt.getTime()) < CONSOLIDATION_WINDOW_MS
 
     if (canConsolidate) {

@@ -1,8 +1,3 @@
-/**
- * Parse an instance ID into taskId and optional index.
- * "2.1.3" → { taskId: "2.1.3" }
- * "2.1.3[0]" → { taskId: "2.1.3", index: 0 }
- */
 export function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
   const match = instanceId.match(/^(.+)\[(\d+)\]$/)
   if (match) return { taskId: match[1], index: parseInt(match[2]) }
@@ -28,9 +23,87 @@ export type EditRecord = {
   newValue: unknown
 }
 
+function isGroupedArray(value: unknown): value is Array<{ _index: number; [key: string]: unknown }> {
+  return Array.isArray(value) && value.length > 0 && typeof value[0]?._index === 'number'
+}
+
+/**
+ * Compare two grouped arrays element by element, matching on _index.
+ */
+function diffGroupedArrays(
+  oldArr: Array<{ _index: number; [key: string]: unknown }> | undefined,
+  newArr: Array<{ _index: number; [key: string]: unknown }> | undefined,
+  parentKey: string,
+  urn: string | undefined,
+  editedBy: string,
+): EditRecord[] {
+  const edits: EditRecord[] = []
+  const oldByIndex = new Map<number, Record<string, unknown>>()
+  const newByIndex = new Map<number, Record<string, unknown>>()
+
+  for (const el of oldArr ?? []) oldByIndex.set(el._index, el)
+  for (const el of newArr ?? []) newByIndex.set(el._index, el)
+
+  const allIndices = new Set([...oldByIndex.keys(), ...newByIndex.keys()])
+
+  for (const idx of allIndices) {
+    const oldEl = oldByIndex.get(idx)
+    const newEl = newByIndex.get(idx)
+
+    const childKeys = new Set<string>()
+    if (oldEl) for (const k of Object.keys(oldEl)) { if (k !== '_index') childKeys.add(k) }
+    if (newEl) for (const k of Object.keys(newEl)) { if (k !== '_index') childKeys.add(k) }
+
+    // Entire instance added or removed — bundle child values into one edit
+    if ((!oldEl && newEl) || (oldEl && !newEl)) {
+      // Skip default index 0 when the parent key was newly saved —
+      // index 0 always exists implicitly via init() and is not a user action.
+      const skipDefault = idx === 0 && !oldEl && (!oldArr || oldArr.length === 0)
+      if (!skipDefault) {
+        // Collect child field values from the instance that existed
+        const source = (oldEl ?? newEl)!
+        const fields: Record<string, unknown> = {}
+        for (const k of Object.keys(source)) {
+          if (k !== '_index') fields[k] = source[k]
+        }
+
+        const instanceId = `${parentKey}[${idx}]`
+        const fieldId = urn ? buildFieldUrn(urn, instanceId) : instanceId
+        edits.push({
+          fieldId,
+          editType: !oldEl ? 'instance_added' : 'instance_removed',
+          editedBy,
+          oldValue: !oldEl ? null : (Object.keys(fields).length > 0 ? fields : null),
+          newValue: !newEl ? null : (Object.keys(fields).length > 0 ? fields : null),
+        })
+      }
+      continue
+    }
+
+    for (const childKey of childKeys) {
+      const oldVal = oldEl?.[childKey]
+      const newVal = newEl?.[childKey]
+
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        const instanceId = `${childKey}[${idx}]`
+        const fieldId = urn ? buildFieldUrn(urn, instanceId) : instanceId
+        edits.push({
+          fieldId,
+          editType: 'answer_change',
+          editedBy,
+          oldValue: oldVal ?? null,
+          newValue: newVal ?? null,
+        })
+      }
+    }
+  }
+
+  return edits
+}
+
 /**
  * Compares two states and produces field-level edit records.
- * Tracks answer changes, completed section changes, and task instance add/remove.
+ * States use the unwrapped format: answers at top level, completedTasks in metadata.
  * Uses URN-based field identifiers when available.
  */
 export function diffStates(
@@ -45,101 +118,48 @@ export function diffStates(
 
   const oldAnswers = (oldState as any)?.answers || {}
   const newAnswers = (newState as any)?.answers || {}
+  const allKeys = new Set([...Object.keys(oldAnswers), ...Object.keys(newAnswers)])
 
-  // Compare answers across namespaces
-  const allNamespaces = new Set([...Object.keys(oldAnswers), ...Object.keys(newAnswers)])
+  for (const key of allKeys) {
+    const oldVal = oldAnswers[key]
+    const newVal = newAnswers[key]
 
-  for (const ns of allNamespaces) {
-    const oldNs = oldAnswers[ns] || {}
-    const newNs = newAnswers[ns] || {}
-    const allKeys = new Set([...Object.keys(oldNs), ...Object.keys(newNs)])
+    // Handle grouped arrays: compare child-by-child
+    if (isGroupedArray(oldVal) || isGroupedArray(newVal)) {
+      edits.push(...diffGroupedArrays(
+        isGroupedArray(oldVal) ? oldVal : undefined,
+        isGroupedArray(newVal) ? newVal : undefined,
+        key, urn, editedBy,
+      ))
+      continue
+    }
 
-    for (const key of allKeys) {
-      const oldVal = oldNs[key]
-      const newVal = newNs[key]
-
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        const fieldId = urn ? buildFieldUrn(urn, key) : `${ns}.${key}`
-        edits.push({
-
-          fieldId,
-          editType: 'answer_change',
-          editedBy,
-          oldValue: oldVal ?? null,
-          newValue: newVal ?? null,
-        })
-      }
+    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+      const fieldId = urn ? buildFieldUrn(urn, key) : key
+      edits.push({
+        fieldId,
+        editType: 'answer_change',
+        editedBy,
+        oldValue: oldVal ?? null,
+        newValue: newVal ?? null,
+      })
     }
   }
 
-  // Compare task state across namespaces
-  const oldTaskState = (oldState as any)?.taskState || {}
-  const newTaskState = (newState as any)?.taskState || {}
-  const taskNamespaces = new Set([...Object.keys(oldTaskState), ...Object.keys(newTaskState)])
+  // Compare completedTasks in metadata
+  const oldCompleted = new Set<string>((oldState as any)?.metadata?.completedTasks || [])
+  const newCompleted = new Set<string>(newMeta.completedTasks || [])
 
-  for (const ns of taskNamespaces) {
-    // Compare completed sections
-    const oldCompleted = new Set<string>(oldTaskState[ns]?.completedRootTaskIds || [])
-    const newCompleted = new Set<string>(newTaskState[ns]?.completedRootTaskIds || [])
-
-    for (const id of newCompleted) {
-      if (!oldCompleted.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
-        edits.push({
-
-          fieldId,
-          editType: 'section_complete',
-          editedBy,
-          oldValue: false,
-          newValue: true,
-        })
-      }
+  for (const id of newCompleted) {
+    if (!oldCompleted.has(id)) {
+      const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `completed.${id}`
+      edits.push({ fieldId, editType: 'section_complete', editedBy, oldValue: false, newValue: true })
     }
-    for (const id of oldCompleted) {
-      if (!newCompleted.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `${ns}.completed.${id}`
-        edits.push({
-
-          fieldId,
-          editType: 'section_complete',
-          editedBy,
-          oldValue: true,
-          newValue: false,
-        })
-      }
-    }
-
-    // Compare task instances (add/remove)
-    const oldInstances = Object.keys(oldTaskState[ns]?.taskInstances || {})
-    const newInstances = Object.keys(newTaskState[ns]?.taskInstances || {})
-    const oldInstanceSet = new Set(oldInstances)
-    const newInstanceSet = new Set(newInstances)
-
-    for (const id of newInstances) {
-      if (!oldInstanceSet.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, id) : `${ns}.${id}`
-        edits.push({
-
-          fieldId,
-          editType: 'task_instance_add',
-          editedBy,
-          oldValue: null,
-          newValue: newTaskState[ns].taskInstances[id],
-        })
-      }
-    }
-    for (const id of oldInstances) {
-      if (!newInstanceSet.has(id)) {
-        const fieldId = urn ? buildFieldUrn(urn, id) : `${ns}.${id}`
-        edits.push({
-
-          fieldId,
-          editType: 'task_instance_remove',
-          editedBy,
-          oldValue: oldTaskState[ns].taskInstances[id],
-          newValue: null,
-        })
-      }
+  }
+  for (const id of oldCompleted) {
+    if (!newCompleted.has(id)) {
+      const fieldId = urn ? buildFieldUrn(urn, `completed.${id}`) : `completed.${id}`
+      edits.push({ fieldId, editType: 'section_complete', editedBy, oldValue: true, newValue: false })
     }
   }
 

@@ -5,6 +5,7 @@ import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit
 import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
+import { escapeHtml, stripHtml } from '../utils/html'
 
 const props = defineProps<{
   assessmentId: string
@@ -31,7 +32,7 @@ const canRestore = computed(() => role.value === 'owner')
 // Expandable diff state
 const expandedVersion = ref<number | null>(null)
 const diffLoading = ref(false)
-const diffFields = ref<Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }>>([])
+const diffFields = ref<Array<{ fieldId: string; label: string; groupLabel?: string; editType?: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }>>([])
 
 // Description modal
 const descDialogRef = ref<HTMLDialogElement | null>(null)
@@ -60,53 +61,128 @@ async function handleFieldRestore() {
   const version = expandedVersion.value
   if (!field || !version) return
 
-  const dotIndex = field.fieldId.indexOf('.')
-  const ns = field.fieldId.substring(0, dotIndex)
-  const key = field.fieldId.substring(dotIndex + 1)
+  const parsed = parseFieldId(field.fieldId)
+  if (!parsed) return
+  const key = parsed.key
 
-  // Fetch the current (latest) state from the API so we only modify the one field
-  const assessment = await assessmentsApi.get(props.assessmentId)
-  const currentState = JSON.parse(JSON.stringify(assessment.state || {}))
-
-  if (key.startsWith('completed.')) {
-    const taskId = key.substring('completed.'.length)
-    // Ensure path exists
-    if (!currentState.taskState) currentState.taskState = {}
-    if (!currentState.taskState[ns]) currentState.taskState[ns] = { completedRootTaskIds: [] }
-    if (!Array.isArray(currentState.taskState[ns].completedRootTaskIds)) {
-      currentState.taskState[ns].completedRootTaskIds = []
-    }
-    const completedIds: string[] = currentState.taskState[ns].completedRootTaskIds
-    if (field.rawOldValue === true) {
-      if (!completedIds.includes(taskId)) completedIds.push(taskId)
-    } else {
-      const idx = completedIds.indexOf(taskId)
-      if (idx !== -1) completedIds.splice(idx, 1)
-    }
-  } else {
+  try {
+    // Fetch the current (latest) state from the API so we only modify the one field
+    const assessment = await assessmentsApi.get(props.assessmentId)
+    const currentState = JSON.parse(JSON.stringify(assessment.state || {}))
     if (!currentState.answers) currentState.answers = {}
-    if (!currentState.answers[ns]) currentState.answers[ns] = {}
-    const rawVal = field.rawOldValue as { value?: unknown; timestamp?: string } | null | undefined
-    if (rawVal && typeof rawVal === 'object' && 'value' in rawVal) {
-      currentState.answers[ns][key] = { value: rawVal.value, timestamp: new Date().toISOString() }
+
+    if (key.startsWith('completed.')) {
+      const taskId = key.substring('completed.'.length)
+      if (!currentState.metadata) currentState.metadata = {}
+      const completed: string[] = currentState.metadata.completedTasks || []
+      if (field.rawOldValue === true) {
+        if (!completed.includes(taskId)) completed.push(taskId)
+      } else {
+        const idx = completed.indexOf(taskId)
+        if (idx !== -1) completed.splice(idx, 1)
+      }
+      currentState.metadata.completedTasks = completed
+    } else if (field.editType === 'instance_added' || field.editType === 'instance_removed') {
+      // Undo instance add/remove on the grouped array
+      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
+      if (indexMatch) {
+        const parentKey = indexMatch[1]
+        const index = parseInt(indexMatch[2])
+
+        if (field.editType === 'instance_added') {
+          // Undo add = remove the instance
+          const arr = currentState.answers[parentKey]
+          if (Array.isArray(arr)) {
+            currentState.answers[parentKey] = arr.filter((el: any) => el._index !== index)
+            if (currentState.answers[parentKey].length === 0) {
+              delete currentState.answers[parentKey]
+            }
+          }
+        } else {
+          // Undo remove = add the instance back with its old values
+          if (!Array.isArray(currentState.answers[parentKey])) {
+            currentState.answers[parentKey] = []
+          }
+          const arr = currentState.answers[parentKey] as Array<Record<string, unknown>>
+          if (!arr.find((el: any) => el._index === index)) {
+            const element: Record<string, unknown> = { _index: index }
+            if (field.rawOldValue && typeof field.rawOldValue === 'object') {
+              Object.assign(element, field.rawOldValue)
+            }
+            arr.push(element)
+            arr.sort((a: any, b: any) => a._index - b._index)
+          }
+        }
+      }
     } else {
-      delete currentState.answers[ns][key]
+      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
+      const rawVal = field.rawOldValue as { value?: unknown } | null | undefined
+      const newAnswer = rawVal && typeof rawVal === 'object' && 'value' in rawVal
+        ? { value: rawVal.value, lastEditedAt: new Date().toISOString() }
+        : null
+
+      if (indexMatch) {
+        // Repeatable field: find parent group and update element in grouped array
+        const taskId = indexMatch[1]
+        const index = parseInt(indexMatch[2])
+        const formType = parsed.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+        const flatTasks = taskStore.getTasksFromNamespace(formType)
+        const task = flatTasks?.[taskId]
+        const parentId = task?.parentId
+        const parent = parentId ? flatTasks?.[parentId] : null
+
+        if (parent?.repeatable && parentId) {
+          // Find or create the grouped array
+          if (!Array.isArray(currentState.answers[parentId])) {
+            currentState.answers[parentId] = []
+          }
+          const arr = currentState.answers[parentId] as Array<Record<string, unknown>>
+          let element = arr.find((el: any) => el._index === index)
+          if (!element) {
+            element = { _index: index }
+            arr.push(element)
+            arr.sort((a: any, b: any) => a._index - b._index)
+          }
+          if (newAnswer) {
+            element[taskId] = newAnswer
+          } else {
+            delete element[taskId]
+          }
+        } else {
+          // Indexed but no repeatable parent found — write as flat key
+          if (newAnswer) {
+            currentState.answers[key] = newAnswer
+          } else {
+            delete currentState.answers[key]
+          }
+        }
+      } else {
+        // Non-repeatable field
+        if (newAnswer) {
+          currentState.answers[key] = newAnswer
+        } else {
+          delete currentState.answers[key]
+        }
+      }
     }
+
+    const originVer = field.originVersion ?? (version! - 1)
+    const restoreDesc = key.startsWith('completed.')
+      ? `Status uit versie ${originVer} hersteld`
+      : field.editType === 'instance_added' || field.editType === 'instance_removed'
+      ? `Groep uit versie ${originVer} hersteld`
+      : `Antwoord uit versie ${originVer} hersteld`
+    await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
+
+    // Refresh version list
+    versions.value = await assessmentsApi.versions(props.assessmentId)
+
+    fieldRestoreModalOpen.value = false
+    fieldRestoreTarget.value = null
+  } catch {
+    alert('Herstel mislukt. Probeer het opnieuw.')
+    return
   }
-
-  currentState.metadata = { ...currentState.metadata, savedAt: new Date().toISOString() }
-
-  const originVer = field.originVersion ?? (version! - 1)
-  const restoreDesc = key.startsWith('completed.')
-    ? `Status uit versie ${originVer} hersteld`
-    : `Antwoord uit versie ${originVer} hersteld`
-  await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
-
-  // Refresh version list
-  versions.value = await assessmentsApi.versions(props.assessmentId)
-
-  fieldRestoreModalOpen.value = false
-  fieldRestoreTarget.value = null
 }
 
 // Restore modal
@@ -214,38 +290,42 @@ const restoreConfirmed = computed(() =>
 
 async function handleRestore() {
   if (!restoreConfirmed.value || restoreModalVersion.value === null) return
-  const [versionData, currentAssessment] = await Promise.all([
-    assessmentsApi.version(props.assessmentId, restoreModalVersion.value, { includeState: true }),
-    assessmentsApi.get(props.assessmentId),
-  ])
 
-  const restoredState = (versionData.state || {}) as Record<string, unknown>
-  const currentState = (currentAssessment.state || {}) as Record<string, unknown>
+  try {
+    const [versionData, currentAssessment] = await Promise.all([
+      assessmentsApi.version(props.assessmentId, restoreModalVersion.value, { includeState: true }),
+      assessmentsApi.get(props.assessmentId),
+    ])
 
-  // rebuildState() reconstructs answers + taskState from edits, but metadata
-  // (activeNamespace, urn) is not tracked in edits. Carry over from current state.
-  if (currentState.metadata) {
-    restoredState.metadata = currentState.metadata
-  }
-  if (currentState.$schema && !restoredState.$schema) {
-    restoredState.$schema = currentState.$schema
-  }
+    const restoredState = (versionData.state || {}) as Record<string, unknown>
+    const currentState = (currentAssessment.state || {}) as Record<string, unknown>
+    const currentMeta = (currentState.metadata || {}) as Record<string, unknown>
+    const restoredMeta = (restoredState.metadata || {}) as Record<string, unknown>
 
-  // Verify the restored state has usable content
-  const hasAnswers = restoredState.answers && Object.keys(restoredState.answers as object).length > 0
-  const hasTaskState = restoredState.taskState && Object.keys(restoredState.taskState as object).length > 0
-  if (!hasAnswers && !hasTaskState) {
-    alert('Deze versie bevat geen herstelbare gegevens.')
+    // Merge metadata: urn and createdAt from current (not tracked in edits),
+    // completedTasks from the restored version
+    restoredState.metadata = {
+      ...currentMeta,
+      completedTasks: restoredMeta.completedTasks || [],
+    }
+    if (currentState.$schema) {
+      restoredState.$schema = currentState.$schema
+    }
+    if (!restoredState.answers) {
+      restoredState.answers = {}
+    }
+
+    await assessmentsApi.update(
+      props.assessmentId,
+      restoredState,
+      { changeDescription: `Hersteld naar versie ${restoreModalVersion.value}`, newVersion: true, expectedVersion: currentAssessment.currentVersion },
+    )
+    restoreModalOpen.value = false
+    router.push(`/assessment/${props.assessmentId}`)
+  } catch {
+    alert('Herstel mislukt. Probeer het opnieuw.')
     return
   }
-
-  await assessmentsApi.update(
-    props.assessmentId,
-    restoredState,
-    { changeDescription: `Hersteld naar versie ${restoreModalVersion.value}`, newVersion: true, expectedVersion: currentAssessment.currentVersion },
-  )
-  restoreModalOpen.value = false
-  router.push(`/assessment/${props.assessmentId}`)
 }
 
 // Field label lookup
@@ -255,16 +335,17 @@ const namespaceLabels: Record<string, string> = {
 }
 
 function stripInstanceSuffix(taskId: string): string {
-  const underscoreIndex = taskId.indexOf('_')
-  return underscoreIndex === -1 ? taskId : taskId.substring(0, underscoreIndex)
+  return taskId.replace(/\[\d+\]$/, '').replace(/_.*$/, '')
 }
 
-function getFieldLabel(fieldId: string): string {
+function getFieldLabel(fieldId: string): { label: string; groupLabel?: string } {
   const dotIndex = fieldId.indexOf('.')
-  if (dotIndex === -1) return fieldId
+  if (dotIndex === -1) return { label: fieldId }
 
   const ns = fieldId.substring(0, dotIndex)
-  const taskId = stripInstanceSuffix(fieldId.substring(dotIndex + 1))
+  const raw = fieldId.substring(dotIndex + 1)
+  const taskId = stripInstanceSuffix(raw)
+  const indexMatch = raw.match(/\[(\d+)\]$/)
 
   const formType = ns === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
@@ -272,10 +353,47 @@ function getFieldLabel(fieldId: string): string {
   if (task?.task) {
     const plain = getPlainTextWithoutDefinitions(task.task)
     const label = plain.length > 80 ? plain.substring(0, 77) + '...' : plain
-    return task.is_official_id ? `${task.id}. ${label}` : label
+    const fieldLabel = task.is_official_id ? `${task.id}. ${label}` : label
+
+    if (indexMatch) {
+      const groupLabel = getRepeatableParentLabel(formType, taskId, parseInt(indexMatch[1]))
+      if (groupLabel) return { label: fieldLabel, groupLabel }
+    }
+
+    return { label: fieldLabel }
   }
 
-  return fieldId
+  return { label: fieldId }
+}
+
+function getRepeatableParentLabel(formType: FormType, taskId: string, index: number): string | null {
+  const flatTasks = taskStore.getTasksFromNamespace(formType)
+  if (!flatTasks) return null
+
+  const task = flatTasks[taskId]
+  if (!task?.parentId) return null
+
+  const parent = flatTasks[task.parentId]
+  if (!parent?.repeatable) return null
+
+  const name = parent.task ? getPlainTextWithoutDefinitions(parent.task) : task.parentId
+  const shortName = name.length > 40 ? name.substring(0, 37) + '...' : name
+  return `${shortName} #${index + 1}`
+}
+
+function formatInstanceFields(fields: unknown, formType: FormType): string {
+  if (!fields || typeof fields !== 'object') return ''
+  const entries = Object.entries(fields as Record<string, unknown>)
+  if (entries.length === 0) return ''
+
+  const parts: string[] = []
+  for (const [childTaskId, value] of entries) {
+    const task = taskStore.getTaskByIdFromNamespace(formType, childTaskId)
+    const fieldName = task?.task ? getPlainTextWithoutDefinitions(task.task) : childTaskId
+    const options = task ? getFieldOptions(`${formType}.${childTaskId}`) : null
+    parts.push(`<strong>${escapeHtml(fieldName)}</strong>: ${formatValue(value, options)}`)
+  }
+  return parts.join('<br>')
 }
 
 function getFieldOptions(fieldId: string): Record<string, string> | null {
@@ -312,21 +430,12 @@ function formatTimestamp(val: string): string {
   })
 }
 
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
-
-function stripHtml(str: string): string {
-  if (!str.includes('<')) return str
-  return str.replace(/<[^>]*>/g, '')
-}
-
 function formatValue(val: unknown, options: Record<string, string> | null): string {
-  if (val === null || val === undefined) return 'Leeg'
+  if (val === null || val === undefined) return '\u00a0'
   if (typeof val === 'boolean') return val ? 'Ja' : 'Nee'
 
   if (typeof val === 'string') {
-    if (!val) return 'Leeg'
+    if (!val) return '\u00a0'
     if (val === 'true') return 'Ja'
     if (val === 'false') return 'Nee'
     // Try to parse JSON arrays stored as strings
@@ -385,7 +494,7 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
       parts.push(`${escapeHtml(k)}: ${formatted}`)
     }
 
-    if (parts.length === 0) return 'Leeg'
+    if (parts.length === 0) return '\u00a0'
     return parts.join('\n')
   }
 
@@ -479,6 +588,32 @@ function mapEditsToDiffFields(
   const result: Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
 
   for (const [dotId, edit] of collapsed) {
+    // Instance added/removed: both values are null, so handle before the no-change check
+    if (edit.editType === 'instance_added' || edit.editType === 'instance_removed') {
+      const parsed = parseFieldId(edit.fieldId)
+      const taskId = parsed?.key.replace(/\[\d+\]$/, '') ?? dotId
+      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+      const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
+      const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
+      const indexMatch = parsed?.key.match(/\[(\d+)\]$/)
+      const indexLabel = indexMatch ? ` #${parseInt(indexMatch[1]) + 1}` : ''
+      const label = task?.is_official_id ? `${task.id}. ${name}${indexLabel}` : `${name}${indexLabel}`
+      const added = edit.editType === 'instance_added'
+      const fieldValues = added ? edit.newValue : edit.oldValue
+      const formattedFields = formatInstanceFields(fieldValues, formType)
+      result.push({
+        fieldId: dotId,
+        label,
+        editType: edit.editType,
+        oldValue: added ? '\u00a0' : (formattedFields || '<em>Aanwezig</em>'),
+        newValue: added ? (formattedFields || '<em>Toegevoegd</em>') : '<em>Verwijderd</em>',
+        rawOldValue: added ? null : edit.oldValue,
+        originVersion: version - 1,
+        canRestore: true,
+      })
+      continue
+    }
+
     // Skip if net result is no change
     if (JSON.stringify(edit.oldValue) === JSON.stringify(edit.newValue)) continue
 
@@ -503,9 +638,11 @@ function mapEditsToDiffFields(
     }
 
     // answer_change
+    const { label, groupLabel } = getFieldLabel(dotId)
     result.push({
       fieldId: dotId,
-      label: getFieldLabel(dotId),
+      label,
+      groupLabel,
       oldValue: formatValue(edit.oldValue, options),
       newValue: formatValue(edit.newValue, options),
       rawOldValue: edit.oldValue,
@@ -619,7 +756,10 @@ function mapEditsToDiffFields(
               </thead>
               <tbody>
                 <tr v-for="field in diffFields" :key="field.fieldId" class="diff-row">
-                  <td class="diff-field">{{ field.label }}</td>
+                  <td class="diff-field">
+                    {{ field.label }}
+                    <span v-if="field.groupLabel" class="diff-field__group">{{ field.groupLabel }}</span>
+                  </td>
                   <td class="diff-old diff-value">
                     <div class="diff-old-inner">
                       <span v-html="field.oldValue.replace(/\n/g, '<br>')"></span>

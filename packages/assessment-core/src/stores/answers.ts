@@ -59,9 +59,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   }
 
   function removeAnswer(instanceId: string): void {
-    if (instanceId in answers.value) {
-      delete answers.value[activeNamespace.value][instanceId]
-    }
+    delete answers.value[activeNamespace.value][instanceId]
   }
 
   function removeAnswerForInstances(instanceIds: string[]): void {

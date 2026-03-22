@@ -10,6 +10,8 @@ export interface PersistenceProvider {
   setupWatchers(): (() => void) | void
   /** Cancel any pending debounce and save immediately */
   flushSave?(): void | Promise<void>
+  /** Restore UI-only state (e.g. currentRootTaskId) after task structure init. */
+  restoreUiState?(): void
   /** Snapshot the current store state as the baseline for change tracking.
    *  Called after full initialization (apply + syncInstances) to avoid
    *  initialization-related diffs being treated as user changes. */

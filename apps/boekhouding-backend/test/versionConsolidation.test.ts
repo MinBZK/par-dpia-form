@@ -3,18 +3,24 @@ import { diffStates } from '../src/utils/diffStates.js'
 
 const USER_A = 'user-a'
 const USER_B = 'user-b'
+const URN = 'urn:nl:dpia:3.0'
 
 const CONSOLIDATION_WINDOW_MS = 15 * 60 * 1000
 
-describe('version consolidation logic', () => {
-  // These tests verify the decision logic that the PUT route uses.
-  // The route consolidates (updates in-place) when:
-  //   1. Same user as current version's createdBy
-  //   2. No forceNewVersion flag
-  //   3. No changeDescription (like a restore)
-  //   4. Version was created less than 15 minutes ago
-  // Otherwise it creates a new version.
+const answer = (value: string) => ({ value, lastEditedAt: '2026-01-01T00:00:00Z' })
 
+function state(answers: Record<string, unknown>, completedTasks?: string[]) {
+  return {
+    metadata: {
+      createdAt: '2026-01-01T00:00:00Z',
+      urn: URN,
+      ...(completedTasks && { completedTasks }),
+    },
+    answers,
+  }
+}
+
+describe('version consolidation logic', () => {
   describe('consolidation decision', () => {
     function shouldConsolidate(
       currentVersionCreatedBy: string,
@@ -72,176 +78,105 @@ describe('version consolidation logic', () => {
 
   describe('edits accumulate during consolidation', () => {
     it('produces separate edits for each field change across saves', () => {
-      // Simulate: user changes field A, then field B in a second save
-      const state0 = { metadata: {}, answers: { dpia: {} } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'a' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'a' }, '1.2': { value: 'b' } } } }
+      const s0 = state({})
+      const s1 = state({ '0.1': answer('Inleiding') })
+      const s2 = state({ '0.1': answer('Inleiding'), '0.2': answer('Beschrijving') })
 
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
+      const edits1 = diffStates(s0, s1, USER_A)
+      const edits2 = diffStates(s1, s2, USER_A)
 
-      // First save: 1 edit (field 1.1 added)
       expect(edits1).toHaveLength(1)
-      expect(edits1[0].fieldId).toBe('dpia.1.1')
+      expect(edits1[0].fieldId).toBe(`${URN}?=task_id=0.1`)
 
-      // Second save: 1 edit (field 1.2 added) — not 2, because 1.1 hasn't changed
       expect(edits2).toHaveLength(1)
-      expect(edits2[0].fieldId).toBe('dpia.1.2')
+      expect(edits2[0].fieldId).toBe(`${URN}?=task_id=0.2`)
     })
 
     it('tracks overwritten values correctly across consolidated saves', () => {
-      // User types "aap" then corrects to "beer" — both edits are recorded
-      const state0 = { metadata: {}, answers: { dpia: {} } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'aap' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'beer' } } } }
+      const s0 = state({})
+      const s1 = state({ '1.1': answer('Eerste versie') })
+      const s2 = state({ '1.1': answer('Gecorrigeerd') })
 
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
+      const edits1 = diffStates(s0, s1, USER_A)
+      const edits2 = diffStates(s1, s2, USER_A)
 
-      expect(edits1[0]).toMatchObject({ oldValue: null, newValue: { value: 'aap' } })
-      expect(edits2[0]).toMatchObject({ oldValue: { value: 'aap' }, newValue: { value: 'beer' } })
+      expect(edits1[0]).toMatchObject({ oldValue: null, newValue: answer('Eerste versie') })
+      expect(edits2[0]).toMatchObject({ oldValue: answer('Eerste versie'), newValue: answer('Gecorrigeerd') })
     })
   })
 
   describe('multi-user scenario', () => {
     it('different users editing different fields produces separate edits', () => {
-      const baseState = { metadata: {}, answers: { dpia: { '1.1': { value: 'a' } } } }
+      const base = state({ '0.1': answer('Inleiding') })
+      const afterA = state({ '0.1': answer('Aangepaste inleiding') })
+      const afterB = state({ '0.1': answer('Aangepaste inleiding'), '0.2': answer('Beschrijving') })
 
-      // User A edits field 1.1
-      const stateAfterA = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' } } } }
-      const editsA = diffStates(baseState, stateAfterA, USER_A)
-
-      // User B edits field 1.2 (starting from A's state)
-      const stateAfterB = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' }, '1.2': { value: 'new' } } } }
-      const editsB = diffStates(stateAfterA, stateAfterB, USER_B)
+      const editsA = diffStates(base, afterA, USER_A)
+      const editsB = diffStates(afterA, afterB, USER_B)
 
       expect(editsA).toHaveLength(1)
-      expect(editsA[0]).toMatchObject({ fieldId: 'dpia.1.1', editedBy: USER_A })
+      expect(editsA[0]).toMatchObject({ fieldId: `${URN}?=task_id=0.1`, editedBy: USER_A })
 
       expect(editsB).toHaveLength(1)
-      expect(editsB[0]).toMatchObject({ fieldId: 'dpia.1.2', editedBy: USER_B })
+      expect(editsB[0]).toMatchObject({ fieldId: `${URN}?=task_id=0.2`, editedBy: USER_B })
     })
 
     it('same field edited by two users shows both edits with correct attribution', () => {
-      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'original' } } } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'user-a-version' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'user-b-version' } } } }
+      const s0 = state({ '1.1': answer('Origineel') })
+      const s1 = state({ '1.1': answer('Door Sam') })
+      const s2 = state({ '1.1': answer('Door Noor') })
 
-      const editsA = diffStates(state0, state1, USER_A)
-      const editsB = diffStates(state1, state2, USER_B)
+      const editsA = diffStates(s0, s1, USER_A)
+      const editsB = diffStates(s1, s2, USER_B)
 
-      expect(editsA[0]).toMatchObject({
-        editedBy: USER_A,
-        oldValue: { value: 'original' },
-        newValue: { value: 'user-a-version' },
-      })
-      expect(editsB[0]).toMatchObject({
-        editedBy: USER_B,
-        oldValue: { value: 'user-a-version' },
-        newValue: { value: 'user-b-version' },
-      })
+      expect(editsA[0]).toMatchObject({ editedBy: USER_A, oldValue: answer('Origineel'), newValue: answer('Door Sam') })
+      expect(editsB[0]).toMatchObject({ editedBy: USER_B, oldValue: answer('Door Sam'), newValue: answer('Door Noor') })
     })
   })
 
   describe('consolidation preserves edit history correctly', () => {
     it('consolidated saves produce independent edits that can be collapsed in the UI', () => {
-      // User changes field A in save 1, then changes field A again in save 2 (consolidated)
-      // Both edits are stored — the UI collapses them (first old → last new)
-      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'first' } } } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'second' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'third' } } } }
+      const s0 = state({ '1.1': answer('Eerste') })
+      const s1 = state({ '1.1': answer('Tweede') })
+      const s2 = state({ '1.1': answer('Derde') })
 
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
+      const edits1 = diffStates(s0, s1, USER_A)
+      const edits2 = diffStates(s1, s2, USER_A)
 
-      // Both produce edits — in a consolidated version these would be stored together
-      expect(edits1).toHaveLength(1)
-      expect(edits2).toHaveLength(1)
-
-      // The full chain is preserved: first→second, second→third
-      expect(edits1[0]).toMatchObject({ oldValue: { value: 'first' }, newValue: { value: 'second' } })
-      expect(edits2[0]).toMatchObject({ oldValue: { value: 'second' }, newValue: { value: 'third' } })
-    })
-
-    it('same field edited twice produces two edits that the UI can collapse to net change', () => {
-      // User changes field 1.1 to "aap", then corrects to "beer" in a second consolidated save
-      const state0 = { metadata: {}, answers: { dpia: {} } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'aap' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'beer' } } } }
-
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
-
-      // Both edits exist independently (stored in same version during consolidation)
-      expect(edits1).toHaveLength(1)
-      expect(edits2).toHaveLength(1)
-      expect(edits1[0]).toMatchObject({ fieldId: 'dpia.1.1', oldValue: null, newValue: { value: 'aap' } })
-      expect(edits2[0]).toMatchObject({ fieldId: 'dpia.1.1', oldValue: { value: 'aap' }, newValue: { value: 'beer' } })
-
-      // When the UI collapses these: first oldValue (null) → last newValue ({value: 'beer'})
-      // This is the net change the user sees in the diff view
+      expect(edits1[0]).toMatchObject({ oldValue: answer('Eerste'), newValue: answer('Tweede') })
+      expect(edits2[0]).toMatchObject({ oldValue: answer('Tweede'), newValue: answer('Derde') })
     })
 
     it('same field edited back to original produces two edits that cancel out', () => {
-      // User changes field, then changes it back — net diff is nothing
-      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'original' } } } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'changed' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'original' } } } }
+      const s0 = state({ '1.1': answer('Origineel') })
+      const s1 = state({ '1.1': answer('Gewijzigd') })
+      const s2 = state({ '1.1': answer('Origineel') })
 
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
-
-      // Both edits are stored...
-      expect(edits1).toHaveLength(1)
-      expect(edits2).toHaveLength(1)
-
-      // ...but the UI collapse would see: oldValue={value:'original'} → newValue={value:'original'}
-      // and skip the field since JSON.stringify matches. This is handled in VersionHistory.vue.
+      expect(diffStates(s0, s1, USER_A)).toHaveLength(1)
+      expect(diffStates(s1, s2, USER_A)).toHaveLength(1)
     })
 
     it('mixed field edits across consolidated saves track each field independently', () => {
-      const state0 = { metadata: {}, answers: { dpia: { '1.1': { value: 'a' }, '1.2': { value: 'x' } } } }
-      const state1 = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' }, '1.2': { value: 'x' } } } }
-      const state2 = { metadata: {}, answers: { dpia: { '1.1': { value: 'b' }, '1.2': { value: 'y' } } } }
+      const s0 = state({ '0.1': answer('A'), '0.2': answer('X') })
+      const s1 = state({ '0.1': answer('B'), '0.2': answer('X') })
+      const s2 = state({ '0.1': answer('B'), '0.2': answer('Y') })
 
-      const edits1 = diffStates(state0, state1, USER_A)
-      const edits2 = diffStates(state1, state2, USER_A)
+      const edits1 = diffStates(s0, s1, USER_A)
+      const edits2 = diffStates(s1, s2, USER_A)
 
-      // Save 1 changes field 1.1 only
       expect(edits1).toHaveLength(1)
-      expect(edits1[0].fieldId).toBe('dpia.1.1')
+      expect(edits1[0].fieldId).toBe(`${URN}?=task_id=0.1`)
 
-      // Save 2 changes field 1.2 only
       expect(edits2).toHaveLength(1)
-      expect(edits2[0].fieldId).toBe('dpia.1.2')
+      expect(edits2[0].fieldId).toBe(`${URN}?=task_id=0.2`)
     })
   })
 
   describe('navigation-only saves do not create edits', () => {
-    it('changing currentRootTaskId produces no edits', () => {
-      const state1 = {
-        metadata: {},
-        answers: { dpia: { '1.1': { value: 'x' } } },
-        taskState: { dpia: { currentRootTaskId: '1', completedRootTaskIds: [], taskInstances: {} } },
-      }
-      const state2 = {
-        metadata: {},
-        answers: { dpia: { '1.1': { value: 'x' } } },
-        taskState: { dpia: { currentRootTaskId: '3', completedRootTaskIds: [], taskInstances: {} } },
-      }
-      expect(diffStates(state1, state2, USER_A)).toEqual([])
-    })
-
-    it('changing only metadata produces no edits', () => {
-      const state1 = {
-        metadata: { createdAt: '2024-01-01' },
-        answers: { dpia: { '1.1': { value: 'x' } } },
-      }
-      const state2 = {
-        metadata: { createdAt: '2024-01-02', urn: 'urn:nl:dpia:3.0' },
-        answers: { dpia: { '1.1': { value: 'x' } } },
-      }
-      expect(diffStates(state1, state2, USER_A)).toEqual([])
+    it('changing only metadata timestamp produces no edits', () => {
+      const s1 = { metadata: { createdAt: '2026-01-01', urn: URN }, answers: { '0.1': answer('X') } }
+      const s2 = { metadata: { createdAt: '2026-01-02', urn: URN }, answers: { '0.1': answer('X') } }
+      expect(diffStates(s1, s2, USER_A)).toEqual([])
     })
   })
 })

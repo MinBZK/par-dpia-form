@@ -110,7 +110,7 @@
 }
 
 .aiv-definition .aiv-definition-text {
-  visibility: hidden;
+  display: none;
   min-width: 500px;
   max-width: 1000px;
   background-color: var(--rvo-color-wit);
@@ -143,8 +143,7 @@
 
 /* Make the tooltip visible on hover */
 .aiv-definition:hover .aiv-definition-text {
-  visibility: visible;
-  opacity: 1;
+  display: block;
 }
 
 .rvo-theme .rvo-icon--with-spacing-left {

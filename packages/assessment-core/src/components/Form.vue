@@ -17,6 +17,7 @@ import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { useCalculationStore } from '../stores/calculations'
 import { exportToJson } from '../utils/jsonExport'
 import { exportToPdf } from '../utils/pdfExport'
+import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
 import * as t from 'io-ts'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
@@ -74,6 +75,14 @@ onMounted(async () => {
     // Step 4: Apply saved state if it is available.
     if (savedState) {
       persistence.applyAppState(savedState)
+      // Rebuild repeatable task instances from answer keys and grouped arrays
+      rebuildRepeatableInstances(taskStore, answerStore, savedState.answers)
+    }
+
+    // Step 4b: Restore UI state (e.g. last viewed section) after task init,
+    // because init resets currentRootTaskId to the first section.
+    if (persistence.restoreUiState) {
+      persistence.restoreUiState()
     }
 
     // Auto-start: skip FileUploadPage (used by boekhouding where data comes from API)
@@ -157,16 +166,9 @@ const handleStart = (fileData?: AssessmentState) => {
     // Apply state for all namespaces
     persistence.applyAppState(fileData)
 
-    // Check if the file contains data for the active namespace
-    const hasDataForActiveNamespace = fileData.taskState &&
-      fileData.taskState[props.namespace] &&
-      fileData.answers &&
-      fileData.answers[props.namespace];
-
-    // Synchronize task instances based on the data
-    if (hasDataForActiveNamespace) {
-      syncInstances.value()
-    }
+    // Rebuild repeatable instances from answer keys/grouped arrays and sync dependencies
+    rebuildRepeatableInstances(taskStore, answerStore, fileData.answers)
+    syncInstances.value()
   }
   // Start the form regardless
   formStarted.value = true

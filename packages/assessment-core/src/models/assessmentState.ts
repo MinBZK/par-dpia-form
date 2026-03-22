@@ -1,37 +1,31 @@
 import { type Answer } from '../stores/answers'
-import { type TaskInstance } from '../stores/tasks'
-import { FormType } from './dpia'
 
 export const OUTPUT_SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
 
-export interface AssessmentStateMetadata {
-  createdAt: string
-  activeNamespace?: FormType
-  urn?: string
+export interface IndexedGroupElement {
+  _index: number
+  [childTaskId: string]: Answer | number  // number is for _index
 }
 
-export interface DPIATaskState {
-  currentRootTaskId: string
-  completedRootTaskIds: string[]
-  taskInstances: Record<string, TaskInstance>
-}
+export type GroupedAnswerValue = Answer | IndexedGroupElement[]
 
-// Contains namespaced state (used for persistence — localStorage, API)
+export type GroupedAnswers = Record<string, GroupedAnswerValue>
+
+/**
+ * The one data format for assessment state — used for DB persistence,
+ * file export, file import, and API communication.
+ * Validated by schemas/assessment-output.v2.schema.json.
+ *
+ * Answers are keyed by task ID. Non-repeatable tasks have Answer values.
+ * Repeatable parent tasks have IndexedGroupElement[] arrays.
+ */
 export interface AssessmentState {
   $schema?: string
-  metadata: AssessmentStateMetadata
-  taskState?: Partial<Record<FormType, DPIATaskState>>
-  answers: Partial<Record<FormType, Record<string, Answer>>>
-}
-
-// Clean export format (used for JSON file download)
-export interface AssessmentOutput {
-  $schema: string
   metadata: {
+    urn?: string
     createdAt: string
-    urn: string
-    createdBy?: { name: string; email?: string }
     completedTasks?: string[]
+    createdBy?: { name: string; email?: string }
   }
-  answers: Record<string, Answer>
+  answers: Record<string, GroupedAnswerValue>
 }

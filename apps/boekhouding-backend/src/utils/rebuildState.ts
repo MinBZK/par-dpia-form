@@ -13,7 +13,6 @@ export async function rebuildState(
   assessmentInstanceId: string,
   upToVersion: number,
 ): Promise<unknown> {
-  // Fetch all edits for versions 1..N, ordered by version then editedAt
   const rows = await db
     .select({
       fieldId: assessmentEdits.fieldId,
@@ -32,7 +31,6 @@ export async function rebuildState(
     )
     .orderBy(asc(assessmentVersions.version), asc(assessmentEdits.editedAt))
 
-  // No edits found — fall back to cachedState (legacy assessment without initial_state edit)
   if (rows.length === 0) {
     const [instance] = await db
       .select({ cachedState: assessmentInstances.cachedState })
@@ -47,33 +45,70 @@ export async function rebuildState(
   for (const row of rows) {
     if (row.editType === 'initial_state') {
       state = structuredClone(row.newValue) ?? {}
+      // Normalize old namespace-wrapped format so subsequent flat-key edits align
+      if (state.answers?.dpia || state.answers?.prescan) {
+        const ns = state.answers.dpia ? 'dpia' : 'prescan'
+        state.answers = state.answers[ns]
+      }
+      if (state.taskState) {
+        const tsNs = Object.keys(state.taskState)[0]
+        if (tsNs) {
+          state.metadata = state.metadata || {}
+          state.metadata.completedTasks = state.taskState[tsNs]?.completedRootTaskIds || []
+        }
+        delete state.taskState
+      }
+      if (state.metadata) {
+        delete state.metadata.activeNamespace
+      }
       continue
     }
 
-    // Parse fieldId: either URN-based or namespace.key format
-    const parsed = parseFieldId(row.fieldId)
-    if (!parsed) continue
-
-    const { namespace, key } = parsed
+    const key = parseFieldKey(row.fieldId)
+    if (!key) continue
 
     switch (row.editType) {
       case 'answer_change': {
         if (!state.answers) state.answers = {}
-        if (!state.answers[namespace]) state.answers[namespace] = {}
+
+        // Check if this is a child of a grouped array (key has [index] suffix)
+        const instanceMatch = key.match(/^(.+)\[(\d+)\]$/)
+        if (instanceMatch) {
+          const childTaskId = instanceMatch[1]
+          const index = parseInt(instanceMatch[2])
+
+          const parentKey = findGroupedParent(state.answers, childTaskId)
+          if (parentKey) {
+            const arr = state.answers[parentKey]
+            if (Array.isArray(arr)) {
+              let element = arr.find((el: any) => el._index === index)
+              if (!element) {
+                element = { _index: index }
+                arr.push(element)
+                arr.sort((a: any, b: any) => a._index - b._index)
+              }
+              if (row.newValue === null) {
+                delete element[childTaskId]
+              } else {
+                element[childTaskId] = row.newValue
+              }
+              continue
+            }
+          }
+        }
+
         if (row.newValue === null) {
-          delete state.answers[namespace][key]
+          delete state.answers[key]
         } else {
-          state.answers[namespace][key] = row.newValue
+          state.answers[key] = row.newValue
         }
         break
       }
       case 'section_complete': {
-        if (!state.taskState) state.taskState = {}
-        if (!state.taskState[namespace]) {
-          state.taskState[namespace] = { currentRootTaskId: '', completedRootTaskIds: [], taskInstances: {} }
-        }
-        const completed: string[] = state.taskState[namespace].completedRootTaskIds
+        if (!state.metadata) state.metadata = {}
+        if (!state.metadata.completedTasks) state.metadata.completedTasks = []
         const taskId = key.startsWith('completed.') ? key.substring('completed.'.length) : key
+        const completed: string[] = state.metadata.completedTasks
         if (row.newValue === true) {
           if (!completed.includes(taskId)) completed.push(taskId)
         } else {
@@ -82,20 +117,48 @@ export async function rebuildState(
         }
         break
       }
-      case 'task_instance_add': {
-        if (!state.taskState) state.taskState = {}
-        if (!state.taskState[namespace]) {
-          state.taskState[namespace] = { currentRootTaskId: '', completedRootTaskIds: [], taskInstances: {} }
+      case 'instance_added': {
+        if (!state.answers) state.answers = {}
+        const addMatch = key.match(/^(.+)\[(\d+)\]$/)
+        if (addMatch) {
+          const parentKey = addMatch[1]
+          const index = parseInt(addMatch[2])
+          if (!Array.isArray(state.answers[parentKey])) {
+            state.answers[parentKey] = []
+          }
+          const arr = state.answers[parentKey]
+          if (!arr.find((el: any) => el._index === index)) {
+            const element: any = { _index: index }
+            // Bundled field values (new format)
+            if (row.newValue && typeof row.newValue === 'object') {
+              Object.assign(element, row.newValue)
+            }
+            arr.push(element)
+            arr.sort((a: any, b: any) => a._index - b._index)
+          }
         }
-        state.taskState[namespace].taskInstances[key] = row.newValue
         break
       }
-      case 'task_instance_remove': {
-        if (state.taskState?.[namespace]?.taskInstances) {
-          delete state.taskState[namespace].taskInstances[key]
+      case 'instance_removed': {
+        if (!state.answers) break
+        const removeMatch = key.match(/^(.+)\[(\d+)\]$/)
+        if (removeMatch) {
+          const parentKey = removeMatch[1]
+          const index = parseInt(removeMatch[2])
+          const arr = state.answers[parentKey]
+          if (Array.isArray(arr)) {
+            state.answers[parentKey] = arr.filter((el: any) => el._index !== index)
+            if (state.answers[parentKey].length === 0) {
+              delete state.answers[parentKey]
+            }
+          }
         }
         break
       }
+      // Legacy edit types — ignore
+      case 'task_instance_add':
+      case 'task_instance_remove':
+        break
     }
   }
 
@@ -103,27 +166,45 @@ export async function rebuildState(
 }
 
 /**
- * Parse a field ID into namespace and key.
- * Handles both URN format ("urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0")
- * and dot format ("dpia.2.1.3").
+ * Find the parent grouped array key that would contain a child task ID.
  */
-function parseFieldId(fieldId: string): { namespace: string; key: string } | null {
-  // URN format: "urn:nl:<namespace>:<version>?=task_id=<id>[&task_index=<n>]"
+function findGroupedParent(answers: Record<string, unknown>, childTaskId: string): string | null {
+  const parts = childTaskId.split('.')
+  for (let i = parts.length - 1; i >= 1; i--) {
+    const candidate = parts.slice(0, i).join('.')
+    if (Array.isArray(answers[candidate])) {
+      return candidate
+    }
+  }
+  return null
+}
+
+/**
+ * Extract the answer key from a field ID stored in assessment_edits.
+ * The returned key is used internally to locate the answer in the state
+ * (either as a direct key or matched to a grouped array element via _index).
+ *
+ * URN format: "urn:nl:dpia:3.0?=task_id=2.1.3" → "2.1.3"
+ * URN with index: "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0" → "2.1.3[0]"
+ * Legacy dot format: "dpia.2.1.3" → "2.1.3"
+ * Plain key: "2.1.3" → "2.1.3"
+ */
+function parseFieldKey(fieldId: string): string | null {
+  // URN format
   if (fieldId.startsWith('urn:')) {
-    const match = fieldId.match(/^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
+    const match = fieldId.match(/^urn:nl:\w+:[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
     if (!match) return null
-    const namespace = match[1] === 'prescan_dpia' ? 'prescan' : match[1]
-    const taskId = match[2]
-    const index = match[3]
-    const key = index !== undefined ? `${taskId}[${index}]` : taskId
-    return { namespace, key }
+    const taskId = match[1]
+    const index = match[2]
+    return index !== undefined ? `${taskId}[${index}]` : taskId
   }
 
-  // Dot format: "namespace.rest.of.key"
-  const dotIndex = fieldId.indexOf('.')
-  if (dotIndex === -1) return null
-  return {
-    namespace: fieldId.substring(0, dotIndex),
-    key: fieldId.substring(dotIndex + 1),
+  // Legacy dot format: "dpia.rest.of.key" or "prescan.rest.of.key"
+  if (fieldId.startsWith('dpia.') || fieldId.startsWith('prescan.')) {
+    const dotIndex = fieldId.indexOf('.')
+    return fieldId.substring(dotIndex + 1)
   }
+
+  // Plain key (new format)
+  return fieldId
 }

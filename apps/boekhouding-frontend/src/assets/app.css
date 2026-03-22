@@ -658,6 +658,12 @@ a.card-link:hover {
   border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
   vertical-align: top;
   word-break: break-word;
+}
+
+.diff-field__group {
+  display: block;
+  font-size: 0.8125rem;
+  color: #666;
   height: 1px; /* allows inner flex div to stretch to full cell height */
 }
 
@@ -680,7 +686,6 @@ a.card-link:hover {
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 0.5rem;
 }
 
 .diff-timestamp {

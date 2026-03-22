@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { useTaskStore } from '../src/stores/tasks'
+import { useTaskStore, type FlatTask } from '../src/stores/tasks'
 import { useAnswerStore } from '../src/stores/answers'
 import { buildOutputData } from '../src/utils/jsonExport'
 import { OUTPUT_SCHEMA_URL } from '../src/models/assessmentState'
@@ -23,7 +23,7 @@ describe('buildOutputData', () => {
     answerStore = useAnswerStore()
   })
 
-  it('produces valid AssessmentOutput with $schema, urn, and flat answers', () => {
+  it('produces valid AssessmentOutput with $schema, urn, and answers', () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.answers[FormType.PRE_SCAN] = {
       '0.1': { value: 'true', lastEditedAt: '2026-01-01' },
@@ -37,6 +37,49 @@ describe('buildOutputData', () => {
     expect(output.metadata.createdAt).toBeDefined()
     expect(output.answers['0.1']).toEqual({ value: 'true', lastEditedAt: '2026-01-01' })
     expect(output.answers['1.1.1']).toEqual({ value: 'false', lastEditedAt: '2026-01-01' })
+  })
+
+  it('groups repeatable answers under parent key', () => {
+    taskStore.setActiveNamespace(FormType.DPIA)
+
+    // Set up flatTasks so groupAnswers knows about repeatable structure
+    taskStore.flatTasks[FormType.DPIA] = {
+      '0': { id: '0', task: 'Intro', type: ['task_group'], parentId: null, childrenIds: ['0.1'] },
+      '0.1': { id: '0.1', task: 'Name', type: ['text'], parentId: '0', childrenIds: [] },
+      '2': { id: '2', task: 'Section', type: ['task_group'], parentId: null, childrenIds: ['2.1'] },
+      '2.1': {
+        id: '2.1', task: 'Repeatable', type: ['task_group'], repeatable: true,
+        parentId: '2', childrenIds: ['2.1.1', '2.1.2'],
+      },
+      '2.1.1': { id: '2.1.1', task: 'Field A', type: ['text'], parentId: '2.1', childrenIds: [] },
+      '2.1.2': { id: '2.1.2', task: 'Field B', type: ['text'], parentId: '2.1', childrenIds: [] },
+    } as Record<string, FlatTask>
+
+    answerStore.answers[FormType.DPIA] = {
+      '0.1': { value: 'My project', lastEditedAt: '2026-01-01' },
+      '2.1.1[0]': { value: 'Email', lastEditedAt: '2026-01-01' },
+      '2.1.2[0]': { value: 'Employees', lastEditedAt: '2026-01-01' },
+      '2.1.1[1]': { value: 'Phone', lastEditedAt: '2026-01-01' },
+      '2.1.2[1]': { value: 'Customers', lastEditedAt: '2026-01-01' },
+    }
+
+    const output = buildOutputData(taskStore, answerStore)
+
+    // Non-repeatable passes through
+    expect(output.answers['0.1']).toEqual({ value: 'My project', lastEditedAt: '2026-01-01' })
+
+    // Repeatable children are grouped
+    const grouped = output.answers['2.1']
+    expect(Array.isArray(grouped)).toBe(true)
+    const arr = grouped as any[]
+    expect(arr).toHaveLength(2)
+    expect(arr[0]._index).toBe(0)
+    expect(arr[0]['2.1.1']).toEqual({ value: 'Email', lastEditedAt: '2026-01-01' })
+    expect(arr[1]._index).toBe(1)
+    expect(arr[1]['2.1.1']).toEqual({ value: 'Phone', lastEditedAt: '2026-01-01' })
+
+    // Instance keys NOT in output
+    expect(output.answers['2.1.1[0]']).toBeUndefined()
   })
 
   it('includes completedTasks when sections are marked complete', () => {
@@ -76,7 +119,6 @@ describe('buildOutputData', () => {
     answerStore.answers[FormType.DPIA] = {
       '2.1.1': { value: 'ja', lastEditedAt: '2026-01-01' },
     }
-    // Pre-scan answers should be ignored
     answerStore.answers[FormType.PRE_SCAN] = {
       '0.1': { value: 'true', lastEditedAt: '2026-01-01' },
     }
@@ -92,7 +134,6 @@ describe('buildOutputData', () => {
     const { detectImportType, normalizeToState } = await import('../src/utils/importDetect')
     const { applyStateToStores } = await import('../src/utils/applyState')
 
-    // Set up source state
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     taskStore.completedRootTaskIds[FormType.PRE_SCAN] = new Set(['0', '1', '3'])
     answerStore.answers[FormType.PRE_SCAN] = {
@@ -102,26 +143,23 @@ describe('buildOutputData', () => {
       '3.1': { value: [], lastEditedAt: '2026-01-01' },
     }
 
-    // Export
     const exported = buildOutputData(taskStore, answerStore)
 
-    // Simulate fresh stores (like a new browser session)
+    // Simulate fresh stores
     setActivePinia(createPinia())
     const freshTaskStore = useTaskStore()
     const freshAnswerStore = useAnswerStore()
+    freshTaskStore.setActiveNamespace(FormType.PRE_SCAN)
+    freshAnswerStore.setActiveNamespace(FormType.PRE_SCAN)
 
-    // Import
     const type = detectImportType(exported as unknown as Record<string, unknown>)
     expect(type).toBe('prescan')
 
     const state = normalizeToState(exported as unknown as Record<string, unknown>, type!)
     applyStateToStores(state, freshTaskStore, freshAnswerStore)
 
-    // Verify answers preserved
     expect(Object.keys(freshAnswerStore.answers.prescan)).toHaveLength(4)
     expect(freshAnswerStore.answers.prescan['0.1']).toEqual({ value: 'true', lastEditedAt: '2026-01-01' })
-
-    // Verify completedTasks preserved (from explicit completedTasks, not derived)
     expect(freshTaskStore.completedRootTaskIds.prescan).toEqual(new Set(['0', '1', '3']))
   })
 })

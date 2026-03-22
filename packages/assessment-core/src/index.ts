@@ -4,7 +4,7 @@ import './assets/base.css'
 // Models
 export { FormType, DPIA } from './models/dpia'
 export { OUTPUT_SCHEMA_URL } from './models/assessmentState'
-export type { AssessmentState, AssessmentStateMetadata, AssessmentOutput } from './models/assessmentState'
+export type { AssessmentState, IndexedGroupElement, GroupedAnswerValue, GroupedAnswers } from './models/assessmentState'
 export { ViewState } from './models/navigation'
 export type { NavigationFunctions } from './models/navigation'
 
@@ -29,8 +29,8 @@ export type { PersistenceProvider } from './persistence'
 
 // Utils
 export { migrateStateV1toV2 } from './utils/stateMigration'
-export { parseAndValidateImport } from './utils/importDetect'
-export { applyStateToStores } from './utils/applyState'
+export { parseAndValidateImport, detectImportType } from './utils/importDetect'
+export { applyStateToStores, rebuildRepeatableInstances } from './utils/applyState'
 export { exportToJson, buildOutputData } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
 export { exportToPdf } from './utils/pdfExport'
@@ -38,6 +38,7 @@ export { generateFilename } from './utils/fileName'
 export { createConclusionTask, renderInstanceLabel } from './utils/taskUtils'
 export { getPlainTextWithoutDefinitions } from './utils/stripHtml'
 export { hasInstanceMapping, shouldShowTask } from './utils/dependency'
+export { groupAnswers, flattenGroupedAnswers } from './utils/groupedAnswers'
 
 // Components
 export { default as Form } from './components/Form.vue'

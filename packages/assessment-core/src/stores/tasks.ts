@@ -3,15 +3,8 @@ import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
-export function buildInstanceId(taskId: string, index?: number): string {
-  return index !== undefined ? `${taskId}[${index}]` : taskId
-}
-
-export function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
-  const match = instanceId.match(/^(.+)\[(\d+)\]$/)
-  if (match) return { taskId: match[1], index: parseInt(match[2]) }
-  return { taskId: instanceId }
-}
+import { buildInstanceId, parseInstanceId } from '../utils/instanceId'
+export { buildInstanceId, parseInstanceId }
 
 export interface FlatTask {
   id: string
@@ -170,28 +163,30 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
+  function nextAvailableIndex(ns: FormType, taskId: string): number {
+    const existing = Object.values(taskInstances.value[ns])
+      .filter(inst => inst.taskId === taskId)
+      .map(inst => parseInstanceId(inst.id).index ?? -1)
+    return existing.length > 0 ? Math.max(...existing) + 1 : 0
+  }
+
   function createTaskInstance(
     taskId: string,
     parentInstanceId?: string,
     forceNewGroupId: boolean = false,
+    specificIndex?: number,
   ): string {
     const task = flatTasks.value[activeNamespace.value][taskId]
     const ns = activeNamespace.value
 
     // Determine instance ID: repeatable tasks get [index], non-repeatable just taskId
     let instanceId: string
-    if (task?.repeatable && forceNewGroupId) {
-      // New repeatable instance — count existing instances with the same taskId
-      const existingCount = Object.values(taskInstances.value[ns])
-        .filter(inst => inst.taskId === taskId)
-        .length
-      instanceId = buildInstanceId(taskId, existingCount)
-    } else if (task?.repeatable) {
-      // First repeatable instance during default init
-      const existingCount = Object.values(taskInstances.value[ns])
-        .filter(inst => inst.taskId === taskId)
-        .length
-      instanceId = buildInstanceId(taskId, existingCount)
+    if (task?.repeatable || (parentInstanceId && parseInstanceId(parentInstanceId).index !== undefined)) {
+      if (specificIndex !== undefined) {
+        instanceId = buildInstanceId(taskId, specificIndex)
+      } else {
+        instanceId = buildInstanceId(taskId, nextAvailableIndex(ns, taskId))
+      }
     } else {
       instanceId = taskId
     }
@@ -214,10 +209,13 @@ export const useTaskStore = defineStore('TaskStore', () => {
       taskInstances.value[ns][parentInstanceId].childInstanceIds.push(instanceId)
     }
 
+    // Propagate specificIndex to children of repeatable tasks so children
+    // get matching indices (e.g. 2.1[2] → 2.1.1[2], 2.1.2[2])
     const childTaskIds = flatTasks.value[ns][taskId].childrenIds
     if (childTaskIds.length > 0) {
+      const childIndex = task?.repeatable ? (specificIndex ?? parseInstanceId(instanceId).index) : undefined
       childTaskIds.forEach((childTaskId) => {
-        createTaskInstance(childTaskId, instanceId)
+        createTaskInstance(childTaskId, instanceId, false, childIndex)
       })
     }
     return instanceId
@@ -235,10 +233,10 @@ export const useTaskStore = defineStore('TaskStore', () => {
     })
   }
 
-  function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string): string {
+  function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string, specificIndex?: number): string {
     const task = taskById.value(taskId)
     if (!task.repeatable) return ''
-    return createTaskInstance(taskId, parentInstanceId, true)
+    return createTaskInstance(taskId, parentInstanceId, true, specificIndex)
   }
 
   function removeRepeatableTaskInstance(instanceId: string): void {

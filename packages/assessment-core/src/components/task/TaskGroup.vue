@@ -3,7 +3,8 @@ import FormField from './FormField.vue'
 import UiButton from '../ui/UiButton.vue'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
-import { useTaskStore, type FlatTask } from '../../stores/tasks'
+import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
+import { useAnswerStore } from '../../stores/answers'
 import { renderInstanceLabel } from '../../utils/taskUtils'
 import { computed, nextTick } from 'vue'
 
@@ -13,6 +14,7 @@ const props = defineProps<{
 }>()
 
 const taskStore = useTaskStore()
+const answerStore = useAnswerStore()
 const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
@@ -52,7 +54,20 @@ function hasVisibleInstance(taskId: string): boolean {
   return instanceIds.some((instanceId) => shouldShowTask.value(taskId, instanceId))
 }
 
+function collectInstanceIds(instanceId: string): string[] {
+  const instance = taskStore.getInstanceById(instanceId)
+  if (!instance) return [instanceId]
+  const ids = [instanceId]
+  for (const childId of instance.childInstanceIds) {
+    ids.push(...collectInstanceIds(childId))
+  }
+  return ids
+}
+
 const handleDelete = (instanceId: string) => {
+  // Collect all instance IDs (parent + children) before removal
+  const idsToRemove = collectInstanceIds(instanceId)
+  answerStore.removeAnswerForInstances(idsToRemove)
   taskStore.removeRepeatableTaskInstance(instanceId)
   nextTick(() => {
     syncInstances.value()

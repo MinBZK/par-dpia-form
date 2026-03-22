@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport } from '@overheid-assessment/core'
+import { FormType, type AssessmentState, parseAndValidateImport, detectImportType } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -154,13 +154,15 @@ const onFileChange = (event: Event) => {
   dialogError.value = null
 }
 
-const buildPrescanState = (prescanTaskState: unknown, prescanAnswers: unknown): AssessmentState => {
-  return {
-    metadata: { createdAt: new Date().toISOString(), activeNamespace: FormType.DPIA },
-    taskState: { [FormType.PRE_SCAN]: prescanTaskState } as AssessmentState['taskState'],
-    answers: { [FormType.PRE_SCAN]: prescanAnswers } as AssessmentState['answers'],
-  }
-}
+/** Build a DPIA initial state that embeds pre-scan answers for cross-referencing.
+ *  Pre-scan answers go in a separate `_prescanAnswers` field (not inside `answers`)
+ *  so they don't collide with DPIA flat-format answers and usePreScanReferences
+ *  can load them into the PRE_SCAN namespace. The DPIA starts with empty answers. */
+const buildPrescanState = (prescanAnswers: Record<string, unknown>): Record<string, unknown> => ({
+  metadata: { createdAt: new Date().toISOString() },
+  answers: {},
+  _prescanAnswers: prescanAnswers,
+})
 
 const submitDialog = async () => {
   dialogError.value = null
@@ -194,33 +196,37 @@ const submitDpiaDialog = async () => {
       return
     }
     const prescanForm = await assessmentsApi.get(selectedPrescanId.value)
-    const prescanState = prescanForm.state as AssessmentState | undefined
-    if (!prescanState?.taskState?.[FormType.PRE_SCAN] || !prescanState?.answers?.[FormType.PRE_SCAN]) {
+    const prescanState = prescanForm.state as Record<string, unknown> | undefined
+    let prescanAnswers = prescanState?.answers as Record<string, unknown> | undefined
+    // Unwrap old namespace-wrapped format: { prescan: { "0.1": ... } } → { "0.1": ... }
+    if (prescanAnswers?.[FormType.PRE_SCAN] && typeof prescanAnswers[FormType.PRE_SCAN] === 'object') {
+      prescanAnswers = prescanAnswers[FormType.PRE_SCAN] as Record<string, unknown>
+    }
+    if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
       dialogError.value = 'De geselecteerde pre-scan bevat geen ingevulde gegevens'
       return
     }
-    const initialState = buildPrescanState(
-      prescanState.taskState[FormType.PRE_SCAN],
-      prescanState.answers[FormType.PRE_SCAN],
-    )
+    const initialState = buildPrescanState(prescanAnswers)
     const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
     router.push(`/assessment/${form.id}`)
     return
   }
 
   if (dialogOption.value === 'import') {
-    // Auto-detect: DPIA or pre-scan via URN, namespace, or answer keys
     if (!uploadFile.value) {
       dialogError.value = 'Selecteer een JSON-bestand'
       return
     }
     const text = await uploadFile.value.text()
+    const json = JSON.parse(text)
+    const importType = detectImportType(json)
     const state = parseAndValidateImport(text)
-    const isDpia = state.answers?.[FormType.DPIA] && Object.keys(state.answers[FormType.DPIA]!).length > 0
 
-    const initialState = isDpia
-      ? state
-      : buildPrescanState(state.taskState?.[FormType.PRE_SCAN], state.answers?.[FormType.PRE_SCAN])
+    // Pre-scan file imported to start a DPIA: wrap answers under prescan
+    // namespace so usePreScanReferences can find them; DPIA starts empty.
+    const initialState = importType === 'prescan'
+      ? buildPrescanState(state.answers as Record<string, unknown>)
+      : state
 
     const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
     router.push(`/assessment/${form.id}`)
@@ -243,7 +249,7 @@ const submitPrescanDialog = async () => {
     const text = await uploadFile.value.text()
     const state = parseAndValidateImport(text)
 
-    if (!state.answers?.[FormType.PRE_SCAN] || Object.keys(state.answers[FormType.PRE_SCAN]!).length === 0) {
+    if (!state.answers || Object.keys(state.answers).length === 0) {
       dialogError.value = 'Het bestand bevat geen pre-scan antwoorden'
       return
     }

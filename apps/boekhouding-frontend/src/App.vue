@@ -10,7 +10,7 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
 <template>
   <div class="app-layout">
     <AppBanner message="De Assessment Boekhouding en de invulhulpen zijn in ontwikkeling." title="Assessment Boekhouding" :homeUrl="homeUrl" />
-    <router-view class="app-main" />
+    <router-view :key="$route.path" class="app-main" />
     <footer class="app-footer">
       <nav aria-label="Juridische informatie">
         <router-link to="/privacy" class="app-footer__link">Privacyverklaring</router-link>

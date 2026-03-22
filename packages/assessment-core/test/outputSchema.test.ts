@@ -98,6 +98,52 @@ describe('assessment output schema validation', () => {
     expect(valid).toBe(true)
   })
 
+  it('grouped repeatable output validates against schema', () => {
+    const groupedOutput = {
+      $schema: schema.$id,
+      metadata: { createdAt: '2026-01-01T00:00:00.000Z', urn: 'urn:nl:dpia:3.0' },
+      answers: {
+        '0.1': { value: 'My project', lastEditedAt: '2026-01-01T00:00:00.000Z' },
+        '2.1': [
+          { _index: 0, '2.1.1': { value: 'Email', lastEditedAt: '2026-01-01T00:00:00.000Z' }, '2.1.2': { value: 'Employees', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
+          { _index: 2, '2.1.1': { value: 'Phone', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
+        ],
+      },
+    }
+    const valid = validate(groupedOutput)
+    expect(validate.errors).toBeNull()
+    expect(valid).toBe(true)
+  })
+
+  it('grouped output with empty instance (only _index) validates', () => {
+    const outputWithEmpty = {
+      $schema: schema.$id,
+      metadata: { createdAt: '2026-01-01T00:00:00.000Z', urn: 'urn:nl:dpia:3.0' },
+      answers: {
+        '2.1': [
+          { _index: 0 },
+          { _index: 1, '2.1.1': { value: 'Phone', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
+        ],
+      },
+    }
+    const valid = validate(outputWithEmpty)
+    expect(validate.errors).toBeNull()
+    expect(valid).toBe(true)
+  })
+
+  it('rejects grouped output with missing _index', () => {
+    const invalidOutput = {
+      $schema: schema.$id,
+      metadata: { createdAt: '2026-01-01T00:00:00.000Z', urn: 'urn:nl:dpia:3.0' },
+      answers: {
+        '2.1': [
+          { '2.1.1': { value: 'Email', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
+        ],
+      },
+    }
+    expect(validate(invalidOutput)).toBe(false)
+  })
+
   it('rejects output with invalid answer key format', () => {
     const invalidOutput = {
       $schema: schema.$id,

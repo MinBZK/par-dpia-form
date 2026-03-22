@@ -34,6 +34,7 @@ jobs:
             --exclude "https://www.npmjs.com/.*"
             --exclude "https://httpproblems.com/.*"
             --exclude "^http://(keycloak|backend|postgres):[0-9]+"
+            --exclude "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/.*"
             '**/*.yaml'
             '**/*.md'
             '**/*.ts'

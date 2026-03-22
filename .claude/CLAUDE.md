@@ -21,6 +21,7 @@ pnpm monorepo met workspaces:
 - Package scope: `@overheid-assessment/*`
 - Node 22, pnpm (via `corepack enable`)
 - Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan
+- Geen eenregelige wrapper-functies — roep de oorspronkelijke functie direct aan
 
 ## Ontwikkelen
 
@@ -82,7 +83,47 @@ pnpm dev
   - `test.yaml` — type-check en tests
 - GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
 
+## Assessment state format
+
+Eén unified format voor DB (`cachedState`), file export én API communicatie. Gevalideerd door `schemas/assessment-output.v2.schema.json`.
+
+```json
+{
+  "$schema": "...assessment-output.v2.schema.json",
+  "metadata": {
+    "createdAt": "2026-03-20T12:00:00Z",
+    "urn": "urn:nl:dpia:3.0",
+    "completedTasks": ["0", "1"]
+  },
+  "answers": {
+    "0.1": { "value": "Inleiding", "lastEditedAt": "..." },
+    "2.1": [
+      { "_index": 0, "2.1.1": { "value": "E-mailadres" }, "2.1.2": { "value": "Medewerkers" } },
+      { "_index": 2, "2.1.1": { "value": "Telefoon" }, "2.1.2": { "value": "Klanten" } }
+    ]
+  }
+}
+```
+
+- Geen namespace-wrapping (`dpia`/`prescan`) — namespace afgeleid uit `metadata.urn`
+- Repeatable groepen als arrays met `_index` per element (gaps mogelijk bij verwijdering)
+- `completedTasks` in `metadata`, geen apart `taskState` object
+- `taskInstances` worden NIET opgeslagen — herbouwd bij laden uit task definities + answers
+- `currentRootTaskId` en `activeNamespace` zijn UI-state → `localStorage` (per assessmentId)
+
+### URN field identifiers (assessment_edits tabel)
+
+De `assessment_edits` tabel gebruikt URN-based field IDs conform RFC 8141 r-component syntax:
+
+- `urn:nl:dpia:3.0?=task_id=2.1.3` — niet-herhaalbaar veld
+- `urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0` — herhaalbaar veld met index
+- `urn:nl:dpia:3.0?=task_id=completed.1` — sectie-voltooiing
+
+De `?=` is de URN r-component (resolution), niet een typo voor `?`.
+
 ## Debugging en verificatie
 
 - Gebruik Playwright (via MCP) om UI-issues zelf te onderzoeken en te verifiëren. Log in als testgebruiker, navigeer naar de relevante pagina, en controleer het resultaat — zonder de gebruiker om screenshots te vragen.
 - Bij visuele bugs of onverwacht gedrag: neem een screenshot, inspecteer de DOM via snapshots, en lees console messages om de oorzaak te achterhalen.
+- Test altijd zowel de **standalone form** (`localhost:5175`) als de **boekhouding-frontend** (`localhost:5174`). Beide gebruiken assessment-core maar met verschillende persistence providers.
+- Sluit na een Playwright-testronde altijd de browser met `browser_close` om te voorkomen dat Chrome-processen blijven hangen en volgende sessies blokkeren.
