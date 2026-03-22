@@ -6,6 +6,7 @@ import { type FlatTask } from '../../stores/tasks'
 import { FormType } from '../../models/dpia';
 import { useTaskStore } from '../../stores/tasks'
 import { usePreScanReferences } from '../../composables/usePreScanReferences'
+import ImageField from './ImageField.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -235,4 +236,7 @@ const handleCheckboxInput = (event: Event) => {
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
       @input="handleTextInput" />
   </div>
+
+  <!-- Image upload -->
+  <ImageField v-else-if="hasType('image')" :task="task" :instanceId="instanceId" :label="label" :description="description" />
 </template>

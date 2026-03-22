@@ -669,6 +669,7 @@ a.card-link:hover {
 
 .diff-old {
   background-color: #fde8e8;
+  height: 1px; /* allows inner flex div to stretch to full cell height */
 }
 
 .diff-old-inner {
@@ -697,6 +698,17 @@ a.card-link:hover {
   flex-shrink: 0;
   margin-left: auto;
   margin-right: -0.25rem;
+}
+
+.diff-image {
+  max-width: 100%;
+  max-height: 200px;
+  display: block;
+}
+
+.diff-image-meta {
+  margin-top: 0.25rem;
+  line-height: 1.4;
 }
 
 .desc-textarea {

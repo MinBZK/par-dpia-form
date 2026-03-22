@@ -1,5 +1,5 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
-import { type AnswerStoreType } from '../stores/answers'
+import { type AnswerStoreType, isImageValue } from '../stores/answers'
 import { FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions } from './stripHtml'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
@@ -181,8 +181,9 @@ function processTaskWithInstances(
       lines.push('')
     }
 
-    // Simple child fields as a table
+    // Simple child fields as a table (images rendered separately below)
     const tableRows: [string, string][] = []
+    const imageBlocks: string[] = []
     for (const childId of task.childrenIds) {
       const childTask = taskStore.taskById(childId)
       if (childTask.childrenIds && childTask.childrenIds.length > 0) continue
@@ -191,10 +192,14 @@ function processTaskWithInstances(
       for (const childInstanceId of childInstanceIds) {
         if (!shouldShowTask(childId, childInstanceId, taskStore, answerStore)) continue
         const value = answerStore.getAnswer(childInstanceId)
-        tableRows.push([
-          getPlainTextWithoutDefinitions(childTask.task),
-          formatAnswerValue(value),
-        ])
+        if (isImageValue(value)) {
+          imageBlocks.push(formatImageValue(value))
+        } else {
+          tableRows.push([
+            getPlainTextWithoutDefinitions(childTask.task),
+            formatAnswerValue(value),
+          ])
+        }
       }
     }
 
@@ -207,6 +212,11 @@ function processTaskWithInstances(
       lines.push('')
     }
 
+    for (const block of imageBlocks) {
+      lines.push(block)
+      lines.push('')
+    }
+
     // Complex child tasks
     for (const childId of task.childrenIds) {
       const childTask = taskStore.taskById(childId)
@@ -216,9 +226,21 @@ function processTaskWithInstances(
   }
 }
 
+function formatImageValue(value: { data: string; title?: string; description?: string; source?: string }): string {
+  const parts: string[] = []
+  if (value.title) parts.push(`**${value.title}**\n`)
+  parts.push(`![${value.title || 'Afbeelding'}](${value.data})\n`)
+  if (value.description) parts.push(`*${value.description}*\n`)
+  if (value.source) parts.push(`*Bron: ${value.source}*\n`)
+  return parts.join('\n')
+}
+
 function formatAnswerValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '*Niet ingevuld*'
+  }
+  if (isImageValue(value)) {
+    return formatImageValue(value)
   }
   if (Array.isArray(value)) {
     const items = value

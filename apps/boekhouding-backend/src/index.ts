@@ -13,7 +13,7 @@ const API_VERSION = '1.0.0'
 
 const app = Fastify({
   logger: true,
-  bodyLimit: 5 * 1024 * 1024, // 5 MB max request body
+  bodyLimit: 25 * 1024 * 1024, // 25 MB — assessments with embedded images can be large
 })
 
 await app.register(helmet, {

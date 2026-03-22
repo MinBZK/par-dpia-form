@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=../schemas/assessment-definition.v2.schema.json
+
 name: DPIA Rapportagemodel Rijksdienst
 urn: 'urn:nl:dpia'
 version: "3.0"
@@ -46,12 +48,13 @@ tasks:
           type:
            - task_group
           repeatable: true
+          item_name: afbeelding
           tasks:
           - task: Afbeelding
-            description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
+            description: Upload een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen.
             id: "1.2.1"
             type:
-              - text_input
+              - image
             repeatable: false
  - task: >-
         Persoonsgegevens
@@ -77,6 +80,7 @@ tasks:
           type:
             - task_group
           repeatable: true
+          item_name: persoonsgegeven
           tasks:
             - task: Persoonsgegeven
               id: "2.1.1"
@@ -179,6 +183,7 @@ tasks:
           type:
             - task_group
           repeatable: true
+          item_name: gegevensverwerking
           tasks:
             - task: Gegevensverwerking naam
               id: "3.1.1"
@@ -213,6 +218,7 @@ tasks:
           type:
            - task_group
           repeatable: true
+          item_name: samenhang
           tasks:
           - task: Samenhang tussen de gegevensverwerkingen
             description: Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn.
@@ -286,6 +292,7 @@ tasks:
         type:
          - task_group
         repeatable: true
+        item_name: gegevensverwerking
         instance_label_template: "Gegevensverwerking {3.1.1}"
         dependencies:
           - type: instance_mapping
@@ -380,6 +387,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: betrokken partij
           instance_label_template: "Betrokken partij {6.1.1.1}"
           dependencies:
             - type: instance_mapping
@@ -393,6 +401,7 @@ tasks:
               type:
                 - open_text
               repeatable: true
+              item_name: belang
         - task: Aanvullende informatie over de belangen
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "7.2"
@@ -420,6 +429,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: gegevensverwerking
           instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
@@ -433,6 +443,7 @@ tasks:
               type:
                 - task_group
               repeatable: true
+              item_name: verwerkingslocatie
               tasks:
               - task: Verwerkingslocatie
                 id: "8.1.1.1"
@@ -488,6 +499,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: gegevensverwerking
           instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
@@ -535,6 +547,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: gegevensverwerking
           instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
@@ -548,6 +561,7 @@ tasks:
               type:
                 - task_group
               repeatable: true
+              item_name: bewaartermijn
               tasks:
               - task: Verwerkingsdoeleinde
                 id: "10.1.1.1"
@@ -630,6 +644,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: gegevensverwerking
           instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
@@ -700,6 +715,7 @@ tasks:
               type:
                 - task_group
               repeatable: true
+              item_name: bijzonder persoonsgegeven
               dependencies:
                 - type: conditional
                   condition:
@@ -787,6 +803,7 @@ tasks:
               type:
                 - task_group
               repeatable: true
+              item_name: strafrechtelijk persoonsgegeven
               dependencies:
                 - type: conditional
                   condition:
@@ -859,6 +876,7 @@ tasks:
               type:
                 - task_group
               repeatable: true
+              item_name: nationaal identificatienummer
               dependencies:
                 - type: conditional
                   condition:
@@ -929,6 +947,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: gegevensverwerking
           instance_label_template: "Gegevensverwerking {3.1.1}"
           dependencies:
             - type: instance_mapping
@@ -1504,6 +1523,7 @@ tasks:
           type:
           - task_group
           repeatable: true
+          item_name: risico
           tasks:
           - task: Beschrijving van het risico
             id: "16.1.1"
@@ -1582,6 +1602,7 @@ tasks:
         type:
           - task_group
         repeatable: true
+        item_name: risico
         tasks:
           - task: Risico
             id: "17.1.1"
@@ -1719,6 +1740,7 @@ tasks:
             type:
               - task_group
             repeatable: true
+            item_name: document
             tasks:
               - task: Document soort
                 id: "19.3.2.1"

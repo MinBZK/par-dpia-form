@@ -221,8 +221,8 @@ function shouldSkipTask(taskId: string): boolean {
 
             <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
               class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
-            ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+              <UiButton variant="tertiary" icon="plus"
+                :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                 @click="handleAddRepeatableTask(childId)" />
             </div>
           </template>

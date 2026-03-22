@@ -1,13 +1,13 @@
 import { computed } from 'vue'
 import { FormType } from '../models/dpia'
-import { useAnswerStore } from '../stores/answers'
+import { useAnswerStore, type AnswerValue } from '../stores/answers'
 import { useTaskStore, type FlatTask } from '../stores/tasks'
 import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
 
 export interface PreScanReference {
   taskId: string;
   taskTitle: string;
-  answer: string | string[] | null;
+  answer: AnswerValue;
   referenceType: string;
   dpiaTaskId: string;
 }

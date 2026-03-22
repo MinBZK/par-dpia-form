@@ -19,7 +19,7 @@ const variantClass = computed(() => {
     case 'quaternary':
       return `utrecht-button--rvo-${props.variant}-action`
     case 'warning':
-      return 'utrecht-button--primary-action utrecht-button--warning rvo-margin-block-end--md'
+      return 'utrecht-button--primary-action utrecht-button--warning'
     default:
       return `utrecht-button--${props.variant || 'primary'}-action`
   }

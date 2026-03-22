@@ -168,4 +168,22 @@ describe('assessment output schema validation', () => {
     expect(validate({ metadata: { createdAt: '2026-01-01T00:00:00.000Z', urn: 'urn:nl:dpia:3.0' } })).toBe(false)
     expect(validate({ $schema: schema.$id, answers: {} })).toBe(false)
   })
+
+  it('validates output with ImageValue answer', () => {
+    taskStore.setActiveNamespace(FormType.DPIA)
+    answerStore.answers[FormType.DPIA] = {
+      '0.1': {
+        value: {
+          data: 'data:image/png;base64,abc123',
+          title: 'Architecture diagram',
+          source: 'design.png',
+        },
+        lastEditedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }
+    const output = buildOutputData(taskStore, answerStore)
+    const valid = validate(output)
+    expect(validate.errors).toBeNull()
+    expect(valid).toBe(true)
+  })
 })

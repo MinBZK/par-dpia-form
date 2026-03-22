@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { FormType } from '../models/dpia'
 import { usePreScanReferences, type PreScanReference } from '../composables/usePreScanReferences'
-import { useAnswerStore } from '../stores/answers'
+import { useAnswerStore, type AnswerValue } from '../stores/answers'
 import { useTaskStore } from '../stores/tasks'
 import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
 
@@ -16,7 +16,7 @@ const taskStore = useTaskStore()
 interface PreScanDataItem {
   taskId: string;
   taskTitle: string;
-  answer: string | string[] | null;
+  answer: AnswerValue;
 }
 
 const { getPreviewDataForSection } = usePreScanReferences()
@@ -38,7 +38,7 @@ onMounted(loadPreScanAnswers)
 watch(() => props.dpiaTaskId, loadPreScanAnswers)
 
 // Format answer for display
-const formatAnswer = (answer: string | string[] | null): string => {
+const formatAnswer = (answer: AnswerValue): string => {
   if (answer === null || answer === undefined) {
     return '';
   }
@@ -51,6 +51,10 @@ const formatAnswer = (answer: string | string[] | null): string => {
     return 'Ja';
   } else if (answer === 'false') {
     return 'Nee';
+  }
+
+  if (typeof answer === 'object') {
+    return '';
   }
 
   return answer;

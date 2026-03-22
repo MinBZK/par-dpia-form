@@ -83,11 +83,12 @@
             "description": "A single answer value with metadata",
             "properties": {
                 "value": {
-                    "description": "The answer value. Type depends on the field: string for text/date/radio, string[] for checkboxes, null for cleared answers.",
+                    "description": "The answer value. Type depends on the field: string for text/date/radio/image-url, string[] for checkboxes, imageValue for uploaded images, null for cleared answers.",
                     "oneOf": [
                         { "type": "string" },
                         { "type": "array", "items": { "type": "string" } },
-                        { "type": "null" }
+                        { "type": "null" },
+                        { "$ref": "#/$defs/imageValue" }
                     ]
                 },
                 "lastEditedAt": {
@@ -101,6 +102,31 @@
                 }
             },
             "required": ["value", "lastEditedAt"]
+        },
+        "imageValue": {
+            "type": "object",
+            "description": "An uploaded image with optional metadata",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "pattern": "^data:image/",
+                    "description": "Base64 data URI of the embedded image"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Image title / caption, also used as alt text"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Image description providing context"
+                },
+                "source": {
+                    "type": "string",
+                    "description": "Source attribution (URL, document reference, or free text)"
+                }
+            },
+            "required": ["data"],
+            "additionalProperties": false
         },
         "indexedGroupElement": {
             "type": "object",

@@ -1,10 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { groupAnswers, flattenGroupedAnswers } from '../src/utils/groupedAnswers'
 import type { FlatTask, TaskInstance } from '../src/stores/tasks'
-import type { Answer } from '../src/stores/answers'
+import type { Answer, ImageValue } from '../src/stores/answers'
 
 function answer(value: string): Answer {
   return { value, lastEditedAt: '2026-01-01T00:00:00Z' }
+}
+
+function imageAnswer(img: ImageValue): Answer {
+  return { value: img, lastEditedAt: '2026-01-01T00:00:00Z' }
 }
 
 // Minimal task tree: 2 → 2.1 (repeatable) → 2.1.1, 2.1.2
@@ -173,6 +177,30 @@ describe('groupAnswers', () => {
     expect(arr).toHaveLength(1)
     expect(arr[0]._index).toBe(1)
   })
+
+  it('groups ImageValue answers in repeatable tasks', () => {
+    const img: ImageValue = { data: 'data:image/png;base64,abc123', title: 'Test', source: 'test.png' }
+
+    const flat: Record<string, Answer> = {
+      '0.1': answer('My project'),
+      '2.1.1[0]': imageAnswer(img),
+      '2.1.2[0]': answer('Employees'),
+      '2.1.1[1]': answer('Phone'),
+      '2.1.2[1]': answer('Customers'),
+    }
+
+    const grouped = groupAnswers(flat, flatTasks)
+
+    expect(grouped['0.1']).toEqual(answer('My project'))
+    expect(Array.isArray(grouped['2.1'])).toBe(true)
+    const arr = grouped['2.1'] as any[]
+    expect(arr).toHaveLength(2)
+    expect(arr[0]._index).toBe(0)
+    expect(arr[0]['2.1.1']).toEqual(imageAnswer(img))
+    expect(arr[0]['2.1.2']).toEqual(answer('Employees'))
+    expect(arr[1]._index).toBe(1)
+    expect(arr[1]['2.1.1']).toEqual(answer('Phone'))
+  })
 })
 
 describe('flattenGroupedAnswers', () => {
@@ -208,6 +236,26 @@ describe('flattenGroupedAnswers', () => {
 
     const flat = flattenGroupedAnswers(grouped as any)
     expect(flat).toEqual(grouped)
+  })
+
+  it('flattens grouped ImageValue answers back to flat format', () => {
+    const img: ImageValue = { data: 'data:image/png;base64,abc123', title: 'Test', source: 'test.png' }
+
+    const grouped = {
+      '0.1': answer('My project'),
+      '2.1': [
+        { _index: 0, '2.1.1': imageAnswer(img), '2.1.2': answer('Employees') },
+        { _index: 2, '2.1.1': answer('Phone'), '2.1.2': answer('Customers') },
+      ],
+    }
+
+    const flat = flattenGroupedAnswers(grouped as any)
+
+    expect(flat['0.1']).toEqual(answer('My project'))
+    expect(flat['2.1.1[0]']).toEqual(imageAnswer(img))
+    expect(flat['2.1.2[0]']).toEqual(answer('Employees'))
+    expect(flat['2.1.1[2]']).toEqual(answer('Phone'))
+    expect(flat['2.1.2[2]']).toEqual(answer('Customers'))
   })
 })
 

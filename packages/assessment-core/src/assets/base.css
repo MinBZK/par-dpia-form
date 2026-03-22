@@ -241,3 +241,63 @@
   margin-block: 0.25rem 0;
   padding-inline-start: 1.25rem;
 }
+
+/* Image field */
+.rvo-theme .image-dropzone {
+  border: 2px dashed var(--rvo-color-grijs-200);
+  border-radius: var(--rvo-border-radius-xl);
+  padding: var(--rvo-space-sm) var(--rvo-space-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+
+
+.rvo-theme .image-dropzone:hover,
+.rvo-theme .image-dropzone:focus-visible {
+  border-color: var(--rvo-color-hemelblauw);
+  background-color: var(--rvo-color-grijs-100);
+}
+
+.rvo-theme .image-dropzone--active {
+  border-color: var(--rvo-color-hemelblauw);
+  background-color: var(--rvo-color-grijs-100);
+}
+
+.rvo-theme .image-preview {
+  max-width: 100%;
+  max-height: 400px;
+  display: block;
+}
+
+.rvo-theme .image-replace-target {
+  position: relative;
+  display: inline-block;
+  margin-block-end: var(--rvo-space-sm);
+}
+
+.rvo-theme .image-replace-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: var(--rvo-color-wit);
+  font-weight: bold;
+  pointer-events: none;
+  outline: 3px solid var(--rvo-color-hemelblauw);
+  outline-offset: -3px;
+}
+
+.rvo-theme .rvo-alert--inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+.rvo-theme .rvo-alert--inline > .rvo-icon {
+  flex-shrink: 0;
+}

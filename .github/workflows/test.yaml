@@ -32,12 +32,12 @@ jobs:
           pip install pyyaml jsonschema
           mkdir -p sources/generated
           python script/run_all.py \
-            --schema schemas/assessment-definition.v1.schema.json \
+            --schema schemas/assessment-definition.v2.schema.json \
             --source sources/prescan_dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json
           python script/run_all.py \
-            --schema schemas/assessment-definition.v1.schema.json \
+            --schema schemas/assessment-definition.v2.schema.json \
             --source sources/dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json

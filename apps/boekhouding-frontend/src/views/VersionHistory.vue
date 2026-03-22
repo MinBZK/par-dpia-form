@@ -465,6 +465,20 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
     // Show main value without label
     if ('value' in obj && obj.value !== null && obj.value !== undefined && obj.value !== '') {
       const v = obj.value
+      // ImageValue: render as thumbnail
+      if (typeof v === 'object' && v !== null && 'data' in (v as Record<string, unknown>)) {
+        const img = v as Record<string, unknown>
+        if (typeof img.data === 'string' && (img.data as string).startsWith('data:image/')) {
+          const alt = escapeHtml(String(img.title || 'Afbeelding'))
+          let html = `<img src="${img.data}" alt="${alt}" class="diff-image">`
+          const meta: string[] = []
+          if (img.title) meta.push(`<strong>${escapeHtml(String(img.title))}</strong>`)
+          if (img.description) meta.push(escapeHtml(String(img.description)).replace(/\n/g, ' '))
+          if (img.source) meta.push(`<em>Bron: ${escapeHtml(String(img.source))}</em>`)
+          if (meta.length > 0) html += `<div class="diff-image-meta">${meta.join('<br>')}</div>`
+          return html
+        }
+      }
       if (Array.isArray(v)) {
         if (v.length === 0) {
           parts.push('Geen selectie')

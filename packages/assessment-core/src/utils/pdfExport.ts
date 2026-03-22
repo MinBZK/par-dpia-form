@@ -1,5 +1,5 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
-import { type AnswerStoreType } from '../stores/answers'
+import { type AnswerStoreType, isImageValue, type ImageValue } from '../stores/answers'
 import { type CalculationStoreType } from '../stores/calculations'
 import { FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions } from './stripHtml'
@@ -366,6 +366,24 @@ function formatAnswerValue(value: any): string {
   return value ? getPlainTextWithoutDefinitions(String(value)) : ''
 }
 
+// A4 (595pt) minus page margins (70+70) = 455pt usable content width
+const CONTENT_WIDTH = 455
+
+function buildImageContent(img: ImageValue): Content {
+  const elements: Content[] = []
+  if (img.title) {
+    elements.push({ text: img.title, bold: true, margin: [0, 5, 0, 3] })
+  }
+  elements.push({ image: img.data, fit: [CONTENT_WIDTH, 700], margin: [0, 3, 0, 3] })
+  if (img.description) {
+    elements.push({ text: img.description, italics: true, margin: [0, 3, 0, 3] })
+  }
+  if (img.source) {
+    elements.push({ text: `Bron: ${img.source}`, italics: true, fontSize: 8, margin: [0, 0, 0, 5] })
+  }
+  return { stack: elements }
+}
+
 function buildAnswer(
   task: FlatTask,
   taskStore: TaskStoreType,
@@ -389,6 +407,7 @@ function buildAnswer(
   else {
     const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
     const answer = answerStore.getAnswer(instanceId)
+    if (isImageValue(answer)) return buildImageContent(answer)
     return { text: formatAnswerValue(answer), style: 'normal' }
   }
 }
@@ -420,11 +439,15 @@ function processTaskWithInstances(
     for (const instanceId of instanceIds) {
       if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
         const answer = answerStore.getAnswer(instanceId)
-        elements.push({
-          text: formatAnswerValue(answer),
-          style: 'normal',
-          margin: [nestingLevel * 10, 0, 0, 5],
-        })
+        if (isImageValue(answer)) {
+          elements.push(buildImageContent(answer))
+        } else {
+          elements.push({
+            text: formatAnswerValue(answer),
+            style: 'normal',
+            margin: [nestingLevel * 10, 0, 0, 5],
+          })
+        }
       }
     }
     return elements
@@ -443,9 +466,12 @@ function processTaskWithInstances(
       continue
     }
 
-    const tableRows = buildTableRows(instanceId, task, taskStore, answerStore)
+    const { tableRows, imageBlocks } = buildTableRows(instanceId, task, taskStore, answerStore)
     if (tableRows.length > 0) {
       elements.push(createTableElement(tableRows, ['35%', '65%'], nestingLevel * 10))
+    }
+    if (imageBlocks.length > 0) {
+      elements.push(...imageBlocks)
     }
 
     for (const childId of task.childrenIds) {
@@ -490,8 +516,9 @@ function buildTableRows(
   task: FlatTask,
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
-): any[][] {
+): { tableRows: any[][]; imageBlocks: Content[] } {
   const tableRows: any[][] = []
+  const imageBlocks: Content[] = []
 
   if (task.instance_label_template) {
     const instanceLabel = renderInstanceLabel(instanceId, task.instance_label_template)
@@ -522,6 +549,10 @@ function buildTableRows(
       }
 
       const value = answerStore.getAnswer(childInstanceId)
+      if (isImageValue(value)) {
+        imageBlocks.push(buildImageContent(value))
+        continue
+      }
       tableRows.push([
         {
           text: getPlainTextWithoutDefinitions(childTask.task),
@@ -537,7 +568,7 @@ function buildTableRows(
     }
   }
 
-  return tableRows
+  return { tableRows, imageBlocks }
 }
 
 function createTableElement(

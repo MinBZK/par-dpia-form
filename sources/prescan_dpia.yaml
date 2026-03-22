@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=../schemas/assessment-definition.v2.schema.json
+
 name: Pre-scan DPIA
 urn: 'urn:nl:prescan'
 version: "2.0"

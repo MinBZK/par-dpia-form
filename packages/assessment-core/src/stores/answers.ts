@@ -2,7 +2,24 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { FormType } from '../models/dpia'
 
-export type AnswerValue = string | string[] | null
+export type ImageValue = {
+  data: string
+  title?: string
+  description?: string
+  source?: string
+}
+
+export function isImageValue(value: unknown): value is ImageValue {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'data' in value &&
+    typeof (value as Record<string, unknown>).data === 'string' &&
+    ((value as Record<string, unknown>).data as string).startsWith('data:image/')
+  )
+}
+
+export type AnswerValue = string | string[] | ImageValue | null
 
 export interface Answer {
   value: AnswerValue

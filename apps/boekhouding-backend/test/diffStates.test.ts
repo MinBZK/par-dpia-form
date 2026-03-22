@@ -105,6 +105,35 @@ describe('diffStates', () => {
     expect(edits[0].editType).toBe('answer_change')
   })
 
+  it('detects ImageValue answer change', () => {
+    const imgOld = { value: { data: 'data:image/png;base64,abc', title: 'Diagram' }, lastEditedAt: '2026-01-01T00:00:00Z' }
+    const imgNew = { value: { data: 'data:image/png;base64,xyz', title: 'Updated diagram' }, lastEditedAt: '2026-01-02T00:00:00Z' }
+    const old = state({ answers: { '0.1': imgOld } })
+    const cur = state({ answers: { '0.1': imgNew } })
+    const edits = diffStates(old, cur, USER)
+    expect(edits).toHaveLength(1)
+    expect(edits[0]).toMatchObject({
+      editType: 'answer_change',
+      fieldId: `${URN}?=task_id=0.1`,
+      oldValue: imgOld,
+      newValue: imgNew,
+    })
+  })
+
+  it('detects change from string to ImageValue (legacy migration)', () => {
+    const old = state({ answers: { '0.1': answer('https://example.com/old.png') } })
+    const imgNew = { value: { data: 'data:image/png;base64,abc', title: 'Diagram' }, lastEditedAt: '2026-01-02T00:00:00Z' }
+    const cur = state({ answers: { '0.1': imgNew } })
+    const edits = diffStates(old, cur, USER)
+    expect(edits).toHaveLength(1)
+    expect(edits[0]).toMatchObject({
+      editType: 'answer_change',
+      fieldId: `${URN}?=task_id=0.1`,
+      oldValue: answer('https://example.com/old.png'),
+      newValue: imgNew,
+    })
+  })
+
   describe('grouped arrays', () => {
     const grouped = (elements: Array<{ _index: number; [k: string]: unknown }>) => elements
 

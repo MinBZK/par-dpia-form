@@ -61,6 +61,7 @@ Tasks are the building blocks of forms. The following task types MUST be support
 - `checkbox_option`: Multiple-choice selection
 - `radio_option`: Single-choice selection
 - `date`: Date input
+- `image`: Image upload with optional metadata (title, description, source). See [Image handling](../image-handling.md) for details.
 
 ### 3.3 Core task properties
 
@@ -80,6 +81,7 @@ Tasks MAY have the following additional properties:
 - `dependencies`: Rules for conditional display
 - `calculation`: Logic for calculating values or scores based on form input
 - `instance_label_template`: Template for generating labels for repeatable tasks
+- `item_name`: Singular name for add/remove buttons of repeatable tasks (falls back to task name)
 - `references`: References to external systems or documents
 - `sources`: References to external sources such as images
 

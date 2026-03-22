@@ -21,6 +21,7 @@ export interface FlatTask {
   sources?: Source[]
   dependencies?: Dependency[]
   instance_label_template?: string
+  item_name?: string
   defaultValue?: boolean | string | null
   references?: TaskReferences
 }
@@ -142,6 +143,7 @@ export const useTaskStore = defineStore('TaskStore', () => {
         sources: task.sources,
         dependencies: task.dependencies,
         instance_label_template: task.instance_label_template,
+        item_name: task.item_name,
         valueType: task.valueType,
         defaultValue: task.defaultValue,
         references: task.references,
