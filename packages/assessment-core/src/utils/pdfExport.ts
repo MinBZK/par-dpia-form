@@ -4,6 +4,7 @@ import { convertWebpToPng } from './imageResize'
 import { type CalculationStoreType } from '../stores/calculations'
 import { FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions } from './stripHtml'
+import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
@@ -373,6 +374,19 @@ function formatAnswerValue(value: any): string {
   return value ? getPlainTextWithoutDefinitions(String(value)) : ''
 }
 
+function formatAnswerContent(value: any): Content {
+  if (value === null || value === undefined) {
+    return { text: 'Vraag is niet ingevuld of er is geen waarde geselecteerd.', style: 'normal' }
+  }
+  if (Array.isArray(value)) {
+    return { text: formatAnswerValue(value), style: 'normal' }
+  }
+  if (value === 'true') return { text: 'Ja', style: 'normal' }
+  if (value === 'false') return { text: 'Nee', style: 'normal' }
+  if (value === 'null') return { text: '', style: 'normal' }
+  return markdownToPdfContent(String(value))
+}
+
 // A4 (595pt) minus page margins (70+70) = 455pt usable content width
 const CONTENT_WIDTH = 455
 
@@ -438,7 +452,7 @@ function buildAnswer(
     const instanceId = taskStore.getRootTaskInstanceIds(task.id)[0]
     const answer = answerStore.getAnswer(instanceId)
     if (isImageValue(answer)) return buildImageContent(answer)
-    return { text: formatAnswerValue(answer), style: 'normal' }
+    return formatAnswerContent(answer)
   }
 }
 
@@ -472,11 +486,12 @@ function processTaskWithInstances(
         if (isImageValue(answer)) {
           elements.push(buildImageContent(answer))
         } else {
-          elements.push({
-            text: formatAnswerValue(answer),
-            style: 'normal',
-            margin: [nestingLevel * 10, 0, 0, 5],
-          })
+          const content = formatAnswerContent(answer)
+          elements.push(
+            nestingLevel > 0
+              ? { stack: [content], margin: [nestingLevel * 10, 0, 0, 5] }
+              : content,
+          )
         }
       }
     }
@@ -591,7 +606,7 @@ function buildTableRows(
           fillColor: '#f5f5f5',
         },
         {
-          text: formatAnswerValue(value),
+          stack: [formatAnswerContent(value)],
           margin: [0, 3, 0, 3],
         },
       ])

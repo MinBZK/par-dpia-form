@@ -8,6 +8,7 @@ import { useTaskStore } from '../../stores/tasks'
 import { usePreScanReferences } from '../../composables/usePreScanReferences'
 import ImageField from './ImageField.vue'
 import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
+import { renderMarkdownToHtml } from '../../utils/markdown'
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
 
 const props = defineProps<{
@@ -102,6 +103,24 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
 }
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const showPreview = ref(false)
+
+const renderedHtml = computed(() => {
+  if (!showPreview.value) return ''
+  return renderMarkdownToHtml(String(currentValue.value ?? ''))
+})
+
+// Re-trigger auto-grow and restore focus when switching back from preview to edit
+watch(showPreview, (preview) => {
+  if (!preview) {
+    nextTick(() => {
+      if (textareaRef.value) {
+        autoGrowTextarea(textareaRef.value)
+        textareaRef.value.focus()
+      }
+    })
+  }
+})
 
 onMounted(() => {
   nextTick(() => {
@@ -161,6 +180,15 @@ const handleCheckboxInput = (event: Event) => {
 <template>
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
     <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label"></label>
+    <button v-if="hasType('open_text')" type="button"
+      class="open-text-field__toggle"
+      :aria-pressed="showPreview"
+      :aria-label="showPreview ? 'Bewerken' : 'Lezen'"
+      @click="showPreview = !showPreview">
+      <span class="utrecht-icon rvo-icon rvo-icon--sm"
+        :class="showPreview ? 'rvo-icon-document-met-potlood' : 'rvo-icon-oog'"></span>
+      {{ showPreview ? 'Bewerken' : 'Lezen' }}
+    </button>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
@@ -174,13 +202,20 @@ const handleCheckboxInput = (event: Event) => {
       @input="handleTextInput" />
   </div>
 
-  <!-- Text area -->
-  <div v-if="hasType('open_text')" class="rvo-layout-column rvo-layout-gap--xs rvo-margin-block-end--md">
-    <textarea ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
+  <!-- Text area with markdown support -->
+  <div v-if="hasType('open_text')" class="open-text-field rvo-margin-block-end--md">
+    <textarea v-if="!showPreview" ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
       class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
       :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
       :value="currentValue as string | number | readonly string[] | null | undefined"
       @input="handleTextInput"></textarea>
+
+    <div v-else
+      class="markdown-preview" dir="auto"
+      role="region"
+      :aria-label="'Voorbeeld van de opmaak'"
+      v-html="renderedHtml">
+    </div>
   </div>
 
   <!-- Select radio -->

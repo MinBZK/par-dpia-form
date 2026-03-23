@@ -20,7 +20,7 @@ pnpm monorepo met workspaces:
 - Styling: RVO component library CSS (`@nl-rvo/component-library-css`), geen `<style scoped>` in Vue-componenten
 - Package scope: `@overheid-assessment/*`
 - Node 22, pnpm (via `corepack enable`)
-- Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan
+- Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan als Vite ze niet resolved via de workspace-link. In de container-omgeving worden ze automatisch mee-geïnstalleerd via `pnpm install`.
 - Geen eenregelige wrapper-functies — roep de oorspronkelijke functie direct aan
 
 ## Ontwikkelen
@@ -120,6 +120,37 @@ De `assessment_edits` tabel gebruikt URN-based field IDs conform RFC 8141 r-comp
 - `urn:nl:dpia:3.0?=task_id=completed.1` — sectie-voltooiing
 
 De `?=` is de URN r-component (resolution), niet een typo voor `?`.
+
+## Markdown in open tekstvelden
+
+Open tekstvelden (`open_text` type) ondersteunen markdown-opmaak via [marked](https://marked.js.org/). Gebruikers schakelen tussen bewerken en lezen via een toggle-button naast het label.
+
+### Architectuur
+
+- `packages/assessment-core/src/utils/markdown.ts` — twee outputs:
+  - `renderMarkdownToHtml()` — sanitized HTML voor de preview in de browser
+  - `markdownToPdfContent()` — pdfmake Content-objecten voor PDF-export
+- De HTML-renderer gebruikt een **allowlist-aanpak**: een custom `Marked` renderer produceert alleen veilige tags. Er is geen DOMPurify of andere post-processing sanitizer nodig.
+
+### Beveiligingsmaatregelen
+
+| Maatregel | Implementatie |
+|-----------|---------------|
+| Raw HTML stripping | `html()` renderer retourneert `''` — alle HTML-tags in invoer worden genegeerd |
+| Image stripping | `image()` renderer retourneert `''` — zowel `<img>` als `![alt](url)` |
+| Protocol allowlist (links) | Alleen `https:`, `http:` en `mailto:` toegestaan. `javascript:`, `data:`, `vbscript:` etc. worden gestript (link-tekst blijft, `<a>` tag wordt verwijderd). Geldt voor zowel HTML-preview als PDF-export. |
+| Task list sanitization | GFM task list `<input type="checkbox">` elementen worden vervangen door unicode tekens (☐/☑) |
+| Links openen in nieuw tabblad | `target="_blank"` met `rel="noopener noreferrer"` op alle links |
+
+### Ondersteunde markdown-features
+
+Paragraphs, headings, bold, italic, strikethrough, ordered/unordered lists, task lists, code (inline + block), blockquotes, horizontal rules, links. GFM is standaard ingeschakeld (tabellen worden in de preview gerenderd maar niet in de PDF).
+
+### Bekende beperkingen
+
+- Tabellen verschijnen in de preview maar worden niet omgezet naar PDF-tabellen (vallen terug op platte tekst)
+- Afbeeldingen worden bewust gestript (security-first beslissing)
+- Unicode checkbox-tekens (☐ vs ☑) renderen op macOS in verschillende stijlen door emoji/text rendering
 
 ## Debugging en verificatie
 

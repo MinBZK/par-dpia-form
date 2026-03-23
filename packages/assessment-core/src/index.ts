@@ -62,5 +62,8 @@ export { default as ImageField } from './components/task/ImageField.vue'
 export { resizeImageToDataUri } from './utils/imageResize'
 export type { ImageResizeOptions } from './utils/imageResize'
 
+// Markdown
+export { renderMarkdownToHtml, markdownToPdfContent } from './utils/markdown'
+
 // DOM utils
 export { autoGrowTextarea } from './utils/autoGrowTextarea'
