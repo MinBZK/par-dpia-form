@@ -3,7 +3,7 @@ import { db } from '../db/connection.js'
 import { projectMembers } from '../db/schema.js'
 import { eq, and } from 'drizzle-orm'
 
-export type ProjectRole = 'owner' | 'editor' | 'viewer'
+export type ProjectRole = 'owner' | 'editor' | 'commenter' | 'viewer'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -12,8 +12,8 @@ declare module 'fastify' {
 }
 
 export function requireProjectAccess(minimumRole: ProjectRole = 'viewer') {
-  const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, editor: 1, owner: 2 }
-  const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', editor: 'bewerker', owner: 'eigenaar' }
+  const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, commenter: 1, editor: 2, owner: 3 }
+  const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: 'commentator', editor: 'bewerker', owner: 'eigenaar' }
 
   return async function (request: FastifyRequest, reply: FastifyReply) {
     const projectId = (request.params as { projectId?: string }).projectId

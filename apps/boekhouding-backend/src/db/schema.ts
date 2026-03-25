@@ -1,6 +1,6 @@
 import { pgTable, uuid, text, timestamp, integer, jsonb, uniqueIndex, primaryKey, pgEnum } from 'drizzle-orm/pg-core'
 
-export const projectRoleEnum = pgEnum('project_role', ['owner', 'editor', 'viewer'])
+export const projectRoleEnum = pgEnum('project_role', ['owner', 'editor', 'commenter', 'viewer'])
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -64,4 +64,20 @@ export const assessmentEdits = pgTable('assessment_edits', {
   newValue: jsonb('new_value'),
   editedBy: uuid('edited_by').notNull().references(() => users.id),
   editedAt: timestamp('edited_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const comments = pgTable('comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  assessmentInstanceId: uuid('assessment_instance_id').notNull()
+    .references(() => assessmentInstances.id, { onDelete: 'cascade' }),
+  fieldId: text('field_id').notNull(),
+  parentId: uuid('parent_id'),
+  authorId: uuid('author_id').notNull()
+    .references(() => users.id),
+  body: text('body').notNull(),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedBy: uuid('resolved_by')
+    .references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })

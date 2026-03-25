@@ -97,7 +97,7 @@ export async function memberRoutes(app: FastifyInstance) {
       })
     }
 
-    const validRoles: ProjectRole[] = ['owner', 'editor', 'viewer']
+    const validRoles: ProjectRole[] = ['owner', 'editor', 'commenter', 'viewer']
     const memberRole = role || 'editor'
     if (!validRoles.includes(memberRole)) {
       return reply.status(400).type('application/problem+json').send({

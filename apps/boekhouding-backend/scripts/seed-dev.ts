@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { eq, inArray } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import postgres from 'postgres'
 import { config } from '../src/config.js'
-import { users, projects, projectMembers, assessmentInstances, assessmentVersions } from '../src/db/schema.js'
+import { users, projects, projectMembers, assessmentInstances, assessmentVersions, comments } from '../src/db/schema.js'
 
 const queryClient = postgres(config.databaseUrl)
 const db = drizzle(queryClient)
@@ -169,7 +169,59 @@ await db.insert(assessmentVersions).values([
   },
 ])
 
+// Give Sam a commenter role on the DPIA project (upgrade from viewer)
+await db.update(projectMembers)
+  .set({ role: 'commenter' })
+  .where(
+    and(
+      eq(projectMembers.projectId, projectDpia.id),
+      eq(projectMembers.userId, sam.id),
+    ),
+  )
+
+// Add example comments on the DPIA assessment
+const [comment1] = await db.insert(comments).values({
+  assessmentInstanceId: dpiaInstance.id,
+  fieldId: '0',
+  authorId: sam.id,
+  body: 'Moeten we hier ook de verwerkingsverantwoordelijke benoemen? De AP verwacht dat in de inleiding.',
+}).returning()
+
+await db.insert(comments).values({
+  assessmentInstanceId: dpiaInstance.id,
+  fieldId: '0',
+  parentId: comment1.id,
+  authorId: noor.id,
+  body: 'Goed punt. De gemeente Utrecht is verwerkingsverantwoordelijke, NS en politie zijn verwerkers. Ik pas het aan.',
+})
+
+const [comment2] = await db.insert(comments).values({
+  assessmentInstanceId: dpiaInstance.id,
+  fieldId: '1.1',
+  authorId: sam.id,
+  body: 'Wordt er ook gezichtsherkenning toegepast? Dat heeft impact op de rechtmatigheidstoets.',
+}).returning()
+
+await db.insert(comments).values({
+  assessmentInstanceId: dpiaInstance.id,
+  fieldId: '1.1',
+  parentId: comment2.id,
+  authorId: noor.id,
+  body: 'Nee, expliciet niet. Het gaat om gedragsdetectie (bewegingspatronen), geen biometrische identificatie. Staat in het PvE.',
+})
+
+// A resolved thread
+const [comment3] = await db.insert(comments).values({
+  assessmentInstanceId: dpiaInstance.id,
+  fieldId: '0',
+  authorId: noor.id,
+  body: 'Bron toevoegen voor het aantal camera\'s?',
+  resolvedAt: new Date(),
+  resolvedBy: noor.id,
+}).returning()
+
 console.log('Project created:', projectDpia.name)
+console.log('Comments created:', 5)
 
 // Project 3: empty project (orientation phase, no assessments yet)
 const [projectEmpty] = await db.insert(projects).values({
@@ -192,5 +244,7 @@ console.log('  - 2 users (sam@example.com, noor@example.com)')
 console.log('  - 3 projects with realistic scenarios')
 console.log('  - 2 assessment instances (1 prescan, 1 DPIA)')
 console.log('  - 3 assessment versions')
+console.log('  - 5 comments (3 threads, 1 resolved) on DPIA assessment')
+console.log('  - Sam has commenter role on DPIA project')
 
 await queryClient.end()

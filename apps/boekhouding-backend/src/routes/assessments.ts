@@ -8,8 +8,8 @@ import type { ProjectRole } from '../middleware/projectAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
 
-const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, editor: 1, owner: 2 }
-const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', editor: 'bewerker', owner: 'eigenaar' }
+const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, commenter: 1, editor: 2, owner: 3 }
+const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: 'commentator', editor: 'bewerker', owner: 'eigenaar' }
 
 async function requireAssessmentAccess(
   assessmentId: string,

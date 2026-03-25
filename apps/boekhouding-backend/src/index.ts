@@ -8,6 +8,7 @@ import { config } from './config.js'
 import { projectRoutes } from './routes/projects.js'
 import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
+import { commentRoutes } from './routes/comments.js'
 
 const API_VERSION = '1.0.0'
 
@@ -151,6 +152,7 @@ app.setErrorHandler(async (error: { statusCode?: number; message?: string }, req
 await app.register(projectRoutes, { prefix: '/api/v1/projects' })
 await app.register(memberRoutes, { prefix: '/api/v1/projects' })
 await app.register(assessmentRoutes, { prefix: '/api/v1' })
+await app.register(commentRoutes, { prefix: '/api/v1' })
 
 app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
 

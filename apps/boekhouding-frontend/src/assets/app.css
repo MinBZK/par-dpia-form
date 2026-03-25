@@ -132,6 +132,10 @@ dialog::backdrop {
   color: var(--rvo-color-grijs-500, #666);
 }
 
+.rvo-alert .utrecht-button:hover {
+  text-decoration: none;
+}
+
 /* Fix anchor elements styled as buttons (RVO button classes don't fully reset anchor defaults) */
 a.utrecht-button {
   text-decoration: none;
@@ -514,6 +518,7 @@ a.card-link:hover {
   --rvo-sidebar-layout-lg-padding-inline-end: var(--rvo-space-md);
 }
 
+
 /* VersionHistory */
 .version-row {
   display: flex;
@@ -766,4 +771,490 @@ a.card-link:hover {
 .conflict-radio input[type="radio"] {
   flex-shrink: 0;
   margin-top: 0.2em;
+}
+
+/* ───────────────────────────────────────────────
+   Comment system
+   ─────────────────────────────────────────────── */
+
+/* Layout: form + panel side by side */
+.assessment-editor__content {
+  display: flex;
+}
+
+.assessment-editor__form {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Comment badge (header button) */
+.comment-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  color: var(--rvo-color-hemelblauw);
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+}
+
+.comment-badge:hover {
+  background-color: var(--rvo-color-grijs-100);
+}
+
+.comment-badge:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: 2px;
+}
+
+.comment-badge--active {
+  background-color: var(--rvo-color-hemelblauw);
+  color: white;
+}
+
+.comment-badge--active:hover {
+  background-color: var(--rvo-color-hemelblauw);
+}
+
+.comment-badge__label {
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+}
+
+.comment-badge__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 10px;
+  background-color: var(--rvo-color-hemelblauw, #007bc7);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.comment-badge--active .comment-badge__count {
+  background-color: white;
+  color: var(--rvo-color-hemelblauw, #007bc7);
+}
+
+/* Comment panel (Google Docs style — scrolls with form, no own scroll) */
+.comment-panel {
+  width: clamp(20rem, 20vw, 30rem);
+  flex-shrink: 0;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(min(calc((100vw - clamp(20rem, 20vw, 30rem) - 1280px) / -2), 0px));
+}
+
+.comment-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: white;
+}
+
+.comment-panel__title {
+  font-size: var(--rvo-font-size-md, 1rem);
+  font-weight: 700;
+  margin: 0;
+}
+
+.comment-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comment-panel__toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.comment-panel__close {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  color: var(--rvo-color-grijs-600, #666);
+}
+
+.comment-panel__close:hover {
+  background-color: var(--rvo-color-grijs-100);
+}
+
+.comment-panel__close:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: 2px;
+}
+
+.comment-panel__body {
+  position: relative;
+  flex: 1;
+  padding: 0;
+}
+
+.comment-panel__empty {
+  color: var(--rvo-color-grijs-500, #666);
+  font-style: italic;
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+  padding: 1rem;
+}
+
+/* Field groups (positioned at field level, Google Docs style) */
+.comment-field-group {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+}
+
+.comment-field-group--active {
+  z-index: 1;
+}
+
+/* Field label link (mobile only — on desktop position provides context) */
+.comment-field-group__label {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0 0 0.25rem 0.75rem;
+  font: inherit;
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+  color: var(--rvo-color-hemelblauw, #007bc7);
+  cursor: pointer;
+  text-align: left;
+}
+
+.comment-field-group__label:hover {
+  text-decoration: underline;
+}
+
+/* Threads (card-style like Google Docs) */
+.comment-thread {
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.comment-thread--resolved {
+  border-left: 3px solid var(--rvo-color-grijs-300, #ccc);
+  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.comment-thread__resolved-label {
+  font-size: 0.75rem;
+  color: var(--rvo-color-groen, #39870c);
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* Comment items */
+.comment-item {
+  margin-bottom: 0.25rem;
+}
+
+.comment-item--reply {
+  margin-left: 0.75rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+}
+
+.comment-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.comment-item__author {
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+}
+
+.comment-item__time {
+  font-size: 0.75rem;
+  color: var(--rvo-color-grijs-600, #666);
+  white-space: nowrap;
+}
+
+.comment-item__body {
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+  margin: 0.125rem 0 0.25rem;
+  white-space: pre-line;
+  line-height: 1.4;
+}
+
+.comment-item__body--editable {
+  cursor: text;
+  border-radius: 3px;
+  padding: 0.125rem 0.25rem;
+  margin-left: -0.25rem;
+}
+
+.comment-item__body--editable:hover {
+  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.comment-item__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.comment-item__spacer {
+  flex: 1;
+}
+
+.comment-item__edit {
+  margin-top: 0.25rem;
+}
+
+.comment-item__edit-actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* Replies area */
+.comment-replies {
+  margin-top: 0.5rem;
+}
+
+/* Reply form */
+.comment-reply-form {
+  margin-top: 0.5rem;
+  margin-left: 0.75rem;
+}
+
+.comment-reply-form__actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+/* Inline new comment form (appears at field level) */
+.comment-inline-form {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 2px solid var(--rvo-color-hemelblauw, #007bc7);
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.comment-inline-form__actions {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.375rem;
+}
+
+/* Shared input/button styles */
+.comment-input {
+  width: 100%;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: var(--rvo-font-size-sm, 0.875rem);
+  resize: none;
+  overflow: hidden;
+}
+
+.comment-input:focus {
+  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
+  outline-offset: -1px;
+  border-color: var(--rvo-color-hemelblauw, #007bc7);
+}
+
+
+.comment-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: var(--rvo-color-grijs-600, #666);
+}
+
+.comment-btn:hover {
+  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.comment-btn:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -1px;
+}
+
+.comment-btn--primary {
+  background-color: var(--rvo-color-hemelblauw, #007bc7);
+  color: white;
+}
+
+.comment-btn--primary:hover {
+  background-color: #005fa3;
+}
+
+.comment-btn--primary:disabled {
+  background-color: var(--rvo-color-grijs-300, #ccc);
+  color: var(--rvo-color-grijs-500, #666);
+  cursor: not-allowed;
+}
+
+/* Action buttons in comment threads (outline style) */
+.comment-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--rvo-color-grijs-600, #666);
+}
+
+.comment-action-btn:hover {
+  background-color: var(--rvo-color-hemelblauw, #007bc7);
+  border-color: var(--rvo-color-hemelblauw, #007bc7);
+  color: white;
+}
+
+.comment-action-btn:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -1px;
+}
+
+.comment-action-btn--danger {
+  color: var(--rvo-color-rood, #d52b1e);
+  border-color: var(--rvo-color-rood, #d52b1e);
+}
+
+.comment-action-btn--danger:hover {
+  background-color: var(--rvo-color-rood, #d52b1e);
+  border-color: var(--rvo-color-rood, #d52b1e);
+  color: white;
+}
+
+.comment-action-btn--resolve {
+  color: var(--rvo-color-groen, #39870c);
+  border-color: var(--rvo-color-groen, #39870c);
+}
+
+.comment-action-btn--resolve:hover {
+  background-color: var(--rvo-color-groen, #39870c);
+  border-color: var(--rvo-color-groen, #39870c);
+  color: white;
+}
+
+
+/* Field comment buttons (injected by useFieldCommentIndicators) */
+
+/* Make non-open_text label containers flex so the button aligns right */
+.comment-field-label--flex {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+.comment-field-label--flex .utrecht-form-field-description {
+  flex-basis: 100%;
+}
+
+/* The comment button — identical styling to the open-text Lezen/Bewerken toggle */
+.comment-field-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--rvo-color-hemelblauw);
+  border-radius: 3px;
+  background: none;
+  color: var(--rvo-color-hemelblauw);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* When placed in the label row, push to the right */
+.comment-field-btn--in-label-row {
+  margin-inline-start: auto;
+}
+
+/* When comment button is BEFORE the toggle, group them together on the right:
+   comment button takes the auto margin, toggle loses its auto margin */
+.comment-field-btn--in-label-row + .open-text-field__toggle {
+  margin-inline-start: 0.25rem !important;
+}
+
+.comment-field-btn svg {
+  width: 0.8em;
+  height: 0.8em;
+}
+
+.comment-field-btn:hover {
+  border-color: var(--rvo-color-hemelblauw, #007bc7);
+  color: var(--rvo-color-hemelblauw, #007bc7);
+}
+
+.comment-field-btn:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -1px;
+}
+
+
+/* Responsive: stack panel below on small screens */
+@media (max-width: 768px) {
+  .assessment-editor__content {
+    flex-direction: column;
+  }
+
+  .comment-panel {
+    width: 100%;
+    max-width: 100%;
+    border-top: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  }
+
+  .comment-panel__body {
+    position: static;
+  }
+
+  .comment-field-group {
+    position: static;
+    margin-bottom: 1rem;
+  }
+
+  .comment-field-group__label {
+    display: block;
+  }
 }

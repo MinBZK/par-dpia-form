@@ -10,7 +10,7 @@ const router = useRouter()
 const memberList = ref<Member[]>([])
 const loading = ref(true)
 const inviteEmail = ref('')
-const inviteRole = ref<'owner' | 'editor' | 'viewer'>('editor')
+const inviteRole = ref<'owner' | 'editor' | 'commenter' | 'viewer'>('editor')
 const error = ref<string | null>(null)
 
 const ownerCount = computed(() => memberList.value.filter(m => m.role === 'owner').length)
@@ -126,6 +126,7 @@ const whoLabel = (member: Member) => {
             >
               <option value="owner">Project eigenaar</option>
               <option value="editor">Bewerker</option>
+              <option value="commenter">Commentator</option>
               <option value="viewer">Lezer</option>
             </select>
           </span>

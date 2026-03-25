@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, provide, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Form,
@@ -19,6 +19,10 @@ import { createApiPersistence } from '../ApiPersistence'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
+import CommentBadge from '../components/CommentBadge.vue'
+import CommentPanel from '../components/CommentPanel.vue'
+import { useCommentStore } from '../stores/comments'
+import { useFieldCommentIndicators } from '../composables/useFieldCommentIndicators'
 
 const props = defineProps<{
   assessmentId: string
@@ -33,8 +37,39 @@ const calculationStore = useCalculationStore()
 const assessment = ref<(AssessmentInstance & { role?: string }) | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const isReadonly = computed(() => assessment.value?.role === 'viewer')
 const canEdit = computed(() => assessment.value?.role === 'owner' || assessment.value?.role === 'editor')
+const isReadonly = computed(() => !canEdit.value)
+
+// Comment system
+const commentStore = useCommentStore()
+const commentPanelOpen = ref(false)
+const activeCommentFieldId = ref<string | null>(null)
+const formContainerRef = ref<HTMLElement | null>(null)
+const versionMismatch = ref(false)
+
+const canComment = computed(() =>
+  assessment.value?.role === 'commenter' || assessment.value?.role === 'editor' || assessment.value?.role === 'owner',
+)
+
+useFieldCommentIndicators(formContainerRef, (fieldId) => {
+  activeCommentFieldId.value = fieldId
+  commentPanelOpen.value = true
+}, canComment)
+
+function toggleCommentPanel() {
+  commentPanelOpen.value = !commentPanelOpen.value
+  if (!commentPanelOpen.value) {
+    activeCommentFieldId.value = null
+  }
+}
+
+// Watch for version mismatch from comment polling
+watch(() => commentStore.assessmentVersion, (polledVersion) => {
+  if (!polledVersion || !assessment.value) return
+  if (polledVersion > assessment.value.currentVersion) {
+    versionMismatch.value = true
+  }
+})
 
 // Inline name editing
 const editingName = ref(false)
@@ -121,6 +156,9 @@ onMounted(async () => {
         }
       }
     }
+    // Load comments and start polling
+    await commentStore.loadComments(props.assessmentId)
+    commentStore.startPolling()
   } catch (e: any) {
     error.value = e.message
   } finally {
@@ -128,13 +166,13 @@ onMounted(async () => {
   }
 })
 
-const namespace = ref<FormType>(FormType.DPIA)
-
-watch(assessment, (a) => {
-  if (a) {
-    namespace.value = assessmentTypeMap[a.assessmentType] || FormType.DPIA
-  }
+onUnmounted(() => {
+  commentStore.reset()
 })
+
+const namespace = computed(() =>
+  assessment.value ? assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA : FormType.DPIA,
+)
 
 const assessmentTypeLabel = computed(() =>
   assessment.value?.assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
@@ -196,6 +234,15 @@ const toggleMenu = () => {
 
 const closeMenu = () => {
   menuOpen.value = false
+}
+
+const reloadAssessment = () => {
+  // Cancel any pending debounce timer to avoid a stale save racing with
+  // the reload. Any changes older than DEBOUNCE_MS (500ms) are already
+  // persisted; the version-mismatch banner only appears after a 10s poll
+  // cycle, so the window for unsaved edits is negligible.
+  persistence.flushSave()
+  window.location.reload()
 }
 
 const handleVersionHistory = () => {
@@ -282,6 +329,7 @@ const confirmDelete = async () => {
           </div>
         </div>
         <div class="form-subheader__right">
+          <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
           <div class="kebab-menu" @focusout="closeMenu">
             <button
               class="kebab-menu__trigger"
@@ -307,20 +355,39 @@ const confirmDelete = async () => {
         </div>
       </div>
 
-      <div v-if="isReadonly" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
+      <div v-if="assessment.role === 'viewer'" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
         Je hebt alleen leesrechten op deze assessment.
+      </div>
+      <div v-else-if="assessment.role === 'commenter'" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
+        Je kunt opmerkingen plaatsen maar niet het formulier bewerken.
+      </div>
+
+      <div v-if="versionMismatch" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm rvo-margin-block-end--md" role="alert">
+        Een collega is bezig geweest en er is een nieuwere versie van de assessment beschikbaar.
+        <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs" style="margin-inline-start: 0.5rem;" @click="reloadAssessment">Vernieuw de pagina</button>
       </div>
     </div>
 
-    <div :inert="isReadonly || undefined" class="assessment-editor" :class="{ 'form-readonly': isReadonly }">
-      <Form
-        :navigation="navigationFunctions"
-        :namespace="namespace"
-        :validData="schemaStore.getSchema(namespace)"
-        :showBanner="false"
-        :showNavHeader="false"
-        :showFileActions="false"
-        :autoStart="true"
+    <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">
+      <div ref="formContainerRef" :inert="isReadonly || undefined" class="assessment-editor__form" :class="{ 'form-readonly': isReadonly }">
+        <Form
+          :navigation="navigationFunctions"
+          :namespace="namespace"
+          :validData="schemaStore.getSchema(namespace)"
+          :showBanner="false"
+          :showNavHeader="false"
+          :showFileActions="false"
+          :autoStart="true"
+        />
+      </div>
+
+      <CommentPanel
+        v-if="commentPanelOpen"
+        :role="assessment.role || 'viewer'"
+        :activeFieldId="activeCommentFieldId"
+        :formContainerRef="formContainerRef"
+        @close="commentPanelOpen = false; activeCommentFieldId = null"
+        @deactivate-field="activeCommentFieldId = null"
       />
     </div>
   </template>

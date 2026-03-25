@@ -162,3 +162,57 @@ export const assessments = {
       body: JSON.stringify({ changeDescription }),
     }),
 }
+
+// Comments
+export interface CommentReply {
+  id: string
+  parentId: string
+  authorId: string
+  authorName: string
+  body: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CommentThread {
+  id: string
+  fieldId: string
+  parentId: null
+  authorId: string
+  authorName: string
+  body: string
+  resolvedAt: string | null
+  resolvedBy: string | null
+  resolvedByName: string | null
+  createdAt: string
+  updatedAt: string
+  replies: CommentReply[]
+}
+
+export interface CommentsResponse {
+  comments: CommentThread[]
+  lastModifiedAt: string
+  assessmentVersion: number
+  currentUserId: string
+}
+
+export const commentsApi = {
+  list: (assessmentId: string, since?: string) =>
+    request<CommentsResponse>(`/api/v1/assessments/${assessmentId}/comments${since ? `?since=${encodeURIComponent(since)}` : ''}`),
+  create: (assessmentId: string, fieldId: string, body: string, parentId?: string) =>
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ fieldId, body, ...(parentId && { parentId }) }),
+    }),
+  update: (assessmentId: string, commentId: string, body: string) =>
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ body }),
+    }),
+  delete: (assessmentId: string, commentId: string) =>
+    request<void>(`/api/v1/assessments/${assessmentId}/comments/${commentId}`, { method: 'DELETE' }),
+  resolve: (assessmentId: string, commentId: string) =>
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/resolve`, { method: 'POST' }),
+  reopen: (assessmentId: string, commentId: string) =>
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/reopen`, { method: 'POST' }),
+}

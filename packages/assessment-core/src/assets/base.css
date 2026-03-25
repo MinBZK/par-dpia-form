@@ -161,7 +161,7 @@
 .rvo-theme .rvo-form-field__label.rvo-form-field__label:has(.open-text-field__toggle) {
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
 }
 
 .rvo-theme .rvo-form-field__label:has(.open-text-field__toggle) .utrecht-form-field-description {
@@ -179,6 +179,7 @@
   background: none;
   color: var(--rvo-color-hemelblauw);
   font-size: 0.8rem;
+  line-height: 1;
   cursor: pointer;
 }
 

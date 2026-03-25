@@ -60,7 +60,7 @@ pnpm dev
 
 - Credentials dev: `parassessment` / `parassessment`
 - Schema in `apps/boekhouding-backend/src/db/schema.ts`
-- Na schemawijziging: `pnpm db:generate` en controleer gegenereerde SQL (Drizzle kan DROP+CREATE genereren i.p.v. ALTER TABLE RENAME)
+- Na schemawijziging: `pnpm db:generate` en controleer gegenereerde SQL (Drizzle kan DROP+CREATE genereren i.p.v. ALTER TABLE RENAME). Controleer ook dat gegenereerde migraties geen `"public".` schema-prefix gebruiken bij tabelreferenties — nieuwere drizzle-kit versies voegen dit toe, maar eerdere migraties gebruiken het niet, wat FK-fouten veroorzaakt in containers.
 - Testdata: `pnpm db:seed` (script in `scripts/seed-dev.ts`, niet in productie-code). Idempotent — kan herhaaldelijk gedraaid worden. Vereist draaiende PostgreSQL.
 
 ## Keycloak dev-omgeving
