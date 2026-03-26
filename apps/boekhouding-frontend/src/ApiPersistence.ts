@@ -15,7 +15,7 @@ import {
   parseInstanceId,
   type GroupedAnswerValue,
 } from '@overheid-assessment/core'
-import { assessments, ApiError } from './api'
+import { assessments, ApiError, SessionExpiredError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
 import { escapeHtml, stripHtml } from './utils/html'
 import type { ConflictField } from './components/ConflictResolutionDialog.vue'
@@ -152,6 +152,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       pendingChanges.clear()
       instancesDirty = false
     } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        persistPendingToSession()
+        return
+      }
       if (error instanceof ApiError && error.status === 409) {
         await handleConflict()
         return
@@ -168,7 +172,13 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
 
     console.warn('Save conflict detected, attempting field-level merge')
 
-    const fresh = await assessments.get(assessmentId)
+    let fresh: Awaited<ReturnType<typeof assessments.get>>
+    try {
+      fresh = await assessments.get(assessmentId)
+    } catch (error) {
+      if (error instanceof SessionExpiredError) return
+      throw error
+    }
     if (!fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
@@ -205,6 +215,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
       } catch (retryError) {
+        if (retryError instanceof SessionExpiredError) return
         if (retryError instanceof ApiError && retryError.status === 409) {
           await handleConflict()
         } else {
@@ -495,6 +506,27 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     }
   }
 
+  function persistPendingToSession() {
+    try {
+      updatePendingChanges()
+      if (pendingChanges.size === 0) return
+      const entries = Array.from(pendingChanges.entries())
+      sessionStorage.setItem(`pending:${assessmentId}`, JSON.stringify(entries))
+    } catch { /* sessionStorage may be unavailable */ }
+  }
+
+  function restorePendingFromSession() {
+    try {
+      const raw = sessionStorage.getItem(`pending:${assessmentId}`)
+      if (!raw) return
+      sessionStorage.removeItem(`pending:${assessmentId}`)
+      const entries: [string, { key: string; value: unknown }][] = JSON.parse(raw)
+      for (const [, change] of entries) {
+        applyFieldChange(change.key, change.value)
+      }
+    } catch { /* ignore parse errors */ }
+  }
+
   const persistence: PersistenceProvider = {
     saveAppState,
     loadAppState,
@@ -507,6 +539,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       pinnedNamespace = taskStore.activeNamespace
       lastSavedState = JSON.parse(JSON.stringify(buildState()))
       instancesDirty = false
+      restorePendingFromSession()
     },
   }
 

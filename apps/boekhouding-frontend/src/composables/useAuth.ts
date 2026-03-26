@@ -6,6 +6,19 @@ let keycloak: Keycloak
 
 const user = ref<{ id: string; email: string; displayName: string } | null>(null)
 const initialized = ref(false)
+const sessionExpired = ref(false)
+
+const REFRESH_INTERVAL_MS = 240_000 // 4 minutes
+const TOKEN_MIN_VALIDITY_S = 70 // seconds before expiry to trigger refresh
+
+let refreshInterval: ReturnType<typeof setInterval> | null = null
+
+export class SessionExpiredError extends Error {
+  constructor() {
+    super('Sessie verlopen')
+    this.name = 'SessionExpiredError'
+  }
+}
 
 export function useAuth() {
   const isAuthenticated = computed(() => keycloak?.authenticated === true)
@@ -39,6 +52,15 @@ export function useAuth() {
         displayName: profile.name || profile.preferred_username || profile.email || '',
       }
 
+      function refreshOrExpire() {
+        keycloak.updateToken(TOKEN_MIN_VALIDITY_S).catch(() => {
+          sessionExpired.value = true
+        })
+      }
+
+      keycloak.onTokenExpired = refreshOrExpire
+      keycloak.onAuthRefreshError = () => { sessionExpired.value = true }
+      refreshInterval = setInterval(refreshOrExpire, REFRESH_INTERVAL_MS)
     }
 
     initialized.value = true
@@ -49,20 +71,41 @@ export function useAuth() {
   }
 
   async function getToken(): Promise<string> {
-    await keycloak.updateToken(30)
+    if (sessionExpired.value) {
+      throw new SessionExpiredError()
+    }
+    try {
+      await keycloak.updateToken(30)
+    } catch {
+      sessionExpired.value = true
+      throw new SessionExpiredError()
+    }
     return keycloak.token!
   }
 
+  async function relogin(): Promise<void> {
+    sessionStorage.setItem('auth:relogin', JSON.stringify({
+      userId: keycloak.subject,
+    }))
+    await keycloak.login({ redirectUri: window.location.href })
+  }
+
   async function logout() {
+    if (refreshInterval) {
+      clearInterval(refreshInterval)
+      refreshInterval = null
+    }
     await keycloak.logout({ redirectUri: window.location.origin })
   }
 
   return {
     user,
     isAuthenticated,
+    sessionExpired,
     init,
     login,
     getToken,
+    relogin,
     logout,
   }
 }

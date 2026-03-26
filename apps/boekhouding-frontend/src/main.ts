@@ -13,7 +13,7 @@ import '@nl-rvo/design-tokens/dist/index.css'
 import './assets/app.css'
 
 await loadConfig()
-const { init } = useAuth()
+const { init, user } = useAuth()
 
 // Keycloak redirects to login page before the app mounts.
 // Clean up the OAuth hash fragment BEFORE importing the router — createWebHistory()
@@ -21,6 +21,21 @@ const { init } = useAuth()
 await init()
 if (window.location.hash.includes('state=')) {
   window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
+}
+
+const reloginRaw = sessionStorage.getItem('auth:relogin')
+if (reloginRaw) {
+  sessionStorage.removeItem('auth:relogin')
+  try {
+    const { userId: previousUserId } = JSON.parse(reloginRaw)
+    if (user.value && previousUserId && user.value.id !== previousUserId) {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i)
+        if (key?.startsWith('pending:')) sessionStorage.removeItem(key)
+      }
+      window.location.href = '/projecten'
+    }
+  } catch { /* ignore parse errors */ }
 }
 
 // Dynamic import: router must be created AFTER the URL is clean

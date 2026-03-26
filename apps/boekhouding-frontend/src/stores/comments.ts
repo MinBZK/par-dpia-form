@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { commentsApi, type CommentThread, type CommentReply } from '../api'
+import { commentsApi, SessionExpiredError, type CommentThread, type CommentReply } from '../api'
 
 const POLL_INTERVAL_MS = 10_000
 
@@ -102,8 +102,12 @@ export const useCommentStore = defineStore('comments', () => {
 
       lastModifiedAt.value = response.lastModifiedAt
       assessmentVersion.value = response.assessmentVersion
-    } catch {
-      // Silently ignore poll errors — next poll will retry
+    } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        stopPolling()
+        return
+      }
+      // Silently ignore other poll errors — next poll will retry
     }
   }
 

@@ -1,9 +1,11 @@
-import { useAuth } from './composables/useAuth'
+import { useAuth, SessionExpiredError } from './composables/useAuth'
+
+export { SessionExpiredError }
 
 const BASE = ''
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const { getToken } = useAuth()
+  const { getToken, sessionExpired } = useAuth()
   const token = await getToken()
 
   const headers: Record<string, string> = {
@@ -20,6 +22,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   })
 
   if (res.status === 204) return undefined as T
+
+  if (res.status === 401) {
+    sessionExpired.value = true
+    throw new SessionExpiredError()
+  }
 
   const data = await res.json()
 
