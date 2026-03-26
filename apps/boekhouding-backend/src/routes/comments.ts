@@ -4,6 +4,7 @@ import { comments, assessmentInstances, projectMembers, users } from '../db/sche
 import { eq, and, isNull, gt, asc, inArray } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import type { ProjectRole } from '../middleware/projectAccess.js'
+import { computeLastModifiedAt } from '../utils/comments.js'
 
 const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, commenter: 1, editor: 2, owner: 3 }
 const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: 'commentator', editor: 'bewerker', owner: 'eigenaar' }
@@ -188,18 +189,14 @@ export async function commentRoutes(app: FastifyInstance) {
       })),
     }))
 
-    // Compute lastModifiedAt across all comments
-    const allDates = [
+    const lastModifiedAt = computeLastModifiedAt([
       ...rootComments.map(c => c.updatedAt),
       ...allReplies.map(c => c.updatedAt),
-    ]
-    const lastModifiedAt = allDates.length > 0
-      ? allDates.reduce((max, d) => d > max ? d : max, allDates[0])
-      : new Date(0)
+    ])
 
     return {
       comments: threaded,
-      lastModifiedAt: lastModifiedAt.toISOString(),
+      lastModifiedAt: lastModifiedAt?.toISOString() ?? null,
       assessmentVersion: result.assessment.currentVersion,
       currentUserId: request.user!.id,
     }

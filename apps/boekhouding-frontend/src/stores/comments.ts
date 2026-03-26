@@ -63,10 +63,10 @@ export const useCommentStore = defineStore('comments', () => {
   }
 
   async function pollForUpdates() {
-    if (!assessmentId.value || !lastModifiedAt.value) return
+    if (!assessmentId.value) return
 
     try {
-      const response = await commentsApi.list(assessmentId.value, lastModifiedAt.value)
+      const response = await commentsApi.list(assessmentId.value, lastModifiedAt.value ?? undefined)
 
       if (response.comments.length > 0) {
         // Merge updated comments into existing threads

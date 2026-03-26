@@ -198,7 +198,7 @@ export interface CommentThread {
 
 export interface CommentsResponse {
   comments: CommentThread[]
-  lastModifiedAt: string
+  lastModifiedAt: string | null
   assessmentVersion: number
   currentUserId: string
 }
