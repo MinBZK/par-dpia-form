@@ -89,6 +89,13 @@ describe('renderMarkdownToHtml', () => {
     expect(html).toContain('href="mailto:test@example.com"')
   })
 
+  it('converts single newlines to <br>', () => {
+    const html = renderMarkdownToHtml('line one\nline two')
+    expect(html).toContain('<br>')
+    expect(html).toContain('line one')
+    expect(html).toContain('line two')
+  })
+
   it('renders task list checkboxes as unicode', () => {
     const html = renderMarkdownToHtml('- [ ] todo\n- [x] done')
     expect(html).not.toContain('<input')
@@ -140,6 +147,12 @@ describe('markdownToPdfContent', () => {
     const content = markdownToPdfContent('Paragraph 1\n\nParagraph 2') as any
     expect(content.stack).toBeDefined()
     expect(content.stack).toHaveLength(2)
+  })
+
+  it('converts single newlines to line breaks', () => {
+    const content = markdownToPdfContent('line one\nline two') as any
+    const texts = Array.isArray(content.text) ? content.text : [content.text]
+    expect(texts).toContain('\n')
   })
 
   it('handles mixed content', () => {

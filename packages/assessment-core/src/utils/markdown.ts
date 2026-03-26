@@ -5,6 +5,7 @@ import type { Content } from 'pdfmake/interfaces'
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
 // Links are rendered with target="_blank" and rel="noopener noreferrer".
 const safeMarked = new Marked({
+  breaks: true,
   renderer: {
     html() { return '' },
     image() { return '' },
@@ -185,7 +186,7 @@ function processBlockTokens(tokens: Token[]): Content[] {
 export function markdownToPdfContent(markdown: string): Content {
   if (!markdown) return { text: '' }
 
-  const tokens = new Marked().lexer(markdown)
+  const tokens = new Marked({ breaks: true }).lexer(markdown)
   const content = processBlockTokens(tokens)
 
   if (content.length === 0) return { text: '' }
