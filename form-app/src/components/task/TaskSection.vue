@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 
-const { canUserCreateInstances, hasSourceTaskValues, getDependencySourceTaskId } = useTaskDependencies()
+const { shouldShowTask, canUserCreateInstances, hasSourceTaskValues, getDependencySourceTaskId } = useTaskDependencies()
 
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 
@@ -221,12 +221,14 @@ function shouldSkipTask(taskId: string): boolean {
 
             <template v-else>
               <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
-                <!--Single task (no children): render the task itself -->
-                <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
-                  :instanceId="instanceId" :showDescription="true" />
+                <template v-if="shouldShowTask(childId, instanceId)">
+                  <!--Single task (no children): render the task itself -->
+                  <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
+                    :instanceId="instanceId" :showDescription="true" />
 
-                <!-- Nested task group (has children): render children as TaskGroup -->
-                <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+                  <!-- Nested task group (has children): render children as TaskGroup -->
+                  <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+                </template>
               </template>
 
               <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"

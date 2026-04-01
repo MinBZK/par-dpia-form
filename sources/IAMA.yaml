@@ -139,22 +139,71 @@ tasks:
               van de AI-verordening?
             id: "1.3.1"
             type:
-              - open_text
+              -  radio_option
+            valueType: boolean
+            options:
+            - value: true
+              label: Ja
+            - value: false
+              label: Nee
             repeatable: false
+          - task: "Stop met de ontwikkeling of implementatie van het AI-systeem en ga terug naar de tekentafel."
+            id: "1.3.3"
+            type:
+              - task_group
+            repeatable: false
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "1.3.1"
+                  operator: equals
+                  value: true
+                action: show
           - task: Wettelijke taak en grondslag
             description: >-
               Wordt het algoritme gebruikt om een wettelijke taak uit te voeren?
-              Zo ja, wat is de wettelijke grondslag?
             id: "1.3.2"
+            type:
+              -  radio_option
+            valueType: boolean
+            options:
+            - value: true
+              label: Ja
+            - value: false
+              label: Nee
+            repeatable: false
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "1.3.1"
+                  operator: equals
+                  value: false
+                action: show
+          - task: Wat is de wettelijke grondslag hiervoor?
+            id: "1.3.4"
             type:
               - open_text
             repeatable: false
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "1.3.2"
+                  operator: equals
+                  value: true
+                action: show
 
       - task: Verantwoordelijkheden
         id: "1.4"
         type:
           - task_group
         repeatable: false
+        dependencies:
+          - type: conditional
+            condition:
+              id: "1.3.1"
+              operator: equals
+              value: false
+            action: show
         tasks:
           - task: Betrokken partijen en verantwoordelijkheden
             description: >-

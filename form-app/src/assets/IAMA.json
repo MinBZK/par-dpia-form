@@ -124,18 +124,89 @@
               "description": "Is het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> een verboden <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen or beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.</span></span> in de zin van artikel 5 van de AI-verordening?",
               "id": "1.3.1",
               "type": [
-                "open_text"
+                "radio_option"
+              ],
+              "valueType": "boolean",
+              "options": [
+                {
+                  "value": true,
+                  "label": "Ja"
+                },
+                {
+                  "value": false,
+                  "label": "Nee"
+                }
               ],
               "repeatable": false
+            },
+            {
+              "task": "Stop met de ontwikkeling of implementatie van het <span class=\"aiv-definition\">AI-systeem<span class=\"aiv-definition-text\">Een op een machine gebaseerd systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen or beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.</span></span> en ga terug naar de tekentafel.",
+              "id": "1.3.3",
+              "type": [
+                "task_group"
+              ],
+              "repeatable": false,
+              "dependencies": [
+                {
+                  "type": "conditional",
+                  "condition": {
+                    "id": "1.3.1",
+                    "operator": "equals",
+                    "value": true
+                  },
+                  "action": "show"
+                }
+              ]
             },
             {
               "task": "Wettelijke taak en grondslag",
               "description": "Wordt het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> gebruikt om een wettelijke taak uit te voeren? Zo ja, wat is de wettelijke grondslag?",
               "id": "1.3.2",
               "type": [
+                "radio_option"
+              ],
+              "valueType": "boolean",
+              "options": [
+                {
+                  "value": true,
+                  "label": "Ja"
+                },
+                {
+                  "value": false,
+                  "label": "Nee"
+                }
+              ],
+              "repeatable": false,
+              "dependencies": [
+                {
+                  "type": "conditional",
+                  "condition": {
+                    "id": "1.3.1",
+                    "operator": "equals",
+                    "value": false
+                  },
+                  "action": "show"
+                }
+              ]
+            },
+            {
+              "task": "Beschrijf de wettelijke grondslag",
+              "id": "1.3.4",
+              "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "dependencies": [
+                {
+                  "type": "conditional",
+                  "condition": {
+                    "id": "1.3.2",
+                    "operator": "equals",
+                    "value": true
+                  },
+                  "action": "show"
+                }
+              ]
             }
           ]
         },
@@ -146,6 +217,17 @@
             "task_group"
           ],
           "repeatable": false,
+          "dependencies": [
+            {
+              "type": "conditional",
+              "condition": {
+                "id": "1.3.1",
+                "operator": "equals",
+                "value": false
+              },
+              "action": "show"
+            }
+          ],
           "tasks": [
             {
               "task": "Betrokken partijen en verantwoordelijkheden",
@@ -272,8 +354,8 @@
               "repeatable": false
             },
             {
-              "task": "Kwaliteit en betrouwbaarheid trainings- en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span>",
-              "description": "Zijn de kwaliteit en betrouwbaarheid van de trainings- en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> voldoende voor de beoogde toepassing? Leg uit.",
+              "task": "Kwaliteit en betrouwbaarheid <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span>",
+              "description": "Zijn de kwaliteit en betrouwbaarheid van de <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> voldoende voor de beoogde toepassing? Leg uit.",
               "id": "2.2B.2",
               "type": [
                 "open_text"
@@ -281,8 +363,8 @@
               "repeatable": false
             },
             {
-              "task": "Representativiteit trainings- en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span>",
-              "description": "Zijn de trainings- en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> representatief voor de context waarin het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> ingezet gaat worden? Hoe verschillen de <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en testdata van de data die bij inzet als input dienen?",
+              "task": "Representativiteit <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span>",
+              "description": "Zijn de <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> representatief voor de context waarin het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> ingezet gaat worden? Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?",
               "id": "2.2B.3",
               "type": [
                 "open_text"
