@@ -119,7 +119,7 @@ def create_term_map(begrippenkader):
     return term_map
 
 
-def inject_terms(text, term_map):
+def inject_terms(text, term_map, already_matched_terms=None):
     """
     Inject HTML tags around terms found in the text.
     Returns the modified text with HTML tags.
@@ -130,9 +130,19 @@ def inject_terms(text, term_map):
     3. Alternatieve spellingen (longest first)
     4. Alternatieve termen (longest first)
 
-    All matching is case-insensitive, but original capitalization is preserved.
+    Matching is case-insensitive, EXCEPT for terms that are all uppercase in the
+    begrippenkader (e.g. "DAT") — these only match when written in uppercase in
+    the text, to avoid false positives with common Dutch words.
+
     Terms inside existing <span class="aiv-definition"> tags are NOT processed.
     Also prevents adding overlapping or nested tags during the same processing run.
+
+    Args:
+        text: The text to process.
+        term_map: Dictionary mapping lowercase terms to their definitions.
+        already_matched_terms: Optional set of term keys already matched earlier
+            on the same page. When provided, each term is only enriched once per
+            page and newly matched terms are added to this set.
     """
     if not text or not isinstance(text, str):
         return text
@@ -196,12 +206,25 @@ def inject_terms(text, term_map):
 
         # Process each term in the current list
         for term in term_list:
-            # Create pattern for this specific term with word boundaries
-            term_pattern = r"\b" + re.escape(term) + r"\b"
+            # Skip terms already matched on this page (once-per-page logic)
+            if already_matched_terms is not None and term in already_matched_terms:
+                continue
+
+            # Determine case sensitivity: terms that are all uppercase in the
+            # begrippenkader (e.g. "DAT") are matched case-sensitively to avoid
+            # false positives with common Dutch words like "dat".
+            original_term = term_map.get(term, {}).get("term", term)
+            if len(original_term) > 1 and original_term.isupper():
+                # Use the original uppercase term in the pattern
+                term_pattern = r"\b" + re.escape(original_term) + r"\b"
+                regex_flags = 0  # case-sensitive
+            else:
+                term_pattern = r"\b" + re.escape(term) + r"\b"
+                regex_flags = re.IGNORECASE
 
             # Find all matches for this term in the current state of the text
             current_text = "".join(chars)
-            for match in re.finditer(term_pattern, current_text, re.IGNORECASE):
+            for match in re.finditer(term_pattern, current_text, regex_flags):
                 start, end = match.span()
 
                 # Skip if any part of this match overlaps with positions already matched
@@ -303,6 +326,11 @@ def inject_terms(text, term_map):
                 matched_positions = updated_matched_positions
                 chars = list(current_text)
 
+                # Record this term so it is only enriched once per page
+                if already_matched_terms is not None:
+                    already_matched_terms.add(term)
+                    break  # stop after first match for this term on this page
+
     # Return the final text with all replacements
     return "".join(chars)
 
@@ -331,17 +359,21 @@ def process_dpia(dpia_data, term_map):
     return result
 
 
-def process_tasks(tasks, term_map, level=0):
+def process_tasks(tasks, term_map, level=0, already_matched_terms=None):
     """
     Process tasks recursively based on their level:
     - At level 0 (top level): Only process description
     - At deeper levels: Process both task and description
     - Process options values only for checkbox_option type tasks
 
+    Each top-level task (deel/page) gets its own already_matched_terms set so
+    that every definition tooltip appears at most once per page.
+
     Args:
         tasks: List of task dictionaries
         term_map: Dictionary mapping terms to their definitions
         level: Current nesting level of tasks (0 for top level)
+        already_matched_terms: Set of term keys already matched on this page
 
     Returns:
         Processed list of tasks with terms injected according to rules
@@ -355,19 +387,27 @@ def process_tasks(tasks, term_map, level=0):
         # Create a copy of the task to modify
         task_copy = task.copy()
 
+        # At the top level each task (deel) starts with a fresh set
+        if level == 0:
+            page_matched = set()
+        else:
+            page_matched = already_matched_terms
+
         # For top level (level 0), only process description
         if level == 0:
             if "description" in task_copy and isinstance(task_copy["description"], str):
                 task_copy["description"] = inject_terms(
-                    task_copy["description"], term_map
+                    task_copy["description"], term_map, page_matched
                 )
         # For deeper levels, process both task and description
         else:
             if "task" in task_copy and isinstance(task_copy["task"], str):
-                task_copy["task"] = inject_terms(task_copy["task"], term_map)
+                task_copy["task"] = inject_terms(
+                    task_copy["task"], term_map, page_matched
+                )
             if "description" in task_copy and isinstance(task_copy["description"], str):
                 task_copy["description"] = inject_terms(
-                    task_copy["description"], term_map
+                    task_copy["description"], term_map, page_matched
                 )
 
         # Process options values for both checkbox_option and radio_option type tasks
@@ -391,10 +431,14 @@ def process_tasks(tasks, term_map, level=0):
             for option in task_copy["options"]:
                 option_copy = option.copy()
                 if "value" in option_copy and isinstance(option_copy["value"], str):
-                    option_copy["value"] = inject_terms(option_copy["value"], term_map)
+                    option_copy["value"] = inject_terms(
+                        option_copy["value"], term_map, page_matched
+                    )
                 # Process label if it exists and is a string
                 if "label" in option_copy and isinstance(option_copy["label"], str):
-                    option_copy["label"] = inject_terms(option_copy["label"], term_map)
+                    option_copy["label"] = inject_terms(
+                        option_copy["label"], term_map, page_matched
+                    )
                 options_copy.append(option_copy)
             task_copy["options"] = options_copy
 
@@ -422,7 +466,9 @@ def process_tasks(tasks, term_map, level=0):
 
         # Recursively process subtasks with incremented level
         if "tasks" in task_copy and isinstance(task_copy["tasks"], list):
-            task_copy["tasks"] = process_tasks(task_copy["tasks"], term_map, level + 1)
+            task_copy["tasks"] = process_tasks(
+                task_copy["tasks"], term_map, level + 1, page_matched
+            )
 
         result.append(task_copy)
 

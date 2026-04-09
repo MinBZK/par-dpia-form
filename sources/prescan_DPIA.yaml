@@ -898,8 +898,8 @@ tasks:
         label: Nee
       repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
-      description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren. 
-       Raadpleeg artikel 6 en Annex III uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt. 
+      description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren.
+       Raadpleeg artikel 6 en Annex III uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
       id: "6.1.2"
       type:
       - radio_option
@@ -1091,5 +1091,3 @@ assessments:
           - id: "impactvol_algoritme"
             expression: "bool(answers('6.1.3'))"
             explanation: "Het uitvoeren van een IAMA is sterk aanbevolen"
-
-    
