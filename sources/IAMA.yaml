@@ -228,6 +228,22 @@ tasks:
             type:
               - open_text
             repeatable: false
+      - task: Actiepunten
+        id: "1.actiepunten"
+        is_official_id: false
+        description: >-
+          Voer hieronder de actiepunten in die volgen uit dit deel.
+          Voer één actiepunt per tekstvak in. Gebruik de knop om extra
+          actiepunten toe te voegen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Actiepunt
+            id: "1.actiepunten.tekst"
+            type:
+              - open_text
+            repeatable: true
 
   - task: Deel 2 – Wat?
     id: "2"
@@ -424,6 +440,22 @@ tasks:
             type:
               - open_text
             repeatable: false
+      - task: Actiepunten
+        id: "2.actiepunten"
+        is_official_id: false
+        description: >-
+          Voer hieronder de actiepunten in die volgen uit dit deel.
+          Voer één actiepunt per tekstvak in. Gebruik de knop om extra
+          actiepunten toe te voegen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Actiepunt
+            id: "2.actiepunten.tekst"
+            type:
+              - open_text
+            repeatable: true
 
   - task: Deel 3 – Hoe?
     id: "3"
@@ -674,6 +706,22 @@ tasks:
             type:
               - open_text
             repeatable: false
+      - task: Actiepunten
+        id: "3.actiepunten"
+        is_official_id: false
+        description: >-
+          Voer hieronder de actiepunten in die volgen uit dit deel.
+          Voer één actiepunt per tekstvak in. Gebruik de knop om extra
+          actiepunten toe te voegen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Actiepunt
+            id: "3.actiepunten.tekst"
+            type:
+              - open_text
+            repeatable: true
 
   - task: Deel 4 – Mensenrechten
     id: "4"
@@ -881,6 +929,22 @@ tasks:
             type:
               - open_text
             repeatable: false
+      - task: Actiepunten
+        id: "4.actiepunten"
+        is_official_id: false
+        description: >-
+          Voer hieronder de actiepunten in die volgen uit dit deel.
+          Voer één actiepunt per tekstvak in. Gebruik de knop om extra
+          actiepunten toe te voegen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Actiepunt
+            id: "4.actiepunten.tekst"
+            type:
+              - open_text
+            repeatable: true
 
   - task: Deel 5 – Afsluiting
     id: "5"

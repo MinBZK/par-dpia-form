@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ActionPointsOverview from '@/components/ActionPointsOverview.vue'
 import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
@@ -94,6 +95,10 @@ const missingSourceDependencies = computed(() => {
     index === self.findIndex(d => d.sectionNumber === dep.sectionNumber)
   )
 })
+
+const actiepuntenTaskIds = ['1.actiepunten', '2.actiepunten', '3.actiepunten', '4.actiepunten']
+
+const isActiepuntenOverviewChild = (childId: string): boolean => childId === '5.A'
 
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
@@ -227,7 +232,11 @@ function shouldSkipTask(taskId: string): boolean {
                     :instanceId="instanceId" :showDescription="true" />
 
                   <!-- Nested task group (has children): render children as TaskGroup -->
-                  <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+                  <template v-else>
+                    <TaskGroup :taskId="childId" :instanceId="instanceId" />
+                    <ActionPointsOverview v-if="isActiepuntenOverviewChild(childId)"
+                      :actiepuntenTaskIds="actiepuntenTaskIds" />
+                  </template>
                 </template>
               </template>
 
