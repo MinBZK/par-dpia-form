@@ -76,6 +76,7 @@
               "task": "Doelstelling",
               "description": "Wat is het doel dat bereikt dient te worden met de inzet van het algoritme? Wat is hierbij het hoofddoel en wat zijn subdoelen?",
               "id": "1.1.2",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -583,6 +584,7 @@
               "task": "Proces en beslissingen",
               "description": "Hoe ziet het proces eruit waar het <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> een onderdeel van is? Wat gebeurt er met de uitkomsten van het algoritme en welke beslissingen worden daarop gebaseerd?",
               "id": "3.1.1",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -601,6 +603,7 @@
               "task": "Frequentie van inzet",
               "description": "Hoe frequent gaat het algoritme ingezet worden?",
               "id": "3.1.3",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -638,6 +641,7 @@
               "task": "Menselijke tussenkomst",
               "description": "Welke rol spelen medewerkers in het proces waar het algoritme een onderdeel van is ('menselijke tussenkomst')?",
               "id": "3.2.1",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -647,6 +651,7 @@
               "task": "Afwijken van algoritme-uitkomst",
               "description": "Is het mogelijk voor de medewerker om af te wijken van de uitkomst van het algoritme (indien nodig)? Leg uit.",
               "id": "3.2.2",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -730,6 +735,7 @@
               "task": "Monitoring gedurende levenscyclus",
               "description": "Hoe wordt de inzet van het algoritme gemonitord gedurende de levenscyclus? Wat zijn de mogelijkheden voor bijsturing als blijkt dat de geïdentificeerde risico's zich daadwerkelijk manifesteren?",
               "id": "3.4.1",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -739,6 +745,7 @@
               "task": "Meldmogelijkheid medewerkers",
               "description": "Kunnen medewerkers op een laagdrempelige manier melding maken wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe worden deze mensen dan gehoord? Leg uit.",
               "id": "3.4.2",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -785,6 +792,7 @@
               "task": "Geraakte mensen en groepen",
               "description": "Welke mensen en/of groepen worden mogelijk geraakt door de inzet van het algoritme?",
               "id": "3.5.1",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],
@@ -794,6 +802,7 @@
               "task": "Risico's en nadelige effecten",
               "description": "Welke risico's of nadelige effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (1.2.1).",
               "id": "3.5.2",
+              "in_fria": true,
               "type": [
                 "open_text"
               ],

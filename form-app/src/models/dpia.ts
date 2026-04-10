@@ -124,6 +124,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     // Optional properties
     t.partial({
       is_official_id: t.boolean,
+      in_fria: t.boolean,
       valueType: t.string,
       instance_label_template: t.string,
       description: t.string,
