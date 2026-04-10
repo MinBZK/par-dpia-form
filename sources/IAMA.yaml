@@ -215,13 +215,6 @@ tasks:
         type:
           - task_group
         repeatable: false
-        dependencies:
-          - type: conditional
-            condition:
-              id: "1.3.1"
-              operator: equals
-              value: false
-            action: show
         tasks:
           - task: Betrokken partijen en verantwoordelijkheden
             description: >-
