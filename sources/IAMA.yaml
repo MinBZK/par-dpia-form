@@ -103,6 +103,14 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.4.1"
+                  type: pre-view
+                - id: "4.5.1"
+                  type: pre-view
+                - id: "5.A.1"
+                  type: pre-view
 
       - task: Publieke waarden
         id: "1.2"
@@ -118,6 +126,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "3.5.2"
+                  type: pre-view
+                - id: "5.A.1"
+                  type: pre-view
           - task: Negatief geraakte publieke waarden
             description: >-
               Wat zijn de publieke waarden die mogelijk negatief geraakt worden
@@ -126,6 +140,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "3.5.3"
+                  type: pre-view
 
       - task: Wettelijke grondslag
         id: "1.3"
@@ -664,6 +682,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "5.A.2"
+                  type: pre-view
           - task: Positieve effecten
             description: >-
               Welke positieve effecten introduceert de inzet van het algoritme
@@ -697,6 +719,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "5.A.2"
+                  type: pre-view
           - task: Overige zorgen
             description: >-
               Zijn er zorgen over dit algoritme die tot dusver niet (genoeg) aan
@@ -753,6 +779,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "5.A.1"
+                  type: pre-view
 
       - task: Specifieke wetgeving
         id: "4.2"
@@ -856,6 +886,14 @@ tasks:
               - value: licht
                 label: Licht
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.4.2"
+                  type: pre-view
+                - id: "4.5.4"
+                  type: pre-view
+                - id: "5.A.2"
+                  type: pre-view
 
       - task: Doeltreffendheid/effectiviteit/geschiktheid
         id: "4.4"
@@ -872,6 +910,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "5.A.5"
+                  type: pre-view
           - task: Redelijkheid van de inzet
             description: >-
               Is het redelijk om het algoritme in te zetten als rekening wordt
@@ -900,6 +942,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.5.4"
+                  type: pre-view
+                - id: "5.A.6"
+                  type: pre-view
           - task: Aanpassingen om inbreuk te verminderen
             description: >-
               Kunnen er aanpassingen worden gemaakt aan het algoritme (of de
@@ -909,6 +957,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.5.3"
+                  type: pre-view
+                - id: "4.5.4"
+                  type: pre-view
           - task: Restrisico's na maatregelen
             description: >-
               Welke restrisico's blijven er voor het grondrecht over als alle bij
@@ -917,6 +971,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.5.4"
+                  type: pre-view
           - task: Redelijkheid van inzet na maatregelen
             description: >-
               Is het redelijk om het algoritme in te zetten als rekening wordt

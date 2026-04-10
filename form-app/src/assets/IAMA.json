@@ -79,7 +79,23 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "4.4.1",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "4.5.1",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "5.A.1",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -98,7 +114,19 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "3.5.2",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "5.A.1",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Negatief geraakte publieke waarden",
@@ -107,7 +135,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "3.5.3",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -770,7 +806,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "5.A.2",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Positieve effecten",
@@ -806,7 +850,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "5.A.2",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Overige zorgen",
@@ -874,7 +926,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "5.A.1",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -981,7 +1041,23 @@
                   "label": "Licht"
                 }
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "4.4.2",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "4.5.4",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "5.A.2",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             }
           ]
         },
@@ -1000,7 +1076,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "5.A.5",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Redelijkheid van de inzet",
@@ -1028,7 +1112,19 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "4.5.4",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "5.A.6",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Aanpassingen om inbreuk te verminderen",
@@ -1037,7 +1133,19 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "4.5.3",
+                    "type": "pre-view"
+                  },
+                  {
+                    "id": "4.5.4",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Restrisico's na maatregelen",
@@ -1046,7 +1154,15 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false
+              "repeatable": false,
+              "references": {
+                "IAMA": [
+                  {
+                    "id": "4.5.4",
+                    "type": "pre-view"
+                  }
+                ]
+              }
             },
             {
               "task": "Redelijkheid van inzet na maatregelen",

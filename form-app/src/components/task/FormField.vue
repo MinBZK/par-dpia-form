@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import IamaReferencePreview from '@/components/IamaReferencePreview.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
@@ -6,6 +7,7 @@ import { type FlatTask } from '@/stores/tasks'
 import { FormType } from '@/models/dpia.ts';
 import { useTaskStore } from '@/stores/tasks'
 import { usePreScanReferences } from '@/composables/usePreScanReferences'
+import { useIamaReferences } from '@/composables/useIamaReferences'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -19,6 +21,9 @@ const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 const { getPreScanValueForTask } = usePreScanReferences()
+const { getIamaValueForTask } = useIamaReferences()
+
+const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -54,7 +59,7 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
-  const referencedValue = getPreScanValueForTask(props.task)
+  const referencedValue = getPreScanValueForTask(props.task) ?? getIamaValueForTask(props.task)
 
   // If there's a referenced value and no stored answer yet,
   // STORE IT IMMEDIATELY and then return it
@@ -142,6 +147,9 @@ const handleCheckboxInput = (event: Event) => {
       <span v-html="description"></span>
     </div>
   </div>
+
+  <!-- IAMA suggestion preview (only when source Deel is not yet completed) -->
+  <IamaReferencePreview v-if="isIama" :task="task" />
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">

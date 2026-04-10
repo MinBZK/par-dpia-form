@@ -105,7 +105,8 @@ export const TaskReference = t.type({
 
 export const TaskReferences = t.partial({
   prescanModelId: t.string,
-  DPIA: t.array(TaskReference)
+  DPIA: t.array(TaskReference),
+  IAMA: t.array(TaskReference),
 })
 
 export type TaskReferences = t.TypeOf<typeof TaskReferences>
