@@ -246,7 +246,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-      - task: Actiepunten
+      - task: Actiepunten Deel 1
         id: "1.actiepunten"
         is_official_id: false
         description: >-
@@ -259,6 +259,7 @@ tasks:
         tasks:
           - task: Actiepunt
             id: "1.actiepunten.tekst"
+            is_official_id: false
             type:
               - open_text
             repeatable: true
@@ -458,7 +459,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-      - task: Actiepunten
+      - task: Actiepunten Deel 2
         id: "2.actiepunten"
         is_official_id: false
         description: >-
@@ -471,6 +472,7 @@ tasks:
         tasks:
           - task: Actiepunt
             id: "2.actiepunten.tekst"
+            is_official_id: false
             type:
               - open_text
             repeatable: true
@@ -732,7 +734,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-      - task: Actiepunten
+      - task: Actiepunten Deel 3
         id: "3.actiepunten"
         is_official_id: false
         description: >-
@@ -745,6 +747,7 @@ tasks:
         tasks:
           - task: Actiepunt
             id: "3.actiepunten.tekst"
+            is_official_id: false
             type:
               - open_text
             repeatable: true
@@ -987,7 +990,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-      - task: Actiepunten
+      - task: Actiepunten Deel 4
         id: "4.actiepunten"
         is_official_id: false
         description: >-
@@ -1000,6 +1003,7 @@ tasks:
         tasks:
           - task: Actiepunt
             id: "4.actiepunten.tekst"
+            is_official_id: false
             type:
               - open_text
             repeatable: true

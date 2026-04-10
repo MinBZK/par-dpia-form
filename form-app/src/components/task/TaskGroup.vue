@@ -4,6 +4,7 @@ import UiButton from '@/components/ui/UiButton.vue'
 import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { useTaskStore, type FlatTask } from '@/stores/tasks'
+import { FormType } from '@/models/dpia.ts'
 import { renderInstanceLabel } from '@/utils/taskUtils'
 import { computed, nextTick } from 'vue'
 
@@ -17,11 +18,19 @@ const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependen
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
 
+// In IAMA we prefix labels with the question ID unless the task is explicitly
+// marked with is_official_id: false (e.g. Deel headers, actiepunten groups).
+const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
+
 const instanceLabel = computed(() => {
   if (task.value.instance_label_template) {
     return renderInstanceLabel(props.instanceId, task.value.instance_label_template)
   }
-  return isRepeatable.value ? `${task.value.task}` : task.value.task
+  const baseLabel = isRepeatable.value ? `${task.value.task}` : task.value.task
+  if (isIama.value && task.value.is_official_id !== false) {
+    return `${task.value.id} ${baseLabel}`
+  }
+  return baseLabel
 })
 
 const childTasksWithChildren = computed(() => {

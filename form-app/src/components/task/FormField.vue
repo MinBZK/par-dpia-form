@@ -25,6 +25,16 @@ const { getIamaValueForTask } = useIamaReferences()
 
 const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
 
+// In IAMA we prefix the label with the question ID unless the task is explicitly
+// marked with is_official_id: false (e.g. section headers, actiepunten groups).
+const displayLabel = computed(() => {
+  if (!props.label) return props.label
+  if (isIama.value && props.task.is_official_id !== false) {
+    return `${props.task.id} ${props.label}`
+  }
+  return props.label
+})
+
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
   return sourceIdWithPath?.split('.')[0] || '';
@@ -142,7 +152,7 @@ const handleCheckboxInput = (event: Event) => {
 
 <template>
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label"></label>
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="displayLabel"></label>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
