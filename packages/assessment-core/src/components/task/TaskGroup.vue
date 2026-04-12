@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import FormField from './FormField.vue'
 import UiButton from '../ui/UiButton.vue'
+import ConfirmDeleteDialog from '../ConfirmDeleteDialog.vue'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
 import { useAnswerStore } from '../../stores/answers'
 import { renderInstanceLabel } from '../../utils/taskUtils'
-import { computed, nextTick } from 'vue'
+import { findImpactedByDelete, summariseImpact, type ImpactSummary } from '../../utils/impactedAnswers'
+import { computed, nextTick, ref } from 'vue'
 
 const props = defineProps<{
   taskId: string
@@ -84,14 +86,50 @@ function collectInstanceIds(instanceId: string): string[] {
   return ids
 }
 
-const handleDelete = (instanceId: string) => {
-  // Collect all instance IDs (parent + children) before removal
+const pendingDelete = ref<{
+  instanceId: string
+  label: string
+  summary: ImpactSummary
+} | null>(null)
+
+const runDelete = (instanceId: string) => {
   const idsToRemove = collectInstanceIds(instanceId)
   answerStore.removeAnswerForInstances(idsToRemove)
   taskStore.removeRepeatableTaskInstance(instanceId)
   nextTick(() => {
     syncInstances.value()
   })
+}
+
+const handleDelete = (instanceId: string) => {
+  const impacted = findImpactedByDelete(instanceId, taskStore, answerStore)
+  if (impacted.length === 0) {
+    runDelete(instanceId)
+    return
+  }
+  const targetTask = taskStore.getInstanceById(instanceId)
+  const labelTemplate = targetTask
+    ? taskStore.taskById(targetTask.taskId).instance_label_template
+    : undefined
+  const label = labelTemplate
+    ? renderInstanceLabel(instanceId, labelTemplate)
+    : getPlainTextWithoutDefinitions(task.value.task)
+  pendingDelete.value = {
+    instanceId,
+    label: label.replace(/<[^>]+>/g, ''),
+    summary: summariseImpact(impacted, taskStore),
+  }
+}
+
+const confirmPendingDelete = () => {
+  if (!pendingDelete.value) return
+  const { instanceId } = pendingDelete.value
+  pendingDelete.value = null
+  runDelete(instanceId)
+}
+
+const cancelPendingDelete = () => {
+  pendingDelete.value = null
 }
 </script>
 
@@ -181,6 +219,9 @@ const handleDelete = (instanceId: string) => {
         </template>
         </template>
       </div>
+
+      <ConfirmDeleteDialog v-if="pendingDelete" :open="true" :label="pendingDelete.label"
+        :summary="pendingDelete.summary" @confirm="confirmPendingDelete" @cancel="cancelPendingDelete" />
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
       <UiButton v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"

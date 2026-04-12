@@ -148,7 +148,7 @@ describe('normalizeToState', () => {
       expect(result.answers['1.1']).toEqual({ value: 'yes', lastEditedAt: '2024-01-01' })
     })
 
-    it('flattens grouped arrays within namespaced state', () => {
+    it('preserves grouped arrays within namespaced state', () => {
       const json = {
         metadata: { createdAt: '2024-01-01' },
         answers: {
@@ -163,10 +163,11 @@ describe('normalizeToState', () => {
       }
       const result = normalizeToState(json, 'dpia')
       expect(result.answers['0.1']).toEqual({ value: 'text', lastEditedAt: '2024-01-01' })
-      expect(result.answers['2.1.1[0]']).toEqual({ value: 'Email', lastEditedAt: '2024-01-01' })
-      expect(result.answers['2.1.1[1]']).toEqual({ value: 'Phone', lastEditedAt: '2024-01-01' })
-      // Grouped parent key removed
-      expect(result.answers['2.1']).toBeUndefined()
+      expect(result.answers['2.1']).toEqual([
+        { _index: 0, '2.1.1': { value: 'Email', lastEditedAt: '2024-01-01' } },
+        { _index: 1, '2.1.1': { value: 'Phone', lastEditedAt: '2024-01-01' } },
+      ])
+      expect(result.answers['2.1.1[0]']).toBeUndefined()
     })
   })
 
@@ -226,7 +227,7 @@ describe('normalizeToState', () => {
   })
 
   describe('grouped answers (new export format)', () => {
-    it('flattens grouped arrays from AssessmentOutput format', () => {
+    it('preserves grouped arrays from AssessmentOutput format', () => {
       const json = {
         metadata: { urn: 'urn:nl:dpia:3.0' },
         answers: {
@@ -239,8 +240,11 @@ describe('normalizeToState', () => {
       }
       const result = normalizeToState(json, 'dpia')
       expect(result.answers['0.1']).toEqual({ value: 'text', lastEditedAt: '2024-01-01' })
-      expect(result.answers['2.1.1[0]']).toEqual({ value: 'Email', lastEditedAt: '2024-01-01' })
-      expect(result.answers['2.1.1[2]']).toEqual({ value: 'Phone', lastEditedAt: '2024-01-01' })
+      expect(result.answers['2.1']).toEqual([
+        { _index: 0, '2.1.1': { value: 'Email', lastEditedAt: '2024-01-01' } },
+        { _index: 2, '2.1.1': { value: 'Phone', lastEditedAt: '2024-01-01' } },
+      ])
+      expect(result.answers['2.1.1[0]']).toBeUndefined()
     })
   })
 })
@@ -361,7 +365,9 @@ describe('parseAndValidateImport', () => {
       })
       const result = parseAndValidateImport(input)
       expect(result.answers['0.1']).toBeDefined()
-      expect(result.answers['2.1.1[0]']).toEqual({ value: 'Email', lastEditedAt: '2026-01-01' })
+      expect(result.answers['2.1']).toEqual([
+        { _index: 0, '2.1.1': { value: 'Email', lastEditedAt: '2026-01-01' } },
+      ])
     })
   })
 

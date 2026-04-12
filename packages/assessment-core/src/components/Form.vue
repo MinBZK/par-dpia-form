@@ -9,6 +9,7 @@ import FileUploadPage from './FileUploadPage.vue'
 import LiveResults from './LiveResults.vue'
 import { useTaskDependencies } from '../composables/useTaskDependencies'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
+import { useConditionalHideReconcile } from '../composables/useConditionalHideReconcile'
 import { DPIA, FormType } from '../models/dpia'
 import type { AssessmentState } from '../models/assessmentState'
 import type { NavigationFunctions } from '../models/navigation'
@@ -49,6 +50,10 @@ const answerStore = useAnswerStore()
 const calculationStore = useCalculationStore()
 
 const { syncInstances } = useTaskDependencies()
+
+// Keep persisted state clean when conditional fields hide their dependents,
+// with a short in-memory cache so flipping the parent back restores the data.
+const hideReconcile = useConditionalHideReconcile()
 
 // Inject persistence provider
 const persistence = inject(PERSISTENCE_KEY)!
@@ -92,6 +97,10 @@ onMounted(async () => {
 
     // Step 5: Sync task instances based on their dependencies.
     syncInstances.value()
+
+    // Seed the observed-values map for conditional hide tracking AFTER init
+    // so that initial load is not treated as a change.
+    hideReconcile.seedFromStore()
 
     // Step 6: Snapshot baseline AFTER full initialization so that
     // initialization-related changes (syncInstances, etc.) are not

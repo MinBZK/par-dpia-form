@@ -5,6 +5,7 @@ import { generateFilename } from './fileName'
 import { useSchemaStore } from '../stores/schemas'
 import { parseAndValidateImport } from './importDetect'
 import { groupAnswers } from './groupedAnswers'
+import { filterVisibleAnswers } from './impactedAnswers'
 
 export async function importFromJson(file: File): Promise<AssessmentState> {
   const text = await file.text()
@@ -23,6 +24,11 @@ export function buildOutputData(
   const flatAnswers = answerStore.answers[ns] || {}
   const flatTasks = taskStore.flatTasks[ns] || {}
 
+  // Skip answers whose field is currently hidden by a conditional dependency.
+  // Matches the pdf and markdown exporters so shareable exports never leak
+  // invisible data (AVG + audit consistency).
+  const visibleAnswers = filterVisibleAnswers(flatAnswers, taskStore, answerStore)
+
   return {
     $schema: OUTPUT_SCHEMA_URL,
     metadata: {
@@ -30,7 +36,7 @@ export function buildOutputData(
       createdAt: new Date().toISOString(),
       ...(completedTasks.length > 0 && { completedTasks }),
     },
-    answers: groupAnswers(flatAnswers, flatTasks, taskStore.taskInstances[ns]),
+    answers: groupAnswers(visibleAnswers, flatTasks, taskStore.taskInstances[ns]),
   }
 }
 

@@ -72,34 +72,37 @@ export const normalizeToState = (json: Record<string, unknown>, detectedType: 'd
   const metadata = json.metadata as Record<string, unknown> | undefined
   const namespace = detectedType === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
 
-  // Detect old namespace-wrapped format
+  // Detect old namespace-wrapped format and unwrap.
   const isNamespaced = answers?.[FormType.DPIA] || answers?.[FormType.PRE_SCAN]
+  const unwrapped = (isNamespaced
+    ? ((answers?.[namespace] || {}) as Record<string, unknown>)
+    : (answers || {})) as Record<string, unknown>
 
-  let flatAnswers: Record<string, unknown>
-  if (isNamespaced) {
-    const nsAnswers = (answers?.[namespace] || {}) as Record<string, unknown>
-    flatAnswers = Object.values(nsAnswers).some(v => Array.isArray(v))
-      ? flattenGroupedAnswers(nsAnswers as Record<string, GroupedAnswerValue>)
-      : nsAnswers
-  } else {
-    flatAnswers = answers && Object.values(answers).some(v => Array.isArray(v))
-      ? flattenGroupedAnswers(answers as Record<string, GroupedAnswerValue>)
-      : (answers || {})
-  }
+  // Keep the grouped shape when present. applyStateToStores flattens on
+  // load; saving later regroups via groupAnswers. Flattening here would
+  // permanently replace the round-tripping format with a flat snapshot
+  // that later grouped saves diff against as a wholesale restructure.
+  const keepGrouped = Object.values(unwrapped).some((v) => Array.isArray(v))
+  const outAnswers = keepGrouped
+    ? unwrapped
+    : unwrapped
 
-  // Resolve completedTasks: explicit metadata > old taskState > derive for legacy only
+  // Legacy v1 exports (no $schema, no urn) still need a flat view to
+  // derive completedTasks from their answer keys.
+  const isModernFormat = !!(json.$schema || (metadata?.urn as string))
+  const flatForLegacy = !isModernFormat && keepGrouped
+    ? flattenGroupedAnswers(unwrapped as Record<string, GroupedAnswerValue>)
+    : (unwrapped as Record<string, unknown>)
+
   const explicitCompleted = metadata?.completedTasks as string[] | undefined
   const legacyCompleted = (json as any).taskState?.[namespace]?.completedRootTaskIds as string[] | undefined
-  // Modern exports (with $schema or urn) omit completedTasks when nothing is completed.
-  // Only derive from answer keys for old v1 exports that lack both indicators.
-  const isModernFormat = !!(json.$schema || (metadata?.urn as string))
   const completedTasks = explicitCompleted?.length
     ? explicitCompleted
     : legacyCompleted?.length
       ? legacyCompleted
       : isModernFormat
         ? []
-        : deriveCompletedRootTaskIds(Object.keys(flatAnswers))
+        : deriveCompletedRootTaskIds(Object.keys(flatForLegacy))
 
   return {
     metadata: {
@@ -107,6 +110,6 @@ export const normalizeToState = (json: Record<string, unknown>, detectedType: 'd
       createdAt: (metadata?.createdAt as string) || new Date().toISOString(),
       ...(completedTasks.length > 0 && { completedTasks }),
     },
-    answers: flatAnswers as any,
+    answers: outAnswers as any,
   }
 }
