@@ -9,6 +9,7 @@ import { projectRoutes } from './routes/projects.js'
 import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
 import { commentRoutes } from './routes/comments.js'
+import { syncRoutes } from './routes/sync.js'
 
 const API_VERSION = '1.0.0'
 
@@ -49,6 +50,7 @@ await app.register(swagger, {
     tags: [
       { name: 'assessments', description: 'Assessments beheren' },
       { name: 'projects', description: 'Projecten en leden beheren' },
+      { name: 'sync', description: 'Collaboration sync signals voor polling clients' },
     ],
     components: {
       securitySchemes: {
@@ -153,6 +155,7 @@ await app.register(projectRoutes, { prefix: '/api/v1/projects' })
 await app.register(memberRoutes, { prefix: '/api/v1/projects' })
 await app.register(assessmentRoutes, { prefix: '/api/v1' })
 await app.register(commentRoutes, { prefix: '/api/v1' })
+await app.register(syncRoutes, { prefix: '/api/v1' })
 
 app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
 

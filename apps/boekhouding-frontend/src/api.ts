@@ -199,8 +199,14 @@ export interface CommentThread {
 export interface CommentsResponse {
   comments: CommentThread[]
   lastModifiedAt: string | null
-  assessmentVersion: number
   currentUserId: string
+}
+
+export interface SyncResponse {
+  version: number
+  updatedAt: string
+  lastModifiedBySelf: boolean
+  commentCount: number
 }
 
 export const commentsApi = {
@@ -222,4 +228,9 @@ export const commentsApi = {
     request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/resolve`, { method: 'POST' }),
   reopen: (assessmentId: string, commentId: string) =>
     request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/reopen`, { method: 'POST' }),
+}
+
+export const syncApi = {
+  get: (assessmentId: string) =>
+    request<SyncResponse>(`/api/v1/assessments/${assessmentId}/sync`),
 }

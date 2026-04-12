@@ -51,3 +51,9 @@ sources/generated/
 
 # Playwright
 .playwright-mcp
+
+# Local podman compose overrides (per-machine port shifts etc.)
+containers/compose.override.yaml
+containers/compose-dev-keycloak.local.json
+containers/Caddyfile.local
+containers/certs/

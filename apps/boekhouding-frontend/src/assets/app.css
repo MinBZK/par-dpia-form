@@ -1258,3 +1258,50 @@ a.card-link:hover {
     display: block;
   }
 }
+
+/* Sync toast (collaboration notifications) */
+
+.sync-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 48rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--rvo-color-hemelblauw);
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sync-toast__action {
+  white-space: nowrap;
+  background-color: #fff;
+  color: var(--rvo-color-hemelblauw);
+  border: none;
+  border-radius: 4px;
+  padding: 0.375rem 0.875rem;
+  font-size: var(--rvo-font-size-md, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sync-toast__action:hover,
+.sync-toast__action:focus-visible {
+  background-color: var(--rvo-color-donkerblauw);
+  color: #fff;
+  outline: none;
+}
+
+.sync-toast-enter-active,
+.sync-toast-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.sync-toast-enter-from,
+.sync-toast-leave-to {
+  opacity: 0;
+}

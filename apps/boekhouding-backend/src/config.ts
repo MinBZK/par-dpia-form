@@ -2,12 +2,22 @@ const oidcUrl = process.env.OIDC_URL || 'http://localhost:8080'
 const oidcInternalUrl = process.env.OIDC_INTERNAL_URL || oidcUrl
 const oidcRealm = process.env.OIDC_REALM || 'assessment-boekhouding'
 
+// CORS_ORIGIN supports a single origin, or a comma-separated list for development
+// environments where the app is reached via multiple hostnames (localhost, myserver, etc.)
+function parseCorsOrigin(): string | string[] {
+  const raw = process.env.CORS_ORIGIN || process.env.PUBLIC_HOST || 'http://localhost:5174'
+  if (raw.includes(',')) {
+    return raw.split(',').map(o => o.trim()).filter(Boolean)
+  }
+  return raw
+}
+
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
   cors: {
-    origin: process.env.CORS_ORIGIN || process.env.PUBLIC_HOST || 'http://localhost:5174',
+    origin: parseCorsOrigin(),
     credentials: true,
   },
   keycloak: {

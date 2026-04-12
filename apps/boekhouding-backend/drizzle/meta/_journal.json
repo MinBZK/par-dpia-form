@@ -15,6 +15,13 @@
       "when": 1774286031410,
       "tag": "0001_eminent_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775983825815,
+      "tag": "0002_certain_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

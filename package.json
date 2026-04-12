@@ -11,9 +11,13 @@
     "lint": "pnpm --filter standalone-form lint",
     "format": "pnpm --filter standalone-form format",
     "db:generate": "pnpm --filter @overheid-assessment/boekhouding-backend db:generate",
-    "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate"
+    "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate",
+    "test:e2e": "node tests/e2e/sync.spec.mjs"
   },
   "dependencies": {
     "jexl": "^2.3.0"
+  },
+  "devDependencies": {
+    "playwright": "1.58.0"
   }
 }

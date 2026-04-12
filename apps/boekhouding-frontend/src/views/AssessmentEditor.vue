@@ -21,7 +21,7 @@ import AppHeader from '../components/AppHeader.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
 import CommentBadge from '../components/CommentBadge.vue'
 import CommentPanel from '../components/CommentPanel.vue'
-import { useCommentStore } from '../stores/comments'
+import { useCollaborationStore } from '../stores/collaboration'
 import { useFieldCommentIndicators } from '../composables/useFieldCommentIndicators'
 
 const props = defineProps<{
@@ -41,11 +41,10 @@ const canEdit = computed(() => assessment.value?.role === 'owner' || assessment.
 const isReadonly = computed(() => !canEdit.value)
 
 // Comment system
-const commentStore = useCommentStore()
+const collaborationStore = useCollaborationStore()
 const commentPanelOpen = ref(false)
 const activeCommentFieldId = ref<string | null>(null)
 const formContainerRef = ref<HTMLElement | null>(null)
-const versionMismatch = ref(false)
 
 const canComment = computed(() =>
   assessment.value?.role === 'commenter' || assessment.value?.role === 'editor' || assessment.value?.role === 'owner',
@@ -63,13 +62,42 @@ function toggleCommentPanel() {
   }
 }
 
-// Watch for version mismatch from comment polling
-watch(() => commentStore.assessmentVersion, (polledVersion) => {
-  if (!polledVersion || !assessment.value) return
-  if (polledVersion > assessment.value.currentVersion) {
-    versionMismatch.value = true
+// Sync toast state
+const syncToast = ref<{ message: string; action?: () => void } | null>(null)
+let syncToastTimer: ReturnType<typeof setTimeout> | null = null
+
+function showSyncToast(message: string, action?: () => void) {
+  if (syncToastTimer) clearTimeout(syncToastTimer)
+  syncToast.value = { message, action }
+  if (!action) {
+    syncToastTimer = setTimeout(() => { syncToast.value = null }, 3000)
   }
-})
+}
+
+function dismissSyncToast() {
+  if (syncToastTimer) clearTimeout(syncToastTimer)
+  syncToast.value = null
+}
+
+function formatActiveSectionMessage(fieldLabels: string[]): string {
+  if (fieldLabels.length === 1) {
+    return `Een collega heeft een wijziging gemaakt in '${fieldLabels[0]}'`
+  }
+  return `Een collega heeft ${fieldLabels.length} wijzigingen gemaakt in deze sectie`
+}
+
+function formatBackgroundMessage(sectionLabels: string[]): string {
+  if (sectionLabels.length === 0) {
+    return 'Bijgewerkt door een collega'
+  }
+  if (sectionLabels.length === 1) {
+    return `Sectie '${sectionLabels[0]}' bijgewerkt door een collega`
+  }
+  if (sectionLabels.length === 2) {
+    return `Secties '${sectionLabels[0]}' en '${sectionLabels[1]}' bijgewerkt door een collega`
+  }
+  return `${sectionLabels.length} secties bijgewerkt door een collega`
+}
 
 // Inline name editing
 const editingName = ref(false)
@@ -93,12 +121,74 @@ watch(deleteModalOpen, (open) => {
 })
 
 // Provide API persistence for this assessment
-const { conflictState, ...persistence } = createApiPersistence(props.assessmentId)
+const { conflictState, sync, ...persistence } = createApiPersistence(props.assessmentId)
 provide(PERSISTENCE_KEY, persistence)
 
 function handleConflictResolve(resolutions: Map<string, 'mine' | 'theirs'>) {
   conflictState.resolve(resolutions)
 }
+
+// Guard against the remote-change watcher firing during initial load, before knownVersion is populated from the
+// server. Otherwise the first poll would falsely detect a "remote change" and trigger a merge cycle.
+const syncReady = ref(false)
+
+// Dismiss any lingering sync-toast when the conflict dialog opens — prevents showing the [Overnemen] prompt
+// alongside the dialog, which is confusing (both ask the user to act on overlapping data).
+watch(() => conflictState.active, (active) => {
+  if (active) dismissSyncToast()
+})
+
+// Watch for remote changes via sync polling
+watch(
+  [() => collaborationStore.assessmentVersion, () => collaborationStore.assessmentUpdatedAt],
+  async ([polledVersion, polledUpdatedAt]) => {
+    if (!syncReady.value) return
+    if (!polledVersion || !assessment.value) return
+    if (polledVersion === sync.knownVersion.value && polledUpdatedAt === sync.knownUpdatedAt.value) return
+
+    // Own change — only bookkeeping needed, no UI
+    if (collaborationStore.lastModifiedBySelf) {
+      if (sync.knownVersion.value === undefined || polledVersion > sync.knownVersion.value) {
+        sync.knownVersion.value = polledVersion
+      }
+      if (polledUpdatedAt) {
+        sync.knownUpdatedAt.value = polledUpdatedAt
+      }
+      return
+    }
+
+    const ns = taskStore.activeNamespace
+    const activeSectionId = taskStore.currentRootTaskId[ns]
+    const result = await sync.handleRemoteChange(activeSectionId)
+
+    if (result.activeSectionChanges.length > 0) {
+      // Capture changeId so this closure ignores stale clicks after newer deferred changes arrive
+      const changeId = result.changeId
+      const message = formatActiveSectionMessage(result.activeSectionFieldLabels)
+      showSyncToast(message, async () => {
+        const outcome = await sync.applyDeferredChanges(changeId)
+        dismissSyncToast()
+        if (outcome === 'merged') {
+          showSyncToast('Informatie bijgewerkt')
+        }
+        // 'conflict' outcome opens ConflictResolutionDialog automatically; 'stale' is silently ignored.
+      })
+    } else if (result.backgroundMerged > 0) {
+      showSyncToast(formatBackgroundMessage(result.backgroundSectionLabels))
+    }
+  },
+)
+
+// Apply deferred changes when navigating away from the active section
+watch(
+  () => taskStore.currentRootTaskId[taskStore.activeNamespace],
+  () => {
+    if (sync.hasDeferredChanges()) {
+      sync.applyDeferredOnNavigate()
+      dismissSyncToast()
+    }
+  },
+)
 
 // Map assessment_type to FormType enum
 const assessmentTypeMap: Record<string, FormType> = {
@@ -156,9 +246,11 @@ onMounted(async () => {
         }
       }
     }
-    // Load comments and start polling
-    await commentStore.loadComments(props.assessmentId)
-    commentStore.startPolling()
+    // Load comments and sync state
+    await collaborationStore.load(props.assessmentId)
+    // Now that knownVersion is populated, it's safe to enable the remote-change watcher
+    syncReady.value = true
+    collaborationStore.startPolling()
   } catch (e: any) {
     error.value = e.message
   } finally {
@@ -167,7 +259,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  commentStore.reset()
+  collaborationStore.reset()
 })
 
 const namespace = computed(() =>
@@ -234,15 +326,6 @@ const toggleMenu = () => {
 
 const closeMenu = () => {
   menuOpen.value = false
-}
-
-const reloadAssessment = () => {
-  // Cancel any pending debounce timer to avoid a stale save racing with
-  // the reload. Any changes older than DEBOUNCE_MS (500ms) are already
-  // persisted; the version-mismatch banner only appears after a 10s poll
-  // cycle, so the window for unsaved edits is negligible.
-  persistence.flushSave()
-  window.location.reload()
 }
 
 const handleVersionHistory = () => {
@@ -362,10 +445,6 @@ const confirmDelete = async () => {
         Je kunt opmerkingen plaatsen maar niet het formulier bewerken.
       </div>
 
-      <div v-if="versionMismatch" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm rvo-margin-block-end--md" role="alert">
-        Een collega is bezig geweest en er is een nieuwere versie van de assessment beschikbaar.
-        <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs" style="margin-inline-start: 0.5rem;" @click="reloadAssessment">Vernieuw de pagina</button>
-      </div>
     </div>
 
     <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">
@@ -426,5 +505,13 @@ const confirmDelete = async () => {
       </div>
     </div>
   </dialog>
+
+  <!-- Sync toast -->
+  <Transition name="sync-toast">
+    <div v-if="syncToast" class="sync-toast rvo-alert--padding-sm" role="status">
+      <span>{{ syncToast.message }}</span>
+      <button v-if="syncToast.action" class="sync-toast__action" @click="syncToast.action">Bijwerken</button>
+    </div>
+  </Transition>
   </div>
 </template>

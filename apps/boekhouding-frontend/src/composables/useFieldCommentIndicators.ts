@@ -1,5 +1,5 @@
 import { onUnmounted, watch, type Ref } from 'vue'
-import { useCommentStore } from '../stores/comments'
+import { useCollaborationStore } from '../stores/collaboration'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
@@ -41,7 +41,7 @@ export function useFieldCommentIndicators(
   onFieldClick: (fieldId: string) => void,
   canComment: Ref<boolean>,
 ) {
-  const commentStore = useCommentStore()
+  const commentStore = useCollaborationStore()
   const injectedElements = new Map<string, HTMLButtonElement>()
   let observer: MutationObserver | null = null
   let isInjecting = false

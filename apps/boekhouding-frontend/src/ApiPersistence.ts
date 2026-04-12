@@ -1,4 +1,4 @@
-import { nextTick, reactive, watch } from 'vue'
+import { nextTick, reactive, ref, watch } from 'vue'
 import {
   useAnswerStore,
   useTaskStore,
@@ -34,7 +34,12 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const taskStore = useTaskStore()
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
-  let knownVersion: number | undefined
+  const knownVersion = ref<number | undefined>()
+  const knownUpdatedAt = ref<string | undefined>()
+
+  // Concurrency guards for collaboration sync
+  let saveInProgress = false
+  let applyingDeferred = false
 
   let lastSavedState: AssessmentState | null = null
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
@@ -124,6 +129,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
+    saveInProgress = true
     try {
       // Guard: don't save if the active namespace has changed (e.g., prescan
       // references temporarily switch namespace). Prevents overwriting data
@@ -132,21 +138,35 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         return
       }
 
+      // If a colleague's changes are deferred in the active section (waiting for a [Bijwerken] click),
+      // they must be handled FIRST. Otherwise this save would send the user's state with
+      // knownVersion=server-current — the server accepts it without 409 and silently overwrites the
+      // colleague's changes, bypassing conflict detection.
+      if (deferredChanges.length > 0) {
+        await applyDeferredChanges()
+        // applyDeferredChanges handles all outcomes:
+        //  - conflict → dialog opens, save runs later via resolveCallback
+        //  - merged → debouncedSave has been scheduled, save runs via the debounce
+        //  - stale → another applyDeferredChanges is already running; also fine
+        return
+      }
+
       updatePendingChanges()
 
       if (pendingChanges.size === 0 && !instancesDirty) {
         return
       }
-      if (knownVersion === undefined) {
+      if (knownVersion.value === undefined) {
         return
       }
 
       const apiState = buildApiState()
       const updated = await assessments.update(assessmentId, apiState, {
-        expectedVersion: knownVersion,
+        expectedVersion: knownVersion.value,
       })
       if (updated?.currentVersion) {
-        knownVersion = updated.currentVersion
+        knownVersion.value = updated.currentVersion
+        knownUpdatedAt.value = new Date().toISOString()
       }
       lastSavedState = JSON.parse(JSON.stringify(buildState()))
       pendingChanges.clear()
@@ -161,6 +181,17 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         return
       }
       console.error('Failed to save form state to API:', error)
+    } finally {
+      saveInProgress = false
+    }
+  }
+
+  /** Wait for an in-flight save to complete, with a timeout to prevent hangs. */
+  async function waitForSaveComplete(timeoutMs = 2000): Promise<void> {
+    if (!saveInProgress) return
+    const start = Date.now()
+    while (saveInProgress && Date.now() - start < timeoutMs) {
+      await new Promise(resolve => setTimeout(resolve, 50))
     }
   }
 
@@ -202,15 +233,15 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       console.info('Auto-merging: no field overlap with server changes')
       applyAppState(serverState)
       replayPendingChanges()
-      knownVersion = fresh.currentVersion
+      knownVersion.value = fresh.currentVersion
 
       try {
         const mergedState = buildApiState()
         const updated = await assessments.update(assessmentId, mergedState, {
-          expectedVersion: knownVersion,
+          expectedVersion: knownVersion.value,
         })
         if (updated?.currentVersion) {
-          knownVersion = updated.currentVersion
+          knownVersion.value = updated.currentVersion
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
@@ -234,8 +265,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         label: getFieldLabel(key),
         myValue: pending.value,
         theirValue: server.newValue,
-        myFormatted: formatConflictValue(pending.value),
-        theirFormatted: formatConflictValue(server.newValue),
+        myFormatted: formatConflictValue(pending.value, key),
+        theirFormatted: formatConflictValue(server.newValue, key),
       })
     }
 
@@ -250,16 +281,16 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         }
       }
 
-      knownVersion = fresh.currentVersion
+      knownVersion.value = fresh.currentVersion
       conflictState.active = false
 
       try {
         const resolvedState = buildApiState()
         const updated = await assessments.update(assessmentId, resolvedState, {
-          expectedVersion: knownVersion,
+          expectedVersion: knownVersion.value,
         })
         if (updated?.currentVersion) {
-          knownVersion = updated.currentVersion
+          knownVersion.value = updated.currentVersion
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
@@ -374,9 +405,13 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   function getFieldLabel(fieldId: string): string {
-    if (fieldId.startsWith('completed.')) return fieldId
-    const parsed = parseInstanceId(fieldId)
-    const task = taskStore.getTaskByIdFromNamespace(taskStore.activeNamespace, parsed.taskId)
+    // For section-complete toggles: use the section name as the label. The value (rendered as
+    // "Voltooid"/"Niet voltooid" by formatConflictValue) already conveys what changed.
+    const taskId = fieldId.startsWith('completed.')
+      ? fieldId.substring('completed.'.length)
+      : parseInstanceId(fieldId).taskId
+
+    const task = taskStore.getTaskByIdFromNamespace(taskStore.activeNamespace, taskId)
 
     if (task?.task) {
       const plain = getPlainTextWithoutDefinitions(task.task)
@@ -386,8 +421,11 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     return fieldId
   }
 
-  function formatConflictValue(val: unknown): string {
+  function formatConflictValue(val: unknown, fieldId?: string): string {
     if (val === null || val === undefined) return 'Leeg'
+    if (fieldId?.startsWith('completed.') && typeof val === 'boolean') {
+      return val ? 'Voltooid' : 'Niet voltooid'
+    }
     if (typeof val === 'boolean') return val ? 'Ja' : 'Nee'
     if (typeof val === 'object' && 'value' in (val as any)) {
       const v = (val as any).value
@@ -404,6 +442,258 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       return escapeHtml(stripHtml(val)).replace(/\n/g, '<br>') || 'Leeg'
     }
     return escapeHtml(JSON.stringify(val))
+  }
+
+  // — Remote change handling (collaboration sync) —
+
+  interface FieldChange {
+    fieldId: string
+    newValue: unknown
+  }
+
+  interface RemoteChangeResult {
+    backgroundMerged: number
+    activeSectionChanges: FieldChange[]
+    /** Unieke sectie-labels van achtergrond-wijzigingen (alleen als backgroundMerged > 0) */
+    backgroundSectionLabels: string[]
+    /** Labels van gewijzigde velden in de actieve sectie */
+    activeSectionFieldLabels: string[]
+  }
+
+  let deferredServerState: AssessmentState | null = null
+  let deferredChanges: FieldChange[] = []
+  let deferredVersion: number | undefined
+  let deferredUpdatedAt: string | undefined
+  // changeId identifies a specific batch of deferred changes so stale toast-action callbacks (from a previous poll)
+  // cannot apply to newer data.
+  let deferredChangeId = 0
+
+  function getRootTaskForField(fieldId: string): string | null {
+    const ns = (pinnedNamespace || taskStore.activeNamespace) as FormType
+    const flatTasks = taskStore.flatTasks[ns]
+    if (!flatTasks) return null
+
+    if (fieldId.startsWith('completed.')) {
+      return fieldId.substring('completed.'.length)
+    }
+
+    const parsed = parseInstanceId(fieldId)
+    let taskId = parsed.taskId
+
+    // Walk up the parent chain to find the root task
+    while (taskId && flatTasks[taskId]?.parentId !== null && flatTasks[taskId]?.parentId !== undefined) {
+      taskId = flatTasks[taskId].parentId!
+    }
+
+    return taskId || null
+  }
+
+  function getSectionLabel(rootTaskId: string): string {
+    const ns = (pinnedNamespace || taskStore.activeNamespace) as FormType
+    const task = taskStore.getTaskByIdFromNamespace(ns, rootTaskId)
+    if (task?.task) {
+      const plain = getPlainTextWithoutDefinitions(task.task)
+      return plain.length > 60 ? plain.substring(0, 57) + '...' : plain
+    }
+    return rootTaskId
+  }
+
+  async function handleRemoteChange(activeSectionId: string): Promise<RemoteChangeResult & { changeId: number }> {
+    // Skip while conflict dialog is open — the user is still resolving the previous batch of deferred changes.
+    // Overwriting deferredChanges now would invalidate the dialog's state and show a stale [Overnemen] toast
+    // alongside the open dialog. New remote changes are picked up at the next poll after resolution.
+    if (conflictState.active) {
+      return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+    }
+
+    // Pause debounce to prevent new save from starting
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+      debounceTimer = null
+    }
+
+    // Wait for any in-flight save to complete before fetching fresh state — otherwise the GET might return a state
+    // from BEFORE our own save landed.
+    await waitForSaveComplete()
+
+    let fresh: Awaited<ReturnType<typeof assessments.get>>
+    try {
+      fresh = await assessments.get(assessmentId)
+    } catch (error) {
+      if (error instanceof SessionExpiredError) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+      throw error
+    }
+    if (!fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+
+    const serverState = normalizeServerResponse(fresh.state)
+    const serverDiff = computeFieldDiff(lastSavedState, flattenForDiff(serverState))
+
+    if (serverDiff.size === 0) {
+      // No actual content changes, just sync versions
+      knownVersion.value = fresh.currentVersion
+      knownUpdatedAt.value = fresh.updatedAt
+      return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+    }
+
+    // Split changes by section and collect labels for UI messages
+    const backgroundFields: [string, { newValue: unknown }][] = []
+    const activeSectionFields: FieldChange[] = []
+    const backgroundSectionIds = new Set<string>()
+    const activeSectionFieldLabels: string[] = []
+
+    for (const [fieldId, change] of serverDiff) {
+      const rootTask = getRootTaskForField(fieldId)
+      if (rootTask === activeSectionId) {
+        activeSectionFields.push({ fieldId, newValue: change.newValue })
+        activeSectionFieldLabels.push(getFieldLabel(fieldId))
+      } else {
+        backgroundFields.push([fieldId, change])
+        if (rootTask) backgroundSectionIds.add(rootTask)
+      }
+    }
+    const backgroundSectionLabels = Array.from(backgroundSectionIds).map(getSectionLabel)
+
+    for (const [fieldId, change] of backgroundFields) {
+      applyFieldChange(fieldId, change.newValue)
+    }
+
+    // Sync version tracking even when changes are deferred — prevents re-triggering on the next poll.
+    knownVersion.value = fresh.currentVersion
+    knownUpdatedAt.value = fresh.updatedAt
+    lastSavedState = JSON.parse(JSON.stringify(buildState()))
+
+    if (activeSectionFields.length > 0) {
+      deferredServerState = serverState
+      deferredChanges = activeSectionFields
+      deferredVersion = fresh.currentVersion
+      deferredUpdatedAt = fresh.updatedAt
+      deferredChangeId++
+    }
+
+    // Re-trigger save if we had pending changes — the debounce was paused at the start of this function.
+    updatePendingChanges()
+    if (pendingChanges.size > 0) {
+      debouncedSave()
+    }
+
+    return {
+      backgroundMerged: backgroundFields.length,
+      activeSectionChanges: activeSectionFields,
+      backgroundSectionLabels,
+      activeSectionFieldLabels,
+      changeId: deferredChangeId,
+    }
+  }
+
+  async function applyDeferredChanges(expectedChangeId?: number): Promise<'merged' | 'conflict' | 'stale'> {
+    // Ignore stale callbacks — a newer set of deferred changes has arrived
+    if (expectedChangeId !== undefined && expectedChangeId !== deferredChangeId) {
+      return 'stale'
+    }
+
+    // Guard against concurrent invocations (e.g., rapid double-click on [Overnemen])
+    if (applyingDeferred) return 'stale'
+    applyingDeferred = true
+
+    try {
+      return await applyDeferredChangesInner()
+    } finally {
+      applyingDeferred = false
+    }
+  }
+
+  async function applyDeferredChangesInner(): Promise<'merged' | 'conflict'> {
+    if (!deferredServerState || deferredChanges.length === 0) return 'merged'
+
+    updatePendingChanges()
+
+    // A conflict is a field that both the user and the colleague changed to different values.
+    const conflictKeys = new Set<string>()
+    for (const deferred of deferredChanges) {
+      if (pendingChanges.has(deferred.fieldId)) {
+        const myVal = pendingChanges.get(deferred.fieldId)!.value
+        if (!valuesEqual(myVal, deferred.newValue)) {
+          conflictKeys.add(deferred.fieldId)
+        }
+      }
+    }
+
+    if (conflictKeys.size === 0) {
+      for (const change of deferredChanges) {
+        applyFieldChange(change.fieldId, change.newValue)
+      }
+      replayPendingChanges()
+      knownVersion.value = deferredVersion
+      knownUpdatedAt.value = deferredUpdatedAt
+      lastSavedState = JSON.parse(JSON.stringify(buildState()))
+      deferredChanges = []
+      deferredServerState = null
+      debouncedSave()
+      return 'merged'
+    }
+
+    const fields: ConflictField[] = []
+    for (const key of conflictKeys) {
+      const pending = pendingChanges.get(key)!
+      const deferred = deferredChanges.find(c => c.fieldId === key)!
+      fields.push({
+        fieldId: key,
+        label: getFieldLabel(key),
+        myValue: pending.value,
+        theirValue: deferred.newValue,
+        myFormatted: formatConflictValue(pending.value, key),
+        theirFormatted: formatConflictValue(deferred.newValue, key),
+      })
+    }
+
+    resolveCallback = async (resolutions: Map<string, 'mine' | 'theirs'>) => {
+      // Start from the colleague's values, then overlay the user's non-conflicting changes and the user's
+      // explicit 'mine' choices for conflicting fields.
+      for (const change of deferredChanges) {
+        applyFieldChange(change.fieldId, change.newValue)
+      }
+      replayPendingChanges(conflictKeys)
+
+      for (const [fieldId, choice] of resolutions) {
+        if (choice === 'mine') {
+          const pending = pendingChanges.get(fieldId)
+          if (pending) applyFieldChange(pending.key, pending.value)
+        }
+      }
+
+      knownVersion.value = deferredVersion
+      knownUpdatedAt.value = deferredUpdatedAt
+      conflictState.active = false
+      deferredChanges = []
+      deferredServerState = null
+      lastSavedState = JSON.parse(JSON.stringify(buildState()))
+      pendingChanges.clear()
+
+      debouncedSave()
+    }
+
+    conflictState.active = false
+    conflictState.fields = fields
+    await nextTick()
+    conflictState.active = true
+    return 'conflict'
+  }
+
+  function applyDeferredOnNavigate() {
+    if (deferredChanges.length === 0) return
+    // Silently apply deferred changes — user navigated away from the section
+    for (const change of deferredChanges) {
+      applyFieldChange(change.fieldId, change.newValue)
+    }
+    knownVersion.value = deferredVersion
+    knownUpdatedAt.value = deferredUpdatedAt
+    lastSavedState = JSON.parse(JSON.stringify(buildState()))
+    deferredChanges = []
+    deferredServerState = null
+  }
+
+  function hasDeferredChanges(): boolean {
+    return deferredChanges.length > 0
   }
 
   function debouncedSave() {
@@ -428,7 +718,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       }
 
       const form = await assessments.get(assessmentId)
-      knownVersion = form.currentVersion
+      knownVersion.value = form.currentVersion
+      knownUpdatedAt.value = form.updatedAt
 
       if (form.state && Object.keys(form.state).length > 0) {
         return normalizeServerResponse(form.state)
@@ -543,5 +834,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     },
   }
 
-  return { ...persistence, conflictState }
+  const sync = {
+    knownVersion,
+    knownUpdatedAt,
+    handleRemoteChange,
+    applyDeferredChanges,
+    applyDeferredOnNavigate,
+    hasDeferredChanges,
+  }
+
+  return { ...persistence, conflictState, sync }
 }

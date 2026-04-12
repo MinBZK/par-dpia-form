@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, jsonb, uniqueIndex, primaryKey, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, integer, jsonb, uniqueIndex, index, primaryKey, pgEnum } from 'drizzle-orm/pg-core'
 
 export const projectRoleEnum = pgEnum('project_role', ['owner', 'editor', 'commenter', 'viewer'])
 
@@ -41,7 +41,10 @@ export const assessmentInstances = pgTable('assessment_instances', {
   cachedState: jsonb('cached_state'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (table) => [
+  // Supports GET /projects/:id/assessments and cascade-delete when project is removed.
+  index('assessment_instances_project_idx').on(table.projectId),
+])
 
 export const assessmentVersions = pgTable('assessment_versions', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -64,7 +67,10 @@ export const assessmentEdits = pgTable('assessment_edits', {
   newValue: jsonb('new_value'),
   editedBy: uuid('edited_by').notNull().references(() => users.id),
   editedAt: timestamp('edited_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (table) => [
+  // Supports version history lookups and state rebuild. Without this, every history query does a full table scan.
+  index('assessment_edits_version_idx').on(table.assessmentVersionId),
+])
 
 export const comments = pgTable('comments', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -80,4 +86,10 @@ export const comments = pgTable('comments', {
     .references(() => users.id),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (table) => [
+  // Supports the polling query: WHERE assessment_instance_id = ? AND updated_at > ?
+  // Without this index, every poll does a full table scan of comments.
+  index('comments_assessment_updated_idx').on(table.assessmentInstanceId, table.updatedAt),
+  // Supports loading replies for a thread and FK cascade when a parent comment is deleted.
+  index('comments_parent_idx').on(table.parentId),
+])

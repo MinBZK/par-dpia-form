@@ -153,7 +153,6 @@ export async function commentRoutes(app: FastifyInstance) {
             resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] ?? null : null,
           })),
           lastModifiedAt: lastModified.toISOString(),
-          assessmentVersion: result.assessment.currentVersion,
           currentUserId: request.user!.id,
         }
       }
@@ -197,7 +196,6 @@ export async function commentRoutes(app: FastifyInstance) {
     return {
       comments: threaded,
       lastModifiedAt: lastModifiedAt?.toISOString() ?? null,
-      assessmentVersion: result.assessment.currentVersion,
       currentUserId: request.user!.id,
     }
   })

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useCommentStore } from '../stores/comments'
+import { useCollaborationStore } from '../stores/collaboration'
 import { IconMessage } from '@tabler/icons-vue'
 
 defineEmits<{ toggle: [] }>()
 defineProps<{ open: boolean }>()
 
-const commentStore = useCommentStore()
+const commentStore = useCollaborationStore()
 </script>
 
 <template>

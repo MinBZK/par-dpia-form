@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useCommentStore } from '../stores/comments'
+import { useCollaborationStore } from '../stores/collaboration'
 import type { CommentThread } from '../api'
 import { IconX, IconMessage, IconTrash, IconCheck, IconArrowBackUp } from '@tabler/icons-vue'
 
@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: []; 'deactivate-field': [] }>()
 
-const commentStore = useCommentStore()
+const commentStore = useCollaborationStore()
 
 const showResolved = ref(false)
 const panelBodyRef = ref<HTMLElement | null>(null)
