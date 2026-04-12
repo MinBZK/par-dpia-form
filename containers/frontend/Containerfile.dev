@@ -2,6 +2,10 @@ FROM node:22-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# Python toolchain for generating sources/generated/*.json from the YAML
+# sources — mirrors the CI step in .github/workflows/test.yaml.
+RUN apk add --no-cache python3 py3-pip py3-yaml py3-jsonschema
+
 WORKDIR /app
 
 # Copy workspace config and manifests
@@ -12,6 +16,24 @@ COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
 
 RUN pnpm install --frozen-lockfile || pnpm install
+
+# Generate the assessment-definition JSONs so the frontend can resolve
+# `import('../../../../sources/generated/DPIA.json')` on the first Vite
+# transform. HMR volume mounts don't overwrite these — fine for dev use.
+COPY script/ /app/script/
+COPY schemas/ /app/schemas/
+COPY sources/ /app/sources/
+RUN mkdir -p /app/sources/generated && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/prescan_dpia.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/PreScanDPIA.json && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/dpia.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/DPIA.json
 
 WORKDIR /app
 EXPOSE 5174

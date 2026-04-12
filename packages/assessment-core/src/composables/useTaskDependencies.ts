@@ -1,5 +1,5 @@
 import { useAnswerStore } from '../stores/answers'
-import { useTaskStore, type FlatTask, type TaskInstance } from '../stores/tasks'
+import { useTaskStore, parseInstanceId, type FlatTask, type TaskInstance } from '../stores/tasks'
 import { shouldShowTask as checkShouldShowTask, hasInstanceMapping } from '../utils/dependency'
 import { computed } from 'vue'
 
@@ -98,47 +98,45 @@ export function useTaskDependencies() {
     }
   })
 
+  // Reconcile targets to sources by shared _index — mappedFromInstanceId
+  // is not persisted, so it can't survive a reload.
   const syncInstances = computed(() => {
     return (): void => {
       const namespace = taskStore.activeNamespace
       Object.entries(taskStore.flatTasks[namespace]).forEach(([taskId, task]) => {
         const mappingDeps = task.dependencies?.filter((d) => d.type === 'instance_mapping') || []
-
         if (mappingDeps.length === 0) return
+
+        const parentInstanceId = task.parentId || undefined
+
+        const indexOf = (instance: TaskInstance) => parseInstanceId(instance.id).index
+        const byIndex = (instances: TaskInstance[]) =>
+          new Map(instances.flatMap((inst) => {
+            const idx = indexOf(inst)
+            return idx === undefined ? [] : [[idx, inst] as const]
+          }))
 
         for (const dep of mappingDeps) {
           const sourceId = dep.source?.id
           if (!sourceId) continue
 
-          const sourceInstances = taskStore.getInstancesForTask(sourceId)
-          const targetInstances = taskStore.getInstancesForTask(taskId)
+          const sourceByIndex = byIndex(taskStore.getInstancesForTask(sourceId))
+          const targetByIndex = byIndex(taskStore.getInstancesForTask(taskId))
 
-          const targetInstancesBySourceId = new Map<string, TaskInstance>()
-          targetInstances.forEach((instance) => {
-            if (instance.mappedFromInstanceId) {
-              targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
-            } else {
-              instance.mappedFromInstanceId = sourceInstances[0].id
-              targetInstancesBySourceId.set(instance.mappedFromInstanceId, instance)
+          const allIndices = new Set([...sourceByIndex.keys(), ...targetByIndex.keys()])
+          for (const idx of allIndices) {
+            const source = sourceByIndex.get(idx)
+            const target = targetByIndex.get(idx)
+
+            if (source && target) {
+              taskStore.setInstanceMappingSource(target.id, source.id)
+            } else if (source) {
+              const newId = taskStore.addRepeatableTaskInstance(taskId, parentInstanceId, idx)
+              if (newId) taskStore.setInstanceMappingSource(newId, source.id)
+            } else if (target) {
+              taskStore.removeRepeatableTaskInstance(target.id)
             }
-          })
-
-          sourceInstances.forEach((sourceInstance) => {
-            const existingTarget = targetInstancesBySourceId.get(sourceInstance.id)
-
-            if (!existingTarget) {
-              const newInstanceId = taskStore.addRepeatableTaskInstance(taskId)
-
-              if (newInstanceId) {
-                taskStore.setInstanceMappingSource(newInstanceId, sourceInstance.id)
-              }
-            } else {
-              targetInstancesBySourceId.delete(sourceInstance.id)
-            }
-          })
-          targetInstancesBySourceId.forEach((instance) => {
-            taskStore.removeRepeatableTaskInstance(instance.id)
-          })
+          }
         }
       })
     }

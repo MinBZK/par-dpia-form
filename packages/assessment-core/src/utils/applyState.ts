@@ -53,6 +53,12 @@ export function rebuildRepeatableInstances(
   for (const [taskId, task] of Object.entries(tasks)) {
     if (!task.repeatable) continue
 
+    // Nested repeatables under a repeatable parent are already created by
+    // createTaskInstance's child propagation; re-adding them here would
+    // overwrite their parent link with a task id instead of an instance id.
+    const parentTask = task.parentId ? tasks[task.parentId] : undefined
+    if (parentTask?.repeatable) continue
+
     const indices = new Set<number>()
 
     // Collect indices from flat answer keys

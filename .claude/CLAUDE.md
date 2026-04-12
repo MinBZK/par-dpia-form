@@ -36,6 +36,34 @@ pnpm install
 pnpm dev
 ```
 
+### Compose override voor host-specifieke poorten of reverse proxy
+
+`containers/compose.dev.yaml` staat vast (gecommit) en gaat uit van directe poort-bindings (5432, 8080, 3000, 5174, 5175). Voor hosts waar die poorten bezet zijn of waar een reverse proxy (bijv. Caddy) voor staat, gebruik een niet-gecommitte `containers/compose.override.yaml`:
+
+```bash
+podman compose -f containers/compose.dev.yaml -f containers/compose.override.yaml up -d
+```
+
+Let op: compose voegt lijsten **samen** in plaats van te vervangen. Alleen een override met `ports: - "5433:5432"` levert zowel `5432:5432` als `5433:5432` op (en faalt als 5432 bezet is). Gebruik de YAML-tag `!reset` om de lijst eerst leeg te maken:
+
+```yaml
+services:
+  postgres:
+    ports: !reset
+      - "5433:5432"
+  keycloak:
+    ports: !reset []     # niet rechtstreeks exposen; via reverse proxy
+  backend:
+    ports: !reset
+      - "3001:3000"
+```
+
+Host-lokale bestanden die bij zo'n override horen (`Caddyfile.local`, `certs/`, `compose-dev-keycloak.local.json`, `compose.override.yaml`) staan in `.gitignore` en worden niet gedeeld tussen machines.
+
+### TypeScript-configs met extends
+
+De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extends` (bijv. `@vue/tsconfig/tsconfig.dom.json`). Houd project-specifieke afwijkingen in de bestaande `tsconfig.json` / `tsconfig.app.json` / `tsconfig.node.json`; voeg geen lokale override-bestanden toe. Cross-package type-resolution loopt via pnpm workspace-links, niet via TypeScript `references`.
+
 ## Backend
 
 - Fastify 5, TypeScript, ESM (`"type": "module"`)

@@ -2,6 +2,8 @@ FROM node:22-alpine
 
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+RUN apk add --no-cache python3 py3-pip py3-yaml py3-jsonschema
+
 WORKDIR /app
 
 # Copy workspace config and manifests
@@ -10,6 +12,21 @@ COPY packages/assessment-core/package.json packages/assessment-core/
 COPY apps/standalone-form/package.json apps/standalone-form/
 
 RUN pnpm install --frozen-lockfile || pnpm install
+
+COPY script/ /app/script/
+COPY schemas/ /app/schemas/
+COPY sources/ /app/sources/
+RUN mkdir -p /app/sources/generated && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/prescan_dpia.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/PreScanDPIA.json && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/dpia.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/DPIA.json
 
 WORKDIR /app
 EXPOSE 5175

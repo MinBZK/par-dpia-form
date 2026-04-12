@@ -26,6 +26,26 @@ const instanceLabel = computed(() => {
   return isRepeatable.value ? `${task.value.task}` : task.value.task
 })
 
+// When this instance is mapped to a source whose answer is still empty,
+// produce a message pointing the user to where they need to fill it in.
+const missingSourceMessage = computed<string | null>(() => {
+  const mappingDep = task.value.dependencies?.find((d) => d.type === 'instance_mapping')
+  if (!mappingDep?.source?.id) return null
+
+  const instance = taskStore.getInstanceById(props.instanceId)
+  if (!instance?.mappedFromInstanceId) return null
+
+  const sourceAnswer = answerStore.getAnswer(instance.mappedFromInstanceId)
+  if (sourceAnswer != null && sourceAnswer !== '') return null
+
+  const sourceTask = taskStore.taskById(mappingDep.source.id)
+  const sectionId = mappingDep.source.id.split('.')[0]
+  const sectionTask = taskStore.taskById(sectionId)
+  const fieldName = getPlainTextWithoutDefinitions(sourceTask.task)
+  const sectionName = getPlainTextWithoutDefinitions(sectionTask.task)
+  return `Vul eerst "${fieldName}" in bij sectie "${sectionId}. ${sectionName}".`
+})
+
 const childTasksWithChildren = computed(() => {
   return task.value.childrenIds.filter((childId) => {
     const childTask = taskStore.taskById(childId)
@@ -85,6 +105,14 @@ const handleDelete = (instanceId: string) => {
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">
+        <div v-if="missingSourceMessage" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
+          <div class="rvo-alert__container">
+            <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
+              role="img" aria-label="Waarschuwing"></span>
+            <div class="rvo-alert-text">{{ missingSourceMessage }}</div>
+          </div>
+        </div>
+        <template v-if="!missingSourceMessage">
         <!-- Simple fields without children -->
         <template v-for="childId in childTasksWithoutChildren" :key="`simple-${childId}`">
           <template v-if="!taskStore.taskById(childId).repeatable">
@@ -150,6 +178,7 @@ const handleDelete = (instanceId: string) => {
                 @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
             </div>
           </template>
+        </template>
         </template>
       </div>
 

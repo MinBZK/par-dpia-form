@@ -61,13 +61,17 @@ const missingSourceDependencies = computed(() => {
 
   const dependencies: Array<{ childId: string; sourceId: string; sectionNumber: string; sectionName: string; hasOfficialId: boolean }> = []
 
-  // Recursively collect all descendant task IDs
+  // Recursively collect all descendant task IDs, including intermediate
+  // task groups. Leaf-only collection would miss dependencies declared on
+  // repeatable parents (e.g. 7.1 depends on 6.1.1.1 via sync_instances),
+  // causing no warning to appear even when the source is unfilled.
   function collectDescendants(taskId: string): string[] {
     const t = taskStore.taskById(taskId)
-    if (!t.childrenIds || t.childrenIds.length === 0) return [taskId]
-    const result: string[] = []
-    for (const childId of t.childrenIds) {
-      result.push(...collectDescendants(childId))
+    const result: string[] = [taskId]
+    if (t.childrenIds) {
+      for (const childId of t.childrenIds) {
+        result.push(...collectDescendants(childId))
+      }
     }
     return result
   }
