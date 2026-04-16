@@ -223,8 +223,6 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select checkbox -->
-  <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
-  refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0">
       <div class="rvo-checkbox__group">
@@ -259,8 +257,6 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
   </div>
-
-
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
