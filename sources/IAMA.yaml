@@ -209,8 +209,6 @@ tasks:
         repeatable: false
         tasks:
           - task: Welke partijen en/of functies zijn er bij het algoritme betrokken? Hoe zijn de verantwoordelijkheden belegd?
-            description: >-
-              Voeg een tekstvak voor elk van de volgende levensfasen van het algoritme toe: ontwikkeling, inzet en beheer. Noteer per levensfase welke partijen en/of functies betrokken zijn en hoe de verantwoordelijkheden belegd zijn.
             id: "1.4.1"
             type:
               - open_text
@@ -264,9 +262,8 @@ tasks:
           - task_group
         repeatable: false
         tasks:
-          - task: Wat voor type algoritme wordt ontwikkeld of gebruikt?
+          - task: Wat voor type algoritme wordt ontwikkeld of gebruikt? Maak ten minste onderscheid tussen zelflerend en niet-zelflerend.
             description: >-
-              Maak ten minste onderscheid tussen zelflerend en niet-zelflerend.
               Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.
             id: "2.1.1"
             type:
@@ -279,7 +276,6 @@ tasks:
             repeatable: false
       - task: Totstandkoming algoritme – Niet-zelflerend
         id: "2.2A"
-        description: Beantwoord de onderstaande vragen als het algoritme niet-zelflerend is.
         type:
           - task_group
         repeatable: false
@@ -302,7 +298,6 @@ tasks:
 
       - task: Totstandkoming algoritme – Zelflerend
         id: "2.2B"
-        description: Beantwoord de onderstaande vragen als het algoritme zelflerend is.
         type:
           - task_group
         repeatable: false
@@ -312,16 +307,12 @@ tasks:
             type:
               - open_text
             repeatable: false
-          - task: Zijn de kwaliteit en betrouwbaarheid van de trainingsdata en testdata voldoende voor de beoogde toepassing?
-            description: >-
-               Leg uit.
+          - task: Zijn de kwaliteit en betrouwbaarheid van de trainingsdata en testdata voldoende voor de beoogde toepassing? Leg uit.
             id: "2.2B.2"
             type:
               - open_text
             repeatable: false
-          - task: Zijn de trainingsdata en testdata representatief voor de context waarin het algoritme ingezet gaat worden?
-            description: >-
-              Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?
+          - task: Zijn de trainingsdata en testdata representatief voor de context waarin het algoritme ingezet gaat worden? Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?
             id: "2.2B.3"
             type:
               - open_text
@@ -345,9 +336,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-          - task: Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het algoritme voldoende voor de beoogde toepassing?
-            description: >-
-              Leg uit.
+          - task: Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het algoritme voldoende voor de beoogde toepassing? Leg uit.
             id: "2.3.2"
             type:
               - open_text
@@ -369,9 +358,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-          - task: Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de metrics horen daarbij?
-            description: >-
-               Leg uit.
+          - task: Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de metrics horen daarbij? Leg uit.
             id: "2.4.2"
             type:
               - open_text
@@ -398,17 +385,12 @@ tasks:
             type:
               - open_text
             repeatable: false
-          - task: Zijn de data voldoende beveiligd?
-            description: >-
-              Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.
+          - task: Zijn de data voldoende beveiligd? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.
             id: "2.5.2"
             type:
               - open_text
             repeatable: false
-          - task: Is er controle op de toegang tot de data?
-            description: >-
-              Maak hierin onderscheid
-              tussen de inputdata en de outputdata en leg uit.
+          - task: Is er controle op de toegang tot de data? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.
             id: "2.5.3"
             type:
               - open_text
@@ -504,8 +486,7 @@ tasks:
             repeatable: false
           - task: >-
               Is het mogelijk voor de medewerker om af te wijken van de uitkomst
-              van het algoritme (indien nodig)?
-            description: Leg uit.
+              van het algoritme (indien nodig)? Leg uit.
             id: "3.2.2"
             in_fria: true
             type:
@@ -521,8 +502,7 @@ tasks:
             repeatable: false
           - task: >-
               Vormt de inzet van het algoritme een risico voor de huidige kennis
-              en kunde van de medewerker?
-            description: Leg uit.
+              en kunde van de medewerker? Leg uit.
             id: "3.2.4"
             type:
               - open_text
@@ -579,8 +559,7 @@ tasks:
           - task: >-
               Kunnen medewerkers op een laagdrempelige manier melding maken
               wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe
-              worden deze mensen dan gehoord?
-            description: Leg uit.
+              worden deze mensen dan gehoord? Leg uit.
             id: "3.4.2"
             in_fria: true
             type:
@@ -639,8 +618,7 @@ tasks:
                   type: pre-view
           - task: >-
               Welke positieve effecten introduceert de inzet van het algoritme
-              voor deze mensen en/of groepen?
-            description: Let ook op de gediende publieke waarden (1.2.2).
+              voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.2).
             id: "3.5.3"
             type:
               - open_text
@@ -974,8 +952,7 @@ tasks:
               grondrechteninbreuk die het resultaat is van het algoritme
               (vraag 4.3.3)?
             description: >-
-              1. de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met.
-              2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?
+              • 1. de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)
             id: "4.4.2"
             type:
               - open_text
@@ -1029,11 +1006,7 @@ tasks:
                   type: pre-view
           - task: "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:"
             description: >-
-              1. de noodzaak van de inzet van dit specifieke
-              algoritme, de beschikbare alternatieven en de eventuele
-              aanpassingen (vragen 4.5.1–4.5.3), in samenhang met
-              2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme
-              (vraag 4.3.3)?
+              • 1. de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)
             id: "4.5.4"
             type:
               - open_text
@@ -1071,10 +1044,6 @@ tasks:
     tasks:
       - task: (A) Belangenafweging
         id: "5.A"
-        description: >-
-          Maak een overzicht van wat er in de 'schalen' komt te liggen van de
-          balans, rekening houdend met de actiepunten die zijn geformuleerd
-          in de voorgaande delen.
         type:
           - task_group
         repeatable: false

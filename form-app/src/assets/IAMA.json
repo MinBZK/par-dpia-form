@@ -1180,7 +1180,7 @@
             },
             {
               "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met: (1) de verwachte doeltreffendheid/effectiviteit/ geschiktheid, in samenhang met (2) de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
-              "description": "1. de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met. 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
+              "description": "• de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met<br>• de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
               "id": "4.4.2",
               "type": [
                 "open_text"
@@ -1255,7 +1255,7 @@
             },
             {
               "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:",
-              "description": "1. de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
+              "description": "• de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
               "id": "4.5.4",
               "type": [
                 "open_text"
