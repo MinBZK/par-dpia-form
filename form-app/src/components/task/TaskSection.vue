@@ -31,6 +31,30 @@ const isInfoOnlyChild = (childId: string): boolean => {
   return taskIsOfTaskType(child, 'task_group') && child.childrenIds.length === 0 && !!child.description
 }
 
+type ChildGroup =
+  | { type: 'accordion'; ids: string[] }
+  | { type: 'single'; id: string }
+
+const childGroups = computed<ChildGroup[]>(() => {
+  const ids = task.value.childrenIds || []
+  const groups: ChildGroup[] = []
+  let accordionRun: string[] = []
+  for (const childId of ids) {
+    if (shouldSkipTask(childId)) continue
+    if (isInfoOnlyChild(childId)) {
+      accordionRun.push(childId)
+    } else {
+      if (accordionRun.length) {
+        groups.push({ type: 'accordion', ids: accordionRun })
+        accordionRun = []
+      }
+      groups.push({ type: 'single', id: childId })
+    }
+  }
+  if (accordionRun.length) groups.push({ type: 'accordion', ids: accordionRun })
+  return groups
+})
+
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
@@ -197,56 +221,53 @@ function shouldSkipTask(taskId: string): boolean {
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
-        <template v-for="childId in task.childrenIds" :key="childId">
-          <template v-if="!shouldSkipTask(childId)">
-
-            <!-- Info-only child (task_group with description, no children): render as accordion -->
-            <div v-if="isInfoOnlyChild(childId)" class="rvo-accordion">
-              <details class="rvo-accordion__item">
-                <summary class="rvo-accordion__item-summary">
-                  <div class="rvo-accordion__item-icon">
-                    <span
-                      class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
-                      role="img" aria-label="Uitklappen"></span>
-                    <span
-                      class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
-                      role="img" aria-label="Inklappen"></span>
-                  </div>
-                  <div class="rvo-accordion__item-title-container">
-                    <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
-                      {{ taskStore.taskById(childId).task }}
-                    </h3>
-                  </div>
-                </summary>
-                <div class="rvo-accordion__content">
-                  <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+        <template v-for="(group, groupIdx) in childGroups" :key="groupIdx">
+          <!-- Run of consecutive info-only children: render as a single accordion group -->
+          <div v-if="group.type === 'accordion'" class="rvo-accordion">
+            <details v-for="childId in group.ids" :key="childId" class="rvo-accordion__item">
+              <summary class="rvo-accordion__item-summary">
+                <div class="rvo-accordion__item-icon">
+                  <span
+                    class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
+                    role="img" aria-label="Uitklappen"></span>
+                  <span
+                    class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
+                    role="img" aria-label="Inklappen"></span>
                 </div>
-              </details>
-            </div>
+                <div class="rvo-accordion__item-title-container">
+                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+                    {{ taskStore.taskById(childId).task }}
+                  </h3>
+                </div>
+              </summary>
+              <div class="rvo-accordion__content">
+                <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+              </div>
+            </details>
+          </div>
 
-            <template v-else>
-              <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
-                <template v-if="shouldShowTask(childId, instanceId)">
-                  <!--Single task (no children): render the task itself -->
-                  <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
-                    :instanceId="instanceId" :showDescription="true" />
+          <template v-else>
+            <template v-for="instanceId in taskStore.getInstanceIdsForTask(group.id)" :key="instanceId">
+              <template v-if="shouldShowTask(group.id, instanceId)">
+                <!--Single task (no children): render the task itself -->
+                <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
+                  :instanceId="instanceId" :showDescription="true" />
 
-                  <!-- Nested task group (has children): render children as TaskGroup -->
-                  <template v-else>
-                    <TaskGroup :taskId="childId" :instanceId="instanceId" />
-                    <ActionPointsOverview v-if="isActiepuntenOverviewChild(childId)"
-                      :actiepuntenTaskIds="actiepuntenTaskIds" />
-                  </template>
+                <!-- Nested task group (has children): render children as TaskGroup -->
+                <template v-else>
+                  <TaskGroup :taskId="group.id" :instanceId="instanceId" />
+                  <ActionPointsOverview v-if="isActiepuntenOverviewChild(group.id)"
+                    :actiepuntenTaskIds="actiepuntenTaskIds" />
                 </template>
               </template>
-
-              <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
-                class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-                <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
-              ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                  @click="handleAddRepeatableTask(childId)" />
-              </div>
             </template>
+
+            <div v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)"
+              class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+              <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
+            ${getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
+                @click="handleAddRepeatableTask(group.id)" />
+            </div>
           </template>
         </template>
       </div>
