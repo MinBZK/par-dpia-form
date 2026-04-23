@@ -156,9 +156,9 @@ const handleCheckboxInput = (event: Event) => {
       <span v-html="displayLabel"></span>
       <svg v-if="task.in_fria" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        role="img" aria-label="Ook in FRIA (AI-Act)"
+        role="img" aria-label="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
         style="display: inline-block; vertical-align: middle; margin-left: 0.4em;">
-        <title>Deze vraag komt ook voor in de FRIA (AI-Act)</title>
+        <title>Dit correspondeert met een vereiste uit art. 27 van de AI Verordening</title>
         <path d="M16 16.01V16M8 16.01V16" />
         <path d="m16 16 3-8" />
         <path d="m8 16-3-8" />
