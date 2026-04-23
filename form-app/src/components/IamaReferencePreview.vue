@@ -26,9 +26,8 @@ const formatAnswer = (answer: string | string[]): string => {
       <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
         aria-label="Waarschuwing"></span>
       <div class="rvo-alert-text">
-        <p><strong>Suggestie uit vraag {{ suggestion.sourceTaskId }} – {{ suggestion.sourceTaskTitle }}:</strong></p>
+        <p><strong>Suggestie uit antwoord op vraag {{ suggestion.sourceTaskId }} – {{ suggestion.sourceTaskTitle }}:</strong></p>
         <p>{{ formatAnswer(suggestion.answer) }}</p>
-        <p><em>Let op: dit antwoord is nog niet als voltooid gemarkeerd.</em></p>
       </div>
     </div>
   </div>

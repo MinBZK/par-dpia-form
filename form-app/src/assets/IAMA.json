@@ -122,7 +122,7 @@
               "references": {
                 "IAMA": [
                   {
-                    "id": "3.5.2",
+                    "id": "3.5.3",
                     "type": "pre-view"
                   },
                   {
@@ -142,7 +142,7 @@
               "references": {
                 "IAMA": [
                   {
-                    "id": "3.5.3",
+                    "id": "3.5.2",
                     "type": "pre-view"
                   }
                 ]
@@ -794,7 +794,7 @@
               "repeatable": false
             },
             {
-              "task": "Welke risico's of nadelige effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (1.2.1).",
+              "task": "Welke risico's of nadelige effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (1.2.2).",
               "id": "3.5.2",
               "in_fria": true,
               "type": [
@@ -811,7 +811,7 @@
               }
             },
             {
-              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.2).",
+              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.1).",
               "id": "3.5.3",
               "type": [
                 "open_text"
@@ -1159,14 +1159,6 @@
               "references": {
                 "IAMA": [
                   {
-                    "id": "4.4.2",
-                    "type": "pre-view"
-                  },
-                  {
-                    "id": "4.5.4",
-                    "type": "pre-view"
-                  },
-                  {
                     "id": "5.A.2",
                     "type": "pre-view"
                   }
@@ -1228,10 +1220,6 @@
               "references": {
                 "IAMA": [
                   {
-                    "id": "4.5.4",
-                    "type": "pre-view"
-                  },
-                  {
                     "id": "5.A.6",
                     "type": "pre-view"
                   }
@@ -1244,19 +1232,7 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false,
-              "references": {
-                "IAMA": [
-                  {
-                    "id": "4.5.3",
-                    "type": "pre-view"
-                  },
-                  {
-                    "id": "4.5.4",
-                    "type": "pre-view"
-                  }
-                ]
-              }
+              "repeatable": false
             },
             {
               "task": "Welke restrisico's blijven er voor het grondrecht over als alle bij vraag 4.5.2 bedachte maatregelen doorgevoerd zijn?",
@@ -1264,15 +1240,7 @@
               "type": [
                 "open_text"
               ],
-              "repeatable": false,
-              "references": {
-                "IAMA": [
-                  {
-                    "id": "4.5.4",
-                    "type": "pre-view"
-                  }
-                ]
-              }
+              "repeatable": false
             },
             {
               "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:",

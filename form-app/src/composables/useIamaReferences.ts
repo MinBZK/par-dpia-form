@@ -86,7 +86,6 @@ export function useIamaReferences() {
   const getIamaSuggestionsForTask = (task: FlatTask): IamaSuggestion[] => {
     if (isTargetInDeel5(task)) return []
     return findIamaSourceAnswers(task)
-      .filter((f) => !f.isSourceCompleted)
       .map(({ sourceTaskId, sourceTaskTitle, answer }) => ({
         sourceTaskId,
         sourceTaskTitle,

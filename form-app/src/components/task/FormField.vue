@@ -7,7 +7,6 @@ import { type FlatTask } from '@/stores/tasks'
 import { FormType } from '@/models/dpia.ts';
 import { useTaskStore } from '@/stores/tasks'
 import { usePreScanReferences } from '@/composables/usePreScanReferences'
-import { useIamaReferences } from '@/composables/useIamaReferences'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -21,8 +20,6 @@ const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 const { getPreScanValueForTask } = usePreScanReferences()
-const { getIamaValueForTask } = useIamaReferences()
-
 const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
 
 // In IAMA we prefix the label with the question ID unless the task is explicitly
@@ -69,7 +66,7 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
-  const referencedValue = getPreScanValueForTask(props.task) ?? getIamaValueForTask(props.task)
+  const referencedValue = getPreScanValueForTask(props.task)
 
   // If there's a referenced value and no stored answer yet,
   // STORE IT IMMEDIATELY and then return it

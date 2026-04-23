@@ -125,7 +125,7 @@ tasks:
             repeatable: false
             references:
               IAMA:
-                - id: "3.5.2"
+                - id: "3.5.3"
                   type: pre-view
                 - id: "5.A.1"
                   type: pre-view
@@ -136,7 +136,7 @@ tasks:
             repeatable: false
             references:
               IAMA:
-                - id: "3.5.3"
+                - id: "3.5.2"
                   type: pre-view
 
       - task: Wettelijke grondslag
@@ -627,7 +627,7 @@ tasks:
           - task: >-
               Welke risico's of nadelige effecten introduceert de inzet van het
               algoritme voor deze mensen en/of groepen? Let ook op de geraakte
-              publieke waarden (1.2.1).
+              publieke waarden (1.2.2).
             id: "3.5.2"
             in_fria: true
             type:
@@ -639,7 +639,7 @@ tasks:
                   type: pre-view
           - task: >-
               Welke positieve effecten introduceert de inzet van het algoritme
-              voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.2).
+              voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.1).
             id: "3.5.3"
             type:
               - open_text
@@ -941,10 +941,6 @@ tasks:
             repeatable: false
             references:
               IAMA:
-                - id: "4.4.2"
-                  type: pre-view
-                - id: "4.5.4"
-                  type: pre-view
                 - id: "5.A.2"
                   type: pre-view
 
@@ -996,8 +992,6 @@ tasks:
             repeatable: false
             references:
               IAMA:
-                - id: "4.5.4"
-                  type: pre-view
                 - id: "5.A.6"
                   type: pre-view
           - task: >-
@@ -1008,12 +1002,6 @@ tasks:
             type:
               - open_text
             repeatable: false
-            references:
-              IAMA:
-                - id: "4.5.3"
-                  type: pre-view
-                - id: "4.5.4"
-                  type: pre-view
           - task: >-
               Welke restrisico's blijven er voor het grondrecht over als alle bij
               vraag 4.5.2 bedachte maatregelen doorgevoerd zijn?
@@ -1021,10 +1009,6 @@ tasks:
             type:
               - open_text
             repeatable: false
-            references:
-              IAMA:
-                - id: "4.5.4"
-                  type: pre-view
           - task: "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:"
             description: >-
               • 1. de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)
