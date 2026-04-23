@@ -661,7 +661,7 @@ tasks:
           - task: >-
               Welke risico's of nadelige effecten introduceert de inzet van het
               algoritme voor deze mensen en/of groepen? Let ook op de geraakte
-              publieke waarden (1.2.2).
+              publieke waarden (vraag 1.2.2).
             id: "3.5.2"
             in_fria: true
             type:
@@ -673,7 +673,7 @@ tasks:
                   type: pre-view
           - task: >-
               Welke positieve effecten introduceert de inzet van het algoritme
-              voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.1).
+              voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (vraag 1.2.1).
             id: "3.5.3"
             type:
               - open_text
@@ -964,14 +964,7 @@ tasks:
               kunnen worden aangemerkt.
             id: "4.3.3"
             type:
-              - select_option
-            options:
-              - value: ernstig
-                label: Ernstig
-              - value: medium
-                label: Medium
-              - value: licht
-                label: Licht
+              - open_text
             repeatable: false
             references:
               IAMA:
@@ -1081,7 +1074,15 @@ tasks:
       - task_group
     repeatable: false
     tasks:
-      - task: (A) Belangenafweging
+      - task: Instructie
+        id: "5.0"
+        is_official_id: false
+        type:
+          - task_group
+        repeatable: false
+        description: >-
+          De volgende vragen helpen bij het goed afsluiten van het IAMA. Ze zijn erop gericht om (A) de betrokken belangen in beeld te brengen en (B) op basis van al het voorgaande een advies te geven of besluit te nemen over de inzet van het algoritme. In het algemeen zal het uiteindelijke besluit moeten worden genomen door een politiek of ambtelijk verantwoordelijke. Deze verantwoordelijke zal daarnaast moeten kijken naar (C) de eventuele restrisico’s die bij inzet van het algoritme blijven bestaan.
+      - task: Belangenafweging
         id: "5.A"
         type:
           - task_group
@@ -1094,7 +1095,7 @@ tasks:
               - task_group
             repeatable: false
             tasks:
-              - task: Positieve belangen
+              - task: Gediende belangen
                 description: >-
                   Welke belangen worden met het algoritme gediend? (Kijk hierbij
                   naar de doelen (vraag 1.1.2), de geïdentificeerde positief geraakte
@@ -1107,9 +1108,7 @@ tasks:
                 repeatable: false
               - task: Zwaarwegendheid gediende belangen
                 description: >-
-                  Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? (Zie
-                  de toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te
-                  beantwoorden.)
+                  Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? Zie ook toelichting op vraag 4.3: 'Om hier iets over te zeggen is het nuttig om te kijken naar de wezenlijke grondslagen van het grondrecht, die iets zeggen over waarom het zo belangrijk is om het te beschermen. Bij die wezenlijke grondslagen kan worden gedacht aan persoonlijke autonomie, vrijheid, menselijke waardigheid, gelijkwaardigheid, democratie, rechtsstaat (een vollediger overzichtje is te vinden bij de Grondrechtenclusters in het IAMA- toelichtingsdocument). Sommige (aspecten van) grondrechten zijn heel nauw met zo’n grondslag verbonden (‘kernrechten’), andere staan er veel verder vandaan. Aan de hand van de ‘afstand’ tot de grondslag kun je bepalen hoe ‘belangrijk’ het toepasselijke aspect van het grondrecht is. Concreter gezegd: hoe belangrijk is wat er op het spel staat voor het realiseren van vrijheid, gelijkwaardigheid, persoonlijke autonomie etc.?'
                 id: "5.A.3"
                 type:
                   - open_text
@@ -1137,7 +1136,7 @@ tasks:
               - task_group
             repeatable: false
             tasks:
-              - task: Belangen
+              - task: Geschade belangen
                 description: >-
                   Welke belangen worden door het algoritme geschaad? (Kijk hierbij
                   naar de effecten voor groepen of individuen (vraag 3.5.2), de
@@ -1158,11 +1157,10 @@ tasks:
                   - open_text
                 repeatable: false
 
-
-      - task: (B) Advies over inzet algoritme
+      - task: Advies over inzet algoritme
         id: "5.B"
         description: >-
-          Schrijf op basis van het bij (A) gemaakte overzicht en in het licht
+          Schrijf op basis van het bij vraag 5.A gemaakte overzicht en in het licht
           van de geformuleerde actiepunten en antwoorden op de vragen een advies
           over de vraag of het algoritme wel of niet moet worden ingezet, en
           onder welke voorwaarden. Daarin moet in ieder geval expliciet aandacht
@@ -1171,8 +1169,7 @@ tasks:
         type:
           - open_text
         repeatable: false
-
-      - task: (C) Restrisico's en acceptatie
+      - task: Restrisico's en acceptatie
         id: "5.C"
         description: >-
           Het kan zijn dat er een restrisico voor bepaalde grondrechten of

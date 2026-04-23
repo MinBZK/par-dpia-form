@@ -848,7 +848,7 @@
               "repeatable": false
             },
             {
-              "task": "Welke risico's of nadelige effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (1.2.2).",
+              "task": "Welke risico's of nadelige effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de geraakte publieke waarden (vraag 1.2.2).",
               "id": "3.5.2",
               "in_fria": true,
               "type": [
@@ -865,7 +865,7 @@
               }
             },
             {
-              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.1).",
+              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (vraag 1.2.1).",
               "id": "3.5.3",
               "type": [
                 "open_text"
@@ -1193,21 +1193,7 @@
               "description": "Een niet zo verstrekkende inbreuk op een minder belangrijk aspect van een grondrecht zal al snel gelden als een ‘lichte’ inbreuk, terwijl een heel vergaande inbreuk op een aspect dat dicht aanligt tegen de kern van het grondrecht juist heel ernstig is. Discussie is natuurlijk mogelijk als een lichte inbreuk wordt gemaakt op een heel belangrijk aspect van een grondrecht, of als een minder belangrijk aspect van een grondrecht juist wel heel vergaand wordt ingeperkt. In die gevallen zal de impact vaak als ‘medium’ kunnen worden aangemerkt.",
               "id": "4.3.3",
               "type": [
-                "select_option"
-              ],
-              "options": [
-                {
-                  "value": "ernstig",
-                  "label": "Ernstig"
-                },
-                {
-                  "value": "medium",
-                  "label": "Medium"
-                },
-                {
-                  "value": "licht",
-                  "label": "Licht"
-                }
+                "open_text"
               ],
               "repeatable": false,
               "references": {
@@ -1341,7 +1327,17 @@
       "repeatable": false,
       "tasks": [
         {
-          "task": "(A) Belangenafweging",
+          "task": "Instructie",
+          "id": "5.0",
+          "is_official_id": false,
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "description": "De volgende vragen helpen bij het goed afsluiten van het IAMA. Ze zijn erop gericht om (A) de betrokken belangen in beeld te brengen en (B) op basis van al het voorgaande een advies te geven of besluit te nemen over de inzet van het algoritme. In het algemeen zal het uiteindelijke besluit moeten worden genomen door een politiek of ambtelijk verantwoordelijke. Deze verantwoordelijke zal daarnaast moeten kijken naar (C) de eventuele restrisico’s die bij inzet van het algoritme blijven bestaan."
+        },
+        {
+          "task": "Belangenafweging",
           "id": "5.A",
           "type": [
             "task_group"
@@ -1358,7 +1354,7 @@
               "repeatable": false,
               "tasks": [
                 {
-                  "task": "Positieve belangen",
+                  "task": "Gediende belangen",
                   "description": "Welke belangen worden met het algoritme gediend? (Kijk hierbij naar de doelen (vraag 1.1.2), de geïdentificeerde positief geraakte publieke waarden (vraag 1.2.1), de grondrechten waarop het algoritme mogelijk positieve impact heeft (vraag 4.1.2), en de belangen van de eigen organisatie.)",
                   "id": "5.A.1",
                   "type": [
@@ -1368,7 +1364,7 @@
                 },
                 {
                   "task": "Zwaarwegendheid gediende belangen",
-                  "description": "Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? (Zie de toelichting bij vraag 4.3 voor hulpmiddelen om deze vraag te beantwoorden.)",
+                  "description": "Hoe concreet en hoe zwaarwegend zijn deze dienende belangen? Zie ook toelichting op vraag 4.3: 'Om hier iets over te zeggen is het nuttig om te kijken naar de wezenlijke grondslagen van het grondrecht, die iets zeggen over waarom het zo belangrijk is om het te beschermen. Bij die wezenlijke grondslagen kan worden gedacht aan persoonlijke autonomie, vrijheid, menselijke waardigheid, gelijkwaardigheid, democratie, rechtsstaat (een vollediger overzichtje is te vinden bij de Grondrechtenclusters in het IAMA- toelichtingsdocument). Sommige (aspecten van) grondrechten zijn heel nauw met zo’n grondslag verbonden (‘kernrechten’), andere staan er veel verder vandaan. Aan de hand van de ‘afstand’ tot de grondslag kun je bepalen hoe ‘belangrijk’ het toepasselijke aspect van het grondrecht is. Concreter gezegd: hoe belangrijk is wat er op het spel staat voor het realiseren van vrijheid, gelijkwaardigheid, persoonlijke autonomie etc.?'",
                   "id": "5.A.3",
                   "type": [
                     "open_text"
@@ -1405,7 +1401,7 @@
               "repeatable": false,
               "tasks": [
                 {
-                  "task": "Belangen",
+                  "task": "Geschade belangen",
                   "description": "Welke belangen worden door het algoritme geschaad? (Kijk hierbij naar de effecten voor groepen of individuen (vraag 3.5.2), de relevante maatschappelijke belangen (vraag 3.5.6), de ernst van de verwachte grondrechteninbreuk (vraag 4.3.3), en de belangen van de eigen organisatie.)",
                   "id": "5.A.2",
                   "type": [
@@ -1427,7 +1423,7 @@
           ]
         },
         {
-          "task": "(B) Advies over inzet algoritme",
+          "task": "Advies over inzet algoritme",
           "id": "5.B",
           "description": "Schrijf op basis van het bij (A) gemaakte overzicht en in het licht van de geformuleerde actiepunten en antwoorden op de vragen een advies over de vraag of het algoritme wel of niet moet worden ingezet, en onder welke voorwaarden. Daarin moet in ieder geval expliciet aandacht worden besteed aan de vraag of en waarom de inzet van het algoritme een redelijk evenwicht zal opleveren tussen de betrokken belangen.",
           "type": [
