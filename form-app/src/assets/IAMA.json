@@ -93,6 +93,10 @@
                   {
                     "id": "5.A.1",
                     "type": "pre-view"
+                  },
+                  {
+                    "id": "2.1.2",
+                    "type": "pre-view"
                   }
                 ]
               }
@@ -360,7 +364,7 @@
               "repeatable": false
             },
             {
-              "task": "Welke alternatieven zijn er? Waarom is dit type algoritme het meest geschikt voor de geformuleerde doelstellingen?",
+              "task": "Welke alternatieven zijn er? Waarom is dit type algoritme het meest geschikt voor de geformuleerde doelstellingen? (zie vraag 1.1.2)",
               "id": "2.1.2",
               "type": [
                 "open_text"
