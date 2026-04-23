@@ -88,6 +88,8 @@ const currentValue = computed(() => {
       } else {
         return props.task.defaultValue
       }
+    } else if (typeof props.task.defaultValue === 'string') {
+      return props.task.defaultValue
     }
   }
 

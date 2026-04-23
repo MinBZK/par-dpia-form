@@ -211,8 +211,28 @@ tasks:
           - task: Welke partijen en/of functies zijn er bij het algoritme betrokken? Hoe zijn de verantwoordelijkheden belegd?
             id: "1.4.1"
             type:
-              - open_text
-            repeatable: true
+              - task_group
+            is_official_id: true
+            repeatable: false
+            tasks:
+              - task: A) Bij de ontwikkeling
+                id: "1.4.1.1"
+                is_official_id: false
+                type:
+                  - open_text
+                repeatable: false
+              - task: B) Bij de inzet
+                id: "1.4.1.2"
+                is_official_id: false
+                type:
+                  - open_text
+                repeatable: false
+              - task: C) Bij het beheer
+                id: "1.4.1.3"
+                is_official_id: false
+                type:
+                  - open_text
+                repeatable: false
           - task: Wie is eindverantwoordelijk voor het algoritme?
             id: "1.4.2"
             type:

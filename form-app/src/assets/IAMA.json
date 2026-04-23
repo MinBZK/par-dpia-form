@@ -255,12 +255,41 @@
           "tasks": [
             {
               "task": "Welke partijen en/of functies zijn er bij het algoritme betrokken? Hoe zijn de verantwoordelijkheden belegd?",
-              "description": "Voeg een tekstvak voor elk van de volgende levensfasen van het algoritme toe: ontwikkeling, inzet en beheer. Noteer per levensfase welke partijen en/of functies betrokken zijn en hoe de verantwoordelijkheden belegd zijn.",
               "id": "1.4.1",
               "type": [
-                "open_text"
+                "task_group"
               ],
-              "repeatable": true
+              "is_official_id": true,
+              "repeatable": false,
+              "tasks": [
+                {
+                  "task": "A) Bij de ontwikkeling",
+                  "id": "1.4.1.1",
+                  "is_official_id": false,
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "B) Bij de inzet",
+                  "id": "1.4.1.2",
+                  "is_official_id": false,
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                },
+                {
+                  "task": "C) Bij het beheer",
+                  "id": "1.4.1.3",
+                  "is_official_id": false,
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                }
+              ]
             },
             {
               "task": "Wie is eindverantwoordelijk voor het algoritme?",
@@ -322,8 +351,8 @@
           "repeatable": false,
           "tasks": [
             {
-              "task": "Wat voor type algoritme wordt ontwikkeld of gebruikt?",
-              "description": "Maak ten minste onderscheid tussen zelflerend en niet-zelflerend. Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.",
+              "task": "Wat voor type algoritme wordt ontwikkeld of gebruikt? Maak ten minste onderscheid tussen zelflerend en niet-zelflerend.",
+              "description": "Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.",
               "id": "2.1.1",
               "type": [
                 "open_text"
@@ -343,7 +372,6 @@
         {
           "task": "Totstandkoming algoritme – Niet-zelflerend",
           "id": "2.2A",
-          "description": "Beantwoord de onderstaande vragen als het algoritme niet-zelflerend is.",
           "type": [
             "task_group"
           ],
@@ -378,7 +406,6 @@
         {
           "task": "Totstandkoming algoritme – Zelflerend",
           "id": "2.2B",
-          "description": "Beantwoord de onderstaande vragen als het algoritme zelflerend is.",
           "type": [
             "task_group"
           ],
@@ -393,8 +420,7 @@
               "repeatable": false
             },
             {
-              "task": "Zijn de kwaliteit en betrouwbaarheid van de <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> voldoende voor de beoogde toepassing?",
-              "description": "Leg uit.",
+              "task": "Zijn de kwaliteit en betrouwbaarheid van de <span class=\"aiv-definition\">trainingsdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het trainen van een AI-systeem door de leerbare parameters hiervan aan te passen.</span></span> en <span class=\"aiv-definition\">testdata<span class=\"aiv-definition-text\">Data die worden gebruikt voor het verrichten van een onafhankelijke evaluatie van het AI-systeem om de verwachte prestaties van dat systeem te bevestigen voordat het in de handel wordt gebracht of in gebruik wordt gesteld.</span></span> voldoende voor de beoogde toepassing? Leg uit.",
               "id": "2.2B.2",
               "type": [
                 "open_text"
@@ -402,8 +428,7 @@
               "repeatable": false
             },
             {
-              "task": "Zijn de trainingsdata en testdata representatief voor de context waarin het algoritme ingezet gaat worden?",
-              "description": "Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?",
+              "task": "Zijn de trainingsdata en testdata representatief voor de context waarin het algoritme ingezet gaat worden? Hoe verschillen de trainingsdata en testdata van de data die bij inzet als input dienen?",
               "id": "2.2B.3",
               "type": [
                 "open_text"
@@ -438,8 +463,7 @@
               "repeatable": false
             },
             {
-              "task": "Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het algoritme voldoende voor de beoogde toepassing?",
-              "description": "Leg uit.",
+              "task": "Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het algoritme voldoende voor de beoogde toepassing? Leg uit.",
               "id": "2.3.2",
               "type": [
                 "open_text"
@@ -473,8 +497,7 @@
               "repeatable": false
             },
             {
-              "task": "Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de metrics horen daarbij?",
-              "description": "Leg uit.",
+              "task": "Wanneer is de kwaliteit goed genoeg? Welke beoordelingen op de metrics horen daarbij? Leg uit.",
               "id": "2.4.2",
               "type": [
                 "open_text"
@@ -509,8 +532,7 @@
               "repeatable": false
             },
             {
-              "task": "Zijn de data voldoende beveiligd?",
-              "description": "Maak hierin onderscheid tussen de <span class=\"aiv-definition\">inputdata<span class=\"aiv-definition-text\">Data die in een AI-systeem worden ingevoerd of direct door een AI-systeem worden verworven en op basis waarvan het systeem een output genereert.</span></span> en de outputdata en leg uit.",
+              "task": "Zijn de data voldoende beveiligd? Maak hierin onderscheid tussen de <span class=\"aiv-definition\">inputdata<span class=\"aiv-definition-text\">Data die in een AI-systeem worden ingevoerd of direct door een AI-systeem worden verworven en op basis waarvan het systeem een output genereert.</span></span> en de outputdata en leg uit.",
               "id": "2.5.2",
               "type": [
                 "open_text"
@@ -518,8 +540,7 @@
               "repeatable": false
             },
             {
-              "task": "Is er controle op de toegang tot de data?",
-              "description": "Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.",
+              "task": "Is er controle op de toegang tot de data? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.",
               "id": "2.5.3",
               "type": [
                 "open_text"
@@ -631,8 +652,7 @@
               "repeatable": false
             },
             {
-              "task": "Is het mogelijk voor de medewerker om af te wijken van de uitkomst van het algoritme (indien nodig)?",
-              "description": "Leg uit.",
+              "task": "Is het mogelijk voor de medewerker om af te wijken van de uitkomst van het algoritme (indien nodig)? Leg uit.",
               "id": "3.2.2",
               "in_fria": true,
               "type": [
@@ -649,8 +669,7 @@
               "repeatable": false
             },
             {
-              "task": "Vormt de inzet van het algoritme een <span class=\"aiv-definition\">risico<span class=\"aiv-definition-text\">De combinatie van de kans op schade en de ernst van die schade.</span></span> voor de huidige kennis en kunde van de medewerker?",
-              "description": "Leg uit.",
+              "task": "Vormt de inzet van het algoritme een <span class=\"aiv-definition\">risico<span class=\"aiv-definition-text\">De combinatie van de kans op schade en de ernst van die schade.</span></span> voor de huidige kennis en kunde van de medewerker? Leg uit.",
               "id": "3.2.4",
               "type": [
                 "open_text"
@@ -719,8 +738,7 @@
               "repeatable": false
             },
             {
-              "task": "Kunnen medewerkers op een laagdrempelige manier melding maken wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe worden deze mensen dan gehoord?",
-              "description": "Leg uit.",
+              "task": "Kunnen medewerkers op een laagdrempelige manier melding maken wanneer iets niet in orde lijkt te zijn rond het algoritme en hoe worden deze mensen dan gehoord? Leg uit.",
               "id": "3.4.2",
               "in_fria": true,
               "type": [
@@ -789,8 +807,7 @@
               }
             },
             {
-              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen?",
-              "description": "Let ook op de gediende publieke waarden (1.2.2).",
+              "task": "Welke positieve effecten introduceert de inzet van het algoritme voor deze mensen en/of groepen? Let ook op de gediende publieke waarden (1.2.2).",
               "id": "3.5.3",
               "type": [
                 "open_text"
@@ -877,7 +894,7 @@
           "task": "Instructie",
           "id": "4.0",
           "is_official_id": false,
-          "description": "Het vierde deel van dit IAMA heeft een tweeledig doel:\n\n1. Het IAMA dient als hulpmiddel om te identificeren of het in te zetten <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> positieve of negatieve impact zal hebben op bepaalde (aspecten van) grondrechten;\n\n2. Als er uiteindelijk een negatieve impact blijkt te zijn op grondrechten, dan maakt het IAMA een gestructureerde discussie mogelijk over de vraag of er redenen zijn waarom deze impact toch aanvaardbaar kan worden gevonden. \n\nDe vragen uit subonderdelen 4.1, 4.2 en 4.6 zijn in de praktijk het belangrijkste. Vraag 4.1.1 is een brainstormvraag en kan met het hele team worden beantwoord. Subonderdeel 4.2 bevat uitzoekvragen, die het nodige juridische voorwerk vereisen.\n\nDe vragen uit subonderdelen 4.3-4.5 komen alleen aan bod als uit het uitzoekwerk en de antwoorden op de vragen uit subonderdeel 4.2 blijkt dat dat nodig is. Alleen in dat geval is er namelijk een negatieve impact zichtbaar op grondrechten, maar biedt specifieke wetgeving of rechtspraak geen (volledig of bevredigend) antwoord op de vraag of het algoritme een gerechtvaardigde inbreuk maakt op grondrechten. Zorg er wel voor dat u, voor zover relevant, noteert welke maatregelen u van plan bent te treffen om de negatieve impact op grondrechten te mitigeren. <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\" aria-label=\"Dit correspondeert met een vereiste uit art. 27 van de AI Verordening\" style=\"display: inline-block; vertical-align: middle; margin-left: 0.2em;\"><title>Dit correspondeert met een vereiste uit art. 27 van de AI Verordening</title><path d=\"M16 16.01V16M8 16.01V16\"/><path d=\"m16 16 3-8\"/><path d=\"m8 16-3-8\"/><path d=\"M7 21h10\"/><path d=\"M12 3v18\"/><path d=\"M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2\"/><path d=\"M22 8a5 5 0 0 1-6 0\"/><path d=\"M8 8a5 5 0 0 1-6 0\"/></svg>\n\nJuristen kan opvallen dat in dit IAMA-deel de stap van een wettelijke grondslag voor een grondrechteninbreuk ontbreekt. Die stap is in deel 1 al expliciet aan bod is gekomen, namelijk bij vraag 1.3.2. Het nogmaals opnemen van deze stap in het stappenplan zou onnodige herhaling opleveren. Ook de klassieke proportionaliteitsstap van het maken van een belangenafweging lijkt misschien te ontbreken. In dit IAMA is die onderdeel van de afsluitende, concluderende vragen.",
+          "description": "Het vierde deel van dit IAMA heeft een tweeledig doel:\n\n1. Het IAMA dient als hulpmiddel om te identificeren of het in te zetten <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> positieve of negatieve impact zal hebben op bepaalde (aspecten van) grondrechten;\n\n2. Als er uiteindelijk een negatieve impact blijkt te zijn op grondrechten, dan maakt het IAMA een gestructureerde discussie mogelijk over de vraag of er redenen zijn waarom deze impact toch aanvaardbaar kan worden gevonden.\n\nDe vragen uit subonderdelen 4.1, 4.2 en 4.6 zijn in de praktijk het belangrijkste. Vraag 4.1.1 is een brainstormvraag en kan met het hele team worden beantwoord. Subonderdeel 4.2 bevat uitzoekvragen, die het nodige juridische voorwerk vereisen.\n\nDe vragen uit subonderdelen 4.3-4.5 komen alleen aan bod als uit het uitzoekwerk en de antwoorden op de vragen uit subonderdeel 4.2 blijkt dat dat nodig is. Alleen in dat geval is er namelijk een negatieve impact zichtbaar op grondrechten, maar biedt specifieke wetgeving of rechtspraak geen (volledig of bevredigend) antwoord op de vraag of het algoritme een gerechtvaardigde inbreuk maakt op grondrechten. Zorg er wel voor dat u, voor zover relevant, noteert welke maatregelen u van plan bent te treffen om de negatieve impact op grondrechten te mitigeren. <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" role=\"img\" aria-label=\"Dit correspondeert met een vereiste uit art. 27 van de AI Verordening\" style=\"display: inline-block; vertical-align: middle; margin-left: 0.2em;\"><title>Dit correspondeert met een vereiste uit art. 27 van de AI Verordening</title><path d=\"M16 16.01V16M8 16.01V16\"/><path d=\"m16 16 3-8\"/><path d=\"m8 16-3-8\"/><path d=\"M7 21h10\"/><path d=\"M12 3v18\"/><path d=\"M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2\"/><path d=\"M22 8a5 5 0 0 1-6 0\"/><path d=\"M8 8a5 5 0 0 1-6 0\"/></svg>\n\nJuristen kan opvallen dat in dit IAMA-deel de stap van een wettelijke grondslag voor een grondrechteninbreuk ontbreekt. Die stap is in deel 1 al expliciet aan bod is gekomen, namelijk bij vraag 1.3.2. Het nogmaals opnemen van deze stap in het stappenplan zou onnodige herhaling opleveren. Ook de klassieke proportionaliteitsstap van het maken van een belangenafweging lijkt misschien te ontbreken. In dit IAMA is die onderdeel van de afsluitende, concluderende vragen.",
           "type": [
             "task_group"
           ],
@@ -1180,7 +1197,7 @@
             },
             {
               "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met: (1) de verwachte doeltreffendheid/effectiviteit/ geschiktheid, in samenhang met (2) de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)?",
-              "description": "• de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met<br>• de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
+              "description": "• 1. de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
               "id": "4.4.2",
               "type": [
                 "open_text"
@@ -1255,7 +1272,7 @@
             },
             {
               "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:",
-              "description": "• de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
+              "description": "• 1. de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)",
               "id": "4.5.4",
               "type": [
                 "open_text"
@@ -1300,7 +1317,6 @@
         {
           "task": "(A) Belangenafweging",
           "id": "5.A",
-          "description": "Maak een overzicht van wat er in de 'schalen' komt te liggen van de balans, rekening houdend met de actiepunten die zijn geformuleerd in de voorgaande delen.",
           "type": [
             "task_group"
           ],
