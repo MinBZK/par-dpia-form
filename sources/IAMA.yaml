@@ -920,6 +920,33 @@ tasks:
           - task_group
         repeatable: false
         tasks:
+          - task: Instructie
+            id: "4.3.0"
+            is_official_id: false
+            type:
+              - task_group
+            repeatable: false
+            description: >-
+              Inzicht in de ernst van de inbreuk is nodig om
+              aan de slag te kunnen gaan met subonderdelen 4.4 en 4.5.
+              Die vragen gaan over de vraag of het algoritme een geschikt
+              en een noodzakelijk beleidsinstrument is om de gestelde
+              doelen te realiseren (proportionaliteit). Een instrument kan
+              in de praktijk meer of minder doeltreffend zijn. Ook er zit ook
+              nogal wat ruimte tussen een instrument dat 'nuttig' is en een
+              instrument dat echt 'onmisbaar' is om bepaalde doelen te
+              bereiken. Dit subonderdeel van deel 4 heeft als doel om te
+              helpen om te bepalen hoe doeltreffend of noodzakelijk de
+              inzet van een algoritme nu echt moet zijn. Bij heel ernstige
+              grondrechteninbreuken zal een maatregel (zoals een algoritme)
+              alleen proportioneel zijn als die naar verwachting heel effectief
+              is en als ook echt geen andere maatregelen mogelijk zijn.
+              Andersom is het bij lichtere inbreuken niet zo erg als het
+              algoritme maar een kleine verbetering oplevert of als niet heel
+              uitgebreid onderzoek is gedaan naar alternatieven.
+              De volgende vragen zijn erop gericht om als team een beeld
+              te krijgen van de 'ernst' van de verwachte inbreuk op een
+              grondrecht. Daarbij gaat het vooral om een brainstorm.
           - task: >-
               Hoe 'belangrijk' is het (aspect van het) grondrecht waarop het
               algoritme negatieve impact heeft? Leg uit of het gaat om een heel
