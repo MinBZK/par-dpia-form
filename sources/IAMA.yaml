@@ -284,12 +284,32 @@ tasks:
         repeatable: false
         tasks:
           - task: Wat voor type algoritme wordt ontwikkeld of gebruikt? Maak ten minste onderscheid tussen zelflerend en niet-zelflerend.
-            description: >-
-              Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.
             id: "2.1.1"
             type:
-              - open_text
+              - task_group
+            is_official_id: false
             repeatable: false
+            tasks:
+              - task: ""
+                id: "2.1.1.1"
+                is_official_id: false
+                type:
+                  - radio_option
+                repeatable: false
+                required: true
+                options:
+                  - value: "zelflerend"
+                    label: "Zelflerend"
+                  - value: "niet-zelflerend"
+                    label: "Niet-zelflerend"
+              - task: Toelichting
+                description: >-
+                  Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.
+                id: "2.1.1.2"
+                is_official_id: false
+                type:
+                  - open_text
+                repeatable: false
           - task: Welke alternatieven zijn er? Waarom is dit type algoritme het meest geschikt voor de geformuleerde doelstellingen? (zie vraag 1.1.2)
             id: "2.1.2"
             type:
@@ -300,6 +320,13 @@ tasks:
         type:
           - task_group
         repeatable: false
+        dependencies:
+          - type: conditional
+            condition:
+              id: "2.1.1.1"
+              operator: equals
+              value: "niet-zelflerend"
+            action: show
         tasks:
           - task: Hoe zijn de beslisregels tot stand gekomen?
             id: "2.2A.1"
@@ -322,6 +349,13 @@ tasks:
         type:
           - task_group
         repeatable: false
+        dependencies:
+          - type: conditional
+            condition:
+              id: "2.1.1.1"
+              operator: equals
+              value: "zelflerend"
+            action: show
         tasks:
           - task: Welke databronnen worden/zijn gebruikt om het model te trainen en testen?
             id: "2.2B.1"

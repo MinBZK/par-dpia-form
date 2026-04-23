@@ -81,6 +81,11 @@ export function shouldShowTask(
       if (action === 'show' && !conditionMet) {
         return false
       }
+
+      // If the action is 'hide' and the condition is met, we should not show task.
+      if (action === 'hide' && conditionMet) {
+        return false
+      }
     }
   }
 
