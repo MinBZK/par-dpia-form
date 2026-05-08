@@ -7,25 +7,32 @@ description: >-
   mensenrechten en publieke waarden, voorafgaand aan de ontwikkeling of inzet
   van een algoritme.
 tasks:
-  - task: Inleiding – Toepassing van het IAMA
-    description: |
-      Het Impact Assessment Mensenrechten en Algoritmes ('IAMA') is een instrument voor discussie en besluitvorming. Het instrument faciliteert een interdisciplinaire dialoog door degenen die betrokken zijn bij de ontwikkeling en/of inzet van een algoritmisch systeem. Het IAMA kan worden toegepast op AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten. Omwille van de leesbaarheid wordt in het IAMA de term 'algoritme' gebruikt. Voor een verdere uitleg over deze definities kan het IAMA-toelichtingsdocument geraadpleegd worden.
-
-      Het IAMA stuurt het projectteam aan om een advies te formuleren over het al dan niet inzetten van een algoritme, en over de voorwaarden waaraan die inzet zou moeten voldoen. Het IAMA is gericht op het inschatten van de impact van het algoritme op grondrechten en biedt daarnaast ruimte voor het aan bod laten komen van andere relevante aandachtspunten rondom de inzet van het algoritme, in een vroegtijdig stadium en op een gestructureerde manier. Daardoor wordt tegengegaan dat al te snel een algoritme wordt ingezet terwijl de consequenties daarvan niet goed zijn bekeken, met de daarbij behorende risico's, zoals die van onzorgvuldigheid, ineffectiviteit of inbreuk op grondrechten.
-
-      Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> extra houvast en verdieping.
-
-      <div class="rvo-alert rvo-alert--info" style="display: flex;"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.</div></div>
+  - task: Inleiding
     id: "0"
     is_official_id: false
     type:
       - task_group
       - informational
     repeatable: false
-    sources:
-      - source: stroomschema_iama_v2.png
-        description: Stroomschema van het IAMA v2 met de vijf delen (Waarom, Wat, Hoe, Mensenrechten, Afsluiting).
     tasks:
+      - task: Toepassing van het IAMA
+        description: |
+          Het Impact Assessment Mensenrechten en Algoritmes ('IAMA') is een instrument voor discussie en besluitvorming. Het instrument faciliteert een interdisciplinaire dialoog door degenen die betrokken zijn bij de ontwikkeling en/of inzet van een algoritmisch systeem. Het IAMA kan worden toegepast op AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten. Omwille van de leesbaarheid wordt in het IAMA de term 'algoritme' gebruikt. Voor een verdere uitleg over deze definities kan het IAMA-toelichtingsdocument geraadpleegd worden.
+
+          Het IAMA stuurt het projectteam aan om een advies te formuleren over het al dan niet inzetten van een algoritme, en over de voorwaarden waaraan die inzet zou moeten voldoen. Het IAMA is gericht op het inschatten van de impact van het algoritme op grondrechten en biedt daarnaast ruimte voor het aan bod laten komen van andere relevante aandachtspunten rondom de inzet van het algoritme, in een vroegtijdig stadium en op een gestructureerde manier. Daardoor wordt tegengegaan dat al te snel een algoritme wordt ingezet terwijl de consequenties daarvan niet goed zijn bekeken, met de daarbij behorende risico's, zoals die van onzorgvuldigheid, ineffectiviteit of inbreuk op grondrechten.
+
+          Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> extra houvast en verdieping.
+
+          <div class="rvo-alert rvo-alert--info" style="display: flex;"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.</div></div>
+        id: "0.0"
+        is_official_id: false
+        type:
+          - task_group
+        repeatable: false
+        sources:
+          - source: stroomschema_iama_v2.png
+            description: Stroomschema van het IAMA v2 met de vijf delen (Waarom, Wat, Hoe, Mensenrechten, Afsluiting).
+
       - task: Toepassingsbereik IAMA
         description: |
           Het IAMA is een grondrechtenbeoordeling voor impactvolle algoritmes en hoog-risico AI-systemen. De Europese AI-verordening bepaalt welke AI-systemen als hoog-risico moeten worden geclassificeerd. Hiervoor gelden specifieke vereisten, waaronder een beoordeling van de gevolgen voor grondrechten (artikel 27 AI-verordening). Het IAMA is een instrument om invulling te geven aan een dergelijke grondrechtenbeoordeling. Bij de vragen in het IAMA die corresponderen met de verschillende vereisten uit artikel 27 van de AI-verordening is dat aangegeven door middel van een 'art. 27 AI-verordening'-icoontje. <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening" style="display: inline-block; vertical-align: middle; margin-left: 0.2em;"><title>Dit correspondeert met een vereiste uit art. 27 van de AI Verordening</title><path d="M16 16.01V16M8 16.01V16"/><path d="m16 16 3-8"/><path d="m8 16-3-8"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/><path d="M22 8a5 5 0 0 1-6 0"/><path d="M8 8a5 5 0 0 1-6 0"/></svg>
