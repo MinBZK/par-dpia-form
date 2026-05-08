@@ -204,8 +204,9 @@ const isSigningTask = computed(() => {
   return taskIsOfTaskType(task, 'signing')
 })
 
-const isIntroductionStep = computed(() => {
-  return props.namespace === FormType.IAMA && currentRootTaskId.value === '0'
+const isInformationalStep = computed(() => {
+  const task = taskStore.taskById(currentRootTaskId.value)
+  return taskIsOfTaskType(task, 'informational')
 })
 </script>
 
@@ -251,7 +252,7 @@ const isIntroductionStep = computed(() => {
             <div class="button-group-container">
               <UiButton v-if="!isFirstTask" variant="tertiary" icon="terug" label="Vorige stap" @click="goToPrevious" />
               <div class="utrecht-button-group" role="group" aria-label="Formulier navigatie">
-                <div v-if="!isLastTask && !isIntroductionStep" class="rvo-checkbox__group">
+                <div v-if="!isLastTask && !isInformationalStep" class="rvo-checkbox__group">
                   <label class="rvo-checkbox rvo-checkbox--not-checked" for="`${currentRootTaskId}-completed`">
                     <input id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
                       type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"

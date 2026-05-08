@@ -10,7 +10,8 @@
       "id": "0",
       "is_official_id": false,
       "type": [
-        "task_group"
+        "task_group",
+        "informational"
       ],
       "repeatable": false,
       "tasks": [

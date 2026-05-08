@@ -9,6 +9,7 @@ export enum FormType {
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
   t.literal('signing'),
+  t.literal('informational'),
   t.literal('text_input'),
   t.literal('open_text'),
   t.literal('date'),
