@@ -11,6 +11,7 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
 import risicoMatrixImage from '@/assets/images/risico_matrix.png'
+import stroomschemaIamaV2Image from '@/assets/images/stroomschema_iama_v2.png'
 
 const props = defineProps<{
   taskId: string
@@ -126,6 +127,7 @@ const isActiepuntenOverviewChild = (childId: string): boolean => childId === '5.
 
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
+  'stroomschema_iama_v2.png': stroomschemaIamaV2Image,
 }
 
 // Helper function with proper type safety
