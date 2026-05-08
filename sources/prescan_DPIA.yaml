@@ -1072,9 +1072,9 @@ assessments:
             explanation: "er gebruik wordt gemaakt van Standaard contractsbepalingen (SCC) of een overig mechanisme"
   - id: "KIA"
     levels:
-      - level: "required"
+      - level: "recommended"
         expression: "criteria.digitale_dienst && criteria.minderjarigen"
-        result: "KIA verplicht"
+        result: "KIA aanbevolen"
         criteria:
           - id: "digitale_dienst"
             expression: "bool(answers('7.1.1'))"
