@@ -37,10 +37,10 @@ function isInformational(task: FlatTask): boolean {
         :class="[
           'rvo-progress-tracker__step',
           'rvo-progress-tracker__step--md',
-          disabled
-            ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
-            : isInformational(task)
-              ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
+          isInformational(task)
+            ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
+            : disabled
+              ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
               : taskStore.isRootTaskCompleted(task.id)
                 ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
                 : task.id === currentRootTaskId
