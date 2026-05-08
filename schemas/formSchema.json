@@ -42,6 +42,7 @@
                             "checkbox_option",
                             "radio_option",
                             "task_group",
+                            "informational",
                             "date"
                         ]
                     }

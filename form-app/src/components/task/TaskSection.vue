@@ -11,6 +11,7 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
 import risicoMatrixImage from '@/assets/images/risico_matrix.png'
+import stroomschemaIamaV2Image from '@/assets/images/stroomschema_iama_v2.png'
 
 const props = defineProps<{
   taskId: string
@@ -56,6 +57,13 @@ const childGroups = computed<ChildGroup[]>(() => {
 })
 
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
+
+const isInformationalTask = computed(() => taskIsOfTaskType(task.value, 'informational'))
+
+const firstAccordionChildId = computed<string | null>(() => {
+  const firstAccordion = childGroups.value.find((g): g is { type: 'accordion'; ids: string[] } => g.type === 'accordion')
+  return firstAccordion?.ids[0] ?? null
+})
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
@@ -126,6 +134,7 @@ const isActiepuntenOverviewChild = (childId: string): boolean => childId === '5.
 
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
+  'stroomschema_iama_v2.png': stroomschemaIamaV2Image,
 }
 
 // Helper function with proper type safety
@@ -211,7 +220,7 @@ function shouldSkipTask(taskId: string): boolean {
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
-                :alt="source.description" />
+                :alt="source.description" style="max-width: 100%; height: auto;" />
             </template>
           </template>
         </fieldset>
@@ -224,7 +233,8 @@ function shouldSkipTask(taskId: string): boolean {
         <template v-for="(group, groupIdx) in childGroups" :key="groupIdx">
           <!-- Run of consecutive info-only children: render as a single accordion group -->
           <div v-if="group.type === 'accordion'" class="rvo-accordion">
-            <details v-for="childId in group.ids" :key="childId" class="rvo-accordion__item">
+            <details v-for="childId in group.ids" :key="childId" class="rvo-accordion__item"
+              :open="isInformationalTask && childId === firstAccordionChildId">
               <summary class="rvo-accordion__item-summary">
                 <div class="rvo-accordion__item-icon">
                   <span
@@ -242,6 +252,12 @@ function shouldSkipTask(taskId: string): boolean {
               </summary>
               <div class="rvo-accordion__content">
                 <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+                <template v-if="taskStore.taskById(childId).sources">
+                  <template v-for="source in taskStore.taskById(childId).sources" :key="source.source">
+                    <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                      :alt="source.description" style="max-width: 100%; height: auto;" />
+                  </template>
+                </template>
               </div>
             </details>
           </div>
