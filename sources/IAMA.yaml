@@ -15,7 +15,7 @@ tasks:
 
       Als er tijdens het doorlopen van het IAMA onduidelijkheid bestaat over de vragen of de begrippen die daarin genoemd worden, biedt het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a> extra houvast en verdieping.
 
-      <div class="rvo-alert rvo-alert--warning" style="display: flex;"><span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img" aria-label="Waarschuwing"></span><div class="rvo-alert-text">Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.</div></div>
+      <div class="rvo-alert rvo-alert--info" style="display: flex;"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Het huidige IAMA v2 is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.</div></div>
     id: "0"
     is_official_id: false
     type:
