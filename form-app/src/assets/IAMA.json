@@ -49,13 +49,23 @@
     {
       "task": "Deel 1 – Waarom?",
       "description": "Deel 1 van het IAMA gaat over het ‘Waarom?’ van het voornemen om een <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> in te gaan zetten. Wat zijn de aanleiding en de doelstelling van de inzet van het algoritme? Wat zijn de onderliggende waarden die geraakt worden door de inzet van het algoritme? En hoe worden de verantwoordelijkheden omtrent het algoritme ingeregeld? Deze overkoepelende vragen moeten in een besluitvormingsproces over de inzet van algoritmes als eerste worden behandeld, voordat wordt toegekomen aan technische vragen of mogelijke impact op grondrechten. Deze antwoorden zijn voor het beantwoorden van die specifiekere vragen namelijk steeds relevant.\n",
-      "id": "1",
+      "id": "1.0",
       "is_official_id": false,
       "type": [
         "task_group"
       ],
       "repeatable": false,
       "tasks": [
+        {
+          "task": "Deel 1 – Inhoud",
+          "id": "1.0.0",
+          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Aanleiding en doelstelling \n  2. Publieke waarden\n  3. Wettelijke grondslag\n  4. Verantwoordelijkheden\n",
+          "is_official_id": false,
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false
+        },
         {
           "task": "Aanleiding en doelstelling",
           "id": "1.1",
@@ -347,6 +357,16 @@
       "repeatable": false,
       "tasks": [
         {
+          "task": "Deel 2 – Inhoud",
+          "id": "2.0.0",
+          "is_official_id": false,
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Type algoritme\n  2. Totstandkoming algoritme\n  3. Inzet algoritme\n  4. Kwaliteit en accuraatheid\n  5. Data <span class=\"aiv-definition\">governance<span class=\"aiv-definition-text\">Governance gaat over de inrichting van een organisatie en daar bijbehorende processen, regels, gebruiken en bijbehorende verantwoordelijkheden.</span></span> en -beveiliging\n"
+        },
+        {
           "task": "Type algoritme",
           "id": "2.1",
           "type": [
@@ -574,7 +594,7 @@
           ]
         },
         {
-          "task": "Data <span class=\"aiv-definition\">governance<span class=\"aiv-definition-text\">Governance gaat over de inrichting van een organisatie en daar bijbehorende processen, regels, gebruiken en bijbehorende verantwoordelijkheden.</span></span> en -beveiliging",
+          "task": "Data governance en -beveiliging",
           "id": "2.5",
           "type": [
             "task_group"
@@ -640,6 +660,16 @@
       ],
       "repeatable": false,
       "tasks": [
+        {
+          "task": "Deel 3 – Inhoud",
+          "id": "3.0.0",
+          "is_official_id": false,
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Gebruikscontext\n  2. De rol van de medewerker\n  3. Communicatie\n  4. Monitoring en evaluatie\n  5. Impact op betrokkenen en maatschappij\n"
+        },
         {
           "task": "Gebruikscontext",
           "id": "3.1",
@@ -959,17 +989,27 @@
           "repeatable": false
         },
         {
-          "task": "Toepasselijke grondrechten",
-          "id": "4.1",
+          "task": "Deel 4 – Inhoud",
+          "id": "4.0.0",
+          "is_official_id": false,
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Toepasselijke grondrechten\n  2. Specifieke wetgeving\n  3. Ernst van de inbreuk\n  4. Doeltreffendheid/effectiviteit/geschiktheid\n  5. Noodzakelijkheid/subsidiariteit\n"
+        },
+        {
+          "task": "Aangetaste grondrechten",
+          "id": "4.1.1",
           "type": [
             "task_group"
           ],
           "repeatable": false,
           "tasks": [
             {
-              "task": "Welke grondrechten en aspecten van grondrechten kunnen potentieel door het algoritme worden aangetast (negatieve impact) of juist beschermd (positieve impact)?",
-              "description": "Zie de Grondrechtenclusters in het IAMA-toelichtingsdocument voor een overzicht van grondrechten en aspecten van grondrechten.",
-              "id": "4.1.1",
+              "task": "Welke grondrechten en aspecten van grondrechten kunnen potentieel door het algoritme worden aangetast (negatieve impact)?",
+              "description": "Zie de Grondrechtenclusters in het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> voor een overzicht van grondrechten en aspecten van grondrechten.",
+              "id": "4.1.1.0",
               "type": [
                 "task_group"
               ],
@@ -981,7 +1021,7 @@
                   "id": "4.1.1.1",
                   "is_official_id": false,
                   "type": [
-                    "checkbox_option"
+                    "multiselect_option"
                   ],
                   "repeatable": false,
                   "options": [
@@ -1037,10 +1077,10 @@
                       "value": "Recht op gelijkheid voor de wet"
                     },
                     {
-                      "value": "Verbod van <span class=\"aiv-definition\">direct onderscheid<span class=\"aiv-definition-text\">Indien een persoon op een andere wijze wordt behandeld dan een ander in een vergelijkbare situatie wordt, is of zou worden behandeld, op grond van godsdienst, levensovertuiging, politieke gezindheid, ras, geslacht, nationaliteit, hetero- of homoseksuele gerichtheid or burgerlijke staat.</span></span> op bepaalde gronden"
+                      "value": "Verbod van direct onderscheid op bepaalde gronden"
                     },
                     {
-                      "value": "Verbod van <span class=\"aiv-definition\">indirect onderscheid<span class=\"aiv-definition-text\">Indien een ogenschijnlijk neutrale bepaling, maatstaf of handelwijze personen met een bepaalde godsdienst, levensovertuiging, politieke gezindheid, ras, geslacht, nationaliteit, hetero- of homoseksuele gerichtheid of burgerlijke staat in vergelijking met andere personen bijzonder treft.</span></span> op bepaalde gronden"
+                      "value": "Verbod van indirect onderscheid op bepaalde gronden"
                     },
                     {
                       "value": "Verbod van discriminatoir gemotiveerd handelen"
@@ -1052,7 +1092,7 @@
                       "value": "Recht op redelijke accommodatie / positieve actie"
                     },
                     {
-                      "value": "Verbod van <span class=\"aiv-definition\">profilering<span class=\"aiv-definition-text\">Elke vorm van geautomatiseerde verwerking van persoonsgegevens waarbij aan de hand van persoonsgegevens bepaalde persoonlijke aspecten van een natuurlijke persoon worden geëvalueerd, met name met de bedoeling zijn beroepsprestaties, economische situatie, gezondheid, persoonlijke voorkeuren, interesses, betrouwbaarheid, gedrag, locatie of verplaatsingen te analyseren of te voorspellen. Het gaat om een verwerking door een individu met gebruikmaking van diens persoonsgegevens in te delen in een categorie (profiel), vaak in verband met aan dat profiel toegedichte risico's.</span></span>"
+                      "value": "Verbod van profilering"
                     },
                     {
                       "value": "Verbod van segregatie"
@@ -1087,24 +1127,156 @@
                   "repeatable": false
                 }
               ]
-            },
-            {
-              "task": "Op welke (aspecten van) grondrechten zal het algoritme realistisch gezien écht impact hebben (negatief of positief)?",
-              "id": "4.1.2",
-              "type": [
-                "open_text"
-              ],
-              "repeatable": false,
-              "references": {
-                "IAMA": [
-                  {
-                    "id": "5.A.1",
-                    "type": "pre-view"
-                  }
-                ]
-              }
             }
           ]
+        },
+        {
+          "task": "Beschermde grondrechten",
+          "id": "4.1.2",
+          "type": [
+            "task_group"
+          ],
+          "repeatable": false,
+          "tasks": [
+            {
+              "task": "Welke grondrechten en aspecten van grondrechten kunnen potentieel door het algoritme worden beschermd (positieve impact)?",
+              "description": "Zie de Grondrechtenclusters in het <a href=\"https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes\" target=\"_blank\">IAMA-toelichtingsdocument</a> voor een overzicht van grondrechten en aspecten van grondrechten.",
+              "id": "4.1.2.0",
+              "type": [
+                "task_group"
+              ],
+              "is_official_id": false,
+              "repeatable": false,
+              "tasks": [
+                {
+                  "task": "Selecteer de toepasselijke grondrechten",
+                  "id": "4.1.2.2",
+                  "is_official_id": false,
+                  "type": [
+                    "multiselect_option"
+                  ],
+                  "repeatable": false,
+                  "options": [
+                    {
+                      "value": "Recht op persoonlijke identiteit / persoonlijkheidsrechten / persoonlijke autonomie"
+                    },
+                    {
+                      "value": "Recht op sociale identiteit / relationele privacyrechten / relationele autonomie"
+                    },
+                    {
+                      "value": "Recht op lichamelijke en geestelijke integriteit"
+                    },
+                    {
+                      "value": "Recht op persoonsgegevensbescherming / informationele privacyrechten"
+                    },
+                    {
+                      "value": "Communicatierechten"
+                    },
+                    {
+                      "value": "Ruimtelijke privacyrechten"
+                    },
+                    {
+                      "value": "Verbod op cameratoezicht / eigendomsgebonden privacyrechten"
+                    },
+                    {
+                      "value": "Reputatierechten"
+                    },
+                    {
+                      "value": "Recht op een gezonde / duurzame leefomgeving"
+                    },
+                    {
+                      "value": "Sociale en economische grondrechten"
+                    },
+                    {
+                      "value": "Uitingsvrijheid"
+                    },
+                    {
+                      "value": "Vrijheid om informatie te ontvangen"
+                    },
+                    {
+                      "value": "Godsdienstvrijheid"
+                    },
+                    {
+                      "value": "Demonstratievrijheid"
+                    },
+                    {
+                      "value": "Verenigingsvrijheid"
+                    },
+                    {
+                      "value": "Politieke rechten / vrijheden"
+                    },
+                    {
+                      "value": "Recht op gelijkheid voor de wet"
+                    },
+                    {
+                      "value": "Verbod van direct onderscheid op bepaalde gronden"
+                    },
+                    {
+                      "value": "Verbod van indirect onderscheid op bepaalde gronden"
+                    },
+                    {
+                      "value": "Verbod van discriminatoir gemotiveerd handelen"
+                    },
+                    {
+                      "value": "Recht op materieel onderscheid / maatwerk"
+                    },
+                    {
+                      "value": "Recht op redelijke accommodatie / positieve actie"
+                    },
+                    {
+                      "value": "Verbod van profilering"
+                    },
+                    {
+                      "value": "Verbod van segregatie"
+                    },
+                    {
+                      "value": "Recht op behoorlijk bestuur (precontentieuze fase)"
+                    },
+                    {
+                      "value": "Recht op een effectief rechtsmiddel en toegang tot de rechter (contentieuze fase)"
+                    },
+                    {
+                      "value": "Recht op een onafhankelijke en onpartijdige rechter"
+                    },
+                    {
+                      "value": "Recht op beoordeling binnen redelijke termijn"
+                    },
+                    {
+                      "value": "Recht op een eerlijk proces: algemeen"
+                    },
+                    {
+                      "value": "Strafrechtelijk legaliteitsvereiste (geen straf zonder wet)"
+                    }
+                  ]
+                },
+                {
+                  "task": "Toelichting",
+                  "id": "4.1.2.3",
+                  "is_official_id": false,
+                  "type": [
+                    "open_text"
+                  ],
+                  "repeatable": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "task": "Op welke (aspecten van) grondrechten zal het algoritme realistisch gezien écht impact hebben (negatief of positief)?",
+          "id": "4.1.3",
+          "type": [
+            "open_text"
+          ],
+          "repeatable": false,
+          "references": {
+            "IAMA": [
+              {
+                "id": "5.A.1",
+                "type": "pre-view"
+              }
+            ]
+          }
         },
         {
           "task": "Specifieke wetgeving",

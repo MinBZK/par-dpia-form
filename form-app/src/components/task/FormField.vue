@@ -221,6 +221,23 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
+  <!-- Multi-select checkboxes in scrollable container -->
+  <div v-else-if="hasType('multiselect_option')" class="field-group rvo-margin-block-end--md">
+    <div style="max-height:16rem;overflow-y:auto;border:1px solid #b3b3b3;border-radius:4px;padding:0.25rem 0;">
+      <div class="rvo-checkbox__group">
+        <label v-for="option in task.options!" :key="safeString(option.value)"
+          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`"
+          style="padding:0.25rem 0.75rem;">
+          <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
+          <span>{{ option.value }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
   <!-- Select checkbox -->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0">
