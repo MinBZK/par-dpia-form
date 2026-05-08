@@ -39,7 +39,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
           } else if (schemaType === FormType.PRE_SCAN) {
             validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           } else if (schemaType === FormType.IAMA) {
-            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.', true))
           }
         }
 

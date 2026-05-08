@@ -2,11 +2,16 @@ import { Task } from '@/models/dpia.ts'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore } from '@/stores/tasks'
 
-export function createConclusionTask(taskName: string, signingTaskId: string, description?: string): Task {
+export function createConclusionTask(
+  taskName: string,
+  signingTaskId: string,
+  description?: string,
+  informational: boolean = false,
+): Task {
   return {
     task: taskName,
     id: signingTaskId,
-    type: ['task_group', 'signing'],
+    type: informational ? ['task_group', 'signing', 'informational'] : ['task_group', 'signing'],
     repeatable: false,
     description: description,
     tasks: [],
