@@ -898,7 +898,7 @@ tasks:
         label: Nee
       repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
-      description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren.
+      description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren. <br><br>
        Raadpleeg artikel 6 en Annex III uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
       id: "6.1.2"
       type:
@@ -917,11 +917,14 @@ tasks:
           operator: equals
           value: true
         action: show
-    - task: Kwalificeert het algoritme als een impactvol algoritme?
-      description: De <a href="https://www.digitaleoverheid.nl/document/handreiking-algoritmeregister/" target="_blank">Handreiking Algoritmeregister</a>  hanteert de volgende definitie van impactvol algoritme
-
-            'Het proces waarin het algoritme wordt gebruikt heeft directe rechtsgevolgen voor betrokkenen of draagt bij aan hoe de overheid een betrokkene of groep categoriseert of benadert, en
-            Het algoritme heeft een significant effect op de uitkomst van het proces. Raadpleeg de Handreiking Algoritmeregister voor nadere toelichting.'
+    - task: Kwalificeert het algoritme als een ander impactvol algoritme?
+      description: De <a href="https://www.digitaleoverheid.nl/document/handreiking-algoritmeregister/" target="_blank">Handreiking Algoritmeregister</a>  hanteert de volgende definitie van impactvol algoritme&#58;
+            <br><br>
+            - Het proces waarin het algoritme wordt gebruikt heeft directe rechtsgevolgen voor betrokkenen of draagt bij aan hoe de overheid een betrokkene of groep categoriseert of benadert, en
+            <br>
+            - Het algoritme heeft een significant effect op de uitkomst van het proces.
+            <br><br>
+            Raadpleeg de Handreiking Algoritmeregister voor nadere toelichting.
       id: "6.1.3"
       type:
       - radio_option
@@ -1083,11 +1086,11 @@ assessments:
     levels:
       - level: "recommended"
         expression: "criteria.hoog_risico_ai || criteria.impactvol_algoritme"
-        result: "Het uitvoeren van een IAMA is sterk aanbevolen"
+        result: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
         criteria:
           - id: "hoog_risico_ai"
             expression: "bool(answers('6.1.2'))"
-            explanation: "Het IAMA is aanbevolen om de grondrechteneffectbeoordeling uit te voeren."
+            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
           - id: "impactvol_algoritme"
             expression: "bool(answers('6.1.3'))"
-            explanation: "Het uitvoeren van een IAMA is sterk aanbevolen"
+            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
