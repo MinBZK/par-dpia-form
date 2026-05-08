@@ -40,9 +40,7 @@ function isInformational(task: FlatTask): boolean {
           disabled
             ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
             : isInformational(task)
-              ? task.id === currentRootTaskId
-                ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after rvo-progress-tracker__step--informational'
-                : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after rvo-progress-tracker__step--informational'
+              ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
               : taskStore.isRootTaskCompleted(task.id)
                 ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
                 : task.id === currentRootTaskId

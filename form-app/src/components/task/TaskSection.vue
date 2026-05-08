@@ -213,7 +213,7 @@ function shouldSkipTask(taskId: string): boolean {
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
-                :alt="source.description" />
+                :alt="source.description" style="max-width: 100%; height: auto;" />
             </template>
           </template>
         </fieldset>
