@@ -82,10 +82,15 @@ const formTypeLabel = computed(() => {
   if (taskStore.activeNamespace === 'iama') return 'IAMA'
   return 'pre-scan'
 })
+
+const formTypeArticle = computed(() => {
+  if (taskStore.activeNamespace === 'iama') return 'het'
+  return 'de'
+})
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Start de {{ formTypeLabel }}</h1>
+  <h1 class="utrecht-heading-1">Start {{ formTypeArticle }} {{ formTypeLabel }}</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
@@ -110,7 +115,7 @@ const formTypeLabel = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met de ${formTypeLabel}`" :disabled="isProcessing"
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`" :disabled="isProcessing"
       @click="startDpia" />
   </div>
 
