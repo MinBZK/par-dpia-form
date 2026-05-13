@@ -75,7 +75,7 @@
         {
           "task": "Deel 1 – Inhoud",
           "id": "1.0.0",
-          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Aanleiding en doelstelling \n  2. Publieke waarden\n  3. Wettelijke grondslag\n  4. Verantwoordelijkheden\n",
+          "description": "In dit hoofdstuk komen de volgende onderdelen aan bod:\n  1. Aanleiding en doelstelling\n  2. Publieke waarden\n  3. Wettelijke grondslag\n  4. Verantwoordelijkheden\n",
           "is_official_id": false,
           "type": [
             "task_group"
@@ -407,7 +407,6 @@
                     "radio_option"
                   ],
                   "repeatable": false,
-                  "required": true,
                   "options": [
                     {
                       "value": "zelflerend",

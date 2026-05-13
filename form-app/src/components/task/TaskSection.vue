@@ -109,6 +109,13 @@ const missingSourceDependencies = computed(() => {
       if (!sourceStatus.hasValues) {
         // Get the major section number (e.g., "4" from "4.1.1")
         const mainSectionNumber = sourceId.split('.')[0]
+
+        // Skip dependencies within the same section — the user is already here,
+        // and the conditional child is hidden until its trigger is answered.
+        // Compare on the top-level segment because root ids aren't uniform
+        // (e.g. IAMA "Deel 1" has id "1.0" while "Deel 2" has id "2").
+        if (mainSectionNumber === task.value.id.split('.')[0]) continue
+
         const mainTask = taskStore.taskById(mainSectionNumber)
         const mainTaskHeader = mainTask ? mainTask.task : mainSectionNumber
 

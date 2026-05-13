@@ -332,7 +332,6 @@ tasks:
                 type:
                   - radio_option
                 repeatable: false
-                required: true
                 options:
                   - value: "zelflerend"
                     label: "Zelflerend"
