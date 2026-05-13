@@ -153,20 +153,14 @@ const handleCheckboxInput = (event: Event) => {
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
     <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
       <span v-html="displayLabel"></span>
-      <svg v-if="task.in_fria" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-        role="img" aria-label="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
-        style="display: inline-block; vertical-align: middle; margin-left: 0.4em;">
-        <title>Dit correspondeert met een vereiste uit art. 27 van de AI Verordening</title>
-        <path d="M16 16.01V16M8 16.01V16" />
-        <path d="m16 16 3-8" />
-        <path d="m8 16-3-8" />
-        <path d="M7 21h10" />
-        <path d="M12 3v18" />
-        <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
-        <path d="M22 8a5 5 0 0 1-6 0" />
-        <path d="M8 8a5 5 0 0 1-6 0" />
-      </svg>
+      <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon"
+        href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
+        target="_blank" rel="noopener noreferrer"
+        title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
+        style="margin-inline-start: 0.4em; vertical-align: middle; text-decoration: none; gap: 0.25em;">
+        art. 27 AI-verordening
+        <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
+      </a>
     </label>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
