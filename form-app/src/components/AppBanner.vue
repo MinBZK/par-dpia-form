@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
+  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm" style="display: flex; align-items: center; gap: var(--rvo-space-sm);">
     <span
       class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
       role="img"
