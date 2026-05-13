@@ -983,10 +983,10 @@ tasks:
             repeatable: false
           - task: >-
               Maakt het algoritme gebruik van persoonsgegevens en is een DPIA
-              verplicht? (Gebruik hiervoor bijvoorbeeld de pre-scan DPIA.) Zo
-              ja, voer dan een DPIA uit.
+              verplicht? (Gebruik hiervoor bijvoorbeeld de <a href="#" data-form-link="PRE_SCAN">pre-scan DPIA</a>.) Zo
+              ja, voer dan een <a href="#" data-form-link="DPIA">DPIA</a> uit.
             description: >-
-              Zo ja, voer dan een DPIA uit en maak bij het invullen daarvan gebruik van de antwoorden op de eerdere
+              Zo ja, voer dan een <a href="#" data-form-link="DPIA">DPIA</a> uit en maak bij het invullen daarvan gebruik van de antwoorden op de eerdere
               vragen uit het IAMA.
             id: "4.2.2"
             type:

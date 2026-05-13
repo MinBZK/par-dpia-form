@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { FormType } from '@/models/dpia.ts'
 import LandingView from '@/components/LandingView.vue'
 import Form from '@/components/Form.vue'
@@ -44,6 +44,28 @@ const navigationFunctions: NavigationFunctions = {
     navigateTo(ViewState.IAMA)
   },
 }
+
+const formLinkHandlers: Record<string, () => void> = {
+  DPIA: navigationFunctions.goToDPIA,
+  PRE_SCAN: navigationFunctions.goToPreScanDPIA,
+  IAMA: navigationFunctions.goToIAMA,
+  LANDING: navigationFunctions.goToLanding,
+}
+
+const handleFormLinkClick = (event: MouseEvent) => {
+  const link = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>('a[data-form-link]')
+  if (!link) return
+
+  const target = link.dataset.formLink
+  const handler = target ? formLinkHandlers[target] : undefined
+  if (!handler) return
+
+  event.preventDefault()
+  handler()
+}
+
+onMounted(() => document.addEventListener('click', handleFormLinkClick))
+onBeforeUnmount(() => document.removeEventListener('click', handleFormLinkClick))
 </script>
 
 <template>
