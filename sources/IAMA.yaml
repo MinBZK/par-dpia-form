@@ -51,10 +51,11 @@ tasks:
           <strong>Vooraf</strong>
 
           De discussie over de verschillende vragen moet plaatsvinden in een breed samengesteld team waarin mensen met verschillende specialisaties en achtergronden zitting hebben. In het team moeten in elk geval de volgende functies betrokken worden:
-            • Projectleider
-            • Data scientist
-            • Jurist
-
+          <ul>
+            <li>Projectleider</li>
+            <li>Data scientist</li>
+            <li>Jurist</li>
+          </ul>
           Hoewel bovengenoemde functies de kern beslaan van het team, is het cruciaal dat er meerdere functies betrokken worden bij dit proces. Een interdisciplinair en breed team is het uitganspunt. Voor houvast hierbij: zie de functietabel in het <a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a>. Voor een soepel proces wordt aangeraden het IAMA in te vullen met een groep van 4-7 personen, die op locatie aanwezig zijn en het IAMA gezamenlijk bespreken onder leiding van een gespreksleider. Een jurist die uitzoekwerk kan doen op het gebied van grondrechten is voor deel 4 onmisbaar.
 
           Voor het invullen van het IAMA, het ophalen van de benodigde informatie en reflectie op het waarom en hoe van de inzet van het algoritme, is tijd nodig. Wees op tijd met het inplannen van de sessies voor het IAMA en doe dit niet vlak voor een opleverdeadline. Het IAMA is geen afvinklijstje, maar een instrument voor dialoog, reflectie en besluitvorming.
@@ -97,10 +98,12 @@ tasks:
         id: "1.0.0"
         description: |
           In dit hoofdstuk komen de volgende onderdelen aan bod:
-            1. Aanleiding en doelstelling
-            2. Publieke waarden
-            3. Wettelijke grondslag
-            4. Verantwoordelijkheden
+          <ol>
+            <li>Aanleiding en doelstelling</li>
+            <li>Publieke waarden</li>
+            <li>Wettelijke grondslag</li>
+            <li>Verantwoordelijkheden</li>
+          </ol>
         is_official_id: false
         type:
           - task_group
@@ -288,12 +291,11 @@ tasks:
   - task: Deel 2 – Wat?
     description: |
       In deel 2 wordt gekeken naar de gebruikte algoritmes en data: wat voor algoritme wordt er gebruikt? Hoe komt het tot stand? En is die toepassing eigenlijk wel goed genoeg? Voordat er gestart wordt met de vragen, worden drie verduidelijkingspunten uitgelicht:
-
-      • Het IAMA spreekt van algoritmes, maar in de praktijk wordt ook over modellen gesproken. Een algoritme is een set van regels en instructies die een computer volgt om een taak uit te voeren. Dit kan een simpele set instructies zijn, maar ook gecompliceerd. Statistische modellen of machine learning modellen worden getraind op data. Modellen zijn ook algoritmes. In de vragen hier wordt de term 'algoritme' gebruikt waar het beide kan betreffen. Alleen bij vragen die uitsluitend gaan over zelflerende algoritmes wordt gesproken van een 'model'. Zie Definities in het IAMA-Toelichtingsdocument voor een verheldering.
-
-      • In sommige toepassingen worden meerdere algoritmes gecombineerd. Doet u bijvoorbeeld een risicoscreening met meerdere indicatoren, dan kan het zo zijn dat bepaalde indicatoren door een losstaand algoritme tot stand komen. De vragen in deel 2 zijn geformuleerd om een dergelijk geval per algoritme los te bespreken. Wel wordt in dat geval aangeraden om te beginnen aan het eind van de keten, omdat die laatste stap direct raakt aan de beleidsdoelstelling. (NB: Bespreek het systeem in delen 1, 3 en 4 van het IAMA alsnog in samenhang en niet per algoritme). Zie Notitie meerdere algoritmes in het IAMA-toelichtingsdocument voor verdere tips over de aanpak van deel 2.
-
-      • Gebruikt uw toepassing generatieve AI of een Large Language Model? Dit maakt de vragen soms uitdagend. Lees eerst wat er in het IAMA-toelichtingsdocument staat over generatieve AI.
+      <ul>
+        <li>Het IAMA spreekt van algoritmes, maar in de praktijk wordt ook over modellen gesproken. Een algoritme is een set van regels en instructies die een computer volgt om een taak uit te voeren. Dit kan een simpele set instructies zijn, maar ook gecompliceerd. Statistische modellen of machine learning modellen worden getraind op data. Modellen zijn ook algoritmes. In de vragen hier wordt de term 'algoritme' gebruikt waar het beide kan betreffen. Alleen bij vragen die uitsluitend gaan over zelflerende algoritmes wordt gesproken van een 'model'. Zie Definities in het IAMA-Toelichtingsdocument voor een verheldering.</li>
+        <li>In sommige toepassingen worden meerdere algoritmes gecombineerd. Doet u bijvoorbeeld een risicoscreening met meerdere indicatoren, dan kan het zo zijn dat bepaalde indicatoren door een losstaand algoritme tot stand komen. De vragen in deel 2 zijn geformuleerd om een dergelijk geval per algoritme los te bespreken. Wel wordt in dat geval aangeraden om te beginnen aan het eind van de keten, omdat die laatste stap direct raakt aan de beleidsdoelstelling. (NB: Bespreek het systeem in delen 1, 3 en 4 van het IAMA alsnog in samenhang en niet per algoritme). Zie Notitie meerdere algoritmes in het IAMA-toelichtingsdocument voor verdere tips over de aanpak van deel 2.</li>
+        <li>Gebruikt uw toepassing generatieve AI of een Large Language Model? Dit maakt de vragen soms uitdagend. Lees eerst wat er in het IAMA-toelichtingsdocument staat over generatieve AI.</li>
+      </ul>
     id: "2"
     is_official_id: false
     type:
@@ -308,11 +310,13 @@ tasks:
         repeatable: false
         description: |
           In dit hoofdstuk komen de volgende onderdelen aan bod:
-            1. Type algoritme
-            2. Totstandkoming algoritme
-            3. Inzet algoritme
-            4. Kwaliteit en accuraatheid
-            5. Data governance en -beveiliging
+          <ol>
+            <li>Type algoritme</li>
+            <li>Totstandkoming algoritme</li>
+            <li>Inzet algoritme</li>
+            <li>Kwaliteit en accuraatheid</li>
+            <li>Data governance en -beveiliging</li>
+          </ol>
       - task: Type algoritme
         id: "2.1"
         type:
@@ -522,11 +526,13 @@ tasks:
         repeatable: false
         description: |
           In dit hoofdstuk komen de volgende onderdelen aan bod:
-            1. Gebruikscontext
-            2. De rol van de medewerker
-            3. Communicatie
-            4. Monitoring en evaluatie
-            5. Impact op betrokkenen en maatschappij
+          <ol>
+            <li>Gebruikscontext</li>
+            <li>De rol van de medewerker</li>
+            <li>Communicatie</li>
+            <li>Monitoring en evaluatie</li>
+            <li>Impact op betrokkenen en maatschappij</li>
+          </ol>
       - task: Gebruikscontext
         id: "3.1"
         type:
@@ -799,10 +805,7 @@ tasks:
           Het vierde deel van dit IAMA heeft een tweeledig doel:
 
 
-          1. Het IAMA dient als hulpmiddel om te identificeren of het in te zetten algoritme positieve of negatieve impact zal hebben op bepaalde (aspecten van) grondrechten;
-
-
-          2. Als er uiteindelijk een negatieve impact blijkt te zijn op grondrechten, dan maakt het IAMA een gestructureerde discussie mogelijk over de vraag of er redenen zijn waarom deze impact toch aanvaardbaar kan worden gevonden.
+          <ol><li>Het IAMA dient als hulpmiddel om te identificeren of het in te zetten algoritme positieve of negatieve impact zal hebben op bepaalde (aspecten van) grondrechten;</li><li>Als er uiteindelijk een negatieve impact blijkt te zijn op grondrechten, dan maakt het IAMA een gestructureerde discussie mogelijk over de vraag of er redenen zijn waarom deze impact toch aanvaardbaar kan worden gevonden.</li></ol>
 
 
           De vragen uit subonderdelen 4.1, 4.2 en 4.6 zijn in de praktijk het belangrijkste. Vraag 4.1.1 is een brainstormvraag en kan met het hele team worden beantwoord. Subonderdeel 4.2 bevat uitzoekvragen, die het nodige juridische voorwerk vereisen.
@@ -823,11 +826,13 @@ tasks:
         repeatable: false
         description: |
           In dit hoofdstuk komen de volgende onderdelen aan bod:
-            1. Toepasselijke grondrechten
-            2. Specifieke wetgeving
-            3. Ernst van de inbreuk
-            4. Doeltreffendheid/effectiviteit/geschiktheid
-            5. Noodzakelijkheid/subsidiariteit
+          <ol>
+            <li>Toepasselijke grondrechten</li>
+            <li>Specifieke wetgeving</li>
+            <li>Ernst van de inbreuk</li>
+            <li>Doeltreffendheid/effectiviteit/geschiktheid</li>
+            <li>Noodzakelijkheid/subsidiariteit</li>
+          </ol>
       - task: Aangetaste grondrechten
         id: "4.1.1"
         type:
@@ -1142,7 +1147,7 @@ tasks:
               grondrechteninbreuk die het resultaat is van het algoritme
               (vraag 4.3.3)?
             description: >-
-              • 1. de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)
+              <ol><li>de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met</li><li>de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>
             id: "4.4.2"
             type:
               - open_text
@@ -1184,7 +1189,7 @@ tasks:
             repeatable: false
           - task: "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:"
             description: >-
-              • 1. de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met<br>• 2. de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)
+              <ol><li>de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met</li><li>de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>
             id: "4.5.4"
             type:
               - open_text
