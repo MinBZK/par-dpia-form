@@ -18,6 +18,8 @@ const taskStore = useTaskStore()
 const introText = computed(() => {
   if (taskStore.activeNamespace === 'dpia') {
     return "Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA. De rapportage voldoet aan de eisen uit de AVG en het model DPIA Rijksdienst, en is geschikt voor verwerking in het verwerkingsregister.";
+  } else if (taskStore.activeNamespace === 'iama') {
+    return 'Deze tool begeleidt je stap voor stap bij het uitvoeren van een IAMA. Het Impact Assessment Mensenrechten en Algoritmes helpt bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden.';
   } else {
     return 'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst die helpt bij het inschatten van risicos en geeft op basis daarvan advies over het uitvoeren van een assessment.';
   }
@@ -26,6 +28,8 @@ const introText = computed(() => {
 const uploadText = computed(() => {
   if (taskStore.activeNamespace === 'dpia') {
     return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?.';
+  } else if (taskStore.activeNamespace === 'iama') {
+    return 'Heb je al eerder een IAMA ingevuld voor dit algoritme?';
   } else {
     return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking?';
   }
@@ -60,6 +64,13 @@ const startDpia = async () => {
         const fileData = isPdf
           ? await importFromPdf(uploadedFile.value)
           : await importFromJson(uploadedFile.value)
+
+        const ns = taskStore.activeNamespace
+        const hasDataForNamespace = fileData.taskState?.[ns] && fileData.answers?.[ns]
+        if (!hasDataForNamespace) {
+          throw new Error(`Dit bestand bevat geen ${formTypeLabel.value}-gegevens.`)
+        }
+
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -87,12 +98,19 @@ const startDpia = async () => {
 }
 
 const formTypeLabel = computed(() => {
-  return taskStore.activeNamespace === 'dpia' ? 'DPIA' : 'pre-scan'
+  if (taskStore.activeNamespace === 'dpia') return 'DPIA'
+  if (taskStore.activeNamespace === 'iama') return 'IAMA'
+  return 'pre-scan'
+})
+
+const formTypeArticle = computed(() => {
+  if (taskStore.activeNamespace === 'iama') return 'het'
+  return 'de'
 })
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Start de {{ formTypeLabel }}</h1>
+  <h1 class="utrecht-heading-1">Start {{ formTypeArticle }} {{ formTypeLabel }}</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
@@ -119,7 +137,7 @@ const formTypeLabel = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met de ${formTypeLabel}`" :disabled="isProcessing"
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`" :disabled="isProcessing"
       @click="startDpia" />
   </div>
 

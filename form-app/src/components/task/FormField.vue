@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import IamaReferencePreview from '@/components/IamaReferencePreview.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
@@ -19,6 +20,17 @@ const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 const { getPreScanValueForTask } = usePreScanReferences()
+const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
+
+// In IAMA we prefix the label with the question ID unless the task is explicitly
+// marked with is_official_id: false (e.g. section headers, actiepunten groups).
+const displayLabel = computed(() => {
+  if (!props.label) return props.label
+  if (isIama.value && props.task.is_official_id !== false) {
+    return `${props.task.id} ${props.label}`
+  }
+  return props.label
+})
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -73,6 +85,8 @@ const currentValue = computed(() => {
       } else {
         return props.task.defaultValue
       }
+    } else if (typeof props.task.defaultValue === 'string') {
+      return props.task.defaultValue
     }
   }
 
@@ -137,11 +151,24 @@ const handleCheckboxInput = (event: Event) => {
 
 <template>
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label"></label>
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
+      <span v-html="displayLabel"></span>
+      <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon"
+        href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
+        target="_blank" rel="noopener noreferrer"
+        title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
+        style="margin-inline-start: 0.4em; vertical-align: middle; text-decoration: none; gap: 0.25em;">
+        art. 27 AI-verordening
+        <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
+      </a>
+    </label>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
   </div>
+
+  <!-- IAMA suggestion preview (only when source Deel is not yet completed) -->
+  <IamaReferencePreview v-if="isIama" :task="task" />
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
@@ -188,9 +215,24 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
+  <!-- Multi-select checkboxes in scrollable container -->
+  <div v-else-if="hasType('multiselect_option')" class="field-group rvo-margin-block-end--md">
+    <div style="max-height:16rem;overflow-y:auto;border:1px solid #b3b3b3;border-radius:4px;padding:0.25rem 0;">
+      <div class="rvo-checkbox__group">
+        <label v-for="option in task.options!" :key="safeString(option.value)"
+          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`"
+          style="padding:0.25rem 0.75rem;">
+          <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
+          <span>{{ option.value }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
   <!-- Select checkbox -->
-  <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
-  refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0">
       <div class="rvo-checkbox__group">
@@ -225,8 +267,6 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
   </div>
-
-
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">

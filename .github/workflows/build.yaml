@@ -42,9 +42,16 @@ jobs:
             --output-json form-app/src/assets/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
 
+          python script/run_all.py \
+            --schema schemas/formSchema.json \
+            --source sources/IAMA.yaml \
+            --begrippen-yaml sources/begrippenkader-iama.yaml \
+            --output-json form-app/src/assets/IAMA.json \
+            --output-md docs/questions/questions_IAMA.md
+
           # Verify generated files
           echo "Verifying generated JSON files..."
-          if [ ! -f form-app/src/assets/PreScanDPIA.json ] || [ ! -f form-app/src/assets/DPIA.json ]; then
+          if [ ! -f form-app/src/assets/PreScanDPIA.json ] || [ ! -f form-app/src/assets/DPIA.json ] || [ ! -f form-app/src/assets/IAMA.json ]; then
             echo "::error::One or more JSON files were not generated"
             exit 1
           fi

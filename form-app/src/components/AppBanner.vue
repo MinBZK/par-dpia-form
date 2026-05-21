@@ -1,7 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
+  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm" style="display: flex; align-items: center; gap: var(--rvo-space-sm);">
     <span
       class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
       role="img"
@@ -12,7 +12,7 @@
         <a class="rvo-link" id="version-link" href="https://github.com/MinBZK/par-dpia-form"
           >Bètaversie</a
         >
-        De invulhulp DPIA is in ontwikkeling.
+        De invulhulp voor pre-scan, DPIA en IAMA is in ontwikkeling.
       </div>
     </div>
   </div>

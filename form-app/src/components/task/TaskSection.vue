@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ActionPointsOverview from '@/components/ActionPointsOverview.vue'
 import TaskGroup from '@/components/task/TaskGroup.vue'
 import TaskItem from '@/components/task/TaskItem.vue'
 import UiButton from '@/components/ui/UiButton.vue'
@@ -10,6 +11,7 @@ import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '@/stores/tasks'
 import { computed } from 'vue'
 import risicoMatrixImage from '@/assets/images/risico_matrix.png'
+import stroomschemaIamaV2Image from '@/assets/images/stroomschema_iama_v2.png'
 
 const props = defineProps<{
   taskId: string
@@ -17,7 +19,7 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 
-const { canUserCreateInstances, hasSourceTaskValues, getDependencySourceTaskId } = useTaskDependencies()
+const { shouldShowTask, canUserCreateInstances, hasSourceTaskValues, getDependencySourceTaskId } = useTaskDependencies()
 
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 
@@ -25,7 +27,43 @@ const shouldShowChildren = computed(
   () => taskIsOfTaskType(task.value, 'task_group') && (task.value.childrenIds?.length || 0) > 0,
 )
 
+const isInfoOnlyChild = (childId: string): boolean => {
+  const child = taskStore.taskById(childId)
+  return taskIsOfTaskType(child, 'task_group') && child.childrenIds.length === 0 && !!child.description
+}
+
+type ChildGroup =
+  | { type: 'accordion'; ids: string[] }
+  | { type: 'single'; id: string }
+
+const childGroups = computed<ChildGroup[]>(() => {
+  const ids = task.value.childrenIds || []
+  const groups: ChildGroup[] = []
+  let accordionRun: string[] = []
+  for (const childId of ids) {
+    if (shouldSkipTask(childId)) continue
+    if (isInfoOnlyChild(childId)) {
+      accordionRun.push(childId)
+    } else {
+      if (accordionRun.length) {
+        groups.push({ type: 'accordion', ids: accordionRun })
+        accordionRun = []
+      }
+      groups.push({ type: 'single', id: childId })
+    }
+  }
+  if (accordionRun.length) groups.push({ type: 'accordion', ids: accordionRun })
+  return groups
+})
+
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
+
+const isInformationalTask = computed(() => taskIsOfTaskType(task.value, 'informational'))
+
+const firstAccordionChildId = computed<string | null>(() => {
+  const firstAccordion = childGroups.value.find((g): g is { type: 'accordion'; ids: string[] } => g.type === 'accordion')
+  return firstAccordion?.ids[0] ?? null
+})
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
@@ -71,6 +109,11 @@ const missingSourceDependencies = computed(() => {
       if (!sourceStatus.hasValues) {
         // Get the major section number (e.g., "4" from "4.1.1")
         const mainSectionNumber = sourceId.split('.')[0]
+
+        // Skip dependencies within the same section — the user is already here,
+        // and the conditional child is hidden until its trigger is answered.
+        if (mainSectionNumber === task.value.id.split('.')[0]) continue
+
         const mainTask = taskStore.taskById(mainSectionNumber)
         const mainTaskHeader = mainTask ? mainTask.task : mainSectionNumber
 
@@ -90,8 +133,13 @@ const missingSourceDependencies = computed(() => {
   )
 })
 
+const actiepuntenTaskIds = ['1.actiepunten', '2.actiepunten', '3.actiepunten', '4.actiepunten']
+
+const isActiepuntenOverviewChild = (childId: string): boolean => childId === '5.A'
+
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
+  'stroomschema_iama_v2.png': stroomschemaIamaV2Image,
 }
 
 // Helper function with proper type safety
@@ -177,7 +225,7 @@ function shouldSkipTask(taskId: string): boolean {
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
-                :alt="source.description" />
+                :alt="source.description" style="max-width: 100%; height: auto;" />
             </template>
           </template>
         </fieldset>
@@ -187,30 +235,66 @@ function shouldSkipTask(taskId: string): boolean {
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
-        <template v-for="childId in task.childrenIds" :key="childId">
-          <template v-if="!shouldSkipTask(childId)">
+        <template v-for="(group, groupIdx) in childGroups" :key="groupIdx">
+          <!-- Run of consecutive info-only children: render as a single accordion group -->
+          <div v-if="group.type === 'accordion'" class="rvo-accordion">
+            <details v-for="childId in group.ids" :key="childId" class="rvo-accordion__item"
+              :open="isInformationalTask && childId === firstAccordionChildId">
+              <summary class="rvo-accordion__item-summary">
+                <div class="rvo-accordion__item-icon">
+                  <span
+                    class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
+                    role="img" aria-label="Uitklappen"></span>
+                  <span
+                    class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
+                    role="img" aria-label="Inklappen"></span>
+                </div>
+                <div class="rvo-accordion__item-title-container">
+                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+                    {{ taskStore.taskById(childId).task }}
+                  </h3>
+                </div>
+              </summary>
+              <div class="rvo-accordion__content">
+                <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+                <template v-if="taskStore.taskById(childId).sources">
+                  <template v-for="source in taskStore.taskById(childId).sources" :key="source.source">
+                    <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                      :alt="source.description" style="max-width: 100%; height: auto;" />
+                  </template>
+                </template>
+              </div>
+            </details>
+          </div>
 
-            <template v-for="instanceId in taskStore.getInstanceIdsForTask(childId)" :key="instanceId">
-              <!--Single task (no children): render the task itself -->
-              <TaskItem v-if="!taskStore.taskById(childId).childrenIds.length" :taskId="childId"
-                :instanceId="instanceId" :showDescription="true" />
+          <template v-else>
+            <template v-for="instanceId in taskStore.getInstanceIdsForTask(group.id)" :key="instanceId">
+              <template v-if="shouldShowTask(group.id, instanceId)">
+                <!--Single task (no children): render the task itself -->
+                <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
+                  :instanceId="instanceId" :showDescription="true" />
 
-              <!-- Nested task group (has children): render children as TaskGroup -->
-              <TaskGroup v-else :taskId="childId" :instanceId="instanceId" />
+                <!-- Nested task group (has children): render children as TaskGroup -->
+                <template v-else>
+                  <TaskGroup :taskId="group.id" :instanceId="instanceId" />
+                  <ActionPointsOverview v-if="isActiepuntenOverviewChild(group.id)"
+                    :actiepuntenTaskIds="actiepuntenTaskIds" />
+                </template>
+              </template>
             </template>
 
-            <div v-if="isRepeatable(childId) && canUserCreateInstances(childId)"
+            <div v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)"
               class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
               <UiButton variant="tertiary" icon="plus" :label="`Voeg extra
-            ${getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                @click="handleAddRepeatableTask(childId)" />
+            ${getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
+                @click="handleAddRepeatableTask(group.id)" />
             </div>
           </template>
         </template>
       </div>
 
       <!-- Single task: render the task itself -->
-      <TaskItem v-else :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
+      <TaskItem v-else-if="!taskIsOfTaskType(task, 'task_group')" :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
     </div>
   </div>
 </template>

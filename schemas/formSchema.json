@@ -26,6 +26,10 @@
                     "type": "boolean",
                     "description": "Optional to declare if the ID matches with the Rapportagemodel DPIA"
                 },
+                "in_fria": {
+                    "type": "boolean",
+                    "description": "Marks a question as shared with the FRIA (AI-Act). Renders a scale icon next to the label."
+                },
                 "type": {
                     "type": "array",
                     "items": {
@@ -34,9 +38,11 @@
                             "text_input",
                             "open_text",
                             "select_option",
+                            "multiselect_option",
                             "checkbox_option",
                             "radio_option",
                             "task_group",
+                            "informational",
                             "date"
                         ]
                     }

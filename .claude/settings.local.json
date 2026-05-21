@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr *)",
+      "Bash(/opt/homebrew/bin/gh pr *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npm uninstall *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git ls-tree *)",
+      "Bash(grep -vE \"^\\\\-\\(import SaveForm|import \\\\{ exportToJson|const isSaveModalOpen|// Recursively|function countRequired|if \\\\\\(task\\\\.required|let count|const answer|if \\\\\\(answer|count\\\\+\\\\+|return count|^[-+]$|for \\\\\\(const child|const childInstanceIds|const childTask|^\\\\-[+-]?\\\\s*}|if \\\\\\(shouldShowTask|count \\\\+= countRequired|const hasRequiredUnanswered|const instanceIds|if \\\\\\(instanceIds|return countRequired|} catch|return false|const openSaveModal|const closeSaveModal|isSaveModalOpen|const handleSaveForm|console\\\\.log|// This will|await exportToJson|//TODO|console\\\\.error|const isInformationalStep|return taskIsOfTaskType.*informational|<SaveForm\\)\")",
+      "Bash(git rm *)"
+    ]
+  }
+}

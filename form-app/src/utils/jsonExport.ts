@@ -31,9 +31,10 @@ export async function importFromJson(file: File): Promise<DPIASnapshot> {
 
         const hasDPIA = data.taskState[FormType.DPIA] && data.answers[FormType.DPIA]
         const hasPreScan = data.taskState[FormType.PRE_SCAN] && data.answers[FormType.PRE_SCAN]
+        const hasIAMA = data.taskState[FormType.IAMA] && data.answers[FormType.IAMA]
 
-        if (!hasDPIA && !hasPreScan) {
-          reject(new Error('Het bestand bevat geen geldige DPIA- of pre-scan-gegevens.'))
+        if (!hasDPIA && !hasPreScan && !hasIAMA) {
+          reject(new Error('Het bestand bevat geen geldige DPIA-, pre-scan- of IAMA-gegevens.'))
           return
         }
 

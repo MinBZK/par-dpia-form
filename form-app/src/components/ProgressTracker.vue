@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTaskNavigation } from '@/composables/useTaskNavigation'
-import { type FlatTask, useTaskStore } from '@/stores/tasks'
+import { type FlatTask, useTaskStore, taskIsOfTaskType } from '@/stores/tasks'
 
 defineProps<{
   disabled?: boolean
@@ -11,11 +11,17 @@ const taskStore = useTaskStore()
 const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
 
 function displayTitle(task: FlatTask): string {
-  const shouldSkipIdPrefix = !task.is_official_id ||  (task.type && task.type.includes('signing'))
+  const shouldSkipIdPrefix =
+    !task.is_official_id ||
+    (task.type && (task.type.includes('signing') || task.type.includes('informational')))
 
   return shouldSkipIdPrefix
     ? task.task
     : `${task.id}. ${task.task}`;
+}
+
+function isInformational(task: FlatTask): boolean {
+  return taskIsOfTaskType(task, 'informational')
 }
 </script>
 
@@ -31,13 +37,15 @@ function displayTitle(task: FlatTask): string {
         :class="[
           'rvo-progress-tracker__step',
           'rvo-progress-tracker__step--md',
-          disabled
-            ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
-            : taskStore.isRootTaskCompleted(task.id)
-              ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
-              : task.id === currentRootTaskId
-                ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after'
-                : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
+          isInformational(task)
+            ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
+            : disabled
+              ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
+              : taskStore.isRootTaskCompleted(task.id)
+                ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
+                : task.id === currentRootTaskId
+                  ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after'
+                  : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
           'rvo-progress-tracker__step--straight',
           'rvo-image-bg-progress-tracker-line-straight--before',
         ]"

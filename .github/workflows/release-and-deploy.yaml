@@ -54,6 +54,13 @@ jobs:
             --output-json form-app/src/assets/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
 
+          python script/run_all.py \
+            --schema schemas/formSchema.json \
+            --source sources/IAMA.yaml \
+            --begrippen-yaml sources/begrippenkader-iama.yaml \
+            --output-json form-app/src/assets/IAMA.json \
+            --output-md docs/questions/questions_IAMA.md
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
