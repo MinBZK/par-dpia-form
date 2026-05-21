@@ -12,6 +12,7 @@ node_modules
 dist-ssr
 coverage
 *.local
+.claude/settings.local.json
 reports/
 
 /cypress/videos/
