@@ -180,7 +180,7 @@ const isSigningTask = computed(() => {
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
             FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
-          <UiButton variant="tertiary" label="Exporteer als PDF" icon="document-blanco" size="xs"
+          <UiButton v-if="!isLastTask" variant="tertiary" label="Exporteer als PDF" icon="document-blanco" size="xs"
             @click="handleExportPdf" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
