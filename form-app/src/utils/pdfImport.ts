@@ -32,14 +32,14 @@ export async function importFromPdf(file: File): Promise<DPIASnapshot> {
 
   const infoRef = pdfDoc.context.trailerInfo.Info
   if (!infoRef) {
-    throw new Error('Dit PDF-bestand bevat geen DPIA-gegevens.')
+    throw new Error('Dit PDF-bestand bevat geen herkenbare assessment-gegevens.')
   }
 
   const infoDict = pdfDoc.context.lookup(infoRef)
 
   const dpiaDataRaw = extractInfoStringValue(infoDict, 'DPIAData')
   if (!dpiaDataRaw) {
-    throw new Error('Dit PDF-bestand bevat geen DPIA-gegevens.')
+    throw new Error('Dit PDF-bestand bevat geen herkenbare assessment-gegevens.')
   }
 
   let data: DPIASnapshot
