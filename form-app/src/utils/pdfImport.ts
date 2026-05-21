@@ -1,4 +1,4 @@
-import { PDFDocument, PDFName, PDFString, PDFHexString } from 'pdf-lib'
+import { PDFDocument, PDFName, PDFString, PDFHexString } from '@pdfme/pdf-lib'
 import { type DPIASnapshot } from '@/models/dpiaSnapshot'
 import { FormType } from '@/models/dpia.ts'
 
