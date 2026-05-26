@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
-import SaveForm from '@/components/SaveForm.vue'
+import ExportPdfInfo from '@/components/ExportPdfInfo.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import NavHeader from '@/components/NavHeader.vue'
@@ -16,7 +16,6 @@ import { type NavigationFunctions } from '@/models/navigation'
 import { useAnswerStore } from '@/stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '@/stores/tasks'
 import { useCalculationStore } from '@/stores/calculations'
-import { exportToJson } from '@/utils/jsonExport'
 import { exportToPdf } from '@/utils/pdfExport'
 import * as t from 'io-ts'
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
@@ -30,7 +29,6 @@ const props = defineProps<{
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
-const isSaveModalOpen = ref(false)
 const formStarted = ref(false)
 
 // Store setup
@@ -132,23 +130,6 @@ const hasRequiredUnanswered = computed(() => {
   }
 })
 
-const openSaveModal = () => {
-  isSaveModalOpen.value = true
-}
-const closeSaveModal = () => {
-  isSaveModalOpen.value = false
-}
-const handleSaveForm = async (filename: string) => {
-  console.log('Saving form with filename:', filename)
-  try {
-    // This will now export only the active namespace data
-    await exportToJson(taskStore, answerStore, filename)
-  } catch (error) {
-    //TODO: Make user friendly error
-    console.error('Failed to save form data:', error)
-  }
-}
-
 const handleExportPdf = async () => {
   try {
     await exportToPdf(taskStore, answerStore, calculationStore)
@@ -239,8 +220,8 @@ const isInformationalStep = computed(() => {
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
             FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
-          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
-            @click="openSaveModal" />
+          <UiButton v-if="!isLastTask" variant="tertiary" label="Exporteer als PDF" icon="document-blanco" size="xs"
+            @click="handleExportPdf" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
@@ -270,6 +251,9 @@ const isInformationalStep = computed(() => {
                 <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
               </div>
             </div>
+            <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
+              <ExportPdfInfo />
+            </div>
           </div>
         </template>
 
@@ -280,7 +264,4 @@ const isInformationalStep = computed(() => {
       </div>
     </div>
   </template>
-
-  <!-- Save Form Modal -->
-  <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
 </template>
