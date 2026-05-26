@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Banner from '@/components/AppBanner.vue'
 import ProgressTracker from '@/components/ProgressTracker.vue'
+import ExportPdfInfo from '@/components/ExportPdfInfo.vue'
 import TaskSection from '@/components/task/TaskSection.vue'
 import UiButton from '@/components/ui/UiButton.vue'
 import NavHeader from '@/components/NavHeader.vue'
@@ -249,6 +250,9 @@ const isInformationalStep = computed(() => {
                 </div>
                 <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
               </div>
+            </div>
+            <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
+              <ExportPdfInfo />
             </div>
           </div>
         </template>
