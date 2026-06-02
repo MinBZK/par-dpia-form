@@ -66,10 +66,15 @@ const startDpia = async () => {
           ? await importFromPdf(uploadedFile.value)
           : await importFromJson(uploadedFile.value)
 
+        // DPIA and pre-scan DPIA accept each other's file (so a pre-scan can seed the DPIA
+        // prefills, and vice versa); the IAMA only accepts its own file.
         const ns = taskStore.activeNamespace
-        const hasDataForNamespace = fileData.taskState?.[ns] && fileData.answers?.[ns]
-        if (!hasDataForNamespace) {
-          throw new Error(`Dit bestand bevat geen ${formTypeLabel.value}-gegevens.`)
+        const fileNs = fileData.metadata.activeNamespace
+        const dpiaFamily = ['dpia', 'prescan']
+        const isAccepted =
+          fileNs === ns || (dpiaFamily.includes(ns) && !!fileNs && dpiaFamily.includes(fileNs))
+        if (!isAccepted) {
+          throw new Error(`Dit bestand bevat geen ${acceptedFilesLabel.value}gegevens.`)
         }
 
         // Start with loaded state
@@ -102,6 +107,13 @@ const formTypeLabel = computed(() => {
   if (taskStore.activeNamespace === 'dpia') return 'DPIA'
   if (taskStore.activeNamespace === 'iama') return 'IAMA'
   return 'pre-scan'
+})
+
+// Which file types this form accepts (DPIA and pre-scan accept each other's file).
+const acceptedFilesLabel = computed(() => {
+  if (taskStore.activeNamespace === 'dpia') return 'DPIA- of pre-scan-'
+  if (taskStore.activeNamespace === 'iama') return 'IAMA-'
+  return 'pre-scan- of DPIA-'
 })
 
 const formTypeArticle = computed(() => {
