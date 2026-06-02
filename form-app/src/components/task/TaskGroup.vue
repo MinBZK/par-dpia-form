@@ -33,20 +33,6 @@ const instanceLabel = computed(() => {
   return baseLabel
 })
 
-const childTasksWithChildren = computed(() => {
-  return task.value.childrenIds.filter((childId) => {
-    const childTask = taskStore.taskById(childId)
-    return childTask.childrenIds && childTask.childrenIds.length > 0
-  })
-})
-
-const childTasksWithoutChildren = computed(() => {
-  return task.value.childrenIds.filter((childId) => {
-    const childTask = taskStore.taskById(childId)
-    return !childTask.childrenIds || childTask.childrenIds.length === 0
-  })
-})
-
 // True when this task_group is itself nested inside another task_group.
 // Used to render the legend with a label-sized font instead of a heading font.
 const isNestedGroup = computed(() => {

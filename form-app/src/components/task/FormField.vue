@@ -44,7 +44,7 @@ const dependencyTaskName = computed(() => {
   try {
     const sourceTask = taskStore.taskById(sourceId);
     return sourceTask.task;
-  } catch (error) {
+  } catch {
     return '';
   }
 });
@@ -195,7 +195,7 @@ const handleCheckboxInput = (event: Event) => {
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
             class="utrecht-radio-button" @change="handleRadioInput" />
-          <span v-html="option.label" </span>
+          <span v-html="option.label"></span>
         </label>
       </div>
     </div>
