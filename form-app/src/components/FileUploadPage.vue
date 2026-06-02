@@ -129,11 +129,12 @@ const formTypeArticle = computed(() => {
             </label>
           </div>
           <input id="file-upload-field" ref="fileInputRef" type="file" class="rvo-file-input" accept=".json,.pdf" @change="handleFileSelect" />
+          <UiButton v-if="uploadedFile" variant="tertiary" label="Bestand verwijderen" icon="verwijderen" size="xs"
+            @click="clearFile" />
           <div class="rvo-layout-margin-vertical--md">
             <ExportPdfInfo />
           </div>
-          <UiButton v-if="uploadedFile" variant="tertiary" label="Bestand verwijderen" icon="verwijderen" size="xs"
-            @click="clearFile" />
+
         </div>
       </div>
     </fieldset>

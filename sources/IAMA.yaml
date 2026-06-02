@@ -138,7 +138,7 @@ tasks:
       - task: Publieke waarden
         description: >-
           Noteer maximaal 6 publieke waarden per vraag.
-          Bij de beantwoording van deze vragen kan het CODIO-waardenkader in de toelichting als houvast genomen worden.
+          Bij de beantwoording van deze vragen kan het <a href="https://open.overheid.nl/documenten/c0531983-3f2f-44c2-b9b7-19dfe069a5fb/file" target="_blank">CODIO-waardenkader</a> in de toelichting als houvast genomen worden.
         id: "1.2"
         type:
           - task_group
@@ -1142,12 +1142,10 @@ tasks:
                   type: pre-view
           - task: >-
               Is het redelijk om het algoritme in te zetten als rekening wordt
-              gehouden met: (1) de verwachte doeltreffendheid/effectiviteit/
-              geschiktheid, in samenhang met (2) de ernst van de
+              gehouden met: <ol><li> de verwachte doeltreffendheid/effectiviteit/
+              geschiktheid, in samenhang met </li><li> de ernst van de
               grondrechteninbreuk die het resultaat is van het algoritme
-              (vraag 4.3.3)?
-            description: >-
-              <ol><li>de verwachte doeltreffendheid/effectiviteit/geschiktheid, in samenhang met</li><li>de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>
+              (vraag 4.3.3)</li></ol>
             id: "4.4.2"
             type:
               - open_text

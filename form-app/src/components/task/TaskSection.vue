@@ -135,7 +135,12 @@ const missingSourceDependencies = computed(() => {
 
 const actiepuntenTaskIds = ['1.actiepunten', '2.actiepunten', '3.actiepunten', '4.actiepunten']
 
-const isActiepuntenOverviewChild = (childId: string): boolean => childId === '5.A'
+// De actiepunten-samenvatting hoort helemaal onderaan deel 5. We tonen 'm na de
+// volledige lus van subsecties (zie template), zodat hij onder 5.A/5.B/5.C komt
+// i.p.v. er middenin. Dit moet sectie-breed gebeuren (niet na een specifiek kind),
+// want 5.B/5.C zijn leaf-taken en zouden de overview anders niet renderen.
+// Gegate op deel 5 doordat alleen die sectie '5.A' als kind heeft.
+const showActiepuntenOverview = computed(() => (task.value.childrenIds || []).includes('5.A'))
 
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
@@ -277,8 +282,6 @@ function shouldSkipTask(taskId: string): boolean {
                 <!-- Nested task group (has children): render children as TaskGroup -->
                 <template v-else>
                   <TaskGroup :taskId="group.id" :instanceId="instanceId" />
-                  <ActionPointsOverview v-if="isActiepuntenOverviewChild(group.id)"
-                    :actiepuntenTaskIds="actiepuntenTaskIds" />
                 </template>
               </template>
             </template>
@@ -291,6 +294,9 @@ function shouldSkipTask(taskId: string): boolean {
             </div>
           </template>
         </template>
+
+        <!-- Actiepunten-samenvatting: altijd onderaan deel 5, na alle subsecties -->
+        <ActionPointsOverview v-if="showActiepuntenOverview" :actiepuntenTaskIds="actiepuntenTaskIds" />
       </div>
 
       <!-- Single task: render the task itself -->
