@@ -1,0 +1,28 @@
+# Versiebeheer
+.git
+.gitignore
+
+# Node modules (worden in de container opnieuw geïnstalleerd)
+node_modules
+form-app/node_modules
+
+# Build output
+form-app/dist
+
+# Ontwikkelomgeving
+.claude
+.env*
+*.local
+
+# Python cache
+__pycache__
+*.py[cod]
+.ruff_cache
+
+# Editor
+.idea
+.vscode
+*.sw?
+
+# CI/CD
+.github

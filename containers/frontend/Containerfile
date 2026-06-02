@@ -1,0 +1,52 @@
+# Stage 1: Genereer JSON-assets vanuit YAML-bronbestanden
+FROM python:3.12-alpine AS generate
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir pyyaml jsonschema
+
+COPY schemas/ schemas/
+COPY sources/ sources/
+COPY script/ script/
+
+RUN mkdir -p form-app/src/assets && \
+    python script/run_all.py \
+      --schema schemas/formSchema.json \
+      --source sources/prescan_DPIA.yaml \
+      --begrippen-yaml sources/begrippenkader-dpia.yaml \
+      --output-json form-app/src/assets/PreScanDPIA.json && \
+    python script/run_all.py \
+      --schema schemas/formSchema.json \
+      --source sources/DPIA.yaml \
+      --begrippen-yaml sources/begrippenkader-dpia.yaml \
+      --output-json form-app/src/assets/DPIA.json && \
+    python script/run_all.py \
+      --schema schemas/formSchema.json \
+      --source sources/IAMA.yaml \
+      --begrippen-yaml sources/begrippenkader-iama.yaml \
+      --output-json form-app/src/assets/IAMA.json
+
+# Stage 2: Bouw de Vue-applicatie
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Installeer dependencies apart voor betere Docker layer caching
+COPY form-app/package.json form-app/package-lock.json form-app/
+RUN cd form-app && npm ci
+
+# Kopieer de broncode
+COPY form-app/ form-app/
+
+# Overlay de gegenereerde JSON-assets vanuit stage 1
+COPY --from=generate /app/form-app/src/assets/ form-app/src/assets/
+
+RUN cd form-app && npm run build
+
+# Stage 3: Serveer de statische bestanden via nginx
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim
+
+COPY --from=build /app/form-app/dist /usr/share/nginx/html
+COPY containers/frontend/default.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 8080

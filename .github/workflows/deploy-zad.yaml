@@ -1,0 +1,121 @@
+name: Deploy to ZAD
+
+# =============================================================================
+# PUBLIEKE URL — LEES DIT VOORDAT JE NAMEN AANPAST
+# =============================================================================
+# De publieke URL wordt in ZAD bepaald via de instelling "URL-formaat". Wij
+# gebruiken (zonder subdomein, want dat moet apart aangevraagd worden):
+#
+#     URL-formaat = component-deployment-project.domein
+#     domein      = rijksapp.nl
+#
+# ZAD plakt die delen met '-' aan elkaar. Resultaat:
+#
+#     https://{component}-{deployment}-{project}.rijksapp.nl
+#       ->    https://iama-invulhulp-ia-fky.rijksapp.nl
+#
+# Daarom is "iama-invulhulp" OPGESPLITST over twee velden: het koppelteken
+# ertussen is de scheiding die ZAD zelf tussen component en deployment zet.
+#
+#     component       = iama        -> 1e deel van de URL (Componentnaam in ZAD)
+#     deployment-name = invulhulp   -> 2e deel van de URL (Deployment-naam in ZAD)
+#
+# Dit kan ook niet anders: het component-veld in ZAD staat alleen kleine letters
+# en cijfers toe (max 12 tekens), dus "iama-invulhulp" past niet als één naam.
+#
+# Het derde deel ({project}) zit er onvermijdelijk tussen: ALLE URL-formaten
+# zonder subdomein bevatten 'project'. Wil je puur iama-invulhulp.rijksapp.nl,
+# dan moet je alsnog een subdomein aanvragen en het formaat 'subdomain.domein'
+# kiezen met subdomain = iama-invulhulp.
+# =============================================================================
+
+on:
+  # De 'invulhulp'-omgeving wordt gevoed vanuit de PR van branch 'add_iama'
+  # (zie de 'if'-gate bij de build-job hieronder). Andere PR's raken 'm niet.
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # ...en handmatig te starten via de Actions-tab ("Run workflow")
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  # ZAD project-id (vormt het 3e deel van de URL)
+  PROJECT_ID: ia-fky
+  # --- URL-onderdelen (zie blok bovenaan); moeten matchen met ZAD ---
+  COMPONENT: iama            # 1e URL-deel + Componentnaam in ZAD
+  DEPLOYMENT_NAME: invulhulp # 2e URL-deel + Deployment-naam in ZAD
+
+# Voorkom dat twee deploys naar dezelfde omgeving elkaar overlappen
+concurrency:
+  group: zad-deploy-invulhulp
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Alleen de PR van branch 'add_iama' deployt naar de vaste 'invulhulp'-omgeving.
+    # Pas deze branchnaam aan als je een andere branch wilt koppelen.
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'add_iama'
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
+    permissions:
+      contents: read
+      packages: write  # Nodig om de image naar GHCR te pushen
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=pr
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/frontend/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Set image reference
+        id: image-ref
+        # De deploy hieronder pint op de exacte commit-sha (immutable)
+        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write  # Nodig om de preview-URL als PR-comment te posten
+    environment:
+      # Vaste omgeving; de URL wordt door de deploy-action teruggegeven
+      name: invulhulp
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Deploy to ZAD
+        id: deploy
+        uses: RijksICTGilde/zad-actions/deploy@v3
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}  # ZAD Operations Manager API-sleutel
+          project-id: ${{ env.PROJECT_ID }}
+          # component + deployment-name vormen samen de URL-prefix "iama-invulhulp"
+          # (zie het uitleg-blok bovenaan dit bestand)
+          component: ${{ env.COMPONENT }}
+          deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          image: ${{ needs.build.outputs.image }}
+          wait-for-ready: 'true'  # Wacht op health check voordat de job slaagt
+          comment-on-pr: 'true'   # Post de preview-URL als comment op de PR
