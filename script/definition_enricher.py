@@ -335,10 +335,17 @@ def inject_terms(text, term_map, already_matched_terms=None):
     return "".join(chars)
 
 
-def process_dpia(dpia_data, term_map):
+def process_dpia(dpia_data, term_map, once_per_page=False):
     """Process the DPIA data and inject terms from the begrippenkader.
 
     Handles main structure elements and delegates to process_tasks for handling tasks.
+
+    Args:
+        dpia_data: The parsed YAML data to enrich.
+        term_map: Dictionary mapping terms to their definitions.
+        once_per_page: When True, each definition is enriched at most once per
+            page (top-level task). When False (default), every occurrence is
+            enriched.
     """
     if not dpia_data:
         return dpia_data
@@ -352,28 +359,34 @@ def process_dpia(dpia_data, term_map):
             result[key] = inject_terms(value, term_map)
         elif key == "tasks" and isinstance(value, list):
             # Process tasks with level 0
-            result[key] = process_tasks(value, term_map, level=0)
+            result[key] = process_tasks(
+                value, term_map, level=0, once_per_page=once_per_page
+            )
         else:
             result[key] = value
 
     return result
 
 
-def process_tasks(tasks, term_map, level=0, already_matched_terms=None):
+def process_tasks(
+    tasks, term_map, level=0, already_matched_terms=None, once_per_page=False
+):
     """
     Process tasks recursively based on their level:
     - At level 0 (top level): Only process description
     - At deeper levels: Process both task and description
     - Process options values only for checkbox_option type tasks
 
-    Each top-level task (deel/page) gets its own already_matched_terms set so
-    that every definition tooltip appears at most once per page.
+    When once_per_page is True, each top-level task (deel/page) gets its own
+    already_matched_terms set so that every definition tooltip appears at most
+    once per page. When False, every occurrence is enriched.
 
     Args:
         tasks: List of task dictionaries
         term_map: Dictionary mapping terms to their definitions
         level: Current nesting level of tasks (0 for top level)
         already_matched_terms: Set of term keys already matched on this page
+        once_per_page: Enrich each definition at most once per page when True
 
     Returns:
         Processed list of tasks with terms injected according to rules
@@ -387,9 +400,10 @@ def process_tasks(tasks, term_map, level=0, already_matched_terms=None):
         # Create a copy of the task to modify
         task_copy = task.copy()
 
-        # At the top level each task (deel) starts with a fresh set
+        # At the top level each task (deel) starts fresh: a set enables
+        # once-per-page enrichment, None enriches every occurrence.
         if level == 0:
-            page_matched = set()
+            page_matched = set() if once_per_page else None
         else:
             page_matched = already_matched_terms
 
@@ -467,7 +481,7 @@ def process_tasks(tasks, term_map, level=0, already_matched_terms=None):
         # Recursively process subtasks with incremented level
         if "tasks" in task_copy and isinstance(task_copy["tasks"], list):
             task_copy["tasks"] = process_tasks(
-                task_copy["tasks"], term_map, level + 1, page_matched
+                task_copy["tasks"], term_map, level + 1, page_matched, once_per_page
             )
 
         result.append(task_copy)
@@ -490,7 +504,9 @@ class DefinitionEnricher:
         """
         self.script_dir = script_dir if script_dir else Path(__file__).parent
 
-    def enrich_and_export(self, source_path, begrippen_yaml_path, output_path):
+    def enrich_and_export(
+        self, source_path, begrippen_yaml_path, output_path, once_per_page=False
+    ):
         """
         Enrich a DPIA YAML file with definitions and export as JSON.
 
@@ -498,6 +514,9 @@ class DefinitionEnricher:
             source_path: Path to the source YAML file
             begrippen_yaml_path: Path to the begrippenkader YAML file
             output_path: Path to write the enriched JSON output
+            once_per_page: When True, enrich each definition at most once per
+                page (top-level task). When False (default), enrich every
+                occurrence.
 
         Returns:
             None
@@ -535,10 +554,11 @@ class DefinitionEnricher:
 
         # Determine if it's a DPIA or PreScan based on the filename
         file_type = "PrescanDPIA" if "prescan" in str(source_path).lower() else "DPIA"
-        print(f"Processing {file_type} data...")
+        mode = "once-per-page" if once_per_page else "every occurrence"
+        print(f"Processing {file_type} data (definition mode: {mode})...")
 
         # Process the DPIA data and inject terms
-        processed_dpia = process_dpia(dpia_data, term_map)
+        processed_dpia = process_dpia(dpia_data, term_map, once_per_page)
 
         print(f"{file_type} data processed and terms injected.")
 
@@ -569,12 +589,23 @@ def main():
         "--definitions", required=True, help="Pad naar begrippenkader-dpia.yaml bestand"
     )
     parser.add_argument("--output", required=True, help="Pad naar output JSON bestand")
+    parser.add_argument(
+        "--definitions-once-per-page",
+        action="store_true",
+        help="Injecteer elke definitie maximaal één keer per pagina (deel) "
+        "in plaats van bij elke voorkomen.",
+    )
     args = parser.parse_args()
 
     try:
         # Create a DefinitionEnricher instance and use it
         enricher = DefinitionEnricher()
-        enricher.enrich_and_export(args.source, args.definitions, args.output)
+        enricher.enrich_and_export(
+            args.source,
+            args.definitions,
+            args.output,
+            once_per_page=args.definitions_once_per_page,
+        )
 
     except Exception as e:
         print(f"Er is een fout opgetreden: {str(e)}")

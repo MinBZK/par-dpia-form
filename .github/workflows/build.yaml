@@ -47,7 +47,8 @@ jobs:
             --source sources/IAMA.yaml \
             --begrippen-yaml sources/begrippenkader-iama.yaml \
             --output-json form-app/src/assets/IAMA.json \
-            --output-md docs/questions/questions_IAMA.md
+            --output-md docs/questions/questions_IAMA.md \
+            --definitions-once-per-page
 
           # Verify generated files
           echo "Verifying generated JSON files..."

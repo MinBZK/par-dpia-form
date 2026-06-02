@@ -215,6 +215,12 @@ uv run script/schema_validator.py \
 This script injects glossary items from the glossary in the source YAML. It injects glossary items as certain HTML elements with certain styling
 which can be rendered by the frontend application.
 
+By default, every occurrence of a term is enriched. Passing `--definitions-once-per-page`
+enriches each term at most once per page (top-level task), which keeps pages with many
+repeated terms readable. The DPIA and Pre-scan DPIA enrich **every occurrence**; the IAMA
+uses **once-per-page**. The same flag is available on `run_all.py` and the CI workflows
+pass it for the IAMA only.
+
 ##### Prescan DPIA
 
 ```bash
@@ -239,7 +245,8 @@ uv run script/definition_enricher.py \
 uv run script/definition_enricher.py \
     --source sources/IAMA.yaml \
     --definitions sources/begrippenkader-iama.yaml \
-    --output form-app/src/assets/IAMA.json
+    --output form-app/src/assets/IAMA.json \
+    --definitions-once-per-page
 ```
 
 #### Syncing Algoritmekader Definitions
@@ -310,7 +317,8 @@ uv run script/run_all.py \
   --source sources/IAMA.yaml \
   --begrippen-yaml sources/begrippenkader-iama.yaml \
   --output-json form-app/src/assets/IAMA.json \
-  --output-md docs/questions/questions_IAMA.md
+  --output-md docs/questions/questions_IAMA.md \
+  --definitions-once-per-page
 ```
 
 ## Known Limitations
