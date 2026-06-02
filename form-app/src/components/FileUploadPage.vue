@@ -12,6 +12,7 @@ const emit = defineEmits<{
 }>()
 
 const uploadedFile = ref<File | null>(null)
+const validatedSnapshot = ref<DPIASnapshot | null>(null)
 const fileUploadError = ref<string | null>(null)
 const isProcessing = ref(false)
 const taskStore = useTaskStore()
@@ -38,68 +39,61 @@ const uploadText = computed(() => {
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-const handleFileSelect = (event: Event) => {
+// Parse the file and check it belongs to (or is compatible with) the active form.
+// DPIA and pre-scan DPIA accept each other's file (so a pre-scan can seed the DPIA
+// prefills, and vice versa); the IAMA only accepts its own file.
+const validateUploadedFile = async (file: File): Promise<DPIASnapshot> => {
+  const isPdf = file.name.toLowerCase().endsWith('.pdf')
+  const fileData = isPdf ? await importFromPdf(file) : await importFromJson(file)
+
+  const ns = taskStore.activeNamespace
+  const fileNs = fileData.metadata.activeNamespace
+  const dpiaFamily = ['dpia', 'prescan']
+  const isAccepted =
+    fileNs === ns || (dpiaFamily.includes(ns) && !!fileNs && dpiaFamily.includes(fileNs))
+  if (!isAccepted) {
+    throw new Error(`Dit bestand bevat geen ${acceptedFilesLabel.value}gegevens.`)
+  }
+  return fileData
+}
+
+// Validate as soon as a file is selected, so the warning shows immediately.
+const handleFileSelect = async (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    uploadedFile.value = target.files[0]
-    fileUploadError.value = null
+  if (!target.files || target.files.length === 0) return
+
+  uploadedFile.value = target.files[0]
+  fileUploadError.value = null
+  validatedSnapshot.value = null
+  isProcessing.value = true
+  try {
+    validatedSnapshot.value = await validateUploadedFile(uploadedFile.value)
+  } catch (error) {
+    fileUploadError.value =
+      error instanceof Error ? error.message : 'Fout bij het uploaden van het bestand'
+  } finally {
+    isProcessing.value = false
   }
 }
 
 const clearFile = () => {
   uploadedFile.value = null
+  validatedSnapshot.value = null
   fileUploadError.value = null
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
   }
 }
 
-const startDpia = async () => {
-  isProcessing.value = true
-  fileUploadError.value = null
-
-  try {
-    if (uploadedFile.value) {
-      try {
-        const isPdf = uploadedFile.value.name.toLowerCase().endsWith('.pdf')
-        const fileData = isPdf
-          ? await importFromPdf(uploadedFile.value)
-          : await importFromJson(uploadedFile.value)
-
-        // DPIA and pre-scan DPIA accept each other's file (so a pre-scan can seed the DPIA
-        // prefills, and vice versa); the IAMA only accepts its own file.
-        const ns = taskStore.activeNamespace
-        const fileNs = fileData.metadata.activeNamespace
-        const dpiaFamily = ['dpia', 'prescan']
-        const isAccepted =
-          fileNs === ns || (dpiaFamily.includes(ns) && !!fileNs && dpiaFamily.includes(fileNs))
-        if (!isAccepted) {
-          throw new Error(`Dit bestand bevat geen ${acceptedFilesLabel.value}gegevens.`)
-        }
-
-        // Start with loaded state
-        emit('start', fileData)
-      } catch (error) {
-        if (error instanceof Error) {
-          fileUploadError.value = error.message
-        } else {
-          fileUploadError.value = 'Fout bij het uploaden van het bestand'
-        }
-        isProcessing.value = false
-      }
-    } else {
-      // Start with empty state
-      emit('start')
+const startDpia = () => {
+  if (uploadedFile.value) {
+    // The file was validated on selection; only start when a valid snapshot exists.
+    if (validatedSnapshot.value) {
+      emit('start', validatedSnapshot.value)
     }
-  } catch (error) {
-    isProcessing.value = false
-    if (error instanceof Error) {
-      fileUploadError.value = error.message
-    } else {
-      fileUploadError.value = 'Er is een onbekende fout opgetreden'
-    }
-  } finally {
-    isProcessing.value = false
+  } else {
+    // Start with empty state
+    emit('start')
   }
 }
 
@@ -143,6 +137,14 @@ const formTypeArticle = computed(() => {
           <input id="file-upload-field" ref="fileInputRef" type="file" class="rvo-file-input" accept=".json,.pdf" @change="handleFileSelect" />
           <UiButton v-if="uploadedFile" variant="tertiary" label="Bestand verwijderen" icon="verwijderen" size="xs"
             @click="clearFile" />
+          <div v-if="fileUploadError" class="rvo-alert rvo-alert--warning" style="display: flex;">
+            <span
+              class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
+              role="img"
+              aria-label="Waarschuwing"
+            ></span>
+            <div class="rvo-alert-text">{{ fileUploadError }}</div>
+          </div>
           <div class="rvo-layout-margin-vertical--md">
             <ExportPdfInfo />
           </div>
@@ -154,11 +156,8 @@ const formTypeArticle = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`" :disabled="isProcessing"
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
+      :disabled="isProcessing || !!fileUploadError"
       @click="startDpia" />
   </div>
-
-  <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">
-    {{ fileUploadError }}
-  </p>
 </template>
