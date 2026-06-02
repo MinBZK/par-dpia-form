@@ -92,8 +92,12 @@ jobs:
 
       - name: Set image reference
         id: image-ref
-        # De deploy hieronder pint op de exacte commit-sha (immutable)
-        run: echo "image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+        # ZAD vereist een volledig lowercase image-URL, maar github.repository kan
+        # hoofdletters bevatten (bijv. MinBZK). Daarom forceren we kleine letters.
+        # De deploy pint op de exacte commit-sha (immutable).
+        run: |
+          IMAGE_LC="${GITHUB_REPOSITORY,,}"
+          echo "image=${{ env.REGISTRY }}/${IMAGE_LC}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build
