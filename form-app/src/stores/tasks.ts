@@ -11,6 +11,8 @@ export interface FlatTask {
   childrenIds: string[]
   is_official_id?: boolean
   in_fria?: boolean
+  action_point_group?: boolean
+  action_point_summary?: boolean
   valueType?: string
   description?: string
   category?: string
@@ -144,6 +146,8 @@ export const useTaskStore = defineStore('TaskStore', () => {
         repeatable: task.repeatable,
         is_official_id: task.is_official_id,
         in_fria: task.in_fria,
+        action_point_group: task.action_point_group,
+        action_point_summary: task.action_point_summary,
         options: task.options,
         sources: task.sources,
         dependencies: task.dependencies,

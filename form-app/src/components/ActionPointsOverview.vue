@@ -3,10 +3,6 @@ import { useTaskStore } from '@/stores/tasks'
 import { useAnswerStore } from '@/stores/answers'
 import { computed } from 'vue'
 
-const props = defineProps<{
-  actiepuntenTaskIds: string[]
-}>()
-
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 
@@ -15,36 +11,37 @@ interface ActionPointGroup {
   items: string[]
 }
 
+// Collect every task group flagged `action_point_group` in the active form,
+// ordered by ID, and gather the non-empty text answers from their children.
 const actionPointGroups = computed<ActionPointGroup[]>(() => {
-  const groups: ActionPointGroup[] = []
+  const tasks = taskStore.getTasksFromNamespace(taskStore.activeNamespace)
 
-  for (const taskId of props.actiepuntenTaskIds) {
-    // Get the parent deel number (e.g. "1" from "1.actiepunten")
-    const deelNummer = taskId.split('.')[0]
+  const groupTasks = Object.values(tasks)
+    .filter((task) => task.action_point_group === true)
+    .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
+
+  return groupTasks.map((groupTask) => {
+    // Derive the section label from the parent deel (e.g. "1" from "1.actiepunten")
+    const deelNummer = groupTask.id.split('.')[0]
     let deelLabel: string
     try {
-      const deelTask = taskStore.taskById(deelNummer)
-      deelLabel = deelTask.task
+      deelLabel = taskStore.taskById(deelNummer).task
     } catch {
       deelLabel = `Deel ${deelNummer}`
     }
 
-    // Get all instances of the repeatable text field within the group
-    const textTaskId = `${taskId}.tekst`
-    const textInstances = taskStore.getInstanceIdsForTask(textTaskId)
     const items: string[] = []
-
-    for (const instanceId of textInstances) {
-      const answer = answerStore.getAnswer(instanceId)
-      if (answer && typeof answer === 'string' && answer.trim()) {
-        items.push(answer.trim())
+    for (const childId of groupTask.childrenIds) {
+      for (const instanceId of taskStore.getInstanceIdsForTask(childId)) {
+        const answer = answerStore.getAnswer(instanceId)
+        if (answer && typeof answer === 'string' && answer.trim()) {
+          items.push(answer.trim())
+        }
       }
     }
 
-    groups.push({ deelLabel, items })
-  }
-
-  return groups
+    return { deelLabel, items }
+  })
 })
 
 const hasAnyActionPoints = computed(() =>

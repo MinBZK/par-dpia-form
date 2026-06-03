@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import IamaReferencePreview from '@/components/IamaReferencePreview.vue'
+import ReferenceSuggestions from '@/components/ReferenceSuggestions.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
-import { FormType } from '@/models/dpia.ts';
+import { useSchemaStore } from '@/stores/schemas'
 import { useTaskStore } from '@/stores/tasks'
-import { usePreScanReferences } from '@/composables/usePreScanReferences'
+import { useReferences } from '@/composables/useReferences'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -18,15 +18,20 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
+const schemaStore = useSchemaStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
-const { getPreScanValueForTask } = usePreScanReferences()
-const isIama = computed(() => taskStore.activeNamespace === FormType.IAMA)
+const { getPrefillValueForTask } = useReferences()
 
-// In IAMA we prefix the label with the question ID unless the task is explicitly
-// marked with is_official_id: false (e.g. section headers, actiepunten groups).
+// Some forms (e.g. IAMA) prefix every field label with its official question ID.
+// This is opt-in per form via prefixQuestionIds in the schema, and skipped for
+// tasks explicitly marked is_official_id: false (e.g. headers, actiepunten groups).
+const prefixQuestionIds = computed(
+  () => schemaStore.getSchema(taskStore.activeNamespace)?.prefixQuestionIds === true,
+)
+
 const displayLabel = computed(() => {
   if (!props.label) return props.label
-  if (isIama.value && props.task.is_official_id !== false) {
+  if (prefixQuestionIds.value && props.task.is_official_id !== false) {
     return `${props.task.id} ${props.label}`
   }
   return props.label
@@ -66,7 +71,7 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
-  const referencedValue = getPreScanValueForTask(props.task)
+  const referencedValue = getPrefillValueForTask(props.task)
 
   // If there's a referenced value and no stored answer yet,
   // STORE IT IMMEDIATELY and then return it
@@ -167,8 +172,9 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
-  <!-- IAMA suggestion preview (only when source Deel is not yet completed) -->
-  <IamaReferencePreview v-if="isIama" :task="task" />
+  <!-- Suggestions from other tasks in the same form that reference this one.
+       Renders nothing for forms without intra-form references. -->
+  <ReferenceSuggestions :task="task" />
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">

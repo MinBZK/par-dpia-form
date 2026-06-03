@@ -3,6 +3,7 @@
   "urn": "urn:nl:iama:2.0",
   "version": "2.0",
   "description": "Impact Assessment Mensenrechten en Algoritmes (IAMA) versie 2. Het IAMA helpt overheidsorganisaties bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand aan de ontwikkeling of inzet van een <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span>.",
+  "prefixQuestionIds": true,
   "tasks": [
     {
       "task": "Inleiding",
@@ -343,6 +344,7 @@
           "task": "Actiepunten Deel 1",
           "id": "1.actiepunten",
           "is_official_id": false,
+          "action_point_group": true,
           "description": "Voer hieronder de actiepunten in die volgen uit dit deel. Voer één actiepunt per tekstvak in. Gebruik de knop om extra actiepunten toe te voegen.",
           "type": [
             "task_group"
@@ -646,6 +648,7 @@
           "task": "Actiepunten Deel 2",
           "id": "2.actiepunten",
           "is_official_id": false,
+          "action_point_group": true,
           "description": "Voer hieronder de actiepunten in die volgen uit dit deel. Voer één actiepunt per tekstvak in. Gebruik de knop om extra actiepunten toe te voegen.",
           "type": [
             "task_group"
@@ -964,6 +967,7 @@
           "task": "Actiepunten Deel 3",
           "id": "3.actiepunten",
           "is_official_id": false,
+          "action_point_group": true,
           "description": "Voer hieronder de actiepunten in die volgen uit dit deel. Voer één actiepunt per tekstvak in. Gebruik de knop om extra actiepunten toe te voegen.",
           "type": [
             "task_group"
@@ -1429,7 +1433,8 @@
               }
             },
             {
-              "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met: <ol><li> de verwachte doeltreffendheid/effectiviteit/ geschiktheid, in samenhang met </li><li> de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>",
+              "task": "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:",
+              "description": "<ol><li> de verwachte doeltreffendheid/effectiviteit/ geschiktheid, in samenhang met </li><li> de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>",
               "id": "4.4.2",
               "type": [
                 "open_text"
@@ -1493,6 +1498,7 @@
           "task": "Actiepunten Deel 4",
           "id": "4.actiepunten",
           "is_official_id": false,
+          "action_point_group": true,
           "description": "Voer hieronder de actiepunten in die volgen uit dit deel. Voer één actiepunt per tekstvak in. Gebruik de knop om extra actiepunten toe te voegen.",
           "type": [
             "task_group"
@@ -1514,6 +1520,7 @@
     },
     {
       "task": "Deel 5 – Afsluiting",
+      "action_point_summary": true,
       "description": "Via het IAMA zijn heel veel verschillende aspecten van de besluitvorming rondom de inzet van een <span class=\"aiv-definition\">algoritme<span class=\"aiv-definition-text\">Een set van regels en instructies die een computer geautomatiseerd volgt bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.</span></span> in kaart gebracht. Op dit punt in het IAMA is inzicht verkregen in de doelen en redenen van de inzet ervan, in de totstandkoming van het algoritme en de manier waarop implementatie en inzet vorm krijgen, en in de verenigbaarheid van het algoritme met grondrechten. Het is nu van belang om de verschillende draden samen te nemen en het algoritme te beoordelen in het licht van alle overwegingen die tot nu toe op papier zijn gezet. Dit betekent dat een belangenafweging moet worden gemaakt: wat weegt uiteindelijk het zwaarst: de belangen die zullen worden gediend met de inzet van het algoritme, of de maatschappelijke of individuele belangen (inclusief grondrechten) die erdoor dreigen te worden geschaad?\n\nEen dergelijke belangenafweging kan nooit helemaal rationeel worden gemaakt, omdat het heel moeilijk is om objectief te bepalen hoe 'zwaarwegend' een belang is en hoe heel ongelijksoortige belangen als kostenbesparing, efficiëntie, privacy en milieu-impact met elkaar moeten worden vergeleken.\n\nOm de afsluitende belangenafweging zo goed mogelijk te maken en te onderbouwen, is het goed om de in het IAMA geformuleerde doelstellingen en grondrechten te vertalen naar 'belangen' die tegen elkaar kunnen worden afgewogen. Denk daarbij aan het beeld van de 'balans', die naar de ene of de andere kant kan doorslaan, maar ook in evenwicht kan hangen. Het voordeel van deze benadering is dat veel verschillende belangen in de uiteindelijke afweging kunnen worden betrokken, zoals maatschappelijke belangen (bijvoorbeeld de verwachte milieu-impact), belangen van kosteneffectiviteit of organisatorische efficiëntie, grondrechtelijke belangen en individuele belangen die niet als grondrechten kunnen worden gekwalificeerd.\n",
       "id": "5",
       "is_official_id": false,

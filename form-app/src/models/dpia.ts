@@ -127,6 +127,8 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     t.partial({
       is_official_id: t.boolean,
       in_fria: t.boolean,
+      action_point_group: t.boolean,
+      action_point_summary: t.boolean,
       valueType: t.string,
       instance_label_template: t.string,
       description: t.string,
@@ -187,5 +189,6 @@ export const DPIA = t.intersection([
   }),
   t.partial({
     assessments: t.array(Assessment),
+    prefixQuestionIds: t.boolean,
   })
 ])
