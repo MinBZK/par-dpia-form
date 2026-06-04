@@ -17,5 +17,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
-  }
+  },
+  build: {
+    assetsInlineLimit: 100_000_000,
+  },
 }))

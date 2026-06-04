@@ -52,6 +52,13 @@ def main() -> None:
     parser.add_argument(
         "--skip-validation", action="store_true", help="Skip the validation step"
     )
+    parser.add_argument(
+        "--definitions-once-per-page",
+        action="store_true",
+        help="Inject each definition at most once per page (deel) instead of "
+        "at every occurrence. Used for the IAMA; DPIA and pre-scan enrich every "
+        "occurrence.",
+    )
 
     args = parser.parse_args()
 
@@ -77,7 +84,12 @@ def main() -> None:
         # Step 2: Enrich with definitions
         print(f"Enriching {args.source} with definitions from {args.begrippen_yaml}...")
         enricher = DefinitionEnricher(script_dir)
-        enricher.enrich_and_export(args.source, args.begrippen_yaml, args.output_json)
+        enricher.enrich_and_export(
+            args.source,
+            args.begrippen_yaml,
+            args.output_json,
+            once_per_page=args.definitions_once_per_page,
+        )
 
         print(f"Successfully processed data. Output saved to {args.output_json}")
 

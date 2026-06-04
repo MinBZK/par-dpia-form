@@ -26,6 +26,18 @@
                     "type": "boolean",
                     "description": "Optional to declare if the ID matches with the Rapportagemodel DPIA"
                 },
+                "in_fria": {
+                    "type": "boolean",
+                    "description": "Marks a question as shared with the FRIA (AI-Act). Renders a scale icon next to the label."
+                },
+                "action_point_group": {
+                    "type": "boolean",
+                    "description": "Marks a (repeatable) task group whose text answers are action points, to be collected in the action-point summary."
+                },
+                "action_point_summary": {
+                    "type": "boolean",
+                    "description": "Marks the section that renders the aggregated overview of all action_point_group answers at the bottom."
+                },
                 "type": {
                     "type": "array",
                     "items": {
@@ -34,9 +46,11 @@
                             "text_input",
                             "open_text",
                             "select_option",
+                            "multiselect_option",
                             "checkbox_option",
                             "radio_option",
                             "task_group",
+                            "informational",
                             "date"
                         ]
                     }
@@ -367,6 +381,10 @@
         },
         "description": {
             "type": "string"
+        },
+        "prefixQuestionIds": {
+            "type": "boolean",
+            "description": "When true, field and group labels are prefixed with the official question ID (for forms with official per-question numbering, e.g. IAMA)."
         },
         "version": {
             "type": "string",

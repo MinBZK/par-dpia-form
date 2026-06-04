@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import ReferenceSuggestions from '@/components/ReferenceSuggestions.vue'
 import { useTaskDependencies } from '@/composables/useTaskDependencies'
 import { TaskTypeValue } from '@/models/dpia'
 import { useAnswerStore } from '@/stores/answers'
 import { type FlatTask } from '@/stores/tasks'
-import { FormType } from '@/models/dpia.ts';
+import { useSchemaStore } from '@/stores/schemas'
 import { useTaskStore } from '@/stores/tasks'
-import { usePreScanReferences } from '@/composables/usePreScanReferences'
+import { useReferences } from '@/composables/useReferences'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -17,8 +18,24 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
+const schemaStore = useSchemaStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
-const { getPreScanValueForTask } = usePreScanReferences()
+const { getPrefillValueForTask } = useReferences()
+
+// Some forms (e.g. IAMA) prefix every field label with its official question ID.
+// This is opt-in per form via prefixQuestionIds in the schema, and skipped for
+// tasks explicitly marked is_official_id: false (e.g. headers, actiepunten groups).
+const prefixQuestionIds = computed(
+  () => schemaStore.getSchema(taskStore.activeNamespace)?.prefixQuestionIds === true,
+)
+
+const displayLabel = computed(() => {
+  if (!props.label) return props.label
+  if (prefixQuestionIds.value && props.task.is_official_id !== false) {
+    return `${props.task.id} ${props.label}`
+  }
+  return props.label
+})
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -32,7 +49,7 @@ const dependencyTaskName = computed(() => {
   try {
     const sourceTask = taskStore.taskById(sourceId);
     return sourceTask.task;
-  } catch (error) {
+  } catch {
     return '';
   }
 });
@@ -54,7 +71,7 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
 const currentValue = computed(() => {
   const storedAnswer = answerStore.getAnswer(props.instanceId)
 
-  const referencedValue = getPreScanValueForTask(props.task)
+  const referencedValue = getPrefillValueForTask(props.task)
 
   // If there's a referenced value and no stored answer yet,
   // STORE IT IMMEDIATELY and then return it
@@ -73,6 +90,8 @@ const currentValue = computed(() => {
       } else {
         return props.task.defaultValue
       }
+    } else if (typeof props.task.defaultValue === 'string') {
+      return props.task.defaultValue
     }
   }
 
@@ -137,11 +156,25 @@ const handleCheckboxInput = (event: Event) => {
 
 <template>
   <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`" v-html="label"></label>
+    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
+      <span v-html="displayLabel"></span>
+      <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon"
+        href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
+        target="_blank" rel="noopener noreferrer"
+        title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
+        style="margin-inline-start: 0.4em; vertical-align: middle; text-decoration: none; gap: 0.25em;">
+        art. 27 AI-verordening
+        <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
+      </a>
+    </label>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
   </div>
+
+  <!-- Suggestions from other tasks in the same form that reference this one.
+       Renders nothing for forms without intra-form references. -->
+  <ReferenceSuggestions :task="task" />
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
@@ -168,7 +201,7 @@ const handleCheckboxInput = (event: Event) => {
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
             class="utrecht-radio-button" @change="handleRadioInput" />
-          <span v-html="option.label" </span>
+          <span v-html="option.label"></span>
         </label>
       </div>
     </div>
@@ -188,9 +221,24 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
+  <!-- Multi-select checkboxes in scrollable container -->
+  <div v-else-if="hasType('multiselect_option')" class="field-group rvo-margin-block-end--md">
+    <div style="max-height:16rem;overflow-y:auto;border:1px solid #b3b3b3;border-radius:4px;padding:0.25rem 0;">
+      <div class="rvo-checkbox__group">
+        <label v-for="option in task.options!" :key="safeString(option.value)"
+          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`"
+          style="padding:0.25rem 0.75rem;">
+          <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            type="checkbox" />
+          <span>{{ option.value }}</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
   <!-- Select checkbox -->
-  <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
-  refactor.-->
   <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
     <div v-if="getSourceOptions(task).length > 0">
       <div class="rvo-checkbox__group">
@@ -225,8 +273,6 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
   </div>
-
-
 
   <!-- Date input -->
   <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">

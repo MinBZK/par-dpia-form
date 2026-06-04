@@ -13,7 +13,13 @@
 
 @media (min-width: 1080px) {
   .rvo-theme .rvo-sidebar-layout {
-    grid-template-columns: 410px 1fr;
+    grid-template-columns: 300px 1fr;
+  }
+  .rvo-theme .rvo-sidebar-layout__sidebar {
+    padding-inline-end: var(--rvo-space-sm);
+  }
+  .rvo-theme .rvo-sidebar-layout__content {
+    padding-inline-start: var(--rvo-space-sm);
   }
 }
 
