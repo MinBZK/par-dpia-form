@@ -71,3 +71,19 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://parassessment:parassessment@localhost:5432/parassessment_test
         run: pnpm --filter boekhouding-backend test
+
+      - name: Run coverage (alle workspaces)
+        env:
+          TEST_DATABASE_URL: postgresql://parassessment:parassessment@localhost:5432/parassessment_test
+        run: pnpm -r --if-present test:coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            packages/*/coverage
+            apps/*/coverage
+          if-no-files-found: ignore
+          retention-days: 14
