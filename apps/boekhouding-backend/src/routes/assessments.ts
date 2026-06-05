@@ -198,7 +198,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
       && (Date.now() - lastVersion.createdAt.getTime()) < CONSOLIDATION_WINDOW_MS
 
     if (canConsolidate) {
-      // Consolidate: add edits to existing version, update timestamps
+      // Consolidate: add edits to existing version, update timestamps.
+      // Bump currentVersion so optimistic locking detects concurrent writes
+      // from sessions that hold a stale expectedVersion.
+      const nextVersion = assessment.currentVersion + 1
+
       if (edits.length > 0) {
         await db.insert(assessmentEdits).values(
           edits.map(edit => ({ ...edit, assessmentVersionId: lastVersion.id })),
@@ -207,10 +211,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
 
       await db
         .update(assessmentVersions)
-        .set({ updatedAt: new Date() })
+        .set({ version: nextVersion, updatedAt: new Date() })
         .where(eq(assessmentVersions.id, lastVersion.id))
 
       const updateData: Record<string, unknown> = {
+        currentVersion: nextVersion,
         cachedState: state,
         updatedAt: new Date(),
       }
