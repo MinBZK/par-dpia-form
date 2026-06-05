@@ -1,13 +1,10 @@
-import type { FastifyInstance, FastifyReply } from 'fastify'
+import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
-import { comments, assessmentInstances, projectMembers, users } from '../db/schema.js'
+import { comments, users } from '../db/schema.js'
 import { eq, and, isNull, gt, asc, inArray } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
-import type { ProjectRole } from '../middleware/projectAccess.js'
+import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { computeLastModifiedAt } from '../utils/comments.js'
-
-const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, commenter: 1, editor: 2, owner: 3 }
-const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: 'commentator', editor: 'bewerker', owner: 'eigenaar' }
 
 const commentSelect = {
   id: comments.id,
@@ -20,55 +17,6 @@ const commentSelect = {
   resolvedBy: comments.resolvedBy,
   createdAt: comments.createdAt,
   updatedAt: comments.updatedAt,
-}
-
-async function requireAssessmentAccess(
-  assessmentId: string,
-  userId: string,
-  minimumRole: ProjectRole,
-  requestUrl: string,
-  reply: FastifyReply,
-): Promise<{ assessment: typeof assessmentInstances.$inferSelect; role: ProjectRole } | null> {
-  const [assessment] = await db
-    .select()
-    .from(assessmentInstances)
-    .where(eq(assessmentInstances.id, assessmentId))
-    .limit(1)
-
-  if (!assessment) {
-    reply.status(404).type('application/problem+json').send({
-      type: 'https://httpproblems.com/http-status/404',
-      title: 'Niet gevonden',
-      status: 404,
-      detail: 'Assessment niet gevonden',
-      instance: requestUrl,
-    })
-    return null
-  }
-
-  const membership = await db
-    .select({ role: projectMembers.role })
-    .from(projectMembers)
-    .where(
-      and(
-        eq(projectMembers.projectId, assessment.projectId),
-        eq(projectMembers.userId, userId),
-      ),
-    )
-    .limit(1)
-
-  if (membership.length === 0 || roleHierarchy[membership[0].role] < roleHierarchy[minimumRole]) {
-    reply.status(403).type('application/problem+json').send({
-      type: 'https://httpproblems.com/http-status/403',
-      title: 'Geen toegang',
-      status: 403,
-      detail: membership.length === 0 ? 'Geen lid van dit project' : `De rol ${roleLabels[minimumRole]} is vereist`,
-      instance: requestUrl,
-    })
-    return null
-  }
-
-  return { assessment, role: membership[0].role }
 }
 
 export async function commentRoutes(app: FastifyInstance) {
