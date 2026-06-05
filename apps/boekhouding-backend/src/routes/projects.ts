@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
-import { projects, projectMembers } from '../db/schema.js'
+import { projects, projectMembers, assessmentInstances, assessmentVersions, assessmentEdits } from '../db/schema.js'
 import { eq, and } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
@@ -126,5 +126,89 @@ export async function projectRoutes(app: FastifyInstance) {
     await db.delete(projects).where(eq(projects.id, projectId))
 
     return reply.status(204).send()
+  })
+
+  // List assessments for a project
+  app.get<{
+    Params: { projectId: string }
+  }>('/:projectId/assessments', {
+    schema: { tags: ['assessments'] },
+    preHandler: [requireProjectAccess('viewer')],
+  }, async (request) => {
+    const { projectId } = request.params
+
+    const assessments = await db
+      .select()
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.projectId, projectId))
+
+    return assessments
+  })
+
+  // Create a new assessment instance
+  app.post<{
+    Params: { projectId: string }
+    Body: { name?: string; assessmentType: 'dpia' | 'prescan'; state?: unknown }
+  }>('/:projectId/assessments', {
+    schema: {
+      tags: ['assessments'],
+      body: {
+        type: 'object',
+        required: ['assessmentType'],
+        properties: {
+          assessmentType: { type: 'string', enum: ['dpia', 'prescan'] },
+          name: { type: 'string', minLength: 1, maxLength: 200 },
+          state: { type: 'object' },
+        },
+        additionalProperties: false,
+      },
+    },
+    preHandler: [requireProjectAccess('editor')],
+  }, async (request, reply) => {
+    const { projectId } = request.params
+    const { name, assessmentType, state } = request.body
+    const userId = request.user!.id
+
+    // Auto-generate name if not provided
+    let finalName = name
+    if (!finalName) {
+      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+      const existing = await db
+        .select()
+        .from(assessmentInstances)
+        .where(
+          and(
+            eq(assessmentInstances.projectId, projectId),
+            eq(assessmentInstances.assessmentType, assessmentType),
+          ),
+        )
+      finalName = existing.length === 0 ? baseLabel : `${baseLabel} ${existing.length + 1}`
+    }
+
+    const initialState = state || {}
+
+    const [assessment] = await db
+      .insert(assessmentInstances)
+      .values({ projectId, name: finalName, assessmentType, createdBy: userId, cachedState: initialState })
+      .returning()
+
+    // Create initial version checkpoint
+    const [initialVersion] = await db.insert(assessmentVersions).values({
+      assessmentInstanceId: assessment.id,
+      version: 1,
+      createdBy: userId,
+    }).returning()
+
+    // Record initial_state edit so state can be rebuilt from edits alone
+    await db.insert(assessmentEdits).values({
+      assessmentVersionId: initialVersion.id,
+      fieldId: '__initial__',
+      editType: 'initial_state',
+      oldValue: null,
+      newValue: initialState,
+      editedBy: userId,
+    })
+
+    return reply.status(201).send(assessment)
   })
 }

@@ -26,7 +26,7 @@ export async function commentRoutes(app: FastifyInstance) {
   app.get<{
     Params: { assessmentId: string }
     Querystring: { since?: string }
-  }>('/assessments/:assessmentId/comments', {
+  }>('/:assessmentId/comments', {
     schema: { tags: ['comments'] },
   }, async (request, reply) => {
     const { assessmentId } = request.params
@@ -152,7 +152,7 @@ export async function commentRoutes(app: FastifyInstance) {
   app.post<{
     Params: { assessmentId: string }
     Body: { fieldId: string; body: string; parentId?: string }
-  }>('/assessments/:assessmentId/comments', {
+  }>('/:assessmentId/comments', {
     schema: {
       tags: ['comments'],
       body: {
@@ -240,7 +240,7 @@ export async function commentRoutes(app: FastifyInstance) {
   app.patch<{
     Params: { assessmentId: string; commentId: string }
     Body: { body?: string; resolvedAt?: string | null }
-  }>('/assessments/:assessmentId/comments/:commentId', {
+  }>('/:assessmentId/comments/:commentId', {
     schema: {
       tags: ['comments'],
       body: {
@@ -335,7 +335,7 @@ export async function commentRoutes(app: FastifyInstance) {
   // DELETE /assessments/:assessmentId/comments/:commentId
   app.delete<{
     Params: { assessmentId: string; commentId: string }
-  }>('/assessments/:assessmentId/comments/:commentId', {
+  }>('/:assessmentId/comments/:commentId', {
     schema: { tags: ['comments'] },
   }, async (request, reply) => {
     const { assessmentId, commentId } = request.params

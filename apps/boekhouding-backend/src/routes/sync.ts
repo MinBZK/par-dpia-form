@@ -21,7 +21,7 @@ export async function syncRoutes(app: FastifyInstance) {
   // GET /assessments/:assessmentId/sync — lightweight sync signal for polling
   app.get<{
     Params: { assessmentId: string }
-  }>('/assessments/:assessmentId/sync', {
+  }>('/:assessmentId/sync', {
     schema: {
       tags: ['sync'],
       description: 'Lightweight collaboration sync signal. Returns the current assessment version, last update timestamp, and whether the last change was made by the requesting user. Used by clients to decide whether to fetch updated state.',
