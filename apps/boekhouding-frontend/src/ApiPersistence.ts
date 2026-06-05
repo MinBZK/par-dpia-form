@@ -40,6 +40,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   // Concurrency guards for collaboration sync
   let saveInProgress = false
   let applyingDeferred = false
+  let saveComplete: Promise<void> = Promise.resolve()
 
   let lastSavedState: AssessmentState | null = null
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
@@ -129,6 +130,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
+    let resolveSave: () => void
+    saveComplete = new Promise<void>(resolve => { resolveSave = resolve })
     saveInProgress = true
     try {
       // Guard: don't save if the active namespace has changed (e.g., prescan
@@ -183,16 +186,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       console.error('Failed to save form state to API:', error)
     } finally {
       saveInProgress = false
+      resolveSave!()
     }
   }
 
   /** Wait for an in-flight save to complete, with a timeout to prevent hangs. */
   async function waitForSaveComplete(timeoutMs = 2000): Promise<void> {
     if (!saveInProgress) return
-    const start = Date.now()
-    while (saveInProgress && Date.now() - start < timeoutMs) {
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
+    await Promise.race([saveComplete, new Promise(resolve => setTimeout(resolve, timeoutMs))])
   }
 
   async function handleConflict(): Promise<void> {
