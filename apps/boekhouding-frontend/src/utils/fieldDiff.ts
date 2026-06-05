@@ -6,6 +6,19 @@ export interface FieldChange {
 }
 
 /**
+ * Fast equality check for answer values. Uses reference / primitive comparison
+ * first, falling back to JSON.stringify only when both sides are non-null objects.
+ * This avoids two stringify calls per field on the hot diff path when values are
+ * unchanged (the common case on a debounced save).
+ */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (a == null || b == null) return a === b
+  if (typeof a !== 'object' || typeof b !== 'object') return false
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+/**
  * Compares two AssessmentState objects and returns a map of changed fields.
  * States use the unified format (no namespace wrapping).
  * Keys are answer keys (e.g. "2.1") or completed markers (e.g. "completed.1").
@@ -23,7 +36,7 @@ export function computeFieldDiff(
   for (const key of allKeys) {
     const oldVal = oldAnswers[key]
     const newVal = newAnswers[key]
-    if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+    if (!valuesEqual(oldVal, newVal)) {
       changes.set(key, { oldValue: oldVal ?? null, newValue: newVal ?? null })
     }
   }

@@ -757,8 +757,18 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       }
     }
 
+    // Split into separate watchers so each has a minimal deep-scan target.
+    // completedRootTaskIds only holds Sets of task IDs — a shallow-ish deep scan is cheap.
     watch(
-      [() => taskStore.completedRootTaskIds, () => answerStore.answers],
+      () => taskStore.completedRootTaskIds,
+      triggerSave,
+      { deep: true },
+    )
+
+    // answers must stay deep: values are nested objects ({ value, lastEditedAt, ... })
+    // and repeatable groups are arrays of objects, so mutations only trigger via deep watch.
+    watch(
+      () => answerStore.answers,
       triggerSave,
       { deep: true },
     )
