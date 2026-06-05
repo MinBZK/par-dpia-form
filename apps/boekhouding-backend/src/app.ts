@@ -158,9 +158,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   await app.register(projectRoutes, { prefix: '/api/v1/projects' })
   await app.register(memberRoutes, { prefix: '/api/v1/projects' })
-  await app.register(assessmentRoutes, { prefix: '/api/v1' })
-  await app.register(commentRoutes, { prefix: '/api/v1' })
-  await app.register(syncRoutes, { prefix: '/api/v1' })
+  await app.register(assessmentRoutes, { prefix: '/api/v1/assessments' })
+  await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
+  await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
 
   app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
 

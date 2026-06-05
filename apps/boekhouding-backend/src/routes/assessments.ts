@@ -3,7 +3,6 @@ import { db } from '../db/connection.js'
 import { assessmentInstances, assessmentVersions, assessmentEdits, users } from '../db/schema.js'
 import { eq, and, desc, asc } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
-import { requireProjectAccess } from '../middleware/projectAccess.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
@@ -11,94 +10,10 @@ import { rebuildState } from '../utils/rebuildState.js'
 export async function assessmentRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
 
-  // List assessments for a project
-  app.get<{
-    Params: { projectId: string }
-  }>('/projects/:projectId/assessments', {
-    schema: { tags: ['assessments'] },
-    preHandler: [requireProjectAccess('viewer')],
-  }, async (request) => {
-    const { projectId } = request.params
-
-    const assessments = await db
-      .select()
-      .from(assessmentInstances)
-      .where(eq(assessmentInstances.projectId, projectId))
-
-    return assessments
-  })
-
-  // Create a new assessment instance
-  app.post<{
-    Params: { projectId: string }
-    Body: { name?: string; assessmentType: 'dpia' | 'prescan'; state?: unknown }
-  }>('/projects/:projectId/assessments', {
-    schema: {
-      tags: ['assessments'],
-      body: {
-        type: 'object',
-        required: ['assessmentType'],
-        properties: {
-          assessmentType: { type: 'string', enum: ['dpia', 'prescan'] },
-          name: { type: 'string', minLength: 1, maxLength: 200 },
-          state: { type: 'object' },
-        },
-        additionalProperties: false,
-      },
-    },
-    preHandler: [requireProjectAccess('editor')],
-  }, async (request, reply) => {
-    const { projectId } = request.params
-    const { name, assessmentType, state } = request.body
-    const userId = request.user!.id
-
-    // Auto-generate name if not provided
-    let finalName = name
-    if (!finalName) {
-      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
-      const existing = await db
-        .select()
-        .from(assessmentInstances)
-        .where(
-          and(
-            eq(assessmentInstances.projectId, projectId),
-            eq(assessmentInstances.assessmentType, assessmentType),
-          ),
-        )
-      finalName = existing.length === 0 ? baseLabel : `${baseLabel} ${existing.length + 1}`
-    }
-
-    const initialState = state || {}
-
-    const [assessment] = await db
-      .insert(assessmentInstances)
-      .values({ projectId, name: finalName, assessmentType, createdBy: userId, cachedState: initialState })
-      .returning()
-
-    // Create initial version checkpoint
-    const [initialVersion] = await db.insert(assessmentVersions).values({
-      assessmentInstanceId: assessment.id,
-      version: 1,
-      createdBy: userId,
-    }).returning()
-
-    // Record initial_state edit so state can be rebuilt from edits alone
-    await db.insert(assessmentEdits).values({
-      assessmentVersionId: initialVersion.id,
-      fieldId: '__initial__',
-      editType: 'initial_state',
-      oldValue: null,
-      newValue: initialState,
-      editedBy: userId,
-    })
-
-    return reply.status(201).send(assessment)
-  })
-
   // Get an assessment instance
   app.get<{
     Params: { assessmentId: string }
-  }>('/assessments/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply, { includeState: true })
     if (!result) return
@@ -110,7 +25,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.put<{
     Params: { assessmentId: string }
     Body: { state?: unknown; changeDescription?: string; name?: string; expectedVersion?: number; newVersion?: boolean }
-  }>('/assessments/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
     const { state, changeDescription, name, expectedVersion, newVersion: forceNewVersion } = request.body
     const userId = request.user!.id
@@ -267,7 +182,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Delete assessment
   app.delete<{
     Params: { assessmentId: string }
-  }>('/assessments/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'owner', request.url, reply)
     if (!result) return
@@ -279,7 +194,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get version history
   app.get<{
     Params: { assessmentId: string }
-  }>('/assessments/:assessmentId/versions', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
@@ -306,7 +221,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.get<{
     Params: { assessmentId: string; version: string }
     Querystring: { includeState?: string }
-  }>('/assessments/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const versionNum = parseInt(version, 10)
     const includeState = request.query.includeState === 'true'
@@ -353,7 +268,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get edits for a specific version
   app.get<{
     Params: { assessmentId: string; version: string }
-  }>('/assessments/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const versionNum = parseInt(version, 10)
 
@@ -402,7 +317,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.patch<{
     Params: { assessmentId: string; version: string }
     Body: { changeDescription: string }
-  }>('/assessments/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const { changeDescription } = request.body
     const versionNum = parseInt(version, 10)
@@ -437,7 +352,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get edit audit log
   app.get<{
     Params: { assessmentId: string }
-  }>('/assessments/:assessmentId/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
