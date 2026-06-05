@@ -225,9 +225,15 @@ export const commentsApi = {
   delete: (assessmentId: string, commentId: string) =>
     request<void>(`/api/v1/assessments/${assessmentId}/comments/${commentId}`, { method: 'DELETE' }),
   resolve: (assessmentId: string, commentId: string) =>
-    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/resolve`, { method: 'POST' }),
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolvedAt: new Date().toISOString() }),
+    }),
   reopen: (assessmentId: string, commentId: string) =>
-    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}/reopen`, { method: 'POST' }),
+    request<CommentThread>(`/api/v1/assessments/${assessmentId}/comments/${commentId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ resolvedAt: null }),
+    }),
 }
 
 export const syncApi = {
