@@ -232,39 +232,57 @@ export async function commentRoutes(app: FastifyInstance) {
     })
   })
 
-  // PATCH /assessments/:assessmentId/comments/:commentId — edit body
+  // PATCH /assessments/:assessmentId/comments/:commentId — edit body or toggle resolved state
+  // Accepts exactly one of `body` or `resolvedAt`:
+  //   - `body`: author-only, edits the comment text
+  //   - `resolvedAt`: editor+, null reopens the thread, ISO timestamp resolves it
+  //     (server always derives `resolvedBy` from the caller; clients cannot set it)
   app.patch<{
     Params: { assessmentId: string; commentId: string }
-    Body: { body: string }
+    Body: { body?: string; resolvedAt?: string | null }
   }>('/assessments/:assessmentId/comments/:commentId', {
     schema: {
       tags: ['comments'],
       body: {
         type: 'object',
-        required: ['body'],
         properties: {
           body: { type: 'string', minLength: 1, maxLength: 2000 },
+          resolvedAt: { type: ['string', 'null'], format: 'date-time' },
         },
         additionalProperties: false,
+        oneOf: [
+          { required: ['body'] },
+          { required: ['resolvedAt'] },
+        ],
       },
     },
   }, async (request, reply) => {
     const { assessmentId, commentId } = request.params
-    const { body } = request.body
+    const { body, resolvedAt } = request.body
+    const isResolveOperation = resolvedAt !== undefined
     const userId = request.user!.id
 
-    const result = await requireAssessmentAccess(assessmentId, userId, 'commenter', request.url, reply)
+    // Resolve/reopen requires editor, edit body requires commenter
+    const requiredRole = isResolveOperation ? 'editor' : 'commenter'
+    const result = await requireAssessmentAccess(assessmentId, userId, requiredRole, request.url, reply)
     if (!result) return
+
+    // Root comments only when toggling resolved state
+    const whereClause = isResolveOperation
+      ? and(
+        eq(comments.id, commentId),
+        eq(comments.assessmentInstanceId, assessmentId),
+        isNull(comments.parentId),
+      )
+      : and(
+        eq(comments.id, commentId),
+        eq(comments.assessmentInstanceId, assessmentId),
+      )
 
     const [comment] = await db
       .select()
       .from(comments)
-      .where(
-        and(
-          eq(comments.id, commentId),
-          eq(comments.assessmentInstanceId, assessmentId),
-        ),
-      )
+      .where(whereClause)
       .limit(1)
 
     if (!comment) {
@@ -272,12 +290,29 @@ export async function commentRoutes(app: FastifyInstance) {
         type: 'https://httpproblems.com/http-status/404',
         title: 'Niet gevonden',
         status: 404,
-        detail: 'Commentaar niet gevonden',
+        detail: isResolveOperation
+          ? 'Commentaar niet gevonden of is een reactie'
+          : 'Commentaar niet gevonden',
         instance: request.url,
       })
     }
 
-    // Only the author can edit their own comment
+    if (isResolveOperation) {
+      const resolving = resolvedAt !== null
+      const [updated] = await db
+        .update(comments)
+        .set({
+          resolvedAt: resolving ? new Date(resolvedAt as string) : null,
+          resolvedBy: resolving ? userId : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(comments.id, commentId))
+        .returning()
+
+      return updated
+    }
+
+    // Only the author can edit their own comment body
     if (comment.authorId !== userId) {
       return reply.status(403).type('application/problem+json').send({
         type: 'https://httpproblems.com/http-status/403',
@@ -290,7 +325,7 @@ export async function commentRoutes(app: FastifyInstance) {
 
     const [updated] = await db
       .update(comments)
-      .set({ body, updatedAt: new Date() })
+      .set({ body: body as string, updatedAt: new Date() })
       .where(eq(comments.id, commentId))
       .returning()
 
@@ -350,97 +385,4 @@ export async function commentRoutes(app: FastifyInstance) {
     return reply.status(204).send()
   })
 
-  // POST /assessments/:assessmentId/comments/:commentId/resolve
-  app.post<{
-    Params: { assessmentId: string; commentId: string }
-  }>('/assessments/:assessmentId/comments/:commentId/resolve', {
-    schema: { tags: ['comments'] },
-  }, async (request, reply) => {
-    const { assessmentId, commentId } = request.params
-    const userId = request.user!.id
-
-    const result = await requireAssessmentAccess(assessmentId, userId, 'editor', request.url, reply)
-    if (!result) return
-
-    const [comment] = await db
-      .select()
-      .from(comments)
-      .where(
-        and(
-          eq(comments.id, commentId),
-          eq(comments.assessmentInstanceId, assessmentId),
-          isNull(comments.parentId), // Only root comments can be resolved
-        ),
-      )
-      .limit(1)
-
-    if (!comment) {
-      return reply.status(404).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/404',
-        title: 'Niet gevonden',
-        status: 404,
-        detail: 'Commentaar niet gevonden of is een reactie',
-        instance: request.url,
-      })
-    }
-
-    const [updated] = await db
-      .update(comments)
-      .set({
-        resolvedAt: new Date(),
-        resolvedBy: userId,
-        updatedAt: new Date(),
-      })
-      .where(eq(comments.id, commentId))
-      .returning()
-
-    return updated
-  })
-
-  // POST /assessments/:assessmentId/comments/:commentId/reopen
-  app.post<{
-    Params: { assessmentId: string; commentId: string }
-  }>('/assessments/:assessmentId/comments/:commentId/reopen', {
-    schema: { tags: ['comments'] },
-  }, async (request, reply) => {
-    const { assessmentId, commentId } = request.params
-    const userId = request.user!.id
-
-    const result = await requireAssessmentAccess(assessmentId, userId, 'editor', request.url, reply)
-    if (!result) return
-
-    const [comment] = await db
-      .select()
-      .from(comments)
-      .where(
-        and(
-          eq(comments.id, commentId),
-          eq(comments.assessmentInstanceId, assessmentId),
-          isNull(comments.parentId),
-        ),
-      )
-      .limit(1)
-
-    if (!comment) {
-      return reply.status(404).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/404',
-        title: 'Niet gevonden',
-        status: 404,
-        detail: 'Commentaar niet gevonden of is een reactie',
-        instance: request.url,
-      })
-    }
-
-    const [updated] = await db
-      .update(comments)
-      .set({
-        resolvedAt: null,
-        resolvedBy: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(comments.id, commentId))
-      .returning()
-
-    return updated
-  })
 }
