@@ -8,7 +8,9 @@ const queryClient = postgres(config.databaseUrl)
 const db = drizzle(queryClient)
 
 const now = new Date().toISOString()
-const seedEmails = ['sam@example.com', 'noor@example.com']
+const OUTPUT_SCHEMA = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+const PRESCAN_URN = 'urn:nl:prescan:2.0'
+const DPIA_URN = 'urn:nl:dpia:3.0'
 
 // Upsert test users (matching Keycloak config)
 const [sam] = await db.insert(users)
@@ -39,33 +41,32 @@ await db.insert(projectMembers).values([
   { projectId: projectPrescan.id, userId: noor.id, role: 'editor', acceptedAt: new Date() },
 ])
 
+// Assessment state uses v2 unified format (see schemas/assessment-output.v2.schema.json):
+// - Flat answer keys (no prescan/dpia namespace wrapper)
+// - completedTasks in metadata (no separate taskState object)
+// - URN includes version (e.g. urn:nl:dpia:3.0)
 const prescanState = {
-  metadata: { createdAt: now, activeNamespace: 'prescan', urn: 'urn:nl:prescan' },
-  answers: {
-    prescan: {
-      '0.1': { value: 'false', lastEditedAt: now, lastEditedBy: sam.email },
-      '0.2': {
-        value: 'Het aanvraagportaal subsidies is een webapplicatie waarmee burgers en ondernemers subsidieaanvragen kunnen indienen bij RVO. Het systeem verwerkt NAW-gegevens, KvK-nummers, financiële gegevens en projectplannen. De applicatie draait op de Rijkscloud en wordt beheerd door het team Digitale Dienstverlening.',
-        lastEditedAt: now,
-        lastEditedBy: sam.email,
-      },
-      '0.3': {
-        value: 'Het doel is het vereenvoudigen en versnellen van het subsidieaanvraagproces. Burgers en ondernemers kunnen 24/7 aanvragen indienen, de status volgen en communiceren met behandelaars. Dit vervangt het huidige papieren proces.',
-        lastEditedAt: now,
-        lastEditedBy: noor.email,
-      },
-      '0.4': {
-        value: 'Rechtsgrond wettelijke verplichting',
-        lastEditedAt: now,
-        lastEditedBy: noor.email,
-      },
-    },
+  $schema: OUTPUT_SCHEMA,
+  metadata: {
+    createdAt: now,
+    urn: PRESCAN_URN,
   },
-  taskState: {
-    prescan: {
-      currentRootTaskId: '0',
-      completedRootTaskIds: [],
-      taskInstances: {},
+  answers: {
+    '0.1': { value: 'false', lastEditedAt: now, lastEditedBy: sam.email },
+    '0.2': {
+      value: 'Het aanvraagportaal subsidies is een webapplicatie waarmee burgers en ondernemers subsidieaanvragen kunnen indienen bij RVO. Het systeem verwerkt NAW-gegevens, KvK-nummers, financiële gegevens en projectplannen. De applicatie draait op de Rijkscloud en wordt beheerd door het team Digitale Dienstverlening.',
+      lastEditedAt: now,
+      lastEditedBy: sam.email,
+    },
+    '0.3': {
+      value: 'Het doel is het vereenvoudigen en versnellen van het subsidieaanvraagproces. Burgers en ondernemers kunnen 24/7 aanvragen indienen, de status volgen en communiceren met behandelaars. Dit vervangt het huidige papieren proces.',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
+    },
+    '0.4': {
+      value: 'Rechtsgrond wettelijke verplichting',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
     },
   },
 }
@@ -100,47 +101,23 @@ await db.insert(projectMembers).values([
   { projectId: projectDpia.id, userId: sam.id, role: 'viewer', acceptedAt: new Date() },
 ])
 
-const dpiaStateV1 = {
-  metadata: { createdAt: now, activeNamespace: 'dpia', urn: 'urn:nl:dpia' },
-  answers: {
-    dpia: {
-      '0': {
-        value: 'DPIA voor cameratoezicht stationsgebied.',
-        lastEditedAt: now,
-        lastEditedBy: noor.email,
-      },
-    },
-  },
-  taskState: {
-    dpia: {
-      currentRootTaskId: '1',
-      completedRootTaskIds: ['0'],
-      taskInstances: {},
-    },
-  },
-}
-
 const dpiaStateV2 = {
-  metadata: { createdAt: now, activeNamespace: 'dpia', urn: 'urn:nl:dpia' },
-  answers: {
-    dpia: {
-      '0': {
-        value: 'Deze DPIA is opgesteld in het kader van de voorgenomen plaatsing van intelligente camera\'s in het stationsgebied Utrecht Centraal. De camera\'s maken gebruik van beeldherkenning voor het detecteren van verdacht gedrag en crowdmanagement.',
-        lastEditedAt: now,
-        lastEditedBy: noor.email,
-      },
-      '1.1': {
-        value: 'De gemeente Utrecht wil in samenwerking met NS en de politie intelligent cameratoezicht implementeren op het stationsgebied. Het systeem analyseert real-time beelden om verdachte situaties te detecteren, drukte te monitoren en bij incidenten snel te kunnen reageren. Er worden circa 45 camera\'s geplaatst die 24/7 beelden vastleggen.',
-        lastEditedAt: now,
-        lastEditedBy: noor.email,
-      },
-    },
+  $schema: OUTPUT_SCHEMA,
+  metadata: {
+    createdAt: now,
+    urn: DPIA_URN,
+    completedTasks: ['0', '1'],
   },
-  taskState: {
-    dpia: {
-      currentRootTaskId: '2',
-      completedRootTaskIds: ['0', '1'],
-      taskInstances: {},
+  answers: {
+    '0': {
+      value: 'Deze DPIA is opgesteld in het kader van de voorgenomen plaatsing van intelligente camera\'s in het stationsgebied Utrecht Centraal. De camera\'s maken gebruik van beeldherkenning voor het detecteren van verdacht gedrag en crowdmanagement.',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
+    },
+    '1.1': {
+      value: 'De gemeente Utrecht wil in samenwerking met NS en de politie intelligent cameratoezicht implementeren op het stationsgebied. Het systeem analyseert real-time beelden om verdachte situaties te detecteren, drukte te monitoren en bij incidenten snel te kunnen reageren. Er worden circa 45 camera\'s geplaatst die 24/7 beelden vastleggen.',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
     },
   },
 }
@@ -211,14 +188,14 @@ await db.insert(comments).values({
 })
 
 // A resolved thread
-const [comment3] = await db.insert(comments).values({
+await db.insert(comments).values({
   assessmentInstanceId: dpiaInstance.id,
   fieldId: '0',
   authorId: noor.id,
   body: 'Bron toevoegen voor het aantal camera\'s?',
   resolvedAt: new Date(),
   resolvedBy: noor.id,
-}).returning()
+})
 
 console.log('Project created:', projectDpia.name)
 console.log('Comments created:', 5)
