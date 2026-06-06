@@ -32,6 +32,7 @@ export type { PersistenceProvider } from './persistence'
 // Utils
 export { migrateStateV1toV2 } from './utils/stateMigration'
 export { parseAndValidateImport, detectImportType } from './utils/importDetect'
+export { importFromPdf } from './utils/pdfImport'
 export { applyStateToStores, rebuildRepeatableInstances } from './utils/applyState'
 export { exportToJson, buildOutputData } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
