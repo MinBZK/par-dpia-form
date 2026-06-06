@@ -33,7 +33,13 @@ RUN mkdir -p /app/sources/generated && \
       --schema /app/schemas/assessment-definition.v2.schema.json \
       --source /app/sources/dpia.yaml \
       --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
-      --output-json /app/sources/generated/DPIA.json
+      --output-json /app/sources/generated/DPIA.json && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/iama.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_iama.yaml \
+      --output-json /app/sources/generated/IAMA.json \
+      --definitions-once-per-page
 
 WORKDIR /app
 EXPOSE 5174

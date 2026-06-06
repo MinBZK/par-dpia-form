@@ -66,7 +66,8 @@ straight to the host):
 podman compose -f containers/compose.dev.yaml exec -T standalone sh -c '
 mkdir -p /app/sources/generated && \
 python3 /app/script/run_all.py --schema /app/schemas/assessment-definition.v2.schema.json --source /app/sources/prescan_dpia.yaml --begrippen-yaml /app/sources/begrippenkader_dpia.yaml --output-json /app/sources/generated/PreScanDPIA.json && \
-python3 /app/script/run_all.py --schema /app/schemas/assessment-definition.v2.schema.json --source /app/sources/dpia.yaml --begrippen-yaml /app/sources/begrippenkader_dpia.yaml --output-json /app/sources/generated/DPIA.json
+python3 /app/script/run_all.py --schema /app/schemas/assessment-definition.v2.schema.json --source /app/sources/dpia.yaml --begrippen-yaml /app/sources/begrippenkader_dpia.yaml --output-json /app/sources/generated/DPIA.json && \
+python3 /app/script/run_all.py --schema /app/schemas/assessment-definition.v2.schema.json --source /app/sources/iama.yaml --begrippen-yaml /app/sources/begrippenkader_iama.yaml --output-json /app/sources/generated/IAMA.json --definitions-once-per-page
 '
 ```
 

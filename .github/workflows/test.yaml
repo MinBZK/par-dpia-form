@@ -57,6 +57,12 @@ jobs:
             --source sources/dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --definitions-once-per-page
 
       - name: Type check backend
         run: cd apps/boekhouding-backend && npx tsc --noEmit

@@ -40,6 +40,13 @@ jobs:
             --output-json sources/generated/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
 
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --definitions-once-per-page
+
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
