@@ -18,7 +18,7 @@ jobs:
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v1.5.4
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -26,7 +26,6 @@ jobs:
           args: >-
             --verbose
             --no-progress
-            --exclude-mail
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
