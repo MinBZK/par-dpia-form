@@ -8,10 +8,16 @@ const roleHierarchy: Record<ProjectRole, number> = { viewer: 0, commenter: 1, ed
 const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: 'commentator', editor: 'bewerker', owner: 'eigenaar' }
 
 // Lean projection for auth + small metadata. Excludes cachedState (JSONB, potentially large).
+// The scalar metadata (assessmentType, name, createdAt) is returned verbatim by
+// GET /assessments/:id, so it must stay in this projection — without assessmentType
+// the editor can't tell a pre-scan from a DPIA.
 type AssessmentAuthRow = {
   id: string
   projectId: string
+  assessmentType: 'dpia' | 'prescan'
+  name: string
   currentVersion: number
+  createdAt: Date
   updatedAt: Date
 }
 
@@ -43,7 +49,10 @@ export async function requireAssessmentAccess(
   const baseCols = {
     id: assessmentInstances.id,
     projectId: assessmentInstances.projectId,
+    assessmentType: assessmentInstances.assessmentType,
+    name: assessmentInstances.name,
     currentVersion: assessmentInstances.currentVersion,
+    createdAt: assessmentInstances.createdAt,
     updatedAt: assessmentInstances.updatedAt,
     memberRole: projectMembers.role,
   }
