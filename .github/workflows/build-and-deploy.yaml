@@ -1,8 +1,9 @@
 name: Build and Deploy
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - experimenteel/samenwerken
   workflow_dispatch:
 
 env:
@@ -14,7 +15,6 @@ env:
 
 jobs:
   generate-sources:
-    if: github.event.pull_request.number == 283 || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -155,7 +155,8 @@ jobs:
           project-id: ${{ env.PROJECT_ID }}
           deployment-name: ${{ env.DEPLOYMENT_NAME }}
           wait-for-ready: 'true'
-          comment-on-pr: 'true'
+          # Push-getriggerd: er is geen PR-context om op te reageren.
+          comment-on-pr: 'false'
           components: >-
             [
               {"name": "frontend", "image": "${{ needs.build-frontend.outputs.image }}"},
