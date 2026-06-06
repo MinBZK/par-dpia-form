@@ -155,8 +155,6 @@ jobs:
           project-id: ${{ env.PROJECT_ID }}
           deployment-name: ${{ env.DEPLOYMENT_NAME }}
           wait-for-ready: 'true'
-          # Push-getriggerd: er is geen PR-context om op te reageren.
-          comment-on-pr: 'false'
           components: >-
             [
               {"name": "frontend", "image": "${{ needs.build-frontend.outputs.image }}"},
