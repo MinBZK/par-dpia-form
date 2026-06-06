@@ -159,7 +159,7 @@ export async function projectRoutes(app: FastifyInstance) {
 
     let finalName = name
     if (!finalName) {
-      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : assessmentType === 'iama' ? 'IAMA' : 'Pre-scan DPIA'
+      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : assessmentType === 'iama' ? 'IAMA' : 'Pre-scan'
       const existing = await db
         .select()
         .from(assessmentInstances)
