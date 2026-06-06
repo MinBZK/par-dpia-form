@@ -17,11 +17,13 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <p>
       De invulhulpen helpen je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
-      Ze zijn gebaseerd op het
+      De pre-scan en DPIA zijn gebaseerd op het
       <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
       en het
-      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>
-      en sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
+      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>;
+      het IAMA op het
+      <a href="https://minbzk.github.io/Algoritmekader/soorten-algoritmes-en-ai/definities/" target="_blank" rel="noopener">Algoritmekader</a>.
+      Ze sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
     </p>
 
     <h2 class="utrecht-heading-2">Pre-scan</h2>
@@ -31,7 +33,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       zijn op jouw project.
     </p>
 
-    <h2 class="utrecht-heading-2">Waarom een DPIA?</h2>
+    <h2 class="utrecht-heading-2">DPIA</h2>
     <p>
       Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen
       in mogelijke privacyrisico's. Een DPIA is het instrument om van projecten waarbij
@@ -59,7 +61,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
     </ol>
 
-    <h2 class="utrecht-heading-2">Wat is een IAMA?</h2>
+    <h2 class="utrecht-heading-2">IAMA</h2>
     <p>
       Het Impact Assessment Mensenrechten en Algoritmes (IAMA) helpt overheidsorganisaties bij
       het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand
