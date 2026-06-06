@@ -9,6 +9,9 @@ export default defineConfig({
       exclude: [
         'src/**/*.d.ts',
         'src/index.ts',
+        // v8 coverage parses uncovered files with rollup, which can't handle
+        // Vue SFCs (<template>/<style>) — excluded to avoid PARSE_ERROR.
+        'src/**/*.vue',
       ],
       // Phase 1 floor — set well below the current measured baseline from
       // issue #10 (stmts 27.0% / branches 29.8% / funcs 24.5% / lines 27.1%)
