@@ -59,6 +59,9 @@ export { default as TaskGroup } from './components/task/TaskGroup.vue'
 export { default as TaskItem } from './components/task/TaskItem.vue'
 export { default as FormField } from './components/task/FormField.vue'
 export { default as ImageField } from './components/task/ImageField.vue'
+export { default as ReferenceSuggestions } from './components/ReferenceSuggestions.vue'
+export { default as ActionPointsOverview } from './components/ActionPointsOverview.vue'
+export { default as ExportPdfInfo } from './components/ExportPdfInfo.vue'
 
 // Image utils
 export { resizeImageToDataUri } from './utils/imageResize'
