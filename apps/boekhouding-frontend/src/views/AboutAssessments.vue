@@ -58,6 +58,41 @@ const hasHistory = computed(() => !!window.history.state?.back)
       moet worden gemaakt.
     </p>
 
+    <h2 class="utrecht-heading-2">Wat is een IAMA?</h2>
+    <p>
+      Het Impact Assessment Mensenrechten en Algoritmes (IAMA) helpt overheidsorganisaties bij
+      het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand
+      aan de ontwikkeling of inzet van een algoritme. Het IAMA is een instrument voor discussie en
+      besluitvorming dat een interdisciplinaire dialoog faciliteert tussen iedereen die betrokken is
+      bij de ontwikkeling of inzet van een algoritmisch systeem. Het kan worden toegepast op
+      AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten.
+    </p>
+
+    <h3 class="utrecht-heading-3">Wanneer voer je een IAMA uit?</h3>
+    <p>
+      Het IAMA is een grondrechtenbeoordeling voor impactvolle algoritmes en hoog-risico
+      AI-systemen. Voor hoog-risico AI-systemen schrijft de Europese AI-verordening een beoordeling
+      van de gevolgen voor grondrechten voor (artikel 27 AI-verordening); het IAMA is een instrument
+      om aan die verplichting invulling te geven. Daarnaast is het IAMA geschikt voor impactvolle
+      algoritmes die niet als hoog-risico AI-systeem kwalificeren of die buiten het bereik van de
+      AI-verordening vallen. Voer het IAMA in een vroegtijdig stadium uit, zodat de consequenties
+      van de inzet van een algoritme zorgvuldig kunnen worden afgewogen voordat het wordt ingezet.
+    </p>
+
+    <h3 class="utrecht-heading-3">IAMA versie 2.0</h3>
+    <p>
+      Deze invulhulp is gebaseerd op IAMA versie 2.0. Dit is een actualisatie van de oorspronkelijke
+      versie: gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten uit
+      artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te
+      worden.
+    </p>
+    <p>Bronnen voor het IAMA:</p>
+    <ul>
+      <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">Toelichtingsdocument Impact Assessment Mensenrechten en Algoritmes | Rijksoverheid</a></li>
+      <li><a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank" rel="noopener noreferrer">Algoritmekader — hulpmiddelen</a></li>
+      <li><a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27" target="_blank" rel="noopener noreferrer">Artikel 27 AI-verordening (EUR-Lex)</a></li>
+    </ul>
+
     <h2 class="utrecht-heading-2">Meer informatie</h2>
     <p>
       Meer uitleg over de pre-scan kan je vinden in de handreiking pre-scan DPIA.<br />
