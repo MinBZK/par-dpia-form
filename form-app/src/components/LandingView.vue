@@ -99,7 +99,7 @@ defineProps<{
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
           <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank">IAMA v2.0 - Open Overheid</a></li>
-          <li><a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a></li>
+          <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a></li>
           <li><a href="https://minbzk.github.io/Algoritmekader/soorten-algoritmes-en-ai/definities/" target="_blank">Algoritmekader - Definities</a></li>
         </ul>
       </div>
