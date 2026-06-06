@@ -14,6 +14,7 @@ community looks forward to your contributions. 🎉
 - [I Want To Contribute](#i-want-to-contribute)
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Enhancements](#suggesting-enhancements)
+- [Releases](#releases)
 
 ## Code of Conduct
 
@@ -105,3 +106,29 @@ which the suggestion is related to. You can use [this tool](https://www.cockos.c
  Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/phw/peek) on Linux.
 - **Explain why this enhancement would be useful** for the community. You may also want to point out the
 other projects that solved it better and which could serve as inspiration.
+
+## Releases
+
+Releases use [Calendar Versioning](https://calver.org/) in the format `vYYYY.0M.0D`
+(for example `v2026.06.06`). The month and day are zero-padded. If more than one
+release is needed on the same day, append a micro number (`v2026.06.06.1`).
+
+Notable, user-facing changes are recorded in [`CHANGELOG.md`](CHANGELOG.md),
+following the [Keep a Changelog](https://keepachangelog.com/) format.
+
+To cut a release:
+
+1. In `CHANGELOG.md`, move the entries under `## [Unreleased]` into a new
+   `## [YYYY.0M.0D] - YYYY-MM-DD` section and add the matching link reference at
+   the bottom of the file.
+2. Commit this change, then create and push the tag:
+
+   ```sh
+   git tag v2026.06.06
+   git push origin v2026.06.06
+   ```
+
+The `Release` workflow validates the tag format, extracts the matching
+`CHANGELOG.md` section and creates the GitHub release from it. The existing
+`Release and Deploy` workflow then builds the application and publishes it
+automatically.
