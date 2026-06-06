@@ -23,7 +23,7 @@ const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 // Start-form dialog state
 const startDialogRef = ref<HTMLDialogElement | null>(null)
 const dialogOpen = ref(false)
-const dialogAssessmentType = ref<'dpia' | 'prescan'>('dpia')
+const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
 const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
@@ -131,7 +131,7 @@ const saveDescription = async () => {
 }
 
 // Dialog handling
-const openStartDialog = (assessmentType: 'dpia' | 'prescan') => {
+const openStartDialog = (assessmentType: 'dpia' | 'prescan' | 'iama') => {
   dialogAssessmentType.value = assessmentType
   dialogOption.value = 'empty'
   selectedPrescanId.value = null
@@ -168,6 +168,8 @@ const submitDialog = async () => {
   try {
     if (dialogAssessmentType.value === 'dpia') {
       await submitDpiaDialog()
+    } else if (dialogAssessmentType.value === 'iama') {
+      await submitIamaDialog()
     } else {
       await submitPrescanDialog()
     }
@@ -231,6 +233,15 @@ const submitDpiaDialog = async () => {
   }
 }
 
+const submitIamaDialog = async () => {
+  if (dialogOption.value === 'empty') {
+    // Option 1: Start with empty IAMA
+    const form = await assessmentsApi.create(props.projectId, 'iama')
+    router.push(`/assessment/${form.id}`)
+    return
+  }
+}
+
 const submitPrescanDialog = async () => {
   if (dialogOption.value === 'empty') {
     const form = await assessmentsApi.create(props.projectId, 'prescan')
@@ -263,7 +274,7 @@ const confirmDeleteProject = async () => {
   router.push('/projecten')
 }
 
-const formTypeLabel = (type: string) => type === 'dpia' ? 'DPIA' : 'Pre-scan'
+const formTypeLabel = (type: string) => type === 'dpia' ? 'DPIA' : type === 'iama' ? 'IAMA' : 'Pre-scan'
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -385,6 +396,17 @@ const formatDate = (dateStr: string) =>
             </div>
           </div>
         </div>
+        <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
+          <div class="rvo-card__content card-content-flex">
+            <h3 class="utrecht-heading-3 rvo-margin--none">IAMA</h3>
+            <p>Breng de impact op mensenrechten van een algoritme in kaart.</p>
+            <div class="card-button">
+              <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="openStartDialog('iama')">
+                Start IAMA
+              </button>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </template>
@@ -398,7 +420,7 @@ const formatDate = (dateStr: string) =>
   >
     <div class="start-dialog__content">
       <h2 class="utrecht-heading-2">
-        {{ dialogAssessmentType === 'dpia' ? 'Hoe wil je de DPIA starten?' : 'Hoe wil je de pre-scan starten?' }}
+        {{ dialogAssessmentType === 'dpia' ? 'Hoe wil je de DPIA starten?' : dialogAssessmentType === 'iama' ? 'Hoe wil je de IAMA starten?' : 'Hoe wil je de pre-scan starten?' }}
       </h2>
 
       <!-- DPIA options -->
@@ -444,6 +466,18 @@ const formatDate = (dateStr: string) =>
         </fieldset>
       </template>
 
+      <!-- IAMA options -->
+      <template v-else-if="dialogAssessmentType === 'iama'">
+        <fieldset class="start-dialog__fieldset">
+          <legend class="rvo-visually-hidden">Kies een startoptie</legend>
+
+          <label class="start-dialog__option">
+            <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
+            <span class="start-dialog__option-label">Start een nieuwe IAMA</span>
+          </label>
+        </fieldset>
+      </template>
+
       <!-- Pre-scan options -->
       <template v-else>
         <fieldset class="start-dialog__fieldset">
@@ -478,7 +512,7 @@ const formatDate = (dateStr: string) =>
           :disabled="dialogSubmitting"
           @click="submitDialog"
         >
-          {{ dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : 'Start pre-scan') }}
+          {{ dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan') }}
         </button>
         <button
           class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md"
