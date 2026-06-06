@@ -195,6 +195,7 @@ watch(
 const assessmentTypeMap: Record<string, FormType> = {
   dpia: FormType.DPIA,
   prescan: FormType.PRE_SCAN,
+  iama: FormType.IAMA,
 }
 
 // Navigation: back goes to project detail
@@ -269,7 +270,9 @@ const namespace = computed(() =>
 )
 
 const assessmentTypeLabel = computed(() =>
-  assessment.value?.assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+  assessment.value?.assessmentType === 'dpia' ? 'DPIA'
+    : assessment.value?.assessmentType === 'iama' ? 'IAMA'
+    : 'Pre-scan DPIA'
 )
 
 const displayName = computed(() => {

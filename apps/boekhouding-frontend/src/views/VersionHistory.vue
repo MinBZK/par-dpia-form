@@ -125,7 +125,9 @@ async function handleFieldRestore() {
         // Repeatable field: find parent group and update element in grouped array
         const taskId = indexMatch[1]
         const index = parseInt(indexMatch[2])
-        const formType = parsed.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+        const formType = parsed.namespace === 'dpia' ? FormType.DPIA
+          : parsed.namespace === 'iama' ? FormType.IAMA
+          : FormType.PRE_SCAN
         const flatTasks = taskStore.getTasksFromNamespace(formType)
         const task = flatTasks?.[taskId]
         const parentId = task?.parentId
@@ -226,7 +228,7 @@ onMounted(async () => {
     ])
     schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default, iama: iamaModule.default })
   }
-  for (const ns of [FormType.DPIA, FormType.PRE_SCAN]) {
+  for (const ns of [FormType.DPIA, FormType.PRE_SCAN, FormType.IAMA]) {
     if (!taskStore.isInitialized[ns]) {
       const schema = schemaStore.getSchema(ns)
       if (schema) {
@@ -330,6 +332,7 @@ async function handleRestore() {
 const namespaceLabels: Record<string, string> = {
   dpia: 'DPIA',
   prescan: 'Pre-scan DPIA',
+  iama: 'IAMA',
 }
 
 function stripInstanceSuffix(taskId: string): string {
@@ -345,7 +348,9 @@ function getFieldLabel(fieldId: string): { label: string; groupLabel?: string } 
   const taskId = stripInstanceSuffix(raw)
   const indexMatch = raw.match(/\[(\d+)\]$/)
 
-  const formType = ns === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+  const formType = ns === 'dpia' ? FormType.DPIA
+    : ns === 'iama' ? FormType.IAMA
+    : FormType.PRE_SCAN
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.task) {
@@ -401,7 +406,9 @@ function getFieldOptions(fieldId: string): Record<string, string> | null {
   const ns = fieldId.substring(0, dotIndex)
   const taskId = stripInstanceSuffix(fieldId.substring(dotIndex + 1))
 
-  const formType = ns === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+  const formType = ns === 'dpia' ? FormType.DPIA
+    : ns === 'iama' ? FormType.IAMA
+    : FormType.PRE_SCAN
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.options && task.options.length > 0) {
@@ -604,7 +611,9 @@ function mapEditsToDiffFields(
     if (edit.editType === 'instance_added' || edit.editType === 'instance_removed') {
       const parsed = parseFieldId(edit.fieldId)
       const taskId = parsed?.key.replace(/\[\d+\]$/, '') ?? dotId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
+        : parsed?.namespace === 'iama' ? FormType.IAMA
+        : FormType.PRE_SCAN
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
       const indexMatch = parsed?.key.match(/\[(\d+)\]$/)
@@ -634,7 +643,9 @@ function mapEditsToDiffFields(
     if (edit.editType === 'section_complete') {
       const parsed = parseFieldId(edit.fieldId)
       const taskId = parsed ? (parsed.key.startsWith('completed.') ? parsed.key.substring('completed.'.length) : parsed.key) : edit.fieldId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
+        : parsed?.namespace === 'iama' ? FormType.IAMA
+        : FormType.PRE_SCAN
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
       result.push({
