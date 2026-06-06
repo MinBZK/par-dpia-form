@@ -312,7 +312,6 @@ export async function commentRoutes(app: FastifyInstance) {
       return updated
     }
 
-    // Only the author can edit their own comment body
     if (comment.authorId !== userId) {
       return reply.status(403).type('application/problem+json').send({
         type: 'https://httpproblems.com/http-status/403',

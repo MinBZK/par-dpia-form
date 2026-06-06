@@ -128,7 +128,6 @@ export async function projectRoutes(app: FastifyInstance) {
     return reply.status(204).send()
   })
 
-  // List assessments for a project
   app.get<{
     Params: { projectId: string }
   }>('/:projectId/assessments', {
@@ -145,7 +144,6 @@ export async function projectRoutes(app: FastifyInstance) {
     return assessments
   })
 
-  // Create a new assessment instance
   app.post<{
     Params: { projectId: string }
     Body: { name?: string; assessmentType: 'dpia' | 'prescan'; state?: unknown }
@@ -169,7 +167,6 @@ export async function projectRoutes(app: FastifyInstance) {
     const { name, assessmentType, state } = request.body
     const userId = request.user!.id
 
-    // Auto-generate name if not provided
     let finalName = name
     if (!finalName) {
       const baseLabel = assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
