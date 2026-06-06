@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import UiButton from './ui/UiButton.vue'
+import ExportPdfInfo from './ExportPdfInfo.vue'
 import { type AssessmentState } from '../models/assessmentState'
 import { importFromJson } from '../utils/jsonExport'
+import { importFromPdf } from '../utils/pdfImport'
 import { useTaskStore } from '../stores/tasks'
+import { FormType } from '../models/dpia'
 
 const emit = defineEmits<{
   (e: 'start', fileData?: AssessmentState): void
@@ -15,24 +18,27 @@ const isProcessing = ref(false)
 const taskStore = useTaskStore()
 
 const introText = computed(() => {
-  if (taskStore.activeNamespace === 'dpia') {
+  if (taskStore.activeNamespace === FormType.DPIA) {
     return "Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA. De rapportage voldoet aan de eisen uit de AVG en het model DPIA Rijksdienst, en is geschikt voor verwerking in het verwerkingsregister.";
+  } else if (taskStore.activeNamespace === FormType.IAMA) {
+    return 'Deze tool begeleidt je stap voor stap bij het uitvoeren van een IAMA. Het Impact Assessment Mensenrechten en Algoritmes helpt bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden.';
   } else {
     return 'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst die helpt bij het inschatten van risicos en geeft op basis daarvan advies over het uitvoeren van een assessment.';
   }
 })
 
 const uploadText = computed(() => {
-  if (taskStore.activeNamespace === 'dpia') {
-    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?.';
+  if (taskStore.activeNamespace === FormType.DPIA) {
+    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+  } else if (taskStore.activeNamespace === FormType.IAMA) {
+    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
   } else {
-    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking?';
+    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
   }
 })
 
 const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement
-  console.log(target)
   if (target.files && target.files.length > 0) {
     uploadedFile.value = target.files[0]
     fileUploadError.value = null
@@ -46,7 +52,9 @@ const startDpia = async () => {
   try {
     if (uploadedFile.value) {
       try {
-        const fileData = await importFromJson(uploadedFile.value)
+        const file = uploadedFile.value
+        const isPdf = file.name.toLowerCase().endsWith('.pdf')
+        const fileData = isPdf ? await importFromPdf(file) : await importFromJson(file)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {
@@ -74,12 +82,18 @@ const startDpia = async () => {
 }
 
 const formTypeLabel = computed(() => {
-  return taskStore.activeNamespace === 'dpia' ? 'DPIA' : 'pre-scan'
+  if (taskStore.activeNamespace === FormType.DPIA) return 'DPIA'
+  if (taskStore.activeNamespace === FormType.IAMA) return 'IAMA'
+  return 'pre-scan'
+})
+
+const formTypeArticle = computed(() => {
+  return taskStore.activeNamespace === FormType.IAMA ? 'het' : 'de'
 })
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Start de {{ formTypeLabel }}</h1>
+  <h1 class="utrecht-heading-1">Start {{ formTypeArticle }} {{ formTypeLabel }}</h1>
 
   <div class="utrecht-form-fieldset rvo-form-fieldset">
     <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
@@ -96,7 +110,11 @@ const formTypeLabel = computed(() => {
               {{ uploadText }}
             </label>
           </div>
-          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json" @change="handleFileSelect" />
+          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json,.pdf"
+            @change="handleFileSelect" />
+          <div class="rvo-layout-margin-vertical--md">
+            <ExportPdfInfo />
+          </div>
         </div>
       </div>
     </fieldset>
@@ -104,8 +122,8 @@ const formTypeLabel = computed(() => {
 
   <div class="rvo-layout-margin-vertical--xl">
     <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met de ${formTypeLabel}`" :disabled="isProcessing"
-      @click="startDpia" />
+      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
+      :disabled="isProcessing" @click="startDpia" />
   </div>
 
   <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">
