@@ -779,6 +779,50 @@ describe('TaskSection missingSourceDependencies warning', () => {
     expect(listItem.text()).toContain('Bestaande bron')
   })
 
+  it('stops walking up the parent chain when an ancestor is missing (resolveRootSectionId break)', () => {
+    const tasks: Task[] = [
+      {
+        id: '6',
+        task: 'Bron',
+        type: ['task_group'],
+        is_official_id: true,
+        tasks: [
+          {
+            id: '6.5',
+            task: 'Subgroep',
+            type: ['task_group'],
+            tasks: [{ id: '6.5.1', task: 'Bron veld', type: ['text_input'] }],
+          },
+        ],
+      },
+      {
+        id: '8',
+        task: 'Doel',
+        type: ['task_group'],
+        is_official_id: true,
+        tasks: [
+          {
+            id: '8.1',
+            task: 'Doel veld',
+            type: ['text_input'],
+            dependencies: [
+              { type: 'conditional', action: 'show', condition: { id: '6.5.1', operator: 'any' } },
+            ],
+          },
+        ],
+      },
+    ]
+    taskStore.init(tasks, true)
+    // Break the source field's parent chain: 6.5.1 -> 6.5 -> (missing). When
+    // resolveRootSectionId('6.5.1') walks to 6.5 and then looks up its parent,
+    // the parent is absent and the loop breaks (line 126).
+    taskStore.flatTasks[FormType.DPIA]['6.5'].parentId = 'ontbrekend'
+
+    const wrapper = mountSection('8')
+    // The warning still renders; the section name falls back to the resolved id.
+    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(true)
+  })
+
   it('collects dependencies declared on intermediate task groups (recursive descendants)', () => {
     const tasks: Task[] = [
       {
@@ -1032,5 +1076,155 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
     const item = wrapper.findComponent({ name: 'TaskItem' })
     expect(item.exists()).toBe(true)
     expect(item.props('instanceId')).toBe('')
+  })
+
+  it('childGroups falls back to an empty list when the task has no childrenIds (|| [] branch)', () => {
+    taskStore.init([{ id: '5', task: 'Sectie', type: ['task_group'], is_official_id: true }], true)
+    // Remove childrenIds so `task.value.childrenIds || []` takes the [] fallback.
+    // The template never reads childGroups in this case (shouldShowChildren is
+    // false), so the computed is read directly via setupState.
+    ;(taskStore.flatTasks[FormType.DPIA]['5'] as { childrenIds?: unknown }).childrenIds = undefined
+
+    const wrapper = mountSection('5')
+    const ss = setupState(wrapper)
+    expect(ss.childGroups).toEqual([])
+  })
+
+  it('firstAccordionChildId is null when there is no accordion group (?? null branch)', () => {
+    taskStore.init(
+      [
+        {
+          id: '5',
+          task: 'Sectie',
+          type: ['task_group'],
+          is_official_id: true,
+          tasks: [{ id: '5.1', task: 'Veld', type: ['text_input'] }],
+        },
+      ],
+      true,
+    )
+
+    const wrapper = mountSection('5')
+    const ss = setupState(wrapper)
+    // No info-only children -> no accordion group -> firstAccordion is undefined.
+    expect(ss.firstAccordionChildId).toBeNull()
+  })
+})
+
+describe('TaskSection accordion grouping of info-only children', () => {
+  beforeEach(() => {
+    taskStore.setActiveNamespace(FormType.DPIA)
+    answerStore.setActiveNamespace(FormType.DPIA)
+  })
+
+  // An "info-only" child is an empty task_group (no children) that carries a
+  // description. A run of consecutive info-only children renders as a single
+  // accordion; a non-info child between them flushes the current run.
+  const tree: Task[] = [
+    {
+      id: '4',
+      task: 'Informatie-sectie',
+      // Informational section so the first accordion item is opened by default.
+      type: ['task_group', 'informational'],
+      is_official_id: true,
+      tasks: [
+        { id: '4.1', task: 'Toelichting A', type: ['task_group'], description: 'Uitleg A' },
+        { id: '4.2', task: 'Toelichting B', type: ['task_group'], description: 'Uitleg B' },
+        // Non-info child flushes the accordion run (lines 49-50).
+        { id: '4.3', task: 'Echte vraag', type: ['text_input'] },
+        // A trailing info-only child forms a second accordion run (flushed at end).
+        { id: '4.4', task: 'Toelichting C', type: ['task_group'], description: 'Uitleg C' },
+      ],
+    },
+  ]
+
+  it('groups a leading info-only run into an accordion, flushes it on a normal child, and renders a single field for that child', () => {
+    taskStore.init(tree, true)
+
+    const wrapper = mountSection('4')
+
+    // Two accordion groups: the leading run [4.1, 4.2] and the trailing [4.4].
+    const accordions = wrapper.findAll('.rvo-accordion')
+    expect(accordions).toHaveLength(2)
+
+    // First accordion holds the two leading info-only children.
+    const firstItems = accordions[0].findAll('details.rvo-accordion__item')
+    expect(firstItems).toHaveLength(2)
+
+    // The normal child (4.3, a leaf field) renders as a single TaskItem between
+    // the two accordion runs.
+    const item = wrapper
+      .findAllComponents({ name: 'TaskItem' })
+      .find((g) => g.props('taskId') === '4.3')
+    expect(item).toBeTruthy()
+  })
+
+  it('opens the first accordion item by default for an informational section (firstAccordionChildId)', () => {
+    taskStore.init(tree, true)
+
+    const wrapper = mountSection('4')
+    const firstAccordion = wrapper.find('.rvo-accordion')
+    const items = firstAccordion.findAll('details.rvo-accordion__item')
+    // isInformationalTask && childId === firstAccordionChildId -> first item open.
+    expect((items[0].element as HTMLDetailsElement).open).toBe(true)
+    expect((items[1].element as HTMLDetailsElement).open).toBe(false)
+  })
+
+  it('renders an image inside an info-only accordion child when its source maps to a known image, and skips unknown sources', () => {
+    taskStore.init(
+      [
+        {
+          id: '4',
+          task: 'Informatie-sectie',
+          type: ['task_group', 'informational'],
+          is_official_id: true,
+          tasks: [
+            {
+              id: '4.1',
+              task: 'Met afbeelding',
+              type: ['task_group'],
+              description: 'Uitleg met plaatje',
+              sources: [
+                { source: 'risico_matrix.png', description: 'Risico-matrix' },
+                { source: 'onbekend.png', description: 'Bestaat niet' },
+              ],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    const wrapper = mountSection('4')
+    const imgs = wrapper.findAll('.rvo-accordion__content img')
+    // Only the known image (risico_matrix.png) renders; the unknown source is skipped.
+    expect(imgs).toHaveLength(1)
+    expect(imgs[0].attributes('alt')).toBe('Risico-matrix')
+  })
+})
+
+describe('TaskSection action-points summary', () => {
+  beforeEach(() => {
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+  })
+
+  it('renders the ActionPointsOverview when the section has action_point_summary === true', () => {
+    taskStore.init(
+      [
+        {
+          id: '4',
+          task: 'Samenvatting-sectie',
+          type: ['task_group'],
+          is_official_id: true,
+          action_point_summary: true,
+          tasks: [{ id: '4.1', task: 'Veld', type: ['text_input'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    const wrapper = mountSection('4')
+    expect(wrapper.findComponent({ name: 'ActionPointsOverview' }).exists()).toBe(true)
   })
 })

@@ -131,4 +131,35 @@ describe('useReferences — reference routing', () => {
     // Prefill source (3.3) must NOT appear among suggestions.
     expect(suggestions.some((s) => s.sourceTaskId === '3.3')).toBe(false)
   })
+
+  it('self suggestion: deduplicates multiple references from the same source task', () => {
+    // Source task 4.2 has TWO pre-view references to target 4.1; the suggestion
+    // list must contain that source only once (seen.has dedup branch).
+    initNamespace(FormType.DPIA, [
+      { id: '4.1', task: 'DPIA suggestion target', type: ['text_input'] },
+      {
+        id: '4.2',
+        task: 'DPIA dubbele bron',
+        type: ['text_input'],
+        references: {
+          DPIA: [
+            { id: '4.1', type: 'pre-view' },
+            { id: '4.1', type: 'pre-view' },
+          ],
+        },
+      },
+    ] as unknown as Task[])
+
+    seedAnswer(FormType.DPIA, '4.2', 'Antwoord een keer')
+
+    taskStore.setActiveNamespace(FormType.DPIA)
+    answerStore.setActiveNamespace(FormType.DPIA)
+
+    const { getSuggestionsForTask } = useReferences()
+    const target = taskStore.getTasksFromNamespace(FormType.DPIA)['4.1']
+
+    const suggestions = getSuggestionsForTask(target)
+    expect(suggestions).toHaveLength(1)
+    expect(suggestions[0].sourceTaskId).toBe('4.2')
+  })
 })

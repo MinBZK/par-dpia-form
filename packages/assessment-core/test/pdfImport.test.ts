@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { PDFDocument, PDFName, PDFString, PDFHexString } from '@pdfme/pdf-lib'
 import { importFromPdf, extractInfoStringValue } from '../src/utils/pdfImport'
 import { type AssessmentState } from '../src/models/assessmentState'
@@ -74,6 +74,36 @@ describe('importFromPdf', () => {
 
     await expect(importFromPdf(bytes)).rejects.toThrow(/assessment-gegevens/)
   })
+
+  it('rejects a PDF whose trailer has no Info reference (infoRef falsy branch)', async () => {
+    // A loaded PDF without an Info entry in the trailer -> infoRef is undefined
+    // -> infoDict stays undefined -> "geen assessment-gegevens".
+    const fakeDoc = {
+      context: {
+        trailerInfo: {}, // no Info
+        lookup: () => undefined,
+      },
+    }
+    const loadSpy = vi
+      .spyOn(PDFDocument, 'load')
+      .mockResolvedValue(fakeDoc as unknown as PDFDocument)
+
+    await expect(importFromPdf(new Uint8Array([0]))).rejects.toThrow(
+      /assessment-gegevens/,
+    )
+
+    loadSpy.mockRestore()
+  })
+
+  it('rejects a corrupt/invalid PDF (PDFDocument.load throws)', async () => {
+    // Bytes that are not a valid PDF -> PDFDocument.load throws -> caught and
+    // rethrown as a Dutch error message.
+    const garbage = new Uint8Array([1, 2, 3, 4, 5])
+
+    await expect(importFromPdf(garbage)).rejects.toThrow(
+      'Het PDF-bestand is beschadigd of ongeldig.',
+    )
+  })
 })
 
 describe('extractInfoStringValue', () => {
@@ -102,5 +132,25 @@ describe('extractInfoStringValue', () => {
     const infoDict = pdfDoc.context.lookup(pdfDoc.context.trailerInfo.Info)
 
     expect(extractInfoStringValue(infoDict, 'AssessmentData')).toBeUndefined()
+  })
+
+  it('returns undefined when the info dictionary is null/undefined', () => {
+    expect(extractInfoStringValue(undefined, 'AssessmentData')).toBeUndefined()
+    expect(extractInfoStringValue(null, 'AssessmentData')).toBeUndefined()
+  })
+
+  it('returns undefined when the info dictionary is not an object', () => {
+    expect(extractInfoStringValue('niet een object', 'AssessmentData')).toBeUndefined()
+  })
+
+  it('returns undefined when the object has no lookup method', () => {
+    expect(extractInfoStringValue({ foo: 'bar' }, 'AssessmentData')).toBeUndefined()
+  })
+
+  it('returns undefined when the looked-up value is neither PDFString nor PDFHexString', () => {
+    // An object exposing lookup() that returns a non-string PDF value exercises
+    // the final `return undefined` fall-through.
+    const fakeDict = { lookup: () => ({ some: 'other-pdf-object' }) }
+    expect(extractInfoStringValue(fakeDict, 'AssessmentData')).toBeUndefined()
   })
 })

@@ -395,7 +395,7 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
     expect(second.json().name).toBe('DPIA 2')
   })
 
-  it('defaults the prescan name to "Pre-scan DPIA"', async () => {
+  it('defaults the prescan name to "Pre-scan"', async () => {
     const owner = await createUser()
     const project = await projectWithRole(owner, 'owner')
 
@@ -406,7 +406,7 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
       payload: { assessmentType: 'prescan' },
     })
     expect(res.statusCode).toBe(201)
-    expect(res.json().name).toBe('Pre-scan DPIA')
+    expect(res.json().name).toBe('Pre-scan')
 
     const rows = await db
       .select()

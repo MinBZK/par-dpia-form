@@ -103,9 +103,10 @@ const AppHeaderStub = {
 
 const ASSESSMENT_ID = 'assess-1'
 
-function setTasks(tasks: Record<FormType, Record<string, any>>) {
+function setTasks(tasks: Partial<Record<FormType, Record<string, any>>>) {
   flatTaskMap[FormType.DPIA] = tasks[FormType.DPIA] ?? {}
   flatTaskMap[FormType.PRE_SCAN] = tasks[FormType.PRE_SCAN] ?? {}
+  flatTaskMap[FormType.IAMA] = tasks[FormType.IAMA] ?? {}
 }
 
 function mountView() {
@@ -621,7 +622,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
     ])
   })
 
-  async function expandWithEdits(edits: any[], tasks?: Record<FormType, Record<string, any>>) {
+  async function expandWithEdits(edits: any[], tasks?: Partial<Record<FormType, Record<string, any>>>) {
     if (tasks) setTasks(tasks)
     apiVersionEdits.mockResolvedValue(edits)
     const wrapper = mountView()
@@ -1229,7 +1230,7 @@ describe('VersionHistory — parseFieldId & toDotFieldId', () => {
 })
 
 describe('VersionHistory — field-level restore', () => {
-  async function setupFieldDiff(edit: any, tasks?: Record<FormType, Record<string, any>>, currentState?: unknown) {
+  async function setupFieldDiff(edit: any, tasks?: Partial<Record<FormType, Record<string, any>>>, currentState?: unknown) {
     apiGet.mockResolvedValue({
       role: 'owner',
       projectId: 'p',
@@ -2062,5 +2063,135 @@ describe('VersionHistory — remaining branch coverage', () => {
     expect(footer.exists()).toBe(true)
     expect(footer.text()).toContain('20 maart 2026')
     expect(footer.text()).toContain('versie 1')
+  })
+
+  describe('IAMA namespace branches', () => {
+    async function setupIama(edit: any, tasks: Partial<Record<FormType, Record<string, any>>>, currentState?: unknown) {
+      apiGet.mockResolvedValue({
+        role: 'owner',
+        projectId: 'p',
+        currentVersion: 4,
+        state: currentState ?? { answers: {}, metadata: { completedTasks: [] } },
+      })
+      apiVersions.mockResolvedValue([
+        { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
+      ])
+      setTasks(tasks)
+      apiVersionEdits.mockResolvedValue([edit])
+      const wrapper = mountView()
+      await flushPromises()
+      await wrapper.find('.toggle-btn').trigger('click')
+      await flushPromises()
+      return wrapper
+    }
+
+    it('labels an iama answer_change via the IAMA namespace (getFieldLabel + getFieldOptions)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'iama.1.1',
+          editType: 'answer_change',
+          oldValue: { value: 'ja' },
+          newValue: { value: 'nee' },
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {
+          [FormType.IAMA]: {
+            '1.1': {
+              id: '1.1',
+              task: '<p>Mensenrechten-impact</p>',
+              is_official_id: true,
+              options: [
+                { value: 'ja', label: 'Ja' },
+                { value: 'nee', label: 'Nee' },
+              ],
+            },
+          },
+        },
+      )
+      // Label resolved through the IAMA namespace branch in getFieldLabel/getFieldOptions
+      expect(wrapper.find('.diff-field').text()).toContain('1.1. Mensenrechten-impact')
+      expect(wrapper.find('.diff-old').text()).toContain('ja')
+      expect(wrapper.find('.diff-new').text()).toContain('nee')
+    })
+
+    it('renders an iama section_complete edit (mapEditsToDiffFields IAMA branch)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:iama:1.0?=task_id=completed.3',
+          editType: 'section_complete',
+          oldValue: true,
+          newValue: false,
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        { [FormType.IAMA]: { '3': { id: '3', task: '<p>Belangenafweging</p>' } } },
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('Status sectie 3 "Belangenafweging"')
+      expect(wrapper.find('.diff-old').text()).toContain('Voltooid')
+      expect(wrapper.find('.diff-new').text()).toContain('Niet voltooid')
+    })
+
+    it('renders an iama instance_added edit (mapEditsToDiffFields IAMA branch)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:iama:1.0?=task_id=2.1&task_index=0',
+          editType: 'instance_added',
+          oldValue: null,
+          newValue: { '2.1.1': { value: 'inhoud' } },
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {
+          [FormType.IAMA]: {
+            '2.1': { id: '2.1', task: '<p>Betrokkenen</p>', is_official_id: true },
+            '2.1.1': { id: '2.1.1', task: '<p>Naam</p>', options: [] },
+          },
+        },
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('2.1. Betrokkenen #1')
+      expect(wrapper.text()).toContain('Naam')
+      expect(wrapper.text()).toContain('inhoud')
+    })
+
+    it('restores a repeatable iama answer_change (handleFieldRestore IAMA branch)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:iama:1.0?=task_id=2.1.1&task_index=0',
+          editType: 'answer_change',
+          oldValue: { value: 'oud' },
+          newValue: { value: 'nieuw' },
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {
+          [FormType.IAMA]: {
+            '2.1.1': { id: '2.1.1', task: 'Veld', parentId: '2.1' },
+            '2.1': { id: '2.1', task: 'Groep', repeatable: true },
+          },
+        },
+        { answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'huidig' } }] }, metadata: {} },
+      )
+      const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
+      await kebab.trigger('click')
+      const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
+      await item.trigger('mousedown')
+      await flushPromises()
+      const dialog = wrapper
+        .findAll('dialog.confirm-dialog')
+        .find((d) => d.text().includes('Antwoord herstellen'))!
+      await dialog.find('.utrecht-button--primary-action').trigger('click')
+      await flushPromises()
+      const [, state] = apiUpdate.mock.calls[0]
+      expect((state as any).answers['2.1'][0]['2.1.1'].value).toBe('oud')
+    })
   })
 })

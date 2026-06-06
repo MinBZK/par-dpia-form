@@ -13,6 +13,7 @@ const containerRef = ref<HTMLElement | null>(null)
 
 // Close when a click lands outside the menu container.
 function handleDocumentClick(event: MouseEvent) {
+  /* istanbul ignore if @preserve -- defensive: the document listener is only ever active while the menu is open and mounted, so containerRef is always bound when this fires */
   if (!containerRef.value) return
   if (!containerRef.value.contains(event.target as Node)) {
     close()
@@ -34,6 +35,7 @@ function openMenu() {
 }
 
 function close() {
+  /* istanbul ignore if @preserve -- defensive: every caller (toggle, handleEscape, the outside-click listener) only invokes close() while the menu is open, and the listener is removed on close, so close() is never re-entered when already closed */
   if (!open.value) return
   open.value = false
   removeOutsideListener()

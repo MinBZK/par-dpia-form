@@ -30,11 +30,13 @@ vi.mock('../../src/api', () => ({
 }))
 
 const parseAndValidateImport = vi.fn()
+const importFromPdf = vi.fn()
 const detectImportType = vi.fn()
 const autoGrowTextarea = vi.fn()
 vi.mock('@overheid-assessment/core', () => ({
-  FormType: { DPIA: 'dpia', PRE_SCAN: 'prescan' },
+  FormType: { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama' },
   parseAndValidateImport: (...a: unknown[]) => parseAndValidateImport(...a),
+  importFromPdf: (...a: unknown[]) => importFromPdf(...a),
   detectImportType: (...a: unknown[]) => detectImportType(...a),
   autoGrowTextarea: (...a: unknown[]) => autoGrowTextarea(...a),
 }))
@@ -105,6 +107,7 @@ beforeEach(() => {
   assessmentsGet.mockReset()
   assessmentsCreate.mockReset()
   parseAndValidateImport.mockReset()
+  importFromPdf.mockReset()
   detectImportType.mockReset()
   autoGrowTextarea.mockReset()
 
@@ -889,6 +892,161 @@ describe('ProjectDetail', () => {
       await flushPromises()
       expect(assessmentsCreate).not.toHaveBeenCalled()
       expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('submitIamaDialog falls through when the option is neither empty nor import', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      const vm = wrapper.vm as unknown as { dialogOption: string; submitIamaDialog: () => Promise<void> }
+      vm.dialogOption = 'prescan-project'
+      await vm.submitIamaDialog()
+      await flushPromises()
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+      expect(routerPush).not.toHaveBeenCalled()
+    })
+
+    it('formTypeLabel returns "IAMA" for iama', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      const vm = wrapper.vm as unknown as { formTypeLabel: (t: string) => string }
+      expect(vm.formTypeLabel('iama')).toBe('IAMA')
+    })
+  })
+
+  describe('IAMA start dialog', () => {
+    it('opens the IAMA dialog with the IAMA heading and start button', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      const startIama = wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!
+      await startIama.trigger('click')
+      await flushPromises()
+      expect(wrapper.find('dialog.start-dialog').attributes('open')).toBe('')
+      expect(wrapper.text()).toContain('Hoe wil je de IAMA starten?')
+      expect(wrapper.text()).toContain('Start een nieuwe IAMA')
+    })
+
+    it('creates an empty IAMA and navigates', async () => {
+      assessmentsCreate.mockResolvedValue({ id: 'iama-new' })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      const submit = dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!
+      await submit.trigger('click')
+      await flushPromises()
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama')
+      expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
+    })
+
+    it('errors when IAMA import is chosen without a file', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      await dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(wrapper.text()).toContain('Selecteer een JSON- of PDF-bestand')
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+    })
+
+    it('imports a valid IAMA JSON file and creates the assessment', async () => {
+      detectImportType.mockReturnValue('iama')
+      const state = { answers: { '1.1': { value: 'a' } }, metadata: {} }
+      parseAndValidateImport.mockReturnValue(state)
+      assessmentsCreate.mockResolvedValue({ id: 'iama-import' })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      const file = new File([JSON.stringify(state)], 'iama.json', { type: 'application/json' })
+      const fileInput = dialog.find('input[type="file"]')
+      Object.defineProperty(fileInput.element, 'files', { value: [file], configurable: true })
+      await fileInput.trigger('change')
+      await flushPromises()
+      await dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama', undefined, state)
+      expect(routerPush).toHaveBeenCalledWith('/assessment/iama-import')
+    })
+
+    it('re-selects the empty IAMA option after switching to import', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      const radios = () => dialog.findAll('input[type="radio"]')
+      await radios().find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      const emptyRadio = radios().find((r) => (r.element as HTMLInputElement).value === 'empty')!
+      await emptyRadio.setValue()
+      await flushPromises()
+      expect((emptyRadio.element as HTMLInputElement).checked).toBe(true)
+    })
+  })
+
+  describe('parseUploadedFile PDF branch + assertImportTypeMatches mismatch', () => {
+    it('routes a .pdf upload through importFromPdf', async () => {
+      detectImportType.mockReturnValue('iama')
+      const state = { answers: { '1.1': { value: 'pdf' } }, metadata: {} }
+      importFromPdf.mockResolvedValue(state)
+      assessmentsCreate.mockResolvedValue({ id: 'iama-pdf' })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      const file = new File(['%PDF-1.4'], 'iama.PDF', { type: 'application/pdf' })
+      const fileInput = dialog.find('input[type="file"]')
+      Object.defineProperty(fileInput.element, 'files', { value: [file], configurable: true })
+      await fileInput.trigger('change')
+      await flushPromises()
+      await dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(importFromPdf).toHaveBeenCalledWith(file)
+      expect(parseAndValidateImport).not.toHaveBeenCalled()
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama', undefined, state)
+    })
+
+    it('rejects an IAMA import whose detected type is a DPIA (mismatch error)', async () => {
+      detectImportType.mockReturnValue('dpia')
+      parseAndValidateImport.mockReturnValue({ answers: { '1.1': { value: 'x' } } })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      const file = new File(['{}'], 'x.json', { type: 'application/json' })
+      const fileInput = dialog.find('input[type="file"]')
+      Object.defineProperty(fileInput.element, 'files', { value: [file], configurable: true })
+      await fileInput.trigger('change')
+      await flushPromises()
+      await dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+      expect(wrapper.text()).toContain('Het bestand bevat een DPIA-assessment, maar er werd een IAMA-bestand verwacht.')
+    })
+
+    it('rejects an import whose type is undetectable (detected=null → "onbekend")', async () => {
+      detectImportType.mockReturnValue(null)
+      parseAndValidateImport.mockReturnValue({ answers: {} })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await flushPromises()
+      const file = new File(['{}'], 'x.json', { type: 'application/json' })
+      const fileInput = dialog.find('input[type="file"]')
+      Object.defineProperty(fileInput.element, 'files', { value: [file], configurable: true })
+      await fileInput.trigger('change')
+      await flushPromises()
+      await dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+      expect(wrapper.text()).toContain('Het bestand bevat een onbekend-assessment, maar er werd een IAMA-bestand verwacht.')
     })
   })
 })

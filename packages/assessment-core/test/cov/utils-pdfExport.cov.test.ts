@@ -974,3 +974,77 @@ describe('exportToPdf error handling', () => {
     ).rejects.toThrow('Failed to export PDF: Error: font boom')
   })
 })
+
+describe('exportToPdf (IAMA namespace)', () => {
+  let taskStore: ReturnType<typeof useTaskStore>
+  let answerStore: ReturnType<typeof useAnswerStore>
+  let calculationStore: ReturnType<typeof useCalculationStore>
+
+  beforeEach(() => {
+    taskStore = useTaskStore()
+    answerStore = useAnswerStore()
+    calculationStore = useCalculationStore()
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+  })
+
+  it('numbers IAMA sections starting at 1 (no Resultaten section) and skips signing tasks', async () => {
+    taskStore.init(
+      [
+        {
+          task: 'Aanleiding',
+          id: '0',
+          type: ['task_group'],
+          tasks: [{ task: 'Beschrijving', id: '0.1', type: ['text_input'] }],
+        },
+        {
+          task: 'Betrokkenen',
+          id: '1',
+          type: ['task_group'],
+          tasks: [{ task: 'Wie', id: '1.1', type: ['text_input'] }],
+        },
+        {
+          task: 'Ondertekening',
+          id: '2',
+          type: ['task_group', 'signing'],
+          tasks: [{ task: 'Handtekening', id: '2.1', type: ['text_input'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    answerStore.setAnswer('0.1', 'Mijn aanleiding')
+
+    await exportToPdf(taskStore, answerStore, calculationStore)
+
+    const texts = allTexts()
+    // First section is numbered 1 — no spurious "Resultaten" section as in pre-scan.
+    expect(texts.some((t) => t.includes('Resultaten'))).toBe(false)
+    expect(texts).toContain('1.  Aanleiding')
+    expect(texts).toContain('2.  Betrokkenen')
+    expect(texts).toContain('Mijn aanleiding')
+    // Signing task is excluded.
+    expect(texts.some((t) => t.includes('Ondertekening'))).toBe(false)
+    expect(lastDocDefinition().info.title).toBe('IAMA Rapportagemodel')
+  })
+
+  it('uses an iama_-prefixed generated filename when none is provided', async () => {
+    taskStore.init(
+      [
+        {
+          task: 'Vragen',
+          id: '0',
+          type: ['task_group'],
+          tasks: [{ task: 'Veld', id: '0.1', type: ['text_input'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    await exportToPdf(taskStore, answerStore, calculationStore)
+
+    const arg = downloadMock.mock.calls[0][0] as string
+    expect(arg.startsWith('iama_')).toBe(true)
+    expect(arg.endsWith('.pdf')).toBe(true)
+  })
+})

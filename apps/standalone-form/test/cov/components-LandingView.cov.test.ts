@@ -8,6 +8,7 @@ function makeNavigation(): NavigationFunctions {
     goToLanding: vi.fn(),
     goToDPIA: vi.fn(),
     goToPreScanDPIA: vi.fn(),
+    goToIAMA: vi.fn(),
   }
 }
 
@@ -72,5 +73,30 @@ describe('LandingView navigation interaction', () => {
     expect(navigation.goToDPIA).toHaveBeenCalledTimes(1)
     expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()
     expect(navigation.goToLanding).not.toHaveBeenCalled()
+  })
+
+  it('calls navigation.goToIAMA when the IAMA button is clicked', async () => {
+    const navigation = makeNavigation()
+    const wrapper = mount(LandingView, { props: { navigation } })
+
+    const buttons = wrapper.findAll('button.card-button')
+    await buttons[2].trigger('click')
+
+    expect(navigation.goToIAMA).toHaveBeenCalledTimes(1)
+    expect(navigation.goToDPIA).not.toHaveBeenCalled()
+    expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()
+    expect(navigation.goToLanding).not.toHaveBeenCalled()
+  })
+
+  it('does not throw when the IAMA button is clicked without a goToIAMA handler', async () => {
+    const navigation: NavigationFunctions = {
+      goToLanding: vi.fn(),
+      goToDPIA: vi.fn(),
+      goToPreScanDPIA: vi.fn(),
+    }
+    const wrapper = mount(LandingView, { props: { navigation } })
+
+    const buttons = wrapper.findAll('button.card-button')
+    await expect(buttons[2].trigger('click')).resolves.not.toThrow()
   })
 })

@@ -255,6 +255,41 @@ describe('exportToMarkdown', () => {
     expect(downloadName).toMatch(/^prescan_.*\.md$/)
   })
 
+  it('exports an IAMA document with the "IAMA" heading and an iama_-prefixed filename', async () => {
+    const tasks: Record<string, FlatTask> = {
+      '0': {
+        id: '0', task: 'IAMA sectie', type: ['task_group'],
+        parentId: null, childrenIds: ['0.1'],
+      },
+      '0.1': {
+        id: '0.1', task: 'Vraag', type: ['text_input'],
+        parentId: '0', childrenIds: [],
+      },
+    }
+    const instances: Record<string, TaskInstance> = {
+      '0': { id: '0', taskId: '0', groupId: 'g0', parentInstanceId: null, childInstanceIds: ['0.1'] },
+      '0.1': { id: '0.1', taskId: '0.1', groupId: 'g0', parentInstanceId: '0', childInstanceIds: [] },
+    }
+    const answers: Record<string, Answer> = {
+      '0.1': answer('IAMA antwoord'),
+    }
+    const setup = seed(FormType.IAMA, tasks, ['0'], instances, answers)
+
+    const md = await runExport(setup)
+    expect(md).toContain('# IAMA')
+    expect(md).toContain('IAMA antwoord')
+
+    let downloadName = ''
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:mock')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const createSpy = vi.spyOn(document, 'createElement')
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    await exportToMarkdown(setup.taskStore, setup.answerStore)
+    const anchorCall = createSpy.mock.results.find((r) => r.value instanceof HTMLAnchorElement)
+    downloadName = (anchorCall!.value as HTMLAnchorElement).download
+    expect(downloadName).toMatch(/^iama_.*\.md$/)
+  })
+
   it('exports a Pre-scan document and renders array/boolean/null answer values', async () => {
     const tasks: Record<string, FlatTask> = {
       '0': {
