@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v1.5.4
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -26,7 +26,10 @@ jobs:
           args: >-
             --verbose
             --no-progress
-            --exclude-mail
+            --root-dir "${{ github.workspace }}"
+            --timeout 30
+            --max-retries 3
+            --retry-wait-time 2
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
@@ -43,7 +46,7 @@ jobs:
       # Only create an issue when broken links are found AND running on schedule/manual
       - name: Create Issue (Only on schedule or manual run)
         if: ${{ failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-        uses: peter-evans/create-issue-from-file@v4
+        uses: peter-evans/create-issue-from-file@v6
         with:
           title: Broken links detected
           content-filepath: ./lychee/out.md
@@ -55,7 +58,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Download YAML file
@@ -79,7 +82,7 @@ jobs:
           git push
       - name: Create Pull Request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           base: main
           commit-message: "Auto-sync begrippenkader-dpia.yaml from external source"
@@ -99,7 +102,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up Python
@@ -128,7 +131,7 @@ jobs:
           git push
       - name: Create Pull Request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           base: main
           commit-message: "Auto-sync begrippenkader-iama.yaml from Algoritmekader"

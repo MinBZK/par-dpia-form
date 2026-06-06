@@ -50,8 +50,8 @@ defineProps<{
         </p>
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
-          <li><a href="#" target="_blank">Handreiking pre-scan DPIA</a></li>
-          <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
+          <li><a href="#" target="_blank" rel="noopener noreferrer">Handreiking pre-scan DPIA</a></li>
+          <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener noreferrer">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
         </ul>
       </div>
 
@@ -75,8 +75,8 @@ defineProps<{
         </ol>
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
-          <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank">Rapportagemodel DPIA Rijksdienst</a></li>
-          <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a></li>
+          <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a></li>
+          <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener noreferrer">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a></li>
         </ul>
       </div>
 
@@ -98,9 +98,9 @@ defineProps<{
         </p>
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
-          <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank">IAMA v2.0 - Open Overheid</a></li>
-          <li><a href="https://www.rijksoverheid.nl/documenten/rapporten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank">IAMA-toelichtingsdocument</a></li>
-          <li><a href="https://minbzk.github.io/Algoritmekader/soorten-algoritmes-en-ai/definities/" target="_blank">Algoritmekader - Definities</a></li>
+          <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank" rel="noopener noreferrer">IAMA v2.0 - Open Overheid</a></li>
+          <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument</a></li>
+          <li><a href="https://minbzk.github.io/Algoritmekader/soorten-algoritmes-en-ai/definities/" target="_blank" rel="noopener noreferrer">Algoritmekader - Definities</a></li>
         </ul>
       </div>
 
@@ -110,7 +110,7 @@ defineProps<{
           De tools op deze pagina helpen je bij het initieel invullen van de pre-scan, DPIA en het IAMA. Het product van deze tools kan je exporteren als Word-document.
         </p>
         <p>
-          Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
+          Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
         </p>
       </div>
 
