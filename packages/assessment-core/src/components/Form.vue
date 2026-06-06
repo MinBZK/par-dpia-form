@@ -275,7 +275,7 @@ const isInformationalStep = computed(() => {
         <div v-if="formStarted && showFileActions" class="utrecht-button-group" role="group"
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
+            FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
           <ExportMenu @export="handleExport" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
