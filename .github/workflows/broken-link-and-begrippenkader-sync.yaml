@@ -27,6 +27,9 @@ jobs:
             --verbose
             --no-progress
             --root-dir "${{ github.workspace }}"
+            --timeout 30
+            --max-retries 3
+            --retry-wait-time 2
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
