@@ -26,6 +26,7 @@ jobs:
           args: >-
             --verbose
             --no-progress
+            --root-dir "${{ github.workspace }}"
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
