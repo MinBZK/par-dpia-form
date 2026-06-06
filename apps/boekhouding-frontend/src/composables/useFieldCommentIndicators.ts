@@ -172,9 +172,8 @@ export function useFieldCommentIndicators(
     isInjecting = false
   }
 
-  function startObserving() {
-    const container = containerRef.value
-    if (!container || observer) return
+  function startObserving(container: HTMLElement) {
+    if (observer) return
 
     observer = new MutationObserver(() => {
       scanAndInject()
@@ -207,7 +206,7 @@ export function useFieldCommentIndicators(
 
   watch(containerRef, (el) => {
     if (el) {
-      startObserving()
+      startObserving(el)
     } else {
       stopObserving()
     }

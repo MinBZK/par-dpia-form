@@ -30,20 +30,20 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         if (!hasSigningTask) {
           if (schemaType === FormType.DPIA) {
             validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
-          } else if (schemaType === FormType.PRE_SCAN) {
-            validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           } else if (schemaType === FormType.IAMA) {
             validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.', true))
+          } else {
+            validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           }
         }
 
         // Store in the appropriate ref
         if (schemaType === FormType.DPIA) {
           validatedDpia.value = validData
-        } else if (schemaType === FormType.PRE_SCAN) {
-          validatedPreScan.value = validData
         } else if (schemaType === FormType.IAMA) {
           validatedIama.value = validData
+        } else {
+          validatedPreScan.value = validData
         }
 
         return true

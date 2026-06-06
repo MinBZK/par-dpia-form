@@ -43,6 +43,9 @@ export function useTaskDependencies() {
         }
       }
 
+      /* istanbul ignore next @preserve -- unreachable: the for-loop above always
+         returns or throws on the first dependency; the empty-dependencies case
+         already returned null before the loop. */
       return null
     }
   })
@@ -52,6 +55,9 @@ export function useTaskDependencies() {
       if (!hasDependencyOfType.value(task, "source_options")) return []
 
       const sourceTaskId = getDependencySourceTaskId.value(task)
+      /* istanbul ignore next @preserve -- unreachable: when a source_options
+         dependency exists (guaranteed by the hasDependencyOfType guard above),
+         getDependencySourceTaskId always resolves it to a non-null condition id. */
       if (sourceTaskId === null) return []
 
       const uniqueValues = new Set<string>()
@@ -133,8 +139,8 @@ export function useTaskDependencies() {
             } else if (source) {
               const newId = taskStore.addRepeatableTaskInstance(taskId, parentInstanceId, idx)
               if (newId) taskStore.setInstanceMappingSource(newId, source.id)
-            } else if (target) {
-              taskStore.removeRepeatableTaskInstance(target.id)
+            } else {
+              taskStore.removeRepeatableTaskInstance(target!.id)
             }
           }
         }

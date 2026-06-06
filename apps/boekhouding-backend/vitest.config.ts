@@ -10,8 +10,11 @@ export default defineConfig({
     hookTimeout: 30_000,
     testTimeout: 30_000,
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       reporter: ['text', 'html', 'lcov'],
+      // Report on every source file, not only the ones a test imports, so
+      // 100% genuinely means 100% of the codebase.
+      all: true,
       include: ['src/**'],
       exclude: [
         'src/**/*.d.ts',
@@ -19,15 +22,11 @@ export default defineConfig({
         'src/db/migrate.ts',
         'src/db/migrations/**',
       ],
-      // Phase 1 floor — set well below the current measured baseline from
-      // issue #10 (stmts 13.5% / branches 18.1% / funcs 8.1% / lines 12.6%)
-      // so CI catches regressions without breaking on small diffs. Raise
-      // these in later phases as coverage grows.
       thresholds: {
-        statements: 8,
-        branches: 12,
-        functions: 5,
-        lines: 8,
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
       },
     },
   },

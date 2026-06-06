@@ -94,7 +94,7 @@ export async function syncRoutes(app: FastifyInstance) {
     // Comment count lets clients detect deletions — when a comment is removed, the
     // /comments?since=... poll returns nothing about it (there's no row left to match).
     // A mismatch between server count and local thread+reply count triggers a full refresh.
-    const [{ total } = { total: 0 }] = await db
+    const [{ total }] = await db
       .select({ total: count() })
       .from(comments)
       .where(eq(comments.assessmentInstanceId, assessmentId))

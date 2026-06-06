@@ -101,6 +101,30 @@ Frontend & standalone hot-reload (their `src/` is volume-mounted); the
 **backend** runs as a built image without a mount, so rebuild + restart it
 after backend changes.
 
+## Running the test suites (Vitest)
+
+Unit/integration tests run on the **host** (pnpm), not in the containers.
+Coverage uses the **istanbul** provider with a 100% threshold on every
+workspace (see project CLAUDE.md → "Testing & coverage").
+
+```bash
+# all workspaces (backend needs the env var below)
+TEST_DATABASE_URL="postgresql://parassessment:parassessment@localhost:5432/parassessment_test" \
+  pnpm -r --if-present test:coverage
+```
+
+The **backend** suite needs a reachable Postgres and a `parassessment_test`
+database. The dev stack already exposes Postgres on `localhost:5432`; create
+the test DB once (separate from the app's `parassessment` DB):
+
+```bash
+podman exec containers-postgres-1 psql -U parassessment -d parassessment \
+  -c "CREATE DATABASE parassessment_test"
+```
+
+Migrations run idempotently in `test/setup.ts`. Frontend, core and standalone
+tests need no database.
+
 ## Gotcha: pnpm version in the Containerfiles
 
 The Containerfiles pin pnpm by integrity hash

@@ -47,14 +47,19 @@ async function _fetchAndEncode(url: string): Promise<string> {
   return fetchPromise
 }
 
-Object.entries(_assets).forEach(([path, url]) => {
-  const filename = path.split('/').pop() || ''
-  if (_isDevelopment(url as string)) {
-    _filePaths[filename] = url as string
-    _assetRegistry[filename] = url as string
+// The dev flag is a parameter (not read from the env) so both arms are unit-testable.
+export function _registerAsset(filename: string, url: string, isDev: boolean) {
+  if (isDev) {
+    _filePaths[filename] = url
+    _assetRegistry[filename] = url
   } else {
-    _assetRegistry[filename] = url as string
+    _assetRegistry[filename] = url
   }
+}
+
+Object.entries(_assets).forEach(([path, url]) => {
+  const filename = path.split('/').pop()!
+  _registerAsset(filename, url as string, _isDevelopment(url as string))
 })
 
 export async function getAsset(filename: string): Promise<string | undefined> {
