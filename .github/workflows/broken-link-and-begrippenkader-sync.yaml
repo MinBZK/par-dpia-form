@@ -78,7 +78,7 @@ jobs:
           git push
       - name: Create Pull Request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           base: main
           commit-message: "Auto-sync begrippenkader-dpia.yaml from external source"
@@ -127,7 +127,7 @@ jobs:
           git push
       - name: Create Pull Request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v8
         with:
           base: main
           commit-message: "Auto-sync begrippenkader-iama.yaml from Algoritmekader"
