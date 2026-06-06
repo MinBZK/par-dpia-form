@@ -1,27 +1,30 @@
 import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
+  plugins: [vue()],
   test: {
+    environment: 'jsdom',
     coverage: {
-      provider: 'v8',
+      // istanbul instruments via the Vite transform pipeline, so Vue SFCs are
+      // already plain JS by the time they're measured (v8 chokes on raw SFCs).
+      provider: 'istanbul',
       reporter: ['text', 'html', 'lcov'],
+      // Report on every source file, not only the ones a test imports, so
+      // 100% genuinely means 100% of the codebase.
+      all: true,
       include: ['src/**'],
       exclude: [
         'src/**/*.d.ts',
         'src/index.ts',
-        // v8 coverage parses uncovered files with rollup, which can't handle
-        // Vue SFCs (<template>/<style>) — excluded to avoid PARSE_ERROR.
-        'src/**/*.vue',
+        // Static assets (CSS, fonts) carry no executable code.
+        'src/assets/**',
       ],
-      // Phase 1 floor — set well below the current measured baseline from
-      // issue #10 (stmts 27.0% / branches 29.8% / funcs 24.5% / lines 27.1%)
-      // so CI catches regressions without breaking on small diffs. Raise
-      // these in later phases as coverage grows.
       thresholds: {
-        statements: 20,
-        branches: 22,
-        functions: 18,
-        lines: 20,
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
       },
     },
   },

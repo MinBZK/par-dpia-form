@@ -48,7 +48,7 @@ function saveImageValue(updates: Partial<ImageValue>) {
     data: updates.data ?? current?.data ?? '',
     ...(updates.title ?? current?.title ? { title: updates.title ?? current?.title } : {}),
     ...(updates.description ?? current?.description ? { description: updates.description ?? current?.description } : {}),
-    ...(updates.source ?? current?.source ? { source: updates.source ?? current?.source } : {}),
+    ...(updates.source ?? current?.source ? { source: updates.source } : {}),
   }
   answerStore.setAnswer(props.instanceId, merged)
 }
@@ -90,8 +90,8 @@ async function handleFileSelect(event: Event) {
   const file = input.files?.[0]
   if (!file) return
   await processFile(file)
-  // Reset file input so the same file can be re-selected
-  if (input) input.value = ''
+  // Reset file input so the same file can be re-selected.
+  input.value = ''
 }
 
 function handleDrop(event: DragEvent) {

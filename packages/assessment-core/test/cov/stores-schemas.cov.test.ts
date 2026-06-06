@@ -1,0 +1,204 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { useSchemaStore } from '../../src/stores/schemas'
+import { FormType } from '../../src/models/dpia'
+
+function buildSchema(opts: {
+  urn?: string
+  version?: string
+  tasks?: any[]
+} = {}) {
+  return {
+    name: 'DPIA-assessment',
+    urn: opts.urn ?? 'urn:nl:dpia',
+    version: opts.version ?? '3.0',
+    description: 'Verwerking persoonsgegevens',
+    tasks: opts.tasks ?? [],
+  }
+}
+
+describe('useSchemaStore', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore()
+  })
+
+  describe('init', () => {
+    it('marks initialized and stores both valid schemas, appending conclusion tasks', () => {
+      const store = useSchemaStore()
+
+      const dpia = buildSchema({ urn: 'urn:nl:dpia', version: '3.0', tasks: [] })
+      const preScan = buildSchema({ urn: 'urn:nl:prescan', version: '2.0', tasks: [] })
+
+      store.init({ dpia, preScan })
+
+      expect(store.isInitialized).toBe(true)
+      expect(store.hasErrors).toBe(false)
+      expect(store.errorMessage).toBeNull()
+
+      const dpiaSchema = store.getSchema(FormType.DPIA)!
+      expect(dpiaSchema.tasks).toHaveLength(1)
+      expect(dpiaSchema.tasks[0].task).toBe('Afronding')
+      expect(dpiaSchema.tasks[0].id).toBe('0')
+      expect(dpiaSchema.tasks[0].type).toContain('signing')
+      expect(dpiaSchema.tasks[0].description).toContain('alle stappen')
+
+      const preScanSchema = store.getSchema(FormType.PRE_SCAN)!
+      expect(preScanSchema.tasks).toHaveLength(1)
+      expect(preScanSchema.tasks[0].task).toBe('Resultaat pre-scan')
+      expect(preScanSchema.tasks[0].id).toBe('0')
+      expect(preScanSchema.tasks[0].type).toContain('signing')
+      expect(preScanSchema.tasks[0].description).toBeUndefined()
+    })
+
+    it('returns early and does not reprocess when already initialized', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      expect(store.isInitialized).toBe(true)
+
+      const dpiaBefore = store.getSchema(FormType.DPIA)
+
+      store.init({ dpia: { not: 'valid' }, preScan: { also: 'invalid' } })
+
+      expect(store.hasErrors).toBe(false)
+      expect(store.errorMessage).toBeNull()
+      expect(store.getSchema(FormType.DPIA)).toBe(dpiaBefore)
+    })
+
+    it('does NOT append a conclusion task when a signing task already exists', () => {
+      const store = useSchemaStore()
+
+      const dpia = buildSchema({
+        tasks: [
+          { id: '0', task: 'Sign here', type: ['task_group', 'signing'] },
+        ],
+      })
+
+      store.init({ dpia, preScan: buildSchema() })
+
+      const dpiaSchema = store.getSchema(FormType.DPIA)!
+      expect(dpiaSchema.tasks).toHaveLength(1)
+      expect(dpiaSchema.tasks[0].task).toBe('Sign here')
+    })
+
+    it('marks initialized when only one schema is valid (dpiaSuccess || preScanSuccess)', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: { missing: 'fields' }, preScan: buildSchema() })
+
+      expect(store.isInitialized).toBe(true)
+      expect(store.getSchema(FormType.DPIA)).toBeNull()
+      expect(store.getSchema(FormType.PRE_SCAN)).not.toBeNull()
+    })
+
+    it('is not initialized and reports errors when both schemas are invalid', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: { bad: true }, preScan: { worse: true } })
+
+      expect(store.isInitialized).toBe(false)
+      expect(store.hasErrors).toBe(true)
+      expect(store.errorMessage).toContain('JSON schema validation failed at:')
+      expect(consoleErrorSpy).toHaveBeenCalled()
+    })
+
+    it('resets error state on each init call', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: { bad: true }, preScan: { bad: true } })
+      expect(store.hasErrors).toBe(true)
+
+      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      expect(store.hasErrors).toBe(false)
+      expect(store.errorMessage).toBeNull()
+      expect(store.isInitialized).toBe(true)
+    })
+  })
+
+  describe('processSchema error/catch path', () => {
+    it('captures an Error thrown during decode and uses its message', () => {
+      const store = useSchemaStore()
+
+      // Throwing getter on `tasks` (read during decode) triggers processSchema's catch.
+      const exploding = {
+        name: 'DPIA-assessment',
+        urn: 'urn:nl:dpia',
+        version: '3.0',
+        description: 'Verwerking persoonsgegevens',
+        get tasks(): never {
+          throw new Error('boom from getter')
+        },
+      }
+
+      store.init({ dpia: exploding, preScan: buildSchema() })
+
+      expect(store.hasErrors).toBe(true)
+      expect(store.errorMessage).toBe('boom from getter')
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Unexpected error during schema processing:',
+        expect.any(Error),
+      )
+    })
+
+    it('stringifies a non-Error thrown value (error instanceof Error false branch)', () => {
+      const store = useSchemaStore()
+
+      const exploding = {
+        name: 'Pre-scan',
+        urn: 'urn:nl:prescan',
+        version: '2.0',
+        description: 'Voorafgaande toets',
+        get tasks(): never {
+          // eslint-disable-next-line no-throw-literal
+          throw 'plain string failure'
+        },
+      }
+
+      store.init({ dpia: exploding, preScan: buildSchema() })
+
+      expect(store.hasErrors).toBe(true)
+      expect(store.errorMessage).toBe('plain string failure')
+    })
+  })
+
+  describe('getSchema', () => {
+    it('returns null for each namespace before initialization', () => {
+      const store = useSchemaStore()
+      expect(store.getSchema(FormType.DPIA)).toBeNull()
+      expect(store.getSchema(FormType.PRE_SCAN)).toBeNull()
+    })
+
+    it('returns null for an unknown namespace', () => {
+      const store = useSchemaStore()
+      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      expect(store.getSchema('something-else' as FormType)).toBeNull()
+    })
+  })
+
+  describe('getUrn', () => {
+    it('combines urn and version for a loaded schema', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+      })
+
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.0')
+      expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:2.0')
+    })
+
+    it('throws when the schema for the namespace is not loaded', () => {
+      const store = useSchemaStore()
+      expect(() => store.getUrn(FormType.DPIA)).toThrow(
+        'Schema not loaded for namespace: dpia',
+      )
+    })
+  })
+})

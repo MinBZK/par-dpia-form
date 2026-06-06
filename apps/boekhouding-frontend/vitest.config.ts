@@ -14,27 +14,22 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       reporter: ['text', 'html', 'lcov'],
+      // Report on every source file, not only the ones a test imports, so
+      // 100% genuinely means 100% of the codebase.
+      all: true,
       include: ['src/**'],
       exclude: [
         'src/**/*.d.ts',
-        'src/main.ts',
-        'src/router.ts',
-        'src/router/**',
-        // v8 coverage parses uncovered files with rollup, which can't handle
-        // Vue SFCs (<template>/<style>) — excluded to avoid PARSE_ERROR.
-        'src/**/*.vue',
+        // Static assets (CSS, fonts) carry no executable code.
+        'src/assets/**',
       ],
-      // Phase 1 floor — set well below the current measured baseline from
-      // issue #10 (stmts 8.7% / branches 4.7% / funcs 7.3% / lines 9.3%)
-      // so CI catches regressions without breaking on small diffs. Raise
-      // these in later phases as coverage grows.
       thresholds: {
-        statements: 4,
-        branches: 2,
-        functions: 4,
-        lines: 4,
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
       },
     },
   },

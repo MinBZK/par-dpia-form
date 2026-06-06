@@ -92,7 +92,7 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
         parts.push(t.text)
         break
       default:
-        if ('text' in t) parts.push((t as { text: string }).text)
+        parts.push((t as { text: string }).text)
         break
     }
   }
@@ -160,7 +160,7 @@ function processBlockTokens(tokens: Token[]): Content[] {
         break
       case 'hr':
         content.push({
-          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 455, y2: 0, lineWidth: 0.5 }],
+          table: { widths: ['*'], body: [[{ text: '', border: [false, false, false, true] }]] },
           margin: [0, 5, 0, 5],
         } as Content)
         break

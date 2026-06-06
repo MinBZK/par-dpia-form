@@ -350,28 +350,14 @@ function buildSectionDescription(description?: string): Content {
   }
 }
 
-function formatAnswerValue(value: any): string {
-  if (value === null || value === undefined) {
-    return 'Vraag is niet ingevuld of er is geen waarde geselecteerd.'
-  }
-
-  if (Array.isArray(value)) {
-    const cleanItems = value
-      .map(item => {
-        if (item === null || item === undefined) return '';
-        return getPlainTextWithoutDefinitions(String(item));
-      })
-      .filter(item => item.trim() !== '');
-    return cleanItems.join(', ');
-  }
-  else if (value === 'true') {
-    return 'Ja'
-  } else if (value === 'false') {
-    return 'Nee'
-  } else if (value === 'null') {
-    return ''
-  }
-  return value ? getPlainTextWithoutDefinitions(String(value)) : ''
+function formatAnswerValue(value: unknown[]): string {
+  const cleanItems = value
+    .map(item => {
+      if (item === null || item === undefined) return '';
+      return getPlainTextWithoutDefinitions(String(item));
+    })
+    .filter(item => item.trim() !== '');
+  return cleanItems.join(', ');
 }
 
 function formatAnswerContent(value: any): Content {
@@ -486,12 +472,7 @@ function processTaskWithInstances(
         if (isImageValue(answer)) {
           elements.push(buildImageContent(answer))
         } else {
-          const content = formatAnswerContent(answer)
-          elements.push(
-            nestingLevel > 0
-              ? { stack: [content], margin: [nestingLevel * 10, 0, 0, 5] }
-              : content,
-          )
+          elements.push(formatAnswerContent(answer))
         }
       }
     }
@@ -618,13 +599,9 @@ function buildTableRows(
 
 function createTableElement(
   rows: any[][],
-  widths: any[] = ['35%', '65%'],
-  leftMargin: number = 0,
+  widths: any[],
+  leftMargin: number,
 ): Content {
-  if (rows.length === 0) {
-    return { text: '' }
-  }
-
   return {
     style: 'tableExample',
     margin: [leftMargin, 5, 0, 10],

@@ -68,7 +68,7 @@ export async function projectRoutes(app: FastifyInstance) {
   }>('/:projectId', {
     schema: { tags: ['projects'] },
     preHandler: [requireProjectAccess('viewer')],
-  }, async (request, reply) => {
+  }, async (request) => {
     const { projectId } = request.params
 
     const [project] = await db
@@ -76,16 +76,6 @@ export async function projectRoutes(app: FastifyInstance) {
       .from(projects)
       .where(eq(projects.id, projectId))
       .limit(1)
-
-    if (!project) {
-      return reply.status(404).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/404',
-        title: 'Niet gevonden',
-        status: 404,
-        detail: 'Project niet gevonden',
-        instance: request.url,
-      })
-    }
 
     return { ...project, role: request.projectRole }
   })

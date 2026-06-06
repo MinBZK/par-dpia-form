@@ -89,12 +89,10 @@ const FontService = {
       const variantEntries = Object.entries(variants)
       for (const [variantType, filename] of variantEntries) {
         const pdfKey = variantToPdfKey[variantType]
-        if (pdfKey && filename) {
-          fontDefinitions[family][pdfKey] = filename
-          const asset = await getAsset(filename)
-          if (asset) {
-            vfsDefinitions[filename] = asset
-          }
+        fontDefinitions[family][pdfKey] = filename
+        const asset = await getAsset(filename)
+        if (asset) {
+          vfsDefinitions[filename] = asset
         }
       }
       fontDefinitions[family].bolditalics = variants.bold

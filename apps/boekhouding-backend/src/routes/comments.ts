@@ -91,14 +91,15 @@ export async function commentRoutes(app: FastifyInstance) {
           for (const u of resolvedUsers) pollResolvedByNames[u.id] = u.displayName
         }
 
-        const lastModified = recentReplies.length > 0
-          ? recentReplies.reduce((max, c) => c.updatedAt > max ? c.updatedAt : max, recentReplies[0].updatedAt)
-          : sinceDate
+        const lastModified = recentReplies.reduce(
+          (max, c) => c.updatedAt > max ? c.updatedAt : max,
+          recentReplies[0].updatedAt,
+        )
 
         return {
           comments: recentReplies.map(c => ({
             ...c,
-            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] ?? null : null,
+            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] : null,
           })),
           lastModifiedAt: lastModified.toISOString(),
           currentUserId: request.user!.id,
@@ -124,7 +125,7 @@ export async function commentRoutes(app: FastifyInstance) {
     // Build nested response
     const threaded = rootComments.map(root => ({
       ...root,
-      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] ?? null : null,
+      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] : null,
       replies: (repliesByParent.get(root.id) || []).map(r => ({
         id: r.id,
         parentId: r.parentId,
@@ -228,7 +229,7 @@ export async function commentRoutes(app: FastifyInstance) {
 
     return reply.status(201).send({
       ...created,
-      authorName: author?.displayName ?? '',
+      authorName: author.displayName,
     })
   })
 

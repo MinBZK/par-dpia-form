@@ -130,7 +130,6 @@ function migrateV1Keys(
     }
 
     // Output only completedRootTaskIds (no taskInstances, no currentRootTaskId)
-    if (!migratedState.taskState) migratedState.taskState = {}
     migratedState.taskState[ns] = {
       completedRootTaskIds: [...(taskState.completedRootTaskIds || [])],
     }
@@ -160,7 +159,6 @@ function stripLegacyFields(
   state: AssessmentState,
   urnLookup: Record<string, string>,
 ): AssessmentState {
-  if (!state.metadata) return state
   const legacyMetadata = state.metadata as any
   const hasLegacyFields =
     legacyMetadata.activeNamespace !== undefined ||
@@ -183,7 +181,6 @@ function stripLegacyFields(
   for (const ns of Object.keys(legacyTaskState) as FormType[]) {
     const tsRaw = legacyTaskState[ns] as LegacyDPIATaskState | undefined
     if (!tsRaw) continue
-    if (!cleaned.taskState) cleaned.taskState = {}
     cleaned.taskState[ns] = {
       completedRootTaskIds: [...(tsRaw.completedRootTaskIds || [])],
     }

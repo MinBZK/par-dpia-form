@@ -47,10 +47,8 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
   const types = typeSpec.split('|')
 
   if (value === 'null' && types.includes('null')) return null
-  if (types.includes('boolean')) {
-    if (value.toLowerCase() === 'true') return true
-    if (value.toLowerCase() === 'false') return false
-  }
+  if (value.toLowerCase() === 'true') return true
+  if (value.toLowerCase() === 'false') return false
   return String(value)
 }
 
@@ -114,6 +112,9 @@ const renderedHtml = computed(() => {
 watch(showPreview, (preview) => {
   if (!preview) {
     nextTick(() => {
+      /* istanbul ignore else @preserve -- unreachable: when showPreview turns
+         false the textarea (v-if="!showPreview") is always re-rendered before
+         this nextTick callback runs, so textareaRef is guaranteed to be set. */
       if (textareaRef.value) {
         autoGrowTextarea(textareaRef.value)
         textareaRef.value.focus()

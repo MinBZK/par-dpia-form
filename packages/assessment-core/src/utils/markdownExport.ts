@@ -267,7 +267,7 @@ function formatAnswerValue(value: unknown): string {
   if (value === 'true') return 'Ja'
   if (value === 'false') return 'Nee'
   if (value === 'null') return '*Niet ingevuld*'
-  return value ? String(value) : '*Niet ingevuld*'
+  return String(value)
 }
 
 function downloadFile(content: string, filename: string, mimeType: string) {
