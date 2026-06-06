@@ -884,7 +884,6 @@ tasks:
     repeatable: false
     tasks:
     - task: Wordt er gebruik gemaakt van een algoritme?
-      description: Indien overheidsorganisaties gebruik maken van een algoritme waarbij persoonsgegevens worden verwerkt, dan is het uitvoeren van een Impact Assessment Mensenrechten en Algoritmen (IAMA) sterk aanbevolen.
       id: "6.1.1"
       type:
       - radio_option
@@ -901,9 +900,8 @@ tasks:
         label: Nee
       repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
-      description: Indien overheidsorganisaties een AI-systeem met een hoog risico in de zin van de EU AI-verordening gebruiken of in gebruik willen nemen,
-        is het uitvoeren van een IAMA sterk aanbevolen. Met ingang van 2 augustus 2026 verplicht artikel 27 van de EU AI-verordening gebruikers van een AI-systeem met een hoog risico om voorafgaand aan ingebruikneming een Fundamental Rights Impact Assessment (FRIA) uit te voeren.
-        Indien bij de verwerking van persoonsgegevens gebruik wordt gemaakt van een AI-systeem, dan stelt de AI-verordening mogelijk aanvullende vereisten. Raadpleeg de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> en het <a href="https://minbzk.github.io/Algoritmekader/" target="_blank">Algoritmekader</a> voor meer informatie.
+      description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren. <br><br>
+       Raadpleeg artikel 6 en Annex III uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
       id: "6.1.2"
       type:
       - radio_option
@@ -920,6 +918,37 @@ tasks:
           id: "6.1.1"
           operator: equals
           value: true
+        action: show
+    - task: Kwalificeert het algoritme als een ander impactvol algoritme?
+      description: De <a href="https://www.digitaleoverheid.nl/document/handreiking-algoritmeregister/" target="_blank">Handreiking Algoritmeregister</a>  hanteert de volgende definitie van impactvol algoritme&#58;
+            <br><br>
+            - Het proces waarin het algoritme wordt gebruikt heeft directe rechtsgevolgen voor betrokkenen of draagt bij aan hoe de overheid een betrokkene of groep categoriseert of benadert, en
+            <br>
+            - Het algoritme heeft een significant effect op de uitkomst van het proces.
+            <br><br>
+            Raadpleeg de Handreiking Algoritmeregister voor nadere toelichting.
+      id: "6.1.3"
+      type:
+      - radio_option
+      valueType: boolean
+      options:
+      - value: true
+        label: Ja
+      - value: false
+        label: Nee
+      repeatable: false
+      dependencies:
+      - type: conditional
+        condition:
+          id: "6.1.1"
+          operator: equals
+          value: true
+        action: show
+      - type: conditional
+        condition:
+          id: "6.1.2"
+          operator: equals
+          value: false
         action: show
 - task: Kinderrechten
   description: >-
@@ -1045,9 +1074,9 @@ assessments:
             explanation: "er gebruik wordt gemaakt van Standaard contractsbepalingen (SCC) of een overig mechanisme"
   - id: "KIA"
     levels:
-      - level: "required"
+      - level: "recommended"
         expression: "criteria.digitale_dienst && criteria.minderjarigen"
-        result: "KIA verplicht"
+        result: "KIA aanbevolen"
         criteria:
           - id: "digitale_dienst"
             expression: "bool(answers('7.1.1'))"
@@ -1057,13 +1086,13 @@ assessments:
             explanation: "deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
   - id: "IAMA"
     levels:
-      - level: "required"
-        expression: "criteria.algoritme || criteria.ai_systeem"
-        result: "IAMA mogelijk verplicht"
+      - level: "recommended"
+        expression: "criteria.hoog_risico_ai || criteria.impactvol_algoritme"
+        result: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
         criteria:
-          - id: "algoritme"
-            expression: "bool(answers('6.1.1'))"
-            explanation: "er gebruik wordt gemaakt van een algoritme waarbij besluitvorming over mensen plaatsvindt"
-          - id: "ai_systeem"
+          - id: "hoog_risico_ai"
             expression: "bool(answers('6.1.2'))"
-            explanation: "er sprake is van een hoog-risico AI-systeem"
+            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
+          - id: "impactvol_algoritme"
+            expression: "bool(answers('6.1.3'))"
+            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
