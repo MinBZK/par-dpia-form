@@ -16,12 +16,19 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h1 class="utrecht-heading-1">Over de invulhulpen</h1>
 
     <p>
-      De invulhulpen helpen je bij het invullen van een pre-scan DPIA en een volledige DPIA.
+      De invulhulpen helpen je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
       Ze zijn gebaseerd op het
       <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
       en het
       <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>
       en sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
+    </p>
+
+    <h2 class="utrecht-heading-2">Pre-scan</h2>
+    <p>
+      De pre-scan is een hulpmiddel om te bepalen of een DPIA, IAMA, DTIA of KIA nodig is. Door een
+      aantal gerichte vragen te beantwoorden krijg je inzicht in welke assessments van toepassing
+      zijn op jouw project.
     </p>
 
     <h2 class="utrecht-heading-2">Waarom een DPIA?</h2>
@@ -35,7 +42,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       is een rijksbreed model ontwikkeld.
     </p>
 
-    <h2 class="utrecht-heading-2">Wanneer voer je een DPIA uit?</h2>
+    <h3 class="utrecht-heading-3">Wanneer voer je een DPIA uit?</h3>
     <p>
       Een DPIA moet in een vroegtijdig stadium van de beleids- of projectontwikkeling worden
       uitgevoerd. Op dat moment is het namelijk nog mogelijk om met open vizier na te denken over
@@ -51,12 +58,6 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>wanneer sprake is van een verplichting op basis van departementaal beleid; of</li>
       <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
     </ol>
-
-    <h2 class="utrecht-heading-2">Pre-scan als hulpmiddel</h2>
-    <p>
-      De Prescan DPIA is bedoeld als hulpmiddel om te bepalen of er volgens stap 3 een DPIA
-      moet worden gemaakt.
-    </p>
 
     <h2 class="utrecht-heading-2">Wat is een IAMA?</h2>
     <p>
