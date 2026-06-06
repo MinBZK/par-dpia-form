@@ -22,7 +22,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       en het
       <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>;
       het IAMA op het
-      <a href="https://minbzk.github.io/Algoritmekader/soorten-algoritmes-en-ai/definities/" target="_blank" rel="noopener">Algoritmekader</a>.
+      <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener">Impact Assessment Mensenrechten en Algoritmes</a>.
       Ze sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
     </p>
 
@@ -32,6 +32,11 @@ const hasHistory = computed(() => !!window.history.state?.back)
       aantal gerichte vragen te beantwoorden krijg je inzicht in welke assessments van toepassing
       zijn op jouw project.
     </p>
+
+    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <ul>
+      <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
+    </ul>
 
     <h2 class="utrecht-heading-2">DPIA</h2>
     <p>
@@ -61,6 +66,12 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
     </ol>
 
+    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <ul>
+      <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a></li>
+      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener">Data Protection Impact Assessment — Kenniscentrum voor beleid en regelgeving</a></li>
+    </ul>
+
     <h2 class="utrecht-heading-2">IAMA</h2>
     <p>
       Het Impact Assessment Mensenrechten en Algoritmes (IAMA) helpt overheidsorganisaties bij
@@ -89,23 +100,17 @@ const hasHistory = computed(() => !!window.history.state?.back)
       artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te
       worden.
     </p>
-    <p>Bronnen voor het IAMA:</p>
+    <h3 class="utrecht-heading-3">Bronnen</h3>
     <ul>
-      <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">Toelichtingsdocument Impact Assessment Mensenrechten en Algoritmes | Rijksoverheid</a></li>
-      <li><a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/" target="_blank" rel="noopener noreferrer">Algoritmekader — hulpmiddelen</a></li>
-      <li><a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27" target="_blank" rel="noopener noreferrer">Artikel 27 AI-verordening (EUR-Lex)</a></li>
+      <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank" rel="noopener noreferrer">IAMA v2.0 — Open Overheid</a></li>
+      <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument — Rijksoverheid</a></li>
+      <li><a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/IAMA/" target="_blank" rel="noopener noreferrer">Algoritmekader — IAMA</a></li>
+      <li><a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27" target="_blank" rel="noopener noreferrer">Artikel 27 AI-verordening — EUR-Lex</a></li>
     </ul>
 
-    <h2 class="utrecht-heading-2">Meer informatie</h2>
-    <p>
-      Meer uitleg over de pre-scan kan je vinden in de handreiking pre-scan DPIA.<br />
-      Meer uitleg over het rapportagemodel DPIA in dit document:
-      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Model DPIA Rijksdienst</a>.
-    </p>
-    <p>Zie ook:</p>
+    <h2 class="utrecht-heading-2">Zie ook</h2>
     <ul>
       <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener">Privacy Adviseurs Rijk (PAR) — Rijksportaal</a></li>
-      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a></li>
     </ul>
   </div>
 </template>
