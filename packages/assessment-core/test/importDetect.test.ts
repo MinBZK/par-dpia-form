@@ -20,6 +20,14 @@ describe('detectImportType', () => {
       expect(detectImportType(json)).toBe('prescan')
     })
 
+    it('detects IAMA from urn:nl:iama URN', () => {
+      const json = {
+        metadata: { urn: 'urn:nl:iama' },
+        answers: { '1.1': { value: 'yes' } },
+      }
+      expect(detectImportType(json)).toBe('iama')
+    })
+
     it('URN takes priority over namespaced answer keys', () => {
       const json = {
         metadata: { urn: 'urn:nl:prescan:3.0' },
@@ -44,6 +52,14 @@ describe('detectImportType', () => {
         answers: { prescan: { '1.1': { value: 'yes' } } },
       }
       expect(detectImportType(json)).toBe('prescan')
+    })
+
+    it('detects IAMA from namespaced iama answers', () => {
+      const json = {
+        metadata: { createdAt: '2024-01-01' },
+        answers: { iama: { '1.1': { value: 'yes' } } },
+      }
+      expect(detectImportType(json)).toBe('iama')
     })
 
     it('prefers DPIA when both namespaces have answers', () => {
@@ -389,7 +405,7 @@ describe('parseAndValidateImport', () => {
         metadata: { urn: 'urn:nl:other:1.0' },
         answers: {},
       })
-      expect(() => parseAndValidateImport(input)).toThrow('geen DPIA- of pre-scan antwoorden')
+      expect(() => parseAndValidateImport(input)).toThrow('geen DPIA-, pre-scan- of IAMA-antwoorden')
     })
   })
 })

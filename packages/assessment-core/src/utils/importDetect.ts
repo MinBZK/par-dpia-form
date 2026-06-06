@@ -23,7 +23,7 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
 
   const detectedType = detectImportType(json)
   if (!detectedType) {
-    throw new Error('Bestand bevat geen DPIA- of pre-scan antwoorden')
+    throw new Error('Bestand bevat geen DPIA-, pre-scan- of IAMA-antwoorden')
   }
 
   // Migrate v1 nanoid keys if needed (uses old taskInstances for ID mapping)
@@ -33,18 +33,20 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
   return normalizeToState(migrated as any, detectedType)
 }
 
-export type ImportType = 'dpia' | 'prescan' | null
+export type ImportType = 'dpia' | 'prescan' | 'iama' | null
 
 export const detectImportType = (json: Record<string, unknown>): ImportType => {
   const urn = (json.metadata as Record<string, unknown>)?.urn as string | undefined
   if (urn) {
     if (urn.startsWith('urn:nl:dpia')) return 'dpia'
     if (urn.startsWith('urn:nl:prescan')) return 'prescan'
+    if (urn.startsWith('urn:nl:iama')) return 'iama'
   }
 
   const answers = json.answers as Record<string, unknown> | undefined
   if (answers?.[FormType.DPIA] && Object.keys(answers[FormType.DPIA] as object).length > 0) return 'dpia'
   if (answers?.[FormType.PRE_SCAN] && Object.keys(answers[FormType.PRE_SCAN] as object).length > 0) return 'prescan'
+  if (answers?.[FormType.IAMA] && Object.keys(answers[FormType.IAMA] as object).length > 0) return 'iama'
 
   if (answers && Object.keys(answers).length > 0) {
     return 'dpia'
@@ -67,13 +69,17 @@ export const deriveCompletedRootTaskIds = (answerKeys: string[]): string[] => {
  * Handles old namespace-wrapped and new flat formats.
  * Flattens grouped arrays; puts completedTasks in metadata.
  */
-export const normalizeToState = (json: Record<string, unknown>, detectedType: 'dpia' | 'prescan'): AssessmentState => {
+export const normalizeToState = (json: Record<string, unknown>, detectedType: 'dpia' | 'prescan' | 'iama'): AssessmentState => {
   const answers = json.answers as Record<string, unknown> | undefined
   const metadata = json.metadata as Record<string, unknown> | undefined
-  const namespace = detectedType === 'dpia' ? FormType.DPIA : FormType.PRE_SCAN
+  const namespace = detectedType === 'dpia'
+    ? FormType.DPIA
+    : detectedType === 'iama'
+      ? FormType.IAMA
+      : FormType.PRE_SCAN
 
   // Detect old namespace-wrapped format and unwrap.
-  const isNamespaced = answers?.[FormType.DPIA] || answers?.[FormType.PRE_SCAN]
+  const isNamespaced = answers?.[FormType.DPIA] || answers?.[FormType.PRE_SCAN] || answers?.[FormType.IAMA]
   const unwrapped = (isNamespaced
     ? ((answers?.[namespace] || {}) as Record<string, unknown>)
     : (answers || {})) as Record<string, unknown>
