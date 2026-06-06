@@ -15,7 +15,7 @@ postgres + keycloak + backend + frontend + standalone. Runs on **podman**
 | Service | Host URL | Notes |
 |---------|----------|-------|
 | frontend (boekhouding) | http://localhost:5174 | Vite dev, live-reload via `src/` mount |
-| standalone (zelfstandig invullen) | http://localhost:5176 | host 5176 → container 5175 |
+| standalone (zelfstandig invullen) | http://localhost:5175 | Vite dev, live-reload via `src/` mount |
 | backend API | http://localhost:3000/api | health: `/api/health` |
 | keycloak | http://localhost:8080 | realm `assessment-boekhouding`; admin `admin`/`admin` |
 | postgres | localhost:5432 | `parassessment`/`parassessment`; shared by backend **and** keycloak |
@@ -77,7 +77,7 @@ These land in `sources/generated/` (untracked); Vite HMR picks them up.
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/health   # 200
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5174/              # 200
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5176/              # 200
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5175/              # 200
 curl -s -o /dev/null -w '%{http_code}\n' \
   http://localhost:8080/realms/assessment-boekhouding/.well-known/openid-configuration  # 200
 ```
