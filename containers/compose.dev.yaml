@@ -63,7 +63,7 @@ services:
       context: ..
       dockerfile: containers/standalone/Containerfile.dev
     ports:
-      - "5176:5175"
+      - "5175:5175"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:5175/ || exit 1"]
       interval: 5s
@@ -90,7 +90,7 @@ services:
       retries: 5
     environment:
       API_URL: http://backend:3000
-      VITE_STANDALONE_URL: http://localhost:5176/
+      VITE_STANDALONE_URL: http://localhost:5175/
       VITE_KEYCLOAK_URL: http://localhost:8080
       VITE_KEYCLOAK_REALM: assessment-boekhouding
       VITE_KEYCLOAK_CLIENT_ID: boekhouding-frontend
