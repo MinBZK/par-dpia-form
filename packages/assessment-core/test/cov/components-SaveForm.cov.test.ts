@@ -5,8 +5,6 @@ import SaveForm from '../../src/components/SaveForm.vue'
 import { useTaskStore } from '../../src/stores/tasks'
 import { FormType } from '../../src/models/dpia'
 
-// Stub UiButton so we can interact with it without pulling in its full template,
-// while still exposing the variant/label and forwarding click events.
 const UiButtonStub = {
   name: 'UiButton',
   props: ['variant', 'label'],
@@ -70,7 +68,6 @@ describe('SaveForm.vue', () => {
       taskStore.setActiveNamespace(FormType.DPIA)
 
       const wrapper = mountSaveForm(true)
-      // generateFilename(FormType.DPIA, 'json') => "dpia_<timestamp>.json"
       expect(wrapper.text()).toMatch(/Bestandsnaam: dpia_.+\.json/)
     })
 
@@ -111,7 +108,6 @@ describe('SaveForm.vue', () => {
       expect(saveEvents).toHaveLength(1)
       expect(saveEvents![0][0]).toMatch(/^dpia_.+\.json$/)
 
-      // handleSave also closes the modal
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
   })
@@ -119,7 +115,6 @@ describe('SaveForm.vue', () => {
   describe('handleClickOutside', () => {
     it('closes when clicking the overlay (outside the modal content)', async () => {
       const wrapper = mountSaveForm(true)
-      // Clicking the overlay itself: target is the overlay, not inside .save-modal
       await wrapper.find('.modal-overlay').trigger('click')
 
       expect(wrapper.emitted('close')).toHaveLength(1)
@@ -127,8 +122,7 @@ describe('SaveForm.vue', () => {
 
     it('does NOT close when clicking inside the modal content', async () => {
       const wrapper = mountSaveForm(true)
-      // Dispatch a click whose target is the inner modal element so that
-      // saveFormRef.contains(target) is true -> no close.
+      // target must be inside .save-modal so saveFormRef.contains(target) is true -> no close
       const overlay = wrapper.find('.modal-overlay').element as HTMLElement
       const inner = wrapper.find('.save-modal').element as HTMLElement
       const event = new MouseEvent('click', { bubbles: true })
@@ -177,7 +171,6 @@ describe('SaveForm.vue', () => {
       wrapper.unmount()
       expect(removeSpy).toHaveBeenCalledWith('keydown', expect.any(Function))
 
-      // After unmount, an Escape keydown must not produce a new close emit.
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
       expect(wrapper.emitted('close')).toBeUndefined()
 

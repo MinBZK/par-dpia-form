@@ -91,8 +91,6 @@ async function handleFileSelect(event: Event) {
   if (!file) return
   await processFile(file)
   // Reset file input so the same file can be re-selected.
-  // `input` is guaranteed truthy here: a falsy event.target makes input.files?.[0]
-  // undefined, which the `if (!file) return` guard above catches before this point.
   input.value = ''
 }
 

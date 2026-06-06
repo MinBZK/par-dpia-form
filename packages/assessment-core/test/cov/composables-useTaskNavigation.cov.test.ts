@@ -4,7 +4,6 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { useTaskNavigation } from '../../src/composables/useTaskNavigation'
 import { FormType, type Task } from '../../src/models/dpia'
 
-// A simple three-section task tree so rootTasks has length 3.
 const taskTree: Task[] = [
   { id: '0', task: 'Inleiding', type: ['task_group'], tasks: [] },
   { id: '1', task: 'Beschrijving', type: ['task_group'], tasks: [] },
@@ -22,7 +21,7 @@ describe('useTaskNavigation', () => {
     taskStore.init(taskTree, true)
 
     scrollToSpy = vi.fn()
-    // window.scrollTo is not implemented in jsdom; provide a stub to assert on.
+    // jsdom does not implement window.scrollTo; stub it so it can be asserted on.
     vi.stubGlobal('window', { ...window, scrollTo: scrollToSpy })
   })
 
@@ -62,7 +61,6 @@ describe('useTaskNavigation', () => {
 
       nav.goToNext()
 
-      // nextRootTask is a no-op at the boundary, but scrollToTop still runs.
       expect(nav.currentRootTaskId.value).toBe('2')
       expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     })
@@ -85,7 +83,6 @@ describe('useTaskNavigation', () => {
 
       nav.goToPrevious()
 
-      // previousRootTask is a no-op at the boundary, but scrollToTop still runs.
       expect(nav.currentRootTaskId.value).toBe('0')
       expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
     })
@@ -131,13 +128,10 @@ describe('useTaskNavigation', () => {
   })
 
   describe('empty root task list', () => {
-    // Exercises the optional-chaining branches (`rootTasks.value[0]?.id`
-    // and `rootTasks.value[lastIndex]?.id`) when there are no root tasks.
     beforeEach(() => {
       setActivePinia(createPinia())
       taskStore = useTaskStore()
       taskStore.setActiveNamespace(FormType.PRE_SCAN)
-      // Initialize with an empty tree so rootTasks is empty.
       taskStore.init([], true)
     })
 
@@ -145,8 +139,6 @@ describe('useTaskNavigation', () => {
       const nav = useTaskNavigation()
 
       expect(nav.rootTasks.value).toHaveLength(0)
-      // currentRootTaskId is '0', but there is no rootTasks[0], so the
-      // optional chaining yields undefined and the comparison is false.
       expect(nav.isFirstTask.value).toBe(false)
       expect(nav.isLastTask.value).toBe(false)
     })

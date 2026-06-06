@@ -7,25 +7,9 @@ import { useAnswerStore } from '../../src/stores/answers'
 import { useConditionalHideReconcile } from '../../src/composables/useConditionalHideReconcile'
 import { FormType, type Task } from '../../src/models/dpia'
 
-/**
- * Task tree:
- *   1 (group)
- *     1.1 radio  — the conditional parent
- *     1.2 text   — shown only when 1.1 === true
- *
- * Plus a repeatable group to exercise index-scoped conditionals:
- *   2 (group)
- *     2.1 (repeatable group)
- *       2.1.1 radio — parent inside the repeatable element
- *       2.1.2 text  — shown only when 2.1.1 === true (within the same element)
- *
- * IMPORTANT: the watcher fires AFTER the store already holds the new value, so
- * `findImpactedByConditionalChange` short-circuits whenever
- * `getAnswer(parent) === nextValue`. To genuinely drive a "hide", we flip the
- * parent to an empty string: `getAnswer` coalesces '' to null (`value || null`)
- * while the watcher captures the raw '' — so original (null) !== next ('') and
- * the conditional ('1.1' equals true) is no longer met, hiding the dependent.
- */
+// Gotcha: to drive a "hide", flip the parent to '' — getAnswer coalesces '' to
+// null while the watcher captures raw '', so original (null) !== next ('') and
+// the equals-true conditional stops matching.
 const taskTree: Task[] = [
   {
     id: '1',
@@ -77,11 +61,8 @@ const taskTree: Task[] = [
   },
 ]
 
-/**
- * Mounts a throwaway component whose setup() invokes the composable, so the
- * watch and onBeforeUnmount hooks register against a real component instance.
- * The composable's return value is exposed on the wrapper's vm.
- */
+// Mounts a host component so the composable's watch and onBeforeUnmount hooks
+// register against a real instance; the return value is exposed on vm.
 function mountReconcile(ttlMs?: number) {
   const Host = defineComponent({
     setup() {
@@ -116,14 +97,12 @@ describe('useConditionalHideReconcile', () => {
 
   describe('seedFromStore', () => {
     it('seeds lastObserved from the current store and arms the watcher', async () => {
-      // Pre-existing answers act as the baseline after seeding.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       answerStore.answers[FormType.DPIA]['1.2'] = answer('Bestaande toelichting')
 
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Re-asserting the same value is not a touch, and the visible 1.2 stays.
       answerStore.answers[FormType.DPIA]['1.1'] = { ...answer('true') }
       await nextTick()
       expect(answerStore.answers[FormType.DPIA]['1.2']).toEqual(answer('Bestaande toelichting'))
@@ -133,8 +112,6 @@ describe('useConditionalHideReconcile', () => {
     })
 
     it('handles an empty namespace (answers[ns] undefined falls back to {})', () => {
-      // Remove the active namespace map so `answerStore.answers[ns] || {}` takes
-      // the fallback branch inside seedFromStore.
       delete (answerStore.answers as Record<string, unknown>)[FormType.DPIA]
 
       const { wrapper, api } = mountReconcile()
@@ -150,7 +127,7 @@ describe('useConditionalHideReconcile', () => {
       answerStore.answers[FormType.DPIA]['1.2'] = answer('Toelichting waarde')
 
       const { wrapper, api } = mountReconcile()
-      // No seedFromStore() → armed stays false → watcher returns immediately.
+      // Deliberately no seedFromStore() — watcher stays unarmed.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
 
@@ -166,7 +143,6 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Replace the active namespace map with undefined → `current` is falsy.
       ;(answerStore.answers as Record<string, unknown>)[FormType.DPIA] = undefined
       await nextTick()
 
@@ -183,20 +159,16 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Flip the parent to '' so the conditional no longer holds and 1.2 hides.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
 
-      // 1.2 left the store...
       expect(answerStore.answers[FormType.DPIA]['1.2']).toBeUndefined()
-      // ...but is held in the undo cache.
       expect(api.cache.keys()).toContain('1.2')
 
       wrapper.unmount()
     })
 
     it('does nothing for a change with no impacted dependents (toHide empty)', async () => {
-      // 1.2 has no value, so hiding it impacts nothing → toHide is empty.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
 
       const { wrapper, api } = mountReconcile()
@@ -210,7 +182,6 @@ describe('useConditionalHideReconcile', () => {
     })
 
     it('hides an index-scoped dependent inside a repeatable element', async () => {
-      // Default instance index 0 exists; give 2.1.1[0] and 2.1.2[0] values.
       answerStore.answers[FormType.DPIA]['2.1.1[0]'] = answer('true')
       answerStore.answers[FormType.DPIA]['2.1.2[0]'] = answer('Index nul toelichting')
 
@@ -235,13 +206,11 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Hide.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
       expect(answerStore.answers[FormType.DPIA]['1.2']).toBeUndefined()
       expect(api.cache.keys()).toContain('1.2')
 
-      // Flip back to 'true' → restoreNowVisible repopulates 1.2 from the cache.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       await nextTick()
 
@@ -258,14 +227,12 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Hide 1.2.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
       expect(api.cache.keys()).toContain('1.2')
 
-      // Touch the parent again to another non-matching value: this is a touch
-      // (so restoreNowVisible runs), but shouldShowTask('1.2') is still false,
-      // exercising the `continue` branch in restoreNowVisible.
+      // A second non-matching value is still a touch (runs restoreNowVisible) yet
+      // 1.2 stays not-visible.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('nope')
       await nextTick()
 
@@ -276,9 +243,8 @@ describe('useConditionalHideReconcile', () => {
     })
 
     it('drops an entry that expires between keys() and consume() (!entry continue branch)', async () => {
-      // A very large TTL keeps the real cache setTimeout dormant for the whole
-      // test; only Date.now is manipulated to simulate expiry. (Avoiding fake
-      // timers keeps the istanbul coverage writer's async fs ops intact.)
+      // Large TTL + manipulating only Date.now (not fake timers, which would
+      // break the istanbul coverage writer's async fs ops) simulates expiry.
       const ttl = 10_000_000
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       answerStore.answers[FormType.DPIA]['1.2'] = answer('Tussentijds verlopen')
@@ -286,25 +252,21 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile(ttl)
       api.seedFromStore()
 
-      // Hide 1.2 → cached with expiresAt = now + ttl.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
       expect(api.cache.keys()).toContain('1.2')
 
-      // Make keys() see the entry as live but consume() see it as expired by
-      // controlling Date.now between the two calls inside restoreNowVisible.
+      // keys() sees the entry live, consume() sees it expired, via Date.now.
       const base = Date.now()
       const nowSpy = vi.spyOn(Date, 'now')
-      nowSpy.mockReturnValueOnce(base) // keys(): expiresAt > now → live
-      nowSpy.mockReturnValue(base + ttl + 1) // consume(): expired → no entry
+      nowSpy.mockReturnValueOnce(base)
+      nowSpy.mockReturnValue(base + ttl + 1)
 
-      // Flip back to 'true' so shouldShowTask('1.2') is true and consume runs.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       await nextTick()
 
       nowSpy.mockRestore()
 
-      // The expired entry was dropped without being restored.
       expect(answerStore.answers[FormType.DPIA]['1.2']).toBeUndefined()
       wrapper.unmount()
     })
@@ -318,14 +280,12 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Remove an observed key and touch another in the same tick: the cleanup
-      // loop hits the `!(id in current)` branch for x.1.
+      // Remove an observed key and touch another in the same tick → cleanup loop
+      // hits the `!(id in current)` branch for x.1.
       delete answerStore.answers[FormType.DPIA]['x.1']
       answerStore.answers[FormType.DPIA]['1.1'] = answer('changed')
       await nextTick()
 
-      // Re-adding x.1 registers as a fresh touch (it was dropped from
-      // lastObserved), which is observable as no crash and persisted value.
       answerStore.answers[FormType.DPIA]['x.1'] = answer('Te verwijderen')
       await nextTick()
       expect(answerStore.answers[FormType.DPIA]['x.1']).toEqual(answer('Te verwijderen'))
@@ -340,8 +300,7 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Replace the answer object identity but keep its value equal → deep watch
-      // fires but no value differs, so touched stays empty.
+      // New object identity, equal value → deep watch fires but touched stays empty.
       answerStore.answers[FormType.DPIA]['1.1'] = { ...answer('true') }
       await nextTick()
 
@@ -358,15 +317,12 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Pre-load the cache directly so we can observe that restoreNowVisible is
-      // NOT called for a no-op watcher fire (the entry stays put).
+      // Pre-loaded unrelated entry survives only if restoreNowVisible never runs.
       api.cache.store([{ instanceId: 'phantom', answer: answer('phantom') }])
 
-      // Deep-fire the watcher with no value change.
       answerStore.answers[FormType.DPIA]['1.2'] = { ...answer('Onaangeroerd') }
       await nextTick()
 
-      // restoreNowVisible never ran, so the (unrelated) cache entry survives.
       expect(api.cache.keys()).toContain('phantom')
 
       wrapper.unmount()
@@ -381,16 +337,13 @@ describe('useConditionalHideReconcile', () => {
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 
-      // Populate the cache.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('')
       await nextTick()
       expect(api.cache.keys()).toContain('1.2')
 
-      // Unmount triggers onBeforeUnmount: stop() + cache.clear().
       wrapper.unmount()
       expect(api.cache.keys()).toHaveLength(0)
 
-      // Watcher is stopped: further mutations have no effect.
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       await nextTick()
       expect(api.cache.keys()).toHaveLength(0)
@@ -402,7 +355,6 @@ describe('useConditionalHideReconcile', () => {
       answerStore.answers[FormType.DPIA]['1.1'] = answer('true')
       answerStore.answers[FormType.DPIA]['1.2'] = answer('Default ttl')
 
-      // No ttlMs argument → exercises the default-parameter path of the cache.
       const { wrapper, api } = mountReconcile()
       api.seedFromStore()
 

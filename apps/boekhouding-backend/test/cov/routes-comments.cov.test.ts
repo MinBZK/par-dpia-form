@@ -1,9 +1,3 @@
-// Coverage-focused integration tests for src/routes/comments.ts.
-//
-// Runs the real Fastify app via app.inject() against a real Postgres test DB.
-// Auth is exercised end-to-end with real JWTs signed by the loopback JWKS
-// server. Comments are seeded directly via the db helpers so we can drive
-// every branch (bulk load, since-polling, replies, resolve/reopen, delete).
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -32,8 +26,6 @@ function authHeader(token: string) {
   return { authorization: `Bearer ${token}` }
 }
 
-// Seed a comment row directly. Lets us control createdAt/updatedAt/resolved
-// fields that the API would otherwise set itself.
 async function seedComment(values: {
   assessmentInstanceId: string
   fieldId?: string
@@ -76,7 +68,6 @@ beforeEach(async () => {
   await truncateAll(process.env.DATABASE_SERVER_FULL!)
 })
 
-// Helper: project with `user` as `role`, returns an assessment in it.
 async function seedAssessmentFor(user: SeededUser, role: ProjectRole) {
   const project = await createProject(user.id)
   await addMember(project.id, user.id, role)
@@ -142,7 +133,6 @@ describe('GET /assessments/:id/comments — bulk load (no since)', () => {
     await addMember(project.id, replier.id, 'commenter')
     await addMember(project.id, resolver.id, 'editor')
 
-    // Root #1 — resolved by `resolver` (exercises resolvedByName lookup hit)
     const root1 = await seedComment({
       assessmentInstanceId: assessment.id,
       authorId: owner.id,
@@ -152,7 +142,6 @@ describe('GET /assessments/:id/comments — bulk load (no since)', () => {
       createdAt: new Date('2026-03-20T09:00:00Z'),
       updatedAt: new Date('2026-03-20T10:00:00Z'),
     })
-    // Root #2 — unresolved (exercises resolvedByName: null branch)
     const root2 = await seedComment({
       assessmentInstanceId: assessment.id,
       authorId: owner.id,
@@ -160,7 +149,6 @@ describe('GET /assessments/:id/comments — bulk load (no since)', () => {
       createdAt: new Date('2026-03-20T11:00:00Z'),
       updatedAt: new Date('2026-03-20T11:00:00Z'),
     })
-    // Reply on root #1
     await seedComment({
       assessmentInstanceId: assessment.id,
       parentId: root1.id,
@@ -189,7 +177,6 @@ describe('GET /assessments/:id/comments — bulk load (no since)', () => {
     expect(second.resolvedByName).toBeNull()
     expect(second.replies).toEqual([])
 
-    // Latest updatedAt across roots + replies = the reply's 12:30.
     expect(body.lastModifiedAt).toBe(new Date('2026-03-20T12:30:00Z').toISOString())
   })
 
@@ -204,9 +191,6 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
 
     const since = new Date('2026-03-20T12:00:00Z')
 
-    // Old root — before `since`, must be excluded from the root query but its
-    // id still seeds rootIds (it is fetched because it has no since filter on
-    // the recentReplies query... actually recentReplies uses the since filter).
     const oldRoot = await seedComment({
       assessmentInstanceId: assessment.id,
       authorId: owner.id,
@@ -214,8 +198,6 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
       createdAt: new Date('2026-03-20T09:00:00Z'),
       updatedAt: new Date('2026-03-20T09:30:00Z'),
     })
-    // Recent root — updated after `since`, resolved by resolver so the polling
-    // resolvedByName lookup is populated.
     const recentRoot = await seedComment({
       assessmentInstanceId: assessment.id,
       authorId: owner.id,
@@ -225,7 +207,6 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
       createdAt: new Date('2026-03-20T09:00:00Z'),
       updatedAt: new Date('2026-03-20T13:30:00Z'),
     })
-    // Recent reply on the old root — updated after `since`, unresolved.
     await seedComment({
       assessmentInstanceId: assessment.id,
       parentId: oldRoot.id,
@@ -253,14 +234,11 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
     const reply = body.comments.find((c: any) => c.body === 'Nieuwe reactie')
     expect(reply.resolvedByName).toBeNull()
 
-    // Newest updatedAt among the recent changes = the reply at 14:00.
     expect(body.lastModifiedAt).toBe(new Date('2026-03-20T14:00:00Z').toISOString())
     expect(body.currentUserId).toBe(owner.id)
   })
 
   it('returns a single recently-changed root with its own updatedAt as lastModifiedAt', async () => {
-    // Only one root changed after `since` and it has no replies. Exercises the
-    // recentReplies.length > 0 reduce path with a single element.
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
 
@@ -286,9 +264,6 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
   })
 
   it('skips the reply/polling branch entirely when there are no root comments and since is set', async () => {
-    // No root comments at all -> rootIds.length === 0 -> the whole
-    // `if (rootIds.length > 0)` block (including the polling early-return) is
-    // skipped, falling through to the threaded build with empty arrays.
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
     const since = new Date('2026-03-20T12:00:00Z')
@@ -351,8 +326,7 @@ describe('POST /assessments/:id/comments — create', () => {
     expect(body.fieldId).toBe('2.1')
     expect(body.parentId).toBeNull()
     expect(body.body).toBe('Mijn opmerking')
-    // requireAuth syncs displayName from the JWT, which carries only `email`,
-    // so the stored display name equals the email.
+    // JWT carries only `email`, so the synced displayName equals the email.
     expect(body.authorName).toBe(owner.email)
   })
 
@@ -522,7 +496,6 @@ describe('PATCH /assessments/:id/comments/:commentId — resolve/reopen', () => 
       authorId: owner.id,
     })
 
-    // Resolve targets root comments only; a reply id is therefore "not found".
     const res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/assessments/${assessment.id}/comments/${reply.id}`,
@@ -648,7 +621,6 @@ describe('DELETE /assessments/:id/comments/:commentId', () => {
     })
     expect(res.statusCode).toBe(204)
 
-    // Both root and reply are gone.
     const remaining = await db.select().from(comments)
     const ids = remaining.map((c) => c.id)
     expect(ids).not.toContain(root.id)
@@ -656,9 +628,6 @@ describe('DELETE /assessments/:id/comments/:commentId', () => {
   })
 
   it('lets an owner delete a reply (non-root) authored by someone else', async () => {
-    // Exercises: result.role === 'owner' (so the author check passes) AND
-    // comment.parentId !== null (so the cascade-delete-children branch is
-    // skipped, only the single delete runs).
     const owner = await createUser()
     const author = await createUser()
     const { project, assessment } = await seedAssessmentFor(owner, 'owner')
@@ -682,7 +651,7 @@ describe('DELETE /assessments/:id/comments/:commentId', () => {
 
     const remaining = await db.select().from(comments)
     const ids = remaining.map((c) => c.id)
-    expect(ids).toContain(root.id) // root untouched
+    expect(ids).toContain(root.id)
     expect(ids).not.toContain(reply.id)
   })
 })

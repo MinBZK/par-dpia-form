@@ -1,10 +1,3 @@
-// Coverage test for src/routes/members.ts.
-//
-// Self-sufficient: drives the real Fastify app via app.inject() against a real
-// Postgres test database, exercising every branch of the member routes
-// (list / add / update role / remove). Auth is exercised end-to-end with real
-// JWTs signed by the test keypair; project access is enforced by the
-// unmodified requireProjectAccess middleware.
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -27,7 +20,6 @@ function authHeader(token: string) {
   return { authorization: `Bearer ${token}` }
 }
 
-// Creates a project owned by `owner` (added as a member with role 'owner').
 async function projectOwnedBy(owner: SeededUser) {
   const project = await createProject(owner.id)
   await addMember(project.id, owner.id, 'owner')
@@ -127,10 +119,8 @@ describe('POST /:projectId/members', () => {
     })
     expect(res.statusCode).toBe(201)
     const body = res.json() as { userId: string; role: string }
-    // No role in body => default 'editor' branch of `role || 'editor'`.
     expect(body.role).toBe('editor')
 
-    // Placeholder user created with normalized (lowercased) email + email as displayName.
     const [created] = await db
       .select()
       .from(users)
@@ -139,7 +129,6 @@ describe('POST /:projectId/members', () => {
     expect(created.email).toBe(newEmail.toLowerCase())
     expect(created.displayName).toBe(newEmail.toLowerCase())
 
-    // Membership persisted with the resolved role.
     const [membership] = await db
       .select()
       .from(projectMembers)
@@ -156,7 +145,6 @@ describe('POST /:projectId/members', () => {
     const res = await app.inject({
       method: 'POST',
       url: `/api/v1/projects/${project.id}/members`,
-      // Upper-cased email exercises the normalize-to-lowercase lookup of the existing user.
       headers: authHeader(await tokenFor(owner)),
       payload: { email: existingUser.email.toUpperCase(), role: 'commenter' },
     })
@@ -293,8 +281,6 @@ describe('PUT /:projectId/members/:userId', () => {
     const owner = await createUser()
     const project = await projectOwnedBy(owner)
 
-    // currentMembership.role === 'owner' is true, but role !== 'owner' is false,
-    // so the `&&` short-circuits and the owner-count guard is skipped.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/projects/${project.id}/members/${owner.id}`,

@@ -12,11 +12,6 @@ function answer(value: string): Answer {
   return { value, lastEditedAt: '2026-01-01T00:00:00Z' }
 }
 
-// The assessmentState module is type-only apart from the single exported
-// constant OUTPUT_SCHEMA_URL. These tests pin that runtime value and exercise
-// the exported types by constructing real values that conform to them, so the
-// shapes documented by the module are verified against actual data.
-
 describe('OUTPUT_SCHEMA_URL', () => {
   it('points at the v2 assessment-output schema on GitHub', () => {
     expect(OUTPUT_SCHEMA_URL).toBe(

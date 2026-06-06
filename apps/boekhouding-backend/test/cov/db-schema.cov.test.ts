@@ -12,10 +12,7 @@ import {
   comments,
 } from '../../src/db/schema.js'
 
-// schema.ts is a purely declarative Drizzle schema. The reference callbacks
-// `() => table.id` and the per-table config callbacks `(table) => [...]` are
-// evaluated lazily by Drizzle. getTableConfig() forces them to run, which is
-// what exercises every arrow function / line in the file.
+// getTableConfig() forces Drizzle's lazily-evaluated reference/config callbacks to run.
 
 describe('db/schema enums', () => {
   it('projectRoleEnum holds the four membership roles', () => {

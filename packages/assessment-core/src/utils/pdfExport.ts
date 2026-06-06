@@ -350,8 +350,6 @@ function buildSectionDescription(description?: string): Content {
   }
 }
 
-// Sole caller (formatAnswerContent) only invokes this after an Array.isArray
-// check, so `value` is always an array here.
 function formatAnswerValue(value: unknown[]): string {
   const cleanItems = value
     .map(item => {
@@ -474,10 +472,6 @@ function processTaskWithInstances(
         if (isImageValue(answer)) {
           elements.push(buildImageContent(answer))
         } else {
-          // The no-children leaf path is only reached from buildAnswer at
-          // nestingLevel 0; the recursion only descends into tasks that have
-          // children, so nestingLevel is always 0 here and `content` is used
-          // directly.
           elements.push(formatAnswerContent(answer))
         }
       }
@@ -603,9 +597,6 @@ function buildTableRows(
   return { tableRows, imageBlocks }
 }
 
-// The sole caller (processTaskWithInstances) always passes all three arguments
-// and only invokes this when rows.length > 0, so neither parameter defaults nor
-// an empty-rows guard are needed.
 function createTableElement(
   rows: any[][],
   widths: any[],

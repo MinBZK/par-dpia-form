@@ -3,10 +3,6 @@ import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 import type { AssessmentResult } from '../../src/stores/calculations'
 
-// Fully controllable fake of the calculation store. Mocking the module keeps
-// this test self-sufficient: LiveResults.vue only depends on this store, so we
-// drive every template branch and every code path in renderAssessmentExplanation
-// purely through the store state we hand it here.
 const init = vi.fn()
 const assessmentResults = ref<AssessmentResult[]>([])
 const isCalculating = ref(false)
@@ -27,7 +23,7 @@ vi.mock('../../src/stores/calculations', () => ({
   }),
 }))
 
-// Import AFTER the mock is registered so the SFC picks up the fake store.
+// Import AFTER vi.mock so the SFC picks up the fake store.
 import LiveResults from '../../src/components/LiveResults.vue'
 
 function result(overrides: Partial<AssessmentResult> & { id: string }): AssessmentResult {
@@ -61,7 +57,6 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      // The static (non-expandable) variant uses a div.rvo-accordion__item, no <details>.
       expect(wrapper.find('details').exists()).toBe(false)
       expect(wrapper.find('.rvo-accordion-teaser').text()).toBe(
         'Op basis van de huidige antwoorden zijn er geen assessments vereist.',
@@ -125,7 +120,6 @@ describe('LiveResults.vue', () => {
       const wrapper = mount(LiveResults)
 
       expect(wrapper.text()).toContain('Een IAMA wordt aanbevolen omdat:')
-      // Criteria points become list items.
       const items = wrapper.findAll('.utrecht-unordered-list__item')
       expect(items).toHaveLength(1)
       expect(items[0].text()).toContain('reden A')
@@ -192,15 +186,12 @@ describe('LiveResults.vue', () => {
           required: true,
           level: 'required',
           explanation: 'Regel 1\nRegel 2',
-          // no criteria field at all -> hasCriteria false
         }),
       ]
 
       const wrapper = mount(LiveResults)
 
-      // No criteria list rendered.
       expect(wrapper.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
-      // Newlines are converted to <br> through v-html.
       const html = wrapper.html()
       expect(html).toContain('Regel 1<br>Regel 2')
     })
@@ -228,19 +219,17 @@ describe('LiveResults.vue', () => {
           id: 'DPIA',
           required: true,
           level: 'required',
-          explanation: '', // falsy -> '' fallback
+          explanation: '',
         }),
       ]
 
       const wrapper = mount(LiveResults)
 
-      // The fallback paragraph exists but is empty.
       expect(wrapper.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
       expect(wrapper.text()).toContain('DPIA')
     })
 
     it('uses empty-string fallback for text when explanation is missing in the with-criteria branch', () => {
-      // explanation undefined exercises `assessment.explanation || ''` in the hasCriteria=true branch.
       assessmentResults.value = [
         result({
           id: 'DPIA',
@@ -262,7 +251,6 @@ describe('LiveResults.vue', () => {
     it('only renders assessments where required is true', () => {
       assessmentResults.value = [
         result({ id: 'DPIA', required: true, level: 'required', explanation: 'verplicht' }),
-        // recommended (so the accordion opens) but required=false -> filtered out of the list
         result({ id: 'KIA', required: false, level: 'recommended', explanation: 'aanbevolen' }),
       ]
 

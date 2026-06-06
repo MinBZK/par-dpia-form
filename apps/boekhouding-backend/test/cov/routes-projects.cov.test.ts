@@ -1,11 +1,3 @@
-// Coverage test for src/routes/projects.ts.
-//
-// Self-sufficient: drives the real Fastify app via app.inject() against a real
-// Postgres test database, exercising every branch of the project routes
-// (list / create / get / update / delete / list assessments / create
-// assessment). Auth is exercised end-to-end with real JWTs signed by the test
-// keypair; project access is enforced by the unmodified requireProjectAccess
-// middleware.
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -28,7 +20,6 @@ function authHeader(token: string) {
   return { authorization: `Bearer ${token}` }
 }
 
-// Creates a project where `user` holds the given role (added as a member).
 async function projectWithRole(user: SeededUser, role: Parameters<typeof addMember>[2]) {
   const project = await createProject(user.id)
   await addMember(project.id, user.id, role)
@@ -70,7 +61,6 @@ describe('GET /api/v1/projects (list projects for current user)', () => {
     const user = await createUser()
     const other = await createUser()
     const mine = await projectWithRole(user, 'owner')
-    // A project the user is NOT a member of must not appear.
     await projectWithRole(other, 'owner')
 
     const res = await app.inject({
@@ -112,7 +102,6 @@ describe('POST /api/v1/projects (create project)', () => {
     expect(project.name).toBe('Met omschrijving')
     expect(project.description).toBe('Een omschrijving')
 
-    // Creator is now owner: it appears in the membership-scoped listing.
     const list = await app.inject({
       method: 'GET',
       url: '/api/v1/projects',
@@ -195,7 +184,6 @@ describe('PUT /api/v1/projects/:projectId (update project)', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.name).toBe('Alleen naam')
-    // Description left untouched (default empty string from creation).
     expect(body.description).toBe('')
   })
 
@@ -275,7 +263,6 @@ describe('DELETE /api/v1/projects/:projectId (delete project)', () => {
     expect(res.statusCode).toBe(204)
     expect(res.body).toBe('')
 
-    // Project (and the membership via cascade) is gone: listing is empty.
     const list = await app.inject({
       method: 'GET',
       url: '/api/v1/projects',
@@ -304,7 +291,6 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     const project = await projectWithRole(owner, 'owner')
     const a = await createAssessment(project.id, owner.id, { name: 'A1' })
 
-    // An assessment in a different project must not leak in.
     const otherProject = await projectWithRole(owner, 'owner')
     await createAssessment(otherProject.id, owner.id, { name: 'Other' })
 
@@ -353,7 +339,7 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
   it('uses the provided name when given and stores the provided state', async () => {
     const owner = await createUser()
     const project = await projectWithRole(owner, 'owner')
-    const state = { answers: { '0.1': { value: 'x' } } }
+    const state = { answers: { '0.1': { value: 'Inleiding' } } }
 
     const res = await app.inject({
       method: 'POST',
@@ -367,7 +353,6 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
     expect(created.assessmentType).toBe('dpia')
     expect(created.cachedState).toEqual(state)
 
-    // Initial version + initial_state edit are recorded so state can be rebuilt.
     const versions = await db
       .select()
       .from(assessmentVersions)
@@ -398,7 +383,6 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
     })
     expect(first.statusCode).toBe(201)
     expect(first.json().name).toBe('DPIA')
-    // No state provided: defaults to {} (state || {}).
     expect(first.json().cachedState).toEqual({})
 
     const second = await app.inject({
@@ -424,8 +408,6 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
     expect(res.statusCode).toBe(201)
     expect(res.json().name).toBe('Pre-scan DPIA')
 
-    // Sanity: the default name is type-scoped, so the count only considers
-    // prescan rows. Confirm a prescan row exists in the DB.
     const rows = await db
       .select()
       .from(assessmentInstances)

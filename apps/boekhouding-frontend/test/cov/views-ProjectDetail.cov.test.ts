@@ -4,18 +4,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-// --- Router mock -----------------------------------------------------------
-// useRouter() returns a push spy so we can assert navigation after creating
-// assessments, deleting the project and opening the members page.
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// --- api mock --------------------------------------------------------------
-// All network calls are stubbed; tests configure resolved/rejected values per
-// branch. projects.get / assessments.list drive onMounted; the rest drive the
-// edit + dialog + delete handlers.
 const projectsGet = vi.fn()
 const projectsUpdate = vi.fn()
 const projectsDelete = vi.fn()
@@ -36,9 +29,6 @@ vi.mock('../../src/api', () => ({
   },
 }))
 
-// --- core mock -------------------------------------------------------------
-// Keep the real FormType enum value but stub the import/validation helpers and
-// autoGrowTextarea so we can steer the upload branches deterministically.
 const parseAndValidateImport = vi.fn()
 const detectImportType = vi.fn()
 const autoGrowTextarea = vi.fn()
@@ -78,7 +68,6 @@ function makeAssessment(overrides: Record<string, unknown> = {}) {
   }
 }
 
-// Mount and await onMounted's Promise.all + the dialogOpen/deleteModal watchers.
 async function mountDetail(opts: {
   project?: ReturnType<typeof makeProject> | null
   assessments?: Record<string, unknown>[]
@@ -96,8 +85,6 @@ async function mountDetail(opts: {
     global: {
       stubs: {
         AppHeader: { template: '<header class="app-header-stub" />' },
-        // RouterLink is not registered globally here; stub it so the
-        // existing-assessment cards render without a router plugin.
         RouterLink: { template: '<a class="router-link-stub"><slot /></a>' },
         IconUsers: { template: '<span class="icon-users" />' },
         IconDotsVertical: { template: '<span class="icon-dots" />' },
@@ -109,8 +96,6 @@ async function mountDetail(opts: {
   return wrapper
 }
 
-// jsdom's <dialog> lacks showModal/close — provide no-op implementations so the
-// watchers can call them.
 beforeEach(() => {
   routerPush.mockClear()
   projectsGet.mockReset()
@@ -123,6 +108,7 @@ beforeEach(() => {
   detectImportType.mockReset()
   autoGrowTextarea.mockReset()
 
+  // jsdom's <dialog> lacks showModal/close; provide no-op shims for the watchers.
   if (!HTMLDialogElement.prototype.showModal) {
     HTMLDialogElement.prototype.showModal = function () {
       this.open = true
@@ -138,7 +124,6 @@ beforeEach(() => {
 describe('ProjectDetail', () => {
   describe('onMounted loading branches', () => {
     it('renders the loading state before data resolves', () => {
-      // Pending promises keep loading = true synchronously.
       projectsGet.mockReturnValue(new Promise(() => {}))
       assessmentsList.mockReturnValue(new Promise(() => {}))
       const wrapper = mount(ProjectDetail, {
@@ -205,7 +190,6 @@ describe('ProjectDetail', () => {
   describe('editable name (startEditName / saveName / cancelName)', () => {
     it('does not enter edit mode when the role is not editable', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'viewer' }) })
-      // viewer: h1 has no editable-field class and click is a no-op.
       const h1 = wrapper.find('h1')
       expect(h1.classes()).not.toContain('editable-field')
       await h1.trigger('click')
@@ -250,7 +234,6 @@ describe('ProjectDetail', () => {
       await input.trigger('keydown.enter')
       await flushPromises()
       expect(projectsUpdate).not.toHaveBeenCalled()
-      // Falls back to the read-only heading.
       expect(wrapper.find('h1').text()).toBe('Oud')
     })
 
@@ -315,7 +298,7 @@ describe('ProjectDetail', () => {
     })
 
     it('autosizes on input', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'X' }) })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
       await wrapper.find('p.preserve-whitespace').trigger('click')
       await flushPromises()
       autoGrowTextarea.mockClear()
@@ -351,7 +334,6 @@ describe('ProjectDetail', () => {
     })
 
     it('treats a null description as "" when unchanged on save', async () => {
-      // project.description undefined → (description || '') === '' branch.
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: undefined as unknown as string }) })
       await wrapper.find('.description-add').trigger('click')
       await flushPromises()
@@ -362,7 +344,7 @@ describe('ProjectDetail', () => {
     })
 
     it('cancels description editing with Escape', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'X' }) })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
       await wrapper.find('p.preserve-whitespace').trigger('click')
       await flushPromises()
       await wrapper.find('textarea[aria-label="Projectbeschrijving"]').trigger('keydown.escape')
@@ -371,7 +353,7 @@ describe('ProjectDetail', () => {
     })
 
     it('cancels description editing with the Annuleer button', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'X' }) })
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
       await wrapper.find('p.preserve-whitespace').trigger('click')
       await flushPromises()
       const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Annuleer')!
@@ -389,7 +371,6 @@ describe('ProjectDetail', () => {
       })
       expect(wrapper.text()).toContain('Ga verder met een bestaande assessment')
       expect(wrapper.text()).toContain('Bestaand')
-      // nl-NL long date.
       expect(wrapper.text()).toContain('20 maart 2026')
     })
 
@@ -484,7 +465,7 @@ describe('ProjectDetail', () => {
     })
 
     it('errors when the selected pre-scan has no answers (undefined state)', async () => {
-      assessmentsGet.mockResolvedValue({ id: 'ps1' }) // no state
+      assessmentsGet.mockResolvedValue({ id: 'ps1' })
       const wrapper = await mountDetail({
         project: makeProject({ role: 'owner' }),
         assessments: [makeAssessment({ id: 'ps1', assessmentType: 'prescan', name: 'PS1' })],
@@ -662,7 +643,6 @@ describe('ProjectDetail', () => {
       await wrapper.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('dialog.start-dialog')
-      // empty option (default) → create() rejects with no .message.
       await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
       await flushPromises()
       expect(wrapper.text()).toContain('Er is iets misgegaan')
@@ -714,7 +694,6 @@ describe('ProjectDetail', () => {
     })
 
     it('errors when the uploaded pre-scan file has a missing answers field', async () => {
-      // state.answers undefined → !state.answers branch.
       parseAndValidateImport.mockReturnValue({})
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
       await wrapper.findAll('button').find((b) => b.text() === 'Start pre-scan')!.trigger('click')
@@ -763,11 +742,9 @@ describe('ProjectDetail', () => {
       await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
       await flushPromises()
       const fileInput = dialog.find('input[type="file"]')
-      // No files set → null is empty FileList → files?.[0] is undefined → null.
       Object.defineProperty(fileInput.element, 'files', { value: null, configurable: true })
       await fileInput.trigger('change')
       await flushPromises()
-      // Submitting now hits the "no file" error branch, proving uploadFile is null.
       await dialog.findAll('button').find((b) => b.text() === 'Start pre-scan')!.trigger('click')
       await flushPromises()
       expect(wrapper.text()).toContain('Selecteer een JSON-bestand')
@@ -853,7 +830,6 @@ describe('ProjectDetail', () => {
       await flushPromises()
       const dialog = wrapper.find('dialog.start-dialog')
       const radios = () => dialog.findAll('input[type="radio"]')
-      // Move off the default 'empty', then click 'empty' again to fire its handler.
       await radios().find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
       await flushPromises()
       const emptyRadio = radios().find((r) => (r.element as HTMLInputElement).value === 'empty')!
@@ -887,7 +863,6 @@ describe('ProjectDetail', () => {
 
     it('autosizeTextarea is a no-op when no textarea is mounted (descriptionInput null)', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
-      // Not in description edit mode, so descriptionInput ref is null.
       const vm = wrapper.vm as unknown as { autosizeTextarea: () => void }
       vm.autosizeTextarea()
       expect(autoGrowTextarea).not.toHaveBeenCalled()
@@ -896,7 +871,6 @@ describe('ProjectDetail', () => {
     it('submitDpiaDialog falls through when the option is not a DPIA option', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
       const vm = wrapper.vm as unknown as { dialogOption: string; submitDpiaDialog: () => Promise<void> }
-      // A pre-scan-only option leaves every DPIA if-branch unmatched (missing-else path).
       vm.dialogOption = 'prescan-json-upload'
       await vm.submitDpiaDialog()
       await flushPromises()

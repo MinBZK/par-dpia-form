@@ -3,12 +3,7 @@ import { mount } from '@vue/test-utils'
 import ConfirmDeleteDialog from '../../src/components/ConfirmDeleteDialog.vue'
 import type { ImpactSummary } from '../../src/utils/impactedAnswers'
 
-// jsdom (v29) ships HTMLDialogElement with a working reflected `open` property
-// but no showModal()/close() implementation. The component relies on both, so
-// we polyfill them on the prototype: showModal() sets the `open` attribute,
-// close() removes it and fires the native `close` event the component listens
-// for. This mirrors real browser semantics closely enough to exercise every
-// branch of sync()/onNativeClose()/onBeforeUnmount().
+// jsdom has no showModal()/close(); polyfill them so the dialog branches run.
 beforeAll(() => {
   const proto = (globalThis as unknown as { HTMLDialogElement: typeof HTMLDialogElement })
     .HTMLDialogElement.prototype as HTMLDialogElement & {
@@ -40,8 +35,6 @@ function richSummary(total: number, count: number, fieldNames: string[]): Impact
   }
 }
 
-// Track wrappers so each test cleans up after itself and unmount lifecycle
-// hooks (onBeforeUnmount) run in a controlled way where it matters.
 const mounted: ReturnType<typeof mount>[] = []
 function track<T extends ReturnType<typeof mount>>(w: T): T {
   mounted.push(w)
@@ -70,7 +63,7 @@ describe('ConfirmDeleteDialog sync() on mount', () => {
 describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
   it('opens the dialog when open flips false -> true', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     }))
     expect(w.find('dialog').element.hasAttribute('open')).toBe(false)
     await w.setProps({ open: true })
@@ -79,7 +72,7 @@ describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
 
   it('closes the dialog when open flips true -> false', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     expect(w.find('dialog').element.hasAttribute('open')).toBe(true)
     await w.setProps({ open: false })
@@ -88,7 +81,7 @@ describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
 
   it('does not call showModal again when already open (open stays effectively true)', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     let showModalCalls = 0
@@ -96,20 +89,15 @@ describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
       showModalCalls++
       dialogEl.setAttribute('open', '')
     }
-    // Force the watcher to fire with open=true while the dialog is already open
-    // by toggling to false and back; the final true->true (already open) path
-    // is the second branch guard `!dialog.value.open` evaluating false.
     await w.setProps({ open: false })
     await w.setProps({ open: true })
     expect(dialogEl.hasAttribute('open')).toBe(true)
-    // showModal was invoked exactly once (for the false->true transition),
-    // proving the already-open guard short-circuits redundant calls.
     expect(showModalCalls).toBe(1)
   })
 
   it('does not call close when already closed (the !dialog.value.open guard is false)', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     }))
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     let closeCalls = 0
@@ -117,28 +105,19 @@ describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
       closeCalls++
       dialogEl.removeAttribute('open')
     }
-    // Re-assert open=false while it is already closed: the watcher fires sync
-    // but the `!open && dialog.value.open` guard is false, so close() is never
-    // called. Vue only triggers watch on value change, so flip via a dummy.
     await w.setProps({ open: true })
     dialogEl.setAttribute('open', '')
     await w.setProps({ open: false })
-    // close was triggered once by the true->false transition; assert it never
-    // fired on an already-closed dialog by toggling false->false is impossible
-    // (no change). Instead verify the single legitimate close happened.
     expect(closeCalls).toBe(1)
     expect(dialogEl.hasAttribute('open')).toBe(false)
   })
 
   it('returns early in sync() when the dialog ref is null (defensive guard)', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     }))
-    // Null out the template ref, then change the prop to fire the watcher.
-    // sync() must hit `if (!dialog.value) return` without throwing.
     ;(w.vm as unknown as { dialog: HTMLDialogElement | null }).dialog = null
     await w.setProps({ open: true })
-    // No throw, no attribute changes possible on a null ref.
     expect(w.exists()).toBe(true)
   })
 })
@@ -146,7 +125,7 @@ describe('ConfirmDeleteDialog sync() via watch on prop change', () => {
 describe('ConfirmDeleteDialog native close event', () => {
   it('emits cancel when the native close event fires while open', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     dialogEl.dispatchEvent(new Event('close'))
@@ -157,7 +136,7 @@ describe('ConfirmDeleteDialog native close event', () => {
 
   it('does not emit cancel when the native close event fires while not open', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     }))
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     dialogEl.dispatchEvent(new Event('close'))
@@ -169,7 +148,7 @@ describe('ConfirmDeleteDialog native close event', () => {
 describe('ConfirmDeleteDialog onBeforeUnmount', () => {
   it('closes the dialog on unmount when it is still open', () => {
     const w = mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     })
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     let closeCalls = 0
@@ -184,7 +163,7 @@ describe('ConfirmDeleteDialog onBeforeUnmount', () => {
 
   it('does not call close on unmount when the dialog is already closed', () => {
     const w = mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     })
     const dialogEl = w.find('dialog').element as HTMLDialogElement
     let closeCalls = 0
@@ -197,7 +176,7 @@ describe('ConfirmDeleteDialog onBeforeUnmount', () => {
 
   it('does not throw on unmount when the dialog ref is null (optional chaining guard)', () => {
     const w = mount(ConfirmDeleteDialog, {
-      props: { open: false, label: 'L', summary: emptySummary },
+      props: { open: false, label: 'Verwerking A', summary: emptySummary },
     })
     ;(w.vm as unknown as { dialog: HTMLDialogElement | null }).dialog = null
     expect(() => w.unmount()).not.toThrow()
@@ -214,7 +193,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
 
   it('shows the "no dependent answers" message when summary.total is 0 (v-else branch)', () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     expect(w.text()).toContain('Er zijn geen afhankelijke antwoorden ingevuld.')
     expect(w.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
@@ -224,7 +203,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
     const w = track(mount(ConfirmDeleteDialog, {
       props: {
         open: true,
-        label: 'L',
+        label: 'Verwerking A',
         summary: richSummary(1, 1, ['E-mailadres']),
       },
     }))
@@ -238,7 +217,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
     const w = track(mount(ConfirmDeleteDialog, {
       props: {
         open: true,
-        label: 'L',
+        label: 'Verwerking A',
         summary: richSummary(3, 3, ['E-mailadres', 'Telefoon']),
       },
     }))
@@ -252,7 +231,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
     const w = track(mount(ConfirmDeleteDialog, {
       props: {
         open: true,
-        label: 'L',
+        label: 'Verwerking A',
         summary: richSummary(2, 2, []),
       },
     }))
@@ -265,7 +244,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
     const w = track(mount(ConfirmDeleteDialog, {
       props: {
         open: true,
-        label: 'L',
+        label: 'Verwerking A',
         summary: {
           total: 2,
           bySection: [
@@ -282,7 +261,7 @@ describe('ConfirmDeleteDialog template rendering', () => {
 describe('ConfirmDeleteDialog action buttons', () => {
   it('emits cancel when the "Annuleren" button is clicked', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     const cancelBtn = w.findAll('button').find((b) => b.text().includes('Annuleren'))!
     await cancelBtn.trigger('click')
@@ -291,7 +270,7 @@ describe('ConfirmDeleteDialog action buttons', () => {
 
   it('emits confirm when the "Ja, ga door met verwijderen" button is clicked', async () => {
     const w = track(mount(ConfirmDeleteDialog, {
-      props: { open: true, label: 'L', summary: emptySummary },
+      props: { open: true, label: 'Verwerking A', summary: emptySummary },
     }))
     const confirmBtn = w
       .findAll('button')

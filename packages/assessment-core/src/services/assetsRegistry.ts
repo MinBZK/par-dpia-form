@@ -47,10 +47,7 @@ async function _fetchAndEncode(url: string): Promise<string> {
   return fetchPromise
 }
 
-// Register one resolved asset. The dev flag is a parameter (not read from the
-// environment) so both arms are unit-testable: a vitest run only ever sees dev
-// URLs ("/...") at import time, but a production build resolves to inline/hashed
-// URLs and takes the non-dev arm.
+// The dev flag is a parameter (not read from the env) so both arms are unit-testable.
 export function _registerAsset(filename: string, url: string, isDev: boolean) {
   if (isDev) {
     _filePaths[filename] = url
@@ -61,7 +58,6 @@ export function _registerAsset(filename: string, url: string, isDev: boolean) {
 }
 
 Object.entries(_assets).forEach(([path, url]) => {
-  // import.meta.glob keys are always real file paths, so pop() is always a string.
   const filename = path.split('/').pop()!
   _registerAsset(filename, url as string, _isDevelopment(url as string))
 })

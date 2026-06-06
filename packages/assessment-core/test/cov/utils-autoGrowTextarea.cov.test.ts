@@ -4,7 +4,7 @@ import { autoGrowTextarea } from '../../src/utils/autoGrowTextarea'
 describe('autoGrowTextarea', () => {
   it('sets overflow hidden, resets height to auto, then sizes to scrollHeight', () => {
     const el = document.createElement('textarea')
-    // jsdom has no layout engine, so stub scrollHeight to a known value.
+    // jsdom has no layout engine, so scrollHeight must be stubbed.
     Object.defineProperty(el, 'scrollHeight', {
       configurable: true,
       get: () => 137,
@@ -13,7 +13,6 @@ describe('autoGrowTextarea', () => {
     autoGrowTextarea(el)
 
     expect(el.style.overflow).toBe('hidden')
-    // Final height reflects the measured scrollHeight in pixels.
     expect(el.style.height).toBe('137px')
   })
 

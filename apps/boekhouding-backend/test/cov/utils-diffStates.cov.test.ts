@@ -17,7 +17,6 @@ describe('parseInstanceId', () => {
 
   it('returns only the taskId when there is no index suffix', () => {
     expect(parseInstanceId('2.1.3')).toEqual({ taskId: '2.1.3' })
-    // A non-numeric bracket content must not match the index pattern.
     expect(parseInstanceId('foo[bar]')).toEqual({ taskId: 'foo[bar]' })
   })
 })
@@ -34,22 +33,22 @@ describe('buildFieldUrn', () => {
 
 describe('diffStates — simple answers', () => {
   it('emits an answer_change with URN field id when a value changes', () => {
-    const oldState = { metadata: { urn: URN }, answers: { '1.1': { value: 'aap' } } }
-    const newState = { metadata: { urn: URN }, answers: { '1.1': { value: 'beer' } } }
+    const oldState = { metadata: { urn: URN }, answers: { '1.1': { value: 'Inleiding' } } }
+    const newState = { metadata: { urn: URN }, answers: { '1.1': { value: 'Aanleiding' } } }
     const edits = diffStates(oldState, newState, USER)
     expect(edits).toHaveLength(1)
     expect(edits[0]).toEqual({
       fieldId: 'urn:nl:dpia:3.0?=task_id=1.1',
       editType: 'answer_change',
       editedBy: USER,
-      oldValue: { value: 'aap' },
-      newValue: { value: 'beer' },
+      oldValue: { value: 'Inleiding' },
+      newValue: { value: 'Aanleiding' },
     })
   })
 
   it('uses the bare key as field id when no urn is present', () => {
-    const oldState = { answers: { '1.1': { value: 'aap' } } }
-    const newState = { answers: { '1.1': { value: 'beer' } } }
+    const oldState = { answers: { '1.1': { value: 'Inleiding' } } }
+    const newState = { answers: { '1.1': { value: 'Aanleiding' } } }
     const edits = diffStates(oldState, newState, USER)
     expect(edits).toHaveLength(1)
     expect(edits[0].fieldId).toBe('1.1')
@@ -62,7 +61,6 @@ describe('diffStates — simple answers', () => {
   })
 
   it('falls back to null for old/new values that are undefined', () => {
-    // Newly added key: oldVal is undefined -> oldValue becomes null.
     const added = diffStates(
       { metadata: { urn: URN }, answers: {} },
       { metadata: { urn: URN }, answers: { '1.1': { value: 'new' } } },
@@ -71,7 +69,6 @@ describe('diffStates — simple answers', () => {
     expect(added[0].oldValue).toBeNull()
     expect(added[0].newValue).toEqual({ value: 'new' })
 
-    // Removed key: newVal is undefined -> newValue becomes null.
     const removed = diffStates(
       { metadata: { urn: URN }, answers: { '1.1': { value: 'old' } } },
       { metadata: { urn: URN }, answers: {} },
@@ -84,15 +81,12 @@ describe('diffStates — simple answers', () => {
 
 describe('diffStates — defaulting and missing structures', () => {
   it('returns no edits for two empty/undefined states', () => {
-    // Exercises the `|| {}` defaults for metadata, answers and completedTasks
-    // and the `?.` on oldState/newState being undefined.
     expect(diffStates(undefined, undefined, USER)).toEqual([])
     expect(diffStates(null, null, USER)).toEqual([])
     expect(diffStates({}, {}, USER)).toEqual([])
   })
 
   it('handles a new state with no metadata object at all', () => {
-    // newMeta becomes {} and urn stays undefined -> bare-key field ids.
     const edits = diffStates({}, { answers: { x: { value: 1 } } }, USER)
     expect(edits).toHaveLength(1)
     expect(edits[0].fieldId).toBe('x')
@@ -101,8 +95,6 @@ describe('diffStates — defaulting and missing structures', () => {
 
 describe('diffStates — grouped arrays (repeatable groups)', () => {
   it('treats a non-grouped array (no numeric _index) as a plain value', () => {
-    // isGroupedArray must be false for arrays whose first element lacks a
-    // numeric _index, so this goes through the plain JSON.stringify path.
     const oldState = { metadata: { urn: URN }, answers: { list: [{ foo: 1 }] } }
     const newState = { metadata: { urn: URN }, answers: { list: [{ foo: 2 }] } }
     const edits = diffStates(oldState, newState, USER)
@@ -112,7 +104,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('treats an empty array as a plain value (length 0)', () => {
-    // isGroupedArray must be false for [] (length === 0 guard).
     const edits = diffStates(
       { metadata: { urn: URN }, answers: { list: [] } },
       { metadata: { urn: URN }, answers: { list: [{ value: 'x' }] } },
@@ -123,7 +114,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('treats an array whose first element is null as a plain value', () => {
-    // value[0]?._index optional chaining: value[0] is null.
     const edits = diffStates(
       { metadata: { urn: URN }, answers: { list: [null] } },
       { metadata: { urn: URN }, answers: { list: [{ value: 'x' }] } },
@@ -162,7 +152,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('falls back to null for child old/new values that are undefined', () => {
-    // childKey present only in new element -> oldVal undefined -> oldValue null.
     const edits = diffStates(
       { metadata: { urn: URN }, answers: { '2.1': [{ _index: 1, '2.1.1': { value: 'x' } }] } },
       { metadata: { urn: URN }, answers: { '2.1': [{ _index: 1, '2.1.1': { value: 'x' }, '2.1.2': { value: 'y' } }] } },
@@ -231,22 +220,17 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('skips the default index-0 instance when a grouped key is newly saved', () => {
-    // skipDefault true: idx === 0, !oldEl, oldArr is undefined.
-    // newVal grouped, oldVal undefined -> diffGroupedArrays(undefined, newArr).
     const oldState = { metadata: { urn: URN }, answers: {} }
     const newState = {
       metadata: { urn: URN },
       answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'first' } }] },
     }
     const edits = diffStates(oldState, newState, USER)
-    // No instance_added for the implicit index-0 instance.
     expect(edits.filter((e) => e.editType === 'instance_added')).toHaveLength(0)
     expect(edits).toHaveLength(0)
   })
 
   it('does NOT skip a newly-saved instance at index 0 when other indices already existed', () => {
-    // skipDefault false even at idx 0 because oldArr is non-empty: the third
-    // sub-condition (!oldArr || oldArr.length === 0) is false.
     const oldState = {
       metadata: { urn: URN },
       answers: { '2.1': [{ _index: 1, '2.1.1': { value: 'kept' } }] },
@@ -267,7 +251,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('produces null bundled values when a removed instance has no child fields', () => {
-    // fields object stays empty -> Object.keys(fields).length === 0 -> null.
     const oldState = { metadata: { urn: URN }, answers: { '2.1': [{ _index: 5 }] } }
     const newState = { metadata: { urn: URN }, answers: {} }
     const edits = diffStates(oldState, newState, USER)
@@ -278,8 +261,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('produces null bundled newValue when an added instance has no child fields', () => {
-    // instance_added (!newEl false) AND fields empty -> the inner ternary on
-    // line 77 takes the `null` branch for newValue.
     const oldState = {
       metadata: { urn: URN },
       answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'first' } }] },
@@ -289,7 +270,7 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
       answers: {
         '2.1': [
           { _index: 0, '2.1.1': { value: 'first' } },
-          { _index: 1 }, // newly added instance with no child fields
+          { _index: 1 },
         ],
       },
     }
@@ -301,8 +282,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('falls back to null for a child newValue that is undefined (child removed, instance kept)', () => {
-    // Same instance index in old and new, but a child field exists only in old:
-    // newVal undefined -> newValue ?? null takes the null branch (line 95).
     const oldState = {
       metadata: { urn: URN },
       answers: { '2.1': [{ _index: 2, '2.1.1': { value: 'x' }, '2.1.2': { value: 'y' } }] },
@@ -327,8 +306,6 @@ describe('diffStates — grouped arrays (repeatable groups)', () => {
   })
 
   it('handles old grouped vs new non-grouped (new becomes undefined arg)', () => {
-    // oldVal grouped, newVal a plain (non-grouped) value: diffGroupedArrays
-    // receives newArr = undefined, so every old instance is removed.
     const oldState = {
       metadata: { urn: URN },
       answers: { '2.1': [{ _index: 3, '2.1.1': { value: 'gone' } }] },
@@ -386,7 +363,6 @@ describe('diffStates — completedTasks', () => {
   })
 
   it('defaults missing completedTasks lists to empty sets', () => {
-    // oldState.metadata?.completedTasks undefined -> `|| []`, and newMeta has none.
     const edits = diffStates({ metadata: {}, answers: {} }, { metadata: {}, answers: {} }, USER)
     expect(edits).toEqual([])
   })

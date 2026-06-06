@@ -47,8 +47,6 @@ function convertStringValue(value: string | null, typeSpec: string): null | stri
   const types = typeSpec.split('|')
 
   if (value === 'null' && types.includes('null')) return null
-  // convertStringValue is only ever called from currentValue with valueType
-  // 'boolean' or 'boolean|null', so types always contains 'boolean' here.
   if (value.toLowerCase() === 'true') return true
   if (value.toLowerCase() === 'false') return false
   return String(value)

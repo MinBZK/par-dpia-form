@@ -281,8 +281,6 @@ export const useCalculationStore = defineStore('calculationStore', () => {
       setupJexl();
     }
 
-    // setupJexl() always sets isInitialized to true (or throws out of init),
-    // so calculations can run unconditionally here.
     runCalculations();
   }
 

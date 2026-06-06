@@ -119,8 +119,6 @@ export const useTaskStore = defineStore('TaskStore', () => {
       clearStateForNamespace(namespace)
       createTasks(tasks)
 
-      // clearStateForNamespace() empties taskInstances and createTasks() never
-      // adds instances, so default instances are always created here.
       createDefaultInstances()
       isInitialized.value[namespace] = true
     }

@@ -7,9 +7,7 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { useSchemaStore } from '../../src/stores/schemas'
 import { FormType, type Task } from '../../src/models/dpia'
 
-// Build a valid DPIA schema object that io-ts (schemaStore.init) will accept.
-// Only the fields exercised by calculations.ts are meaningful; the rest are the
-// minimum required by the DPIA codec.
+// Minimum fields the io-ts DPIA codec requires; only those used by calculations.ts matter.
 function buildSchema(opts: {
   urn?: string
   tasks?: any[]
@@ -28,9 +26,6 @@ function buildSchema(opts: {
   return schema
 }
 
-// A schema with no `tasks` at all is invalid for io-ts; for the DPIA namespace
-// we always need at least an empty tasks array, which buildSchema provides.
-
 let consoleErrorSpy: ReturnType<typeof vi.spyOn>
 let consoleWarnSpy: ReturnType<typeof vi.spyOn>
 let consoleLogSpy: ReturnType<typeof vi.spyOn>
@@ -48,7 +43,6 @@ afterEach(() => {
   consoleLogSpy.mockRestore()
 })
 
-// Helper: initialise schema + task store for a namespace with a given schema.
 function setupStores(namespace: FormType, schemaJson: any, taskTree: Task[]) {
   const schemaStore = useSchemaStore()
   const taskStore = useTaskStore()
@@ -57,8 +51,7 @@ function setupStores(namespace: FormType, schemaJson: any, taskTree: Task[]) {
   taskStore.setActiveNamespace(namespace)
   answerStore.setActiveNamespace(namespace)
 
-  // schemaStore.init expects { dpia, preScan }. We give it the schema for the
-  // active namespace and a trivially valid schema for the other slot.
+  // schemaStore.init requires both namespace slots; the inactive one gets a trivially valid schema.
   const other = buildSchema({ tasks: [] })
   schemaStore.init({
     dpia: namespace === FormType.DPIA ? schemaJson : other,
@@ -71,17 +64,12 @@ function setupStores(namespace: FormType, schemaJson: any, taskTree: Task[]) {
 }
 
 describe('useCalculationStore - setupJexl transforms & functions', () => {
-  // We exercise the JEXL transforms/functions indirectly through task
-  // calculation expressions, which is the only way they run.
-
   it('count transform: counts array length and returns 0 for null/non-array', async () => {
     const tasks: any[] = [
       {
         id: '1',
         task: 'Count selected',
         type: ['select_option'],
-        // answers('1') returns the array answer; count gives its length.
-        // riskScore mirrors the computed count so it lands in calculatedScores.
         calculation: {
           expression: 'answers("1")|count',
           scoreKey: 'countVal',
@@ -95,7 +83,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
     const schema = buildSchema({ tasks })
     const { answerStore } = setupStores(FormType.DPIA, schema, tasks as Task[])
 
-    // Answer is an array of 3 selected options.
     answerStore.answers[FormType.DPIA]['1'] = {
       value: ['a', 'b', 'c'],
       lastEditedAt: '2024-01-01',
@@ -107,7 +94,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
 
     expect(store.calculatedScores.countVal).toBe(3)
 
-    // Non-array (string) answer -> count returns 0
     answerStore.answers[FormType.DPIA]['1'] = { value: 'not-an-array', lastEditedAt: '2024-01-01' }
     await store.runCalculations()
     expect(store.calculatedScores.countVal).toBe(0)
@@ -132,7 +118,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
     const schema = buildSchema({ tasks })
     const { answerStore } = setupStores(FormType.DPIA, schema, tasks as Task[])
 
-    // "x"->2, "y"->3, "z"-> weights[2] is undefined -> 0, "unknown" -> weightMap miss -> 0
     answerStore.answers[FormType.DPIA]['1'] = {
       value: ['x', 'y', 'z', 'unknown'],
       lastEditedAt: '2024-01-01',
@@ -144,7 +129,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
 
     expect(store.calculatedScores.weighted).toBe(5)
 
-    // Non-array answer -> weightedCountMap returns 0
     answerStore.answers[FormType.DPIA]['1'] = { value: 'string', lastEditedAt: '2024-01-01' }
     await store.runCalculations()
     expect(store.calculatedScores.weighted).toBe(0)
@@ -156,7 +140,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
         id: '1',
         task: 'Uses missing id',
         type: ['text_input'],
-        // "missing" has no instances -> answers returns null -> count -> 0
         calculation: {
           expression: 'answers("missing")|count',
           scoreKey: 'missingCount',
@@ -181,7 +164,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
         task: 'Bool of true-string',
         type: ['text_input'],
         calculation: {
-          // bool('true') -> true -> riskScore sets value 1
           expression: 'bool(answers("1"))',
           scoreKey: 'boolTrue',
           riskScore: [{ when: 'boolTrue == true', value: 1 }],
@@ -192,7 +174,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
         task: 'Bool of empty',
         type: ['text_input'],
         calculation: {
-          // answers("2") -> null -> bool(null) -> false
           expression: 'bool(answers("2"))',
           scoreKey: 'boolNull',
           riskScore: [{ when: 'boolNull == false', value: 9 }],
@@ -203,7 +184,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
     const { answerStore } = setupStores(FormType.DPIA, schema, tasks as Task[])
 
     answerStore.answers[FormType.DPIA]['1'] = { value: 'true', lastEditedAt: '2024-01-01' }
-    // task 2 has an instance but no answer -> getAnswer returns null -> bool(null) false
 
     const store = useCalculationStore()
     store.init()
@@ -212,10 +192,8 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
     expect(store.calculatedScores.boolTrue).toBe(1)
     expect(store.calculatedScores.boolNull).toBe(9)
 
-    // Cover bool(value) where value is a non-matching string -> false
     answerStore.answers[FormType.DPIA]['1'] = { value: 'nope', lastEditedAt: '2024-01-01' }
     await store.runCalculations()
-    // bool('nope') -> false, so the when 'boolTrue == true' is not met -> returns value (false)
     expect(store.calculatedScores.boolTrue).toBeUndefined()
   })
 
@@ -287,13 +265,10 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
     store.init()
     await flush()
 
-    // Instance exists (default), but getAnswer returns null -> 0
     expect(store.calculatedScores.noAns).toBe(0)
   })
 
   it('criteriaCheck: true when any value is true, used inside assessment criteria', async () => {
-    // This is verified via the assessment evaluation tests below; here we make a
-    // direct expression that uses criteriaCheck through a level expression.
     const tasks: any[] = []
     const assessments = [
       {
@@ -303,7 +278,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
             level: 'required',
             result: 'verplicht',
             explanation: 'standaard',
-            // criteriaCheck over the computed criteria object
             expression: 'criteriaCheck(criteria)',
             criteria: [
               { id: 'c1', expression: 'true', explanation: 'altijd waar' },
@@ -328,7 +302,6 @@ describe('useCalculationStore - setupJexl transforms & functions', () => {
 
 describe('useCalculationStore - calculateTaskScore', () => {
   it('returns null (no score stored) when a task has no calculation', async () => {
-    // A task with no calculation is skipped entirely by processTaskScores.
     const tasks: any[] = [{ id: '1', task: 'Plain', type: ['text_input'] }]
     const schema = buildSchema({ tasks })
     setupStores(FormType.DPIA, schema, tasks as Task[])
@@ -375,7 +348,6 @@ describe('useCalculationStore - calculateTaskScore', () => {
         type: ['text_input'],
         calculation: {
           expression: '7',
-          // no scoreKey
           riskScore: [{ when: 'true', value: 4 }],
         },
       },
@@ -387,7 +359,6 @@ describe('useCalculationStore - calculateTaskScore', () => {
     store.init()
     await flush()
 
-    // riskScore matched (value 4) but no scoreKey -> nothing stored
     expect(store.calculatedScores).toEqual({})
     expect(store.calculationErrors).toEqual([])
   })
@@ -412,7 +383,6 @@ describe('useCalculationStore - calculateTaskScore', () => {
     store.init()
     await flush()
 
-    // No risk level matched, scoreKey never set
     expect(store.calculatedScores).toEqual({})
   })
 
@@ -442,7 +412,6 @@ describe('useCalculationStore - calculateTaskScore', () => {
         id: '1',
         task: 'Broken',
         type: ['text_input'],
-        // Invalid JEXL expression triggers a throw -> catch -> null
         calculation: { expression: 'this is ((( not valid', scoreKey: 'broken' },
       },
     ]
@@ -465,7 +434,6 @@ describe('useCalculationStore - processTaskScores recursion', () => {
         id: '1',
         task: 'Parent',
         type: ['task_group'],
-        // parent itself has a calculation
         calculation: { expression: '1', scoreKey: 'parentScore', riskScore: [{ when: 'true', value: 1 }] },
         tasks: [
           {
@@ -473,7 +441,6 @@ describe('useCalculationStore - processTaskScores recursion', () => {
             task: 'Child',
             type: ['text_input'],
             calculation: { expression: '2', scoreKey: 'childScore', riskScore: [{ when: 'true', value: 2 }] },
-            // tasks omitted -> not an array -> recursion branch skipped
           },
         ],
       },
@@ -498,7 +465,6 @@ describe('useCalculationStore - processTaskScores recursion', () => {
 
 describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
   it('warns and returns when schema has no assessments', async () => {
-    // Schema without assessments key at all.
     const tasks: any[] = []
     const schema = buildSchema({ tasks, assessments: undefined })
     setupStores(FormType.DPIA, schema, tasks as Task[])
@@ -540,10 +506,8 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
     expect(store.assessmentResults).toHaveLength(1)
     const r = store.assessmentResults[0]
     expect(r.required).toBe(true)
-    // only c1 met
     expect(r.criteria).toHaveLength(1)
     expect(r.criteria![0].id).toBe('c1')
-    // formatExplanation with level 'required' (not recommended)
     expect(r.explanation).toContain('Een DPIA is verplicht omdat:')
     expect(r.explanation).toContain('reden een')
   })
@@ -572,7 +536,7 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
     await flush()
 
     const r = store.assessmentResults[0]
-    expect(r.required).toBe(true) // recommended also counts as required=true
+    expect(r.required).toBe(true)
     expect(r.explanation).toContain('Een DPIA wordt aanbevolen omdat:')
     expect(r.explanation).toContain('aanbeveel-reden')
   })
@@ -588,7 +552,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
             result: 'niet nodig',
             explanation: 'geen reden',
             expression: 'true',
-            // no criteria array
           },
         ],
       },
@@ -602,7 +565,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
 
     const r = store.assessmentResults[0]
     expect(r.required).toBe(false)
-    // metCriteria empty -> default explanation used
     expect(r.explanation).toBe('geen reden')
     expect(r.criteria).toBeUndefined()
   })
@@ -618,7 +580,7 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
             result: 'niet nodig',
             explanation: 'leeg',
             expression: 'true',
-            criteria: [], // length 0 -> else branch
+            criteria: [],
           },
         ],
       },
@@ -642,7 +604,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
           {
             level: 'not_required',
             result: 'niet nodig',
-            // explanation omitted -> level.explanation || '' -> ''
             expression: 'true',
           },
         ],
@@ -668,19 +629,19 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
             level: 'required',
             result: 'verplicht',
             explanation: 'eerst',
-            expression: 'false', // does not match -> continue
+            expression: 'false',
           },
           {
             level: 'recommended',
             result: 'aanbevolen',
             explanation: 'tweede',
-            expression: 'true', // matches -> push + break
+            expression: 'true',
           },
           {
             level: 'not_required',
             result: 'nooit bereikt',
             explanation: 'derde',
-            expression: 'true', // never reached due to break
+            expression: 'true',
           },
         ],
       },
@@ -728,7 +689,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
             explanation: 'standaard',
             expression: 'true',
             criteria: [
-              // invalid expression -> throws inside evaluateCriteria -> caught
               { id: 'bad', expression: '@@@', explanation: 'kapot' },
             ],
           },
@@ -743,7 +703,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
     await flush()
 
     expect(store.calculationErrors.some((e) => e.includes('criterion bad'))).toBe(true)
-    // The level expression 'true' still matches -> result pushed, but with no met criteria
     expect(store.assessmentResults[0].criteria).toBeUndefined()
   })
 
@@ -757,7 +716,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
             level: 'required',
             result: 'verplicht',
             explanation: 'standaard',
-            // invalid level expression (no criteria) -> jexl.eval throws -> outer catch
             expression: '@@@',
           },
         ],
@@ -793,7 +751,6 @@ describe('useCalculationStore - evaluateAssessments & evaluateCriteria', () => {
 
 describe('useCalculationStore - runCalculations', () => {
   it('throws and records an error when no schema is found for the namespace', async () => {
-    // Do NOT initialise the schema store -> getSchema returns null.
     const taskStore = useTaskStore()
     const answerStore = useAnswerStore()
     taskStore.setActiveNamespace(FormType.DPIA)
@@ -819,7 +776,6 @@ describe('useCalculationStore - runCalculations', () => {
     setupStores(FormType.DPIA, schema, tasks as Task[])
 
     const store = useCalculationStore()
-    // Pre-load an error and a stale score to ensure they get reset.
     store.calculationErrors.push('stale')
     store.calculatedScores.stale = 99
 
@@ -842,7 +798,6 @@ describe('useCalculationStore - init', () => {
     store.init()
     await flush()
 
-    // console.log('JEXL setup complete') called once
     expect(consoleLogSpy).toHaveBeenCalledWith('JEXL setup complete')
   })
 
@@ -856,7 +811,6 @@ describe('useCalculationStore - init', () => {
     await flush()
     consoleLogSpy.mockClear()
 
-    // Second init: isInitialized already true -> setupJexl skipped, runCalculations runs.
     store.init()
     await flush()
 
@@ -907,10 +861,8 @@ describe('useCalculationStore - answers watch', () => {
     const store = useCalculationStore()
     store.init()
     await flush()
-    // No answer yet -> bool(null) false -> condition not met -> nothing stored
     expect(store.calculatedScores.risk).toBeUndefined()
 
-    // Mutate answers -> deep watcher fires -> runCalculations (PRE_SCAN + initialised)
     answerStore.answers[FormType.PRE_SCAN]['1'] = { value: 'true', lastEditedAt: '2024-01-01' }
     await flush()
 
@@ -933,11 +885,9 @@ describe('useCalculationStore - answers watch', () => {
     store.init()
     await flush()
 
-    // Mutate answers in DPIA namespace; watcher fires but condition (PRE_SCAN) is false.
     answerStore.answers[FormType.DPIA]['1'] = { value: 'true', lastEditedAt: '2024-01-01' }
     await flush()
 
-    // Calculation NOT re-run by the watcher, so risk stays unset.
     expect(store.calculatedScores.risk).toBeUndefined()
   })
 
@@ -946,22 +896,20 @@ describe('useCalculationStore - answers watch', () => {
     const schema = buildSchema({ tasks })
     const { answerStore } = setupStores(FormType.PRE_SCAN, schema, tasks as Task[])
 
-    // Create the store (registers the watcher) but never call init() -> isInitialized false.
+    // Create the store (registers the watcher) but never call init() -> isInitialized stays false.
     const store = useCalculationStore()
 
     answerStore.answers[FormType.PRE_SCAN]['1'] = { value: 'true', lastEditedAt: '2024-01-01' }
     await flush()
 
-    // Watcher saw isInitialized=false -> short circuited; nothing happened.
     expect(store.calculatedScores).toEqual({})
     expect(store.assessmentResults).toEqual([])
   })
 })
 
-// Flush pending microtasks + Vue reactivity (watchers run on the next tick).
+// Flush Vue reactivity plus the awaited promises inside async calculation routines.
 async function flush() {
   await nextTick()
-  // Allow any awaited promises inside async calculation routines to settle.
   await new Promise<void>((resolve) => setTimeout(resolve, 0))
   await nextTick()
 }

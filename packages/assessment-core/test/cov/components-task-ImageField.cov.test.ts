@@ -6,12 +6,7 @@ import { useAnswerStore, type ImageValue } from '../../src/stores/answers'
 import { type FlatTask } from '../../src/stores/tasks'
 import ImageField from '../../src/components/task/ImageField.vue'
 
-/**
- * resizeImageToDataUri touches canvas/Image APIs that jsdom does not implement.
- * Mock it so the success path returns a deterministic data URI and the error
- * path can be toggled per test. autoGrowTextarea is mocked so we can observe
- * that the watcher and @input handler invoke it without depending on layout.
- */
+// resizeImageToDataUri touches canvas/Image APIs that jsdom does not implement; mock it.
 const resizeMock = vi.fn<(file: File) => Promise<string>>()
 vi.mock('../../src/utils/imageResize', () => ({
   resizeImageToDataUri: (file: File) => resizeMock(file),
@@ -77,7 +72,6 @@ describe('ImageField.vue', () => {
       const input = wrapper.find('input[type="file"]')
       expect(input.attributes('aria-label')).toBe('Afbeelding uploaden')
       expect(input.attributes('aria-labelledby')).toBeUndefined()
-      // dropzone has no aria-describedby without a label
       expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBeUndefined()
     })
 
@@ -124,15 +118,12 @@ describe('ImageField.vue', () => {
       const wrapper = mountField()
       const alert = wrapper.find('.rvo-alert--warning')
       expect(alert.exists()).toBe(true)
-      // ftp parses as a valid URL but protocol does not start with http
       expect(alert.find('a').exists()).toBe(false)
     })
 
     it('does not treat a data:image/ string as a legacy value', () => {
       store.setAnswer('img-1', 'data:image/png;base64,AAAA')
       const wrapper = mountField()
-      // data:image/png is a valid ImageValue-like raster -> not legacy, and is
-      // also a valid image value so it shows the preview
       expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
     })
   })
@@ -152,7 +143,6 @@ describe('ImageField.vue', () => {
       const wrapper = mountField()
       const img = wrapper.find('img.image-preview')
       expect(img.attributes('alt')).toBe(task.task)
-      // metadata inputs default to empty strings
       const titleInput = wrapper.find(`#image-title-img-1`).element as HTMLInputElement
       expect(titleInput.value).toBe('')
       const descTa = wrapper.find(`#image-description-img-1`).element as HTMLTextAreaElement
@@ -217,9 +207,7 @@ describe('ImageField.vue', () => {
       await nextTick()
       expect(resizeMock).toHaveBeenCalledTimes(1)
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
-      // input value reset so the same file can be re-selected
       expect(el.value).toBe('')
-      // preview now shown, dropzone gone
       expect(wrapper.find('img.image-preview').exists()).toBe(true)
     })
 
@@ -233,7 +221,6 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await nextTick()
       expect(wrapper.find('[role="status"]').text()).toBe('Bezig met verwerken...')
-      // dropzone hidden while processing and no image
       expect(wrapper.find('.image-dropzone').exists()).toBe(false)
       resolve(RASTER_DATA_URI)
       await flushPromises()
@@ -282,7 +269,6 @@ describe('ImageField.vue', () => {
     it('keeps the existing image source when replacing the image', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, source: 'bestaande bron' })
       const wrapper = mountField()
-      // trigger replace via the "Vervang afbeelding" button
       const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))
       expect(replaceBtn).toBeDefined()
       await replaceBtn!.trigger('click')
@@ -313,7 +299,6 @@ describe('ImageField.vue', () => {
 
   describe('saveImageValue merge branches', () => {
     it('merges all metadata fields from the existing value when only data changes', async () => {
-      // Pre-existing full image so saveImageValue's `?? current?.x` branches all run.
       setImageAnswer(store, 'img-1', {
         data: 'data:image/png;base64,OLD',
         title: 'Titel',
@@ -321,7 +306,6 @@ describe('ImageField.vue', () => {
         source: 'Bron',
       })
       const wrapper = mountField()
-      // legacy URL is absent, imageData.source present -> source carried via imageData
       const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))!
       await replaceBtn.trigger('click')
       const fileInput = wrapper.find('input[type="file"]')
@@ -330,7 +314,6 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await flushPromises()
       await nextTick()
-      // data updated; title/description preserved; source preserved (carried + merged)
       expect(store.getAnswer('img-1')).toEqual({
         data: RASTER_DATA_URI,
         title: 'Titel',
@@ -340,10 +323,6 @@ describe('ImageField.vue', () => {
     })
 
     it('evaluates current?.source when replacing an image that has no source', async () => {
-      // current is a non-null image WITHOUT a source. processFile passes no
-      // source key (legacy URL absent, imageData.source absent), so
-      // updates.source is undefined and the ?? current?.source branch is taken
-      // against a non-null current.
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Alleen titel' })
       const wrapper = mountField()
       const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))!
@@ -358,10 +337,6 @@ describe('ImageField.vue', () => {
     })
 
     it('falls back to current.data when the resize dependency yields a nullish data URI', async () => {
-      // The resize utility is a dependency typed Promise<string>, but if it ever
-      // returns a nullish value the `updates.data ?? current?.data` fallback must
-      // preserve the existing image data. Drive that branch by making the mocked
-      // dependency resolve to undefined while a previous image is present.
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Behoud' })
       const wrapper = mountField()
       resizeMock.mockResolvedValue(undefined as unknown as string)
@@ -373,14 +348,10 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await flushPromises()
       await nextTick()
-      // data falls back to the previous image's data; metadata preserved
       expect(store.getAnswer('img-1')).toEqual({ data: 'data:image/png;base64,OLD', title: 'Behoud' })
     })
 
     it('falls back to an empty data string when no current image exists and resize yields nullish', async () => {
-      // No prior answer -> imageData (current) is null. With the resize dependency
-      // resolving to undefined, both `updates.data` and `current?.data` are nullish,
-      // so the final `?? ''` fallback is taken.
       const wrapper = mountField()
       resizeMock.mockResolvedValue(undefined as unknown as string)
       const fileInput = wrapper.find('input[type="file"]')
@@ -389,7 +360,6 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await flushPromises()
       await nextTick()
-      // empty-string data is not a valid ImageValue, but the merge still persists it
       expect(store.getAnswer('img-1')).toEqual({ data: '' })
     })
   })
@@ -399,13 +369,11 @@ describe('ImageField.vue', () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, title: 'Titel' })
       const wrapper = mountField()
       const input = wrapper.find(`#image-title-img-1`)
-      // Remove the answer so imageData computed resolves to null, but do NOT
-      // await re-render yet — the DOM input still exists and its @change
-      // handler fires updateMetadata while imageData.value is already null.
+      // Remove the answer (imageData -> null) without awaiting re-render: the DOM
+      // input still exists and its @change fires updateMetadata while imageData is null.
       store.removeAnswer('img-1')
       ;(input.element as HTMLInputElement).value = 'genegeerd'
       await input.trigger('change')
-      // Early return -> nothing persisted for the (now removed) answer.
       expect(store.getAnswer('img-1')).toBeNull()
     })
 
@@ -413,9 +381,6 @@ describe('ImageField.vue', () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, description: 'Begin' })
       const wrapper = mountField()
       autoGrowMock.mockClear()
-      // Replace the value with one that has no image -> imageData null, the
-      // watched description goes from 'Begin' to undefined, the textarea is
-      // unmounted, so the watcher's `if (descriptionRef.value)` is false.
       store.setAnswer('img-1', null)
       await nextTick()
       await nextTick()
@@ -448,18 +413,15 @@ describe('ImageField.vue', () => {
     it('ignores a drop with no file (handleDrop false branch)', async () => {
       const wrapper = mountField()
       const dropzone = wrapper.find('.image-dropzone')
-      // dataTransfer present but no files
       await dropzone.trigger('drop', { dataTransfer: { files: [] } })
       await flushPromises()
       expect(resizeMock).not.toHaveBeenCalled()
-      // resets dragging state regardless
       expect(wrapper.find('.image-dropzone--active').exists()).toBe(false)
     })
 
     it('shows the replace overlay when dragging over an existing preview', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
       const wrapper = mountField()
-      // The div carrying the drag handlers directly contains .image-replace-target.
       const dragDiv = wrapper
         .findAll('div')
         .find((d) => d.element.firstElementChild?.classList.contains('image-replace-target'))!
@@ -510,7 +472,6 @@ describe('ImageField.vue', () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
       const wrapper = mountField()
       autoGrowMock.mockClear()
-      // Change the description in the store -> watcher fires, descriptionRef exists
       store.setAnswer('img-1', { data: RASTER_DATA_URI, description: 'Nieuw' })
       await nextTick()
       await nextTick()

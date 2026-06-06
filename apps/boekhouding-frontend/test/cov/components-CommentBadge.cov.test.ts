@@ -29,7 +29,6 @@ function mountBadge(open: boolean) {
     props: { open },
     global: {
       stubs: {
-        // Stub the tabler icon so we don't depend on its rendering internals.
         IconMessage: {
           template: '<svg class="icon-message-stub"></svg>',
         },
@@ -50,7 +49,6 @@ describe('CommentBadge', () => {
 
       expect(button.classes()).not.toContain('comment-badge--active')
       expect(button.attributes('aria-expanded')).toBe('false')
-      // aria-controls bound to undefined → attribute is absent
       expect(button.attributes('aria-controls')).toBeUndefined()
       expect(wrapper.get('.comment-badge__label').text()).toBe('Opmerkingen')
     })

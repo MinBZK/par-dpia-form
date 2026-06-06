@@ -79,8 +79,6 @@ export async function rebuildState(
 
           const parentKey = findGroupedParent(state.answers, childTaskId)
           if (parentKey) {
-            // findGroupedParent only returns parentKey when state.answers[parentKey]
-            // is an array, so arr is guaranteed to be an array here.
             const arr = state.answers[parentKey]
             let element = arr.find((el: any) => el._index === index)
             if (!element) {

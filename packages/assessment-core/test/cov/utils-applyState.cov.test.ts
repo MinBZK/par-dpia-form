@@ -6,12 +6,6 @@ import { applyStateToStores, rebuildRepeatableInstances } from '../../src/utils/
 import type { AssessmentState, GroupedAnswerValue } from '../../src/models/assessmentState'
 import { FormType, type Task } from '../../src/models/dpia'
 
-/**
- * Self-sufficient coverage test for src/utils/applyState.ts.
- * Covers both applyStateToStores and rebuildRepeatableInstances, exercising
- * every branch (optional chaining, ternaries, &&/||, if/continue paths).
- */
-
 describe('applyStateToStores', () => {
   let taskStore: ReturnType<typeof useTaskStore>
   let answerStore: ReturnType<typeof useAnswerStore>
@@ -68,7 +62,6 @@ describe('applyStateToStores', () => {
       taskStore.setActiveNamespace(FormType.DPIA)
       taskStore.completedRootTaskIds.dpia = new Set(['5'])
 
-      // metadata omitted to exercise the `state.metadata?.` undefined short-circuit
       const state = { answers: {} } as unknown as AssessmentState
 
       applyStateToStores(state, taskStore, answerStore)
@@ -136,7 +129,6 @@ describe('applyStateToStores', () => {
       taskStore.setActiveNamespace(FormType.DPIA)
       answerStore.answers.dpia = { '1.1': { value: 'keep', lastEditedAt: '2024-01-01' } }
 
-      // answers omitted to exercise the `state.answers || {}` fallback
       const state = { metadata: { createdAt: '2024-01-01' } } as unknown as AssessmentState
 
       applyStateToStores(state, taskStore, answerStore)
@@ -233,7 +225,6 @@ describe('rebuildRepeatableInstances', () => {
   it('removes the default instance when other indices exist but 0 does not (size>0 && !has(0))', () => {
     taskStore.init(repeatableTaskTree, true)
 
-    // Only indices 1 and 2 have answers; index 0 (default) must be removed.
     answerStore.answers[FormType.DPIA] = {
       '2.1.1[1]': { value: 'Phone', lastEditedAt: '2024-01-01' },
       '2.1.1[2]': { value: 'Address', lastEditedAt: '2024-01-01' },
@@ -247,7 +238,6 @@ describe('rebuildRepeatableInstances', () => {
   it('uses the `answerStore.answers[ns] || {}` fallback when namespace answers are missing', () => {
     taskStore.init(repeatableTaskTree, true)
 
-    // Force the namespace answers to be undefined to hit the `|| {}` fallback.
     ;(answerStore.answers as Record<string, unknown>)[FormType.DPIA] = undefined
 
     expect(() => rebuildRepeatableInstances(taskStore, answerStore)).not.toThrow()
@@ -281,7 +271,6 @@ describe('rebuildRepeatableInstances', () => {
         '2.1.1[0]': { value: 'Email', lastEditedAt: '2024-01-01' },
       }
 
-      // groupedAnswers has the repeatable key but it is NOT an array (a plain Answer).
       const groupedAnswers: Record<string, GroupedAnswerValue> = {
         '2.1': { value: 'not-an-array', lastEditedAt: '2024-01-01' },
       }
@@ -294,9 +283,6 @@ describe('rebuildRepeatableInstances', () => {
 
   describe('root-level repeatable (task.parentId falsy branches)', () => {
     it('rebuilds extra instances for a root-level repeatable task (parentId null)', () => {
-      // Repeatable task at the root: parentId is null, exercising both
-      // `task.parentId ? ... : undefined` (line 59 false branch) and
-      // `task.parentId || undefined` (line 86 falsy branch).
       const rootRepeatableTree: Task[] = [
         {
           id: '0',
@@ -322,7 +308,6 @@ describe('rebuildRepeatableInstances', () => {
 
   describe('non-repeatable and nested-repeatable skip branches', () => {
     it('skips non-repeatable tasks (!task.repeatable continue)', () => {
-      // Tree with no repeatable tasks at all — every task hits the continue.
       const nonRepeatableTree: Task[] = [
         {
           id: '0',
@@ -338,12 +323,10 @@ describe('rebuildRepeatableInstances', () => {
       }
 
       expect(() => rebuildRepeatableInstances(taskStore, answerStore)).not.toThrow()
-      // No repeatable instances created.
       expect(taskStore.getInstanceIdsForTask('0.1')).toEqual(['0.1'])
     })
 
     it('skips a repeatable nested under a repeatable parent (parentTask?.repeatable continue)', () => {
-      // 3 -> 3.1 (repeatable) -> 3.1.1 (repeatable, nested) -> 3.1.1.1 (text)
       const nestedRepeatableTree: Task[] = [
         {
           id: '3',
@@ -371,11 +354,8 @@ describe('rebuildRepeatableInstances', () => {
 
       taskStore.init(nestedRepeatableTree, true)
 
-      // Snapshot instances of the nested repeatable before rebuild.
       const before = taskStore.getInstanceIdsForTask('3.1.1')
 
-      // Add answers so 3.1 (top repeatable) rebuilds, but 3.1.1 (nested) must be
-      // skipped because its parent (3.1) is repeatable.
       answerStore.answers[FormType.DPIA] = {
         '3.1.1.1[0]': { value: 'A', lastEditedAt: '2024-01-01' },
         '3.1.1.1[1]': { value: 'B', lastEditedAt: '2024-01-01' },
@@ -383,8 +363,6 @@ describe('rebuildRepeatableInstances', () => {
 
       rebuildRepeatableInstances(taskStore, answerStore)
 
-      // The nested repeatable (3.1.1) was NOT re-added by this function; its
-      // instances came solely from createTaskInstance child propagation.
       const after = taskStore.getInstanceIdsForTask('3.1.1')
       expect(after).toEqual(before)
     })

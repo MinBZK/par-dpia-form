@@ -9,15 +9,6 @@ import {
 } from '../../src/stores/tasks'
 import { FormType, type Task } from '../../src/models/dpia'
 
-/**
- * Task tree mirroring the DPIA structure with a repeatable group:
- *   0 (intro section)
- *     0.1 (text)
- *   2 (section)
- *     2.1 (repeatable group)
- *       2.1.1 (text)
- *       2.1.2 (text)
- */
 const taskTree: Task[] = [
   {
     id: '0',
@@ -90,19 +81,16 @@ describe('init / createTasks / createDefaultInstances', () => {
     expect(store.flatTasks[FormType.DPIA]['0.1'].parentId).toBe('0')
     expect(store.isInitialized[FormType.DPIA]).toBe(true)
 
-    // Default instances were created
     expect(store.getInstanceIdsForTask('0')).toEqual(['0'])
     expect(store.getInstanceIdsForTask('2.1')).toEqual(['2.1[0]'])
   })
 
   it('init without forceInit is a no-op when already initialized', () => {
     const store = freshStore()
-    // Add an extra repeatable instance, then call init again without force
     store.addRepeatableTaskInstance('2.1', '2')
     expect(store.getInstanceIdsForTask('2.1')).toEqual(['2.1[0]', '2.1[1]'])
 
     store.init(taskTree, false)
-    // State preserved (not re-initialized)
     expect(store.getInstanceIdsForTask('2.1')).toEqual(['2.1[0]', '2.1[1]'])
   })
 
@@ -117,8 +105,6 @@ describe('init / createTasks / createDefaultInstances', () => {
     setActivePinia(createPinia())
     const store = useTaskStore()
     store.setActiveNamespace(FormType.DPIA)
-    // First initialization → clears state, builds tasks, and creates default
-    // instances (taskInstances is empty after clearStateForNamespace).
     store.init(taskTree, false)
     expect(store.getInstanceIdsForTask('2.1')).toEqual(['2.1[0]'])
   })
@@ -127,7 +113,6 @@ describe('init / createTasks / createDefaultInstances', () => {
     setActivePinia(createPinia())
     const store = useTaskStore()
     store.setActiveNamespace(FormType.DPIA)
-    // Exercise the default-parameter branch for forceInit.
     store.init(taskTree)
     expect(store.isInitialized[FormType.DPIA]).toBe(true)
     expect(store.getInstanceIdsForTask('0')).toEqual(['0'])
@@ -137,8 +122,6 @@ describe('init / createTasks / createDefaultInstances', () => {
     setActivePinia(createPinia())
     const store = useTaskStore()
     store.setActiveNamespace(FormType.DPIA)
-    // init with empty task list → createTasks produces no roots → default
-    // instances hits the error/return branch.
     store.init([], true)
     expect(store.rootTaskIds[FormType.DPIA]).toEqual([])
     expect(Object.keys(store.taskInstances[FormType.DPIA])).toEqual([])
@@ -155,11 +138,9 @@ describe('setActiveNamespace', () => {
 
   it('resets currentRootTaskId to first root when switching to a populated namespace', () => {
     const store = freshStore()
-    // Populate PRE_SCAN namespace too
     store.setActiveNamespace(FormType.PRE_SCAN)
     store.init(taskTree, true)
     store.setRootTask('2')
-    // Switch away and back: switching back resets to first root '0'
     store.setActiveNamespace(FormType.DPIA)
     store.setActiveNamespace(FormType.PRE_SCAN)
     expect(store.currentRootTaskId[FormType.PRE_SCAN]).toBe('0')
@@ -167,7 +148,6 @@ describe('setActiveNamespace', () => {
 
   it('resets currentRootTaskId to "0" when switching to an empty namespace', () => {
     const store = freshStore()
-    // PRE_SCAN has no root tasks
     store.setActiveNamespace(FormType.PRE_SCAN)
     expect(store.currentRootTaskId[FormType.PRE_SCAN]).toBe('0')
   })
@@ -212,19 +192,13 @@ describe('addRepeatableTaskInstance', () => {
 describe('createTaskInstance branches via public API', () => {
   it('child of a repeatable parent gets an index even without specificIndex', () => {
     const store = freshStore()
-    // Default [0] children already exist; adding one without specificIndex
-    // exercises the nextAvailableIndex path for the parent and child indexing.
     const id = store.addRepeatableTaskInstance('2.1', '2')
     expect(id).toBe('2.1[1]')
-    // Children inherit parent index
     expect(store.getInstanceById('2.1.1[1]')!.taskId).toBe('2.1.1')
   })
 
   it('nextAvailableIndex treats a non-indexed instance id as index -1', () => {
     const store = freshStore()
-    // Replace the default 2.1[0] instance with a non-indexed instance id ('2.1').
-    // parseInstanceId('2.1').index is undefined → the `?? -1` fallback runs,
-    // so the next available index becomes max(-1) + 1 = 0.
     delete store.taskInstances[FormType.DPIA]['2.1[0]']
     store.taskInstances[FormType.DPIA]['2.1'] = {
       id: '2.1',
@@ -253,7 +227,6 @@ describe('removeRepeatableTaskInstance', () => {
 
     expect(store.getInstanceIdsForTask('2.1')).toEqual(['2.1[1]'])
     expect(store.getInstanceById('2.1.1[0]')).toBeNull()
-    // Parent ('2' instance) no longer references the removed child
     const parent = store.getInstanceById('2')!
     expect(parent.childInstanceIds).not.toContain('2.1[0]')
   })
@@ -261,7 +234,6 @@ describe('removeRepeatableTaskInstance', () => {
   it('handles an instance whose parent reference is dangling', () => {
     const store = freshStore()
     const id = store.addRepeatableTaskInstance('2.1', '2')
-    // Delete the parent instance directly so parentInstanceId points nowhere
     delete store.taskInstances[FormType.DPIA]['2']
     expect(() => store.removeRepeatableTaskInstance(id)).not.toThrow()
     expect(store.getInstanceById(id)).toBeNull()
@@ -304,14 +276,12 @@ describe('findRelatedInstance', () => {
 
   it('finds a sibling instance sharing the same groupId', () => {
     const store = freshStore()
-    // 2.1.1[0] and 2.1.2[0] share the group of 2.1[0]
     const related = store.findRelatedInstance('2.1.2', '2.1.1[0]')
     expect(related?.id).toBe('2.1.2[0]')
   })
 
   it('returns null when no related instance shares the groupId', () => {
     const store = freshStore()
-    // 0.1 has its own group; ask for an unrelated taskId
     const related = store.findRelatedInstance('2.1.2', '0.1')
     expect(related).toBeNull()
   })
@@ -347,7 +317,6 @@ describe('root task navigation', () => {
 
   it('nextRootTask does nothing at the last root', () => {
     const store = freshStore()
-    // Two roots (indices 0 and 1). Set to last index.
     store.setRootTask('1')
     store.nextRootTask()
     expect(store.currentRootTaskId[FormType.DPIA]).toBe('1')
@@ -401,9 +370,7 @@ describe('getters', () => {
   it('getParentTaskId returns the parent, or null for roots and missing tasks', () => {
     const store = freshStore()
     expect(store.getParentTaskId('2.1')).toBe('2')
-    // Root task has null parentId → null
     expect(store.getParentTaskId('0')).toBeNull()
-    // Missing task → optional chaining short-circuits to null
     expect(store.getParentTaskId('missing')).toBeNull()
   })
 
@@ -424,7 +391,6 @@ describe('namespace-scoped getters', () => {
   it('getTasksFromNamespace returns the map, or {} for an unset namespace', () => {
     const store = freshStore()
     expect(store.getTasksFromNamespace(FormType.DPIA)['0'].id).toBe('0')
-    // Force the `|| {}` fallback by deleting the namespace key
     delete (store.flatTasks as Record<string, unknown>)[FormType.PRE_SCAN]
     expect(store.getTasksFromNamespace(FormType.PRE_SCAN)).toEqual({})
   })
@@ -432,9 +398,7 @@ describe('namespace-scoped getters', () => {
   it('getTaskByIdFromNamespace returns task, null for missing id, null for missing namespace', () => {
     const store = freshStore()
     expect(store.getTaskByIdFromNamespace(FormType.DPIA, '2.1')!.id).toBe('2.1')
-    // Missing id within an existing namespace
     expect(store.getTaskByIdFromNamespace(FormType.DPIA, 'nope')).toBeNull()
-    // Missing namespace entirely
     delete (store.flatTasks as Record<string, unknown>)[FormType.PRE_SCAN]
     expect(store.getTaskByIdFromNamespace(FormType.PRE_SCAN, '0')).toBeNull()
   })
@@ -449,15 +413,12 @@ describe('namespace-scoped getters', () => {
   it('getInstancesForTaskFromNamespace filters by parent and falls back to {}', () => {
     const store = freshStore()
     store.addRepeatableTaskInstance('2.1', '2')
-    // Without parent filter
     expect(
       store.getInstancesForTaskFromNamespace(FormType.DPIA, '2.1').map((i) => i.id).sort(),
     ).toEqual(['2.1[0]', '2.1[1]'])
-    // With parent filter
     expect(
       store.getInstancesForTaskFromNamespace(FormType.DPIA, '2.1.1', '2.1[0]').map((i) => i.id),
     ).toEqual(['2.1.1[0]'])
-    // Unset namespace → {} fallback → no instances
     delete (store.taskInstances as Record<string, unknown>)[FormType.PRE_SCAN]
     expect(store.getInstancesForTaskFromNamespace(FormType.PRE_SCAN, '2.1')).toEqual([])
   })

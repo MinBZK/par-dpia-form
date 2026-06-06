@@ -7,7 +7,6 @@ describe('escapeHtml', () => {
   })
 
   it('escapes ampersand first so it does not double-escape entities', () => {
-    // The & in the input must become &amp; and the < must become &lt;.
     expect(escapeHtml('a & b < c')).toBe('a &amp; b &lt; c')
   })
 
@@ -27,7 +26,6 @@ describe('escapeHtml', () => {
 
 describe('stripHtml', () => {
   it('returns the input unchanged when it contains no < character', () => {
-    // Covers the early-return branch: !str.includes('<') === true
     expect(stripHtml('plain text')).toBe('plain text')
   })
 
@@ -36,7 +34,6 @@ describe('stripHtml', () => {
   })
 
   it('strips a single HTML tag', () => {
-    // Covers the branch where < is present: !str.includes('<') === false
     expect(stripHtml('<b>bold</b>')).toBe('bold')
   })
 

@@ -73,8 +73,6 @@ describe('markdownToPdfContent — empty and aggregation branches', () => {
   })
 
   it('returns empty text when parsing yields no block content', () => {
-    // Whitespace-only input lexes to only `space` tokens, which produce no
-    // content -> content.length === 0 branch.
     expect(markdownToPdfContent('   \n\n   ')).toEqual({ text: '' })
   })
 
@@ -106,7 +104,6 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
 
   it('handles del (strikethrough) as plain styled text', () => {
     const content = markdownToPdfContent('~~struck~~') as any
-    // del renders to { text: [...] } with neither bold nor italics.
     const delItem = textArray(content).find(
       (t: any) => typeof t === 'object' && !t.bold && !t.italics && !t.background && Array.isArray(t.text),
     )
@@ -126,8 +123,6 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
     expect(link).toBeDefined()
     expect(link.color).toBe('#154273')
     expect(link.decoration).toBe('underline')
-    // flattenToString must have walked nested strong (tokens branch),
-    // plain text (text branch) and a br (empty fallthrough branch).
     expect(link.text).toContain('bold')
     expect(link.text).toContain('plain')
     expect(link.text).toContain('more')
@@ -143,9 +138,7 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
   it('handles disallowed link by inlining its child tokens (rejected branch)', () => {
     const content = markdownToPdfContent('[plain link text](javascript:alert(1))') as any
     const parts = textArray(content)
-    // No clickable link object should be produced.
     expect(parts.find((t: any) => typeof t === 'object' && t.link)).toBeUndefined()
-    // The link text is inlined as plain string(s).
     expect(parts.some((t: any) => typeof t === 'string' && t.includes('plain link text'))).toBe(true)
   })
 
@@ -155,32 +148,24 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
   })
 
   it('handles text token that has nested tokens (text-with-tokens branch)', () => {
-    // A tight list item produces a `text` token whose `tokens` array holds the
-    // inline children -> the `if (t.tokens)` true branch in the text case.
     const content = markdownToPdfContent('- alpha *beta* gamma') as any
     expect(content.ul).toBeDefined()
     const itemText = content.ul[0].text
     expect(Array.isArray(itemText)).toBe(true)
-    // The italic child survived the nested processing.
     expect(itemText.some((t: any) => typeof t === 'object' && t.italics)).toBe(true)
   })
 
   it('handles plain text token without nested tokens (text-without-tokens branch)', () => {
-    // A simple link text yields a bare `text` token (no nested tokens). Using a
-    // disallowed protocol forces processInlineTokens over those child tokens.
     const content = markdownToPdfContent('[just text](javascript:void(0))') as any
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('just text'))).toBe(true)
   })
 
   it('handles escaped characters (escape branch)', () => {
     const content = markdownToPdfContent('a \\* b') as any
-    // The escape token produces the literal '*' character somewhere in the parts.
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('*'))).toBe(true)
   })
 
   it('handles an unknown inline token with text via the default branch (inline image)', () => {
-    // Inline images are not handled by the switch; the `image` token carries a
-    // `text` field (the alt text) -> default branch, `'text' in t` true.
     const content = markdownToPdfContent('see ![the alt](https://example.com/x.png) here') as any
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('the alt'))).toBe(true)
   })
@@ -196,12 +181,11 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
   it('handles a heading block with computed font size', () => {
     const content = markdownToPdfContent('# Title') as any
     expect(content.bold).toBe(true)
-    expect(content.fontSize).toBe(16) // depth 1 -> 16
+    expect(content.fontSize).toBe(16)
     expect(content.margin).toEqual([0, 5, 0, 3])
   })
 
   it('clamps heading font size to a minimum of 10 for deep headings', () => {
-    // depth 6 -> 16 - 5*2 = 6 -> Math.max(10, 6) = 10
     const content = markdownToPdfContent('###### Deep') as any
     expect(content.fontSize).toBe(10)
   })
@@ -232,7 +216,6 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(content.layout).toBe('noBorders')
     const stack = content.table.body[0][0].stack
     expect(Array.isArray(stack)).toBe(true)
-    // The inner paragraph from the quote was processed recursively.
     expect(stack.length).toBeGreaterThan(0)
   })
 
@@ -244,23 +227,16 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
   })
 
   it('ignores space tokens (space branch produces no content)', () => {
-    // Two paragraphs separated by a blank line: the blank line lexes to a
-    // `space` token that must NOT add a content node, so we get exactly 2.
     const content = markdownToPdfContent('para one\n\npara two') as any
     expect(content.stack).toHaveLength(2)
   })
 
   it('handles an unknown block token with a string text (default true branch)', () => {
-    // A raw HTML block lexes to an `html` token, which is not in the switch but
-    // carries a string `text` -> default branch, `'text' in t && typeof text === string`.
     const content = markdownToPdfContent('<div>raw block</div>') as any
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('raw block'))).toBe(true)
   })
 
   it('handles an unknown block token without a string text (default false branch)', () => {
-    // A GFM table lexes to a `table` token, not handled by the switch and with
-    // no top-level `text` property -> default branch where nothing is pushed.
-    // The table is the only block, so an empty content array results.
     const content = markdownToPdfContent('| a | b |\n|---|---|\n| 1 | 2 |')
     expect(content).toEqual({ text: '' })
   })

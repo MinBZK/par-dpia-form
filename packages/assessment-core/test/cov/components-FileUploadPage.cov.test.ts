@@ -6,14 +6,11 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { FormType } from '../../src/models/dpia'
 import type { AssessmentState } from '../../src/models/assessmentState'
 
-// Mock importFromJson so we control the success/error paths of startDpia.
 const importFromJson = vi.fn()
 vi.mock('../../src/utils/jsonExport', () => ({
   importFromJson: (...args: unknown[]) => importFromJson(...args),
 }))
 
-// Lightweight UiButton stub: forwards click and exposes label/disabled/icon so
-// we can assert the dynamic label/icon and drive the click handler.
 const UiButtonStub = {
   name: 'UiButton',
   props: ['variant', 'label', 'icon', 'disabled'],
@@ -29,7 +26,6 @@ function mountPage(onStart?: (fileData?: AssessmentState) => void) {
   })
 }
 
-// Build a fake <input type=file> change event with the given files list.
 function fileChangeEvent(files: File[] | null): Event {
   return { target: { files } } as unknown as Event
 }
@@ -53,15 +49,12 @@ describe('FileUploadPage.vue', () => {
       const wrapper = mountPage()
 
       expect(wrapper.find('h1').text()).toBe('Start de DPIA')
-      // introText (dpia branch) is rendered via v-html.
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
-      // uploadText (dpia branch).
       expect(wrapper.find('label#file-upload-label').text()).toContain(
         'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?.',
       )
-      // formTypeLabel feeds the button label.
       expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de DPIA')
     })
   })
@@ -126,8 +119,7 @@ describe('FileUploadPage.vue', () => {
     it('reacts to a real change event on the file input', async () => {
       const wrapper = mountPage()
       const input = wrapper.find('input#file-upload-field')
-      // Drive the @change handler through the DOM. jsdom file inputs report an
-      // empty FileList, exercising the no-files branch via a real event.
+      // jsdom file inputs report an empty FileList, so a real change event hits the no-files branch.
       await input.trigger('change')
       const vm = wrapper.vm as unknown as { uploadedFile: File | null }
       expect(vm.uploadedFile).toBeNull()
@@ -189,7 +181,6 @@ describe('FileUploadPage.vue', () => {
     })
 
     it('shows a generic message when importFromJson rejects with a non-Error', async () => {
-      // Reject with a plain string so `error instanceof Error` is false.
       importFromJson.mockRejectedValue('kapot')
       const onStart = vi.fn()
       const wrapper = mountPage(onStart)
@@ -209,9 +200,6 @@ describe('FileUploadPage.vue', () => {
 
   describe('startDpia outer catch (emit throws)', () => {
     it('shows the Error message when the start handler throws an Error', async () => {
-      // No uploaded file -> emit('start') runs in the outer try only. The
-      // handler throws an Error, which escapes into the outer catch's
-      // `error instanceof Error` branch.
       const onStart = vi.fn(() => {
         throw new Error('handler stuk')
       })
@@ -227,8 +215,6 @@ describe('FileUploadPage.vue', () => {
     })
 
     it('shows a generic message when the start handler throws a non-Error (no file)', async () => {
-      // No uploaded file -> emit('start') in the outer try; handler throws a
-      // non-Error -> outer catch else branch.
       const onStart = vi.fn(() => {
         throw 'oeps'
       })

@@ -8,11 +8,7 @@ import ConflictResolutionDialog, {
   type ConflictField,
 } from '../../src/components/ConflictResolutionDialog.vue'
 
-// jsdom (v29) does not implement HTMLDialogElement.showModal()/close().
-// The component calls dialogRef.value?.showModal() / ?.close() on a *real*
-// element (the optional chain never short-circuits, since the ref is bound),
-// so the methods must exist or the watcher would throw. Polyfill them with
-// spies so the open/close branches execute and can be asserted.
+// jsdom does not implement HTMLDialogElement.showModal()/close(); the watcher calls them on a bound ref so they must exist. Polyfill with spies.
 const showModal = vi.fn()
 const close = vi.fn()
 
@@ -61,7 +57,6 @@ describe('ConflictResolutionDialog', () => {
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)
     expect(rows[0].find('.conflict-field').text()).toBe('Veld A')
-    // v-html renders the raw formatted markup.
     expect(rows[0].html()).toContain('<strong>mijn</strong>')
     expect(rows[0].html()).toContain('<em>hun</em>')
   })
@@ -76,20 +71,16 @@ describe('ConflictResolutionDialog', () => {
 
     await wrapper.setProps({ active: true })
 
-    // Open branch: showModal called, close not.
     expect(showModal).toHaveBeenCalledTimes(1)
     expect(close).not.toHaveBeenCalled()
 
-    // Both "mine" cells are selected by default.
     const mineCells = wrapper.findAll('tbody tr td:nth-child(2)')
     expect(mineCells[0].classes()).toContain('conflict-value--selected')
     expect(mineCells[1].classes()).toContain('conflict-value--selected')
 
-    // "theirs" cells are not selected.
     const theirCells = wrapper.findAll('tbody tr td:nth-child(3)')
     expect(theirCells[0].classes()).not.toContain('conflict-value--selected')
 
-    // The "mine" radios are checked, "theirs" radios are not.
     const mineRadio = mineCells[0].find('input[type="radio"]')
       .element as HTMLInputElement
     const theirRadio = theirCells[0].find('input[type="radio"]')
@@ -102,14 +93,12 @@ describe('ConflictResolutionDialog', () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: true, fields: [makeField()] },
     })
-    // Mounting with active:true does not trigger the watcher (only changes do),
-    // so toggle on then off to exercise both branches.
+    // Mounting with active:true does not fire the watcher (only changes do); toggle to exercise both branches.
     await wrapper.setProps({ active: false })
     close.mockClear()
     await wrapper.setProps({ active: true })
     await wrapper.setProps({ active: false })
 
-    // Close branch.
     expect(close).toHaveBeenCalled()
   })
 
@@ -118,13 +107,9 @@ describe('ConflictResolutionDialog', () => {
       props: { active: false, fields: [makeField({ fieldId: 'old' })] },
     })
 
-    // First open registers selection for "old".
     await wrapper.setProps({ active: true })
     await wrapper.setProps({ active: false })
 
-    // Reopen with a different field set — the watcher must delete the old key
-    // (covers the `for (const key of Object.keys(selections)) delete` loop with
-    // an existing key present).
     await wrapper.setProps({
       fields: [makeField({ fieldId: 'new', label: 'Nieuw veld' })],
     })
@@ -134,7 +119,6 @@ describe('ConflictResolutionDialog', () => {
     expect(wrapper2Rows).toHaveLength(1)
     expect(wrapper2Rows[0].find('.conflict-field').text()).toBe('Nieuw veld')
 
-    // Resolving now only contains the new field, not the stale "old" key.
     await wrapper.find('button.utrecht-button').trigger('click')
     const resolved = wrapper.emitted('resolve')![0][0] as Map<string, string>
     expect([...resolved.keys()]).toEqual(['new'])
@@ -149,7 +133,6 @@ describe('ConflictResolutionDialog', () => {
     const theirCell = wrapper.find('tbody tr td:nth-child(3)')
     await theirCell.find('input[type="radio"]').trigger('change')
 
-    // @change handler set the selection to 'theirs'.
     expect(theirCell.classes()).toContain('conflict-value--selected')
     expect(
       wrapper.find('tbody tr td:nth-child(2)').classes(),
@@ -162,7 +145,6 @@ describe('ConflictResolutionDialog', () => {
     })
     await wrapper.setProps({ active: true })
 
-    // First flip to theirs, then back to mine to exercise the "mine" @change.
     await wrapper
       .find('tbody tr td:nth-child(3) input[type="radio"]')
       .trigger('change')
@@ -185,7 +167,6 @@ describe('ConflictResolutionDialog', () => {
     })
     await wrapper.setProps({ active: true })
 
-    // Change one field to "theirs" so the emitted map has a mix.
     await wrapper
       .find('tbody tr:nth-child(2) td:nth-child(3) input[type="radio"]')
       .trigger('change')
@@ -193,7 +174,6 @@ describe('ConflictResolutionDialog', () => {
     close.mockClear()
     await wrapper.find('button.utrecht-button').trigger('click')
 
-    // Close was called by handleResolve.
     expect(close).toHaveBeenCalledTimes(1)
 
     const emitted = wrapper.emitted('resolve')
@@ -227,8 +207,6 @@ describe('ConflictResolutionDialog', () => {
     const event = new Event('cancel', { cancelable: true })
     dialogEl.dispatchEvent(event)
 
-    // The @cancel.prevent handler calls preventDefault, so the dialog does not
-    // auto-close on Escape; the parent stays in control of the `active` prop.
     expect(event.defaultPrevented).toBe(true)
 
     wrapper.unmount()

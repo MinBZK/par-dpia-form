@@ -4,14 +4,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 
-// --- Router mock ------------------------------------------------------------
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// --- API mock ---------------------------------------------------------------
-// All assessment API calls are spies we control per-test.
 const apiGet = vi.fn()
 const apiVersions = vi.fn()
 const apiVersion = vi.fn()
@@ -30,22 +27,12 @@ vi.mock('../../src/api', () => ({
   },
 }))
 
-// NOTE: the component dynamically imports the generated DPIA/PreScanDPIA JSON
-// in onMounted when the schema store is not yet initialized. We deliberately do
-// NOT vi.mock those JSON paths — mocking them leaves the SFC's dynamic import
-// promise unresolved (the factory does not apply to the SFC module-graph node),
-// which hangs onMounted forever. Instead the real (small, static) JSON files
-// load; tests that want to skip that path pre-set schemaInitialized = true.
-
-// --- Core package mock ------------------------------------------------------
-// Controllable task/schema/answer stores plus the small set of helpers the
-// component uses. Keeping this surface tiny avoids pulling in the real engine.
+// We deliberately do NOT vi.mock the generated DPIA/PreScanDPIA JSON paths: mocking them leaves the SFC's onMounted dynamic import unresolved, hanging it forever.
 enum FormType {
   DPIA = 'dpia',
   PRE_SCAN = 'prescan',
 }
 
-// flatTasks lookup driven per-test; keyed by `${namespace}|${taskId}`.
 const flatTaskMap: Record<string, Record<string, any>> = {
   [FormType.DPIA]: {},
   [FormType.PRE_SCAN]: {},
@@ -65,8 +52,7 @@ const taskInit = vi.fn()
 const setActiveNamespace = vi.fn()
 const taskReset = vi.fn()
 const answerReset = vi.fn()
-// vi.mock factories cannot safely close over plain module consts that are in a
-// temporal dead zone at hoist time, so create this one via vi.hoisted.
+// vi.hoisted: a vi.mock factory cannot close over a module const in the TDZ at hoist time.
 const { autoGrowTextareaMock } = vi.hoisted(() => ({ autoGrowTextareaMock: vi.fn() }))
 
 const getTasksFromNamespace = vi.fn((ns: FormType) => flatTaskMap[ns])
@@ -79,7 +65,6 @@ vi.mock('@overheid-assessment/core', () => ({
     DPIA: 'dpia',
     PRE_SCAN: 'prescan',
   },
-  // Strip surrounding HTML tags, matching the real helper's plain-text intent.
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
     (html ?? '').replace(/<[^>]*>/g, ''),
   autoGrowTextarea: autoGrowTextareaMock,
@@ -107,7 +92,6 @@ vi.mock('@overheid-assessment/core', () => ({
 
 import VersionHistory from '../../src/views/VersionHistory.vue'
 
-// --- AppHeader stub ---------------------------------------------------------
 const AppHeaderStub = {
   name: 'AppHeader',
   props: ['backLabel', 'backRoute'],
@@ -128,11 +112,7 @@ function mountView() {
   })
 }
 
-// onMounted awaits a real dynamic JSON import (when the schema store is not
-// pre-initialized). A fixed number of cycles is flaky under full-suite CPU load:
-// the import can resolve after the test ends, leaking init() calls into the next
-// test. Instead wait deterministically until schemaStore.init has actually run
-// (the signal the import resolved), then drain the synchronous continuation.
+// Wait deterministically on schemaStore.init (the signal the onMounted dynamic import resolved): a fixed cycle count is flaky and leaks init() into the next test.
 async function flush() {
   await vi.waitFor(
     () => {
@@ -143,7 +123,6 @@ async function flush() {
   await flushPromises()
 }
 
-// Open the field kebab and trigger the field-restore modal's confirm button.
 async function fieldRestoreDialogConfirm(wrapper: ReturnType<typeof mountView>) {
   await wrapper.find('.diff-kebab .kebab-menu__trigger').trigger('click')
   const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
@@ -156,9 +135,7 @@ async function fieldRestoreDialogConfirm(wrapper: ReturnType<typeof mountView>) 
 
 beforeEach(() => {
   vi.clearAllMocks()
-  // Default: stores already initialized so onMounted skips the dynamic JSON
-  // import (fast + deterministic). Specific tests opt into the uninitialized
-  // branch by flipping these back to false and awaiting flush().
+  // Default: stores pre-initialized so onMounted skips the dynamic JSON import; tests opt into the uninitialized branch by flipping these false and awaiting flush().
   schemaInitialized.value = true
   taskInitialized[FormType.DPIA] = true
   taskInitialized[FormType.PRE_SCAN] = true
@@ -177,7 +154,6 @@ beforeEach(() => {
     }
   }
 
-  // Default happy-path API responses; tests override as needed.
   apiGet.mockResolvedValue({ role: 'owner', projectId: 'proj-1', currentVersion: 3, state: { answers: {} } })
   apiVersions.mockResolvedValue([])
   apiVersion.mockResolvedValue({ state: {} })
@@ -192,17 +168,14 @@ afterEach(() => {
 
 describe('VersionHistory — mount & onMounted', () => {
   it('initializes schema + task stores when uninitialized and shows empty state', async () => {
-    // Opt into the uninitialized branch: onMounted runs the real dynamic import.
     schemaInitialized.value = false
     taskInitialized[FormType.DPIA] = false
     taskInitialized[FormType.PRE_SCAN] = false
     apiVersions.mockResolvedValue([])
     const wrapper = mountView()
-    // While loading, the "Laden..." text shows.
     expect(wrapper.text()).toContain('Laden...')
     await flush()
 
-    // Schema + task stores got initialized.
     expect(schemaInit).toHaveBeenCalled()
     expect(taskInit).toHaveBeenCalledTimes(2)
     expect(setActiveNamespace).toHaveBeenCalledWith(FormType.DPIA)
@@ -212,7 +185,6 @@ describe('VersionHistory — mount & onMounted', () => {
   })
 
   it('skips store initialization when already initialized', async () => {
-    // schemaInitialized / taskInitialized default to true in beforeEach.
     mountView()
     await flushPromises()
 
@@ -240,7 +212,6 @@ describe('VersionHistory — mount & onMounted', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    // role null → canEdit false → no action column header.
     expect(wrapper.find('.version-col--action').exists()).toBe(false)
   })
 
@@ -274,12 +245,10 @@ describe('VersionHistory — version list rendering', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.findAll('.version-row').length).toBeGreaterThanOrEqual(3) // header + 2 rows
-    // Multi-line description collapses to first line + ellipsis marker.
+    expect(wrapper.findAll('.version-row').length).toBeGreaterThanOrEqual(3)
     expect(wrapper.text()).toContain('Eerste regel')
     expect(wrapper.text()).toContain('Noor')
     expect(wrapper.text()).toContain('Sam')
-    // formatDate output (Dutch locale month name).
     expect(wrapper.text()).toMatch(/maart/)
   })
 
@@ -290,7 +259,6 @@ describe('VersionHistory — version list rendering', () => {
     ])
     const wrapper = mountView()
     await flushPromises()
-    // Only version 2 has a toggle button.
     expect(wrapper.findAll('.toggle-btn').length).toBe(1)
   })
 })
@@ -304,10 +272,8 @@ describe('VersionHistory — canEdit / canRestore (role permissions)', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    // canEdit true → action column + kebab present.
     expect(wrapper.find('.kebab-menu__trigger').exists()).toBe(true)
     await wrapper.find('.kebab-menu__trigger').trigger('click')
-    // Description-edit menu item present, restore item absent.
     expect(wrapper.text()).toContain('Beschrijving bewerken')
     expect(wrapper.text()).not.toContain('Herstellen naar deze versie')
   })
@@ -321,7 +287,6 @@ describe('VersionHistory — canEdit / canRestore (role permissions)', () => {
     await flushPromises()
 
     expect(wrapper.find('.kebab-menu__trigger').exists()).toBe(false)
-    // Read-only description span (no edit button).
     expect(wrapper.find('.desc-edit-btn').exists()).toBe(false)
   })
 
@@ -351,11 +316,9 @@ describe('VersionHistory — kebab menu toggle & focusout', () => {
     const trigger = wrapper.find('.kebab-menu__trigger')
     await trigger.trigger('click')
     expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
-    // Click again → closes.
     await trigger.trigger('click')
     expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
 
-    // Open then focusout closes it.
     await trigger.trigger('click')
     expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
     await wrapper.find('.kebab-menu').trigger('focusout')
@@ -378,7 +341,7 @@ describe('VersionHistory — description modal', () => {
 
     const textarea = wrapper.find('textarea#desc-input')
     await textarea.setValue('Nieuwe beschrijving')
-    await textarea.trigger('input') // autoResize handler
+    await textarea.trigger('input')
 
     await wrapper.find('.utrecht-button--primary-action').trigger('click')
     await flushPromises()
@@ -392,7 +355,6 @@ describe('VersionHistory — description modal', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    // Call the exposed-via-DOM path is not available; drive through component instance.
     const vm = wrapper.vm as any
     await vm.saveDescription()
     expect(apiUpdateVersionDescription).not.toHaveBeenCalled()
@@ -407,7 +369,6 @@ describe('VersionHistory — description modal', () => {
     await flushPromises()
     const vm = wrapper.vm as any
 
-    // Empty text → falls back to null on the matching version.
     vm.openDescModal(2, 'X')
     await flushPromises()
     const ta = wrapper.find('textarea#desc-input')
@@ -416,7 +377,6 @@ describe('VersionHistory — description modal', () => {
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenLastCalledWith(ASSESSMENT_ID, 2, '')
 
-    // Now target a version id that does not exist → the find() returns undefined branch.
     apiUpdateVersionDescription.mockClear()
     vm.openDescModal(999, 'whatever')
     await flushPromises()
@@ -515,7 +475,6 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     await flushPromises()
 
     const [, restoredState] = apiUpdate.mock.calls[0]
-    // No $schema branch taken, completedTasks defaulted to [], answers defaulted to {}.
     expect((restoredState as any).metadata).toEqual({ completedTasks: [] })
     expect((restoredState as any).answers).toEqual({})
     expect((restoredState as any).$schema).toBeUndefined()
@@ -524,7 +483,6 @@ describe('VersionHistory — restore modal & handleRestore', () => {
   it('handleRestore returns early when confirm word not matching', async () => {
     const wrapper = await openRestoreFor(3)
     const vm = wrapper.vm as any
-    // restoreConfirmText empty → restoreConfirmed false → early return.
     await vm.handleRestore()
     expect(apiVersion).not.toHaveBeenCalled()
   })
@@ -548,7 +506,6 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     const wrapper = await openRestoreFor(3)
     const input = wrapper.find('.confirm-dialog__input')
 
-    // Not confirmed yet → enter does nothing.
     await input.trigger('keyup.enter')
     await flushPromises()
     expect(apiVersion).not.toHaveBeenCalled()
@@ -563,7 +520,7 @@ describe('VersionHistory — restore modal & handleRestore', () => {
   it('restore modal cancel resets confirm text', async () => {
     const wrapper = await openRestoreFor(3)
     await wrapper.find('.confirm-dialog__input').setValue('partial')
-    // Target the restore dialog specifically (others share the button class).
+    // Multiple dialogs share the button class; target the restore dialog by text.
     const restoreDialog = wrapper
       .findAll('dialog.confirm-dialog')
       .find((d) => d.text().includes('Versie herstellen'))!
@@ -604,7 +561,6 @@ describe('VersionHistory — toggleDiff', () => {
     await vm.toggleDiff(1)
     await flushPromises()
     expect(apiVersionEdits).not.toHaveBeenCalled()
-    // Diff panel shows the first-version empty message.
     expect(wrapper.text()).toContain('Eerste versie — geen vorige versie om mee te vergelijken.')
   })
 
@@ -613,7 +569,7 @@ describe('VersionHistory — toggleDiff', () => {
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
     ])
     apiVersionEdits.mockResolvedValue([
-      { id: 'e0', fieldId: 'dpia.1.1', editType: 'initial_state', oldValue: null, newValue: null, editedBy: 'x', editedAt: 't', version: 2 },
+      { id: 'e0', fieldId: 'dpia.1.1', editType: 'initial_state', oldValue: null, newValue: null, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
     ])
     const wrapper = mountView()
     await flushPromises()
@@ -689,7 +645,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'answer_change',
         oldValue: { value: 'oud@example.com' },
         newValue: { value: 'nieuw@example.com' },
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -697,7 +653,6 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
     const table = wrapper.find('.diff-table')
     expect(table.exists()).toBe(true)
     expect(wrapper.find('.diff-field').text()).toContain('2.1.1. E-mailadres')
-    // Group label rendered.
     expect(wrapper.find('.diff-field__group').text()).toContain('Persoonsgegevens #1')
     expect(wrapper.text()).toContain('oud@example.com')
     expect(wrapper.text()).toContain('nieuw@example.com')
@@ -709,10 +664,9 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
       [FormType.PRE_SCAN]: {},
     })
     const wrapper = await expandWithEdits([
-      { id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'A' }, newValue: { value: 'B' }, editedBy: 'x', editedAt: 't', version: 2 },
-      { id: 'e2', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'B' }, newValue: { value: 'C' }, editedBy: 'x', editedAt: 't', version: 2 },
+      { id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'A' }, newValue: { value: 'B' }, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
+      { id: 'e2', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'B' }, newValue: { value: 'C' }, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
     ])
-    // Only one row, net change A → C.
     expect(wrapper.findAll('.diff-row').length).toBe(1)
     expect(wrapper.find('.diff-old').text()).toContain('A')
     expect(wrapper.find('.diff-new').text()).toContain('C')
@@ -720,7 +674,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
 
   it('skips a field whose net change is identical (no-op)', async () => {
     const wrapper = await expandWithEdits([
-      { id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'A' }, newValue: { value: 'A' }, editedBy: 'x', editedAt: 't', version: 2 },
+      { id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change', oldValue: { value: 'A' }, newValue: { value: 'A' }, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
     ])
     expect(wrapper.text()).toContain('Geen inhoudelijke wijzigingen gevonden.')
   })
@@ -737,7 +691,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'section_complete',
         oldValue: true,
         newValue: false,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -755,7 +709,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'section_complete',
         oldValue: false,
         newValue: true,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -771,12 +725,11 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'section_complete',
         oldValue: false,
         newValue: true,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
     ])
-    // parseFieldId returns null (no dot), so taskId === raw fieldId.
     expect(wrapper.find('.diff-field').text()).toContain('Status sectie plainfieldnodot')
   })
 
@@ -795,7 +748,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'instance_added',
         oldValue: null,
         newValue: { '2.1.1': { value: 'E-mail' } },
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -817,7 +770,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'instance_added',
         oldValue: null,
         newValue: {},
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -840,7 +793,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'instance_removed',
         oldValue: { '2.1.1': { value: 'Telefoon' } },
         newValue: null,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -861,7 +814,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'instance_removed',
         oldValue: {},
         newValue: null,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -877,20 +830,19 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         editType: 'instance_added',
         oldValue: null,
         newValue: { foo: { value: 'bar' } },
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
     ])
-    // No index match → no #n suffix; task unknown → taskId as name.
     expect(wrapper.find('.diff-field').text()).toContain('weirdtask')
     expect(wrapper.find('.diff-field').text()).not.toContain('#')
   })
 
   it('filters out task_instance_add / task_instance_remove edit types', async () => {
     const wrapper = await expandWithEdits([
-      { id: 'e1', fieldId: 'dpia.2.1', editType: 'task_instance_add', oldValue: null, newValue: { x: 1 }, editedBy: 'x', editedAt: 't', version: 2 },
-      { id: 'e2', fieldId: 'dpia.2.1', editType: 'task_instance_remove', oldValue: { x: 1 }, newValue: null, editedBy: 'x', editedAt: 't', version: 2 },
+      { id: 'e1', fieldId: 'dpia.2.1', editType: 'task_instance_add', oldValue: null, newValue: { x: 1 }, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
+      { id: 'e2', fieldId: 'dpia.2.1', editType: 'task_instance_remove', oldValue: { x: 1 }, newValue: null, editedBy: 'sam@example.com', editedAt: 't', version: 2 },
     ])
     expect(wrapper.text()).toContain('Geen inhoudelijke wijzigingen gevonden.')
   })
@@ -1051,7 +1003,6 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
   })
 
   it('treats a "[" string with trailing junk (parse throws) as plain text', () => {
-    // JSON.parse('["x"]extra') throws → caught → stripped + escaped plain text.
     expect(vm.formatValue('["x"]extra', null)).toBe('[&quot;x&quot;]extra')
   })
 
@@ -1065,12 +1016,10 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
   })
 
   it('returns invalid date string unchanged through formatTimestamp', () => {
-    // isoDatePattern matches but Date is invalid → returns the raw value.
     expect(vm.formatTimestamp('not-a-date')).toBe('not-a-date')
   })
 
   it('escapes plain strings (HTML-significant chars without tags)', () => {
-    // stripHtml removes complete tags; ampersand & quotes survive to be escaped.
     expect(vm.formatValue('A & "B"', null)).toBe('A &amp; &quot;B&quot;')
   })
 
@@ -1139,7 +1088,6 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
   })
 
   it('treats an object value with non-image data as a normal object', () => {
-    // data present but not a valid data:image URI → falls through to object handling.
     const out = vm.formatValue({ value: { data: 'plain text' } }, null)
     expect(out).toContain('data')
   })
@@ -1173,7 +1121,6 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
   })
 
   it('falls through for non-object/array/string/number types (function/symbol)', () => {
-    // bigint stringifies via String(); covers the final escapeHtml(String(val)) branch.
     expect(vm.formatValue(10n as unknown, null)).toBe('10')
   })
 
@@ -1275,7 +1222,6 @@ describe('VersionHistory — parseFieldId & toDotFieldId', () => {
 })
 
 describe('VersionHistory — field-level restore', () => {
-  // Build a diff panel with a single restorable field and open the field kebab.
   async function setupFieldDiff(edit: any, tasks?: Record<FormType, Record<string, any>>, currentState?: unknown) {
     apiGet.mockResolvedValue({
       role: 'owner',
@@ -1296,7 +1242,6 @@ describe('VersionHistory — field-level restore', () => {
   }
 
   async function openFieldRestore(wrapper: ReturnType<typeof mountView>) {
-    // The field kebab is the diff-kebab inside the old column.
     const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
     await kebab.trigger('click')
     const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
@@ -1304,8 +1249,7 @@ describe('VersionHistory — field-level restore', () => {
     await flushPromises()
   }
 
-  // Several confirm dialogs share button classes, so target the field-restore
-  // dialog ("Antwoord herstellen") explicitly when confirming/cancelling.
+  // Several confirm dialogs share button classes; target the field-restore dialog by its "Antwoord herstellen" text.
   function fieldRestoreDialog(wrapper: ReturnType<typeof mountView>) {
     return wrapper
       .findAll('dialog.confirm-dialog')
@@ -1323,7 +1267,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'answer_change',
       oldValue: { value: 'oud' },
       newValue: { value: 'nieuw' },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
@@ -1335,7 +1279,7 @@ describe('VersionHistory — field-level restore', () => {
   it('field-level kebab toggles closed on second click and closes on focusout', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'a' }, newValue: { value: 'b' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'a' }, newValue: { value: 'b' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
 
     const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
@@ -1351,7 +1295,7 @@ describe('VersionHistory — field-level restore', () => {
   it('restores a non-repeatable answer_change (writes flat key)', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
 
@@ -1361,13 +1305,13 @@ describe('VersionHistory — field-level restore', () => {
     expect((state as any).answers['1.1'].value).toBe('oud')
     expect(opts.changeDescription).toBe('Antwoord uit versie 1 hersteld')
     expect(opts.newVersion).toBe(true)
-    expect(apiVersions).toHaveBeenCalledTimes(2) // initial + refresh after restore
+    expect(apiVersions).toHaveBeenCalledTimes(2)
   })
 
   it('restores a non-repeatable field whose oldValue has no value → deletes the key', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: null, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: null, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} },
       { answers: { '1.1': { value: 'bestaand' } }, metadata: {} })
     await openFieldRestore(wrapper)
@@ -1383,7 +1327,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'section_complete',
       oldValue: true,
       newValue: false,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2': { id: '2', task: 'Sectie' } }, [FormType.PRE_SCAN]: {} },
@@ -1402,11 +1346,10 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'section_complete',
       oldValue: false,
       newValue: true,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2': { id: '2', task: 'Sectie' } }, [FormType.PRE_SCAN]: {} },
-      // No metadata in current state → exercise the `if (!currentState.metadata)` branch.
       { answers: { x: 1 } })
     await openFieldRestore(wrapper)
     await confirmFieldRestore(wrapper)
@@ -1421,7 +1364,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'section_complete',
       oldValue: true,
       newValue: false,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2': { id: '2', task: 'Sectie' } }, [FormType.PRE_SCAN]: {} },
@@ -1439,7 +1382,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'section_complete',
       oldValue: false,
       newValue: true,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2': { id: '2', task: 'Sectie' } }, [FormType.PRE_SCAN]: {} },
@@ -1457,7 +1400,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_added',
       oldValue: null,
       newValue: { '2.1.1': { value: 'E-mail' } },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1476,7 +1419,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_added',
       oldValue: null,
       newValue: { '2.1.1': { value: 'E-mail' } },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1494,7 +1437,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_added',
       oldValue: null,
       newValue: { '2.1.1': { value: 'E-mail' } },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1511,7 +1454,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_removed',
       oldValue: { '2.1.1': { value: 'Telefoon' } },
       newValue: null,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1531,7 +1474,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_removed',
       oldValue: { '2.1.1': { value: 'Telefoon' } },
       newValue: null,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1550,7 +1493,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_removed',
       oldValue: { '2.1.1': { value: 'Telefoon' } },
       newValue: null,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' }, '2.1.1': { id: '2.1.1', task: 'Type' } }, [FormType.PRE_SCAN]: {} },
@@ -1568,7 +1511,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'instance_removed',
       oldValue: 'notanobject',
       newValue: null,
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' } }, [FormType.PRE_SCAN]: {} },
@@ -1580,21 +1523,19 @@ describe('VersionHistory — field-level restore', () => {
   })
 
   it('restores instance_added/removed when the index regex does not match (no array touch)', async () => {
-    // editType instance_added but a dot-format fieldId without [n] → indexMatch null.
     const wrapper = await setupFieldDiff({
       id: 'e1',
       fieldId: 'dpia.2.1',
       editType: 'instance_added',
       oldValue: null,
       newValue: { foo: { value: 'bar' } },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, { [FormType.DPIA]: { '2.1': { id: '2.1', task: 'Groep' } }, [FormType.PRE_SCAN]: {} },
       { answers: {}, metadata: {} })
     await openFieldRestore(wrapper)
     await confirmFieldRestore(wrapper)
-    // No index → nothing added; update still called.
     const [, state] = apiUpdate.mock.calls[0]
     expect((state as any).answers['2.1']).toBeUndefined()
   })
@@ -1606,7 +1547,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'answer_change',
       oldValue: { value: 'oud' },
       newValue: { value: 'nieuw' },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, {
@@ -1627,9 +1568,9 @@ describe('VersionHistory — field-level restore', () => {
       id: 'e1',
       fieldId: 'urn:nl:dpia:3.0?=task_id=2.1.1&task_index=2',
       editType: 'answer_change',
-      oldValue: null, // no .value → newAnswer null → delete element[taskId]
+      oldValue: null,
       newValue: { value: 'nieuw' },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, {
@@ -1642,7 +1583,6 @@ describe('VersionHistory — field-level restore', () => {
     await openFieldRestore(wrapper)
     await confirmFieldRestore(wrapper)
     const [, state] = apiUpdate.mock.calls[0]
-    // Element created at _index 2, but the field deleted (no value).
     const el = (state as any).answers['2.1'].find((e: any) => e._index === 2)
     expect(el).toBeDefined()
     expect(el['2.1.1']).toBeUndefined()
@@ -1655,11 +1595,10 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'answer_change',
       oldValue: { value: 'oud' },
       newValue: { value: 'nieuw' },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, {
-      // task has no parentId → parent null → flat-key branch.
       [FormType.DPIA]: { '5.1': { id: '5.1', task: 'Veld' } },
       [FormType.PRE_SCAN]: {},
     }, { answers: {}, metadata: {} })
@@ -1676,7 +1615,7 @@ describe('VersionHistory — field-level restore', () => {
       editType: 'answer_change',
       oldValue: null,
       newValue: { value: 'nieuw' },
-      editedBy: 'x',
+      editedBy: 'sam@example.com',
       editedAt: 't',
       version: 2,
     }, {
@@ -1690,8 +1629,7 @@ describe('VersionHistory — field-level restore', () => {
   })
 
   it('uses originVersion when provided instead of version-1', async () => {
-    // mapEditsToDiffFields always sets originVersion = version-1; to vary it,
-    // drive handleFieldRestore directly via the component instance.
+    // mapEditsToDiffFields always sets originVersion = version-1, so drive handleFieldRestore directly to vary it.
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 4, state: { answers: {}, metadata: {} } })
     apiVersions.mockResolvedValue([
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
@@ -1701,7 +1639,6 @@ describe('VersionHistory — field-level restore', () => {
     const wrapper = mountView()
     await flushPromises()
     const vm = wrapper.vm as any
-    // Expand a version so expandedVersion is set.
     await vm.toggleDiff(3)
     await flushPromises()
     vm.openFieldRestoreModal({ fieldId: 'dpia.1.1', label: 'N', rawOldValue: { value: 'oud' }, originVersion: 1 })
@@ -1719,7 +1656,6 @@ describe('VersionHistory — field-level restore', () => {
     const wrapper = mountView()
     await flushPromises()
     const vm = wrapper.vm as any
-    // No target & no expanded version.
     await vm.handleFieldRestore()
     expect(apiUpdate).not.toHaveBeenCalled()
   })
@@ -1742,9 +1678,8 @@ describe('VersionHistory — field-level restore', () => {
   it('handleFieldRestore creates answers object when current state has none', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} },
-      // current state with no answers key.
       {})
     await openFieldRestore(wrapper)
     await confirmFieldRestore(wrapper)
@@ -1755,7 +1690,7 @@ describe('VersionHistory — field-level restore', () => {
   it('handleFieldRestore handles a null state from the API (defaults to {})', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} },
       { answers: {}, metadata: {} })
     // The restore re-fetches the assessment; return one with null state.
@@ -1769,7 +1704,7 @@ describe('VersionHistory — field-level restore', () => {
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
     apiUpdate.mockRejectedValueOnce(new Error('nope'))
@@ -1780,11 +1715,10 @@ describe('VersionHistory — field-level restore', () => {
   it('field restore modal cancel closes without restoring', async () => {
     const wrapper = await setupFieldDiff({
       id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'x', editedAt: 't', version: 2,
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
     apiUpdate.mockClear()
-    // Target the field-restore dialog's Annuleren button (line 882 handler).
     await fieldRestoreDialog(wrapper).find('.utrecht-button--secondary-action').trigger('click')
     await flushPromises()
     expect(apiUpdate).not.toHaveBeenCalled()
@@ -1807,7 +1741,6 @@ describe('VersionHistory — native dialog @close handlers', () => {
     vm.openDescModal(2, 'd')
     await flushPromises()
     expect(vm.descModalOpen).toBe(true)
-    // Native dialog "close" event (e.g. Escape key) → handler runs.
     await wrapper.find('dialog.confirm-dialog').trigger('close')
     expect(vm.descModalOpen).toBe(false)
   })
@@ -1857,11 +1790,9 @@ describe('VersionHistory — remaining branch coverage', () => {
     const wrapper = mountView()
     await flushPromises()
     const vm = wrapper.vm as any
-    // current === null → `current || ''` right-hand branch.
     vm.openDescModal(2, null)
     await flushPromises()
     expect(vm.descModalText).toBe('')
-    // autoResize runs against the rendered textarea (descTextarea.value truthy).
     vm.autoResize()
     await flushPromises()
     expect(autoGrowTextareaMock).toHaveBeenCalled()
@@ -1907,7 +1838,6 @@ describe('VersionHistory — remaining branch coverage', () => {
     const vm = wrapper.vm as any
     await vm.toggleDiff(3)
     await flushPromises()
-    // rawOldValue !== true → restore to "not completed" → splice the present '2'.
     vm.openFieldRestoreModal({
       fieldId: 'urn:nl:dpia:3.0?=task_id=completed.2',
       label: 'Sectie',
@@ -1980,12 +1910,11 @@ describe('VersionHistory — remaining branch coverage', () => {
     apiVersionEdits.mockResolvedValue([
       {
         id: 'e1',
-        // No dot, no urn → parseFieldId returns null → taskId ?? dotId and PRE_SCAN branch.
         fieldId: 'noparseinstance',
         editType: 'instance_added',
         oldValue: null,
         newValue: { foo: { value: 'bar' } },
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -2006,12 +1935,11 @@ describe('VersionHistory — remaining branch coverage', () => {
     apiVersionEdits.mockResolvedValue([
       {
         id: 'e1',
-        // URN whose task_id is "7" (no "completed." prefix) → else branch of the ternary.
         fieldId: 'urn:nl:dpia:3.0?=task_id=7',
         editType: 'section_complete',
         oldValue: false,
         newValue: true,
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -2028,7 +1956,6 @@ describe('VersionHistory — remaining branch coverage', () => {
       role: 'owner',
       projectId: 'p',
       currentVersion: 4,
-      // Existing element at index 0 so creating index 2 forces sort comparator.
       state: { answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'first' } }] }, metadata: {} },
     })
     apiVersions.mockResolvedValue([
@@ -2044,12 +1971,11 @@ describe('VersionHistory — remaining branch coverage', () => {
     apiVersionEdits.mockResolvedValue([
       {
         id: 'e1',
-        // prescan namespace → PRE_SCAN ternary branch at L128.
         fieldId: 'urn:nl:prescan_dpia:1.0?=task_id=2.1.1&task_index=2',
         editType: 'answer_change',
         oldValue: { value: 'oud' },
         newValue: { value: 'nieuw' },
-        editedBy: 'x',
+        editedBy: 'sam@example.com',
         editedAt: 't',
         version: 2,
       },
@@ -2061,7 +1987,6 @@ describe('VersionHistory — remaining branch coverage', () => {
     await fieldRestoreDialogConfirm(wrapper)
     const [, state] = apiUpdate.mock.calls[0]
     const arr = (state as any).answers['2.1']
-    // Sorted: index 0 then 2.
     expect(arr.map((e: any) => e._index)).toEqual([0, 2])
     expect(arr.find((e: any) => e._index === 2)['2.1.1'].value).toBe('oud')
   })
@@ -2078,7 +2003,6 @@ describe('VersionHistory — remaining branch coverage', () => {
     const vm = wrapper.vm as any
     await vm.toggleDiff(3)
     await flushPromises()
-    // originVersion omitted → handleFieldRestore uses (version - 1) = 2.
     vm.openFieldRestoreModal({ fieldId: 'dpia.1.1', label: 'N', rawOldValue: { value: 'oud' } })
     await flushPromises()
     await vm.handleFieldRestore()
@@ -2090,11 +2014,8 @@ describe('VersionHistory — remaining branch coverage', () => {
   it('read-only description span: single-line, multi-line marker, and empty fallback (viewer role)', async () => {
     apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
     apiVersions.mockResolvedValue([
-      // Multi-line → "..." marker (includes('\n') true).
       { id: 'v3', version: 3, createdByName: 'A', updatedAt: '2026-01-03T10:00:00Z', changeDescription: 'Regel A\nRegel B' },
-      // Single-line → no marker (includes('\n') false → b174 false branch).
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: 'Enkel' },
-      // Null → empty fallback span.
       { id: 'v1', version: 1, createdByName: 'B', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null },
     ])
     const wrapper = mountView()
@@ -2117,8 +2038,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     const vm = wrapper.vm as any
     await vm.toggleDiff(2)
     await flushPromises()
-    // mapEditsToDiffFields never sets oldTimestamp nor a nullish originVersion,
-    // so craft a diff field directly to exercise both template branches.
+    // mapEditsToDiffFields never sets oldTimestamp nor a nullish originVersion, so craft a diff field directly.
     vm.diffFields = [
       {
         fieldId: 'dpia.1.1',
@@ -2133,7 +2053,6 @@ describe('VersionHistory — remaining branch coverage', () => {
     await flushPromises()
     const footer = wrapper.find('.diff-old-footer')
     expect(footer.exists()).toBe(true)
-    // oldTimestamp template (b193 true) and `?? (expandedVersion - 1)` (b194 right).
     expect(footer.text()).toContain('20 maart 2026')
     expect(footer.text()).toContain('versie 1')
   })

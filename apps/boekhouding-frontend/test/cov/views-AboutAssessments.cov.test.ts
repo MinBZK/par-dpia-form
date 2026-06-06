@@ -6,10 +6,8 @@ import { mount } from '@vue/test-utils'
 
 import AboutAssessments from '../../src/views/AboutAssessments.vue'
 
-// AppHeader pulls in vue-router + useAuth + icon dependencies that are
-// irrelevant to AboutAssessments's own logic. Stub it with a marker template
-// that re-exposes the props AboutAssessments binds, so we can assert which
-// branch of each ternary was taken without mounting the real header.
+// Stub AppHeader to avoid pulling in vue-router + useAuth; the marker template
+// re-exposes the bound props so the ternary branches can be asserted.
 const AppHeaderStub = {
   name: 'AppHeader',
   props: ['backLabel', 'backRoute', 'showBack'],
@@ -26,8 +24,6 @@ function mountAbout() {
   })
 }
 
-// Restore a clean history state between tests so each case controls the
-// `window.history.state?.back` branch in isolation.
 afterEach(() => {
   window.history.replaceState(null, '', window.location.href)
 })
@@ -40,7 +36,6 @@ describe('AboutAssessments', () => {
       const wrapper = mountAbout()
       const header = wrapper.find('.app-header-stub')
 
-      // hasHistory === false → backLabel "Ga naar home", backRoute "/", showBack false
       expect(header.attributes('data-back-label')).toBe('Ga naar home')
       expect(header.attributes('data-back-route')).toBe('/')
       expect(header.attributes('data-show-back')).toBe('false')
@@ -63,7 +58,6 @@ describe('AboutAssessments', () => {
       const wrapper = mountAbout()
       const header = wrapper.find('.app-header-stub')
 
-      // hasHistory === true → backLabel "Terug", backRoute undefined, showBack true
       expect(header.attributes('data-back-label')).toBe('Terug')
       expect(header.attributes('data-back-route')).toBe('__undefined__')
       expect(header.attributes('data-show-back')).toBe('true')

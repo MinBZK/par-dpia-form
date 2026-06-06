@@ -1,14 +1,9 @@
 /**
  * @vitest-environment jsdom
- *
- * Self-sufficient coverage for src/stores/collaboration.ts.
- * The entire `../../src/api` module is mocked so the store talks to controllable
- * fakes; real Pinia + jsdom drive the rest (timers, visibility, computed getters).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 
-// — API mock ——————————————————————————————————————————————————————————————
 const mockCommentsList = vi.fn()
 const mockCommentsCreate = vi.fn()
 const mockCommentsUpdate = vi.fn()
@@ -37,7 +32,6 @@ vi.mock('../../src/api', () => ({
   SessionExpiredError: FakeSessionExpiredError,
 }))
 
-// — Fixtures ———————————————————————————————————————————————————————————————
 function makeThread(overrides: Record<string, unknown> = {}): any {
   return {
     id: 't1',
@@ -114,7 +108,6 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-// — Computed getters —————————————————————————————————————————————————————————
 describe('computed getters', () => {
   it('groups threads by field and counts unresolved per field + total', async () => {
     const store = await freshStore()
@@ -124,12 +117,10 @@ describe('computed getters', () => {
       makeThread({ id: 't3', fieldId: 'field-b', resolvedAt: '2026-04-12T12:00:00.000Z' }),
     ]
 
-    // threadsByField: field-a hits the `|| []` fallback then the cached list path.
     const byField = store.threadsByField
     expect(byField.get('field-a')).toHaveLength(2)
     expect(byField.get('field-b')).toHaveLength(1)
 
-    // unresolvedCountByField: only unresolved threads counted; field-b is resolved.
     const unresolved = store.unresolvedCountByField
     expect(unresolved.get('field-a')).toBe(2)
     expect(unresolved.has('field-b')).toBe(false)
@@ -145,7 +136,6 @@ describe('computed getters', () => {
   })
 })
 
-// — load() ————————————————————————————————————————————————————————————————
 describe('load()', () => {
   it('populates threads and sync state on success', async () => {
     mockCommentsList.mockResolvedValueOnce(
@@ -185,18 +175,15 @@ describe('load()', () => {
   })
 })
 
-// — pollForUpdates() via startPolling/visibility ————————————————————————————
 describe('pollForUpdates()', () => {
   it('does nothing without an assessmentId (early return)', async () => {
     const store = await freshStore()
-    // startPolling schedules a poll; with no assessmentId the poll bails immediately.
     store.startPolling()
     expect(mockSyncGet).not.toHaveBeenCalled()
     store.stopPolling()
   })
 
   it('skips re-entrant polls while one is already in flight (isPolling guard)', async () => {
-    // First sync call hangs until we release it, so a second concurrent call is a no-op.
     let release: (v: any) => void = () => {}
     const gate = new Promise<any>((r) => { release = r })
     mockSyncGet.mockReturnValueOnce(gate)
@@ -207,14 +194,10 @@ describe('pollForUpdates()', () => {
     store.lastModifiedAt = null
 
     store.startPolling()
-    // Visibility is 'visible' by default in jsdom: dispatching fires the handler → pollForUpdates.
     document.dispatchEvent(new Event('visibilitychange'))
-    // First poll is now gated (awaiting `gate`). A second dispatch must be ignored
-    // by the isPolling guard, so syncApi.get is still only called once.
     document.dispatchEvent(new Event('visibilitychange'))
     expect(mockSyncGet).toHaveBeenCalledTimes(1)
 
-    // Release the first poll so it completes cleanly.
     mockCommentsList.mockResolvedValueOnce(commentsResponse())
     release(syncResponse({ commentCount: 0 }))
     await vi.waitFor(() => expect(store.assessmentVersion).toBe(1))
@@ -223,9 +206,7 @@ describe('pollForUpdates()', () => {
 
 })
 
-// pollForUpdates is not exported; exercise it through the visibility handler which
-// calls it synchronously. We can register the handler via startPolling and dispatch
-// a visibilitychange event.
+// pollForUpdates is not exported; reach it via the visibility handler (registered by startPolling).
 describe('pollForUpdates() via visibility handler', () => {
   function setVisibility(state: 'visible' | 'hidden') {
     Object.defineProperty(document, 'visibilityState', {
@@ -241,7 +222,7 @@ describe('pollForUpdates() via visibility handler', () => {
   it('full refresh replaces threads when commentCount mismatches', async () => {
     const store = await freshStore()
     store.assessmentId = 'assessment-1'
-    store.threads = [makeThread({ replies: [makeReply()] })] // localCommentCount = 2
+    store.threads = [makeThread({ replies: [makeReply()] })]
     store.lastModifiedAt = '2026-04-12T12:00:00.000Z'
 
     mockSyncGet.mockResolvedValueOnce(
@@ -259,7 +240,6 @@ describe('pollForUpdates() via visibility handler', () => {
     expect(store.assessmentUpdatedAt).toBe('U2')
     expect(store.lastModifiedBySelf).toBe(false)
     expect(store.lastModifiedAt).toBe('NEW')
-    // Full refresh uses list without a `since` argument.
     expect(mockCommentsList).toHaveBeenCalledWith('assessment-1')
     store.stopPolling()
   })
@@ -267,7 +247,6 @@ describe('pollForUpdates() via visibility handler', () => {
   it('incremental update merges an existing thread, appends a new thread', async () => {
     const store = await freshStore()
     store.assessmentId = 'assessment-1'
-    // localCommentCount = 1 (one thread, no replies); sync reports same count → incremental.
     store.threads = [makeThread({ id: 't1', body: 'oud', replies: [] })]
     store.lastModifiedAt = '2026-04-12T12:00:00.000Z'
 
@@ -275,9 +254,7 @@ describe('pollForUpdates() via visibility handler', () => {
     mockCommentsList.mockResolvedValueOnce(
       commentsResponse({
         comments: [
-          // existing thread (idx >= 0) — merged, keeping local replies
           makeThread({ id: 't1', body: 'bijgewerkt', replies: undefined }),
-          // brand new thread (idx < 0) — pushed; replies undefined → `|| []`
           makeThread({ id: 't2', body: 'nieuw', replies: undefined }),
         ],
         lastModifiedAt: 'INC',
@@ -290,10 +267,9 @@ describe('pollForUpdates() via visibility handler', () => {
 
     const t1 = store.threads.find((t) => t.id === 't1')!
     expect(t1.body).toBe('bijgewerkt')
-    expect(t1.replies).toEqual([]) // local replies preserved
+    expect(t1.replies).toEqual([])
     const t2 = store.threads.find((t) => t.id === 't2')!
-    expect(t2.replies).toEqual([]) // `|| []` fallback applied
-    // Incremental refresh uses the `since` argument (lastModifiedAt ?? undefined).
+    expect(t2.replies).toEqual([])
     expect(mockCommentsList).toHaveBeenCalledWith('assessment-1', '2026-04-12T12:00:00.000Z')
     expect(store.lastModifiedAt).toBe('INC')
     store.stopPolling()
@@ -302,8 +278,8 @@ describe('pollForUpdates() via visibility handler', () => {
   it('incremental update pushes new thread with provided replies (replies truthy branch)', async () => {
     const store = await freshStore()
     store.assessmentId = 'assessment-1'
-    store.threads = [makeThread({ id: 't1', replies: [] })] // count 1
-    store.lastModifiedAt = null // exercise the `?? undefined` right-hand branch
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
 
     mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
     const incomingReplies = [makeReply({ id: 'r9' })]
@@ -324,7 +300,6 @@ describe('pollForUpdates() via visibility handler', () => {
   it('incremental update applies a reply: existing reply updated and new reply appended', async () => {
     const store = await freshStore()
     store.assessmentId = 'assessment-1'
-    // localCommentCount = 1 thread + 1 reply = 2
     store.threads = [makeThread({ id: 'parent', replies: [makeReply({ id: 'r1', body: 'oud' })] })]
     store.lastModifiedAt = 't0'
 
@@ -332,11 +307,8 @@ describe('pollForUpdates() via visibility handler', () => {
     mockCommentsList.mockResolvedValueOnce(
       commentsResponse({
         comments: [
-          // existing reply (replyIdx >= 0) — replaced
           makeReply({ id: 'r1', parentId: 'parent', body: 'nieuw' }),
-          // new reply (replyIdx < 0) — appended
           makeReply({ id: 'r2', parentId: 'parent', body: 'extra' }),
-          // reply whose parent is missing — `if (parent)` false branch
           makeReply({ id: 'rX', parentId: 'onbekend', body: 'wees' }),
         ],
       }),
@@ -351,14 +323,14 @@ describe('pollForUpdates() via visibility handler', () => {
     const parent = store.threads[0]
     expect(parent.replies.find((r) => r.id === 'r1')!.body).toBe('nieuw')
     expect(parent.replies.find((r) => r.id === 'r2')!.body).toBe('extra')
-    expect(parent.replies.some((r) => r.id === 'rX')).toBe(false) // orphan reply ignored
+    expect(parent.replies.some((r) => r.id === 'rX')).toBe(false)
     store.stopPolling()
   })
 
   it('does not iterate when incremental response has no comments (length 0 branch)', async () => {
     const store = await freshStore()
     store.assessmentId = 'assessment-1'
-    store.threads = [makeThread({ id: 't1', replies: [] })] // count 1
+    store.threads = [makeThread({ id: 't1', replies: [] })]
     store.lastModifiedAt = 't0'
 
     mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1, version: 7 }))
@@ -383,13 +355,11 @@ describe('pollForUpdates() via visibility handler', () => {
 
     store.startPolling()
     document.dispatchEvent(new Event('visibilitychange'))
-    // After the error path runs, stopPolling() clears the timer/handler. We assert the
-    // sync mock was called exactly once and a later dispatch does not poll again.
     await vi.waitFor(() => expect(mockSyncGet).toHaveBeenCalledTimes(1))
 
     mockSyncGet.mockClear()
     document.dispatchEvent(new Event('visibilitychange'))
-    expect(mockSyncGet).not.toHaveBeenCalled() // handler was removed by stopPolling()
+    expect(mockSyncGet).not.toHaveBeenCalled()
   })
 
   it('silently ignores non-session poll errors', async () => {
@@ -404,7 +374,6 @@ describe('pollForUpdates() via visibility handler', () => {
     document.dispatchEvent(new Event('visibilitychange'))
     await vi.waitFor(() => expect(mockSyncGet).toHaveBeenCalledTimes(1))
 
-    // Error swallowed: no exception bubbled, error state untouched, handler still active.
     expect(store.error).toBeNull()
     mockSyncGet.mockResolvedValueOnce(syncResponse())
     mockCommentsList.mockResolvedValueOnce(commentsResponse())
@@ -426,7 +395,6 @@ describe('pollForUpdates() via visibility handler', () => {
   })
 })
 
-// — schedulePoll() visibility branches via fake timers ————————————————————————
 describe('schedulePoll() timer loop', () => {
   function setVisibility(state: 'visible' | 'hidden') {
     Object.defineProperty(document, 'visibilityState', {
@@ -446,7 +414,7 @@ describe('schedulePoll() timer loop', () => {
     vi.useFakeTimers()
     setVisibility('visible')
     store.startPolling()
-    await vi.advanceTimersByTimeAsync(10_000) // first scheduled tick → polls
+    await vi.advanceTimersByTimeAsync(10_000)
     expect(mockSyncGet.mock.calls.length).toBeGreaterThanOrEqual(1)
     store.stopPolling()
     vi.useRealTimers()
@@ -459,9 +427,8 @@ describe('schedulePoll() timer loop', () => {
     vi.useFakeTimers()
     setVisibility('hidden')
     store.startPolling()
-    await vi.advanceTimersByTimeAsync(10_000) // tick fires schedulePoll, visibility hidden → no poll
+    await vi.advanceTimersByTimeAsync(10_000)
     expect(mockSyncGet).not.toHaveBeenCalled()
-    // The next timer is still armed (recursive setTimeout); advancing again is harmless.
     await vi.advanceTimersByTimeAsync(10_000)
     expect(mockSyncGet).not.toHaveBeenCalled()
     store.stopPolling()
@@ -469,21 +436,16 @@ describe('schedulePoll() timer loop', () => {
   })
 })
 
-// — startPolling()/stopPolling() ————————————————————————————————————————————
 describe('startPolling()/stopPolling()', () => {
   it('startPolling first calls stopPolling (timer/handler null branch) then arms anew', async () => {
     const store = await freshStore()
-    // No prior timer/handler: stopPolling() hits the null branches harmlessly.
     store.startPolling()
-    // Calling again exercises the non-null cleanup branches of stopPolling().
     store.startPolling()
     store.stopPolling()
-    // Second stop hits the null branches again — should be a no-op without throwing.
     expect(() => store.stopPolling()).not.toThrow()
   })
 })
 
-// — createComment() —————————————————————————————————————————————————————————
 describe('createComment()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -516,7 +478,6 @@ describe('createComment()', () => {
   })
 })
 
-// — createReply() ———————————————————————————————————————————————————————————
 describe('createReply()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -566,7 +527,6 @@ describe('createReply()', () => {
   })
 })
 
-// — updateComment() —————————————————————————————————————————————————————————
 describe('updateComment()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -612,7 +572,6 @@ describe('updateComment()', () => {
   })
 })
 
-// — deleteComment() —————————————————————————————————————————————————————————
 describe('deleteComment()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -657,7 +616,6 @@ describe('deleteComment()', () => {
   })
 })
 
-// — resolveThread() —————————————————————————————————————————————————————————
 describe('resolveThread()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -689,7 +647,6 @@ describe('resolveThread()', () => {
   })
 })
 
-// — reopenThread() ——————————————————————————————————————————————————————————
 describe('reopenThread()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -721,7 +678,6 @@ describe('reopenThread()', () => {
   })
 })
 
-// — reset() ————————————————————————————————————————————————————————————————
 describe('reset()', () => {
   it('clears every field and stops polling', async () => {
     const store = await freshStore()
@@ -734,7 +690,7 @@ describe('reset()', () => {
     store.currentUserId = 'user-1'
     store.loading = true
     store.error = 'boem'
-    store.startPolling() // ensures stopPolling() inside reset has something to clear
+    store.startPolling()
 
     store.reset()
 

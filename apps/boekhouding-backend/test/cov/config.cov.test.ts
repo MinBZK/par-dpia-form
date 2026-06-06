@@ -1,15 +1,9 @@
-// Unit coverage for src/config.ts.
-//
-// config.ts reads process.env at module-evaluation time and derives a frozen
-// config object plus a parseCorsOrigin() branch. Because all logic runs at
-// import, we exercise every branch (every `||` fallback, the CORS ternary, and
-// the filter(Boolean) empty-segment drop) by setting env vars and re-importing
-// the module via vi.resetModules() + dynamic import().
+// config.ts runs all logic at module-evaluation, so each case sets env vars and
+// re-imports via vi.resetModules() + dynamic import() to re-trigger evaluation.
 import { describe, it, expect, beforeEach, afterAll } from 'vitest'
 import { vi } from 'vitest'
 
-// Env keys config.ts inspects. We snapshot and restore them so other test
-// files (and setup.ts's values) are unaffected.
+// Snapshot/restore these so we don't pollute env for other test files (setup.ts).
 const ENV_KEYS = [
   'OIDC_URL',
   'OIDC_INTERNAL_URL',
@@ -40,7 +34,6 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  // Restore the env exactly as setup.ts left it for any later-importing module.
   for (const key of ENV_KEYS) {
     if (originalEnv[key] === undefined) delete process.env[key]
     else process.env[key] = originalEnv[key]!
@@ -56,10 +49,8 @@ describe('config — defaults when no env vars are set', () => {
     expect(config.databaseUrl).toBe(
       'postgresql://parassessment:parassessment@localhost:5432/parassessment',
     )
-    // CORS_ORIGIN and PUBLIC_HOST unset -> final string literal fallback.
     expect(config.cors.origin).toBe('http://localhost:5174')
     expect(config.cors.credentials).toBe(true)
-    // OIDC_URL default + OIDC_REALM default. OIDC_INTERNAL_URL unset -> oidcUrl.
     expect(config.keycloak.issuer).toBe('http://localhost:8080/realms/assessment-boekhouding')
     expect(config.keycloak.jwksUri).toBe(
       'http://localhost:8080/realms/assessment-boekhouding/protocol/openid-connect/certs',
@@ -98,7 +89,6 @@ describe('config — OIDC URL derivation', () => {
     const config = await loadConfig()
 
     expect(config.keycloak.issuer).toBe('https://login.example.com/realms/my-realm')
-    // OIDC_INTERNAL_URL unset -> jwksUri derives from oidcUrl.
     expect(config.keycloak.jwksUri).toBe(
       'https://login.example.com/realms/my-realm/protocol/openid-connect/certs',
     )
@@ -151,7 +141,6 @@ describe('config — parseCorsOrigin', () => {
   })
 
   it('uses PUBLIC_HOST as a comma-separated list when CORS_ORIGIN is unset', async () => {
-    // Exercises the comma branch fed by the PUBLIC_HOST fallback.
     process.env.PUBLIC_HOST = 'https://one.example.com,https://two.example.com'
     const config = await loadConfig()
     expect(config.cors.origin).toEqual([

@@ -1,17 +1,8 @@
 /**
  * @vitest-environment jsdom
- *
- * Self-sufficient coverage test for src/composables/useAuth.ts.
- * Exercises every statement, branch, function and line: the SessionExpiredError
- * class, the isAuthenticated computed (including the keycloak-undefined
- * short-circuit), init() (early return + authenticated/unauthenticated paths +
- * every profile-fallback branch), the refreshOrExpire success/failure paths,
- * login(), getToken() (all three branches), relogin() and logout() (interval
- * set + not-set).
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Mutable keycloak mock — every test resets the relevant fields in beforeEach.
 const mockKeycloak = {
   init: vi.fn().mockResolvedValue(true),
   login: vi.fn().mockResolvedValue(undefined),
@@ -25,7 +16,7 @@ const mockKeycloak = {
   onAuthRefreshError: null as (() => void) | null,
 }
 
-// Keycloak default export is a class — mock it as a constructor.
+// Keycloak's default export is a class, so the mock must be a constructor.
 vi.mock('keycloak-js', () => ({
   default: function MockKeycloak() {
     return mockKeycloak
@@ -50,7 +41,6 @@ beforeEach(async () => {
   useAuth = mod.useAuth
   SessionExpiredError = mod.SessionExpiredError
 
-  // Reset mock to a fully-authenticated baseline with a complete profile.
   mockKeycloak.authenticated = true
   mockKeycloak.token = 'mock-access-token'
   mockKeycloak.subject = 'user-123'
@@ -85,7 +75,6 @@ describe('SessionExpiredError', () => {
 describe('isAuthenticated computed', () => {
   it('is false before init() because keycloak is undefined (optional chaining short-circuit)', () => {
     const { isAuthenticated } = useAuth()
-    // keycloak has not been assigned yet → keycloak?.authenticated is undefined.
     expect(isAuthenticated.value).toBe(false)
   })
 
@@ -174,7 +163,6 @@ describe('init()', () => {
     mockKeycloak.init.mockClear()
     await init()
 
-    // The guard returns before constructing/initialising Keycloak again.
     expect(mockKeycloak.init).not.toHaveBeenCalled()
   })
 })
@@ -187,8 +175,7 @@ describe('refreshOrExpire (onTokenExpired callback)', () => {
     mockKeycloak.updateToken.mockClear()
     mockKeycloak.updateToken.mockResolvedValueOnce(true)
     mockKeycloak.onTokenExpired!()
-    // Flush the microtask queue (the .catch() handler) without advancing the
-    // background setInterval, which would otherwise loop forever.
+    // Flush the .catch() microtask without advancing the background setInterval (it never stops).
     await Promise.resolve()
 
     expect(mockKeycloak.updateToken).toHaveBeenCalledWith(70)
@@ -289,7 +276,6 @@ describe('logout()', () => {
       redirectUri: window.location.origin,
     })
 
-    // A subsequent logout finds refreshInterval already null and skips the clear.
     clearSpy.mockClear()
     await logout()
     expect(clearSpy).not.toHaveBeenCalled()

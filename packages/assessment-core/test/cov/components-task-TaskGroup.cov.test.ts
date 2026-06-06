@@ -7,9 +7,7 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
 import { FormType, type Task } from '../../src/models/dpia'
 
-// FormField pulls in markdown/image rendering and many composables that are
-// irrelevant to TaskGroup's own logic, so stub it to a marker element that
-// still surfaces the props TaskGroup passes (task id / instanceId) for asserts.
+// Stub FormField to a marker element exposing the props TaskGroup passes.
 const FormFieldStub = {
   name: 'FormField',
   props: ['task', 'instanceId', 'label', 'description'],
@@ -17,9 +15,8 @@ const FormFieldStub = {
     '<div class="form-field-stub" :data-instance="instanceId" :data-task="task && task.id" :data-label="label" :data-description="description"></div>',
 }
 
-// ConfirmDeleteDialog uses native <dialog>.showModal which jsdom lacks; replace
-// with a lightweight stub that re-emits confirm/cancel so we can drive
-// confirmPendingDelete / cancelPendingDelete from the parent.
+// ConfirmDeleteDialog uses native <dialog>.showModal which jsdom lacks; stub it
+// to re-emit confirm/cancel.
 const ConfirmDeleteDialogStub = {
   name: 'ConfirmDeleteDialog',
   props: ['open', 'label', 'summary'],
@@ -31,11 +28,6 @@ const ConfirmDeleteDialogStub = {
     '</div>',
 }
 
-// Track every mounted wrapper so we can unmount and flush pending microtasks
-// after each test. runDelete() schedules `nextTick(() => syncInstances())`;
-// if that callback fired after the test ended (and after the istanbul
-// coverage provider began writing its temp files) it surfaced as an unhandled
-// rejection. Flushing here keeps each test self-contained.
 const mounted: ReturnType<typeof mount>[] = []
 
 function mountGroup(taskId: string, instanceId: string) {
@@ -53,16 +45,13 @@ function mountGroup(taskId: string, instanceId: string) {
 }
 
 afterEach(async () => {
-  // Drain any queued nextTick(() => syncInstances()) callbacks (scheduled by
-  // runDelete) BEFORE unmounting, while the pinia stores are still active, so
-  // nothing rejects during teardown. Flush both the Vue microtask queue and a
-  // macrotask turn to be safe under the (timing-sensitive) coverage provider.
+  // Drain runDelete's queued nextTick(() => syncInstances()) BEFORE unmounting,
+  // while pinia is still active, or it rejects during coverage teardown.
   await nextTick()
   await new Promise<void>((resolve) => setTimeout(resolve, 0))
   while (mounted.length) mounted.pop()!.unmount()
 })
 
-// Find a UiButton-rendered <button> by visible label text.
 function buttonByLabel(wrapper: ReturnType<typeof mountGroup>, text: string) {
   return wrapper.findAll('button').find((b) => b.text().includes(text))
 }
@@ -78,15 +67,6 @@ beforeEach(() => {
   answerStore.setActiveNamespace(FormType.DPIA)
 })
 
-/**
- * A rich tree that exercises both simple and complex children under a
- * repeatable parent group:
- *   2 (root, repeatable group)
- *     2.1  simple non-repeatable text field
- *     2.2  simple repeatable text field (with item_name)
- *     2.3  complex non-repeatable group  → 2.3.1 text
- *     2.4  complex repeatable group (no item_name) → 2.4.1 text
- */
 const richTree: Task[] = [
   {
     id: '2',
@@ -128,8 +108,6 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
 
   it('renders the instance label from the template (isRepeatable true branch + template path)', () => {
     const w = mountGroup('2', '2[0]')
-    // instance_label_template wins over the fallback; "{index}" stays literal
-    // because there is no mappedFromInstanceId on the instance.
     expect(w.find('legend').text()).toBe('Gegeven {index}')
   })
 
@@ -145,13 +123,11 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
     const w = mountGroup('2', '2[0]')
     const field = w.findAll('.form-field-stub').find((f) => f.attributes('data-task') === '2.2')
     expect(field).toBeTruthy()
-    // Add button uses item_name: "Voeg extra categorie toe"
     expect(buttonByLabel(w, 'Voeg extra categorie toe')).toBeTruthy()
   })
 
   it('renders a nested TaskGroup for the complex non-repeatable child', () => {
     const w = mountGroup('2', '2[0]')
-    // The nested group renders its own legend + the 2.3.1 FormField.
     const nestedField = w
       .findAll('.form-field-stub')
       .find((f) => f.attributes('data-task') === '2.3.1')
@@ -164,29 +140,24 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
       .findAll('.form-field-stub')
       .find((f) => f.attributes('data-task') === '2.4.1')
     expect(nestedField).toBeTruthy()
-    // 2.4 has no item_name, so the add label falls back to the plain task text.
     expect(buttonByLabel(w, 'Voeg extra ontvanger toe')).toBeTruthy()
   })
 })
 
 describe('TaskGroup add-button click handlers and item_name fallbacks', () => {
-  // Simple repeatable WITHOUT item_name (fallback label branch) and complex
-  // repeatable WITH item_name (item_name branch). Clicking each add button
-  // exercises the inline addRepeatableTaskInstance handlers.
   const tree: Task[] = [
     {
       id: '2',
       task: 'Groep',
       type: ['task_group'],
       tasks: [
-        // No item_name → label falls back to plain task text.
         { id: '2.1', task: 'Categorie', type: ['text_input'], repeatable: true },
         {
           id: '2.2',
           task: 'Ontvanger',
           type: ['task_group'],
           repeatable: true,
-          item_name: 'ontvanger', // item_name branch on the complex add button
+          item_name: 'ontvanger',
           tasks: [{ id: '2.2.1', task: 'Naam', type: ['text_input'] }],
         },
       ],
@@ -199,7 +170,6 @@ describe('TaskGroup add-button click handlers and item_name fallbacks', () => {
 
   it('simple repeatable add button uses the lowercased task text when item_name is absent', () => {
     const w = mountGroup('2', '2')
-    // Fallback: getPlainTextWithoutDefinitions("categorie") → "categorie".
     expect(buttonByLabel(w, 'Voeg extra categorie toe')).toBeTruthy()
   })
 
@@ -233,7 +203,6 @@ describe('TaskGroup non-repeatable parent (isRepeatable false / fallback label)'
     taskStore.init(tree, true)
     const w = mountGroup('3', '3')
     expect(w.find('legend').text()).toBe('Beoordeling')
-    // Not repeatable → the final "Verwijder ..." parent delete button is absent.
     expect(buttonByLabel(w, 'Verwijder')).toBeUndefined()
   })
 
@@ -254,8 +223,6 @@ describe('TaskGroup non-repeatable parent (isRepeatable false / fallback label)'
 })
 
 describe('TaskGroup missingSourceMessage', () => {
-  // A repeatable target group mapped from a source field. When the source
-  // answer is empty, a warning message replaces the form body.
   const mappingTree: Task[] = [
     {
       id: '3',
@@ -285,7 +252,6 @@ describe('TaskGroup missingSourceMessage', () => {
 
   it('shows the warning message when the mapped source answer is still empty', async () => {
     taskStore.init(mappingTree, true)
-    // Map instance 6[0] to source instance 3.1[0]; leave 3.1[0] empty.
     taskStore.setInstanceMappingSource('6[0]', '3.1[0]')
     const w = mountGroup('6', '6[0]')
     await nextTick()
@@ -294,7 +260,6 @@ describe('TaskGroup missingSourceMessage', () => {
     expect(alert.find('.rvo-alert-text').text()).toContain(
       'Vul eerst "Verwerkingsnaam" in bij sectie "3. Verwerkingen".',
     )
-    // Form body is hidden while the warning is shown.
     expect(w.find('.form-field-stub').exists()).toBe(false)
   })
 
@@ -315,7 +280,6 @@ describe('TaskGroup missingSourceMessage', () => {
         task: 'Beveiliging',
         type: ['task_group'],
         repeatable: true,
-        // instance_mapping with no source → mappingDep.source?.id is undefined.
         dependencies: [{ type: 'instance_mapping', action: 'create' }],
         tasks: [{ id: '6.1', task: 'Maatregel', type: ['text_input'] }],
       },
@@ -327,7 +291,6 @@ describe('TaskGroup missingSourceMessage', () => {
 
   it('returns null when the instance is not mapped to a source (no mappedFromInstanceId)', () => {
     taskStore.init(mappingTree, true)
-    // 6[0] has the mapping dependency but was never wired to a source instance.
     const w = mountGroup('6', '6[0]')
     expect(w.find('.rvo-alert--warning').exists()).toBe(false)
   })
@@ -346,14 +309,12 @@ describe('TaskGroup repeatable simple field: delete button visibility', () => {
   it('hides the per-instance delete button when only one instance exists', () => {
     taskStore.init(simpleRepeatableTree, true)
     const w = mountGroup('2', '2')
-    // Only the add button should be present, not "Verwijder veld".
     expect(buttonByLabel(w, 'Verwijder veld')).toBeUndefined()
     expect(buttonByLabel(w, 'Voeg extra')).toBeTruthy()
   })
 
   it('shows a delete button per repeatable instance once more than one exists', async () => {
     taskStore.init(simpleRepeatableTree, true)
-    // Add a second instance of 2.1 under the parent instance "2".
     taskStore.addRepeatableTaskInstance('2.1', '2')
     const w = mountGroup('2', '2')
     await nextTick()
@@ -383,9 +344,7 @@ describe('TaskGroup delete flow without impacted answers (runDelete direct path)
     await deleteButton.trigger('click')
     await nextTick()
 
-    // No confirm dialog appears (impacted.length === 0 → runDelete).
     expect(w.find('.confirm-delete-stub').exists()).toBe(false)
-    // One instance was removed.
     expect(taskStore.getInstanceIdsForTask('2.1', '2')).toEqual(['2.1[0]'])
   })
 })
@@ -424,7 +383,6 @@ describe('TaskGroup parent-instance delete button (isRepeatable && canCreate && 
     taskStore.addRepeatableTaskInstance('2')
     const w = mountGroup('2', '2[0]')
     await nextTick()
-    // No item_name → label uses lowercased plain text "persoonsgegeven".
     expect(buttonByLabel(w, 'Verwijder persoonsgegeven')).toBeTruthy()
   })
 
@@ -436,8 +394,6 @@ describe('TaskGroup parent-instance delete button (isRepeatable && canCreate && 
 })
 
 describe('TaskGroup delete flow WITH impacted answers (confirm dialog)', () => {
-  // Deleting a repeatable group instance whose own answers are filled produces
-  // impacted answers → the ConfirmDeleteDialog is shown.
   const tree: Task[] = [
     {
       id: '2',
@@ -453,7 +409,6 @@ describe('TaskGroup delete flow WITH impacted answers (confirm dialog)', () => {
   beforeEach(() => {
     taskStore.init(tree, true)
     taskStore.addRepeatableTaskInstance('2')
-    // Fill answers in instance [1] so deleting it has an impact footprint.
     answerStore.setAnswer('2.1[1]', 'Emailadres')
   })
 
@@ -465,7 +420,6 @@ describe('TaskGroup delete flow WITH impacted answers (confirm dialog)', () => {
     await nextTick()
     const dialog = w.find('.confirm-delete-stub')
     expect(dialog.exists()).toBe(true)
-    // labelTemplate present → renderInstanceLabel used (HTML tags stripped).
     expect(dialog.attributes('data-label')).toBe('Gegeven {index}')
   })
 
@@ -492,14 +446,11 @@ describe('TaskGroup delete flow WITH impacted answers (confirm dialog)', () => {
     await w.find('.stub-cancel').trigger('click')
     await nextTick()
     expect(w.find('.confirm-delete-stub').exists()).toBe(false)
-    // Instance still present — nothing was deleted.
     expect(taskStore.getInstanceById('2[1]')).not.toBeNull()
   })
 })
 
 describe('TaskGroup handleDelete label fallback when target instance/template missing', () => {
-  // A repeatable group WITHOUT instance_label_template, with impacted answers,
-  // exercises the `labelTemplate ? ... : getPlainTextWithoutDefinitions` else.
   const tree: Task[] = [
     {
       id: '2',
@@ -520,7 +471,6 @@ describe('TaskGroup handleDelete label fallback when target instance/template mi
     await nextTick()
     const dialog = w.find('.confirm-delete-stub')
     expect(dialog.exists()).toBe(true)
-    // getPlainTextWithoutDefinitions strips <b>, .replace strips any remaining tags.
     expect(dialog.attributes('data-label')).toBe('Persoonsgegeven')
   })
 })
@@ -537,17 +487,12 @@ describe('TaskGroup confirmPendingDelete early return guard', () => {
     ]
     taskStore.init(tree, true)
     const w = mountGroup('2', '2')
-    // pendingDelete is null; calling confirm must be a no-op (no throw).
     const vm = w.vm as unknown as { confirmPendingDelete: () => void }
     expect(() => vm.confirmPendingDelete()).not.toThrow()
   })
 })
 
 describe('TaskGroup hasMoreThanOneInstance via child without explicit parentInstanceId', () => {
-  // When the per-child delete button calls hasMoreThanOneInstance(childId,
-  // props.instanceId), parentInstanceId is provided. The parent delete button
-  // calls hasMoreThanOneInstance(taskId) with NO parentInstanceId, exercising
-  // the `!parentInstanceId` branch which looks up the current instance's parent.
   it('resolves the parent from the current instance when parentInstanceId is omitted', async () => {
     const tree: Task[] = [
       {
@@ -567,10 +512,7 @@ describe('TaskGroup hasMoreThanOneInstance via child without explicit parentInst
       },
     ]
     taskStore.init(tree, true)
-    // Add a second instance of the repeatable sub-group under 2.1's parent (2).
     taskStore.addRepeatableTaskInstance('2.1', '2')
-    // Mount the nested repeatable group instance directly so its own parent
-    // delete button evaluates hasMoreThanOneInstance('2.1') without an arg.
     const w = mountGroup('2.1', '2.1[0]')
     await nextTick()
     expect(buttonByLabel(w, 'Verwijder sub')).toBeTruthy()
@@ -578,8 +520,6 @@ describe('TaskGroup hasMoreThanOneInstance via child without explicit parentInst
 })
 
 describe('TaskGroup complex repeatable add button hidden when no visible instance', () => {
-  // hasVisibleInstance returns false when a conditional dependency hides every
-  // instance → the complex-repeatable add button is not rendered.
   const tree: Task[] = [
     {
       id: '2',
@@ -608,7 +548,6 @@ describe('TaskGroup complex repeatable add button hidden when no visible instanc
 
   it('hides both the nested group and its add button while the condition is unmet', async () => {
     taskStore.init(tree, true)
-    // Condition 2.0 is unset → shouldShowTask is false for 2.1 instances.
     const w = mountGroup('2', '2')
     await nextTick()
     expect(w.findAll('.form-field-stub').find((f) => f.attributes('data-task') === '2.1.1')).toBeFalsy()
@@ -656,7 +595,6 @@ describe('TaskGroup simple repeatable field hidden by condition (shouldShowTask 
     taskStore.init(tree, true)
     const w = mountGroup('2', '2')
     await nextTick()
-    // Field hidden, but the add button (canUserCreateInstances) still renders.
     expect(w.findAll('.form-field-stub').find((f) => f.attributes('data-task') === '2.1')).toBeFalsy()
   })
 })
@@ -728,8 +666,6 @@ describe('TaskGroup hasVisibleInstance returns false when no instances exist (le
       },
     ]
     taskStore.init(tree, true)
-    // Remove the only instance so getInstanceIdsForTask('2.1', '2') is empty,
-    // forcing hasVisibleInstance to hit the `length === 0 → return false` path.
     taskStore.removeRepeatableTaskInstance('2.1[0]')
     expect(taskStore.getInstanceIdsForTask('2.1', '2')).toEqual([])
 
@@ -751,8 +687,8 @@ describe('TaskGroup handleDelete with a missing target instance (targetTask null
       },
     ]
     taskStore.init(tree, true)
-    // Phantom answer on an instance id that has no registered TaskInstance, so
-    // findImpactedByDelete reports an impact but getInstanceById returns null.
+    // Answer on an instance id with no registered TaskInstance: an impact is
+    // reported but getInstanceById returns null.
     answerStore.setAnswer('2[5]', 'Weesantwoord')
 
     const w = mountGroup('2', '2[0]')
@@ -762,12 +698,8 @@ describe('TaskGroup handleDelete with a missing target instance (targetTask null
 
     const dialog = w.find('.confirm-delete-stub')
     expect(dialog.exists()).toBe(true)
-    // labelTemplate is undefined (targetTask null) → plain text of task.task.
     expect(dialog.attributes('data-label')).toBe('Persoonsgegeven')
 
-    // Confirming runs runDelete('2[5]') → collectInstanceIds('2[5]'); since no
-    // TaskInstance exists for that id, the `!instance → return [instanceId]`
-    // guard fires and the phantom answer is removed.
     await w.find('.stub-confirm').trigger('click')
     await nextTick()
     expect(w.find('.confirm-delete-stub').exists()).toBe(false)
@@ -796,8 +728,6 @@ describe('TaskGroup collectInstanceIds recurses through child instances on delet
     ]
     taskStore.init(tree, true)
     taskStore.addRepeatableTaskInstance('2')
-    // Fill a nested answer in the [1] subtree so handleDelete sees an impact and
-    // confirmPendingDelete → runDelete → collectInstanceIds walks children.
     answerStore.setAnswer('2.1.1[1]', 'Naamwaarde')
     expect(answerStore.getAnswer('2.1.1[1]')).toBe('Naamwaarde')
 
@@ -810,7 +740,6 @@ describe('TaskGroup collectInstanceIds recurses through child instances on delet
 
     expect(taskStore.getInstanceById('2[1]')).toBeNull()
     expect(taskStore.getInstanceById('2.1.1[1]')).toBeNull()
-    // The nested answer was removed via removeAnswerForInstances(collectInstanceIds).
     expect(answerStore.getAnswer('2.1.1[1]')).toBeNull()
   })
 })

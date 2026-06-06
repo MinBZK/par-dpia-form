@@ -27,7 +27,6 @@ describe('parseInstanceId', () => {
   })
 
   it('does not match a non-numeric index suffix', () => {
-    // Brackets with non-digits do not match the regex, so the whole string is the taskId.
     expect(parseInstanceId('2.1.3[abc]')).toEqual({ taskId: '2.1.3[abc]' })
   })
 

@@ -3,17 +3,16 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useSchemaStore } from '../../src/stores/schemas'
 import { FormType } from '../../src/models/dpia'
 
-// Build a valid DPIA schema object that io-ts (DPIA codec) will accept.
 function buildSchema(opts: {
   urn?: string
   version?: string
   tasks?: any[]
 } = {}) {
   return {
-    name: 'Test schema',
-    urn: opts.urn ?? 'urn:nl:test',
-    version: opts.version ?? '1.0',
-    description: 'Test',
+    name: 'DPIA-assessment',
+    urn: opts.urn ?? 'urn:nl:dpia',
+    version: opts.version ?? '3.0',
+    description: 'Verwerking persoonsgegevens',
     tasks: opts.tasks ?? [],
   }
 }
@@ -23,7 +22,6 @@ describe('useSchemaStore', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia())
-    // Silence (and capture) the console.error calls on validation/error paths.
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
   })
 
@@ -44,7 +42,6 @@ describe('useSchemaStore', () => {
       expect(store.hasErrors).toBe(false)
       expect(store.errorMessage).toBeNull()
 
-      // DPIA conclusion task appended ("Afronding") at index equal to original length (0).
       const dpiaSchema = store.getSchema(FormType.DPIA)!
       expect(dpiaSchema.tasks).toHaveLength(1)
       expect(dpiaSchema.tasks[0].task).toBe('Afronding')
@@ -52,7 +49,6 @@ describe('useSchemaStore', () => {
       expect(dpiaSchema.tasks[0].type).toContain('signing')
       expect(dpiaSchema.tasks[0].description).toContain('alle stappen')
 
-      // Pre-scan conclusion task appended ("Resultaat pre-scan") with no description.
       const preScanSchema = store.getSchema(FormType.PRE_SCAN)!
       expect(preScanSchema.tasks).toHaveLength(1)
       expect(preScanSchema.tasks[0].task).toBe('Resultaat pre-scan')
@@ -69,12 +65,10 @@ describe('useSchemaStore', () => {
 
       const dpiaBefore = store.getSchema(FormType.DPIA)
 
-      // Second init with garbage would normally set hasErrors; early return prevents it.
       store.init({ dpia: { not: 'valid' }, preScan: { also: 'invalid' } })
 
       expect(store.hasErrors).toBe(false)
       expect(store.errorMessage).toBeNull()
-      // Schema is unchanged (same object reference, not reprocessed).
       expect(store.getSchema(FormType.DPIA)).toBe(dpiaBefore)
     })
 
@@ -90,7 +84,6 @@ describe('useSchemaStore', () => {
       store.init({ dpia, preScan: buildSchema() })
 
       const dpiaSchema = store.getSchema(FormType.DPIA)!
-      // Still only the original task; no extra "Afronding" task was pushed.
       expect(dpiaSchema.tasks).toHaveLength(1)
       expect(dpiaSchema.tasks[0].task).toBe('Sign here')
     })
@@ -98,11 +91,9 @@ describe('useSchemaStore', () => {
     it('marks initialized when only one schema is valid (dpiaSuccess || preScanSuccess)', () => {
       const store = useSchemaStore()
 
-      // dpia invalid (fails decode), preScan valid.
       store.init({ dpia: { missing: 'fields' }, preScan: buildSchema() })
 
       expect(store.isInitialized).toBe(true)
-      // The failed schema is not stored.
       expect(store.getSchema(FormType.DPIA)).toBeNull()
       expect(store.getSchema(FormType.PRE_SCAN)).not.toBeNull()
     })
@@ -121,11 +112,9 @@ describe('useSchemaStore', () => {
     it('resets error state on each init call', () => {
       const store = useSchemaStore()
 
-      // First init: both invalid -> hasErrors true. Not initialized, so init can run again.
       store.init({ dpia: { bad: true }, preScan: { bad: true } })
       expect(store.hasErrors).toBe(true)
 
-      // Second init with valid schemas resets the error state.
       store.init({ dpia: buildSchema(), preScan: buildSchema() })
       expect(store.hasErrors).toBe(false)
       expect(store.errorMessage).toBeNull()
@@ -137,21 +126,17 @@ describe('useSchemaStore', () => {
     it('captures an Error thrown during decode and uses its message', () => {
       const store = useSchemaStore()
 
-      // A getter that throws when io-ts reads the property triggers the catch block.
-      // `tasks` is accessed during validation; throwing an Error exercises the
-      // `error instanceof Error` true branch.
+      // Throwing getter on `tasks` (read during decode) triggers processSchema's catch.
       const exploding = {
-        name: 'x',
-        urn: 'urn:nl:test',
-        version: '1.0',
-        description: 'd',
+        name: 'DPIA-assessment',
+        urn: 'urn:nl:dpia',
+        version: '3.0',
+        description: 'Verwerking persoonsgegevens',
         get tasks(): never {
           throw new Error('boom from getter')
         },
       }
 
-      // preScan is valid so init does not early-return on a prior success;
-      // here both go through processSchema and dpia throws.
       store.init({ dpia: exploding, preScan: buildSchema() })
 
       expect(store.hasErrors).toBe(true)
@@ -166,10 +151,10 @@ describe('useSchemaStore', () => {
       const store = useSchemaStore()
 
       const exploding = {
-        name: 'x',
-        urn: 'urn:nl:test',
-        version: '1.0',
-        description: 'd',
+        name: 'Pre-scan',
+        urn: 'urn:nl:prescan',
+        version: '2.0',
+        description: 'Voorafgaande toets',
         get tasks(): never {
           // eslint-disable-next-line no-throw-literal
           throw 'plain string failure'

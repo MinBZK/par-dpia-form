@@ -7,9 +7,7 @@ import { mount } from '@vue/test-utils'
 
 import AccessibilityStatement from '../../src/views/AccessibilityStatement.vue'
 
-// Lightweight stub for AppHeader that records the props it receives, so we can
-// assert how the `hasHistory` computed drives backLabel/backRoute/showBack
-// without pulling in vue-router or useAuth.
+// Stub AppHeader to capture its props without pulling in vue-router or useAuth.
 const AppHeaderStub = defineComponent({
   name: 'AppHeader',
   props: {
@@ -29,8 +27,6 @@ function mountWith() {
 }
 
 afterEach(() => {
-  // Reset navigation history state between cases so the optional-chaining
-  // branch (`window.history.state?.back`) is controlled per test.
   window.history.replaceState(null, '', window.location.href)
 })
 
@@ -48,9 +44,7 @@ describe('AccessibilityStatement', () => {
     })
 
     it('treats history.state without a back entry as no history (state present, back falsy)', () => {
-      // state object exists but has no `back` key — exercises the right-hand
-      // side of `?.` while keeping the overall value falsy.
-      window.history.replaceState({ forward: '/x' }, '', window.location.href)
+      window.history.replaceState({ forward: '/projecten' }, '', window.location.href)
 
       const wrapper = mountWith()
       const header = wrapper.findComponent(AppHeaderStub)
@@ -86,7 +80,6 @@ describe('AccessibilityStatement', () => {
       expect(text).toContain('Escalatie')
       expect(text).toContain('Deze verklaring is opgesteld op 15 maart 2026.')
 
-      // Contact mailto link is present.
       const mailto = wrapper.find('a[href="mailto:RIG@rijksoverheid.nl"]')
       expect(mailto.exists()).toBe(true)
     })

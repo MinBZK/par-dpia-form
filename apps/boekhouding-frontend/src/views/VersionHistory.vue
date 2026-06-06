@@ -438,9 +438,6 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
     // Try to parse JSON arrays stored as strings
     if (val.startsWith('[')) {
       try {
-        // A string starting with "[" that JSON.parse accepts can only be a JSON
-        // array (the JSON grammar permits no other top-level value for "["),
-        // so the parsed result is always an array here.
         const parsed = JSON.parse(val)
         return formatValue(parsed, options)
       } catch { /* not JSON, treat as plain string */ }

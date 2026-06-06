@@ -1,14 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { resizeImageToDataUri, convertWebpToPng } from '../../src/utils/imageResize'
 
-/**
- * jsdom does not implement canvas 2d context, toDataURL, real image decoding,
- * or FileReader.readAsDataURL output. We stub Image, FileReader and the canvas
- * element returned by document.createElement so we can drive every code path in
- * imageResize.ts deterministically.
- */
-
-// ---- Image stub -------------------------------------------------------------
+// jsdom has no canvas 2d context, toDataURL, image decoding or FileReader output,
+// so we stub Image, FileReader and the canvas element to drive every code path.
 
 interface StubImageController {
   shouldError: boolean
@@ -29,7 +23,6 @@ class StubImage {
   set src(value: string) {
     this._src = value
     lastImageSrc = value
-    // Mimic the async load: fire onload/onerror on the next microtask.
     queueMicrotask(() => {
       if (imageController.shouldError) {
         this.onerror?.()
@@ -45,8 +38,6 @@ class StubImage {
     return this._src
   }
 }
-
-// ---- FileReader stub --------------------------------------------------------
 
 interface StubReaderController {
   shouldError: boolean
@@ -72,10 +63,6 @@ class StubFileReader {
   }
 }
 
-// ---- Canvas stub ------------------------------------------------------------
-
-// Map of mimeType+quality -> returned data URI. Lets each test decide exactly
-// what toDataURL produces so estimateBase64Bytes lands above/below the limit.
 type ToDataUrlFn = (type?: string, quality?: number) => string
 
 let canvasToDataUrl: ToDataUrlFn
@@ -109,9 +96,8 @@ function makeStubCanvas(): StubCanvas {
 
 const realCreateElement = document.createElement.bind(document)
 
-// Build a data URI whose base64 part has the requested decoded byte size.
-// estimateBase64Bytes = ceil((len - commaIndex - 1) * 0.75); to get `bytes`
-// decoded we need ~ bytes / 0.75 chars after the comma.
+// estimateBase64Bytes decodes ~0.75 byte per char after the comma, so we need
+// bytes / 0.75 chars to make the data URI estimate the requested decoded size.
 function dataUriOfBytes(prefix: string, bytes: number): string {
   const chars = Math.ceil(bytes / 0.75)
   return `${prefix},${'A'.repeat(chars)}`
@@ -161,7 +147,6 @@ describe('resizeImageToDataUri — input validation', () => {
 
 describe('resizeImageToDataUri — non-photo lossless path', () => {
   it('returns the lossless WebP when it fits within the size limit', async () => {
-    // Lossless small enough to fit under the default 2 MB limit.
     canvasToDataUrl = (type, quality) => {
       if (type === 'image/webp' && quality === 1.0) {
         return dataUriOfBytes('data:image/webp;base64', 100)
@@ -174,7 +159,6 @@ describe('resizeImageToDataUri — non-photo lossless path', () => {
   })
 
   it('falls through to a lossy quality level when lossless is too large', async () => {
-    // maxSizeBytes small; lossless over the limit, the first lossy quality fits.
     canvasToDataUrl = (type, quality) => {
       if (quality === 1.0) return dataUriOfBytes('data:image/webp;base64', 5000)
       if (quality === 0.85) return dataUriOfBytes('data:image/webp;base64', 100)
@@ -192,7 +176,6 @@ describe('resizeImageToDataUri — photo (jpeg) path', () => {
     const seenQualities: number[] = []
     canvasToDataUrl = (type, quality) => {
       seenQualities.push(quality as number)
-      // Only the 0.65 level fits, forcing the loop to iterate.
       if (quality === 0.65) return dataUriOfBytes('data:image/webp;base64', 100)
       return dataUriOfBytes('data:image/webp;base64', 5000)
     }
@@ -200,7 +183,6 @@ describe('resizeImageToDataUri — photo (jpeg) path', () => {
       maxSizeBytes: 1000,
     })
     expect(result).toContain('data:image/webp;base64,')
-    // Lossless (quality 1.0) must never be attempted for a photo.
     expect(seenQualities).not.toContain(1.0)
     expect(seenQualities).toEqual([0.85, 0.75, 0.65])
   })
@@ -222,7 +204,6 @@ describe('resizeImageToDataUri — SVG rasterization', () => {
     let capturedW = 0
     let capturedH = 0
     canvasToDataUrl = () => dataUriOfBytes('data:image/webp;base64', 10)
-    // Capture canvas dimensions via createElement spy.
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
       if (tag === 'canvas') {
         const c = makeStubCanvas()
@@ -237,7 +218,6 @@ describe('resizeImageToDataUri — SVG rasterization', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/svg+xml'))
-    // 300*2=600 within 1200 wide; 200*2=400 within 900 tall → unchanged.
     expect(capturedW).toBe(600)
     expect(capturedH).toBe(400)
   })
@@ -262,10 +242,7 @@ describe('resizeImageToDataUri — SVG rasterization', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/svg+xml'))
-    // (0||800)*2=1600 → exceeds 1200 wide; scaled down by fitDimensions.
-    // (0||600)*2=1200 height. After width fit: 1200 -> 1200 cap width.
     expect(capturedW).toBe(1200)
-    // height = round(1200 * (1200/1600)) = 900 then capped at 900.
     expect(capturedH).toBe(900)
   })
 })
@@ -291,8 +268,6 @@ describe('resizeImageToDataUri — fitDimensions scaling', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/png'))
-    // width 2400 > 1200 → width=1200, height = round(600 * 1200/2400) = 300.
-    // height 300 < 900, so the second branch is not taken.
     expect(capturedW).toBe(1200)
     expect(capturedH).toBe(300)
   })
@@ -317,8 +292,6 @@ describe('resizeImageToDataUri — fitDimensions scaling', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/png'))
-    // width 600 < 1200, first branch skipped.
-    // height 1800 > 900 → height=900, width = round(600 * 900/1800) = 300.
     expect(capturedW).toBe(300)
     expect(capturedH).toBe(900)
   })
@@ -369,9 +342,7 @@ describe('resizeImageToDataUri — underlying loader errors', () => {
 
 describe('estimateBase64Bytes — no comma in data URI', () => {
   it('uses the full string length when there is no comma', async () => {
-    // A toDataURL output without a comma exercises the commaIndex === -1 branch.
-    // Make the no-comma string short enough to fit so the function returns it.
-    canvasToDataUrl = () => 'A'.repeat(50) // length 50, no comma
+    canvasToDataUrl = () => 'A'.repeat(50)
     const result = await resizeImageToDataUri(makeFile('image/png'), {
       maxSizeBytes: 100,
     })

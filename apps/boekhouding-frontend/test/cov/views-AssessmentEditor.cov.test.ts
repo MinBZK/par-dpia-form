@@ -5,17 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 
-// — Router mock —
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// — core package mock —
-// FormType enum and the four stores plus export/util symbols are pulled from
-// '@overheid-assessment/core'. We replace them with controllable doubles so
-// AssessmentEditor.vue can be exercised in isolation. Everything that the
-// hoisted vi.mock factories reference must itself be created via vi.hoisted().
 const {
   FormTypeMock,
   schemaStore,
@@ -100,8 +94,6 @@ const {
     reset: vi.fn(),
   })
 
-  // Holder lets the test grab the onFieldClick callback the composable received
-  // and the canComment ref so we can read its computed value across roles.
   const fieldClickHolder: {
     fn: ((fieldId: string) => void) | null
     canComment: { value: boolean } | null
@@ -152,7 +144,6 @@ vi.mock('@overheid-assessment/core', () => ({
   PERSISTENCE_KEY: Symbol('persistence'),
 }))
 
-// — api mock —
 vi.mock('../../src/api', () => ({
   assessments: assessmentsApi,
 }))
@@ -169,10 +160,7 @@ vi.mock('../../src/composables/useFieldCommentIndicators', () => ({
   useFieldCommentIndicators,
 }))
 
-// The component dynamically imports the generated DPIA / PreScanDPIA schemas.
-// Mock them so the dynamic import resolves immediately and deterministically
-// (the real JSON files are large and resolve out-of-band, which would otherwise
-// leak schemaStore.init() calls across tests).
+// Mock the dynamically-imported schemas so the import resolves deterministically; the real JSON resolves out-of-band and leaks schemaStore.init() calls across tests.
 vi.mock('../../../../sources/generated/DPIA.json', () => ({
   default: { name: 'DPIA', urn: 'urn:nl:dpia', version: '3.0', tasks: [{ id: '0' }] },
 }))
@@ -182,8 +170,7 @@ vi.mock('../../../../sources/generated/PreScanDPIA.json', () => ({
 
 import AssessmentEditor from '../../src/views/AssessmentEditor.vue'
 
-// jsdom does not implement the native <dialog> API; provide no-op stand-ins so
-// the deleteModalOpen watcher (showModal/close) can run.
+// jsdom lacks the native <dialog> API; stand-ins let the deleteModalOpen watcher (showModal/close) run.
 if (!HTMLDialogElement.prototype.showModal) {
   HTMLDialogElement.prototype.showModal = function () { this.open = true }
 }
@@ -191,7 +178,6 @@ if (!HTMLDialogElement.prototype.close) {
   HTMLDialogElement.prototype.close = function () { this.open = false }
 }
 
-// — child component stubs —
 const stubs = {
   AppHeader: { name: 'AppHeader', props: ['backLabel', 'backRoute'], template: '<header class="app-header-stub" />' },
   ConflictResolutionDialog: {
@@ -233,12 +219,7 @@ async function mountEditor(props: { assessmentId?: string } = {}) {
     props: { assessmentId: props.assessmentId ?? 'a1' },
     global: { stubs },
   })
-  // Wait for onMounted's async work (get + dynamic schema imports + load) to
-  // FULLY settle. A fixed number of cycles is flaky under full-suite CPU load:
-  // the dynamic import can resolve after the cycles run out, so the init() call
-  // lands late and leaks into the next test. Instead wait deterministically
-  // until the component left its loading state (loading.value = false at the end
-  // of onMounted), which guarantees the whole async chain has completed.
+  // Wait deterministically until loading clears: a fixed cycle count is flaky because the dynamic schema import can resolve late and leak init() into the next test.
   await vi.waitFor(
     () => {
       if (wrapper.text().includes('Assessment laden...')) {
@@ -257,7 +238,6 @@ beforeEach(() => {
   routerPush.mockReset()
   fieldClickHolder.fn = null
 
-  // Reset reactive doubles to a clean baseline.
   schemaStore.isInitialized = false
   schemaStore.getSchema.mockReset()
   taskStore.activeNamespace = FormTypeMock.DPIA
@@ -289,7 +269,6 @@ afterEach(() => {
 
 describe('AssessmentEditor — loading and error states', () => {
   it('shows the loading message before the assessment resolves', async () => {
-    // Hold the get() promise so loading stays true during the assertion.
     let resolveGet!: (v: unknown) => void
     assessmentsApi.get.mockReturnValueOnce(new Promise((r) => { resolveGet = r }))
     const wrapper = mount(AssessmentEditor, {
@@ -309,16 +288,12 @@ describe('AssessmentEditor — loading and error states', () => {
     expect(wrapper.text()).toContain('Foutmelding')
     expect(wrapper.text()).toContain('Kapot')
 
-    // assessment stayed null → button navigates to /projecten branch.
     await wrapper.find('[role="alert"] button').trigger('click')
     expect(routerPush).toHaveBeenCalledWith('/projecten')
     wrapper.unmount()
   })
 
   it('error back button navigates to the project when assessment is set', async () => {
-    // get() resolves, but a later failure (collaborationStore.load) still sets
-    // error while assessment.value is populated — exercising the truthy branch
-    // of the error back button.
     schemaStore.isInitialized = true
     collaborationStore.load.mockRejectedValueOnce(new Error('Sync stuk'))
     const wrapper = await mountEditor()
@@ -421,7 +396,6 @@ describe('AssessmentEditor — onMounted initialization', () => {
       state: { _prescanAnswers: { '1.1': { value: 'x' } } },
     }))
     const wrapper = await mountEditor()
-    // Namespace mapped to PRE_SCAN; pre-scan-specific branch (DPIA only) skipped.
     expect(taskStore.init).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('Pre-scan DPIA')
     wrapper.unmount()
@@ -431,7 +405,6 @@ describe('AssessmentEditor — onMounted initialization', () => {
     schemaStore.isInitialized = true
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'onbekend' }))
     const wrapper = await mountEditor()
-    // namespace computed falls back to DPIA → Form receives 'dpia'.
     expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('dpia')
     wrapper.unmount()
   })
@@ -486,7 +459,6 @@ describe('AssessmentEditor — role-based access', () => {
     expect(h1.classes()).toContain('form-name--editable')
     expect(h1.attributes('role')).toBe('button')
     expect(h1.attributes('aria-label')).toBe('Klik om naam te bewerken')
-    // owner is not readonly → form not inert.
     expect(wrapper.find('.assessment-editor__form').attributes('inert')).toBeUndefined()
     wrapper.unmount()
   })
@@ -521,9 +493,6 @@ describe('AssessmentEditor — role-based access', () => {
     wrapper.unmount()
   })
 
-  // canComment is the role || role || role chain handed to the comment-indicator
-  // composable. Reading the captured ref forces the computed to evaluate so each
-  // OR branch is covered.
   it.each([
     ['commenter', true],
     ['editor', true],
@@ -549,7 +518,6 @@ describe('AssessmentEditor — comment panel', () => {
     expect(wrapper.find('.comment-panel-stub').exists()).toBe(true)
     expect(wrapper.find('.assessment-editor__content').classes()).toContain('assessment-editor__content--panel-open')
 
-    // Toggling closed resets activeCommentFieldId.
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
     expect(wrapper.find('.comment-panel-stub').exists()).toBe(false)
@@ -576,7 +544,6 @@ describe('AssessmentEditor — comment panel', () => {
     expect(wrapper.find('.comment-panel-stub').attributes('data-field')).toBe('3.3')
     await wrapper.findComponent({ name: 'CommentPanel' }).vm.$emit('deactivate-field')
     await nextTick()
-    // activeCommentFieldId is null again → the :data-field binding renders no attribute.
     expect(wrapper.find('.comment-panel-stub').attributes('data-field')).toBeUndefined()
     wrapper.unmount()
   })
@@ -602,7 +569,6 @@ describe('AssessmentEditor — inline name editing', () => {
     await nextTick()
     const input = wrapper.find('input.form-name-input')
     expect(input.exists()).toBe(true)
-    // customNamePart strips the "DPIA: " prefix.
     expect((input.element as HTMLInputElement).value).toBe('Oud')
     wrapper.unmount()
   })
@@ -691,7 +657,6 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    // editName is "Gelijk"; saving rebuilds the identical full name.
     const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!
     await saveBtn.trigger('click')
     await flushPromises()
@@ -811,8 +776,6 @@ describe('AssessmentEditor — delete flow', () => {
   })
 
   it('does nothing on confirmDelete when assessment is null', async () => {
-    // Render in error state so assessment.value is null but the dialog template
-    // (which lives outside the v-if) is still present and confirmDelete reachable.
     assessmentsApi.get.mockRejectedValueOnce(new Error('x'))
     const wrapper = await mountEditor()
     const vm = wrapper.vm as unknown as { confirmDelete: () => Promise<void> }
@@ -832,7 +795,6 @@ describe('AssessmentEditor — delete flow', () => {
     await nextTick()
     const input = wrapper.find('.confirm-dialog__input')
     await input.setValue('VERWIJDEREN')
-    // Native <dialog> close event resets state.
     await wrapper.find('dialog.confirm-dialog').trigger('close')
     await nextTick()
     expect((wrapper.find('.confirm-dialog__input').element as HTMLInputElement).value).toBe('')
@@ -864,7 +826,6 @@ describe('AssessmentEditor — conflict dialog', () => {
     await nextTick()
     expect(wrapper.find('.conflict-stub').attributes('data-active')).toBe('true')
 
-    // Emitting resolve calls handleConflictResolve → conflictState.resolve.
     await wrapper.find('.conflict-stub').trigger('click')
     expect(persistenceResolve).toHaveBeenCalledTimes(1)
     expect(persistenceResolve.mock.calls[0][0]).toBeInstanceOf(Map)
@@ -874,7 +835,6 @@ describe('AssessmentEditor — conflict dialog', () => {
   it('dismisses the sync toast when the conflict dialog becomes active', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    // Show a persistent toast (action present → no auto-dismiss timer).
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Bericht', () => {})
     await nextTick()
@@ -892,7 +852,6 @@ describe('AssessmentEditor — conflict dialog', () => {
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Blijf staan', () => {})
     await nextTick()
-    // Transition active → inactive: the watcher's truthy branch is skipped.
     conflictState.active = true
     await nextTick()
     vm.showSyncToast('Opnieuw', () => {})
@@ -931,7 +890,6 @@ describe('AssessmentEditor — sync toast helpers', () => {
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Eerste')
     await nextTick()
-    // Second call with an existing timer hits the clearTimeout branch.
     vm.showSyncToast('Tweede')
     await nextTick()
     expect(wrapper.find('.sync-toast span').text()).toBe('Tweede')
@@ -964,7 +922,6 @@ describe('AssessmentEditor — sync toast helpers', () => {
       showSyncToast: (m: string, a?: () => void) => void
       dismissSyncToast: () => void
     }
-    // Action-less toast schedules a timer; dismiss hits its clearTimeout branch.
     vm.showSyncToast('Tijdelijk')
     await nextTick()
     vm.dismissSyncToast()
@@ -1006,7 +963,6 @@ describe('AssessmentEditor — navigation functions', () => {
     }
     navigation.goToLanding()
     expect(routerPush).toHaveBeenCalledWith('/project/p1')
-    // The other two are intentional no-ops; calling them covers their bodies.
     expect(navigation.goToDPIA()).toBeUndefined()
     expect(navigation.goToPreScanDPIA()).toBeUndefined()
     wrapper.unmount()
@@ -1016,8 +972,6 @@ describe('AssessmentEditor — navigation functions', () => {
     assessmentsApi.get.mockRejectedValueOnce(new Error('x'))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    // assessment is null; the Form (with :navigation) is not rendered, so reach
-    // navigationFunctions through the exposed setup binding instead.
     const vm = wrapper.vm as unknown as { navigationFunctions: { goToLanding: () => void } }
     vm.navigationFunctions.goToLanding()
     expect(routerPush).not.toHaveBeenCalled()
@@ -1029,17 +983,13 @@ describe('AssessmentEditor — navigation functions', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     const vm = wrapper.vm as unknown as { namespace: string; customNamePart: string }
-    // namespace computed: assessment null → the ': FormType.DPIA' else branch.
     expect(vm.namespace).toBe(FormTypeMock.DPIA)
-    // customNamePart computed: assessment null → the '' early-return branch.
     expect(vm.customNamePart).toBe('')
     wrapper.unmount()
   })
 })
 
 describe('AssessmentEditor — remote change watcher', () => {
-  // Each test boots the editor (syncReady becomes true after onMounted) then
-  // pokes collaborationStore version/updatedAt to fire the watcher.
   async function boot() {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
@@ -1047,7 +997,6 @@ describe('AssessmentEditor — remote change watcher', () => {
   }
 
   it('ignores remote-change polling before syncReady', async () => {
-    // Reject load so syncReady never becomes true.
     collaborationStore.load.mockRejectedValueOnce(new Error('load faalt'))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
@@ -1106,7 +1055,6 @@ describe('AssessmentEditor — remote change watcher', () => {
     collaborationStore.lastModifiedBySelf = true
     sync.knownVersion.value = 10
     const wrapper = await boot()
-    // polledVersion (3) <= knownVersion (10) → keep known version; no updatedAt.
     collaborationStore.assessmentVersion = 3
     collaborationStore.assessmentUpdatedAt = null
     await nextTick()
@@ -1139,7 +1087,6 @@ describe('AssessmentEditor — remote change watcher', () => {
     await flushPromises()
     await nextTick()
     expect(sync.applyDeferredChanges).toHaveBeenCalledWith(42)
-    // merged → a follow-up "Informatie bijgewerkt" toast.
     expect(wrapper.find('.sync-toast span').text()).toBe('Informatie bijgewerkt')
     wrapper.unmount()
   })
@@ -1165,7 +1112,6 @@ describe('AssessmentEditor — remote change watcher', () => {
     await wrapper.find('.sync-toast__action').trigger('click')
     await flushPromises()
     await nextTick()
-    // conflict → dismissed, no "Informatie bijgewerkt" toast.
     expect(wrapper.find('.sync-toast').exists()).toBe(false)
     wrapper.unmount()
   })
@@ -1213,7 +1159,6 @@ describe('AssessmentEditor — navigate watcher (deferred changes)', () => {
     sync.hasDeferredChanges.mockReturnValue(true)
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    // Change currentRootTaskId for the active namespace to fire the watcher.
     taskStore.currentRootTaskId = { ...taskStore.currentRootTaskId, [taskStore.activeNamespace]: '5' }
     await nextTick()
     expect(sync.applyDeferredOnNavigate).toHaveBeenCalled()
@@ -1246,7 +1191,6 @@ describe('AssessmentEditor — delete modal dialog watcher', () => {
     await nextTick()
     expect(showModal).toHaveBeenCalledTimes(1)
 
-    // Close via Annuleer button → watcher's false branch calls close().
     const cancelBtn = wrapper.findAll('.confirm-dialog__actions button').find((b) => b.text() === 'Annuleer')!
     await cancelBtn.trigger('click')
     await nextTick()

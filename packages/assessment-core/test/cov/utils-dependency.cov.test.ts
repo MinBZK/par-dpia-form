@@ -38,8 +38,8 @@ describe('normalizeValue', () => {
 describe('hasInstanceMapping', () => {
   function flatTask(dependencies?: Dependency[]): FlatTask {
     return {
-      id: 'x',
-      task: 'X',
+      id: '2.1',
+      task: 'Persoonsgegevens',
       type: ['text'],
       parentId: null,
       childrenIds: [],
@@ -73,9 +73,7 @@ describe('shouldShowTask', () => {
     answerStore = useAnswerStore()
   })
 
-  // Build a task group: parent "1" with children "1.1" (the task under test)
-  // and "1.2" (the condition task). Default instances share a groupId, so
-  // findRelatedInstance("1.2", "1.1") resolves "1.2".
+  // Children "1.1" and "1.2" share a default groupId, so findRelatedInstance("1.2", "1.1") resolves.
   function buildTasks(dependencies?: Dependency[]): Task[] {
     return [
       {
@@ -106,7 +104,6 @@ describe('shouldShowTask', () => {
 
   it('shows the task when the instance does not exist', () => {
     initWith([{ type: 'conditional', action: 'show', condition: { id: '1.2', operator: 'equals', value: 'yes' } }])
-    // Unknown instance id -> getInstanceById returns null -> early return true
     expect(shouldShowTask('1.1', 'nonexistent-instance', taskStore, answerStore)).toBe(true)
   })
 
@@ -128,7 +125,6 @@ describe('shouldShowTask', () => {
   })
 
   it('throws when the condition value is undefined', () => {
-    // Omitting `value` makes it undefined at runtime.
     initWith([{ type: 'conditional', action: 'show', condition: { id: '1.2', operator: 'equals' } } as unknown as Dependency])
     expect(() => shouldShowTask('1.1', '1.1', taskStore, answerStore)).toThrow(
       'Dependency on task 1.2 with operator equals cannot have void value',
@@ -136,9 +132,7 @@ describe('shouldShowTask', () => {
   })
 
   it('continues (no related instance) when the condition task is not in the same group', () => {
-    // Condition references an unknown task id, so findRelatedInstance returns null.
     initWith([{ type: 'conditional', action: 'show', condition: { id: 'unknown-task', operator: 'equals', value: 'yes' } }])
-    // Loop continues, falls through to final return true.
     expect(shouldShowTask('1.1', '1.1', taskStore, answerStore)).toBe(true)
   })
 
@@ -150,14 +144,12 @@ describe('shouldShowTask', () => {
 
   it('shows the task when operator equals and the normalized string answer matches', () => {
     initWith([{ type: 'conditional', action: 'show', condition: { id: '1.2', operator: 'equals', value: true } }])
-    // String "true" gets normalized to boolean true, matching value true.
     answerStore.setAnswer('1.2', 'true')
     expect(shouldShowTask('1.1', '1.1', taskStore, answerStore)).toBe(true)
   })
 
   it('does not normalize non-string answers (array) and treats them with equals', () => {
     initWith([{ type: 'conditional', action: 'show', condition: { id: '1.2', operator: 'equals', value: 'a' } }])
-    // Array answer is not a string -> normalizedValue stays the array -> not equal to 'a'.
     answerStore.setAnswer('1.2', ['a', 'b'])
     expect(shouldShowTask('1.1', '1.1', taskStore, answerStore)).toBe(false)
   })
@@ -201,7 +193,6 @@ describe('shouldShowTask', () => {
   })
 
   it('shows the task when the action is not "show" even if the condition is not met', () => {
-    // action 'hide' -> the `action === 'show' && !conditionMet` guard is false -> falls through to true.
     initWith([{ type: 'conditional', action: 'hide', condition: { id: '1.2', operator: 'equals', value: 'yes' } }])
     answerStore.setAnswer('1.2', 'no')
     expect(shouldShowTask('1.1', '1.1', taskStore, answerStore)).toBe(true)

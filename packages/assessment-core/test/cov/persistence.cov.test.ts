@@ -14,9 +14,7 @@ describe('PERSISTENCE_KEY', () => {
   })
 
   it('is a unique, stable reference (Symbol is not interned)', () => {
-    // The module-level const is the same on every import.
     expect(PERSISTENCE_KEY).toBe(PERSISTENCE_KEY)
-    // A freshly created Symbol with the same description is NOT equal.
     expect(PERSISTENCE_KEY).not.toBe(Symbol('persistence'))
   })
 
@@ -66,7 +64,6 @@ describe('PersistenceProvider interface', () => {
     expect(clearSavedState).toHaveBeenCalledTimes(2)
     expect(setupWatchers).toHaveBeenCalledTimes(1)
 
-    // Optional members may be absent.
     expect(provider.flushSave).toBeUndefined()
     expect(provider.restoreUiState).toBeUndefined()
     expect(provider.snapshotBaseline).toBeUndefined()
@@ -103,7 +100,6 @@ describe('PersistenceProvider interface', () => {
     ;(stop as () => void)()
     expect(teardown).toHaveBeenCalledTimes(1)
 
-    // loadAppState may legitimately return null when nothing is stored.
     expect(provider.loadAppState()).toBeNull()
   })
 

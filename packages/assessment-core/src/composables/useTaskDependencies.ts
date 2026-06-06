@@ -140,8 +140,6 @@ export function useTaskDependencies() {
               const newId = taskStore.addRepeatableTaskInstance(taskId, parentInstanceId, idx)
               if (newId) taskStore.setInstanceMappingSource(newId, source.id)
             } else {
-              // idx comes from the union of source and target indices, so when
-              // source is absent the target is necessarily defined.
               taskStore.removeRepeatableTaskInstance(target!.id)
             }
           }

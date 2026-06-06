@@ -5,9 +5,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import type { Project } from '../../src/api'
 
-// --- api mock -------------------------------------------------------------
-// ProjectList only touches projects.list() (onMounted) and projects.create()
-// (handleCreate). Spy on both so we can drive the success/error branches.
 const listMock = vi.fn()
 const createMock = vi.fn()
 vi.mock('../../src/api', () => ({
@@ -17,17 +14,11 @@ vi.mock('../../src/api', () => ({
   },
 }))
 
-// --- router mock ----------------------------------------------------------
-// useRouter().push is the only navigation used; spy on it to assert the
-// post-create redirect.
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// --- core mock ------------------------------------------------------------
-// UiButton renders a real <button> so we can click it (submit / cancel) and
-// autoGrowTextarea is a spy so we can assert the textarea @input handler runs.
 const autoGrowTextarea = vi.fn()
 vi.mock('@overheid-assessment/core', () => ({
   UiButton: {
@@ -42,8 +33,6 @@ vi.mock('@overheid-assessment/core', () => ({
 
 import ProjectList from '../../src/views/ProjectList.vue'
 
-// AppHeader drags in router + auth + icons that are unrelated to this view's
-// logic. A minimal stub keeps the mount focused on ProjectList itself.
 const AppHeaderStub = {
   name: 'AppHeader',
   template: '<header class="app-header-stub"><slot name="left" /></header>',
@@ -54,7 +43,6 @@ function mountList() {
     global: {
       stubs: {
         AppHeader: AppHeaderStub,
-        // RouterLink renders as a plain anchor exposing its `to` target.
         RouterLink: {
           name: 'RouterLink',
           props: ['to'],
@@ -110,8 +98,6 @@ describe('ProjectList', () => {
       const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
       expect(alert.exists()).toBe(true)
       expect(alert.text()).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
-      // The empty-state / list templates are gated behind the v-else, so they
-      // must NOT appear when error is set.
       expect(wrapper.text()).not.toContain('Je hebt nog geen projecten')
     })
   })
@@ -142,10 +128,8 @@ describe('ProjectList', () => {
       await flushPromises()
 
       const cards = wrapper.findAll('.router-link')
-      // Card with description -> has the .text-clamp-3 paragraph.
       expect(cards[0].find('.text-clamp-3').exists()).toBe(true)
       expect(cards[0].find('.text-clamp-3').text()).toBe('Een omschrijving')
-      // Card without description -> no description paragraph (v-if false branch).
       expect(cards[1].find('.text-clamp-3').exists()).toBe(false)
     })
   })
@@ -170,7 +154,6 @@ describe('ProjectList', () => {
       await trigger.trigger('click')
 
       expect(wrapper.find('form').exists()).toBe(true)
-      // The trigger button is gone once the form is shown.
       expect(wrapper.findAll('button').some((b) => b.text().includes('Nieuw project'))).toBe(false)
     })
 
@@ -213,7 +196,6 @@ describe('ProjectList', () => {
 
       await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
 
-      // Name left empty -> submit should short-circuit before calling create.
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
 

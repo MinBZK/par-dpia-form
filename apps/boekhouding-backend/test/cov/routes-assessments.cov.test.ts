@@ -1,9 +1,3 @@
-// Coverage test for src/routes/assessments.ts.
-//
-// Self-sufficient: alone it drives every code path in the assessment routes to
-// 100% (statements, branches, functions, lines). Runs the real Fastify app via
-// app.inject() against a dedicated Postgres test DB; auth is exercised
-// end-to-end with real JWTs signed by the loopback JWKS server.
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -35,8 +29,6 @@ function authHeader(token: string) {
 
 const URN = 'urn:nl:dpia:3.0'
 
-// Build a unified assessment state. answers at top level, metadata.urn drives the
-// field-URN generation in diffStates.
 function makeState(answers: Record<string, unknown>, completedTasks?: string[]) {
   return {
     metadata: {
@@ -50,7 +42,6 @@ function makeState(answers: Record<string, unknown>, completedTasks?: string[]) 
 
 const answer = (value: string) => ({ value, lastEditedAt: '2026-01-01T00:00:00Z' })
 
-// Seed: project with `user` as `role`, plus an assessment with the given cachedState.
 async function seedFor(user: SeededUser, role: ProjectRole, cachedState: unknown = {}) {
   const project = await createProject(user.id)
   await addMember(project.id, user.id, role)
@@ -103,8 +94,7 @@ describe('GET /assessments/:id', () => {
   it('returns state: null when cachedState is falsy', async () => {
     const owner = await createUser()
     const { assessment } = await seedFor(owner, 'owner', {})
-    // createAssessment coalesces null→{}, so null out the column directly to
-    // exercise the `cachedState || null` right-hand side.
+    // createAssessment coalesces null→{}, so null the column directly.
     await db
       .update(assessmentInstances)
       .set({ cachedState: null })
@@ -127,7 +117,7 @@ describe('PUT /assessments/:id', () => {
       method: 'PUT',
       url: `/api/v1/assessments/${randomUUID()}`,
       headers: authHeader(await tokenFor(user)),
-      payload: { name: 'x' },
+      payload: { name: 'DPIA Klantenservice' },
     })
     expect(res.statusCode).toBe(404)
   })
@@ -144,7 +134,6 @@ describe('PUT /assessments/:id', () => {
     })
     expect(res.statusCode).toBe(200)
     expect(res.json().name).toBe('Hernoemd')
-    // No version created.
     const versions = await db
       .select()
       .from(assessmentVersions)
@@ -206,7 +195,6 @@ describe('PUT /assessments/:id', () => {
     const state = makeState({ '0.1': answer('Inleiding') })
     const { assessment } = await seedFor(owner, 'owner', state)
 
-    // Saving the identical state produces zero edits → cachedState-only path.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -214,7 +202,6 @@ describe('PUT /assessments/:id', () => {
       payload: { state, expectedVersion: 1 },
     })
     expect(res.statusCode).toBe(200)
-    // currentVersion unchanged and no version row created.
     expect(res.json().currentVersion).toBe(1)
     const versions = await db.select().from(assessmentVersions)
     expect(versions).toHaveLength(0)
@@ -222,7 +209,6 @@ describe('PUT /assessments/:id', () => {
 
   it('treats null previousState as an empty diff (previousState ? ... : [] right-hand side)', async () => {
     const owner = await createUser()
-    // cachedState null → previousState falsy → edits = [], no diffStates call.
     const { assessment } = await seedFor(owner, 'owner', {})
     await db
       .update(assessmentInstances)
@@ -235,7 +221,6 @@ describe('PUT /assessments/:id', () => {
       headers: authHeader(await tokenFor(owner)),
       payload: { state: makeState({ '0.1': answer('X') }), expectedVersion: 1 },
     })
-    // previousState falsy → skips cachedState-only branch → creates a new version.
     expect(res.statusCode).toBe(200)
     expect(res.json().currentVersion).toBe(2)
   })
@@ -259,7 +244,6 @@ describe('PUT /assessments/:id', () => {
     expect(body.currentVersion).toBe(2)
     expect(body.name).toBe('Met naam')
 
-    // Edits were logged for the answer + the completed-section change.
     const versions = await db.select().from(assessmentVersions)
     expect(versions).toHaveLength(1)
     const edits = await db.select().from(assessmentEdits)
@@ -271,8 +255,6 @@ describe('PUT /assessments/:id', () => {
     const state = makeState({ '0.1': answer('Inleiding') })
     const { assessment } = await seedFor(owner, 'owner', state)
 
-    // Same state (edits empty) but changeDescription set → skips cachedState-only
-    // path and skips the `edits.length > 0` insert in the new-version branch.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -294,7 +276,6 @@ describe('PUT /assessments/:id', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // First save: creates version 2 (cannot consolidate — no prior version).
     const first = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -304,7 +285,6 @@ describe('PUT /assessments/:id', () => {
     expect(first.statusCode).toBe(200)
     expect(first.json().currentVersion).toBe(2)
 
-    // Second save by same user within window → consolidate into version 2.
     const second = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -317,7 +297,6 @@ describe('PUT /assessments/:id', () => {
     })
     expect(second.statusCode).toBe(200)
     const body = second.json()
-    // Bumped currentVersion for optimistic locking, but still a single version row.
     expect(body.currentVersion).toBe(3)
     expect(body.name).toBe('Geconsolideerd')
 
@@ -331,7 +310,6 @@ describe('PUT /assessments/:id', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // First save creates version 2 (createdBy owner, no changeDescription).
     await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -340,11 +318,6 @@ describe('PUT /assessments/:id', () => {
     })
     const editsAfterFirst = await db.select().from(assessmentEdits)
 
-    // Null out cachedState directly so the next save sees previousState falsy →
-    // edits = [] (the `previousState ? diffStates : []` else-branch). With previousState
-    // falsy the cachedState-only branch is skipped, yet canConsolidate is still true
-    // (same user, version 2, within window, no flags) → consolidation runs with
-    // edits.length === 0, covering the `if (edits.length > 0)` false branch.
     await db
       .update(assessmentInstances)
       .set({ cachedState: null })
@@ -358,11 +331,9 @@ describe('PUT /assessments/:id', () => {
     })
     expect(res.statusCode).toBe(200)
     expect(res.json().currentVersion).toBe(3)
-    // Still a single version row (consolidated, not a new version).
     const versions = await db.select().from(assessmentVersions)
     expect(versions).toHaveLength(1)
     expect(versions[0].version).toBe(3)
-    // No edits were inserted during this consolidated save (count unchanged).
     const editsAfterSecond = await db.select().from(assessmentEdits)
     expect(editsAfterSecond).toHaveLength(editsAfterFirst.length)
   })
@@ -372,7 +343,6 @@ describe('PUT /assessments/:id', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // First save creates version 2.
     await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -380,8 +350,6 @@ describe('PUT /assessments/:id', () => {
       payload: { state: makeState({ '0.1': answer('Eerste') }), expectedVersion: 1 },
     })
 
-    // Second save by same user, with real field changes but NO name → consolidates
-    // (edits.length > 0) while exercising the `if (name)` false branch.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -393,7 +361,6 @@ describe('PUT /assessments/:id', () => {
     })
     expect(res.statusCode).toBe(200)
     expect(res.json().currentVersion).toBe(3)
-    // Name unchanged (no name in payload).
     expect(res.json().name).toBe('Test assessment')
     const versions = await db.select().from(assessmentVersions)
     expect(versions).toHaveLength(1)
@@ -405,7 +372,6 @@ describe('PUT /assessments/:id', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // First save creates version 2.
     const state1 = makeState({ '0.1': answer('Eerste') })
     await app.inject({
       method: 'PUT',
@@ -414,20 +380,10 @@ describe('PUT /assessments/:id', () => {
       payload: { state: state1, expectedVersion: 1 },
     })
 
-    // Second save with an identical answer set but a metadata change so the
-    // cachedState-only branch is skipped... actually identical state yields 0 edits.
-    // To reach consolidation with edits.length === 0 we need previousState falsy OR
-    // changeDescription. Here we instead change the state slightly to a navigation-only
-    // metadata difference that diffStates ignores, keeping edits empty while
-    // forcing consolidation via a different answers identity.
     const state2 = {
       metadata: { createdAt: '2026-02-02T00:00:00Z', urn: URN },
       answers: { '0.1': answer('Eerste') },
     }
-    // state2 has zero edits vs state1 and no changeDescription → cachedState-only path,
-    // NOT consolidation. So instead make a real change to land in consolidation, then
-    // assert the edits.length > 0 insert path is what runs. The edits.length === 0
-    // branch within consolidation is covered separately below.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -435,7 +391,6 @@ describe('PUT /assessments/:id', () => {
       payload: { state: state2, expectedVersion: 2 },
     })
     expect(res.statusCode).toBe(200)
-    // Identical answers → cachedState-only update, version stays 2.
     expect(res.json().currentVersion).toBe(2)
   })
 
@@ -444,7 +399,6 @@ describe('PUT /assessments/:id', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // First save creates version 2 (no changeDescription).
     const state1 = makeState({ '0.1': answer('Eerste') })
     await app.inject({
       method: 'PUT',
@@ -453,9 +407,6 @@ describe('PUT /assessments/:id', () => {
       payload: { state: state1, expectedVersion: 1 },
     })
 
-    // Second save: identical state (0 edits) but WITH changeDescription. This skips
-    // the cachedState-only branch (changeDescription truthy), and canConsolidate is
-    // false because changeDescription is set → new-version path with edits.length===0.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -474,7 +425,6 @@ describe('PUT /assessments/:id', () => {
     const { project, assessment } = await seedFor(owner, 'owner', makeState({}))
     await addMember(project.id, editor.id, 'editor')
 
-    // Owner makes the first save → version 2 createdBy owner.
     await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -482,7 +432,6 @@ describe('PUT /assessments/:id', () => {
       payload: { state: makeState({ '0.1': answer('Eerste') }), expectedVersion: 1 },
     })
 
-    // Editor saves next → lastVersion.createdBy !== userId → new version 3.
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -542,7 +491,6 @@ describe('DELETE /assessments/:id', () => {
     })
     expect(res.statusCode).toBe(204)
 
-    // Subsequent GET 404s.
     const after = await app.inject({
       method: 'GET',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -584,8 +532,7 @@ describe('GET /assessments/:id/versions', () => {
     const body = res.json()
     expect(body).toHaveLength(1)
     expect(body[0].version).toBe(2)
-    // createdByName comes from the users.display_name join (requireAuth may have
-    // upserted the JWT identity); assert it's populated rather than its exact value.
+    // createdByName comes from a join with a JWT-upserted display_name; exact value is non-deterministic.
     expect(typeof body[0].createdByName).toBe('string')
     expect(body[0].createdByName.length).toBeGreaterThan(0)
     expect(body[0].createdBy).toBe(owner.id)
@@ -719,7 +666,7 @@ describe('PATCH /assessments/:id/versions/:version', () => {
       method: 'PATCH',
       url: `/api/v1/assessments/${randomUUID()}/versions/1`,
       headers: authHeader(await tokenFor(user)),
-      payload: { changeDescription: 'x' },
+      payload: { changeDescription: 'Tussenstand opgeslagen' },
     })
     expect(res.statusCode).toBe(404)
   })
@@ -765,7 +712,6 @@ describe('PATCH /assessments/:id/versions/:version', () => {
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
 
-    // Create a version that has a description.
     await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
@@ -819,7 +765,6 @@ describe('GET /assessments/:id/edits', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.length).toBeGreaterThan(0)
-    // Joined shape: assessment_edits + assessment_versions tables.
     expect(body[0].assessment_edits).toBeDefined()
     expect(body[0].assessment_versions).toBeDefined()
   })

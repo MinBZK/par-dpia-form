@@ -41,8 +41,6 @@ describe('cleanDefinitions', () => {
   })
 
   it('handles an aiv-definition span with empty content (textContent falsy branch)', () => {
-    // An empty definition span has empty textContent, exercising the
-    // `element.textContent || ''` fallback to the empty-string branch.
     const html = '<p>before<span class="aiv-definition"></span>after</p>'
     const result = cleanDefinitions(html)
     expect(result).not.toContain('aiv-definition')
@@ -90,8 +88,6 @@ describe('getPlainTextWithoutDefinitions', () => {
   })
 
   it('returns empty string when the cleaned html has no text content (textContent falsy branch)', () => {
-    // Markup with no text nodes yields empty textContent, exercising the
-    // `tempElement.textContent || ''` fallback to the empty-string branch.
     const html = '<br><hr>'
     expect(getPlainTextWithoutDefinitions(html)).toBe('')
   })

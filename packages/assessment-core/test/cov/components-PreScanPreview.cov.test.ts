@@ -4,12 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import type { AnswerValue, ImageValue } from '../../src/stores/answers'
 
-// PreScanPreview only consumes `getPreviewDataForSection` from the
-// usePreScanReferences composable. We mock the composable so each test can
-// hand the component a precise list of preview items and exercise every branch
-// of formatAnswer / hasPreScanData / the dpiaTaskId watcher — without wiring up
-// a full task tree. The mock is hoisted, so a shared mutable holder lets each
-// test control the returned data.
+// Hoisted mock holder so each test can control getPreviewDataForSection's return.
 const previewHolder: {
   getPreviewDataForSection: ReturnType<typeof vi.fn>
 } = {
@@ -22,7 +17,7 @@ vi.mock('../../src/composables/usePreScanReferences', () => ({
   }),
 }))
 
-// Imported AFTER the mock is registered so the component picks up the stub.
+// Import AFTER the mock is registered so the component picks up the stub.
 import PreScanPreview from '../../src/components/PreScanPreview.vue'
 
 interface PreviewItem {
@@ -37,8 +32,7 @@ function item(taskId: string, taskTitle: string, answer: AnswerValue): PreviewIt
 
 async function mountPreview(dpiaTaskId = '2.1') {
   const wrapper = mount(PreScanPreview, { props: { dpiaTaskId } })
-  // onMounted assigns preScanAnswers after the first render; flush so the
-  // hasPreScanData v-if and the v-for entries are reflected in the DOM.
+  // Flush onMounted's loadPreScanAnswers before reading the DOM.
   await nextTick()
   return wrapper
 }
@@ -58,10 +52,8 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
 
     const wrapper = await mountPreview('2.1')
 
-    // hasPreScanData is false -> the accordion is not rendered.
     expect(wrapper.find('.rvo-accordion').exists()).toBe(false)
     expect(wrapper.text()).toBe('')
-    // onMounted loaded data for the provided dpiaTaskId.
     expect(previewHolder.getPreviewDataForSection).toHaveBeenCalledWith('2.1')
   })
 
@@ -77,7 +69,6 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
     expect(wrapper.text()).toContain(
       'Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.',
     )
-    // Item header combines taskId and taskTitle.
     expect(wrapper.text()).toContain('1.2. Doel van de verwerking')
   })
 
@@ -104,7 +95,7 @@ describe('PreScanPreview formatAnswer branches', () => {
 
     const wrapper = await mountPreview()
     const paras = wrapper.findAll('.rvo-accordion__content p')
-    // First <p> is the strong title, second <p> is the v-html answer.
+    // paras[0] is the strong title; paras[1] is the v-html answer.
     expect(paras[1].html()).toContain('<p></p>')
   })
 
@@ -184,7 +175,6 @@ describe('PreScanPreview dpiaTaskId watcher', () => {
     await wrapper.setProps({ dpiaTaskId: '5.1' })
     await nextTick()
 
-    // Watcher fired with the new prop and the view updated.
     expect(previewHolder.getPreviewDataForSection).toHaveBeenLastCalledWith('5.1')
     expect(wrapper.text()).toContain('3.4. Sectie 5')
     expect(wrapper.text()).not.toContain('Sectie 2')

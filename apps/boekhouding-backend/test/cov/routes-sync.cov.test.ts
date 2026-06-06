@@ -1,16 +1,3 @@
-// Integration coverage for the sync route (GET /assessments/:id/sync).
-//
-// Runs the real Fastify app via app.inject() against the Postgres test DB.
-// Auth is exercised end-to-end with real JWTs signed by the test keypair, so
-// the requireAuth preHandler is genuinely executed (it sets request.user).
-//
-// This single file covers every branch of src/routes/sync.ts:
-//  - !row            -> 404 (assessment does not exist)
-//  - !row.memberRole -> 403 (assessment exists but user not a member)
-//  - happy path with lastModifiedBySelf === true  (version row authored by self)
-//  - happy path with lastModifiedBySelf === false (no version row -> null author,
-//    and version row authored by someone else)
-//  - commentCount === 0 and commentCount > 0
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -40,7 +27,6 @@ function authHeader(token: string) {
   return { authorization: `Bearer ${token}` }
 }
 
-// Seeds a project with `user` in the given role plus an assessment in it.
 async function seedAssessmentFor(user: SeededUser, role: ProjectRole) {
   const project = await createProject(user.id)
   await addMember(project.id, user.id, role)
@@ -48,7 +34,6 @@ async function seedAssessmentFor(user: SeededUser, role: ProjectRole) {
   return { project, assessment }
 }
 
-// Inserts an assessment_versions row at the given version, authored by `author`.
 async function addVersion(assessmentId: string, version: number, author: SeededUser) {
   await db.insert(assessmentVersions).values({
     assessmentInstanceId: assessmentId,
@@ -125,9 +110,6 @@ describe('GET /assessments/:id/sync — !row.memberRole branch (403)', () => {
 
 describe('GET /assessments/:id/sync — lastModifiedBySelf === false', () => {
   it('reports lastModifiedBySelf false when no version row matches (LEFT JOIN null author)', async () => {
-    // createAssessment sets currentVersion=1 but inserts no assessment_versions
-    // row, so the LEFT JOIN yields latestVersionCreatedBy === null.
-    // null === userId is false.
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
 
@@ -152,7 +134,6 @@ describe('GET /assessments/:id/sync — lastModifiedBySelf === false', () => {
     const editor = await createUser()
     const { project, assessment } = await seedAssessmentFor(owner, 'owner')
     await addMember(project.id, editor.id, 'editor')
-    // currentVersion defaults to 1; author of v1 is the owner, not the editor.
     await addVersion(assessment.id, 1, owner)
 
     const token = await tokenFor(editor)
@@ -173,7 +154,6 @@ describe('GET /assessments/:id/sync — lastModifiedBySelf === true', () => {
   it('reports lastModifiedBySelf true when the requesting user authored the current version', async () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
-    // Insert a version row matching currentVersion (1), authored by the requester.
     await addVersion(assessment.id, 1, owner)
 
     const token = await tokenFor(owner)
@@ -195,7 +175,6 @@ describe('GET /assessments/:id/sync — commentCount aggregation', () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
 
-    // Two comments on this assessment.
     await db.insert(comments).values([
       { assessmentInstanceId: assessment.id, fieldId: '2.1', authorId: owner.id, body: 'Eerste' },
       { assessmentInstanceId: assessment.id, fieldId: '2.2', authorId: owner.id, body: 'Tweede' },
@@ -211,14 +190,12 @@ describe('GET /assessments/:id/sync — commentCount aggregation', () => {
     expect(res.statusCode).toBe(200)
     expect(res.json().commentCount).toBe(2)
 
-    // Sanity: the comments really are persisted under this assessment.
     const rows = await db
       .select()
       .from(comments)
       .where(eq(comments.assessmentInstanceId, assessment.id))
     expect(rows.length).toBe(2)
 
-    // Sanity: the underlying instance row still exists with the expected version.
     const [instance] = await db
       .select({ currentVersion: assessmentInstances.currentVersion })
       .from(assessmentInstances)

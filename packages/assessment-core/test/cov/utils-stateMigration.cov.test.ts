@@ -21,7 +21,6 @@ describe('migrateStateV1toV2 — guards', () => {
 
 describe('migrateStateV1toV2 — v1 detection paths', () => {
   it('treats a state with $schema as already-v2 (isV1State returns false on $schema)', () => {
-    // Has $schema AND a nanoid-looking key, but $schema short-circuits to v2.
     const state = {
       $schema: OUTPUT_SCHEMA_URL,
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
@@ -31,7 +30,6 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup)
-    // No legacy fields present and not detected as v1 → returned untouched.
     expect(result).toBe(state)
   })
 
@@ -54,13 +52,10 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
 
     const result = migrateStateV1toV2(state, urnLookup) as any
     expect(result.$schema).toBe(OUTPUT_SCHEMA_URL)
-    // Single instance of 2.1.3 → not repeatable → key becomes "2.1.3"
     expect(result.answers.dpia['2.1.3']).toEqual(answer('Email'))
   })
 
   it('does NOT treat a "completed." prefixed key with underscore as v1', () => {
-    // Key includes "_" but starts with "completed." → skipped by isV1State answer loop.
-    // No taskInstances and no legacy fields → state returned unchanged.
     const state = {
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
       answers: {
@@ -83,7 +78,6 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
           },
         },
       },
-      // answers without underscores so the answer loop does not trigger detection
       answers: {
         dpia: { '1.1': answer('clean key') },
       },
@@ -95,8 +89,6 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
   })
 
   it('not v1 when taskInstance keys have no underscore (covers isV1State false fall-through)', () => {
-    // taskInstances present (so the !taskInstances continue is false) but keys have no "_".
-    // No legacy answer keys → isV1State returns false → stripLegacyFields runs (taskInstances IS a legacy field).
     const state = {
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
       taskState: {
@@ -113,18 +105,15 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // stripLegacyFields removed taskInstances
     expect(result.taskState.dpia.taskInstances).toBeUndefined()
     expect(result.taskState.dpia.completedRootTaskIds).toEqual(['0'])
   })
 
   it('handles nsState without taskInstances in legacy taskState (covers !nsState?.taskInstances continue)', () => {
-    // taskState has a namespace whose value has no taskInstances → continue.
-    // Also a namespace whose value is undefined → covers nsState?.taskInstances optional chain (undefined).
     const state = {
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
       taskState: {
-        dpia: { completedRootTaskIds: ['0'] }, // no taskInstances
+        dpia: { completedRootTaskIds: ['0'] },
         prescan: undefined,
       },
       answers: {
@@ -133,14 +122,12 @@ describe('migrateStateV1toV2 — v1 detection paths', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // Not v1, and taskState entries have no legacy fields → no stripping needed → same reference
     expect(result).toBe(state)
   })
 
   it('handles missing answers object entirely (answers || {} branch)', () => {
     const state = {
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
-      // no answers at all
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup)
@@ -170,10 +157,8 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
           currentRootTaskId: '2',
           completedRootTaskIds: ['2'],
           taskInstances: {
-            // Two instances of 2.1.1 → repeatable
             'a_aa': { id: 'a_aa', taskId: '2.1.1', groupId: 'g0', parentInstanceId: null, childInstanceIds: [] },
             'b_bb': { id: 'b_bb', taskId: '2.1.1', groupId: 'g1', parentInstanceId: null, childInstanceIds: [] },
-            // One instance of 3.1 → non-repeatable
             'c_cc': { id: 'c_cc', taskId: '3.1', groupId: 'g2', parentInstanceId: null, childInstanceIds: [] },
           },
         },
@@ -183,7 +168,6 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
           'a_aa': answer('Email'),
           'b_bb': answer('Phone'),
           'c_cc': answer('Single'),
-          // Unmapped key (not present in taskInstances) → passes through unchanged
           '0.1': answer('Project name'),
         },
       },
@@ -191,25 +175,20 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
 
     const result = migrateStateV1toV2(state, urnLookup) as any
 
-    // sortedOldIds = a_aa, b_bb, c_cc → a_aa=[0], b_bb=[1]
     expect(result.answers.dpia['2.1.1[0]']).toEqual(answer('Email'))
     expect(result.answers.dpia['2.1.1[1]']).toEqual(answer('Phone'))
-    // Non-repeatable
     expect(result.answers.dpia['3.1']).toEqual(answer('Single'))
-    // Unmapped key passes through (oldToNew.get ?? oldKey)
     expect(result.answers.dpia['0.1']).toEqual(answer('Project name'))
 
-    // Only completedRootTaskIds retained, no taskInstances / currentRootTaskId
     expect(result.taskState.dpia).toEqual({ completedRootTaskIds: ['2'] })
     expect(result.metadata.urn).toBe('urn:nl:dpia:3.0')
     expect(result.metadata.createdAt).toBe('2026-01-01')
-    // activeNamespace stripped
     expect(result.metadata.activeNamespace).toBeUndefined()
   })
 
   it('falls back to "dpia" namespace when activeNamespace is absent (|| dpia branch)', () => {
     const state = {
-      metadata: { createdAt: '2026-01-01' }, // no activeNamespace
+      metadata: { createdAt: '2026-01-01' },
       taskState: {
         dpia: {
           completedRootTaskIds: [],
@@ -244,7 +223,6 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // urnLookup['unknownNs'] is undefined → || state.metadata.urn
     expect(result.metadata.urn).toBe('urn:fallback:1.0')
   })
 
@@ -258,7 +236,6 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
             'r_r': { id: 'r_r', taskId: '1.1', groupId: 'g', parentInstanceId: null, childInstanceIds: [] },
           },
         },
-        // undefined namespace value → continue
         prescan: undefined,
       },
       answers: {
@@ -275,14 +252,12 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
     const state = {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
-        // dpia has the v1 instance keys that trigger detection
         dpia: {
           completedRootTaskIds: ['0'],
           taskInstances: {
             's_s': { id: 's_s', taskId: '1.1', groupId: 'g', parentInstanceId: null, childInstanceIds: [] },
           },
         },
-        // prescan also iterated, but has no answers in state.answers
         prescan: {
           completedRootTaskIds: [],
           taskInstances: {
@@ -292,13 +267,11 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
       },
       answers: {
         dpia: { 's_s': answer('val') },
-        // no prescan answers → oldAnswers undefined for prescan namespace
       },
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
     expect(result.answers.dpia['1.1']).toEqual(answer('val'))
-    // prescan namespace produced taskState but no answers entry
     expect(result.taskState.prescan).toEqual({ completedRootTaskIds: [] })
     expect(result.answers.prescan).toBeUndefined()
   })
@@ -308,7 +281,6 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
         dpia: {
-          // completedRootTaskIds intentionally omitted
           taskInstances: {
             'u_u': { id: 'u_u', taskId: '1.1', groupId: 'g', parentInstanceId: null, childInstanceIds: [] },
           },
@@ -324,7 +296,6 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
   })
 
   it('handles empty taskInstances object (taskInstances || {} branch with first-pass count 0)', () => {
-    // taskInstances is an empty object: the answer loop must still detect v1 via answer key.
     const state = {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
@@ -334,18 +305,15 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
         },
       },
       answers: {
-        // nanoid-style key triggers v1 detection
         dpia: { 'v_v': answer('passes through unmapped') },
       },
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // No mapping exists → key passes through unchanged via oldToNew.get(oldKey) ?? oldKey
     expect(result.answers.dpia['v_v']).toEqual(answer('passes through unmapped'))
   })
 
   it('handles v1 state with no taskState property (taskState ?? {} branch in migrateV1Keys)', () => {
-    // Detected as v1 purely via the nanoid answer key; no taskState exists.
     const state = {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       answers: {
@@ -355,18 +323,16 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
 
     const result = migrateStateV1toV2(state, urnLookup) as any
     expect(result.$schema).toBe(OUTPUT_SCHEMA_URL)
-    // No taskState namespaces iterated → answers object stays empty.
     expect(result.answers).toEqual({})
     expect(result.taskState).toEqual({})
     expect(result.metadata.urn).toBe('urn:nl:dpia:3.0')
   })
 
   it('handles v1 namespace whose taskState has no taskInstances (taskInstances || {} branch)', () => {
-    // v1 detection via answer key; the namespace's taskState lacks taskInstances.
     const state = {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
-        dpia: { completedRootTaskIds: ['0'] }, // no taskInstances
+        dpia: { completedRootTaskIds: ['0'] },
       },
       answers: {
         dpia: { 'w_w': answer('unmapped passthrough') },
@@ -374,13 +340,11 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // instances = {} → no mapping → answer key passes through unchanged.
     expect(result.answers.dpia['w_w']).toEqual(answer('unmapped passthrough'))
     expect(result.taskState.dpia).toEqual({ completedRootTaskIds: ['0'] })
   })
 
   it('defaults taskIdCounters.get to 0 and assignedCounters.get to 0 (|| 0 branches)', () => {
-    // Three instances of the same repeatable taskId exercises the counter increments.
     const state = {
       metadata: { createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
@@ -394,14 +358,14 @@ describe('migrateV1Keys — repeatable detection and key rewriting', () => {
         },
       },
       answers: {
-        dpia: { 'i1': answer('a'), 'i2': answer('b'), 'i3': answer('c'), 'x_x': answer('detect') },
+        dpia: { 'i1': answer('E-mailadres'), 'i2': answer('Telefoonnummer'), 'i3': answer('BSN'), 'x_x': answer('detect') },
       },
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    expect(result.answers.dpia['4.1[0]']).toEqual(answer('a'))
-    expect(result.answers.dpia['4.1[1]']).toEqual(answer('b'))
-    expect(result.answers.dpia['4.1[2]']).toEqual(answer('c'))
+    expect(result.answers.dpia['4.1[0]']).toEqual(answer('E-mailadres'))
+    expect(result.answers.dpia['4.1[1]']).toEqual(answer('Telefoonnummer'))
+    expect(result.answers.dpia['4.1[2]']).toEqual(answer('BSN'))
   })
 })
 
@@ -440,7 +404,6 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
     expect(result.metadata.urn).toBe('urn:nl:dpia:3.0')
     expect(result.metadata.createdAt).toBe('2026-01-01')
     expect(result.taskState.dpia).toEqual({ completedRootTaskIds: ['0', '1'] })
-    // answers untouched by spread
     expect(result.answers.dpia['1.1']).toEqual(answer('val'))
   })
 
@@ -463,8 +426,6 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
   })
 
   it('strips taskInstances from taskState (covers ts?.taskInstances in some())', () => {
-    // Already-v2 ($schema set) but with leftover taskInstances. Keys have no "_"
-    // so isV1State stays false and we reach stripLegacyFields.
     const state = {
       $schema: OUTPUT_SCHEMA_URL,
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01' },
@@ -489,7 +450,6 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
   it('derives urn from urnLookup when metadata.urn is absent (urn || lookup branch)', () => {
     const state = {
       $schema: OUTPUT_SCHEMA_URL,
-      // no urn, but activeNamespace present → triggers hasLegacyFields and lookup
       metadata: { createdAt: '2026-01-01', activeNamespace: 'prescan' },
       taskState: {
         prescan: { completedRootTaskIds: [] },
@@ -500,12 +460,10 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // metadata.urn undefined → urnLookup[activeNamespace='prescan']
     expect(result.metadata.urn).toBe('urn:nl:prescan:2.0')
   })
 
   it('falls back to "dpia" in lookup when urn and activeNamespace are both absent', () => {
-    // hasLegacyFields triggered by currentRootTaskId; no urn, no activeNamespace.
     const state = {
       $schema: OUTPUT_SCHEMA_URL,
       metadata: { createdAt: '2026-01-01' },
@@ -518,7 +476,6 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
     } as unknown as AssessmentState
 
     const result = migrateStateV1toV2(state, urnLookup) as any
-    // urn undefined → urnLookup[activeNamespace || 'dpia'] = urnLookup['dpia']
     expect(result.metadata.urn).toBe('urn:nl:dpia:3.0')
   })
 
@@ -527,9 +484,7 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
       $schema: OUTPUT_SCHEMA_URL,
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01', activeNamespace: 'dpia' },
       taskState: {
-        // tsRaw with no completedRootTaskIds → || [] branch
         dpia: { currentRootTaskId: '0' },
-        // undefined value → !tsRaw continue
         prescan: undefined,
       },
       answers: {
@@ -543,7 +498,6 @@ describe('stripLegacyFields — already-v2 cleanup', () => {
   })
 
   it('handles already-v2 state with no taskState at all (taskState ?? {} branch)', () => {
-    // hasLegacyFields true only via activeNamespace; no taskState property exists.
     const state = {
       $schema: OUTPUT_SCHEMA_URL,
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01', activeNamespace: 'dpia' },

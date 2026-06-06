@@ -1,10 +1,3 @@
-// Coverage test for src/utils/rebuildState.ts.
-//
-// rebuildState() replays edits stored in assessment_edits against a real
-// Postgres test DB, so this is an integration-style unit test: we seed the
-// schema directly via the same db connection the function uses, then assert on
-// the rebuilt state. Every branch of the replay logic, parseFieldKey and
-// findGroupedParent is exercised here.
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { rebuildState } from '../../src/utils/rebuildState.js'
 import { db } from '../../src/db/connection.js'
@@ -19,13 +12,9 @@ import { createUser, createProject, createAssessment, type SeededUser } from '..
 let user: SeededUser
 let projectId: string
 
-beforeAll(async () => {
-  // No Fastify app needed: rebuildState only touches the DB through `db`.
-})
+beforeAll(async () => {})
 
-afterAll(async () => {
-  // Close the shared postgres pool so the process can exit cleanly.
-})
+afterAll(async () => {})
 
 beforeEach(async () => {
   await truncateAll(process.env.DATABASE_SERVER_FULL!)
@@ -34,7 +23,6 @@ beforeEach(async () => {
   projectId = project.id
 })
 
-// Inserts a version row and returns its id.
 async function addVersion(instanceId: string, version: number): Promise<string> {
   const [row] = await db
     .insert(assessmentVersions)
@@ -43,8 +31,7 @@ async function addVersion(instanceId: string, version: number): Promise<string> 
   return row.id
 }
 
-// Inserts an edit belonging to a version. editedAt is explicit so ordering is
-// deterministic within a version (the function orders by version then editedAt).
+// editedAt is explicit so replay order is deterministic (ordered by version then editedAt).
 async function addEdit(
   versionId: string,
   fieldId: string,
@@ -62,7 +49,6 @@ async function addEdit(
   })
 }
 
-// Creates an instance with a single version and a list of edits, then rebuilds.
 async function rebuildFromEdits(
   edits: Array<{ fieldId: string; editType: string; newValue: unknown }>,
   options: { cachedState?: unknown; upToVersion?: number } = {},
@@ -93,7 +79,6 @@ describe('rebuildState — fallback when no edits exist', () => {
   })
 
   it('returns {} when the instance does not exist (optional chaining undefined)', async () => {
-    // A random non-existent instance id: no edits, no instance row.
     const result = await rebuildState('00000000-0000-0000-0000-000000000000', 1)
     expect(result).toEqual({})
   })
@@ -102,7 +87,6 @@ describe('rebuildState — fallback when no edits exist', () => {
     const instance = await createAssessment(projectId, user.id, { cachedState: { fromCache: true } })
     const v2 = await addVersion(instance.id, 2)
     await addEdit(v2, '1.1', 'answer_change', { value: 'v2only' }, new Date(2024, 0, 1))
-    // Asking for upToVersion=1 excludes the v2 edit, so rows is empty -> cachedState.
     const result = await rebuildState(instance.id, 1)
     expect(result).toEqual({ fromCache: true })
   })
@@ -124,7 +108,6 @@ describe('rebuildState — initial_state normalization', () => {
   it('falls back to {} when initial_state newValue is null (?? branch)', async () => {
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: null },
-      // A following edit confirms state started as {} and answers got created.
       { fieldId: '1.1', editType: 'answer_change', newValue: { value: 'after-null' } },
     ])
     expect(result.answers['1.1']).toEqual({ value: 'after-null' })
@@ -141,10 +124,8 @@ describe('rebuildState — initial_state normalization', () => {
     ])
     expect(result.answers['2.1']).toEqual({ value: 'inside-dpia' })
     expect(result.answers.dpia).toBeUndefined()
-    // taskState moved into metadata.completedTasks
     expect(result.metadata.completedTasks).toEqual(['1'])
     expect(result.taskState).toBeUndefined()
-    // activeNamespace stripped
     expect(result.metadata.activeNamespace).toBeUndefined()
   })
 
@@ -163,19 +144,18 @@ describe('rebuildState — initial_state normalization', () => {
   it('handles taskState present but empty (tsNs falsy branch) and deletes it', async () => {
     const initial = {
       answers: {},
-      taskState: {}, // no namespace key -> Object.keys(...)[0] is undefined
+      taskState: {},
     }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
     ])
-    // taskState is deleted regardless; metadata is NOT created (tsNs falsy).
     expect(result.taskState).toBeUndefined()
     expect(result.metadata).toBeUndefined()
   })
 
   it('defaults completedTasks to [] when the namespace has no completedRootTaskIds (|| [] branch)', async () => {
     const initial = {
-      taskState: { dpia: { currentRootTaskId: '1' } }, // no completedRootTaskIds
+      taskState: { dpia: { currentRootTaskId: '1' } },
     }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
@@ -186,7 +166,6 @@ describe('rebuildState — initial_state normalization', () => {
 
   it('creates metadata when taskState namespace exists but metadata is absent (metadata || {} branch)', async () => {
     const initial = {
-      // no metadata key at all
       taskState: { prescan: { completedRootTaskIds: ['2'] } },
     }
     const result = await rebuildFromEdits([
@@ -230,7 +209,6 @@ describe('rebuildState — answer_change', () => {
   })
 
   it('sets a grouped child into an existing array element found by _index', async () => {
-    // initial_state seeds the parent array so findGroupedParent locates it.
     const initial = { answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'old' } }] } }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
@@ -245,7 +223,6 @@ describe('rebuildState — answer_change', () => {
     const initial = { answers: { '2.1': [{ _index: 2 }] } }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
-      // index 0 does not exist yet -> element created, then sorted before _index 2
       { fieldId: '2.1.1[0]', editType: 'answer_change', newValue: { value: 'first' } },
     ])
     const arr = result.answers['2.1']
@@ -265,7 +242,6 @@ describe('rebuildState — answer_change', () => {
   })
 
   it('treats a grouped key as a plain key when no grouped parent array exists (findGroupedParent null)', async () => {
-    // No parent array in answers, so the indexed key is stored verbatim.
     const result = await rebuildFromEdits([
       { fieldId: '2.1.1[0]', editType: 'answer_change', newValue: { value: 'plain-indexed' } },
     ])
@@ -273,11 +249,6 @@ describe('rebuildState — answer_change', () => {
   })
 
   it('treats a grouped key as plain when the matched parent is not an array (Array.isArray false)', async () => {
-    // findGroupedParent only returns a key when answers[candidate] is an array,
-    // so to hit the inner `Array.isArray(arr)` false branch the parent must be
-    // discovered as an array by findGroupedParent yet... it cannot differ.
-    // Instead: the candidate exists as a non-array, findGroupedParent skips it
-    // and returns null, falling through to plain-key assignment.
     const initial = { answers: { '2.1': { notAnArray: true } } }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
@@ -371,7 +342,6 @@ describe('rebuildState — instance_added', () => {
     ])
     const arr = result.answers['2.1']
     expect(arr).toHaveLength(1)
-    // The second add is ignored, original bundled value kept.
     expect(arr[0]['2.1.1']).toEqual({ value: 'first' })
   })
 
@@ -379,7 +349,6 @@ describe('rebuildState — instance_added', () => {
     const result = await rebuildFromEdits([
       { fieldId: '2.1', editType: 'instance_added', newValue: null },
     ])
-    // answers object is created but no array key added.
     expect(result.answers['2.1']).toBeUndefined()
   })
 
@@ -413,7 +382,6 @@ describe('rebuildState — instance_removed', () => {
   })
 
   it('breaks early when there are no answers at all (!state.answers true)', async () => {
-    // No initial_state and no prior answer edits -> state.answers is undefined.
     const result = await rebuildFromEdits([
       { fieldId: '2.1[0]', editType: 'instance_removed', newValue: null },
     ])
@@ -443,10 +411,9 @@ describe('rebuildState — legacy and unknown edit types', () => {
   it('ignores task_instance_add and task_instance_remove (legacy break cases)', async () => {
     const result = await rebuildFromEdits([
       { fieldId: '1.1', editType: 'answer_change', newValue: { value: 'kept' } },
-      { fieldId: '2.1.3[1]', editType: 'task_instance_add', newValue: { foo: 'bar' } },
+      { fieldId: '2.1.3[1]', editType: 'task_instance_add', newValue: { value: 'E-mailadres' } },
       { fieldId: '2.1.3[1]', editType: 'task_instance_remove', newValue: null },
     ])
-    // The legacy edits do nothing; only the answer_change took effect.
     expect(result.answers['1.1']).toEqual({ value: 'kept' })
     expect(result.answers['2.1.3[1]']).toBeUndefined()
   })
@@ -461,7 +428,6 @@ describe('rebuildState — parseFieldKey', () => {
   })
 
   it('parses a URN field id with a task_index into a grouped key', async () => {
-    // With a parent array present, the indexed URN key targets the element.
     const initial = { answers: { '2.1': [{ _index: 0 }] } }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },
@@ -478,11 +444,9 @@ describe('rebuildState — parseFieldKey', () => {
   it('returns null and skips the edit for a malformed URN (if (!key) continue)', async () => {
     const result = await rebuildFromEdits([
       { fieldId: '1.1', editType: 'answer_change', newValue: { value: 'before' } },
-      // urn: prefix but does not match the strict regex -> parseFieldKey null
       { fieldId: 'urn:not-a-valid-urn', editType: 'answer_change', newValue: { value: 'ignored' } },
     ])
     expect(result.answers['1.1']).toEqual({ value: 'before' })
-    // The malformed-urn edit produced no key, so nothing extra was stored.
     expect(Object.keys(result.answers)).toEqual(['1.1'])
   })
 
@@ -510,8 +474,6 @@ describe('rebuildState — parseFieldKey', () => {
 
 describe('rebuildState — findGroupedParent', () => {
   it('returns null for a single-segment child id (loop never runs)', async () => {
-    // Child task id "9" has one segment -> the for loop body never executes,
-    // findGroupedParent returns null, so the indexed key is stored plainly.
     const result = await rebuildFromEdits([
       { fieldId: '9[0]', editType: 'answer_change', newValue: { value: 'single-seg' } },
     ])
@@ -519,7 +481,6 @@ describe('rebuildState — findGroupedParent', () => {
   })
 
   it('finds a grandparent array when the immediate parent is not an array (loop iterates down)', async () => {
-    // child "2.1.4.5"; "2.1.4" is not an array but "2.1" is -> walks down to "2.1".
     const initial = { answers: { '2.1': [{ _index: 0 }] } }
     const result = await rebuildFromEdits([
       { fieldId: '__initial__', editType: 'initial_state', newValue: initial },

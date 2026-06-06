@@ -71,10 +71,6 @@ export async function projectRoutes(app: FastifyInstance) {
   }, async (request) => {
     const { projectId } = request.params
 
-    // requireProjectAccess('viewer') above requires a project_members row, and
-    // project_members.project_id has an ON DELETE CASCADE FK to projects, so a
-    // membership cannot exist without its project. The project row is therefore
-    // guaranteed to exist here.
     const [project] = await db
       .select()
       .from(projects)

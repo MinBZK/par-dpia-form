@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 
-// A real ref so the component's watcher reacts when we toggle it.
+// Real ref (not a plain mock) so the component's watcher reacts when toggled.
 const sessionExpired = ref(false)
 const relogin = vi.fn().mockResolvedValue(undefined)
 
@@ -53,8 +53,6 @@ describe('SessionExpiredDialog', () => {
     const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
     const wrapper = mount(SessionExpiredDialog)
 
-    // Toggling to false (already false) keeps the watcher's else path.
-    // Set a truthy then back to falsy to exercise the `if (expired)` false branch.
     sessionExpired.value = false
     await wrapper.vm.$nextTick()
 
@@ -81,12 +79,10 @@ describe('SessionExpiredDialog', () => {
     const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
     const wrapper = mount(SessionExpiredDialog)
 
-    // First expire (truthy branch) ...
     sessionExpired.value = true
     await wrapper.vm.$nextTick()
     expect(showModal).toHaveBeenCalledTimes(1)
 
-    // ... then reset to false (falsy branch — showModal not called again).
     sessionExpired.value = false
     await wrapper.vm.$nextTick()
     expect(showModal).toHaveBeenCalledTimes(1)
@@ -108,8 +104,6 @@ describe('SessionExpiredDialog', () => {
   it('prevents the default cancel behaviour (Escape key) on the dialog', async () => {
     const wrapper = mount(SessionExpiredDialog)
 
-    // @cancel.prevent compiles to a handler that calls event.preventDefault(),
-    // keeping the dialog open when the user presses Escape.
     const event = new Event('cancel', { cancelable: true })
     await wrapper.find('dialog').element.dispatchEvent(event)
 

@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-// The font service keeps module-level state (initialized / isLoading /
-// loadPromise / fonts / vfs). We mock getAsset so we control what each font
-// file resolves to, and reset modules between tests to start from a clean
-// (uninitialized) state for each scenario.
-
 const getAssetMock = vi.fn<(filename: string) => Promise<string | undefined>>()
 
 vi.mock('../../src/services/assetsRegistry', () => ({
@@ -40,10 +35,8 @@ describe('FontService', () => {
       expect(family.normal).toBe('rijksoverheidsanstext-regular-webfont.ttf')
       expect(family.bold).toBe('rijksoverheidsanstext-bold-webfont.ttf')
       expect(family.italics).toBe('rijksoverheidsanstext-italic-webfont.ttf')
-      // bolditalics is explicitly set to the bold variant.
       expect(family.bolditalics).toBe('rijksoverheidsanstext-bold-webfont.ttf')
 
-      // getAsset is called once per font variant.
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
       for (const file of FONT_FILES) {
         expect(getAssetMock).toHaveBeenCalledWith(file)
@@ -57,8 +50,6 @@ describe('FontService', () => {
       await FontService.getFonts()
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
 
-      // Second call must hit the `initialized === true` short-circuit and not
-      // call getAsset again.
       const fonts = await FontService.getFonts()
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
       expect(fonts).toHaveProperty('rijksoverheidsanstext')
@@ -79,8 +70,6 @@ describe('FontService', () => {
     })
 
     it('omits font files from the VFS when getAsset resolves falsy (asset branch false)', async () => {
-      // Returning undefined exercises the `if (asset)` false branch: the file
-      // is registered in the font definitions but not added to the VFS.
       getAssetMock.mockResolvedValue(undefined)
       const FontService = await importFontService()
 
@@ -88,7 +77,6 @@ describe('FontService', () => {
       const fonts = await FontService.getFonts()
 
       expect(Object.keys(vfs)).toHaveLength(0)
-      // Font definitions are still built even though no VFS entries exist.
       expect(fonts.rijksoverheidsanstext.normal).toBe(
         'rijksoverheidsanstext-regular-webfont.ttf',
       )
@@ -101,7 +89,6 @@ describe('FontService', () => {
       await FontService.getVFS()
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
 
-      // Already initialized: the `!initialized && !isLoading` guard is false.
       const vfs = await FontService.getVFS()
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
       expect(Object.keys(vfs)).toHaveLength(FONT_FILES.length)
@@ -110,8 +97,8 @@ describe('FontService', () => {
 
   describe('_loadFonts concurrency', () => {
     it('reuses the in-flight load promise for concurrent callers (isLoading && loadPromise branch true)', async () => {
-      // Make getAsset hang until we release it, so a load stays in flight while
-      // we issue a second concurrent call.
+      // Gate getAsset so the load stays in flight; without it the first call
+      // would complete before the second observes the in-flight promise.
       let release!: () => void
       const gate = new Promise<void>((resolve) => {
         release = resolve
@@ -123,18 +110,15 @@ describe('FontService', () => {
 
       const FontService = await importFontService()
 
-      // First call starts the load and parks on the gate inside getAsset.
       const firstPromise = FontService.getFonts()
-      // Yield so _loadFonts sets isLoading = true and assigns loadPromise.
+      // Yield so _loadFonts sets isLoading and assigns loadPromise before the second call.
       await Promise.resolve()
-      // Second call must observe isLoading && loadPromise and reuse it.
       const secondPromise = FontService.getFonts()
 
       release()
 
       const [first, second] = await Promise.all([firstPromise, secondPromise])
       expect(first).toBe(second)
-      // getAsset is only invoked once per file despite two concurrent callers.
       expect(getAssetMock).toHaveBeenCalledTimes(FONT_FILES.length)
     })
 
@@ -144,12 +128,8 @@ describe('FontService', () => {
 
       const FontService = await importFontService()
 
-      // The rejection propagates; the finally block must still reset isLoading
-      // and loadPromise so a later call can retry.
       await expect(FontService.getFonts()).rejects.toThrow('asset blew up')
 
-      // After failure we are not initialized; a retry re-runs the load. This
-      // call now succeeds, proving loading state was cleared in finally.
       getAssetMock.mockImplementation(async (filename: string) => `retry-${filename}`)
       const fonts = await FontService.getFonts()
       expect(fonts.rijksoverheidsanstext.normal).toBe(

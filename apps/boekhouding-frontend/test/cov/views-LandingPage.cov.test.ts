@@ -5,16 +5,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref, computed } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 
-// Router mock — useRouter() returns a push spy so we can assert the
-// authenticated branch of goToProjects() navigates to /projecten.
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// useAuth mock — a controllable authenticated ref drives both the
-// goToProjects() branches and the v-if/label template branches. login()
-// is a spy so we can assert it is awaited on the unauthenticated branch.
 const authenticated = ref(false)
 const login = vi.fn().mockResolvedValue(undefined)
 vi.mock('../../src/composables/useAuth', () => ({
@@ -24,18 +19,15 @@ vi.mock('../../src/composables/useAuth', () => ({
   }),
 }))
 
-// config mock — supplies the standaloneUrl read at <script setup> time.
 vi.mock('../../src/config', () => ({
   getConfig: () => ({
     keycloakUrl: 'http://localhost:8080',
-    keycloakRealm: 'test-realm',
-    keycloakClientId: 'test-client',
+    keycloakRealm: 'assessment-boekhouding',
+    keycloakClientId: 'boekhouding-frontend',
     standaloneUrl: '/invulhulpen/',
   }),
 }))
 
-// Stub AppHeader so the landing page renders in isolation; the header has
-// its own dedicated coverage test.
 import LandingPage from '../../src/views/LandingPage.vue'
 
 const mountPage = () =>

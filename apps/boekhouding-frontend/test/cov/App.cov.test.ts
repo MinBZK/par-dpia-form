@@ -5,21 +5,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { mount } from '@vue/test-utils'
 
-// Control isAuthenticated to drive both branches of the homeUrl computed.
 const isAuthenticated = ref(false)
 
 vi.mock('../../src/composables/useAuth', () => ({
   useAuth: () => ({
-    // App.vue only uses isAuthenticated; SessionExpiredDialog (stubbed) would
-    // also use sessionExpired/relogin, but we stub that component away.
     isAuthenticated,
     sessionExpired: ref(false),
     relogin: vi.fn(),
   }),
 }))
 
-// AppBanner comes from the workspace-linked core package; stub it so we can
-// assert the homeUrl prop without rendering the real component tree.
 vi.mock('@overheid-assessment/core', () => ({
   AppBanner: {
     name: 'AppBanner',
@@ -39,13 +34,10 @@ beforeEach(async () => {
 function mountApp() {
   return mount(App, {
     global: {
-      // router-view binds :key="$route.path"; provide a fake $route.
       mocks: {
-        $route: { path: '/some-route' },
+        $route: { path: '/projecten' },
       },
       stubs: {
-        // Stub heavy / routing-dependent children. RouterLink/RouterView are
-        // not registered without a router, so stub them as well.
         SessionExpiredDialog: { template: '<div class="session-expired-stub" />' },
         'router-view': { template: '<div class="router-view-stub" />' },
         'router-link': {

@@ -4,8 +4,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { RouteRecordRaw } from 'vue-router'
 
-// Auth state controllable per test. The router guard reads
-// `isAuthenticated.value` and may call `login()`.
 const mockIsAuthenticated = { value: true }
 const mockLogin = vi.fn().mockResolvedValue(undefined)
 
@@ -16,9 +14,7 @@ vi.mock('../../src/composables/useAuth', () => ({
   }),
 }))
 
-// Stub every view component so the lazy `() => import(...)` route loaders
-// resolve to a trivial module instead of pulling in heavy SFC dependencies.
-// Each stub is distinguishable so we can assert the right loader was invoked.
+// Stub view SFCs so the lazy `() => import(...)` loaders resolve without pulling in heavy deps.
 function stub(name: string) {
   return { default: { name } }
 }
@@ -43,12 +39,10 @@ beforeEach(async () => {
   router = mod.router
 })
 
-// Helper: pull the flat list of route records the router was built with.
 function records(): RouteRecordRaw[] {
   return router.getRoutes() as unknown as RouteRecordRaw[]
 }
 
-// Helper: find a record by name.
 function byName(name: string) {
   const rec = router.getRoutes().find((r) => r.name === name)
   if (!rec) throw new Error(`route ${name} not found`)
@@ -75,16 +69,12 @@ describe('router route table', () => {
     expect(byName('accessibility').meta?.public).toBe(true)
     expect(byName('about').meta?.public).toBe(true)
 
-    // Protected routes do not carry the public flag.
     expect(byName('projects').meta?.public).toBeUndefined()
     expect(byName('project').meta?.public).toBeUndefined()
     expect(byName('assessment-editor').meta?.public).toBeUndefined()
   })
 
   it('invokes every lazy component loader and resolves the stubbed module', async () => {
-    // Calling each `component: () => import(...)` exercises the arrow
-    // functions declared in the routes array (function coverage) and proves
-    // each route points at the expected view module.
     const expected: Record<string, string> = {
       home: 'LandingPage',
       projects: 'ProjectList',
@@ -108,10 +98,8 @@ describe('router route table', () => {
   })
 
   it('passes route params as props for parametrised routes', () => {
-    // The four routes declared with `props: true` should expose props=true.
     for (const name of ['project', 'members', 'assessment-editor', 'version-history']) {
       const rec = byName(name)
-      // vue-router stores per-named-view props; the default view should be true.
       const props = (rec as unknown as { props: Record<string, unknown> }).props
       expect(props.default).toBe(true)
     }
@@ -120,12 +108,11 @@ describe('router route table', () => {
 
 describe('router beforeEach guard', () => {
   it('allows navigation to a public route without checking auth', async () => {
-    mockIsAuthenticated.value = false // even when unauthenticated
+    mockIsAuthenticated.value = false
     await router.push('/privacy')
     await router.isReady()
 
     expect(router.currentRoute.value.name).toBe('privacy')
-    // Public short-circuit: login must never be called.
     expect(mockLogin).not.toHaveBeenCalled()
   })
 
@@ -141,12 +128,10 @@ describe('router beforeEach guard', () => {
   it('blocks a protected route and triggers login when unauthenticated', async () => {
     mockIsAuthenticated.value = false
 
-    // The guard returns false, aborting the navigation. vue-router reports
-    // this as a NavigationFailure rather than a rejection.
+    // Aborted navigation resolves to a NavigationFailure, not a rejection.
     const failure = await router.push('/projecten')
 
     expect(mockLogin).toHaveBeenCalledTimes(1)
-    // Navigation was aborted, so we did not land on the projects route.
     expect(router.currentRoute.value.name).not.toBe('projects')
     expect(failure).toBeTruthy()
   })

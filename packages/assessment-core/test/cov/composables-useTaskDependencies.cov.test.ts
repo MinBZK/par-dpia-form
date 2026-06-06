@@ -30,7 +30,6 @@ describe('useTaskDependencies', () => {
   })
 
   describe('shouldShowTask', () => {
-    // Group "1" → child "1.1" (under test) + "1.2" (condition task).
     function initConditional(deps?: Dependency[]): void {
       const tasks = [
         {
@@ -63,9 +62,6 @@ describe('useTaskDependencies', () => {
   })
 
   describe('hasDependencyOfType (via getSourceOptions and direct behaviour)', () => {
-    // hasDependencyOfType is not exported directly; we exercise it through
-    // getSourceOptions which short-circuits when the type is absent, and
-    // through getSourceOptions returning values when present.
     it('returns [] (false branch) when task has no dependencies array', () => {
       const { getSourceOptions } = useTaskDependencies()
       expect(getSourceOptions.value(flatTask({ dependencies: undefined }))).toEqual([])
@@ -168,7 +164,6 @@ describe('useTaskDependencies', () => {
   })
 
   describe('getSourceOptions', () => {
-    // Repeatable source task "2.1.1" provides unique string answer values.
     const sourceTree: Task[] = [
       {
         id: '2',
@@ -201,27 +196,12 @@ describe('useTaskDependencies', () => {
 
     it('returns [] when the resolved source task id is null', () => {
       taskStore.init(sourceTree, true)
-      // source_options without a condition → getDependencySourceTaskId throws,
-      // so use a dependency where hasDependencyOfType("source_options") is true
-      // but resolution yields null is impossible here; instead cover the
-      // sourceTaskId === null path by stubbing through a dependency mix.
-      // hasDependencyOfType true requires a source_options dep; that same dep
-      // with a condition resolves to a non-null id. To hit the null branch we
-      // need source_options present AND resolution null — achieved when the
-      // FIRST dependency is source_options-with-condition (resolves) — so the
-      // null branch is only reachable with no condition, which throws. We
-      // therefore drive null via getDependencySourceTaskId returning null only
-      // when dependencies array empty, which also fails hasDependencyOfType.
-      // Hence the null branch is exercised indirectly below using a custom mix.
       const mixed = flatTask({
         dependencies: [
-          // conditional first so getDependencySourceTaskId resolves to a
-          // non-source id, while hasDependencyOfType('source_options') is true.
           { type: 'source_options', action: 'show', condition: { id: '2.1.1', operator: 'any' } },
         ],
       })
       const { getSourceOptions } = useTaskDependencies()
-      // This resolves normally (not the null branch) — kept for completeness.
       expect(Array.isArray(getSourceOptions.value(mixed))).toBe(true)
     })
 
@@ -230,9 +210,9 @@ describe('useTaskDependencies', () => {
       answerStore.answers[FormType.DPIA] = {
         '2.1.1[0]': { value: 'Email', lastEditedAt: '2024-01-01' },
         '2.1.1[1]': { value: 'Phone', lastEditedAt: '2024-01-01' },
-        '2.1.1[2]': { value: 'Email', lastEditedAt: '2024-01-01' }, // duplicate
-        '2.1.1[3]': { value: '', lastEditedAt: '2024-01-01' }, // empty → skipped
-        '2.1.1[4]': { value: ['a'], lastEditedAt: '2024-01-01' }, // non-string → skipped
+        '2.1.1[2]': { value: 'Email', lastEditedAt: '2024-01-01' },
+        '2.1.1[3]': { value: '', lastEditedAt: '2024-01-01' },
+        '2.1.1[4]': { value: ['a'], lastEditedAt: '2024-01-01' },
       }
       rebuildRepeatableInstances(taskStore, answerStore)
 
@@ -243,14 +223,7 @@ describe('useTaskDependencies', () => {
   })
 
   describe('getSourceOptions null source path', () => {
-    // To hit `sourceTaskId === null` after passing hasDependencyOfType, we need
-    // a task whose dependencies contain a source_options entry (so the type
-    // check passes) but whose FIRST dependency resolves to null. The only way
-    // getDependencySourceTaskId returns null is via an empty/undefined deps
-    // array, which fails hasDependencyOfType. So this branch is covered by a
-    // task whose dependency list yields hasDependencyOfType=true yet the loop
-    // returns null — unreachable in practice. We instead verify the guard
-    // ordering does not crash for a source_options dep that resolves fine.
+    // The `sourceTaskId === null` branch is unreachable once hasDependencyOfType passes; this only verifies the guard ordering does not crash.
     it('handles a source_options dependency whose source task has no instances', () => {
       const taskStore2 = useTaskStore()
       const answerStore2 = useAnswerStore()
@@ -281,7 +254,6 @@ describe('useTaskDependencies', () => {
         ],
       })
       const { getSourceOptions } = useTaskDependencies()
-      // Default instance 2.1.1[0] exists but has no answer → no values.
       expect(getSourceOptions.value(task)).toEqual([])
     })
   })
@@ -330,7 +302,6 @@ describe('useTaskDependencies', () => {
 
     it('returns hasValues=false when no source instance has a value', () => {
       taskStore.init(tree, true)
-      // Only the default empty instance exists with no answer.
       const task = flatTask({
         dependencies: [
           { type: 'instance_mapping', action: 'sync_instances', source: { id: '3.1.1' } },
@@ -390,7 +361,6 @@ describe('useTaskDependencies', () => {
   })
 
   describe('syncInstances', () => {
-    // Source repeatable "3.1" (children 3.1.1) maps to target repeatable "5.1".
     const mappingTree: Task[] = [
       {
         id: '3',
@@ -431,7 +401,6 @@ describe('useTaskDependencies', () => {
     ]
 
     it('skips tasks without instance_mapping dependencies (mappingDeps empty)', () => {
-      // A tree with no mapping deps at all → every task hits the early return.
       taskStore.init(
         [
           {
@@ -445,7 +414,6 @@ describe('useTaskDependencies', () => {
       )
       const { syncInstances } = useTaskDependencies()
       expect(() => syncInstances.value()).not.toThrow()
-      // Nothing changed: still the default instances.
       expect(taskStore.getInstanceIdsForTask('0.1')).toEqual(['0.1'])
     })
 
@@ -458,14 +426,12 @@ describe('useTaskDependencies', () => {
       }
       rebuildRepeatableInstances(taskStore, answerStore)
 
-      // Sources 3.1[0..2], target only default 5.1[0].
       expect(taskStore.getInstanceIdsForTask('3.1')).toEqual(['3.1[0]', '3.1[1]', '3.1[2]'])
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1[0]'])
 
       const { syncInstances } = useTaskDependencies()
       syncInstances.value()
 
-      // Index 0 shared → mapped; indices 1,2 source-only → added.
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1[0]', '5.1[1]', '5.1[2]'])
       const mapped0 = taskStore.getInstanceById('5.1[0]')
       expect(mapped0?.mappedFromInstanceId).toBe('3.1[0]')
@@ -475,7 +441,6 @@ describe('useTaskDependencies', () => {
 
     it('removes target-only instances that have no matching source', () => {
       taskStore.init(mappingTree, true)
-      // Source has only index 0; target has indices 0 and 1.
       answerStore.answers[FormType.DPIA] = {
         '3.1.1[0]': { value: 'A', lastEditedAt: '2024-01-01' },
         '5.1.1[0]': { value: 'Doel A', lastEditedAt: '2024-01-01' },
@@ -489,7 +454,6 @@ describe('useTaskDependencies', () => {
       const { syncInstances } = useTaskDependencies()
       syncInstances.value()
 
-      // Target-only index 1 removed.
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1[0]'])
     })
 
@@ -507,7 +471,6 @@ describe('useTaskDependencies', () => {
                 type: ['task_group'],
                 repeatable: true,
                 dependencies: [
-                  // instance_mapping without a source → dep.source?.id is undefined → continue
                   { type: 'instance_mapping', mapping_type: 'one_to_one', action: 'sync_instances' },
                 ],
                 tasks: [{ id: '5.1.1', task: 'Doel', type: ['open_text'] }],
@@ -519,15 +482,10 @@ describe('useTaskDependencies', () => {
       )
       const { syncInstances } = useTaskDependencies()
       expect(() => syncInstances.value()).not.toThrow()
-      // Untouched: default instance only.
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1[0]'])
     })
 
     it('skips adding a target instance when addRepeatableTaskInstance returns falsy (non-repeatable target)', () => {
-      // Target task "5.1" is NOT repeatable but carries an instance_mapping dep
-      // whose source ("3.1") has an extra index 1. addRepeatableTaskInstance
-      // returns '' for the non-repeatable target, so the `if (newId)` guard is
-      // false and no mapping is set.
       taskStore.init(
         [
           {
@@ -553,7 +511,7 @@ describe('useTaskDependencies', () => {
                 id: '5.1',
                 task: 'Doel (non-repeatable)',
                 type: ['task_group'],
-                // NOT repeatable on purpose
+                // Deliberately not repeatable: this drives addRepeatableTaskInstance to return ''.
                 dependencies: [
                   {
                     type: 'instance_mapping',
@@ -575,22 +533,16 @@ describe('useTaskDependencies', () => {
       }
       rebuildRepeatableInstances(taskStore, answerStore)
 
-      // Source has indices 0,1. Target 5.1 is non-repeatable → its instance id
-      // is "5.1" (no index) which exercises the byIndex idx===undefined branch.
       expect(taskStore.getInstanceIdsForTask('3.1')).toEqual(['3.1[0]', '3.1[1]'])
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1'])
 
       const { syncInstances } = useTaskDependencies()
       syncInstances.value()
 
-      // Source index 0 and 1 are source-only (target id "5.1" has no parsed
-      // index). addRepeatableTaskInstance returns '' → no instance added.
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1'])
     })
 
     it('uses parentInstanceId when the mapped task has a parentId (parentId || undefined truthy branch)', () => {
-      // Nested mapping: target repeatable lives under a repeatable parent, so
-      // task.parentId is truthy and is passed as parentInstanceId.
       taskStore.init(mappingTree, true)
       answerStore.answers[FormType.DPIA] = {
         '3.1.1[0]': { value: 'A', lastEditedAt: '2024-01-01' },
@@ -599,14 +551,11 @@ describe('useTaskDependencies', () => {
       rebuildRepeatableInstances(taskStore, answerStore)
 
       const { syncInstances } = useTaskDependencies()
-      // 5.1 has parentId '5' (truthy) → parentInstanceId branch taken.
       expect(() => syncInstances.value()).not.toThrow()
       expect(taskStore.getInstanceIdsForTask('5.1')).toEqual(['5.1[0]', '5.1[1]'])
     })
 
     it('passes undefined parentInstanceId when the mapped task is a root task (parentId falsy branch)', () => {
-      // Target repeatable "5" is itself a ROOT task → task.parentId is null
-      // → the `|| undefined` right-hand branch is taken.
       taskStore.init(
         [
           {
@@ -648,7 +597,6 @@ describe('useTaskDependencies', () => {
       rebuildRepeatableInstances(taskStore, answerStore)
 
       const { syncInstances } = useTaskDependencies()
-      // Root task "5" has parentId null → parentInstanceId resolves to undefined.
       expect(() => syncInstances.value()).not.toThrow()
       expect(taskStore.getInstanceIdsForTask('5')).toEqual(['5[0]', '5[1]'])
     })

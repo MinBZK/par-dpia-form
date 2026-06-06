@@ -5,8 +5,6 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { FormType, type Task } from '../../src/models/dpia'
 import TaskItem from '../../src/components/task/TaskItem.vue'
 
-// A minimal task tree with one text field that carries a description so both
-// branches of the `showDescription` ternary in TaskItem.vue can be exercised.
 const taskTree: Task[] = [
   {
     id: '1',
@@ -23,8 +21,6 @@ const taskTree: Task[] = [
   },
 ]
 
-// Stub FormField so the test isolates TaskItem and can inspect the props it
-// forwards. The stub keeps a typed slot for the props we assert on.
 const FormFieldStub = {
   name: 'FormField',
   props: ['task', 'instanceId', 'label', 'description'],
@@ -67,12 +63,9 @@ describe('TaskItem.vue', () => {
     })
 
     const field = wrapper.findComponent(FormFieldStub)
-    // task comes from taskStore.taskById(taskId)
     expect(field.props('task')).toEqual(taskStore.taskById('1.1'))
     expect(field.props('instanceId')).toBe('1.1[0]')
-    // label comes from the resolved task's `task` text
     expect(field.props('label')).toBe('Wat is de naam van het project?')
-    // showDescription true -> description forwarded
     expect(field.props('description')).toBe('Geef de officiële projectnaam op.')
   })
 

@@ -172,8 +172,6 @@ export function useFieldCommentIndicators(
     isInjecting = false
   }
 
-  // The caller (the containerRef watcher) passes the already-null-checked
-  // element, so the precondition is expressed in the type — no null guard needed.
   function startObserving(container: HTMLElement) {
     if (observer) return
 

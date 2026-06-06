@@ -1,11 +1,3 @@
-// Unit/integration coverage for the shared requireAssessmentAccess middleware.
-//
-// The middleware is a plain async function taking (assessmentId, userId,
-// minimumRole, requestUrl, reply, options?). We exercise it directly against the
-// real Postgres test database, seeding rows via the same fixtures the route
-// tests use, and pass a lightweight FastifyReply stub that records what the
-// middleware writes. This covers every branch (404 / 403 not-member /
-// 403 role-too-low / success) plus both sides of the includeState selection.
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { FastifyReply } from 'fastify'
 import { randomUUID } from 'node:crypto'
@@ -18,8 +10,6 @@ import {
   createAssessment,
 } from '../helpers/fixtures.js'
 
-// Minimal FastifyReply stub: the middleware only uses status().type().send().
-// We capture them so assertions can inspect the problem+json payload.
 interface CapturedReply {
   reply: FastifyReply
   statusCode: number | null
@@ -96,7 +86,7 @@ describe('requireAssessmentAccess — 403 when user is not a project member', ()
 
     const result = await requireAssessmentAccess(
       assessment.id,
-      outsider.id, // not a member: LEFT JOIN yields null memberRole
+      outsider.id,
       'viewer',
       requestUrl,
       cap.reply,
@@ -127,8 +117,6 @@ describe('requireAssessmentAccess — 403 when role is below the minimum', () =>
     const cap = makeReply()
     const requestUrl = `/api/v1/assessments/${assessment.id}`
 
-    // viewer (0) < editor (2): member exists but role too low -> else branch of
-    // the detail ternary.
     const result = await requireAssessmentAccess(
       assessment.id,
       viewer.id,
@@ -167,7 +155,7 @@ describe('requireAssessmentAccess — success without state (default options)', 
     )
 
     expect(result).not.toBeNull()
-    expect(cap.statusCode).toBeNull() // nothing sent on the happy path
+    expect(cap.statusCode).toBeNull()
     expect(result!.role).toBe('owner')
     expect(result!.assessment.id).toBe(assessment.id)
     expect(result!.assessment.projectId).toBe(project.id)
@@ -176,7 +164,6 @@ describe('requireAssessmentAccess — success without state (default options)', 
     expect(result!.assessment.currentVersion).toBe(1)
     expect(result!.assessment.createdAt).toBeInstanceOf(Date)
     expect(result!.assessment.updatedAt).toBeInstanceOf(Date)
-    // memberRole is stripped via destructuring; cachedState absent in lean projection.
     expect(result!.assessment).not.toHaveProperty('memberRole')
     expect(result!.assessment).not.toHaveProperty('cachedState')
   })

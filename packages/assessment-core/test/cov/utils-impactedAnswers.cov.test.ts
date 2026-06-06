@@ -12,12 +12,6 @@ import {
   type ImpactedAnswer,
 } from '../../src/utils/impactedAnswers'
 
-// ---------------------------------------------------------------------------
-// Shared helpers — build real Pinia stores so the source exercises the real
-// taskStore/answerStore implementations (parseInstanceId, getInstanceById,
-// getInstancesForTask, findRelatedInstance, getAnswer, shouldShowTask).
-// ---------------------------------------------------------------------------
-
 let taskStore: ReturnType<typeof useTaskStore>
 let answerStore: ReturnType<typeof useAnswerStore>
 
@@ -35,7 +29,6 @@ function answer(value: string | string[] | ImageValue | null) {
 
 describe('summariseImpact', () => {
   it('groups per root section, dedups + sorts field names, sorts sections numerically', () => {
-    // Two root sections "2" and "10" so numeric (not lexical) sort is exercised.
     const tasks: Task[] = [
       {
         id: '2', task: 'Sectie Twee', type: ['task_group'],
@@ -55,21 +48,17 @@ describe('summariseImpact', () => {
       { instanceId: '10.1', taskId: '10.1', value: 'x', reason: 'sync_cascade' },
       { instanceId: '2.2', taskId: '2.2', value: 'y', reason: 'sync_cascade' },
       { instanceId: '2.1', taskId: '2.1', value: 'z', reason: 'sync_cascade' },
-      // Duplicate field name for section 2 — must collapse via Set.
       { instanceId: '2.1', taskId: '2.1', value: 'z2', reason: 'sync_cascade' },
     ]
 
     const summary = summariseImpact(items, taskStore)
 
     expect(summary.total).toBe(4)
-    // Sorted numerically: 2 before 10.
     expect(summary.bySection.map((s) => s.sectionId)).toEqual(['2', '10'])
 
     const sectionTwo = summary.bySection[0]
     expect(sectionTwo.sectionLabel).toBe('Sectie Twee')
-    // count = total fields pushed for the section (incl. duplicate) = 3.
     expect(sectionTwo.count).toBe(3)
-    // fieldNames deduped + sorted alphabetically.
     expect(sectionTwo.fieldNames).toEqual(['Veld A', 'Veld B'])
 
     const sectionTen = summary.bySection[1]
@@ -78,7 +67,6 @@ describe('summariseImpact', () => {
   })
 
   it('falls back to the id when section/field task is unknown (catch branches)', () => {
-    // No tasks registered → taskById throws → both sectionLabel and fieldName catch.
     taskStore.init([], true)
 
     const items: ImpactedAnswer[] = [
@@ -90,8 +78,8 @@ describe('summariseImpact', () => {
     expect(summary.total).toBe(1)
     expect(summary.bySection).toHaveLength(1)
     expect(summary.bySection[0].sectionId).toBe('9')
-    expect(summary.bySection[0].sectionLabel).toBe('9') // catch → sectionId
-    expect(summary.bySection[0].fieldNames).toEqual(['9.9']) // catch → taskId
+    expect(summary.bySection[0].sectionLabel).toBe('9')
+    expect(summary.bySection[0].fieldNames).toEqual(['9.9'])
   })
 
   it('returns an empty summary for no items', () => {
@@ -102,8 +90,6 @@ describe('summariseImpact', () => {
 })
 
 describe('findImpactedByDelete', () => {
-  // Tree with a repeatable group 3.1 (text child 3.1.1) and a sync target 6.1
-  // (text child 6.1.1) whose instance_mapping source points at 3.1.1.
   const syncTree: Task[] = [
     {
       id: '3', task: 'Sectie 3', type: ['task_group'],
@@ -130,22 +116,18 @@ describe('findImpactedByDelete', () => {
 
   it('collects answers on the deleted instance + descendants, and cascades via sync mapping', () => {
     taskStore.init(syncTree, true)
-    // Add a second instance (index 1) for both repeatable groups so the
-    // mapping cascade targets 6.1[1] from 3.1[1].
     taskStore.addRepeatableTaskInstance('3.1')
     taskStore.addRepeatableTaskInstance('6.1')
 
     answerStore.answers[FormType.DPIA] = {
       '3.1.1[1]': answer('Bron'),
       '6.1.1[1]': answer('Doel'),
-      // An empty-string answer that must be skipped by hasValue.
       '3.1.1[0]': answer(''),
     }
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
 
     const ids = impacted.map((i) => i.instanceId).sort()
-    // 3.1.1[1] (descendant of deleted) and 6.1.1[1] (sync cascade target).
     expect(ids).toEqual(['3.1.1[1]', '6.1.1[1]'])
     expect(impacted.every((i) => i.reason === 'sync_cascade')).toBe(true)
     const byId = Object.fromEntries(impacted.map((i) => [i.instanceId, i]))
@@ -154,9 +136,6 @@ describe('findImpactedByDelete', () => {
   })
 
   it('skips instances already visited (cycle guard) and short-circuits second enqueue', () => {
-    // Deleting 3.1[1] enqueues 6.1[1] (via mapping). If 6.1 also mapped back to
-    // a descendant of itself we would re-enqueue, but the visited-set prevents
-    // an infinite loop. Here we delete an instance, and assert it terminates.
     taskStore.init(syncTree, true)
     taskStore.addRepeatableTaskInstance('3.1')
     taskStore.addRepeatableTaskInstance('6.1')
@@ -170,7 +149,6 @@ describe('findImpactedByDelete', () => {
   })
 
   it('skips a non-indexed instance (parsed.index === undefined continue)', () => {
-    // Non-repeatable instance id "0.1" has no index.
     const tasks: Task[] = [
       { id: '0', task: 'Intro', type: ['task_group'], tasks: [{ id: '0.1', task: 'Naam', type: ['text'] }] },
     ]
@@ -184,8 +162,6 @@ describe('findImpactedByDelete', () => {
   it('uses empty fallback for answers when namespace map is missing', () => {
     taskStore.init(syncTree, true)
     taskStore.addRepeatableTaskInstance('3.1')
-    // Wipe the namespace answer map entirely → `answerStore.answers[ns] || {}`
-    // falls back to {} and no answers are collected.
     answerStore.answers[FormType.DPIA] = undefined as never
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
@@ -193,7 +169,6 @@ describe('findImpactedByDelete', () => {
   })
 
   it('does not cascade when a mapping dependency lacks a source id', () => {
-    // 6.1 has an instance_mapping dependency but with no source id → skipped.
     const tree: Task[] = [
       {
         id: '3', task: 'S3', type: ['task_group'],
@@ -209,7 +184,6 @@ describe('findImpactedByDelete', () => {
         tasks: [
           {
             id: '6.1', task: 'Doel', type: ['task_group'], repeatable: true,
-            // No `source` → `mappingDep?.source?.id` is falsy → continue.
             dependencies: [{ type: 'instance_mapping', action: 'sync' }],
             tasks: [{ id: '6.1.1', task: 'X', type: ['text'] }],
           },
@@ -225,12 +199,10 @@ describe('findImpactedByDelete', () => {
     }
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
-    // Only the deleted instance's own descendant — no cascade.
     expect(impacted.map((i) => i.instanceId)).toEqual(['3.1.1[1]'])
   })
 
   it('does not cascade when mapping source is not a descendant task id', () => {
-    // Mapping source "9.9.9" is unrelated to 3.1's descendants → continue.
     const tree: Task[] = [
       {
         id: '3', task: 'S3', type: ['task_group'],
@@ -265,17 +237,14 @@ describe('findImpactedByDelete', () => {
   })
 
   it('does not enqueue when the target sync instance does not exist at the same index', () => {
-    // 6.1 maps from 3.1.1, but there is no 6.1[1] instance (only the default
-    // 6.1[0]). getInstanceById('6.1[1]') is null → `if (targetInstance)` false.
     taskStore.init(syncTree, true)
-    taskStore.addRepeatableTaskInstance('3.1') // creates 3.1[1] only
+    taskStore.addRepeatableTaskInstance('3.1')
     answerStore.answers[FormType.DPIA] = {
       '3.1.1[1]': answer('Bron'),
       '6.1.1[1]': answer('Doel'),
     }
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
-    // 6.1.1[1] is NOT collected because the 6.1[1] instance does not exist.
     expect(impacted.map((i) => i.instanceId)).toEqual(['3.1.1[1]'])
   })
 
@@ -289,16 +258,10 @@ describe('findImpactedByDelete', () => {
     }
 
     const ns = FormType.DPIA
-    // Add a dangling child id to 3.1.1 → `!task` continue branch (L101) when the
-    // graph walk dereferences the missing task.
     taskStore.flatTasks[ns]['3.1.1'].childrenIds = ['nonexistent-task']
-    // Strip childrenIds from 3.1.1 of the *6* branch's perspective is not needed;
-    // instead remove childrenIds from the dangling visit target by making one
-    // task have an undefined childrenIds → `task.childrenIds || []` (L102).
     taskStore.flatTasks[ns]['3.1.1'].childrenIds = undefined as never
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
-    // Cascade still works; the graph walk does not crash on undefined childrenIds.
     expect(impacted.map((i) => i.instanceId).sort()).toEqual(['3.1.1[1]', '6.1.1[1]'])
   })
 
@@ -311,8 +274,6 @@ describe('findImpactedByDelete', () => {
       '6.1.1[1]': answer('Doel'),
     }
     const ns = FormType.DPIA
-    // 3.1 lists a child that does not exist in flatTasks → queued, then `!task`
-    // continue at L101.
     taskStore.flatTasks[ns]['3.1'].childrenIds = ['3.1.1', 'ghost-task']
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
@@ -328,9 +289,6 @@ describe('findImpactedByDelete', () => {
       '6.1.1[1]': answer('Doel'),
     }
     const ns = FormType.DPIA
-    // Introduce a cycle in the task graph: 3.1.1 → 3.1 (back-reference). When the
-    // walk reaches 3.1.1 it re-queues 3.1, which is already in the result set →
-    // `!result.has(childId)` is false → the id is not added again (L103 else).
     taskStore.flatTasks[ns]['3.1.1'].childrenIds = ['3.1']
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
@@ -338,15 +296,12 @@ describe('findImpactedByDelete', () => {
   })
 
   it('guards against an already-visited instance via a mutual sync mapping (visited continue)', () => {
-    // 3.1.1 ↔ 6.1.1 mutual mapping: deleting 3.1[1] enqueues 6.1[1], whose
-    // mapping points back at 3.1[1] (already visited → continue at L148).
     const mutualTree: Task[] = [
       {
         id: '3', task: 'S3', type: ['task_group'],
         tasks: [
           {
             id: '3.1', task: 'Rep3', type: ['task_group'], repeatable: true,
-            // 3.1 maps from 6.1.1 (back-reference).
             dependencies: [{ type: 'instance_mapping', action: 'sync', source: { id: '6.1.1' } }],
             tasks: [{ id: '3.1.1', task: 'Naam', type: ['text'] }],
           },
@@ -357,7 +312,6 @@ describe('findImpactedByDelete', () => {
         tasks: [
           {
             id: '6.1', task: 'Rep6', type: ['task_group'], repeatable: true,
-            // 6.1 maps from 3.1.1 (forward-reference).
             dependencies: [{ type: 'instance_mapping', action: 'sync', source: { id: '3.1.1' } }],
             tasks: [{ id: '6.1.1', task: 'Gesynct', type: ['text'] }],
           },
@@ -373,14 +327,10 @@ describe('findImpactedByDelete', () => {
     }
 
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
-    // Both collected exactly once despite the mutual reference (no infinite loop).
     expect(impacted.map((i) => i.instanceId).sort()).toEqual(['3.1.1[1]', '6.1.1[1]'])
   })
 
   it('returns [instanceId] from collectDescendantInstances when instance is unknown', () => {
-    // Delete an indexed instance whose TaskInstance does not exist in the store.
-    // parseInstanceId yields index, getInstanceById('3.1[7]') is null, so
-    // collectDescendantInstances returns just ['3.1[7]'] (no answer → nothing).
     taskStore.init(syncTree, true)
     answerStore.answers[FormType.DPIA] = {}
 
@@ -389,15 +339,12 @@ describe('findImpactedByDelete', () => {
   })
 
   it('collects array and image answers, and skips empty-array values (hasValue branches)', () => {
-    // 3.1.1[1] = non-empty array (hasValue → array.length > 0 true)
-    // 6.1.1[1] = ImageValue object (hasValue → return true)
-    // 3.1.1[0] = empty array (hasValue → array.length > 0 false → skipped)
-    const img: ImageValue = { data: 'data:image/png;base64,abc', title: 'T', source: 's.png' }
+    const img: ImageValue = { data: 'data:image/png;base64,abc', title: 'Verwerkingsdiagram', source: 'diagram.png' }
     taskStore.init(syncTree, true)
     taskStore.addRepeatableTaskInstance('3.1')
     taskStore.addRepeatableTaskInstance('6.1')
     answerStore.answers[FormType.DPIA] = {
-      '3.1.1[1]': answer(['a', 'b']),
+      '3.1.1[1]': answer(['E-mailadres', 'Telefoonnummer']),
       '6.1.1[1]': answer(img),
       '3.1.1[0]': answer([]),
     }
@@ -405,7 +352,7 @@ describe('findImpactedByDelete', () => {
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
     const byId = Object.fromEntries(impacted.map((i) => [i.instanceId, i.value]))
     expect(Object.keys(byId).sort()).toEqual(['3.1.1[1]', '6.1.1[1]'])
-    expect(byId['3.1.1[1]']).toEqual(['a', 'b'])
+    expect(byId['3.1.1[1]']).toEqual(['E-mailadres', 'Telefoonnummer'])
     expect(byId['6.1.1[1]']).toEqual(img)
   })
 
@@ -413,7 +360,6 @@ describe('findImpactedByDelete', () => {
     taskStore.init(syncTree, true)
     taskStore.addRepeatableTaskInstance('3.1')
     answerStore.answers[FormType.DPIA] = {
-      // Explicit null value → hasValue returns false.
       '3.1.1[1]': answer(null),
     }
     const impacted = findImpactedByDelete('3.1[1]', taskStore, answerStore)
@@ -421,9 +367,6 @@ describe('findImpactedByDelete', () => {
   })
 
   it('collectDescendantTaskIds tolerates tasks with missing childrenIds', () => {
-    // This indirectly exercises the `task.childrenIds || []` and `!task` paths
-    // by deleting a real instance and walking the flat task graph. The default
-    // repeatable instance 3.1[0] has child 3.1.1[0].
     taskStore.init(syncTree, true)
     answerStore.answers[FormType.DPIA] = {
       '3.1.1[0]': answer('Bron0'),
@@ -437,7 +380,6 @@ describe('findImpactedByDelete', () => {
 })
 
 describe('findImpactedByConditionalChange', () => {
-  // Section 1: a radio condition 1.1 controls visibility of 1.2 (show when equals "true").
   const condTree: Task[] = [
     {
       id: '1', task: 'Sectie 1', type: ['task_group'],
@@ -463,14 +405,10 @@ describe('findImpactedByConditionalChange', () => {
   })
 
   it('falls back to an empty answer map when the namespace answers are missing', () => {
-    // No conditional dependents → the function returns right after the empty-map
-    // fallback (`answers[ns] || {}`) and before getAnswer is ever called.
     const noDeps: Task[] = [
       { id: '1', task: 'S', type: ['task_group'], tasks: [{ id: '1.1', task: 'X', type: ['radio'] }] },
     ]
     taskStore.init(noDeps, true)
-    // Wipe the namespace answer map → `answerStore.answers[ns] || {}` takes the
-    // `|| {}` branch.
     answerStore.answers[FormType.DPIA] = undefined as never
     const impacted = findImpactedByConditionalChange('1.1', 'false', taskStore, answerStore)
     expect(impacted).toEqual([])
@@ -480,9 +418,8 @@ describe('findImpactedByConditionalChange', () => {
     taskStore.init(condTree, true)
     answerStore.answers[FormType.DPIA] = {
       '1.1': answer('true'),
-      '1.2': answer('Some text'),
+      '1.2': answer('Ingevulde tekst'),
     }
-    // originalValue === nextValue → early return.
     const impacted = findImpactedByConditionalChange('1.1', 'true', taskStore, answerStore)
     expect(impacted).toEqual([])
   })
@@ -493,7 +430,6 @@ describe('findImpactedByConditionalChange', () => {
       '1.1': answer('true'),
       '1.2': answer('Ingevulde tekst'),
     }
-    // Changing 1.1 from "true" to "false" hides 1.2 (show-when-equals-true).
     const impacted = findImpactedByConditionalChange('1.1', 'false', taskStore, answerStore)
     expect(impacted).toHaveLength(1)
     expect(impacted[0].instanceId).toBe('1.2')
@@ -506,14 +442,12 @@ describe('findImpactedByConditionalChange', () => {
     taskStore.init(condTree, true)
     answerStore.answers[FormType.DPIA] = {
       '1.1': answer('true'),
-      // 1.2 has no answer at all.
     }
     const impacted = findImpactedByConditionalChange('1.1', 'false', taskStore, answerStore)
     expect(impacted).toEqual([])
   })
 
   it('does not flag when the answer would stay visible', () => {
-    // Condition operator "any" → always met → dependent never hidden.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -538,7 +472,6 @@ describe('findImpactedByConditionalChange', () => {
   })
 
   it('skips dependent instances at a different index than the changed instance', () => {
-    // Repeatable group 2.1 with a per-instance conditional (2.1.1 controls 2.1.2).
     const tree: Task[] = [
       {
         id: '2', task: 'S2', type: ['task_group'],
@@ -559,15 +492,13 @@ describe('findImpactedByConditionalChange', () => {
       },
     ]
     taskStore.init(tree, true)
-    taskStore.addRepeatableTaskInstance('2.1') // index 1
+    taskStore.addRepeatableTaskInstance('2.1')
     answerStore.answers[FormType.DPIA] = {
       '2.1.1[0]': answer('true'),
       '2.1.2[0]': answer('Detail 0'),
       '2.1.1[1]': answer('true'),
       '2.1.2[1]': answer('Detail 1'),
     }
-    // Changing the index-0 condition only affects index-0 dependents; the
-    // index-1 instance is skipped by the index-mismatch continue.
     const impacted = findImpactedByConditionalChange('2.1.1[0]', 'false', taskStore, answerStore)
     expect(impacted.map((i) => i.instanceId)).toEqual(['2.1.2[0]'])
   })
@@ -575,9 +506,6 @@ describe('findImpactedByConditionalChange', () => {
 
 describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
   it('uses the override value for the changed instance and resolves others from the store', () => {
-    // Two conditions on 1.3: one on 1.1 (being changed → uses override), one on
-    // 1.2 (unchanged → read from store, condition met so stays visible from it,
-    // but 1.1 hides it). Exercises both branches of the override ternary.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -600,14 +528,11 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
       '1.2': answer('true'),
       '1.3': answer('Tekst'),
     }
-    // Change 1.1 → "false". The 1.2 dependency reads from the store (still met),
-    // the 1.1 dependency reads the override (not met) → hidden.
     const impacted = findImpactedByConditionalChange('1.1', 'false', taskStore, answerStore)
     expect(impacted.map((i) => i.instanceId)).toEqual(['1.3'])
   })
 
   it('contains operator on an array value (override) keeps it visible when included, hides when not', () => {
-    // checkbox condition 1.1 (array) controls 1.2 via contains "x".
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -627,11 +552,9 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
       '1.1': answer(['x', 'y']),
       '1.2': answer('Detail'),
     }
-    // Change 1.1 to an array NOT containing "x" → condition not met → hidden.
     const impactedHidden = findImpactedByConditionalChange('1.1', ['y'], taskStore, answerStore)
     expect(impactedHidden.map((i) => i.instanceId)).toEqual(['1.2'])
 
-    // Change 1.1 to an array still containing "x" → condition met → visible.
     const impactedVisible = findImpactedByConditionalChange('1.1', ['x', 'z'], taskStore, answerStore)
     expect(impactedVisible).toEqual([])
   })
@@ -656,15 +579,11 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
       '1.1': answer(['x']),
       '1.2': answer('Detail'),
     }
-    // Override with a non-array string that is not equal to "x" → hidden.
     const impacted = findImpactedByConditionalChange('1.1', 'andere', taskStore, answerStore)
     expect(impacted.map((i) => i.instanceId)).toEqual(['1.2'])
   })
 
   it('skips a conditional dependency whose condition value is null/undefined', () => {
-    // The dependent has TWO conditionals on 1.1: one with a null value (skipped
-    // inside wouldBeHiddenUnder), one with a real value (drives hiding). Both
-    // match conditionTaskId so the dependent enters the loop.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -690,9 +609,6 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
   })
 
   it('non-show actions and non-conditional deps never hide (returns false)', () => {
-    // The dependent task selected by findImpactedByConditionalChange has a
-    // conditional on 1.1 with action 'hide' (not 'show') plus an 'instance_mapping'
-    // dep. wouldBeHiddenUnder must return false → nothing flagged.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -718,8 +634,6 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
   })
 
   it('operator "any" with a non-null value is always met → never hidden', () => {
-    // The dependency carries a value (so it passes the null/undefined guard) but
-    // uses operator "any", exercising the `conditionMet = true` assignment.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -744,8 +658,6 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
   })
 
   it('unknown operator leaves conditionMet false → hidden under show action', () => {
-    // operator is neither equals/any/contains → falls through the if-chain
-    // (final implicit else) leaving conditionMet false → show && !false → hidden.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -770,10 +682,6 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
   })
 
   it('skips a conditional whose related instance cannot be resolved', () => {
-    // The dependent (1.2) is selected because it has a conditional on 1.1, but
-    // wouldBeHiddenUnder's findRelatedInstance returns null when no instance in
-    // the same group has taskId 1.1. We delete the 1.1 instance so the lookup
-    // fails for the dependent → continue → returns false → not flagged.
     const tree: Task[] = [
       {
         id: '1', task: 'S1', type: ['task_group'],
@@ -792,9 +700,7 @@ describe('wouldBeHiddenUnder (via findImpactedByConditionalChange)', () => {
     answerStore.answers[FormType.DPIA] = {
       '1.2': answer('Tekst'),
     }
-    // Remove the 1.1 instance from the store so findRelatedInstance returns null.
     delete taskStore.taskInstances[FormType.DPIA]['1.1']
-    // nextValue differs from original (null) so we get past the early return.
     const impacted = findImpactedByConditionalChange('1.1', 'false', taskStore, answerStore)
     expect(impacted).toEqual([])
   })
@@ -808,7 +714,6 @@ describe('filterVisibleAnswers', () => {
         { id: '1.1', task: 'Schakel', type: ['radio'] },
         {
           id: '1.2', task: 'Detail', type: ['text'],
-          // Boolean condition value so normalizeValue('true') === true matches.
           dependencies: [
             { type: 'conditional', action: 'show', condition: { id: '1.1', operator: 'equals', value: true } },
           ],
@@ -828,7 +733,6 @@ describe('filterVisibleAnswers', () => {
       taskStore,
       answerStore,
     )
-    // 1.1 always visible; 1.2 hidden because 1.1 !== "true".
     expect(Object.keys(filtered)).toEqual(['1.1'])
   })
 
@@ -858,14 +762,12 @@ describe('filterVisibleAnswers', () => {
 
   it('falls back to an empty task map when the namespace flatTasks are nullish (?? branch)', () => {
     taskStore.init(tree, true)
-    // Remove the namespace's flatTasks entirely → `flatTasks[ns] ?? {}` takes the
-    // `?? {}` branch. Every taskId is then unregistered → kept (data-loss guard).
     delete (taskStore.flatTasks as Record<string, unknown>)[FormType.DPIA]
     const filtered = filterVisibleAnswers(
-      { '1.1': answer('x') },
+      { '1.1': answer('Inleiding') },
       taskStore,
       answerStore,
     )
-    expect(filtered).toEqual({ '1.1': answer('x') })
+    expect(filtered).toEqual({ '1.1': answer('Inleiding') })
   })
 })

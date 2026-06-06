@@ -8,14 +8,11 @@ describe('generateFilename', () => {
   })
 
   it('builds a filename with type, sanitized timestamp and extension', () => {
-    // Fixed time so the timestamp transformation is deterministic.
-    // ISO string: 2026-03-20T12:34:56.789Z
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-20T12:34:56.789Z'))
 
     const result = generateFilename(FormType.DPIA, 'pdf')
 
-    // Colons replaced with hyphens, milliseconds stripped, 'T' replaced by '_'.
     expect(result).toBe('dpia_2026-03-20_12-34-56.pdf')
   })
 
@@ -34,9 +31,9 @@ describe('generateFilename', () => {
 
     const result = generateFilename(FormType.DPIA, 'txt')
 
-    expect(result).toContain('_') // T -> underscore
-    expect(result).not.toContain(':') // colons -> hyphens
-    expect(result).not.toContain('.999') // milliseconds removed
+    expect(result).toContain('_')
+    expect(result).not.toContain(':')
+    expect(result).not.toContain('.999')
     expect(result).toBe('dpia_2026-12-31_23-59-59.txt')
   })
 })

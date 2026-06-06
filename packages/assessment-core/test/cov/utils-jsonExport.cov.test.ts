@@ -11,8 +11,7 @@ import {
 import { OUTPUT_SCHEMA_URL } from '../../src/models/assessmentState'
 import { FormType } from '../../src/models/dpia'
 
-// getUrn requires fully loaded schemas (large DPIA JSON). Stub it so the
-// exporter has a deterministic urn for each namespace.
+// Stub getUrn: it requires fully loaded schemas (large DPIA JSON).
 vi.mock('../../src/stores/schemas', () => ({
   useSchemaStore: vi.fn(() => ({
     getUrn: (ns: string) => (ns === 'dpia' ? 'urn:nl:dpia:3.0' : 'urn:nl:prescan:2.0'),
@@ -84,19 +83,18 @@ describe('buildOutputData', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['5', '1', '10', '0'])
     answerStore.answers[FormType.DPIA] = {
-      '0.1': { value: 'test', lastEditedAt: '2026-01-01' },
+      '0.1': { value: 'Verwerking van persoonsgegevens', lastEditedAt: '2026-01-01' },
     }
 
     const output = buildOutputData(taskStore, answerStore)
 
-    // Sorted numerically, and the conditional-spread truthy branch is taken.
     expect(output.metadata.completedTasks).toEqual(['0', '1', '5', '10'])
   })
 
   it('omits completedTasks when no sections are complete (falsy branch)', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.answers[FormType.DPIA] = {
-      '0.1': { value: 'test', lastEditedAt: '2026-01-01' },
+      '0.1': { value: 'Verwerking van persoonsgegevens', lastEditedAt: '2026-01-01' },
     }
 
     const output = buildOutputData(taskStore, answerStore)
@@ -105,8 +103,6 @@ describe('buildOutputData', () => {
   })
 
   it('falls back to empty objects when namespace has no answers or flatTasks', () => {
-    // Active namespace is DPIA by default; clear both maps so the
-    // `answers[ns] || {}` and `flatTasks[ns] || {}` fallbacks are exercised.
     taskStore.setActiveNamespace(FormType.DPIA)
     delete (answerStore.answers as Record<string, unknown>)[FormType.DPIA]
     delete (taskStore.flatTasks as Record<string, unknown>)[FormType.DPIA]
@@ -144,7 +140,6 @@ describe('buildOutputData', () => {
     expect(arr).toHaveLength(2)
     expect(arr[0]['2.1.1']).toEqual({ value: 'Email', lastEditedAt: '2026-01-01' })
     expect(arr[1]['2.1.1']).toEqual({ value: 'Phone', lastEditedAt: '2026-01-01' })
-    // Flat instance keys are not present at top level.
     expect(output.answers['2.1.1[0]']).toBeUndefined()
   })
 })
@@ -179,7 +174,7 @@ describe('exportToJson', () => {
   it('uses the explicit filename when provided (truthy branch)', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.answers[FormType.DPIA] = {
-      '0.1': { value: 'test', lastEditedAt: '2026-01-01' },
+      '0.1': { value: 'Verwerking van persoonsgegevens', lastEditedAt: '2026-01-01' },
     }
 
     let downloadedName = ''
@@ -233,7 +228,6 @@ describe('exportToJson', () => {
 
     exportToJson(taskStore, answerStore)
 
-    // generateFilename: `${type}_<timestamp>.json`
     expect(downloadedName).toMatch(/^prescan_.*\.json$/)
   })
 })
@@ -257,7 +251,7 @@ describe('downloadJsonFile', () => {
   })
 
   it('serializes data, creates a Blob URL, clicks an anchor and revokes the URL', () => {
-    const data = { hello: 'world', nested: { value: 1 } }
+    const data = { urn: 'urn:nl:dpia:3.0', metadata: { completedTasks: ['0'] } }
 
     let capturedHref = ''
     let capturedDownload = ''
@@ -289,7 +283,6 @@ describe('downloadJsonFile', () => {
 
     downloadJsonFile(data, 'out.json')
 
-    // Blob built with pretty-printed JSON (indent 4) and json mime type.
     expect(createObjectURL).toHaveBeenCalledTimes(1)
     const blobArg = createObjectURL.mock.calls[0][0] as Blob
     expect(blobArg).toBeInstanceOf(Blob)

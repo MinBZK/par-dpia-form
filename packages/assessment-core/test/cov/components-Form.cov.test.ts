@@ -2,8 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
-// Mock the heavy export utilities so we can assert they are invoked and drive
-// the try/catch branches in handleExportPdf without touching pdfmake/the DOM.
 const exportToJsonMock = vi.fn()
 const exportToPdfMock = vi.fn<() => Promise<void>>()
 vi.mock('../../src/utils/jsonExport', () => ({
@@ -13,8 +11,6 @@ vi.mock('../../src/utils/pdfExport', () => ({
   exportToPdf: (...args: unknown[]) => exportToPdfMock(...args),
 }))
 
-// Mock rebuildRepeatableInstances so the onMounted/handleStart paths that call
-// it are exercised without depending on its real implementation.
 const rebuildMock = vi.fn()
 vi.mock('../../src/utils/applyState', () => ({
   rebuildRepeatableInstances: (...args: unknown[]) => rebuildMock(...args),
@@ -29,20 +25,14 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
 import * as t from 'io-ts'
 
-// ---------------------------------------------------------------------------
-// Test helpers
-// ---------------------------------------------------------------------------
-
 type ValidData = t.TypeOf<typeof DPIA>
 
-// A minimal two-section task tree so navigation (first/last) and a signing
-// section can both be exercised.
 function makeValidData(): ValidData {
   return {
-    name: 'Test',
+    name: 'DPIA',
     urn: 'urn:nl:dpia:3.0',
     version: '1.0',
-    description: 'Test schema',
+    description: 'Data Protection Impact Assessment',
     tasks: [
       { id: '0', task: 'Inleiding', type: ['task_group'], tasks: [] },
       { id: '1', task: 'Ondertekening', type: ['signing'], tasks: [] },
@@ -92,7 +82,6 @@ function makePersistence(opts: PersistenceOptions = {}) {
   return provider as PersistenceProvider & Record<string, ReturnType<typeof vi.fn>>
 }
 
-// Lightweight stubs for every child component so we only measure Form.vue.
 const stubs = {
   Banner: { name: 'Banner', template: '<div class="stub-banner" />' },
   ProgressTracker: {
@@ -123,7 +112,6 @@ const stubs = {
     template: '<div class="stub-fileupload"><button class="fu-start" @click="$emit(\'start\')" /></div>',
   },
   LiveResults: { name: 'LiveResults', template: '<div class="stub-liveresults" />' },
-  // UiButton forwards label/variant and click so we can drive the handlers.
   UiButton: {
     name: 'UiButton',
     props: ['variant', 'label', 'icon', 'size', 'showIconAfter'],
@@ -161,7 +149,6 @@ async function mountForm(opts: MountOptions = {}) {
       stubs,
     },
   })
-  // onMounted is async — wait for it to settle.
   await flushPromises()
   await wrapper.vm.$nextTick()
   return { wrapper, persistence, navigation }
@@ -170,8 +157,6 @@ async function mountForm(opts: MountOptions = {}) {
 function uiButtonByLabel(wrapper: ReturnType<typeof mount>, label: string) {
   return wrapper.findAll('.stub-uibutton').find((b) => b.attributes('data-label') === label)
 }
-
-// ---------------------------------------------------------------------------
 
 beforeEach(() => {
   setActivePinia(createPinia())
@@ -186,7 +171,6 @@ afterEach(() => {
 
 describe('Form.vue onMounted initialization', () => {
   it('renders the loading state before mount resolves, then the form', async () => {
-    // A persistence whose loadAppState never resolves keeps isLoading=true.
     let resolveLoad: (v: AssessmentState | null) => void = () => {}
     const persistence = makePersistence({
       loadAppStateImpl: () =>
@@ -200,7 +184,6 @@ describe('Form.vue onMounted initialization', () => {
       global: { provide: { [PERSISTENCE_KEY as symbol]: persistence }, stubs },
     })
 
-    // Still loading: the Dutch "Ophalen van taken..." text is visible.
     expect(wrapper.text()).toContain('Ophalen van taken...')
 
     resolveLoad(null)
@@ -217,14 +200,15 @@ describe('Form.vue onMounted initialization', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Foutmelding')
     expect(wrapper.text()).toContain('Er is iets mis gegaan bij het inlezen van de vragen.')
-    // The Dutch error includes the namespace.
     expect(wrapper.find('pre').text()).toContain('Geen geldige schemadata beschikbaar voor dpia')
-    // loadAppState must not be reached when validData is null.
     expect(persistence.loadAppState).not.toHaveBeenCalled()
   })
 
   it('applies saved state, rebuilds instances and calls optional hooks when present', async () => {
-    const savedState: AssessmentState = { metadata: { createdAt: 'x' }, answers: { '0.1': { value: 'A' } } }
+    const savedState: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z' },
+      answers: { '0.1': { value: 'Inleiding' } },
+    }
     const { persistence } = await mountForm({ persistence: makePersistence({ savedState }) })
 
     expect(persistence.applyAppState).toHaveBeenCalledWith(savedState)
@@ -248,7 +232,6 @@ describe('Form.vue onMounted initialization', () => {
     })
     const { wrapper } = await mountForm({ persistence })
 
-    // No crash; the form still rendered (not loading, no error).
     expect(wrapper.find('.stub-progress').exists()).toBe(true)
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
@@ -258,9 +241,6 @@ describe('Form.vue onMounted initialization', () => {
     const persistence = makePersistence({ teardown })
     const { wrapper } = await mountForm({ persistence })
 
-    // setupWatchers returned a function, so the `if (teardown)` branch is taken
-    // (onBeforeUnmount registration happens after an await, which Vue cannot
-    // associate with the instance — but the branch is still executed).
     expect(persistence.setupWatchers).toHaveBeenCalledTimes(1)
     expect(() => wrapper.unmount()).not.toThrow()
   })
@@ -268,7 +248,6 @@ describe('Form.vue onMounted initialization', () => {
   it('does not register teardown when setupWatchers returns undefined', async () => {
     const persistence = makePersistence({ teardown: undefined })
     const { wrapper } = await mountForm({ persistence })
-    // Unmount must not throw even though there is no teardown.
     expect(() => wrapper.unmount()).not.toThrow()
   })
 })
@@ -369,7 +348,6 @@ describe('Form.vue prop-driven template branches', () => {
 describe('Form.vue navigation buttons', () => {
   it('on the first (non-last) section: shows "Volgende stap" and the completed checkbox, hides "Vorige stap"', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
-    // First section: isFirstTask true → no "Vorige stap"; not last → "Volgende stap".
     expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeFalsy()
     expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeTruthy()
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
@@ -386,11 +364,9 @@ describe('Form.vue navigation buttons', () => {
     expect(persistence.flushSave).toHaveBeenCalled()
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('1')
 
-    // Last section: "Vorige stap" appears, "Exporteer als PDF" replaces "Volgende stap".
     expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeTruthy()
     expect(uiButtonByLabel(wrapper, 'Exporteer als PDF')).toBeTruthy()
     expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeFalsy()
-    // Signing section → no completed checkbox.
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
   })
 
@@ -417,7 +393,6 @@ describe('Form.vue navigation buttons', () => {
     await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
-    // Still navigated even without flushSave.
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('1')
   })
 
@@ -464,20 +439,16 @@ describe('Form.vue export handlers', () => {
   it('opens and closes the save modal and saves to JSON via SaveForm events', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
-    // Modal closed initially.
     expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('false')
 
-    // openSaveModal.
     await uiButtonByLabel(wrapper, 'Opslaan als bestand')!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('true')
 
-    // handleSaveForm via SaveForm "save" event.
     await wrapper.find('.sf-save').trigger('click')
     expect(exportToJsonMock).toHaveBeenCalledTimes(1)
     expect(exportToJsonMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'myfile.json')
 
-    // closeSaveModal via SaveForm "close" event.
     await wrapper.find('.sf-close').trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('false')
@@ -497,9 +468,11 @@ describe('Form.vue handleStart (FileUploadPage)', () => {
   })
 
   it('starts with file data: applies state, rebuilds instances and syncs', async () => {
-    // Drive the fileData branch directly through the component's handler.
     const { wrapper, persistence } = await mountForm({ autoStart: false })
-    const fileData: AssessmentState = { metadata: { createdAt: 'x' }, answers: { '0.1': { value: 'B' } } }
+    const fileData: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z' },
+      answers: { '0.1': { value: 'Inleiding' } },
+    }
 
     const fileUpload = wrapper.findComponent({ name: 'FileUploadPage' })
     fileUpload.vm.$emit('start', fileData)
@@ -516,7 +489,7 @@ describe('Form.vue handleReset', () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
     const taskStore = useTaskStore()
     const answerStore = useAnswerStore()
-    answerStore.answers[FormType.DPIA] = { '0.1': { value: 'X' } }
+    answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['0'])
 
     await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
@@ -525,18 +498,13 @@ describe('Form.vue handleReset', () => {
     expect(persistence.clearSavedState).toHaveBeenCalledWith(FormType.DPIA)
     expect(answerStore.answers[FormType.DPIA]).toEqual({})
     expect(taskStore.completedRootTaskIds[FormType.DPIA]).toEqual(new Set())
-    // Back to upload page.
     expect(wrapper.find('.stub-fileupload').exists()).toBe(true)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(false)
   })
 
   it('uses the rootTaskIds fallback "0" and skips re-init when validData is null', async () => {
-    // validData null produces the error screen but the component still mounts
-    // and exposes handleReset; calling it exercises the "|| 0" and the
-    // "if (props.validData)" false branch.
     const { wrapper } = await mountForm({ validData: null })
     const taskStore = useTaskStore()
-    // Empty rootTaskIds so `rootTaskIds[..][0] || "0"` takes the "0" fallback.
     taskStore.rootTaskIds[FormType.DPIA] = []
     const initSpy = vi.spyOn(taskStore, 'init')
 
@@ -550,7 +518,6 @@ describe('Form.vue handleReset', () => {
   it('uses the first rootTaskId when one exists', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
     const taskStore = useTaskStore()
-    // rootTaskIds was populated by init -> ['0','1']; reset uses [0] = '0'.
     expect(taskStore.rootTaskIds[FormType.DPIA][0]).toBe('0')
 
     ;(wrapper.vm as unknown as { handleReset: () => void }).handleReset()
@@ -563,14 +530,13 @@ describe('Form.vue handleReset', () => {
 describe('Form.vue LiveResults (PRE_SCAN)', () => {
   it('renders LiveResults when prescan, started and not on a signing task', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.PRE_SCAN, autoStart: true })
-    // Current section '0' is a task_group → not signing → LiveResults shows.
     expect(wrapper.find('.stub-liveresults').exists()).toBe(true)
   })
 
   it('hides LiveResults on a signing section', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.PRE_SCAN, autoStart: true })
     const taskStore = useTaskStore()
-    taskStore.setRootTask('1') // signing section
+    taskStore.setRootTask('1')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('.stub-liveresults').exists()).toBe(false)
@@ -587,11 +553,9 @@ describe('Form.vue answers watcher and unmount', () => {
     const { wrapper } = await mountForm({ autoStart: true })
     const answerStore = useAnswerStore()
 
-    // Mutate answers to trigger the deep watcher -> syncInstances.
-    answerStore.answers[FormType.DPIA]['0.1'] = { value: 'changed' }
+    answerStore.answers[FormType.DPIA]['0.1'] = { value: 'Inleiding' }
     await wrapper.vm.$nextTick()
 
-    // No throw and the form is still rendered; the watcher ran.
     expect(wrapper.find('.stub-tasksection').exists()).toBe(true)
   })
 
@@ -617,10 +581,8 @@ describe('Form.vue isSigningTask computed', () => {
     const { wrapper } = await mountForm({ namespace: FormType.PRE_SCAN, autoStart: true })
     const taskStore = useTaskStore()
 
-    // task_group → LiveResults visible (isSigningTask false)
     expect(wrapper.find('.stub-liveresults').exists()).toBe(true)
 
-    // signing → LiveResults hidden (isSigningTask true)
     taskStore.setRootTask('1')
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.stub-liveresults').exists()).toBe(false)

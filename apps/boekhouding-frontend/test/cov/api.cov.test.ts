@@ -1,13 +1,8 @@
 /**
  * @vitest-environment jsdom
- *
- * Self-sufficient coverage test for src/api.ts. Exercises every branch of the
- * internal request() helper plus every exported endpoint wrapper so that all
- * URL/body/option permutations are covered.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Mock useAuth so request() has a deterministic token + sessionExpired ref.
 const mockGetToken = vi.fn().mockResolvedValue('mock-token')
 const mockSessionExpired = { value: false }
 
@@ -28,7 +23,6 @@ type ApiModule = typeof import('../../src/api')
 
 let api: ApiModule
 
-/** Build a Response-like object for the mocked fetch. */
 function fetchResponse(opts: {
   ok?: boolean
   status: number
@@ -41,7 +35,6 @@ function fetchResponse(opts: {
   }
 }
 
-/** Install a fetch mock that always resolves with the given response/payload. */
 function mockFetchOk(payload: unknown) {
   const mockFetch = vi.fn().mockResolvedValue(
     fetchResponse({ ok: true, status: 200, json: () => Promise.resolve(payload) }),
@@ -69,7 +62,6 @@ describe('request() core behaviour', () => {
     const [url, init] = mockFetch.mock.calls[0]
     expect(url).toBe('/api/v1/projects')
     expect(init.headers.Authorization).toBe('Bearer mock-token')
-    // No body => Content-Type must NOT be set (covers the `if (options.body)` false branch).
     expect(init.headers['Content-Type']).toBeUndefined()
   })
 
@@ -82,14 +74,9 @@ describe('request() core behaviour', () => {
   })
 
   it('merges caller-provided headers via the options.headers spread', async () => {
-    // commentsApi.create passes no extra headers, but DELETE/POST options exercise
-    // the spread. To explicitly cover a truthy options.headers spread we call the
-    // raw request path through a wrapper that supplies headers is not exported, so
-    // instead verify the spread does not break when options.headers is undefined.
     const mockFetch = mockFetchOk([])
     await api.projects.list()
     const [, init] = mockFetch.mock.calls[0]
-    // The `...options.headers` spread of undefined yields just Authorization.
     expect(Object.keys(init.headers)).toEqual(['Authorization'])
   })
 
@@ -213,17 +200,17 @@ describe('members endpoints', () => {
 
   it('add with role -> POST', async () => {
     const f = mockFetchOk({})
-    await api.members.add('p1', 'a@b.nl', 'editor')
+    await api.members.add('p1', 'sam@example.com', 'editor')
     const [url, init] = f.mock.calls[0]
     expect(url).toBe('/api/v1/projects/p1/members')
     expect(init.method).toBe('POST')
-    expect(JSON.parse(init.body)).toEqual({ email: 'a@b.nl', role: 'editor' })
+    expect(JSON.parse(init.body)).toEqual({ email: 'sam@example.com', role: 'editor' })
   })
 
   it('add without role -> POST with undefined role', async () => {
     const f = mockFetchOk({})
-    await api.members.add('p1', 'a@b.nl')
-    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ email: 'a@b.nl' })
+    await api.members.add('p1', 'noor@example.com')
+    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ email: 'noor@example.com' })
   })
 
   it('update -> PUT member role', async () => {
@@ -260,14 +247,14 @@ describe('assessments endpoints', () => {
 
   it('create with name -> POST including name', async () => {
     const f = mockFetchOk({})
-    await api.assessments.create('p1', 'dpia', 'Mijn DPIA', { foo: 1 })
+    await api.assessments.create('p1', 'dpia', 'Mijn DPIA', { '2.1': 'Inleiding' })
     const [url, init] = f.mock.calls[0]
     expect(url).toBe('/api/v1/projects/p1/assessments')
     expect(init.method).toBe('POST')
     expect(JSON.parse(init.body)).toEqual({
       assessmentType: 'dpia',
       name: 'Mijn DPIA',
-      state: { foo: 1 },
+      state: { '2.1': 'Inleiding' },
     })
   })
 
@@ -281,12 +268,12 @@ describe('assessments endpoints', () => {
 
   it('update with options -> PUT including options', async () => {
     const f = mockFetchOk({})
-    await api.assessments.update('a1', { s: 1 }, { changeDescription: 'wijziging', newVersion: true })
+    await api.assessments.update('a1', { '2.1': 'Inleiding' }, { changeDescription: 'wijziging', newVersion: true })
     const [url, init] = f.mock.calls[0]
     expect(url).toBe('/api/v1/assessments/a1')
     expect(init.method).toBe('PUT')
     expect(JSON.parse(init.body)).toEqual({
-      state: { s: 1 },
+      state: { '2.1': 'Inleiding' },
       changeDescription: 'wijziging',
       newVersion: true,
     })
@@ -294,8 +281,8 @@ describe('assessments endpoints', () => {
 
   it('update without options -> PUT with just state', async () => {
     const f = mockFetchOk({})
-    await api.assessments.update('a1', { s: 2 })
-    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ state: { s: 2 } })
+    await api.assessments.update('a1', { '2.2': 'Doelbinding' })
+    expect(JSON.parse(f.mock.calls[0][1].body)).toEqual({ state: { '2.2': 'Doelbinding' } })
   })
 
   it('rename -> PUT with name', async () => {

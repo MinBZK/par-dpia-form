@@ -6,10 +6,6 @@ import {
   normalizeToState,
 } from '../../src/utils/importDetect'
 
-// Self-sufficient coverage suite for src/utils/importDetect.ts.
-// Covers every code path: JSON parse failures, type detection by urn and by
-// answer keys, completed-task derivation, and namespace-(un)wrapping normalization.
-
 describe('parseAndValidateImport', () => {
   it('throws "Ongeldig JSON-bestand" on invalid JSON (catch branch)', () => {
     expect(() => parseAndValidateImport('not json {')).toThrow('Ongeldig JSON-bestand')
@@ -40,7 +36,6 @@ describe('parseAndValidateImport', () => {
   })
 
   it('throws when no DPIA/prescan type can be detected', () => {
-    // metadata present, answers present but empty, no urn => detectImportType null
     expect(() =>
       parseAndValidateImport(JSON.stringify({ metadata: { createdAt: '2026-01-01' }, answers: {} })),
     ).toThrow('Bestand bevat geen DPIA- of pre-scan antwoorden')
@@ -62,7 +57,6 @@ describe('parseAndValidateImport', () => {
   })
 
   it('parses a legacy v1 export (nanoid keys) through migration + normalization', () => {
-    // v1 state: no $schema, answer key with underscore => isV1State true, migrated.
     const raw = JSON.stringify({
       metadata: { activeNamespace: 'dpia', createdAt: '2026-01-01T00:00:00Z' },
       taskState: {
@@ -79,7 +73,6 @@ describe('parseAndValidateImport', () => {
     })
 
     const state = parseAndValidateImport(raw)
-    // Migration rewrote the nanoid key to the taskId, then unwrapped the dpia namespace.
     expect(state.answers['1.1']).toEqual({ value: 'Beschrijving', lastEditedAt: '2026-01-01T00:00:00Z' })
   })
 })
@@ -94,14 +87,12 @@ describe('detectImportType', () => {
   })
 
   it('ignores an unrecognized urn prefix and falls through to answer detection', () => {
-    // urn present and truthy but neither dpia nor prescan; answers has keys => dpia fallback.
     expect(detectImportType({ metadata: { urn: 'urn:nl:other:1.0' }, answers: { '1.1': { value: 'x' } } })).toBe(
       'dpia',
     )
   })
 
   it('handles missing metadata (optional chaining on metadata)', () => {
-    // No metadata => urn undefined; answers has keys => dpia.
     expect(detectImportType({ answers: { '1.1': { value: 'x' } } })).toBe('dpia')
   })
 
@@ -110,7 +101,6 @@ describe('detectImportType', () => {
   })
 
   it('detects prescan from namespaced answers (FormType.PRE_SCAN key with entries)', () => {
-    // dpia namespace empty so it falls past dpia, prescan namespace has entries.
     expect(detectImportType({ metadata: {}, answers: { dpia: {}, prescan: { '0.1': { value: 'x' } } } })).toBe(
       'prescan',
     )
@@ -125,17 +115,14 @@ describe('detectImportType', () => {
   })
 
   it('returns null when answers is undefined entirely', () => {
-    // answers undefined: answers?.[...] short-circuits, answers && ... short-circuits => null.
     expect(detectImportType({ metadata: {} })).toBeNull()
   })
 
   it('does not treat an empty namespaced dpia object as dpia (length 0 branch)', () => {
-    // dpia present but empty (length 0), no other keys => null.
     expect(detectImportType({ metadata: {}, answers: { dpia: {} } })).toBe('dpia')
   })
 
   it('treats an empty dpia namespace plus other keys as dpia via final fallback', () => {
-    // dpia empty (skip), prescan empty (skip), but answers has keys => dpia.
     expect(detectImportType({ metadata: {}, answers: { dpia: {}, prescan: {} } })).toBe('dpia')
   })
 })
@@ -194,7 +181,6 @@ describe('normalizeToState', () => {
   })
 
   it('unwraps when only the prescan namespace key is present but detected type is prescan', () => {
-    // isNamespaced via the second operand of the OR (answers?.[PRE_SCAN]).
     const json = {
       metadata: { urn: 'urn:nl:prescan:2.0', createdAt: '2026-01-01T00:00:00Z' },
       answers: { prescan: { '0.1': { value: 'p' } } },
@@ -204,8 +190,6 @@ describe('normalizeToState', () => {
   })
 
   it('falls back to empty object when namespaced but the detected namespace key is absent', () => {
-    // isNamespaced true (dpia present), but detectedType prescan and answers.prescan missing
-    // => (answers?.[namespace] || {}) takes the {} side.
     const json = {
       metadata: { urn: 'urn:nl:prescan:2.0', createdAt: '2026-01-01T00:00:00Z' },
       answers: { dpia: { '1.1': { value: 'x' } } },
@@ -228,12 +212,10 @@ describe('normalizeToState', () => {
     const state = normalizeToState(json, 'dpia')
     expect(state.answers['2.1']).toEqual(grouped)
     expect(state.answers['0.1']).toEqual({ value: 'name' })
-    // Modern format => no derived completedTasks.
     expect(state.metadata.completedTasks).toBeUndefined()
   })
 
   it('uses legacy taskState.completedRootTaskIds when no explicit completedTasks', () => {
-    // Modern (has $schema) but no metadata.completedTasks; legacy taskState present.
     const json = {
       $schema: 'https://example/schema.json',
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00Z' },
@@ -246,7 +228,6 @@ describe('normalizeToState', () => {
   })
 
   it('derives completedTasks for a legacy flat export (no $schema, no urn)', () => {
-    // Not modern, not grouped => flatForLegacy = unwrapped; derive from keys.
     const json = {
       metadata: { createdAt: '2026-01-01T00:00:00Z' },
       answers: { '1.1': { value: 'a' }, '2.3': { value: 'b' }, '1.2': { value: 'c' } },
@@ -258,7 +239,6 @@ describe('normalizeToState', () => {
   })
 
   it('derives completedTasks from flattened grouped answers for a legacy grouped export', () => {
-    // Not modern AND keepGrouped => flatForLegacy = flattenGroupedAnswers(...).
     const json = {
       metadata: { createdAt: '2026-01-01T00:00:00Z' },
       answers: {
@@ -271,14 +251,11 @@ describe('normalizeToState', () => {
     }
 
     const state = normalizeToState(json, 'dpia')
-    // Flattening yields keys 0.1, 2.1.1[0], 2.1.2[0], 2.1.1[1] => roots 0 and 2.
     expect(state.metadata.completedTasks).toEqual(['0', '2'])
-    // The output answers keep the grouped shape.
     expect(Array.isArray(state.answers['2.1'])).toBe(true)
   })
 
   it('returns empty (no completedTasks key) for a modern export with no completed info', () => {
-    // Modern via metadata.urn (no $schema); no explicit, no legacy => [] => key omitted.
     const json = {
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00Z' },
       answers: { '1.1': { value: 'a' } },
@@ -290,8 +267,6 @@ describe('normalizeToState', () => {
   })
 
   it('treats empty explicit and empty legacy completed arrays as "fall through"', () => {
-    // explicitCompleted [] (length 0 falsy), legacyCompleted [] (length 0 falsy),
-    // modern => []. Exercises both ?.length false branches.
     const json = {
       $schema: 'https://example/schema.json',
       metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00Z', completedTasks: [] },
@@ -304,7 +279,6 @@ describe('normalizeToState', () => {
   })
 
   it('defaults createdAt to now when metadata has no createdAt', () => {
-    // metadata present but no createdAt => new Date().toISOString() branch.
     const before = Date.now()
     const json = {
       metadata: { urn: 'urn:nl:dpia:3.0' },
@@ -318,7 +292,6 @@ describe('normalizeToState', () => {
   })
 
   it('handles completely missing metadata and answers (both optional-chaining falsy branches)', () => {
-    // No metadata, no answers => urn undefined, createdAt defaulted, answers {}.
     const before = Date.now()
     const state = normalizeToState({}, 'prescan')
 

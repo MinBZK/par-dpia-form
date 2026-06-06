@@ -7,8 +7,6 @@ import { useAnswerStore } from '../../src/stores/answers'
 import { FormType, type Task } from '../../src/models/dpia'
 import FormField from '../../src/components/task/FormField.vue'
 
-// Build a FlatTask directly so each prop combination (type, valueType,
-// defaultValue, dependencies, options, references) can be controlled precisely.
 function flatTask(overrides: Partial<FlatTask> = {}): FlatTask {
   return {
     id: '1.1',
@@ -31,8 +29,7 @@ function mountField(props: MountProps) {
   return mount(FormField, {
     props,
     global: {
-      // Stub ImageField so the `image` branch can render without dragging in
-      // the whole image-upload component.
+      // Stub ImageField to keep the image-upload component out of the mount.
       stubs: {
         ImageField: { name: 'ImageField', props: ['task', 'instanceId', 'label', 'description'], template: '<div class="image-field-stub" />' },
       },
@@ -73,7 +70,6 @@ describe('FormField.vue', () => {
     it('omits the label block entirely when no label is given', () => {
       const wrapper = mountField({ task: flatTask(), instanceId: '1.1[0]' })
       expect(wrapper.find('label.rvo-label').exists()).toBe(false)
-      // aria-labelledby falls back to undefined when there is no label
       expect(wrapper.find('input[type="text"]').attributes('aria-labelledby')).toBeUndefined()
     })
 
@@ -85,7 +81,6 @@ describe('FormField.vue', () => {
       })
       const toggle = wrapper.find('button.open-text-field__toggle')
       expect(toggle.exists()).toBe(true)
-      // initial: not previewing -> shows "Lezen" and edit textarea visible
       expect(toggle.text()).toContain('Lezen')
       expect(toggle.attributes('aria-pressed')).toBe('false')
       expect(toggle.attributes('aria-label')).toBe('Lezen')
@@ -93,7 +88,6 @@ describe('FormField.vue', () => {
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
 
       await toggle.trigger('click')
-      // now previewing -> shows "Bewerken" and the markdown preview region
       expect(toggle.text()).toContain('Bewerken')
       expect(toggle.attributes('aria-pressed')).toBe('true')
       expect(toggle.attributes('aria-label')).toBe('Bewerken')
@@ -123,12 +117,10 @@ describe('FormField.vue', () => {
       })
       const toggle = wrapper.find('button.open-text-field__toggle')
 
-      // Enter preview: renderedHtml uses currentValue (the stored answer)
       await toggle.trigger('click')
       const preview = wrapper.find('.markdown-preview')
       expect(preview.element.innerHTML).toContain('<strong>vet</strong>')
 
-      // Switch back to edit: watcher runs autoGrow + focus on the textarea
       await toggle.trigger('click')
       await nextTick()
       expect(wrapper.find('textarea').exists()).toBe(true)
@@ -145,19 +137,15 @@ describe('FormField.vue', () => {
     })
 
     it('renderedHtml yields an empty string while not in preview mode', async () => {
-      // The renderedHtml computed short-circuits to '' whenever showPreview is
-      // false, so markdown is not rendered while the editor textarea is shown.
-      // Read the computed through the mounted component instance (with a stored
-      // value present) to exercise that not-previewing branch directly.
       answerStore.setAnswer('1.1[0]', '**vet** tekst')
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      // showPreview defaults to false -> the textarea is shown, no preview region.
       expect(wrapper.find('textarea').exists()).toBe(true)
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
+      // Read the computed through the instance: no preview region exists to assert against.
       const setupState = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
       expect(setupState.renderedHtml).toBe('')
     })
@@ -243,7 +231,6 @@ describe('FormField.vue', () => {
       const select = wrapper.find('select')
       expect(select.exists()).toBe(true)
       expect(select.attributes('aria-labelledby')).toBe('label-1.1-1.1[0]')
-      // placeholder + 2 options
       expect(wrapper.findAll('option')).toHaveLength(3)
 
       await select.setValue('b')
@@ -259,7 +246,6 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      // placeholder + 1 null-value option
       expect(wrapper.findAll('option')).toHaveLength(2)
     })
   })
@@ -284,12 +270,10 @@ describe('FormField.vue', () => {
       expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
       expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
 
-      // Check the second box -> added
       ;(boxes[1].element as HTMLInputElement).checked = true
       await boxes[1].trigger('change')
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['email', 'telefoon'])
 
-      // Uncheck the first box -> removed
       ;(boxes[0].element as HTMLInputElement).checked = false
       await boxes[0].trigger('change')
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['telefoon'])
@@ -320,7 +304,6 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      // safeString(null) -> '' so id ends with empty suffix; one checkbox renders
       const box = wrapper.find('input[type="checkbox"]')
       expect(box.exists()).toBe(true)
       expect(box.attributes('id')).toBe('1.1-1.1[0]-')
@@ -340,7 +323,6 @@ describe('FormField.vue', () => {
 
     it('renders checkboxes from getSourceOptions and reflects selection', async () => {
       taskStore.init(sourceTaskTree, true)
-      // Provide a source answer that becomes a checkbox option
       answerStore.setAnswer('2.1[0]', 'Klanten')
 
       const checkboxTask = flatTask({
@@ -386,9 +368,7 @@ describe('FormField.vue', () => {
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
       const err = wrapper.find('.rvo-text--error')
       expect(err.exists()).toBe(true)
-      // sourceId '5' not in ['0','18','19','20'] -> shows "Vul eerst sectie 5 ..."
       expect(err.text()).toContain('Vul eerst sectie 5')
-      // dependencyTaskName resolves to the source task title 'Sectie vijf'
       expect(err.text()).toContain('Sectie vijf')
     })
 
@@ -404,14 +384,12 @@ describe('FormField.vue', () => {
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
       const err = wrapper.find('.rvo-text--error')
       expect(err.exists()).toBe(true)
-      // sourceId '0' is exempt -> generic message without the section number
       expect(err.text()).toContain('Vul eerst sectie "')
       expect(err.text()).not.toContain('sectie 0')
       expect(err.text()).toContain('Inleiding')
     })
 
     it('renders an empty dependency name when the source task does not exist', () => {
-      // No tasks initialised, so taskById throws and dependencyTaskName catches -> ''
       const checkboxTask = flatTask({
         id: '6.1',
         type: ['checkbox_option'],
@@ -423,14 +401,10 @@ describe('FormField.vue', () => {
       const err = wrapper.find('.rvo-text--error')
       expect(err.exists()).toBe(true)
       expect(err.text()).toContain('Vul eerst sectie 9')
-      // dependencyTaskName is '' (catch branch) -> quotes are empty
       expect(err.text()).toContain('""')
     })
 
     it('renders the generic-but-empty error when there are no dependencies at all', () => {
-      // getSourceTaskId returns '' (sourceIdWithPath is null), so the exempt
-      // list check `['0',...].includes('')` is false -> section-named branch
-      // with an empty section id and empty dependency name.
       const checkboxTask = flatTask({ id: '6.1', type: ['checkbox_option'] })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]' })
       const err = wrapper.find('.rvo-text--error')
@@ -483,7 +457,6 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
       })
       const radios = wrapper.findAll('input[type="radio"]')
-      // currentValue === true matches the first option (value true)
       expect((radios[0].element as HTMLInputElement).checked).toBe(true)
     })
 
@@ -535,7 +508,6 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
       })
       const radios = wrapper.findAll('input[type="radio"]')
-      // currentValue === null, so neither option is checked
       expect((radios[0].element as HTMLInputElement).checked).toBe(false)
       expect((radios[1].element as HTMLInputElement).checked).toBe(false)
     })
@@ -557,17 +529,16 @@ describe('FormField.vue', () => {
 
   describe('currentValue: string[] valueType', () => {
     it('wraps a single stored string into an array', () => {
-      answerStore.setAnswer('1.1[0]', 'one')
+      answerStore.setAnswer('1.1[0]', 'email')
       const wrapper = mountField({
         task: flatTask({
           type: ['checkbox_option'],
           valueType: 'string[]',
-          options: [{ value: 'one' }, { value: 'two' }],
+          options: [{ value: 'email' }, { value: 'telefoon' }],
         }),
         instanceId: '1.1[0]',
       })
       const boxes = wrapper.findAll('input[type="checkbox"]')
-      // 'one' wrapped to ['one'] -> first checkbox checked
       expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
       expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
     })
@@ -577,7 +548,7 @@ describe('FormField.vue', () => {
         task: flatTask({
           type: ['checkbox_option'],
           valueType: 'string[]',
-          options: [{ value: 'one' }],
+          options: [{ value: 'email' }],
         }),
         instanceId: 'none[0]',
       })
@@ -586,12 +557,12 @@ describe('FormField.vue', () => {
     })
 
     it('keeps an already-array stored value as-is for a string[] field', () => {
-      answerStore.setAnswer('1.1[0]', ['two'])
+      answerStore.setAnswer('1.1[0]', ['telefoon'])
       const wrapper = mountField({
         task: flatTask({
           type: ['checkbox_option'],
           valueType: 'string[]',
-          options: [{ value: 'one' }, { value: 'two' }],
+          options: [{ value: 'email' }, { value: 'telefoon' }],
         }),
         instanceId: '1.1[0]',
       })
@@ -620,13 +591,11 @@ describe('FormField.vue', () => {
     ]
 
     it('stores and returns the referenced pre-scan value when no DPIA answer exists', () => {
-      // Set up the pre-scan namespace with an answer to be referenced.
       taskStore.setActiveNamespace(FormType.PRE_SCAN)
       answerStore.setActiveNamespace(FormType.PRE_SCAN)
       taskStore.init(prescanTree, true)
       answerStore.setAnswer('0.1', 'Geref. waarde')
 
-      // Switch back to DPIA where the field lives.
       taskStore.setActiveNamespace(FormType.DPIA)
       answerStore.setActiveNamespace(FormType.DPIA)
 
@@ -637,7 +606,6 @@ describe('FormField.vue', () => {
       })
       const input = wrapper.find('input[type="text"]')
       expect((input.element as HTMLInputElement).value).toBe('Geref. waarde')
-      // The referenced value was stored immediately in the DPIA answer store.
       expect(answerStore.getAnswer('1.1')).toBe('Geref. waarde')
     })
   })
@@ -645,13 +613,11 @@ describe('FormField.vue', () => {
   describe('hasType with an undefined type array', () => {
     it('renders nothing (falls through) when task.type is undefined', () => {
       const wrapper = mountField({
-        // type cast: deliberately omit `type` to hit the `?.includes() || false`
-        // optional-chaining branch in hasType.
-        task: { id: '1.1', task: 'X', parentId: null, childrenIds: [] } as unknown as FlatTask,
+        // `type` is deliberately omitted to exercise the optional-chaining branch in hasType.
+        task: { id: '1.1', task: 'Een taak zonder type', parentId: null, childrenIds: [] } as unknown as FlatTask,
         instanceId: '1.1[0]',
         label: 'Zonder type',
       })
-      // The label still renders, but no field group/input is produced.
       expect(wrapper.find('label.rvo-label').exists()).toBe(true)
       expect(wrapper.find('input').exists()).toBe(false)
       expect(wrapper.find('select').exists()).toBe(false)
@@ -661,9 +627,6 @@ describe('FormField.vue', () => {
 
   describe('currentValue: convertStringValue null path', () => {
     it('returns null when a boolean field has no answer and no default', () => {
-      // No stored answer, no defaultValue: currentValue falls through to the
-      // boolean conversion at the bottom, calling convertStringValue(null, ...)
-      // which hits the `value === null` early return.
       const wrapper = mountField({
         task: flatTask({
           type: ['radio_option'],
@@ -676,7 +639,6 @@ describe('FormField.vue', () => {
         instanceId: 'novalue[0]',
       })
       const radios = wrapper.findAll('input[type="radio"]')
-      // currentValue === null -> neither radio checked
       expect((radios[0].element as HTMLInputElement).checked).toBe(false)
       expect((radios[1].element as HTMLInputElement).checked).toBe(false)
     })
@@ -684,9 +646,6 @@ describe('FormField.vue', () => {
 
   describe('currentValue: defaultValue with a non-boolean valueType', () => {
     it('does not apply the default-value branch for a string[] field', () => {
-      // defaultValue set + no stored answer + valueType not boolean: the inner
-      // boolean check is false, so the default block is skipped and the string[]
-      // branch produces an empty array.
       const wrapper = mountField({
         task: flatTask({
           type: ['checkbox_option'],
@@ -704,8 +663,6 @@ describe('FormField.vue', () => {
 
   describe('handleCheckboxInput when currentValue is not an array', () => {
     it('starts from an empty array when the stored value is a plain string', async () => {
-      // No string[] valueType: currentValue returns the raw stored string, so
-      // Array.isArray(currentValue) is false -> the `: []` ternary branch runs.
       answerStore.setAnswer('1.1[0]', 'losse-string')
       const wrapper = mountField({
         task: flatTask({
@@ -721,8 +678,6 @@ describe('FormField.vue', () => {
     })
 
     it('leaves the selection unchanged when re-checking an already-selected box', async () => {
-      // isChecked true but the value is already present: the first `if` is false
-      // (its !includes guard fails) and the else-if is also false (isChecked).
       answerStore.setAnswer('1.1[0]', ['a'])
       const wrapper = mountField({
         task: flatTask({
@@ -764,11 +719,9 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      // onMounted ran autoGrowTextarea against textareaRef.
       await nextTick()
       expect(wrapper.find('textarea').exists()).toBe(true)
 
-      // Changing the stored value triggers the currentValue watcher.
       answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
       await nextTick()
       await nextTick()

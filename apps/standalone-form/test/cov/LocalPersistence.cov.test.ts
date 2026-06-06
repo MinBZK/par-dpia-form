@@ -10,16 +10,6 @@ import {
 } from '@overheid-assessment/core'
 import { createLocalPersistence } from '@/LocalPersistence'
 
-/**
- * Coverage suite for the standalone-form LocalPersistence provider.
- *
- * The provider persists assessment state to localStorage in the unified v2
- * format. These tests exercise every branch: empty vs. populated namespaces,
- * the grouped-vs-flat answer split, legacy/namespaced load formats, the
- * URN lookup that may throw, the watcher gate, the UI-state restore fallback,
- * and every catch block.
- */
-
 const DPIA_URN = 'urn:nl:dpia:3.0'
 const PRESCAN_URN = 'urn:nl:prescan:1.0'
 
@@ -30,7 +20,6 @@ function uiStorageKey(ns: string): string {
   return `ui_state_${ns}`
 }
 
-/** Make schemaStore.getUrn return canned URNs so saveAppState/loadAppState can run. */
 function stubUrns(): void {
   const schemaStore = useSchemaStore()
   vi.spyOn(schemaStore, 'getUrn').mockImplementation((ns: FormType) =>
@@ -64,12 +53,9 @@ describe('createLocalPersistence — saveAppState', () => {
     const state = JSON.parse(raw as string)
     expect(state.$schema).toBe(OUTPUT_SCHEMA_URL)
     expect(state.metadata.urn).toBe(DPIA_URN)
-    // No completedTasks -> the key is omitted entirely.
     expect('completedTasks' in state.metadata).toBe(false)
-    // No flatTasks -> answers pass through as the flat map.
     expect(state.answers).toEqual({ '0.1': { value: 'Inleiding' } })
 
-    // UI state is persisted alongside.
     const ui = JSON.parse(localStorage.getItem(uiStorageKey(FormType.DPIA)) as string)
     expect(ui.currentRootTaskId).toBe('0')
   })
@@ -91,7 +77,6 @@ describe('createLocalPersistence — saveAppState', () => {
         childrenIds: [],
       },
     } as Record<string, unknown>
-    // Out-of-order ids prove the numeric sort runs.
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['2', '0', '10'])
 
     const provider = createLocalPersistence()
@@ -99,7 +84,6 @@ describe('createLocalPersistence — saveAppState', () => {
 
     const state = JSON.parse(localStorage.getItem(storageKey(FormType.DPIA)) as string)
     expect(state.metadata.completedTasks).toEqual(['0', '2', '10'])
-    // groupAnswers passed through the non-repeatable answer unchanged.
     expect(state.answers['0.1']).toEqual({ value: 'Naam' })
   })
 
@@ -107,7 +91,6 @@ describe('createLocalPersistence — saveAppState', () => {
     stubUrns()
     const answerStore = useAnswerStore()
     const taskStore = useTaskStore()
-    // Force the `?? {}` (right) branches on L32-33: remove the namespace entries.
     delete (answerStore.answers as Record<string, unknown>)[FormType.DPIA]
     delete (taskStore.flatTasks as Record<string, unknown>)[FormType.DPIA]
 
@@ -177,7 +160,6 @@ describe('createLocalPersistence — loadAppState', () => {
     const provider = createLocalPersistence()
     const state = provider.loadAppState()
     expect(state).not.toBeNull()
-    // Falls back to a fresh ISO timestamp.
     expect(typeof state?.metadata.createdAt).toBe('string')
     expect(state?.metadata.createdAt).not.toBe('')
     expect('completedTasks' in (state?.metadata ?? {})).toBe(false)
@@ -198,7 +180,6 @@ describe('createLocalPersistence — loadAppState', () => {
 
   it('resolves the active namespace from an old namespaced format', () => {
     stubUrns()
-    // No $schema and answers wrapped under the namespace key => isNamespaced.
     const stored = {
       metadata: { urn: DPIA_URN, createdAt: '2026-01-01T00:00:00Z' },
       answers: {
@@ -214,7 +195,6 @@ describe('createLocalPersistence — loadAppState', () => {
     const provider = createLocalPersistence()
     const state = provider.loadAppState()
     expect(state?.answers).toEqual({ '0.1': { value: 'NS-DPIA' } })
-    // completedRootTaskIds from legacy taskState wins.
     expect(state?.metadata.completedTasks).toEqual(['0', '3'])
   })
 
@@ -224,13 +204,11 @@ describe('createLocalPersistence — loadAppState', () => {
       metadata: { urn: DPIA_URN, createdAt: '2026-01-01T00:00:00Z', completedTasks: ['7'] },
       answers: {
         [FormType.PRE_SCAN]: { '0.1': { value: 'only-pre' } },
-        // active ns (DPIA) is absent -> resolvedAnswers defaults to {}.
       },
     }
     localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify(stored))
 
     const provider = createLocalPersistence()
-    // DPIA answers absent -> {} -> empty -> returns null.
     expect(provider.loadAppState()).toBeNull()
   })
 
@@ -250,13 +228,12 @@ describe('createLocalPersistence — loadAppState', () => {
     const provider = createLocalPersistence()
     const state = provider.loadAppState()
     expect(state?.answers).toEqual({ '0.1': { value: 'pre-value' } })
-    // No taskState and no metadata.completedTasks -> [] -> key omitted.
     expect('completedTasks' in (state?.metadata ?? {})).toBe(false)
   })
 
   it('continues when getUrn throws for both namespaces during urnLookup', () => {
     const schemaStore = useSchemaStore()
-    // Real getUrn throws because no schema is loaded -> exercises both catch arms.
+    // Deliberately no stubUrns(): the real getUrn throws so both catch arms run.
     expect(() => schemaStore.getUrn(FormType.DPIA)).toThrow()
 
     const stored = {
@@ -273,9 +250,6 @@ describe('createLocalPersistence — loadAppState', () => {
 
   it('defaults answers/metadata to {} when the migrated state has neither', () => {
     stubUrns()
-    // No `metadata` => migrateStateV1toV2 returns the object unchanged, so the
-    // result has no `answers` and no `metadata` => exercises the `|| {}` (right)
-    // branches on L73-74. Empty resolved answers => loadAppState returns null.
     localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ unrelated: true }))
 
     const provider = createLocalPersistence()
@@ -345,12 +319,10 @@ describe('createLocalPersistence — setupWatchers', () => {
     const provider = createLocalPersistence()
     provider.setupWatchers!()
 
-    // Not initialized yet: a change must NOT trigger a save.
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'eerste' } } as Record<string, unknown>
     await nextTick()
     expect(localStorage.getItem(storageKey(FormType.DPIA))).toBeNull()
 
-    // Now mark initialized and mutate again: the watcher should save.
     taskStore.isInitialized[FormType.DPIA] = true
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'tweede' } } as Record<string, unknown>
     await nextTick()
@@ -381,7 +353,6 @@ describe('createLocalPersistence — restoreUiState', () => {
     const provider = createLocalPersistence()
     provider.restoreUiState!()
 
-    // Unchanged default.
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('0')
   })
 
@@ -399,7 +370,6 @@ describe('createLocalPersistence — restoreUiState', () => {
   })
 
   it('leaves the default when no UI state and no legacy task id exist', () => {
-    // app_state present but without a legacy currentRootTaskId.
     localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {} }))
 
     const taskStore = useTaskStore()

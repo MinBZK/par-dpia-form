@@ -6,7 +6,6 @@ import { type FlatTask, useTaskStore } from '../../src/stores/tasks'
 import { PERSISTENCE_KEY, type PersistenceProvider } from '../../src/persistence'
 import { FormType } from '../../src/models/dpia'
 
-// Build a FlatTask with sensible defaults; callers override what they need.
 function flatTask(partial: Partial<FlatTask> & { id: string }): FlatTask {
   return {
     task: `Task ${partial.id}`,
@@ -18,7 +17,6 @@ function flatTask(partial: Partial<FlatTask> & { id: string }): FlatTask {
   } as FlatTask
 }
 
-// Register root tasks directly in the store for the active namespace.
 function seedRootTasks(taskStore: ReturnType<typeof useTaskStore>, tasks: FlatTask[]) {
   const ns = taskStore.activeNamespace
   const map: Record<string, FlatTask> = {}
@@ -34,7 +32,7 @@ function mountTracker(
   } = {},
 ) {
   const provide: Record<symbol, unknown> = {}
-  // When persistence is explicitly null we leave it unprovided so inject() returns undefined.
+  // persistence === null is left unprovided so inject() returns undefined.
   if (opts.persistence !== null) {
     provide[PERSISTENCE_KEY as unknown as symbol] = opts.persistence ?? {}
   }
@@ -59,9 +57,7 @@ describe('ProgressTracker.vue', () => {
       const wrapper = mountTracker()
       const text = wrapper.text()
       expect(text).toContain('Inhoudsopgave')
-      // No signing/conclusion task => the fallback end step is rendered.
       expect(text).toContain('Proces voltooid')
-      // Exactly one regular step rendered for the single root task.
       expect(wrapper.findAll('.rvo-progress-tracker__step--md').length).toBeGreaterThanOrEqual(1)
     })
   })
@@ -76,13 +72,11 @@ describe('ProgressTracker.vue', () => {
 
       const wrapper = mountTracker({ props: { navigable: true } })
 
-      // The signing task is the conclusion step (end), not in "Proces voltooid".
       expect(wrapper.text()).not.toContain('Proces voltooid')
       const endStep = wrapper.find('.rvo-progress-tracker__step--end')
       expect(endStep.exists()).toBe(true)
       expect(endStep.text()).toContain('Ondertekening')
 
-      // Regular (md) steps exclude the signing task.
       const mdSteps = wrapper.findAll('.rvo-progress-tracker__step--md')
       const mdText = mdSteps.map(s => s.text()).join(' ')
       expect(mdText).toContain('Inleiding')
@@ -91,14 +85,12 @@ describe('ProgressTracker.vue', () => {
     })
 
     it('treats a root task whose type is undefined as a regular task (optional chaining falsy branch)', () => {
-      // type undefined exercises the `t.type?.includes` / `task.type &&` falsy paths.
       const noType = flatTask({ id: '0', task: 'Geen type' })
       ;(noType as { type?: unknown }).type = undefined
 
       seedRootTasks(taskStore, [noType])
 
       const wrapper = mountTracker()
-      // Stays a regular task and falls back to the empty end step.
       expect(wrapper.text()).toContain('Geen type')
       expect(wrapper.text()).toContain('Proces voltooid')
     })
@@ -127,9 +119,6 @@ describe('ProgressTracker.vue', () => {
     })
 
     it('omits the id prefix for an official-id task that is also a signing task (right-hand OR branch true)', () => {
-      // is_official_id true forces evaluation of the right-hand side of the ||,
-      // and type.includes('signing') being true makes shouldSkipIdPrefix true.
-      // Such a task is also the conclusion step, which renders task.task directly.
       seedRootTasks(taskStore, [
         flatTask({ id: '0', task: 'Inleiding' }),
         flatTask({ id: '9', task: 'Slot', is_official_id: true, type: ['signing'] }),
@@ -148,7 +137,6 @@ describe('ProgressTracker.vue', () => {
 
       const wrapper = mountTracker({ props: { disabled: true } })
       expect(wrapper.find('.rvo-progress-tracker__step--disabled').exists()).toBe(true)
-      // Disabled steps render a non-link <div>, not an <a>.
       expect(wrapper.find('a.rvo-progress-tracker__step-link').exists()).toBe(false)
     })
 
@@ -177,7 +165,6 @@ describe('ProgressTracker.vue', () => {
         flatTask({ id: '0', task: 'Inleiding' }),
         flatTask({ id: '1', task: 'Vragen' }),
       ])
-      // current is '0' (default), so '1' is incomplete.
       const wrapper = mountTracker({ props: { navigable: true } })
       expect(wrapper.find('.rvo-progress-tracker__step--incomplete').exists()).toBe(true)
     })
@@ -260,7 +247,6 @@ describe('ProgressTracker.vue', () => {
       seedRootTasks(taskStore, [flatTask({ id: '0', task: 'Inleiding' })])
       const setRootTask = vi.spyOn(taskStore, 'setRootTask')
 
-      // persistence object present but flushSave undefined.
       const wrapper = mountTracker({ props: { navigable: true }, persistence: {} })
 
       await wrapper.find('a.rvo-progress-tracker__step-link').trigger('click')
@@ -277,7 +263,6 @@ describe('ProgressTracker.vue', () => {
 
       const wrapper = mountTracker({ props: { navigable: true }, persistence: null })
 
-      // Click the conclusion link to also exercise goToTask via the end step.
       const endLink = wrapper.find('.rvo-progress-tracker__step--end a.rvo-progress-tracker__step-link')
       await endLink.trigger('click')
 

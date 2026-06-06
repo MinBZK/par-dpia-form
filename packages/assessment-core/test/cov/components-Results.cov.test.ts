@@ -4,7 +4,6 @@ import { createPinia, setActivePinia } from 'pinia'
 import Results from '../../src/components/Results.vue'
 import { useCalculationStore, type AssessmentResult } from '../../src/stores/calculations'
 
-// The four assessment ids rendered by Results.vue.
 const ASSESSMENT_IDS = ['DPIA', 'IAMA', 'DTIA', 'KIA']
 
 function makeResult(id: string): AssessmentResult {
@@ -17,10 +16,7 @@ function makeResult(id: string): AssessmentResult {
   }
 }
 
-// Mount Results with the AssessmentCard child stubbed so we can inspect the
-// props Results passes to it without rendering the full card markup. The
-// calculation store's init() is spied so onMounted does not kick off the real
-// (heavy) JEXL calculation pipeline.
+// init() is spied in each test so onMounted does not start the heavy JEXL pipeline.
 function mountResults() {
   const wrapper = mount(Results, {
     global: {
@@ -105,12 +101,9 @@ describe('Results.vue assessment card rendering', () => {
 })
 
 describe('Results.vue getAssessmentResult lookup', () => {
-  // Covers BOTH branches of the .find() callback inside getAssessmentResult:
-  // a matching assessment (truthy) and the non-matching ids (falsy / undefined).
   it('passes the matching result only to the card whose id is present in the store', () => {
     const calculationStore = useCalculationStore()
     vi.spyOn(calculationStore, 'init').mockImplementation(() => {})
-    // Seed a single result for DPIA; the other three ids have no result.
     calculationStore.assessmentResults = [makeResult('DPIA')]
 
     const wrapper = mountResults()

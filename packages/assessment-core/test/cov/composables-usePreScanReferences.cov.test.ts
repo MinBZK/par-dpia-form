@@ -7,15 +7,7 @@ import { FormType } from '../../src/models/dpia'
 import type { FlatTask, TaskInstance } from '../../src/stores/tasks'
 import type { TaskReference } from '../../src/models/dpia'
 
-// ---------------------------------------------------------------------------
-// Helpers to wire up the pinia stores directly. The composable reads:
-//  - taskStore.getTasksFromNamespace(PRE_SCAN)            -> flatTasks[PRE_SCAN]
-//  - taskStore.getInstanceIdsForTaskFromNamespace(...)    -> taskInstances[PRE_SCAN]
-//  - answerStore.getAnswerFromNamespace(PRE_SCAN, id)     -> answers[PRE_SCAN]
-//  - taskStore.activeNamespace                            -> DPIA gating
-// A non-repeatable task's instance id equals its task id, so we register a
-// single instance whose id matches the task id for every pre-scan task.
-// ---------------------------------------------------------------------------
+// A non-repeatable task's instance id equals its task id, so the seeded instance id matches the task id.
 
 function makePreScanTask(
   id: string,
@@ -32,15 +24,9 @@ function makePreScanTask(
   }
 }
 
-/**
- * Seed the PRE_SCAN namespace with tasks + (optionally) a default instance per
- * task whose instance id equals the task id, and an answer keyed by that id.
- */
 function seed(opts: {
   tasks: FlatTask[]
-  // task id -> answer value (string | string[] | ImageValue | null)
   answers?: Record<string, ReturnType<typeof rawAnswer>['value']>
-  // task ids that should NOT get an instance registered
   withoutInstance?: string[]
   activeNamespace?: FormType
 }) {
@@ -103,9 +89,7 @@ describe('usePreScanReferences.findPreScanReferences', () => {
   it('skips tasks without references and without a DPIA list (continue branch, both sub-conditions)', () => {
     seed({
       tasks: [
-        // no references property at all -> !task.references true
         makePreScanTask('a'),
-        // references present but no DPIA array -> !task.references.DPIA true
         { ...makePreScanTask('b'), references: {} },
       ],
       answers: { a: 'va', b: 'vb' },
@@ -144,7 +128,6 @@ describe('usePreScanReferences.findPreScanReferences', () => {
       answers: { p1: 'value-1' },
     })
     const { findPreScanReferences } = usePreScanReferences()
-    // Only 'pre-fill' matches; 'pre-view' is filtered out by type
     const result = findPreScanReferences('2.1.3', 'pre-fill')
     expect(result).toHaveLength(1)
     expect(result[0].referenceType).toBe('pre-fill')
@@ -169,9 +152,7 @@ describe('usePreScanReferences.findPreScanReferences', () => {
   it('matches by section when matchBySection is true (ternary true branch)', () => {
     seed({
       tasks: [
-        // ref id 2.4.9 lives in the same section "2" as the queried 2.1.3
         makePreScanTask('p1', [{ id: '2.4.9', type: 'many-to-many' }]),
-        // ref id 3.1 is in a different section -> filtered out
         makePreScanTask('p2', [{ id: '3.1', type: 'many-to-many' }]),
       ],
       answers: { p1: 'value-1', p2: 'value-2' },
@@ -187,8 +168,8 @@ describe('usePreScanReferences.findPreScanReferences', () => {
     seed({
       tasks: [
         makePreScanTask('p1', [
-          { id: '2.1.3', type: 'pre-fill' }, // exact match
-          { id: '2.1.4', type: 'pre-fill' }, // same section, different id -> no match
+          { id: '2.1.3', type: 'pre-fill' },
+          { id: '2.1.4', type: 'pre-fill' },
         ]),
       ],
       answers: { p1: 'value-1' },
@@ -212,7 +193,6 @@ describe('usePreScanReferences.findPreScanReferences', () => {
   it('does not push results when the answer is null/undefined (answer guard branch)', () => {
     seed({
       tasks: [makePreScanTask('p1', [{ id: '2.1.3', type: 'pre-fill' }])],
-      // no answer registered for p1 -> getAnswerFromNamespace returns null
     })
     const { findPreScanReferences } = usePreScanReferences()
     expect(findPreScanReferences('2.1.3')).toEqual([])
@@ -248,9 +228,7 @@ describe('usePreScanReferences.getPreviewDataForSection', () => {
       tasks: [
         makePreScanTask('p1', [{ id: '2.4.1', type: 'pre-view' }]),
         makePreScanTask('p2', [{ id: '2.9.9', type: 'many-to-many' }]),
-        // pre-fill is not a preview type -> excluded
         makePreScanTask('p3', [{ id: '2.0.0', type: 'pre-fill' }]),
-        // different section -> excluded
         makePreScanTask('p4', [{ id: '7.1.1', type: 'pre-view' }]),
       ],
       answers: { p1: 'v1', p2: 'v2', p3: 'v3', p4: 'v4' },
@@ -312,9 +290,7 @@ describe('usePreScanReferences.getPreScanValueForTask', () => {
   it('skips pre-view references and continues to the next (continue branch)', () => {
     seed({
       tasks: [
-        // First task: pre-view only -> should be skipped (continue)
         makePreScanTask('p1', [{ id: '2.1.3', type: 'pre-view' }]),
-        // Second task: pre-fill -> returned
         makePreScanTask('p2', [{ id: '2.1.3', type: 'pre-fill' }]),
       ],
       answers: { p1: 'ignored', p2: 'returned-value' },
@@ -329,7 +305,6 @@ describe('usePreScanReferences.getPreScanValueForTask', () => {
       answers: { p1: 'value-1' },
     })
     const { getPreScanValueForTask } = usePreScanReferences()
-    // many-to-many is neither pre-view (skip) nor pre-fill/one-to-one/one-to-many (return)
     expect(getPreScanValueForTask(dpiaTask)).toBeNull()
   })
 

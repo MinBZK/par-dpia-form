@@ -71,15 +71,13 @@ describe('useAnswerStore', () => {
 
     it('does nothing when the namespace is already active (false branch of if)', () => {
       expect(store.activeNamespace).toBe(FormType.DPIA)
-      // Seed an answer, then set the same namespace — must be untouched
-      store.setAnswer('1.1', 'keep me')
+      store.setAnswer('1.1', 'Inleiding')
       store.setActiveNamespace(FormType.DPIA)
       expect(store.activeNamespace).toBe(FormType.DPIA)
-      expect(store.getAnswer('1.1')).toBe('keep me')
+      expect(store.getAnswer('1.1')).toBe('Inleiding')
     })
 
     it('initializes the namespace object when it does not yet exist (true branch of inner if)', () => {
-      // Remove the PRE_SCAN namespace so the guard re-initializes it
       delete (store.answers as Record<string, unknown>)[FormType.PRE_SCAN]
       expect(store.answers[FormType.PRE_SCAN]).toBeUndefined()
 
@@ -91,7 +89,6 @@ describe('useAnswerStore', () => {
     it('does not reinitialize an existing namespace (false branch of inner if)', () => {
       store.setActiveNamespace(FormType.PRE_SCAN)
       store.setAnswer('0.1', 'prescan answer')
-      // Switch away and back — existing namespace data preserved
       store.setActiveNamespace(FormType.DPIA)
       store.setActiveNamespace(FormType.PRE_SCAN)
       expect(store.getAnswer('0.1')).toBe('prescan answer')
@@ -100,16 +97,16 @@ describe('useAnswerStore', () => {
 
   describe('setAnswer / getAnswer', () => {
     it('stores an answer with a lastEditedAt timestamp in the active namespace', () => {
-      store.setAnswer('2.1', 'a value')
+      store.setAnswer('2.1', 'E-mailadres')
       const stored = store.answers[FormType.DPIA]['2.1']
-      expect(stored.value).toBe('a value')
+      expect(stored.value).toBe('E-mailadres')
       expect(typeof stored.lastEditedAt).toBe('string')
       expect(Number.isNaN(Date.parse(stored.lastEditedAt))).toBe(false)
     })
 
     it('getAnswer returns the stored value (truthy branch of ?. || null)', () => {
-      store.setAnswer('3.1', 'truthy')
-      expect(store.getAnswer('3.1')).toBe('truthy')
+      store.setAnswer('3.1', 'Verwerkingsregister')
+      expect(store.getAnswer('3.1')).toBe('Verwerkingsregister')
     })
 
     it('getAnswer returns null for an unknown id (optional chaining short-circuit)', () => {
@@ -145,8 +142,8 @@ describe('useAnswerStore', () => {
     })
 
     it('returns the stored value when present (guard false, truthy value)', () => {
-      store.setAnswer('1.2', 'fetched')
-      expect(store.getAnswerFromNamespace(FormType.DPIA, '1.2')).toBe('fetched')
+      store.setAnswer('1.2', 'Betrokkenen')
+      expect(store.getAnswerFromNamespace(FormType.DPIA, '1.2')).toBe('Betrokkenen')
     })
 
     it('returns null when the stored value is falsy (|| null branch)', () => {
@@ -164,8 +161,8 @@ describe('useAnswerStore', () => {
 
   describe('removeAnswer', () => {
     it('removes an answer from the active namespace', () => {
-      store.setAnswer('6.1', 'to remove')
-      expect(store.getAnswer('6.1')).toBe('to remove')
+      store.setAnswer('6.1', 'Bewaartermijn')
+      expect(store.getAnswer('6.1')).toBe('Bewaartermijn')
       store.removeAnswer('6.1')
       expect(store.getAnswer('6.1')).toBeNull()
       expect(store.answers[FormType.DPIA]['6.1']).toBeUndefined()
@@ -179,15 +176,15 @@ describe('useAnswerStore', () => {
 
   describe('removeAnswerForInstances', () => {
     it('removes every listed instance id', () => {
-      store.setAnswer('a', '1')
-      store.setAnswer('b', '2')
-      store.setAnswer('c', '3')
+      store.setAnswer('2.1', 'E-mailadres')
+      store.setAnswer('2.2', 'Telefoonnummer')
+      store.setAnswer('2.3', 'BSN')
 
-      store.removeAnswerForInstances(['a', 'c'])
+      store.removeAnswerForInstances(['2.1', '2.3'])
 
-      expect(store.getAnswer('a')).toBeNull()
-      expect(store.getAnswer('b')).toBe('2')
-      expect(store.getAnswer('c')).toBeNull()
+      expect(store.getAnswer('2.1')).toBeNull()
+      expect(store.getAnswer('2.2')).toBe('Telefoonnummer')
+      expect(store.getAnswer('2.3')).toBeNull()
     })
 
     it('handles an empty list (forEach over no elements)', () => {

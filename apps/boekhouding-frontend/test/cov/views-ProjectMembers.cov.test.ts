@@ -5,15 +5,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import type { Member } from '../../src/api'
 
-// Router mock — ProjectMembers calls useRouter() at <script setup> time even
-// though it never navigates; supply a push spy so mount() succeeds.
+// ProjectMembers calls useRouter() at setup time even though it never navigates, so a push spy is required for mount() to succeed.
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-// members API mock — every method is a spy so we can drive both the success
-// and the catch branches of onMounted/handleInvite/handleRoleChange/confirmRemove.
 const membersList = vi.fn()
 const membersAdd = vi.fn()
 const membersUpdate = vi.fn()
@@ -29,8 +26,6 @@ vi.mock('../../src/api', () => ({
 
 import ProjectMembers from '../../src/views/ProjectMembers.vue'
 
-// Build a Member with sensible defaults; displayName !== email by default so
-// whoLabel() takes the "named" branch unless overridden.
 const makeMember = (overrides: Partial<Member> = {}): Member => ({
   userId: 'u1',
   email: 'sam@example.com',
@@ -45,7 +40,6 @@ const owner = makeMember({ userId: 'owner1', email: 'owner@example.com', display
 const owner2 = makeMember({ userId: 'owner2', email: 'owner2@example.com', displayName: 'Owner Two', role: 'owner' })
 const editor = makeMember({ userId: 'ed1', email: 'ed@example.com', displayName: 'Editor One', role: 'editor' })
 
-// Mount and let onMounted's awaited list() resolve.
 const mountPage = async (projectId = 'p1') => {
   const wrapper = mount(ProjectMembers, {
     props: { projectId },
@@ -57,10 +51,7 @@ const mountPage = async (projectId = 'p1') => {
   return wrapper
 }
 
-// jsdom (29) does not implement HTMLDialogElement.showModal()/close(); the
-// component calls them via deleteDialogRef.value?.showModal()/close(). Provide
-// no-op implementations on the prototype so those calls execute, and so the
-// per-test spies have a property to wrap.
+// jsdom does not implement HTMLDialogElement.showModal()/close(); add no-op prototype impls so the component's calls run and per-test spies have a property to wrap.
 beforeEach(() => {
   if (!(HTMLDialogElement.prototype as { showModal?: unknown }).showModal) {
     HTMLDialogElement.prototype.showModal = function () {}
@@ -73,8 +64,6 @@ beforeEach(() => {
   membersAdd.mockReset()
   membersUpdate.mockReset()
   membersRemove.mockReset()
-  // Default: a single owner plus an editor so most rows show the delete button
-  // and the editor is not the "only owner".
   membersList.mockResolvedValue([owner, editor])
   membersAdd.mockResolvedValue({ userId: 'new', role: 'editor' })
   membersUpdate.mockResolvedValue(editor)
@@ -91,7 +80,6 @@ describe('ProjectMembers', () => {
         props: { projectId: 'p1' },
         global: { stubs: { AppHeader: { template: '<header class="app-header-stub" />' } } },
       })
-      // loading=true → "Laden..." visible, member list not yet rendered.
       expect(wrapper.text()).toContain('Laden...')
       expect(wrapper.find('.member-list').exists()).toBe(false)
 
@@ -105,7 +93,6 @@ describe('ProjectMembers', () => {
 
     it('loads members and renders one row per member', async () => {
       const wrapper = await mountPage()
-      // Header row + 2 member rows = 3 .member-row elements.
       expect(wrapper.findAll('.member-row')).toHaveLength(3)
       expect(wrapper.text()).toContain('Owner One (owner@example.com)')
     })
@@ -116,8 +103,7 @@ describe('ProjectMembers', () => {
       const alert = wrapper.find('.rvo-alert--error')
       expect(alert.exists()).toBe(true)
       expect(alert.text()).toContain('Kan leden niet laden. Probeer het later opnieuw.')
-      // No rows because the list stayed empty.
-      expect(wrapper.findAll('.member-row')).toHaveLength(1) // header only
+      expect(wrapper.findAll('.member-row')).toHaveLength(1)
     })
   })
 
@@ -132,7 +118,6 @@ describe('ProjectMembers', () => {
       membersList.mockResolvedValue([owner, placeholder])
       const wrapper = await mountPage()
       const whoCells = wrapper.findAll('.member-col--who')
-      // [0] is the header label "Wie"; the placeholder row shows only the email.
       const text = wrapper.text()
       expect(text).toContain('pending@example.com')
       expect(text).not.toContain('pending@example.com (pending@example.com)')
@@ -147,17 +132,13 @@ describe('ProjectMembers', () => {
 
   describe('isOnlyOwner() / ownerCount', () => {
     it('disables the role select and hides delete for the sole owner', async () => {
-      // Single owner → isOnlyOwner(owner) true.
       membersList.mockResolvedValue([owner, editor])
       const wrapper = await mountPage()
 
       const selects = wrapper.findAll('select.member-select')
-      // First select belongs to the owner row → disabled.
       expect((selects[0].element as HTMLSelectElement).disabled).toBe(true)
-      // Editor row select → enabled.
       expect((selects[1].element as HTMLSelectElement).disabled).toBe(false)
 
-      // Owner row has no delete button; editor row does.
       const deleteButtons = wrapper.findAll('button.member-delete')
       expect(deleteButtons).toHaveLength(1)
     })
@@ -170,12 +151,10 @@ describe('ProjectMembers', () => {
       expect((selects[0].element as HTMLSelectElement).disabled).toBe(false)
       expect((selects[1].element as HTMLSelectElement).disabled).toBe(false)
 
-      // Both owners are deletable now.
       expect(wrapper.findAll('button.member-delete')).toHaveLength(2)
     })
 
     it('treats a non-owner with a single owner present as not the only owner', async () => {
-      // editor.role !== 'owner' → isOnlyOwner false via the first ternary side.
       membersList.mockResolvedValue([owner, editor])
       const wrapper = await mountPage()
       const selects = wrapper.findAll('select.member-select')
@@ -186,7 +165,6 @@ describe('ProjectMembers', () => {
   describe('handleInvite()', () => {
     it('returns early without calling add() when the email is empty', async () => {
       const wrapper = await mountPage()
-      // Submit the form with an empty inviteEmail.
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
       expect(membersAdd).not.toHaveBeenCalled()
@@ -204,7 +182,6 @@ describe('ProjectMembers', () => {
 
       expect(membersAdd).toHaveBeenCalledWith('p1', 'new@example.com', 'editor')
       expect(membersList).toHaveBeenCalledWith('p1')
-      // Email field cleared.
       expect((emailInput.element as HTMLInputElement).value).toBe('')
     })
 
@@ -228,14 +205,12 @@ describe('ProjectMembers', () => {
 
     it('clears a previous error on a subsequent successful invite', async () => {
       const wrapper = await mountPage()
-      // First: fail to set an error.
       membersAdd.mockRejectedValueOnce(new Error('Eerdere fout'))
       await wrapper.find('#inviteEmail').setValue('a@example.com')
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
       expect(wrapper.find('.rvo-alert--error').exists()).toBe(true)
 
-      // Then: succeed → error reset to null at the top of handleInvite.
       await wrapper.find('#inviteEmail').setValue('b@example.com')
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
@@ -247,7 +222,6 @@ describe('ProjectMembers', () => {
     it('updates the role and refreshes the list on success', async () => {
       const wrapper = await mountPage()
       membersList.mockClear()
-      // Editor row select is the second one.
       const selects = wrapper.findAll('select.member-select')
       await selects[1].setValue('viewer')
       await flushPromises()
@@ -275,7 +249,6 @@ describe('ProjectMembers', () => {
       await flushPromises()
 
       expect(showModalSpy).toHaveBeenCalledTimes(1)
-      // memberToDelete drives the dialog body text.
       expect(wrapper.find('dialog.confirm-dialog').text()).toContain('Editor One (ed@example.com)')
     })
 
@@ -288,7 +261,6 @@ describe('ProjectMembers', () => {
       await wrapper.find('button.member-delete').trigger('click')
       await flushPromises()
 
-      // Click "Annuleer" → closeDeleteModal → watch close branch.
       const cancelButton = wrapper
         .findAll('dialog.confirm-dialog button')
         .find((b) => b.text().includes('Annuleer'))!
@@ -296,7 +268,6 @@ describe('ProjectMembers', () => {
       await flushPromises()
 
       expect(closeSpy).toHaveBeenCalled()
-      // memberToDelete reset to null → ternary renders the empty string branch.
       expect(wrapper.find('dialog.confirm-dialog strong').text()).toBe('')
     })
 
@@ -316,7 +287,6 @@ describe('ProjectMembers', () => {
       await flushPromises()
 
       expect(membersRemove).toHaveBeenCalledWith('p1', 'ed1')
-      // Editor removed → only the header + owner row remain.
       expect(wrapper.text()).not.toContain('Editor One (ed@example.com)')
       expect(wrapper.text()).toContain('Owner One (owner@example.com)')
     })
@@ -338,18 +308,12 @@ describe('ProjectMembers', () => {
       await flushPromises()
 
       expect(wrapper.find('.rvo-alert--error').text()).toContain('Verwijderen mislukt')
-      // finally → closeDeleteModal → dialog.close called.
       expect(closeSpy).toHaveBeenCalled()
-      // Member still present because the filter never ran.
       expect(wrapper.text()).toContain('Editor One (ed@example.com)')
     })
 
     it('returns early in confirmRemove when there is no member to delete', async () => {
       const wrapper = await mountPage()
-      // Open then cancel so memberToDelete is null, then directly invoke the
-      // confirm button is not possible (dialog closed). Instead drive the
-      // null-guard by clicking the dialog confirm while memberToDelete is null:
-      // open + cancel resets it, the dialog stays in DOM so we can click confirm.
       const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
       vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
       vi.spyOn(dialog, 'close').mockImplementation(() => {})
@@ -362,7 +326,6 @@ describe('ProjectMembers', () => {
       await cancelButton.trigger('click')
       await flushPromises()
 
-      // Now memberToDelete is null; clicking confirm hits the early return.
       const confirmButton = wrapper
         .findAll('dialog.confirm-dialog button')
         .find((b) => b.text().trim() === 'Verwijderen')!

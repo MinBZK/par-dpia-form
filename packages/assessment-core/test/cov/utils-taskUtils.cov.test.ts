@@ -18,7 +18,6 @@ describe('createConclusionTask', () => {
     expect(task.type).toEqual(['task_group', 'signing'])
     expect(task.repeatable).toBe(false)
     expect(task.tasks).toEqual([])
-    // Default param: description omitted → undefined
     expect(task.description).toBeUndefined()
   })
 
@@ -45,7 +44,6 @@ describe('removeTemplatePattern', () => {
 })
 
 describe('renderInstanceLabel', () => {
-  // Tree where 2.1 is repeatable with a label template referencing child 2.1.1
   const taskTree: Task[] = [
     {
       id: '2',
@@ -82,13 +80,11 @@ describe('renderInstanceLabel', () => {
   })
 
   it('keeps the raw {placeholder} when the instance has no mapping source', () => {
-    // Default instance 2.1[0] exists but has no mappedFromInstanceId
     const result = renderInstanceLabel('2.1[0]', 'Persoonsgegeven: {2.1.1}')
     expect(result).toBe('Persoonsgegeven: {2.1.1}')
   })
 
   it('renders an empty string for the placeholder when the mapped answer is null', () => {
-    // Map the instance to a source instance that has no answer → getAnswer returns null
     taskStore.setInstanceMappingSource('2.1[0]', '2.1.1[0]')
 
     const result = renderInstanceLabel('2.1[0]', 'Persoonsgegeven: {2.1.1}')

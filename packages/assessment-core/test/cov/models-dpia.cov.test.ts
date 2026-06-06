@@ -12,41 +12,41 @@ describe('FormType enum', () => {
 describe('codecs decode valid values', () => {
   it('decodes a fully populated Task tree (triggers recursion thunk)', () => {
     const value = {
-      task: 'Root',
-      id: '1',
+      task: 'Verwerkingsdoeleinden',
+      id: '2',
       type: ['task_group'],
       is_official_id: true,
       valueType: 'string',
-      instance_label_template: 'Item {index}',
-      description: 'desc',
-      category: 'cat',
+      instance_label_template: 'Persoonsgegeven {index}',
+      description: 'Beschrijf de doeleinden van de verwerking',
+      category: 'Doelbinding',
       repeatable: true,
       tasks: [
         {
-          task: 'Child',
-          id: '1.1',
+          task: 'Categorie persoonsgegevens',
+          id: '2.1',
           type: ['text_input'],
-          options: [{ value: 'a', label: 'A' }, { value: true }, { value: null }],
-          sources: [{ source: 'src', description: 'd' }, { source: 'src2' }],
+          options: [{ value: 'email', label: 'E-mailadres' }, { value: true }, { value: null }],
+          sources: [{ source: 'AVG art. 5', description: 'Beginselen verwerking' }, { source: 'AVG art. 6' }],
           dependencies: [
             {
               type: 'visibility',
               action: 'show',
-              condition: { id: '1.2', operator: 'eq', value: 'x' },
-              source: { id: '1.3' },
+              condition: { id: '2.2', operator: 'eq', value: 'ja' },
+              source: { id: '2.3' },
               mapping_type: 'one-to-one',
             },
             { type: 'enable', action: 'hide' },
           ],
-          defaultValue: 'def',
+          defaultValue: 'Niet ingevuld',
           calculation: {
-            expression: 'a + b',
-            scoreKey: 'score',
-            riskScore: [{ when: 'high', value: 3 }],
+            expression: 'score_a + score_b',
+            scoreKey: 'risicoScore',
+            riskScore: [{ when: 'hoog', value: 3 }],
           },
           references: {
-            prescanModelId: 'pm1',
-            DPIA: [{ id: 'r1', type: 'pre-fill' }],
+            prescanModelId: 'prescan-2.1',
+            DPIA: [{ id: 'dpia-2.1', type: 'pre-fill' }],
           },
         },
       ],
@@ -56,12 +56,12 @@ describe('codecs decode valid values', () => {
   })
 
   it('decodes a minimal Task with only required fields', () => {
-    const result = dpia.Task.decode({ task: 'T', id: '2', type: ['date'] })
+    const result = dpia.Task.decode({ task: 'Datum verwerking', id: '2.4', type: ['date'] })
     expect(isRight(result)).toBe(true)
   })
 
   it('rejects an invalid Task (missing required id)', () => {
-    const result = dpia.Task.decode({ task: 'T', type: ['date'] })
+    const result = dpia.Task.decode({ task: 'Datum verwerking', type: ['date'] })
     expect(isLeft(result)).toBe(true)
   })
 
@@ -76,55 +76,55 @@ describe('codecs decode valid values', () => {
   })
 
   it('decodes Tasks array', () => {
-    const result = dpia.Tasks.decode([{ task: 'T', id: '3', type: ['image'] }])
+    const result = dpia.Tasks.decode([{ task: 'Diagram gegevensstromen', id: '3.1', type: ['image'] }])
     expect(isRight(result)).toBe(true)
   })
 
   it('decodes Source with and without description', () => {
-    expect(isRight(dpia.Source.decode({ source: 's' }))).toBe(true)
-    expect(isRight(dpia.Source.decode({ source: 's', description: 'd' }))).toBe(true)
+    expect(isRight(dpia.Source.decode({ source: 'AVG art. 35' }))).toBe(true)
+    expect(isRight(dpia.Source.decode({ source: 'AVG art. 35', description: 'DPIA-verplichting' }))).toBe(true)
   })
 
   it('decodes Option value union variants', () => {
-    expect(isRight(dpia.Option.decode({ value: 'str', label: 'L' }))).toBe(true)
+    expect(isRight(dpia.Option.decode({ value: 'email', label: 'E-mailadres' }))).toBe(true)
     expect(isRight(dpia.Option.decode({ value: false }))).toBe(true)
     expect(isRight(dpia.Option.decode({ value: null }))).toBe(true)
     expect(isLeft(dpia.Option.decode({ value: 1 }))).toBe(true)
   })
 
   it('decodes Condition with and without optional value', () => {
-    expect(isRight(dpia.Condition.decode({ id: 'c', operator: 'eq' }))).toBe(true)
-    expect(isRight(dpia.Condition.decode({ id: 'c', operator: 'eq', value: true }))).toBe(true)
+    expect(isRight(dpia.Condition.decode({ id: '2.2', operator: 'eq' }))).toBe(true)
+    expect(isRight(dpia.Condition.decode({ id: '2.2', operator: 'eq', value: true }))).toBe(true)
   })
 
   it('decodes Dependency with full and minimal shape', () => {
-    expect(isRight(dpia.Dependency.decode({ type: 't', action: 'a' }))).toBe(true)
+    expect(isRight(dpia.Dependency.decode({ type: 'visibility', action: 'show' }))).toBe(true)
     expect(
       isRight(
         dpia.Dependency.decode({
-          type: 't',
-          action: 'a',
-          condition: { id: 'c', operator: 'eq' },
-          source: { id: 's' },
-          mapping_type: 'm',
+          type: 'visibility',
+          action: 'show',
+          condition: { id: '2.2', operator: 'eq' },
+          source: { id: '2.3' },
+          mapping_type: 'one-to-one',
         }),
       ),
     ).toBe(true)
   })
 
   it('decodes RiskScore', () => {
-    expect(isRight(dpia.RiskScore.decode({ when: 'w', value: 1 }))).toBe(true)
-    expect(isLeft(dpia.RiskScore.decode({ when: 'w' }))).toBe(true)
+    expect(isRight(dpia.RiskScore.decode({ when: 'hoog', value: 1 }))).toBe(true)
+    expect(isLeft(dpia.RiskScore.decode({ when: 'hoog' }))).toBe(true)
   })
 
   it('decodes Calculation full and minimal', () => {
-    expect(isRight(dpia.Calculation.decode({ expression: 'e' }))).toBe(true)
+    expect(isRight(dpia.Calculation.decode({ expression: 'score_a + score_b' }))).toBe(true)
     expect(
       isRight(
         dpia.Calculation.decode({
-          expression: 'e',
-          scoreKey: 'k',
-          riskScore: [{ when: 'w', value: 2 }],
+          expression: 'score_a + score_b',
+          scoreKey: 'risicoScore',
+          riskScore: [{ when: 'hoog', value: 2 }],
         }),
       ),
     ).toBe(true)
@@ -138,27 +138,27 @@ describe('codecs decode valid values', () => {
   })
 
   it('decodes TaskReference and TaskReferences', () => {
-    expect(isRight(dpia.TaskReference.decode({ id: 'r', type: 'one-to-many' }))).toBe(true)
+    expect(isRight(dpia.TaskReference.decode({ id: 'dpia-2.1', type: 'one-to-many' }))).toBe(true)
     expect(isRight(dpia.TaskReferences.decode({}))).toBe(true)
     expect(
-      isRight(dpia.TaskReferences.decode({ prescanModelId: 'p', DPIA: [{ id: 'r', type: 'pre-view' }] })),
+      isRight(dpia.TaskReferences.decode({ prescanModelId: 'prescan-2.1', DPIA: [{ id: 'dpia-2.1', type: 'pre-view' }] })),
     ).toBe(true)
   })
 
   it('decodes Criterion', () => {
-    expect(isRight(dpia.Criterion.decode({ id: 'c', expression: 'e', explanation: 'x' }))).toBe(true)
+    expect(isRight(dpia.Criterion.decode({ id: 'crit-1', expression: 'risicoScore >= 3', explanation: 'Hoog risico' }))).toBe(true)
   })
 
   it('decodes AssessmentLevel full and minimal', () => {
-    expect(isRight(dpia.AssessmentLevel.decode({ level: 'l', expression: 'e', result: 'r' }))).toBe(true)
+    expect(isRight(dpia.AssessmentLevel.decode({ level: 'hoog', expression: 'risicoScore >= 3', result: 'DPIA verplicht' }))).toBe(true)
     expect(
       isRight(
         dpia.AssessmentLevel.decode({
-          level: 'l',
-          expression: 'e',
-          result: 'r',
-          explanation: 'ex',
-          criteria: [{ id: 'c', expression: 'e', explanation: 'x' }],
+          level: 'hoog',
+          expression: 'risicoScore >= 3',
+          result: 'DPIA verplicht',
+          explanation: 'Verwerking met hoog risico',
+          criteria: [{ id: 'crit-1', expression: 'risicoScore >= 3', explanation: 'Hoog risico' }],
         }),
       ),
     ).toBe(true)
@@ -168,8 +168,8 @@ describe('codecs decode valid values', () => {
     expect(
       isRight(
         dpia.Assessment.decode({
-          id: 'a',
-          levels: [{ level: 'l', expression: 'e', result: 'r' }],
+          id: 'dpia-noodzaak',
+          levels: [{ level: 'hoog', expression: 'risicoScore >= 3', result: 'DPIA verplicht' }],
         }),
       ),
     ).toBe(true)
@@ -179,26 +179,26 @@ describe('codecs decode valid values', () => {
     expect(
       isRight(
         dpia.DPIA.decode({
-          name: 'n',
-          urn: 'u',
-          version: 'v',
-          description: 'd',
-          tasks: [{ task: 'T', id: '1', type: ['task_group'] }],
+          name: 'DPIA',
+          urn: 'urn:nl:dpia:3.0',
+          version: '3.0',
+          description: 'Data Protection Impact Assessment',
+          tasks: [{ task: 'Inleiding', id: '0', type: ['task_group'] }],
         }),
       ),
     ).toBe(true)
     expect(
       isRight(
         dpia.DPIA.decode({
-          name: 'n',
-          urn: 'u',
-          version: 'v',
-          description: 'd',
+          name: 'DPIA',
+          urn: 'urn:nl:dpia:3.0',
+          version: '3.0',
+          description: 'Data Protection Impact Assessment',
           tasks: [],
-          assessments: [{ id: 'a', levels: [] }],
+          assessments: [{ id: 'dpia-noodzaak', levels: [] }],
         }),
       ),
     ).toBe(true)
-    expect(isLeft(dpia.DPIA.decode({ name: 'n' }))).toBe(true)
+    expect(isLeft(dpia.DPIA.decode({ name: 'DPIA' }))).toBe(true)
   })
 })

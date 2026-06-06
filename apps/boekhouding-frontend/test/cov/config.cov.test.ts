@@ -5,8 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 type ConfigModule = typeof import('../../src/config')
 
-// Each test re-imports the module fresh so the module-level `config` cache
-// does not leak between cases.
+// Re-import fresh so the module-level `config` cache does not leak between cases.
 async function freshModule(): Promise<ConfigModule> {
   vi.resetModules()
   return import('../../src/config')
@@ -22,10 +21,10 @@ describe('config', () => {
   describe('loadConfig() success path', () => {
     it('returns the JSON payload from /config.json', async () => {
       const payload = {
-        keycloakUrl: 'https://kc.example.test',
-        keycloakRealm: 'prod-realm',
-        keycloakClientId: 'prod-client',
-        standaloneUrl: '/forms/',
+        keycloakUrl: 'https://keycloak.assessment.test',
+        keycloakRealm: 'assessment-boekhouding',
+        keycloakClientId: 'boekhouding-frontend',
+        standaloneUrl: '/invulhulpen/',
       }
       const fetchMock = vi.fn().mockResolvedValue({
         json: () => Promise.resolve(payload),
@@ -42,7 +41,6 @@ describe('config', () => {
 
   describe('loadConfig() catch path (fetch fails)', () => {
     beforeEach(() => {
-      // Make fetch reject so the catch branch (dev fallback) runs.
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')))
     })
 
@@ -90,10 +88,10 @@ describe('config', () => {
 
     it('returns the cached config after loadConfig() has run', async () => {
       const payload = {
-        keycloakUrl: 'https://cached.test',
-        keycloakRealm: 'cached-realm',
-        keycloakClientId: 'cached-client',
-        standaloneUrl: '/cached/',
+        keycloakUrl: 'https://keycloak.assessment.test',
+        keycloakRealm: 'assessment-boekhouding',
+        keycloakClientId: 'boekhouding-frontend',
+        standaloneUrl: '/invulhulpen/',
       }
       vi.stubGlobal(
         'fetch',

@@ -9,9 +9,6 @@ import {
 } from '@overheid-assessment/core'
 import App from '../../src/App.vue'
 
-// Stub the heavy child components. We only need to observe which view is
-// rendered and to reach the `navigation` prop so we can drive every callback
-// in App.vue's <script setup>.
 const LandingStub = {
   name: 'LandingView',
   props: ['navigation'],
@@ -51,7 +48,6 @@ describe('App.vue', () => {
     expect(wrapper.findComponent(LandingStub).exists()).toBe(true)
     expect(wrapper.findComponent(FormStub).exists()).toBe(false)
 
-    // The navigation object is wired up and passed to LandingView.
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
     expect(typeof nav.goToLanding).toBe('function')
     expect(typeof nav.goToDPIA).toBe('function')
@@ -62,23 +58,19 @@ describe('App.vue', () => {
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
 
-    // Pre-set isInitialized so we can prove goToDPIA resets it to false.
     taskStore.isInitialized[FormType.DPIA] = true
 
     nav.goToDPIA()
     await wrapper.vm.$nextTick()
 
-    // Side effects of goToDPIA.
     expect(taskStore.activeNamespace).toBe(FormType.DPIA)
     expect(answerStore.activeNamespace).toBe(FormType.DPIA)
     expect(taskStore.isInitialized[FormType.DPIA]).toBe(false)
 
-    // Landing is gone, the DPIA Form is shown.
     expect(wrapper.findComponent(LandingStub).exists()).toBe(false)
     const form = wrapper.findComponent(FormStub)
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(FormType.DPIA)
-    // No schema is loaded in this test, so getSchema returns null.
     expect(form.props('validData')).toBeNull()
   })
 
@@ -106,12 +98,10 @@ describe('App.vue', () => {
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
 
-    // First move away from Landing...
     nav.goToDPIA()
     await wrapper.vm.$nextTick()
     expect(wrapper.findComponent(FormStub).exists()).toBe(true)
 
-    // ...then back to Landing.
     nav.goToLanding()
     await wrapper.vm.$nextTick()
 

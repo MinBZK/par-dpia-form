@@ -9,10 +9,8 @@ import CommentPanel from '../../src/components/CommentPanel.vue'
 import { useCollaborationStore } from '../../src/stores/collaboration'
 import type { CommentThread, CommentReply } from '../../src/api'
 
-// jsdom does not implement CSS.escape or ResizeObserver, both of which the
-// component relies on. Provide minimal stand-ins so the component code paths
-// that reference them can execute. (Test-environment setup only — the source
-// file is untouched.)
+// jsdom lacks CSS.escape and ResizeObserver; the component relies on both, so
+// we provide minimal stand-ins (test-environment only).
 const observedTargets: HTMLElement[] = []
 let lastResizeCallback: (() => void) | null = null
 const mountedWrappers: Array<{ unmount: () => void }> = []
@@ -34,13 +32,11 @@ beforeEach(() => {
   observedTargets.length = 0
   lastResizeCallback = null
   ;(globalThis as unknown as { CSS: { escape: (s: string) => string } }).CSS = {
-    // A trivial escape is sufficient for our simple field ids.
     escape: (s: string) => s,
   }
   ;(globalThis as unknown as { ResizeObserver: typeof StubResizeObserver }).ResizeObserver =
     StubResizeObserver
-  // jsdom doesn't implement scrollIntoView; provide a no-op so scrollToField's
-  // success branch doesn't blow up when a label is found.
+  // jsdom does not implement scrollIntoView; provide a no-op.
   if (!HTMLElement.prototype.scrollIntoView) {
     HTMLElement.prototype.scrollIntoView = function () {}
   }
@@ -53,8 +49,6 @@ afterEach(() => {
   delete (globalThis as unknown as { CSS?: unknown }).CSS
   delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver
 })
-
-// — Test data helpers —
 
 function reply(id: string, authorId = 'user-2', authorName = 'Noor'): CommentReply {
   return {
@@ -86,17 +80,8 @@ function thread(
   } as CommentThread
 }
 
-/**
- * Builds a fake form container element with `label-*` elements so
- * updateFieldPositions() can resolve positions and labels.
- *
- * Each spec: { fieldIdSuffix, prefix, labelKind }
- *  - id becomes `label-${prefix}-${fieldIdSuffix}` (so field id === fieldIdSuffix)
- *  - labelKind 'rvo' → uses the .rvo-form-field__label > first-child text path
- *  - labelKind 'text' → relies on label.textContent fallback
- *  - labelKind 'empty' → no text at all → falls back to fieldId
- *  - prefix can be omitted (single segment) to hit the parts.length < 2 continue
- */
+// Builds a fake form container with `label-*` elements so
+// updateFieldPositions() can resolve positions and labels.
 function buildFormContainer(
   specs: Array<{ id: string; rvoLabel?: string; textLabel?: string }>,
 ): HTMLElement {
@@ -120,11 +105,8 @@ function buildFormContainer(
   return form
 }
 
-/**
- * Mount the panel. Uses real pinia store; store action methods are replaced
- * with spies so we can assert the component invokes them without hitting the
- * network layer.
- */
+// Mounts the panel against a real pinia store whose action methods are spied
+// so the component can be asserted against without hitting the network layer.
 function mountPanel(opts: {
   role?: string
   activeFieldId?: string | null
@@ -220,7 +202,6 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      // The inline new-comment form only renders when canComment is true.
       expect(wrapper.find('.comment-inline-form').exists()).toBe(canComment)
     })
   })
@@ -263,21 +244,18 @@ describe('CommentPanel', () => {
     })
 
     it('skips label ids with fewer than two segments', async () => {
-      // id="label-single" → parts ['single'] → length < 2 → continue (no position)
       const form = buildFormContainer([{ id: 'label-single', rvoLabel: 'genegeerd' }])
       const t = thread({ id: 'root', fieldId: 'single' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      // No position resolved → thread not shown → empty state visible.
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
       expect(wrapper.get('.comment-panel__empty').exists()).toBe(true)
     })
 
     it('drops threads whose field has no resolved position (top undefined)', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
-      // Thread for 9.9 has no matching label → positions.get → undefined → continue.
       const present = thread({ id: 'a', fieldId: '1.1' })
       const orphan = thread({ id: 'b', fieldId: '9.9' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [present, orphan] })
@@ -296,12 +274,10 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      // No visible threads and field is not active → no group → empty state.
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
 
       await wrapper.get('.comment-panel__toggle input').setValue(true)
       await nextTick()
-      // Now the resolved thread shows.
       expect(wrapper.find('.comment-thread--resolved').exists()).toBe(true)
     })
 
@@ -316,7 +292,6 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      // visible is empty but fieldId === activeFieldId → entry kept.
       const group = wrapper.get('.comment-field-group')
       expect(group.classes()).toContain('comment-field-group--active')
     })
@@ -330,13 +305,11 @@ describe('CommentPanel', () => {
       const group = wrapper.get('.comment-field-group')
       expect(group.attributes('data-field-group')).toBe('4.4')
       expect(group.findAll('.comment-thread')).toHaveLength(0)
-      // Inline form is present for the active field.
       expect(group.find('.comment-inline-form').exists()).toBe(true)
     })
 
     it('does not add an entry for an active field with no resolved position', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
-      // Active field 5.5 has no label → positions.get(5.5) undefined → no entry.
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [], activeFieldId: '5.5' })
       await flushRaf()
       await nextTick()
@@ -346,7 +319,6 @@ describe('CommentPanel', () => {
     })
 
     it('sorts entries by their top position', async () => {
-      // Two labels both resolve to top 0 in jsdom, but the sort comparator still runs.
       const form = buildFormContainer([
         { id: 'label-dpia-1.1', rvoLabel: 'Eerste' },
         { id: 'label-dpia-2.2', rvoLabel: 'Tweede' },
@@ -365,7 +337,6 @@ describe('CommentPanel', () => {
       const { wrapper } = mountPanel({ formContainerRef: null, threads: [t] })
       await flushRaf()
       await nextTick()
-      // No positions resolved → empty state.
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
     })
   })
@@ -379,15 +350,14 @@ describe('CommentPanel', () => {
 
       expect(observedTargets).toContain(form)
 
-      // Trigger the resize callback twice to exercise schedulePositionUpdate's
-      // clearTimeout branch (timer already set).
+      // Fire the resize callback twice so schedulePositionUpdate hits its
+      // clearTimeout branch (a timer is already pending).
       vi.useFakeTimers()
       lastResizeCallback?.()
       lastResizeCallback?.()
       vi.advanceTimersByTime(60)
       vi.useRealTimers()
 
-      // Component still rendered correctly.
       expect(wrapper.find('.comment-field-group').exists()).toBe(true)
     })
 
@@ -395,7 +365,6 @@ describe('CommentPanel', () => {
       vi.useFakeTimers()
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [thread({ id: 'a', fieldId: '1.1' })] })
-      // Mutate the form so the MutationObserver fires schedulePositionUpdate.
       const extra = document.createElement('div')
       extra.id = 'label-dpia-2.2'
       extra.textContent = 'Extra'
@@ -416,8 +385,6 @@ describe('CommentPanel', () => {
       lastResizeCallback?.()
       wrapper.unmount()
       vi.useRealTimers()
-      // No assertion needed beyond reaching here without errors; disconnect
-      // and clearTimeout branches executed.
       expect(true).toBe(true)
     })
 
@@ -453,7 +420,6 @@ describe('CommentPanel', () => {
 
       await wrapper.setProps({ activeFieldId: null })
       await nextTick()
-      // No inline form for a null active field.
       expect(wrapper.find('.comment-inline-form').exists()).toBe(false)
     })
 
@@ -466,14 +432,11 @@ describe('CommentPanel', () => {
       await wrapper.setProps({ activeFieldId: '1.1' })
       await nextTick()
       await nextTick()
-      // Viewer cannot comment → no inline form rendered.
       expect(wrapper.find('.comment-inline-form').exists()).toBe(false)
     })
 
     it('handles a field that has no inline textarea (no element to focus)', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
-      // Active field 7.7 has no label so no group/textarea is rendered, exercising
-      // the optional-chaining (textarea?.focus()) when textarea is null.
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, activeFieldId: null })
       await flushRaf()
       await nextTick()
@@ -503,19 +466,15 @@ describe('CommentPanel', () => {
     })
 
     it('does nothing when no matching label exists', async () => {
-      // The group label resolves from fieldLabels, but scrollToField re-queries
-      // the form for an id ending in -<fieldId>. We make the group render via a
-      // valid label, then remove the form's id so the [id$=...] selector misses.
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      // Strip the id so the selector in scrollToField finds nothing → label?.scrollIntoView skipped.
+      // Strip the id so scrollToField's [id$=...] selector finds nothing.
       ;(document.getElementById('label-dpia-1.1') as HTMLElement).id = 'gone'
       await wrapper.get('.comment-field-group__label').trigger('click')
-      // Reaching here without throwing covers the label === null path.
       expect(wrapper.exists()).toBe(true)
     })
   })
@@ -530,7 +489,6 @@ describe('CommentPanel', () => {
 
       const time = wrapper.get('.comment-item__time')
       expect(time.attributes('datetime')).toBe('2026-04-12T10:00:00Z')
-      // Non-empty localized string.
       expect(time.text().length).toBeGreaterThan(0)
     })
   })
@@ -570,12 +528,10 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      // Need showResolved to render the thread itself.
       await wrapper.get('.comment-panel__toggle input').setValue(true)
       await nextTick()
 
       expect(wrapper.text()).toContain('Heropenen')
-      // Resolved thread → no Reageren / Oplossen buttons.
       expect(wrapper.text()).not.toContain('Reageren')
       expect(wrapper.text()).not.toContain('Oplossen')
 
@@ -598,7 +554,6 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      // Editor can resolve & reply but cannot delete a foreign comment.
       expect(wrapper.find('.comment-action-btn--danger').exists()).toBe(false)
       expect(wrapper.text()).toContain('Reageren')
       expect(wrapper.text()).toContain('Oplossen')
@@ -616,7 +571,6 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      // commenter can reply but cannot resolve; foreign comment so no delete.
       expect(wrapper.text()).toContain('Reageren')
       expect(wrapper.text()).not.toContain('Oplossen')
       expect(wrapper.find('.comment-action-btn--danger').exists()).toBe(false)
@@ -635,7 +589,6 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      // Start a reply.
       const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
       await replyBtn.trigger('click')
       await nextTick()
@@ -643,13 +596,11 @@ describe('CommentPanel', () => {
       const replyForm = wrapper.get('.comment-reply-form')
       const textarea = replyForm.get('textarea')
       await textarea.setValue('Mijn reactie')
-      // autoResize input handler.
       await textarea.trigger('input')
 
       await replyForm.get('.comment-btn--primary').trigger('click')
       expect(spies.createReply).toHaveBeenCalledWith('a', '1.1', 'Mijn reactie')
       await nextTick()
-      // Reply form closes after submit.
       expect(wrapper.find('.comment-reply-form').exists()).toBe(false)
     })
 
@@ -757,7 +708,6 @@ describe('CommentPanel', () => {
       const submit = inline.get('.comment-btn--primary')
       expect((submit.element as HTMLButtonElement).disabled).toBe(true)
 
-      // submitComment early-returns on empty body even if invoked directly.
       await submit.trigger('click')
       expect(spies.createComment).not.toHaveBeenCalled()
     })
@@ -929,7 +879,6 @@ describe('CommentPanel', () => {
       await textarea.trigger('keydown.enter.meta')
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'via meta enter')
 
-      // Re-open and cancel via escape.
       await nextTick()
       await wrapper.get('.comment-item__body').trigger('click')
       await nextTick()
@@ -955,7 +904,6 @@ describe('CommentPanel', () => {
       expect(body.classes()).not.toContain('comment-item__body--editable')
       expect(body.attributes('role')).toBeUndefined()
       expect(body.attributes('tabindex')).toBeUndefined()
-      // Clicking / enter must not start an edit (the && short-circuits to false).
       await body.trigger('click')
       await body.trigger('keydown.enter')
       await nextTick()
@@ -982,11 +930,9 @@ describe('CommentPanel', () => {
       expect(replies).toHaveLength(1)
       expect(replies[0].text()).toContain('reactie r1')
 
-      // Own reply → editable body present.
       const replyBody = replies[0].get('.comment-item__body')
       expect(replyBody.classes()).toContain('comment-item__body--editable')
 
-      // Delete the own reply.
       const del = replies[0].findAll('.comment-action-btn--danger')[0]
       await del.trigger('click')
       expect(spies.deleteComment).toHaveBeenCalledWith('r1')
@@ -1051,7 +997,6 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const replyItem = wrapper.get('.comment-item--reply')
-      // canComment is false for a viewer → reply footer (v-if editingId !== reply.id && canComment) absent.
       expect(replyItem.find('.comment-item__footer').exists()).toBe(false)
     })
 
@@ -1078,8 +1023,8 @@ describe('CommentPanel', () => {
   })
 
   describe('direct internal branches', () => {
-    // Some defensive branches are not reachable purely through the DOM; we
-    // invoke the setup functions directly via the exposed setup state.
+    // These defensive branches are not reachable through the DOM; invoke the
+    // setup functions directly via the exposed setup state.
     function setupOf(wrapper: ReturnType<typeof mountPanel>['wrapper']) {
       return (wrapper.vm.$ as unknown as { setupState: Record<string, any> }).setupState
     }
@@ -1087,14 +1032,12 @@ describe('CommentPanel', () => {
     it('scrollToField returns early when there is no form container', () => {
       const { wrapper } = mountPanel({ formContainerRef: null })
       const setup = setupOf(wrapper)
-      // No throw — exercises the `if (!formEl) return` early-return.
       expect(() => setup.scrollToField('1.1')).not.toThrow()
     })
 
     it('submitComment returns early when the body is empty', async () => {
       const { wrapper, spies } = mountPanel({ formContainerRef: null })
       const setup = setupOf(wrapper)
-      // newCommentBody is '' by default → early return before calling the store.
       await setup.submitComment('1.1')
       expect(spies.createComment).not.toHaveBeenCalled()
     })
@@ -1109,7 +1052,6 @@ describe('CommentPanel', () => {
     it('submitEdit returns early when there is no editing id', async () => {
       const { wrapper, spies } = mountPanel({ formContainerRef: null })
       const setup = setupOf(wrapper)
-      // editingId is null by default → early return.
       await setup.submitEdit()
       expect(spies.updateComment).not.toHaveBeenCalled()
     })
@@ -1117,8 +1059,6 @@ describe('CommentPanel', () => {
     it('startEdit handles the case where no edit textarea is in the DOM', async () => {
       const { wrapper } = mountPanel({ formContainerRef: null, threads: [] })
       const setup = setupOf(wrapper)
-      // No thread is rendered, so after nextTick the `.comment-item__edit textarea`
-      // query returns null → the `if (textarea)` false branch.
       await setup.startEdit('missing', 'tekst')
       await nextTick()
       expect(setup.editingId).toBe('missing')
@@ -1128,17 +1068,15 @@ describe('CommentPanel', () => {
       const { wrapper } = mountPanel({ formContainerRef: null })
       const setup = setupOf(wrapper)
       const t = thread({ id: 'z', fieldId: 'z.z' })
-      // Inject a thread for the field so positionedEntries yields an entry.
       ;(setup.commentStore as { threads: CommentThread[] }).threads = [t]
-      // Provide a position but deliberately no label for this field. The
-      // setupState proxy unwraps refs, so assign through the proxy (re-wraps).
+      // A position but deliberately no label. The setupState proxy unwraps refs,
+      // so assigning through it re-wraps the new Map.
       setup.fieldPositions = new Map([['z.z', 0]])
       setup.fieldLabels = new Map()
       await nextTick()
 
       const group = wrapper.get('.comment-field-group')
       expect(group.attributes('data-field-group')).toBe('z.z')
-      // The label button's v-if (fieldLabels.get) is falsy → button absent.
       expect(group.find('.comment-field-group__label').exists()).toBe(false)
     })
   })
@@ -1157,7 +1095,7 @@ describe('CommentPanel', () => {
 
       const textarea = wrapper.get('.comment-inline-form textarea')
       const el = textarea.element as HTMLTextAreaElement
-      // jsdom scrollHeight is 0, but the handler still assigns the value.
+      // jsdom reports scrollHeight 0; override it so the resize handler has a value.
       Object.defineProperty(el, 'scrollHeight', { configurable: true, value: 42 })
       await textarea.trigger('input')
       expect(el.style.height).toBe('42px')

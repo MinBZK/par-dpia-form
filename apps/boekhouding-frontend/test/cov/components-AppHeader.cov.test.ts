@@ -5,16 +5,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref, computed } from 'vue'
 import { mount } from '@vue/test-utils'
 
-// Router mock — useRouter() returns push/back spies so we can assert
-// which navigation branch the back button takes.
 const routerPush = vi.fn()
 const routerBack = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush, back: routerBack }),
 }))
 
-// useAuth mock — controllable refs so we can drive the isAuthenticated and
-// user template branches, and assert the logout handler is wired up.
 const user = ref<{ id: string; email: string; displayName: string } | null>(null)
 const authenticated = ref(false)
 const logout = vi.fn()
@@ -106,7 +102,6 @@ describe('AppHeader', () => {
       user.value = null
       const wrapper = mount(AppHeader)
       expect(wrapper.find('.app-header__user').exists()).toBe(false)
-      // Logout button still present in the authenticated block.
       expect(wrapper.text()).toContain('Uitloggen')
     })
 

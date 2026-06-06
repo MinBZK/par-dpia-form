@@ -91,8 +91,6 @@ export async function commentRoutes(app: FastifyInstance) {
           for (const u of resolvedUsers) pollResolvedByNames[u.id] = u.displayName
         }
 
-        // rootIds is non-empty only when a root passed the same gt(updatedAt, since)
-        // filter that feeds recentReplies, so recentReplies is guaranteed non-empty here.
         const lastModified = recentReplies.reduce(
           (max, c) => c.updatedAt > max ? c.updatedAt : max,
           recentReplies[0].updatedAt,
@@ -101,7 +99,6 @@ export async function commentRoutes(app: FastifyInstance) {
         return {
           comments: recentReplies.map(c => ({
             ...c,
-            // resolvedBy is a FK to users, so the inArray lookup always resolves a (notNull) displayName.
             resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] : null,
           })),
           lastModifiedAt: lastModified.toISOString(),
@@ -128,7 +125,6 @@ export async function commentRoutes(app: FastifyInstance) {
     // Build nested response
     const threaded = rootComments.map(root => ({
       ...root,
-      // resolvedBy is a FK to users, so the inArray lookup always resolves a (notNull) displayName.
       resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] : null,
       replies: (repliesByParent.get(root.id) || []).map(r => ({
         id: r.id,
@@ -233,8 +229,6 @@ export async function commentRoutes(app: FastifyInstance) {
 
     return reply.status(201).send({
       ...created,
-      // author is request.user (created/synced by requireAuth), so the lookup
-      // always returns a row with a notNull displayName.
       authorName: author.displayName,
     })
   })

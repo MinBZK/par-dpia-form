@@ -1,52 +1,28 @@
-// Coverage tests for src/app.ts.
-//
-// These tests exercise every branch of buildApp(): the logger default, the
-// plugin/route registrations, the onSend response-header hook, the static
-// utility routes (health, security.txt redirect, openapi.json), and — the
-// branch-heavy part — the custom RFC 9457 error handler.
-//
-// The error handler is driven through controlled throwing routes registered on
-// the returned app instance BEFORE ready(). The setErrorHandler defined inside
-// buildApp() is what handles them, so we test app.ts's real behaviour with
-// precisely shaped errors (status present/absent, 429 vs other, >=500 vs <500,
-// message present vs empty). No source file is modified.
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { buildApp, API_VERSION } from '../../src/app.js'
 
-// App used for the route + onSend + error-handler tests. logger:false exercises
-// the left branch of `options.logger ?? true`.
 let app: FastifyInstance
 
 beforeAll(async () => {
   app = await buildApp({ logger: false })
 
-  // Register throwing routes that flow through buildApp()'s setErrorHandler.
-  // Registration happens before ready() below, so they are part of the same
-  // app the error handler is attached to.
-
-  // No statusCode -> error.statusCode ?? 500 takes the 500 (right) branch.
   app.get('/__cov/throw-no-status', async () => {
     throw new Error('iets ging mis')
   })
 
-  // statusCode 400 with a message -> status < 500 branch ('Verzoek mislukt')
-  // and the truthy side of `error.message || 'Onbekende fout'`.
   app.get('/__cov/throw-400', async () => {
     const err = new Error('veld ontbreekt') as Error & { statusCode?: number }
     err.statusCode = 400
     throw err
   })
 
-  // statusCode 422 with an EMPTY message -> status < 500 branch and the
-  // fallback side of `error.message || 'Onbekende fout'`.
   app.get('/__cov/throw-422-empty', async () => {
     const err = new Error('') as Error & { statusCode?: number }
     err.statusCode = 422
     throw err
   })
 
-  // statusCode 429 -> the `status === 429` early-return branch of the handler.
   app.get('/__cov/throw-429', async () => {
     const err = new Error('rate') as Error & { statusCode?: number }
     err.statusCode = 429
@@ -62,9 +38,6 @@ afterAll(async () => {
 
 describe('buildApp — options handling', () => {
   it('uses the default {} options object when called with no argument', async () => {
-    // buildApp() with no arg exercises the `options: BuildAppOptions = {}`
-    // default-parameter branch (and `options.logger ?? true` right branch).
-    // LOG_LEVEL=silent (set by test/setup.ts) keeps the logger quiet.
     const defaultApp = await buildApp()
     await defaultApp.ready()
     try {
@@ -76,7 +49,6 @@ describe('buildApp — options handling', () => {
   })
 
   it('defaults logger to true when options has no logger key (options.logger ?? true)', async () => {
-    // buildApp({}) leaves options.logger undefined -> the `?? true` right branch.
     const defaultApp = await buildApp({})
     await defaultApp.ready()
     try {
@@ -132,7 +104,6 @@ describe('static utility routes', () => {
 
   it('serves the Swagger UI at /api/docs', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/docs/' })
-    // swagger-ui serves the HTML shell (200) or redirects to it (302).
     expect([200, 302]).toContain(res.statusCode)
   })
 })
@@ -151,8 +122,6 @@ describe('registered route prefixes', () => {
 
 describe('error handler — RFC 9457 problem+json', () => {
   it('returns 500 with generic detail when the error has no statusCode', async () => {
-    // error.statusCode ?? 500 -> 500; status >= 500 -> 'Interne serverfout' +
-    // generic 'Er is een onverwachte fout opgetreden.'
     const res = await app.inject({ method: 'GET', url: '/__cov/throw-no-status' })
     expect(res.statusCode).toBe(500)
     expect(res.headers['content-type']).toContain('application/problem+json')
@@ -166,7 +135,6 @@ describe('error handler — RFC 9457 problem+json', () => {
   })
 
   it('returns the original 4xx status with the error message as detail', async () => {
-    // statusCode 400 -> status < 500 -> 'Verzoek mislukt' + error.message.
     const res = await app.inject({ method: 'GET', url: '/__cov/throw-400' })
     expect(res.statusCode).toBe(400)
     expect(res.headers['content-type']).toContain('application/problem+json')
@@ -180,8 +148,6 @@ describe('error handler — RFC 9457 problem+json', () => {
   })
 
   it('falls back to "Onbekende fout" when a 4xx error has an empty message', async () => {
-    // statusCode 422, empty message -> error.message || 'Onbekende fout' uses
-    // the fallback.
     const res = await app.inject({ method: 'GET', url: '/__cov/throw-422-empty' })
     expect(res.statusCode).toBe(422)
     expect(res.json()).toEqual({

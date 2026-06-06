@@ -18,7 +18,6 @@ describe('LandingView rendering', () => {
     expect(wrapper.find('h1.utrecht-heading-1').text()).toBe(
       'Invulhulp voor pre-scan en DPIA',
     )
-    // AppBanner is a real child component that renders content of its own.
     expect(wrapper.findComponent({ name: 'AppBanner' }).exists()).toBe(true)
   })
 

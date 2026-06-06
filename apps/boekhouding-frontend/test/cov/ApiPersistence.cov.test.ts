@@ -1,11 +1,5 @@
 /**
  * @vitest-environment jsdom
- *
- * Self-sufficient coverage suite for src/ApiPersistence.ts.
- *
- * createApiPersistence wires the Pinia task/answer/schema stores to the
- * assessments REST API and implements collaborative-sync conflict handling.
- * The ./api module is mocked so we can drive every save/load/conflict path.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
@@ -17,8 +11,7 @@ import {
   FormType,
 } from '@overheid-assessment/core'
 
-// — Mock the API module. ApiError/SessionExpiredError must be real classes so
-//   `instanceof` checks inside ApiPersistence behave correctly. —
+// ApiError/SessionExpiredError must be real classes so `instanceof` checks inside ApiPersistence work.
 const mockGet = vi.fn()
 const mockUpdate = vi.fn()
 
@@ -46,8 +39,6 @@ vi.mock('../../src/api', () => ({
   SessionExpiredError: MockSessionExpiredError,
 }))
 
-// Minimal DPIA / Pre-scan schema fixtures with a parent → child → grandchild
-// chain plus a repeatable parent, so getRootTaskForField can walk the tree.
 function buildSchema(urn: string) {
   return {
     name: 'Test',
@@ -98,8 +89,6 @@ function buildSchema(urn: string) {
 
 function initStores() {
   const schemaStore = useSchemaStore()
-  // init() pushes an extra "Afronding"/"Resultaat" conclusion task — harmless
-  // for our purposes; we only rely on getUrn + the tasks we reference.
   schemaStore.init({ dpia: buildSchema('urn:nl:dpia:3.0'), preScan: buildSchema('urn:nl:prescan:1.0') })
 
   const taskStore = useTaskStore()
@@ -123,8 +112,6 @@ function getResponse(overrides: Record<string, unknown> = {}) {
   }
 }
 
-// Convenience to import the module under test fresh each time so the mock
-// is wired before the import is evaluated.
 async function loadModule() {
   return import('../../src/ApiPersistence')
 }
@@ -167,7 +154,6 @@ describe('createApiPersistence — shape', () => {
   it('accepts an explicit namespace argument (pinnedNamespace branch)', async () => {
     initStores()
     const { createApiPersistence } = await loadModule()
-    // namespace provided → pinnedNamespace = namespace (not null)
     const p = createApiPersistence('a1', FormType.DPIA)
     expect(p).toBeDefined()
   })
@@ -245,7 +231,6 @@ describe('normalizeServerResponse (via loadAppState)', () => {
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     const state = await p.loadAppState(FormType.DPIA)
-    // No metadata → normalize returns blank answers
     expect(state).toEqual({ metadata: { createdAt: expect.any(String) }, answers: {} })
   })
 
@@ -270,8 +255,7 @@ describe('normalizeServerResponse (via loadAppState)', () => {
     mockGet.mockResolvedValueOnce(getResponse({
       state: {
         metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0', completedTasks: ['1'] },
-        // namespaced but missing the active namespace key → resolvedAnswers = {}
-        answers: { [FormType.PRE_SCAN]: { '0.1': { value: 'p' } } },
+        answers: { [FormType.PRE_SCAN]: { '0.1': { value: 'Klantenadministratie' } } },
       },
     }))
     const { createApiPersistence } = await loadModule()
@@ -311,13 +295,12 @@ describe('normalizeServerResponse (via loadAppState)', () => {
   })
 
   it('still works when the schema store has no URN for a namespace (getUrn throws)', async () => {
-    // Fresh pinia where schema store init is skipped → getUrn throws, caught
     setActivePinia(createPinia())
     const taskStore = useTaskStore()
     taskStore.setActiveNamespace(FormType.DPIA)
     const answerStore = useAnswerStore()
     answerStore.setActiveNamespace(FormType.DPIA)
-    useSchemaStore() // not initialized → getUrn(DPIA/PRESCAN) throws inside try/catch
+    useSchemaStore()
 
     mockGet.mockResolvedValueOnce(getResponse({
       state: {
@@ -362,7 +345,6 @@ describe('snapshotBaseline + restorePendingFromSession', () => {
     p.snapshotBaseline()
 
     expect(answerStore.answers[FormType.DPIA]['1.1']).toEqual({ value: 'uit sessie' })
-    // null value path: delete (no-op when absent, here it just stays absent)
     expect(answerStore.answers[FormType.DPIA]['del']).toBeUndefined()
   })
 
@@ -537,7 +519,7 @@ describe('setupWatchers — answers / instances / visibility / teardown', () => 
     const teardown = p.setupWatchers()
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'zichtbaarheid', lastEditedAt: 't' }
-    await nextTick() // let the deep watcher fire and schedule the debounce
+    await nextTick()
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true })
     document.dispatchEvent(new Event('visibilitychange'))
@@ -574,7 +556,7 @@ describe('setupWatchers — answers / instances / visibility / teardown', () => 
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'pending', lastEditedAt: 't' }
     await Promise.resolve()
-    teardown() // clears the timer before it fires
+    teardown()
     vi.advanceTimersByTime(500)
     await vi.runAllTimersAsync()
 
@@ -638,7 +620,7 @@ describe('saveAppState — early returns', () => {
     const { taskStore } = initStores()
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1', FormType.DPIA)
-    taskStore.setActiveNamespace(FormType.PRE_SCAN) // now differs from pinned DPIA
+    taskStore.setActiveNamespace(FormType.PRE_SCAN)
     await p.saveAppState()
     expect(mockUpdate).not.toHaveBeenCalled()
   })
@@ -695,7 +677,7 @@ describe('saveAppState — success path', () => {
     p.snapshotBaseline()
     const teardown = p.setupWatchers()
 
-    taskStore.addRepeatableTaskInstance('2.1') // instancesDirty = true, no field change
+    taskStore.addRepeatableTaskInstance('2.1')
     await nextTick()
     await vi.runAllTimersAsync()
 
@@ -706,7 +688,7 @@ describe('saveAppState — success path', () => {
   it('handles a server update that does not return a new version', async () => {
     const { answerStore } = initStores()
     mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 4 }))
-    mockUpdate.mockResolvedValueOnce(undefined) // no currentVersion in response
+    mockUpdate.mockResolvedValueOnce(undefined)
 
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
@@ -715,7 +697,6 @@ describe('saveAppState — success path', () => {
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'antwoord', lastEditedAt: 't' }
     await p.saveAppState()
-    // knownVersion stays at the loaded value because update returned nothing
     expect(p.sync.knownVersion.value).toBe(4)
   })
 
@@ -832,10 +813,8 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // user edits 1.1
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn wijziging', lastEditedAt: 't' }
 
-    // first update → 409, then GET returns server state with a *different* field changed
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 9,
@@ -844,7 +823,6 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
         answers: { '0.1': { value: 'collega veld' } },
       },
     }))
-    // retry update succeeds
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 10 }))
 
     await p.saveAppState()
@@ -899,9 +877,6 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
     mockGet.mockRejectedValueOnce(new Error('GET kapot'))
 
-    // handleConflict rethrows the non-session error; it is invoked from
-    // saveAppState's catch block (`await handleConflict()`) and therefore
-    // propagates out of saveAppState unhandled.
     await expect(p.saveAppState()).rejects.toThrow('GET kapot')
   })
 
@@ -916,7 +891,7 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
     const teardown = p.setupWatchers()
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'x', lastEditedAt: 't' }
-    await nextTick() // deep watcher fires → schedules a debounce (debounceTimer set)
+    await nextTick()
 
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
     mockGet.mockResolvedValueOnce(getResponse({
@@ -925,7 +900,7 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
     }))
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 10 }))
 
-    await p.saveAppState() // enters handleConflict with a live debounceTimer → cleared
+    await p.saveAppState()
     await vi.runAllTimersAsync()
 
     expect(p.conflictState.active).toBe(false)
@@ -946,10 +921,10 @@ describe('handleConflict (409) — auto-merge (no field overlap)', () => {
       currentVersion: 9,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'ander' } } },
     }))
-    mockUpdate.mockResolvedValueOnce(undefined) // retry returns no version
+    mockUpdate.mockResolvedValueOnce(undefined)
 
     await p.saveAppState()
-    expect(p.sync.knownVersion.value).toBe(9) // stays at fresh.currentVersion
+    expect(p.sync.knownVersion.value).toBe(9)
   })
 })
 
@@ -984,21 +959,16 @@ describe('handleConflict (409) — auto-merge retry failures', () => {
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
 
-    // 1st update → 409
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
-    // 1st conflict GET → server changed a different field
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 9,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'ander' } } },
     }))
-    // retry update → 409 again → recurse
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
-    // 2nd conflict GET → no further changes (serverDiff overlaps? -> still different field)
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 11,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'ander' } } },
     }))
-    // 2nd retry update → success
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
 
     await p.saveAppState()
@@ -1035,11 +1005,9 @@ describe('handleConflict (409) — true conflict → dialog + resolution', () =>
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // user changes 1.1 AND completes section 1
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn tekst', lastEditedAt: 't' }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['1'])
 
-    // 409, then GET returns a conflicting value on the SAME field 1.1 plus a list
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 9,
@@ -1059,7 +1027,7 @@ describe('handleConflict (409) — true conflict → dialog + resolution', () =>
     expect(p.conflictState.fields.length).toBeGreaterThan(0)
     const field = p.conflictState.fields.find(f => f.fieldId === '1.1')!
     expect(field).toBeDefined()
-    expect(field.label).toContain('1.1') // is_official_id task → "1.1. ..."
+    expect(field.label).toContain('1.1')
     expect(field.myFormatted).toContain('mijn tekst')
     expect(field.theirFormatted).toContain('collega tekst')
   })
@@ -1094,13 +1062,12 @@ describe('handleConflict (409) — true conflict → dialog + resolution', () =>
     p.conflictState.resolve(new Map([['1.1', 'mine']]))
     await nextTick()
     await Promise.resolve()
-    expect(p.sync.knownVersion.value).toBe(9) // stays at fresh.currentVersion
+    expect(p.sync.knownVersion.value).toBe(9)
   })
 
   it('recurses into handleConflict when the resolution save returns 409', async () => {
     const { p } = await setupConflict()
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
-    // recursion: GET fresh, no overlap → auto-merge path → update succeeds
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 20,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'iets anders' } } },
@@ -1131,7 +1098,6 @@ describe('handleConflict (409) — true conflict → dialog + resolution', () =>
     initStores()
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
-    // resolveCallback is null → resolve() optional-chains to nothing
     expect(() => p.conflictState.resolve(new Map())).not.toThrow()
   })
 })
@@ -1150,7 +1116,6 @@ describe('handleRemoteChange', () => {
   it('returns empty result when a conflict dialog is already open', async () => {
     const { p, answerStore, taskStore } = await loaded()
 
-    // Force a conflict dialog open first.
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['1'])
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
@@ -1203,7 +1168,6 @@ describe('handleRemoteChange', () => {
 
   it('merges background-section changes immediately and defers active-section changes', async () => {
     const { p } = await loaded()
-    // section 0 field (0.1) is background, section 1 field (1.1) is active
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       updatedAt: '2026-04-12T16:00:00.000Z',
@@ -1227,13 +1191,9 @@ describe('handleRemoteChange', () => {
     const { p, answerStore } = await loaded()
     const teardown = p.setupWatchers()
 
-    // local pending change on 1.1 (active section)
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn lokaal', lastEditedAt: 't' }
     await Promise.resolve()
 
-    // remote change only on background field 0.1 → after merge, lastSavedState is
-    // rebuilt from the current store (which already contains my 1.1 edit), so
-    // updatePendingChanges yields no pending changes and no save is re-triggered.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: {
@@ -1259,15 +1219,11 @@ describe('handleRemoteChange', () => {
         answers: {},
       },
     }))
-    // completed.1 → rootTask "1" === activeSectionId "1" → active section change
     const result = await p.sync.handleRemoteChange('1')
     expect(result.activeSectionChanges.some(c => c.fieldId === 'completed.1')).toBe(true)
   })
 
   it('handles an unknown field id against an empty (PRE_SCAN) task map', async () => {
-    // PRE_SCAN namespace has an empty-but-defined flatTasks map. getRootTaskForField
-    // parses the id, the parent-walk loop body never runs (no task), so it returns
-    // the field id itself as the "root".
     initStores()
     const taskStore = useTaskStore()
     mockGet.mockResolvedValueOnce(getResponse({
@@ -1289,13 +1245,11 @@ describe('handleRemoteChange', () => {
     }))
     const result = await p.sync.handleRemoteChange('does-not-match')
     expect(result.backgroundMerged).toBe(1)
-    // root "9.9" has no task → getSectionLabel falls back to the id
     expect(result.backgroundSectionLabels).toEqual(['9.9'])
   })
 
   it('walks the parent chain to find the root for a nested field', async () => {
     const { p } = await loaded()
-    // 2.1.1[0] → parent 2.1 → parent 2 (root). With activeSectionId "9" it lands in background.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: {
@@ -1305,7 +1259,6 @@ describe('handleRemoteChange', () => {
     }))
     const result = await p.sync.handleRemoteChange('9')
     expect(result.backgroundMerged).toBe(1)
-    // background section "2" label should be present
     expect(result.backgroundSectionLabels.length).toBe(1)
   })
 })
@@ -1319,7 +1272,6 @@ describe('applyDeferredChanges + applyDeferredOnNavigate + hasDeferredChanges', 
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Remote change on active section 1 (field 1.1) → deferred
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       updatedAt: '2026-04-12T16:00:00.000Z',
@@ -1362,7 +1314,6 @@ describe('applyDeferredChanges + applyDeferredOnNavigate + hasDeferredChanges', 
 
   it('opens the conflict dialog when the user changed the same deferred field differently', async () => {
     const { p, result, answerStore } = await loadedWithDeferred('collega waarde')
-    // user locally changes the SAME field to something different
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn waarde', lastEditedAt: 't' }
 
     const outcome = await p.sync.applyDeferredChanges(result.changeId)
@@ -1398,7 +1349,7 @@ describe('applyDeferredChanges + applyDeferredOnNavigate + hasDeferredChanges', 
 
     expect(p.conflictState.active).toBe(false)
     expect(answerStore.answers[FormType.DPIA]['1.1']).toEqual({ value: 'mijn waarde', lastEditedAt: 't' })
-    expect(p.sync.knownVersion.value).toBe(8) // deferredVersion
+    expect(p.sync.knownVersion.value).toBe(8)
   })
 
   it('resolves a deferred conflict via the dialog (theirs)', async () => {
@@ -1418,7 +1369,6 @@ describe('applyDeferredChanges + applyDeferredOnNavigate + hasDeferredChanges', 
   it('guards against concurrent invocations (applyingDeferred)', async () => {
     const { p, result } = await loadedWithDeferred()
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
-    // fire two invocations; the second should see applyingDeferred and return stale
     const first = p.sync.applyDeferredChanges(result.changeId)
     const second = p.sync.applyDeferredChanges(result.changeId)
     const [, r2] = await Promise.all([first, second])
@@ -1452,7 +1402,6 @@ describe('saveAppState with deferred changes (handles them first)', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Defer an active-section change
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: {
@@ -1464,7 +1413,6 @@ describe('saveAppState with deferred changes (handles them first)', () => {
     expect(p.sync.hasDeferredChanges()).toBe(true)
 
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
-    // saveAppState sees deferredChanges.length > 0 → applyDeferredChanges first → returns
     await p.saveAppState()
     await vi.runAllTimersAsync()
     expect(fixtures.answerStore.answers[FormType.DPIA]['1.1']).toEqual({ value: 'collega' })
@@ -1482,7 +1430,6 @@ describe('waitForSaveComplete (via handleRemoteChange during in-flight save)', (
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
 
-    // Make update hang until we release it → saveInProgress stays true
     let release!: () => void
     const gate = new Promise<void>(r => { release = r })
     mockUpdate.mockImplementationOnce(async () => {
@@ -1490,17 +1437,16 @@ describe('waitForSaveComplete (via handleRemoteChange during in-flight save)', (
       return getResponse({ currentVersion: 2 })
     })
 
-    const savePromise = p.saveAppState() // saveInProgress = true, awaiting update
+    const savePromise = p.saveAppState()
     await Promise.resolve()
 
-    // handleRemoteChange should await saveComplete (in-flight). GET returns no diff.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 2,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '1.1': { value: 'mijn' } } },
     }))
     const remotePromise = p.sync.handleRemoteChange('1')
 
-    release() // let the save finish
+    release()
     await savePromise
     const result = await remotePromise
     expect(result).toBeDefined()
@@ -1508,7 +1454,6 @@ describe('waitForSaveComplete (via handleRemoteChange during in-flight save)', (
 })
 
 describe('formatConflictValue (via conflict dialog field formatting)', () => {
-  // Drives every branch of formatConflictValue and getFieldLabel through a conflict.
   async function conflictWith(
     myValue: unknown,
     theirValue: unknown,
@@ -1521,10 +1466,6 @@ describe('formatConflictValue (via conflict dialog field formatting)', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    if (fieldId.startsWith('completed.')) {
-      // baseline has it complete, user un-completes (myValue false), server keeps complete
-      // We instead drive completed conflicts directly through answers below; handled separately.
-    }
     answerStore.answers[FormType.DPIA][fieldId] = myValue as never
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['1'])
 
@@ -1560,7 +1501,7 @@ describe('formatConflictValue (via conflict dialog field formatting)', () => {
     const f = p.conflictState.fields.find(x => x.fieldId === '1.1')!
     expect(f.myFormatted).toBe('Geen selectie')
     expect(f.theirFormatted).toContain('<li>')
-    expect(f.theirFormatted).toContain('A') // html stripped from <b>A</b>
+    expect(f.theirFormatted).toContain('A')
     expect(f.theirFormatted).not.toContain('<b>')
   })
 
@@ -1592,7 +1533,6 @@ describe('formatConflictValue (via conflict dialog field formatting)', () => {
   })
 
   it('formats null/undefined values as "Leeg" and primitive booleans', async () => {
-    // myValue is a bare boolean (not wrapped, not string) and theirValue is null
     const p = await conflictWith(true, null, '1.1')
     const f = p.conflictState.fields.find(x => x.fieldId === '1.1')!
     expect(f.myFormatted).toBe('Ja')
@@ -1600,7 +1540,6 @@ describe('formatConflictValue (via conflict dialog field formatting)', () => {
   })
 
   it('formats a bare boolean false (non-completed field) as "Nee"', async () => {
-    // Bare boolean false on a non-`completed.` field → the `: 'Nee'` ternary branch.
     const p = await conflictWith(false, true, '1.1')
     const f = p.conflictState.fields.find(x => x.fieldId === '1.1')!
     expect(f.myFormatted).toBe('Nee')
@@ -1617,7 +1556,6 @@ describe('formatConflictValue (via conflict dialog field formatting)', () => {
 
 describe('getFieldLabel — truncation and unknown fields', () => {
   it('truncates a very long task label to 80 chars with ellipsis', async () => {
-    // Build a schema whose task 1.1 has a >80 char label.
     setActivePinia(createPinia())
     const longText = 'A'.repeat(120)
     const schemaStore = useSchemaStore()
@@ -1654,7 +1592,6 @@ describe('getFieldLabel — truncation and unknown fields', () => {
     await nextTick()
 
     const f = p.conflictState.fields.find(x => x.fieldId === '1.1')!
-    // is_official_id task → label is "1.1. " + truncated 80-char text ("...").
     expect(f.label.endsWith('...')).toBe(true)
     expect(f.label).toBe('1.1. ' + 'A'.repeat(77) + '...')
   })
@@ -1667,7 +1604,6 @@ describe('getFieldLabel — truncation and unknown fields', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Unknown field id (no task definition).
     answerStore.answers[FormType.DPIA]['99.9'] = { value: 'mijn', lastEditedAt: 't' }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['1'])
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
@@ -1713,7 +1649,6 @@ describe('getSectionLabel truncation (via handleRemoteChange background label)',
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // remote change on background section 0 (long label)
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'achtergrond' } } },
@@ -1731,7 +1666,7 @@ describe('PRE_SCAN namespace branches', () => {
     schemaStore.init({ dpia: buildSchema('urn:nl:dpia:3.0'), preScan: buildSchema('urn:nl:prescan:1.0') })
     const taskStore = useTaskStore()
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    // Note: deliberately do NOT taskStore.init() for PRE_SCAN, leaving flatTasks[PRE_SCAN] = {}.
+    // Deliberately no taskStore.init() for PRE_SCAN, leaving flatTasks[PRE_SCAN] = {}.
     taskStore.isInitialized[FormType.PRE_SCAN] = true
     const answerStore = useAnswerStore()
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
@@ -1755,7 +1690,6 @@ describe('PRE_SCAN namespace branches', () => {
     await p.saveAppState()
 
     const payload = mockUpdate.mock.calls[0][1]
-    // flatTasks empty → answers passed through ungrouped; no _prescanAnswers (ns !== DPIA)
     expect(payload.answers['0.1']).toEqual({ value: 'prescan antwoord', lastEditedAt: 't' })
     expect('_prescanAnswers' in payload).toBe(false)
   })
@@ -1771,7 +1705,6 @@ describe('getRootTaskForField returns null when the namespace task map is missin
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Remove the DPIA task map entirely so flatTasks[ns] is undefined.
     delete (taskStore.flatTasks as Record<string, unknown>)[FormType.DPIA]
 
     mockGet.mockResolvedValueOnce(getResponse({
@@ -1779,7 +1712,6 @@ describe('getRootTaskForField returns null when the namespace task map is missin
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '1.1': { value: 'wijziging' } } },
     }))
     const result = await p.sync.handleRemoteChange('1')
-    // getRootTaskForField returns null (no flatTasks) → background bucket, no label collected
     expect(result.backgroundMerged).toBe(1)
     expect(result.backgroundSectionLabels).toEqual([])
   })
@@ -1789,7 +1721,7 @@ describe('normalizeServerResponse additional branches', () => {
   it('handles server metadata without an answers key', async () => {
     initStores()
     mockGet.mockResolvedValueOnce(getResponse({
-      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' } }, // no answers
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' } },
     }))
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
@@ -1816,7 +1748,6 @@ describe('normalizeServerResponse additional branches', () => {
 describe('applyFieldChange — un-complete branch (background remote change)', () => {
   it('removes a completed task when a colleague un-completes a background section', async () => {
     const { taskStore } = initStores()
-    // Load with section 0 completed so the baseline includes it.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 1,
       state: {
@@ -1831,13 +1762,9 @@ describe('applyFieldChange — un-complete branch (background remote change)', (
     p.snapshotBaseline()
     expect(taskStore.completedRootTaskIds[FormType.DPIA].has('0')).toBe(true)
 
-    // Wipe the active answers map. The only remote change is a section un-complete
-    // (the `completed.` branch of applyFieldChange, which does NOT recreate answers[ns]),
-    // so buildState later hits `answerStore.answers[ns] || {}` with answers[ns] undefined.
     const answerStore = useAnswerStore()
     delete (answerStore.answers as Record<string, unknown>)[FormType.DPIA]
 
-    // Colleague un-completes section 0 (a background section while active is "1").
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: {} },
@@ -1857,7 +1784,6 @@ describe('handleConflict — overlapping field with equal values (no conflict)',
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // User changes 1.1 to "samen". Server also changed 1.1 to the SAME "samen".
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'samen' }
     mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
     mockGet.mockResolvedValueOnce(getResponse({
@@ -1867,7 +1793,6 @@ describe('handleConflict — overlapping field with equal values (no conflict)',
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 10 }))
 
     await p.saveAppState()
-    // 1.1 is in both pending and serverDiff but values are equal → no conflict → auto-merge.
     expect(p.conflictState.active).toBe(false)
     expect(p.sync.knownVersion.value).toBe(10)
   })
@@ -1892,7 +1817,6 @@ describe('handleConflict — resolution with a non-pending fieldId (mine)', () =
     await nextTick()
 
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
-    // Include a phantom field id with choice 'mine' that is not in pendingChanges.
     p.conflictState.resolve(new Map([['1.1', 'mine'], ['phantom', 'mine']]))
     await nextTick()
     await Promise.resolve()
@@ -1911,7 +1835,6 @@ describe('applyDeferredChangesInner — resolution with a non-pending fieldId (m
     p.snapshotBaseline()
     const answerStore = useAnswerStore()
 
-    // Defer a conflicting active-section change on 1.1.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '1.1': { value: 'collega' } } },
@@ -1944,10 +1867,8 @@ describe('debouncedSave — clears an existing timer on re-trigger', () => {
     p.snapshotBaseline()
     const teardown = p.setupWatchers()
 
-    // First mutation → schedules a debounce.
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'eerste', lastEditedAt: 't' }
     await nextTick()
-    // Second mutation before the first fires → debouncedSave sees a live timer and clears it.
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'tweede', lastEditedAt: 't2' }
     await nextTick()
 
@@ -1959,12 +1880,10 @@ describe('debouncedSave — clears an existing timer on re-trigger', () => {
 
 describe('buildState / getRootTaskForField with null pinnedNamespace', () => {
   it('uses the active namespace when no namespace was pinned (handleRemoteChange before load)', async () => {
-    // Factory with no namespace and no loadAppState/snapshotBaseline → pinnedNamespace stays null.
     initStores()
     const { createApiPersistence } = await loadModule()
-    const p = createApiPersistence('a1') // pinnedNamespace = null
+    const p = createApiPersistence('a1')
 
-    // lastSavedState is null → computeFieldDiff(null, server) yields all server fields as changes.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 3,
       updatedAt: '2026-04-12T20:00:00.000Z',
@@ -1974,8 +1893,6 @@ describe('buildState / getRootTaskForField with null pinnedNamespace', () => {
       },
     }))
     const result = await p.sync.handleRemoteChange('1')
-    // pinnedNamespace null → falls back to activeNamespace (DPIA) in buildState,
-    // getRootTaskForField and getSectionLabel.
     expect(result.backgroundMerged).toBe(1)
     expect(result.backgroundSectionLabels.length).toBe(1)
   })
@@ -2003,7 +1920,6 @@ describe('buildApiState with a missing flatTasks map', () => {
     await p.loadAppState(FormType.PRE_SCAN)
     p.snapshotBaseline()
 
-    // Remove the PRE_SCAN flatTasks map so buildApiState hits `flatTasks[ns] || {}`.
     delete (taskStore.flatTasks as Record<string, unknown>)[FormType.PRE_SCAN]
 
     answerStore.answers[FormType.PRE_SCAN]['0.1'] = { value: 'x', lastEditedAt: 't' }
@@ -2023,7 +1939,6 @@ describe('applyFieldChange — initializes a missing answers namespace', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Wipe the active answers map so applyFieldChange has to recreate it.
     delete (answerStore.answers as Record<string, unknown>)[FormType.DPIA]
 
     mockGet.mockResolvedValueOnce(getResponse({
@@ -2044,15 +1959,12 @@ describe('getRootTaskForField — empty taskId yields null', () => {
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
 
-    // Server introduces an answer keyed by the empty string → parseInstanceId('') → taskId '',
-    // and `taskId || null` returns null.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 8,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '': { value: 'leeg id' } } },
     }))
     const result = await p.sync.handleRemoteChange('1')
     expect(result.backgroundMerged).toBe(1)
-    // root null → not added to backgroundSectionIds → no label
     expect(result.backgroundSectionLabels).toEqual([])
   })
 })
@@ -2062,9 +1974,8 @@ describe('buildApiState with null pinnedNamespace (save after an unpinned remote
     initStores()
     const answerStore = useAnswerStore()
     const { createApiPersistence } = await loadModule()
-    const p = createApiPersistence('a1') // pinnedNamespace = null
+    const p = createApiPersistence('a1')
 
-    // handleRemoteChange sets knownVersion + lastSavedState WITHOUT pinning the namespace.
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 3,
       state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'achtergrond' } } },
@@ -2072,8 +1983,6 @@ describe('buildApiState with null pinnedNamespace (save after an unpinned remote
     await p.sync.handleRemoteChange('1')
     expect(p.sync.knownVersion.value).toBe(3)
 
-    // Now a direct save runs with knownVersion set but pinnedNamespace still null →
-    // buildApiState resolves ns via `pinnedNamespace || taskStore.activeNamespace`.
     mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 4 }))
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'nieuw', lastEditedAt: 't' }
     await p.saveAppState()
@@ -2088,8 +1997,6 @@ describe('persistPendingToSession — no pending changes (size === 0 early retur
     vi.useFakeTimers()
     const { taskStore } = initStores()
     mockGet.mockResolvedValue(getResponse({ currentVersion: 1 }))
-    // The instances-only save throws SessionExpiredError; persistPendingToSession then
-    // recomputes pending changes (none — only instances were dirty) and returns early.
     mockUpdate.mockRejectedValue(new MockSessionExpiredError())
 
     const { createApiPersistence } = await loadModule()
@@ -2098,19 +2005,16 @@ describe('persistPendingToSession — no pending changes (size === 0 early retur
     p.snapshotBaseline()
     const teardown = p.setupWatchers()
 
-    // Adding a repeatable instance sets instancesDirty (no answer/field change).
     taskStore.addRepeatableTaskInstance('2.1')
     await nextTick()
     await vi.runAllTimersAsync()
 
     expect(mockUpdate).toHaveBeenCalled()
-    // No field changes → persistPendingToSession returns before writing anything.
     expect(sessionStorage.getItem('pending:a1')).toBeNull()
     teardown()
   })
 })
 
-// Helper used by a fake-timer test above.
 function teardownTimers() {
   vi.runOnlyPendingTimers()
 }
