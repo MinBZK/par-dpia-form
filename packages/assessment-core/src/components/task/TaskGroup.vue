@@ -6,6 +6,7 @@ import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
 import { useAnswerStore } from '../../stores/answers'
+import { useSchemaStore } from '../../stores/schemas'
 import { renderInstanceLabel } from '../../utils/taskUtils'
 import { findImpactedByDelete, summariseImpact, type ImpactSummary } from '../../utils/impactedAnswers'
 import { computed, nextTick, ref } from 'vue'
@@ -17,15 +18,39 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
+const schemaStore = useSchemaStore()
 const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
+
+// Some forms (e.g. IAMA) prefix group labels with the question ID. Opt-in per
+// form via prefixQuestionIds in the schema, skipped for tasks explicitly marked
+// is_official_id: false (e.g. Deel headers, actiepunten groups).
+const prefixQuestionIds = computed(
+  () => schemaStore.getSchema(taskStore.activeNamespace)?.prefixQuestionIds === true,
+)
 
 const instanceLabel = computed(() => {
   if (task.value.instance_label_template) {
     return renderInstanceLabel(props.instanceId, task.value.instance_label_template)
   }
-  return isRepeatable.value ? `${task.value.task}` : task.value.task
+  const baseLabel = isRepeatable.value ? `${task.value.task}` : task.value.task
+  if (prefixQuestionIds.value && task.value.is_official_id !== false) {
+    return `${task.value.id} ${baseLabel}`
+  }
+  return baseLabel
+})
+
+// True when this task_group is itself nested inside another task_group.
+// Used to render the legend with a label-sized font instead of a heading font.
+const isNestedGroup = computed(() => {
+  const parentId = task.value.parentId
+  if (!parentId) return false
+  try {
+    return taskStore.taskById(parentId).type?.includes('task_group') ?? false
+  } catch {
+    return false
+  }
 })
 
 // When this instance is mapped to a source whose answer is still empty,
@@ -46,20 +71,6 @@ const missingSourceMessage = computed<string | null>(() => {
   const fieldName = getPlainTextWithoutDefinitions(sourceTask.task)
   const sectionName = getPlainTextWithoutDefinitions(sectionTask.task)
   return `Vul eerst "${fieldName}" in bij sectie "${sectionId}. ${sectionName}".`
-})
-
-const childTasksWithChildren = computed(() => {
-  return task.value.childrenIds.filter((childId) => {
-    const childTask = taskStore.taskById(childId)
-    return childTask.childrenIds && childTask.childrenIds.length > 0
-  })
-})
-
-const childTasksWithoutChildren = computed(() => {
-  return task.value.childrenIds.filter((childId) => {
-    const childTask = taskStore.taskById(childId)
-    return !childTask.childrenIds || childTask.childrenIds.length === 0
-  })
 })
 
 function hasMoreThanOneInstance(taskId: string, parentInstanceId?: string) {
@@ -138,8 +149,14 @@ const cancelPendingDelete = () => {
     <fieldset
       class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
-      <legend class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
+      <legend
+        :class="isNestedGroup
+          ? 'rvo-label rvo-margin-block-end--xs'
+          : 'utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend'"
         :id="`group-${taskId}-${instanceId}-legend`" v-html="instanceLabel"></legend>
+
+      <div v-if="task.description" class="utrecht-form-field-description rvo-margin-block-end--sm"
+        v-html="task.description"></div>
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
         class="utrecht-form-field utrecht-form-field--text rvo-form-field">
@@ -151,71 +168,76 @@ const cancelPendingDelete = () => {
           </div>
         </div>
         <template v-if="!missingSourceMessage">
-        <!-- Simple fields without children -->
-        <template v-for="childId in childTasksWithoutChildren" :key="`simple-${childId}`">
-          <template v-if="!taskStore.taskById(childId).repeatable">
-            <!-- Non-repeatable simple fields -->
-            <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
-              :key="`simple-norep-${childInstanceId}`">
-              <FormField v-if="shouldShowTask(childId, childInstanceId)" :task="taskStore.taskById(childId)"
-                :instanceId="childInstanceId" :label="taskStore.taskById(childId).task"
-                :description="taskStore.taskById(childId).description" />
+        <!-- Children rendered in original YAML order -->
+        <template v-for="childId in task.childrenIds" :key="childId">
+
+          <!-- Simple field (no children) -->
+          <template v-if="!taskStore.taskById(childId).childrenIds?.length">
+            <template v-if="!taskStore.taskById(childId).repeatable">
+              <!-- Non-repeatable simple fields -->
+              <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+                :key="`simple-norep-${childInstanceId}`">
+                <FormField v-if="shouldShowTask(childId, childInstanceId)" :task="taskStore.taskById(childId)"
+                  :instanceId="childInstanceId" :label="taskStore.taskById(childId).task"
+                  :description="taskStore.taskById(childId).description" />
+              </template>
             </template>
-          </template>
-          <template v-else>
-            <!-- Repeatable simple fields -->
-            <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
-              :key="`simple-rep-${childInstanceId}`">
-              <div v-if="shouldShowTask(childId, childInstanceId)">
-                <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
-                  :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
+            <template v-else>
+              <!-- Repeatable simple fields -->
+              <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+                :key="`simple-rep-${childInstanceId}`">
+                <div v-if="shouldShowTask(childId, childInstanceId)">
+                  <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
+                    :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
-                <!-- Only show delete button for repeatable children instances -->
-                <UiButton v-if="
-                  canUserCreateInstances(childId) &&
-                  hasMoreThanOneInstance(childId, props.instanceId)
-                " variant="warning" icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
+                  <!-- Only show delete button for repeatable children instances -->
+                  <UiButton v-if="
+                    canUserCreateInstances(childId) &&
+                    hasMoreThanOneInstance(childId, props.instanceId)
+                  " variant="warning" icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
+                </div>
               </div>
-            </div>
 
-            <!-- Add button for repeatable field -->
-            <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-              <UiButton variant="tertiary" icon="plus"
-                :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
-            </div>
-          </template>
-        </template>
-
-        <!-- Complex task groups with children -->
-        <template v-for="childId in childTasksWithChildren" :key="`complex-${childId}`">
-          <template v-if="!taskStore.taskById(childId).repeatable">
-            <!-- Non-repeatable task groups -->
-            <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
-              :key="`complex-nonrep-${childInstanceId}`">
-              <div v-if="shouldShowTask(childId, childInstanceId)">
-                <TaskGroup :taskId="childId" :instanceId="childInstanceId" />
+              <!-- Add button for repeatable field -->
+              <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
+                <UiButton variant="tertiary" icon="plus"
+                  :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+                  @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
               </div>
             </template>
           </template>
-          <template v-else>
-            <!-- Repeatable task groups -->
-            <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
-              :key="`complex-rep-${childInstanceId}`">
-              <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
-                <TaskGroup :taskId="childId" :instanceId="childInstanceId"
-                  class="rvo-margin-block-end--md background-grijs-200" />
-              </div>
-            </div>
 
-            <!-- Add button for repeatable task group (outside the loop) -->
-            <div v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
-              class="rvo-card background-grijs-200 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-              <UiButton variant="tertiary" icon="plus"
-                :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
-            </div>
+          <!-- Complex task group (has children) -->
+          <template v-else>
+            <template v-if="!taskStore.taskById(childId).repeatable">
+              <!-- Non-repeatable task groups -->
+              <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+                :key="`complex-nonrep-${childInstanceId}`">
+                <div v-if="shouldShowTask(childId, childInstanceId)">
+                  <TaskGroup :taskId="childId" :instanceId="childInstanceId" />
+                </div>
+              </template>
+            </template>
+            <template v-else>
+              <!-- Repeatable task groups -->
+              <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+                :key="`complex-rep-${childInstanceId}`">
+                <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
+                  <TaskGroup :taskId="childId" :instanceId="childInstanceId"
+                    class="rvo-margin-block-end--md background-grijs-200" />
+                </div>
+              </div>
+
+              <!-- Add button for repeatable task group (outside the loop) -->
+              <div v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
+                class="rvo-card background-grijs-200 rvo-padding-block-start--xs rvo-padding-block-end--xs">
+                <UiButton variant="tertiary" icon="plus"
+                  :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+                  @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
+              </div>
+            </template>
           </template>
+
         </template>
         </template>
       </div>
