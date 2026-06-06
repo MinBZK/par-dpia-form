@@ -51,7 +51,9 @@ export async function exportToPdf(
 
   const contentSections: Content[] = activeNamespace === FormType.DPIA
     ? buildDpiaContentSections(taskStore, answerStore)
-    : buildPreScanContentSections(taskStore, answerStore, calculationStore)
+    : activeNamespace === FormType.IAMA
+      ? buildIamaContentSections(taskStore, answerStore)
+      : buildPreScanContentSections(taskStore, answerStore, calculationStore)
 
   const styles: StyleDictionary = {
     title: {
@@ -244,6 +246,26 @@ function buildPreScanContentSections(
   contentSections.push(buildResultsSection(calculationStore, 1))
 
   let sectionNumber = 2
+  for (const task of rootTasks) {
+    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
+    sectionNumber++
+  }
+
+  return contentSections
+}
+
+// IAMA has no calculated assessment-results section (unlike the pre-scan), so
+// its content is the numbered sections starting at 1 — reusing the pre-scan
+// section builder would inject a spurious empty "Resultaten" section and shift
+// every IAMA section number by one.
+function buildIamaContentSections(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): Content[] {
+  const rootTasks = taskStore.getRootTasks.filter(task => !task.type.includes('signing'))
+  const contentSections: Content[] = []
+
+  let sectionNumber = 1
   for (const task of rootTasks) {
     contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
     sectionNumber++
