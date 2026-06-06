@@ -306,7 +306,8 @@ const handleCheckboxInput = (event: Event) => {
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option)"
             :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
             type="checkbox" />
-          <span v-html="option"></span>
+          <!-- option is a user free-text answer (getSourceOptions): render as text, not v-html. -->
+          <span>{{ option }}</span>
         </label>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { Marked, type Tokens, type Token, type MarkedToken } from 'marked'
 import type { Content } from 'pdfmake/interfaces'
+import { escapeHtml } from './escapeHtml'
 
 // Marked instance with a custom renderer that acts as an allowlist.
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
@@ -12,7 +13,8 @@ const safeMarked = new Marked({
     link({ href, tokens }: Tokens.Link) {
       const text = this.parser.parseInline(tokens)
       if (!/^https?:\/\/|^mailto:/i.test(href)) return text
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`
+      // Escape href: marked keeps quotes/spaces in <...> destinations (attribute-breakout XSS).
+      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${text}</a>`
     },
     checkbox({ checked }: Tokens.Checkbox) {
       return checked ? '&#x2611; ' : '&#x2610; '

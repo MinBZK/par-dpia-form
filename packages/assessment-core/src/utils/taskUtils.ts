@@ -1,6 +1,7 @@
 import { Task } from '../models/dpia'
 import { useAnswerStore } from '../stores/answers'
 import { useTaskStore } from '../stores/tasks'
+import { escapeHtml } from './escapeHtml'
 
 export function createConclusionTask(
   taskName: string,
@@ -37,6 +38,7 @@ export function renderInstanceLabel(instanceId: string, template: string): strin
 
     const value = answerStore.getAnswer(originInstance)
     if (value == null) return ''
-    return String(value)
+    // Legend renders this via v-html (schema definition markup), so escape the user value.
+    return escapeHtml(String(value))
   })
 }
