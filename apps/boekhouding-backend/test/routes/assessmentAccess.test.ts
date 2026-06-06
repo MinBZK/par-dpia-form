@@ -240,3 +240,29 @@ describe('requireAssessmentAccess — DELETE /assessments/:id (owner minimum)', 
     expect(res.statusCode).toBe(204)
   })
 })
+
+describe('GET /assessments/:id — response shape', () => {
+  // Regression: the lean auth projection must still expose the scalar metadata
+  // the editor needs. Without assessmentType the frontend falls back to DPIA,
+  // so opening a pre-scan would render the DPIA form.
+  it('includes assessmentType and name so the editor opens the correct form', async () => {
+    const owner = await createUser()
+    const project = await createProject(owner.id)
+    await addMember(project.id, owner.id, 'owner')
+    const assessment = await createAssessment(project.id, owner.id, {
+      assessmentType: 'prescan',
+      name: 'Mijn pre-scan',
+    })
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.assessmentType).toBe('prescan')
+    expect(body.name).toBe('Mijn pre-scan')
+  })
+})
