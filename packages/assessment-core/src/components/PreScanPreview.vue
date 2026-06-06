@@ -23,11 +23,6 @@ const { getPreviewDataForSection } = usePreScanReferences()
 const preScanAnswers = ref<PreScanDataItem[]>([])
 const hasPreScanData = computed(() => preScanAnswers.value.length > 0)
 
-// Extract the root task ID from a full task ID
-const getRootTaskId = (taskId: string): string => {
-  return taskId.split('.')[0];
-}
-
 // Load Pre-scan answers that reference this DPIA section
 const loadPreScanAnswers = () => {
   preScanAnswers.value = getPreviewDataForSection(props.dpiaTaskId)

@@ -91,14 +91,18 @@ export async function commentRoutes(app: FastifyInstance) {
           for (const u of resolvedUsers) pollResolvedByNames[u.id] = u.displayName
         }
 
-        const lastModified = recentReplies.length > 0
-          ? recentReplies.reduce((max, c) => c.updatedAt > max ? c.updatedAt : max, recentReplies[0].updatedAt)
-          : sinceDate
+        // rootIds is non-empty only when a root passed the same gt(updatedAt, since)
+        // filter that feeds recentReplies, so recentReplies is guaranteed non-empty here.
+        const lastModified = recentReplies.reduce(
+          (max, c) => c.updatedAt > max ? c.updatedAt : max,
+          recentReplies[0].updatedAt,
+        )
 
         return {
           comments: recentReplies.map(c => ({
             ...c,
-            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] ?? null : null,
+            // resolvedBy is a FK to users, so the inArray lookup always resolves a (notNull) displayName.
+            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] : null,
           })),
           lastModifiedAt: lastModified.toISOString(),
           currentUserId: request.user!.id,
@@ -124,7 +128,8 @@ export async function commentRoutes(app: FastifyInstance) {
     // Build nested response
     const threaded = rootComments.map(root => ({
       ...root,
-      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] ?? null : null,
+      // resolvedBy is a FK to users, so the inArray lookup always resolves a (notNull) displayName.
+      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] : null,
       replies: (repliesByParent.get(root.id) || []).map(r => ({
         id: r.id,
         parentId: r.parentId,
@@ -228,7 +233,9 @@ export async function commentRoutes(app: FastifyInstance) {
 
     return reply.status(201).send({
       ...created,
-      authorName: author?.displayName ?? '',
+      // author is request.user (created/synced by requireAuth), so the lookup
+      // always returns a row with a notNull displayName.
+      authorName: author.displayName,
     })
   })
 

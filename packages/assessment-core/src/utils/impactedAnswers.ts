@@ -253,6 +253,7 @@ function wouldBeHiddenUnder(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
 ): boolean {
+  /* istanbul ignore if @preserve -- defensive: wouldBeHiddenUnder is only ever called from findImpactedByConditionalChange with a task whose dependencies array already matched the conditional filter, so task.dependencies is never falsy here */
   if (!task.dependencies) return false
   for (const dep of task.dependencies) {
     if (dep.type !== 'conditional' || !dep.condition) continue

@@ -47,7 +47,7 @@ const introText = computed(() => {
       <!-- Results with Criteria -->
       <template v-else-if="result">
         <!-- For required assessments with criteria -->
-        <div v-if="(isRequired || isRecommended) && hasCriteria" :class="{ 'font-white': isRequired || isRecommended }">
+        <div v-if="(isRequired || isRecommended) && hasCriteria" :class="{ 'font-white': isRequired }">
           <p>{{ introText }}</p>
           <ul>
             <li v-for="criterion in result.criteria" :key="criterion.id">
@@ -57,7 +57,7 @@ const introText = computed(() => {
         </div>
 
         <!-- For required assessments without criteria (fallback) -->
-        <p v-else-if="isRequired || isRecommended" :class="{ 'font-white': isRequired || isRecommended }">
+        <p v-else-if="isRequired || isRecommended" :class="{ 'font-white': isRequired }">
           {{ result.explanation }}
         </p>
 

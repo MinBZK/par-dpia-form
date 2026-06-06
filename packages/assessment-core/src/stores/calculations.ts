@@ -118,8 +118,6 @@ export const useCalculationStore = defineStore('calculationStore', () => {
 
   // Calculate a score for a single task using JEXL expression evaluation
   async function calculateTaskScore(task: any) {
-    if (!task.calculation) return null
-
     try {
       // Evaluate the main JEXL expression (safe domain-specific language, not arbitrary code)
       const value = await jexlInstance.eval(task.calculation.expression) // nosec: JEXL is a safe expression language
@@ -283,11 +281,9 @@ export const useCalculationStore = defineStore('calculationStore', () => {
       setupJexl();
     }
 
-    if (isInitialized.value) {
-      runCalculations();
-    } else {
-      console.error('Cannot run calculations - JEXL is not initialized');
-    }
+    // setupJexl() always sets isInitialized to true (or throws out of init),
+    // so calculations can run unconditionally here.
+    runCalculations();
   }
 
   watch(

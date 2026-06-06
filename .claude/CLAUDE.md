@@ -99,6 +99,35 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - Na wijziging realm config: `podman compose -f containers/compose.dev.yaml down -v && podman compose -f containers/compose.dev.yaml up -d`
 - Na wijziging backend/frontend code in containers: `podman compose -f containers/compose.dev.yaml up -d --build`
 
+## Testing & coverage
+
+Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`) en `test:coverage` (`vitest run --coverage`). Volledige suite zoals CI: `pnpm -r --if-present test:coverage` (backend vereist `TEST_DATABASE_URL`, zie hieronder).
+
+- **Coverage-provider: istanbul, niet v8.** v8 kan ongedekte Vue SFC's niet parsen (PARSE_ERROR via rollup); istanbul instrumenteert via de Vite-transformpipeline, dus `.vue`-bestanden tellen volwaardig mee. Daarom staat `@vitejs/plugin-vue` ook in de devDeps van `assessment-core`.
+- **100%-drempel, hard afgedwongen.** Alle vier vitest-configs hebben `coverage.all: true` (élk bronbestand telt mee, niet alleen geïmporteerde) en `thresholds` op 100 voor statements/branches/functions/lines. Nieuwe of gewijzigde code moet de dekking op 100% houden — anders faalt CI.
+- **Uitsluitingen** (`coverage.exclude`): alleen niet-uitvoerbare/bootstrap-bestanden — `*.d.ts`, `src/index.ts` (barrel), `src/assets/**` (CSS/fonts), en backend `db/migrate.ts` + `db/migrations/**`.
+- **Testbestanden**: hand-geschreven tests in `test/`. De fijnmazige per-module dekkingstests staan onder `test/cov/` als `<naam>.cov.test.ts` — één self-contained bestand per bronmodule (dekt dat bestand zelfstandig, los van andere tests).
+- **`istanbul ignore` alleen voor aantoonbaar onbereikbare defensieve code**, telkens mét een `-- reden`-justificatie. Geef de voorkeur aan een echte test, of het verwijderen van dode code, boven een ignore.
+- **Snel één bestand controleren**: `pnpm --filter <pkg> exec vitest run <testbestand> --coverage --coverage.include='<bronbestand>'` — dan meet de drempel-100 alléén dat bestand, dus **exit 0 = bestand op 100%**.
+
+### Backend-tests (integratie, vereisen Postgres)
+
+- Draaien tegen een echte Postgres-testdatabase via `app.inject()` (de app wordt niet gemockt). Auth end-to-end met echte JWT's tegen een loopback-JWKS (`test/helpers/testJwks.ts`).
+- Env `TEST_DATABASE_URL` (default `postgresql://parassessment:parassessment@localhost:5432/parassessment_test`). De database moet bestaan; migraties draaien idempotent in `test/setup.ts`.
+
+  ```bash
+  # eenmalig: testdatabase aanmaken (dev-postgres moet draaien)
+  podman exec containers-postgres-1 psql -U parassessment -d parassessment -c "CREATE DATABASE parassessment_test"
+  TEST_DATABASE_URL="postgresql://parassessment:parassessment@localhost:5432/parassessment_test" \
+    pnpm --filter @overheid-assessment/boekhouding-backend test
+  ```
+
+- `fileParallelism: false` — suites delen één DB; `truncateAll` in `beforeEach` houdt tests geïsoleerd. Seed-helpers: `test/helpers/fixtures.ts`.
+
+### standalone-form
+
+- Heeft een **aparte** `vitest.config.ts`, los van `vite.config.ts`: de productie-vite-config laadt de singlefile-/favicon-inline-plugins die onder Vitest niet nodig (en storend) zijn.
+
 ## Containers & CI/CD
 
 - Container config: `containers/` directory met Containerfiles, nginx.conf, compose.dev.yaml
@@ -108,7 +137,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
   - `build-standalone.yaml` — bouwt standalone formulier (main branch)
   - `build-containers.yaml` — bouwt frontend + backend containers → GHCR (experimenteel branch)
   - `release-and-deploy.yaml` — release naar GitHub Pages
-  - `test.yaml` — type-check en tests
+  - `test.yaml` — type-check, tests én coverage (100%-drempel over alle workspaces; Postgres-service voor backend-integratietests)
 - GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
 
 ## Assessment state format

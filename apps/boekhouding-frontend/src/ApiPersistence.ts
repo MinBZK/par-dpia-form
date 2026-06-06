@@ -266,8 +266,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         label: getFieldLabel(key),
         myValue: pending.value,
         theirValue: server.newValue,
-        myFormatted: formatConflictValue(pending.value, key),
-        theirFormatted: formatConflictValue(server.newValue, key),
+        myFormatted: formatConflictValue(pending.value),
+        theirFormatted: formatConflictValue(server.newValue),
       })
     }
 
@@ -355,7 +355,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     const migrated = migrateStateV1toV2(serverData as any, urnLookup)
 
     const answers = (migrated as any).answers || {}
-    const metadata = migrated.metadata || {} as any
+    const metadata = migrated.metadata
     const ns = taskStore.activeNamespace
 
     // Old format: answers wrapped in namespace key
@@ -385,7 +385,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
 
   /** Flatten grouped answers to flat instance-keyed format for field-level diffing. */
   function flattenForDiff(state: AssessmentState): AssessmentState {
-    const answers = state.answers || {}
+    const answers = state.answers
     const hasGrouped = Object.values(answers).some(v => Array.isArray(v))
     return hasGrouped
       ? { ...state, answers: flattenGroupedAnswers(answers as Record<string, GroupedAnswerValue>) }
@@ -422,11 +422,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     return fieldId
   }
 
-  function formatConflictValue(val: unknown, fieldId?: string): string {
+  function formatConflictValue(val: unknown): string {
     if (val === null || val === undefined) return 'Leeg'
-    if (fieldId?.startsWith('completed.') && typeof val === 'boolean') {
-      return val ? 'Voltooid' : 'Niet voltooid'
-    }
     if (typeof val === 'boolean') return val ? 'Ja' : 'Nee'
     if (typeof val === 'object' && 'value' in (val as any)) {
       const v = (val as any).value
@@ -571,11 +568,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       deferredChangeId++
     }
 
-    // Re-trigger save if we had pending changes — the debounce was paused at the start of this function.
+    // lastSavedState was just rebuilt from the current store above, so this clears any
+    // stale pending changes left over from a prior save (the diff is always empty here).
     updatePendingChanges()
-    if (pendingChanges.size > 0) {
-      debouncedSave()
-    }
 
     return {
       backgroundMerged: backgroundFields.length,
@@ -642,8 +637,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         label: getFieldLabel(key),
         myValue: pending.value,
         theirValue: deferred.newValue,
-        myFormatted: formatConflictValue(pending.value, key),
-        theirFormatted: formatConflictValue(deferred.newValue, key),
+        myFormatted: formatConflictValue(pending.value),
+        theirFormatted: formatConflictValue(deferred.newValue),
       })
     }
 

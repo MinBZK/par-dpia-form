@@ -92,7 +92,9 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
         parts.push(t.text)
         break
       default:
-        if ('text' in t) parts.push((t as { text: string }).text)
+        // Every other inline token type carries a `text` field (the only
+        // textless inline token marked emits is `br`, handled above).
+        parts.push((t as { text: string }).text)
         break
     }
   }

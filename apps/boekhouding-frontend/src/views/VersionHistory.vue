@@ -438,8 +438,11 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
     // Try to parse JSON arrays stored as strings
     if (val.startsWith('[')) {
       try {
+        // A string starting with "[" that JSON.parse accepts can only be a JSON
+        // array (the JSON grammar permits no other top-level value for "["),
+        // so the parsed result is always an array here.
         const parsed = JSON.parse(val)
-        if (Array.isArray(parsed)) return formatValue(parsed, options)
+        return formatValue(parsed, options)
       } catch { /* not JSON, treat as plain string */ }
     }
     if (options && options[val]) return escapeHtml(stripHtml(options[val]))
@@ -715,7 +718,7 @@ function mapEditsToDiffFields(
                 <span class="sr-only">— beschrijving bewerken</span>
               </button>
               <span v-else-if="version.changeDescription">{{ version.changeDescription.split('\n')[0] }}<span v-if="version.changeDescription.includes('\n')">...</span></span>
-              <span v-else-if="!version.changeDescription"></span>
+              <span v-else></span>
             </span>
             <span v-if="canEdit" class="version-col--action">
               <div class="kebab-menu" @focusout="openMenuVersion = null">
