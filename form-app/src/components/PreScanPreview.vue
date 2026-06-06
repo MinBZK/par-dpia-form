@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
-import { FormType } from '@/models/dpia.ts'
-import { usePreScanReferences, type PreScanReference } from '@/composables/usePreScanReferences'
-import { useAnswerStore } from '@/stores/answers'
-import { useTaskStore } from '@/stores/tasks'
-import { getPlainTextWithoutDefinitions } from '@/utils/stripHtml'
+import { useReferences } from '@/composables/useReferences'
 
 const props = defineProps<{
   dpiaTaskId: string
 }>()
-
-const answerStore = useAnswerStore()
-const taskStore = useTaskStore()
 
 interface PreScanDataItem {
   taskId: string;
@@ -19,14 +12,9 @@ interface PreScanDataItem {
   answer: string | string[] | null;
 }
 
-const { getPreviewDataForSection } = usePreScanReferences()
+const { getPreviewDataForSection } = useReferences()
 const preScanAnswers = ref<PreScanDataItem[]>([])
 const hasPreScanData = computed(() => preScanAnswers.value.length > 0)
-
-// Extract the root task ID from a full task ID
-const getRootTaskId = (taskId: string): string => {
-  return taskId.split('.')[0];
-}
 
 // Load Pre-scan answers that reference this DPIA section
 const loadPreScanAnswers = () => {

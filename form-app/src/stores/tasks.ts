@@ -10,6 +10,9 @@ export interface FlatTask {
   parentId: string | null
   childrenIds: string[]
   is_official_id?: boolean
+  in_fria?: boolean
+  action_point_group?: boolean
+  action_point_summary?: boolean
   valueType?: string
   description?: string
   category?: string
@@ -19,6 +22,7 @@ export interface FlatTask {
   dependencies?: Dependency[]
   instance_label_template?: string
   defaultValue?: boolean | string | null
+  required?: boolean
   references?: TaskReferences
 }
 
@@ -46,26 +50,32 @@ export const useTaskStore = defineStore('TaskStore', () => {
   const flatTasks = ref<Record<FormType, Record<string, FlatTask>>>({
     [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.IAMA]: {},
   })
   const taskInstances = ref<Record<FormType, Record<string, TaskInstance>>>({
     [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.IAMA]: {},
   })
   const currentRootTaskId = ref<Record<FormType, string>>({
     [FormType.DPIA]: "0",
     [FormType.PRE_SCAN]: "0",
+    [FormType.IAMA]: "0",
   })
   const rootTaskIds = ref<Record<FormType, string[]>>({
     [FormType.DPIA]: [],
     [FormType.PRE_SCAN]: [],
+    [FormType.IAMA]: [],
   })
   const isInitialized = ref<Record<FormType, boolean>>({
     [FormType.DPIA]: false,
     [FormType.PRE_SCAN]: false,
+    [FormType.IAMA]: false,
   })
   const completedRootTaskIds = ref<Record<FormType, Set<string>>>({
     [FormType.DPIA]: new Set(),
     [FormType.PRE_SCAN]: new Set(),
+    [FormType.IAMA]: new Set(),
   })
 
   /**
@@ -135,12 +145,16 @@ export const useTaskStore = defineStore('TaskStore', () => {
         category: task.category,
         repeatable: task.repeatable,
         is_official_id: task.is_official_id,
+        in_fria: task.in_fria,
+        action_point_group: task.action_point_group,
+        action_point_summary: task.action_point_summary,
         options: task.options,
         sources: task.sources,
         dependencies: task.dependencies,
         instance_label_template: task.instance_label_template,
         valueType: task.valueType,
         defaultValue: task.defaultValue,
+        required: task.required,
         references: task.references,
         parentId,
         childrenIds: [],
@@ -277,18 +291,20 @@ export const useTaskStore = defineStore('TaskStore', () => {
   }
 
   function nextRootTask() {
-    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
-    const nextId = currentId + 1
-    if (nextId < rootTaskIds.value[activeNamespace.value].length) {
-      setRootTask(nextId.toString())
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const nextIndex = currentIndex + 1
+    if (nextIndex < ids.length) {
+      setRootTask(ids[nextIndex])
     }
   }
 
   function previousRootTask() {
-    const currentId = parseInt(currentRootTaskId.value[activeNamespace.value], 10)
-    const nextId = currentId - 1
-    if (nextId >= 0) {
-      setRootTask(nextId.toString())
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const prevIndex = currentIndex - 1
+    if (prevIndex >= 0) {
+      setRootTask(ids[prevIndex])
     }
   }
 
