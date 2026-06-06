@@ -109,9 +109,9 @@ other projects that solved it better and which could serve as inspiration.
 
 ## Releases
 
-Releases use [Calendar Versioning](https://calver.org/) in the format `vYYYY.0M.0D`
-(for example `v2026.06.06`). The month and day are zero-padded. If more than one
-release is needed on the same day, append a micro number (`v2026.06.06.1`).
+Releases use [Calendar Versioning](https://calver.org/) in the format `vYYYY.M.D`
+(for example `v2026.6.6`). The month and day have no leading zeros. If more than one
+release is needed on the same day, append a micro number (`v2026.6.6.1`).
 
 Notable, user-facing changes are recorded in [`CHANGELOG.md`](CHANGELOG.md),
 following the [Keep a Changelog](https://keepachangelog.com/) format.
@@ -119,13 +119,13 @@ following the [Keep a Changelog](https://keepachangelog.com/) format.
 To cut a release:
 
 1. In `CHANGELOG.md`, move the entries under `## [Unreleased]` into a new
-   `## [YYYY.0M.0D] - YYYY-MM-DD` section and add the matching link reference at
+   `## [YYYY.M.D] - YYYY-MM-DD` section and add the matching link reference at
    the bottom of the file.
 2. Commit this change, then create and push the tag:
 
    ```sh
-   git tag v2026.06.06
-   git push origin v2026.06.06
+   git tag v2026.6.6
+   git push origin v2026.6.6
    ```
 
 The `Release` workflow validates the tag format, extracts the matching

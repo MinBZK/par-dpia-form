@@ -3,8 +3,8 @@
 Alle noemenswaardige wijzigingen aan dit project worden gedocumenteerd in dit
 bestand. Het formaat is gebaseerd op
 [Keep a Changelog](https://keepachangelog.com/nl/1.1.0/). Het project volgt
-[Calendar Versioning](https://calver.org/) in de vorm `YYYY.0M.0D`
-(bijvoorbeeld `2026.06.06`). Releases tot en met [0.1.3] (4 juni 2026) volgden
+[Calendar Versioning](https://calver.org/) in de vorm `YYYY.M.D`
+(bijvoorbeeld `2026.6.6`). Releases tot en met [0.1.3] (4 juni 2026) volgden
 Semantic Versioning; daarna is het project overgestapt op Calendar Versioning.
 
 Per release staan eerst de wijzigingen die voor gebruikers van de invulhulp
@@ -13,9 +13,16 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* Kapotte link naar het IAMA-toelichtingsdocument hersteld.
+
 ### Onder de motorkap
 
 * Geautomatiseerde releases ingericht op basis van deze changelog.
+* Externe links openen nu met `rel="noopener noreferrer"`.
+* Linkcontrole (lychee) robuuster gemaakt bij tijdelijke fouten en
+  root-relatieve links; Dependabot bewaakt nu ook GitHub Actions.
 * Diverse dependency-updates (@types/node 25, @vitejs/plugin-vue 6.0.6,
   @types/pdfmake 0.3, string-strip-html 13.5).
 
