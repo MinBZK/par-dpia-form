@@ -2,16 +2,19 @@ import * as t from 'io-ts'
 
 export enum FormType {
   DPIA = 'dpia',
-  PRE_SCAN = 'prescan'
+  PRE_SCAN = 'prescan',
+  IAMA = 'iama',
 }
 
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
   t.literal('signing'),
+  t.literal('informational'),
   t.literal('text_input'),
   t.literal('open_text'),
   t.literal('date'),
   t.literal('select_option'),
+  t.literal('multiselect_option'),
   t.literal('radio_option'),
   t.literal('checkbox_option'),
   t.literal('image'),
@@ -105,7 +108,8 @@ export const TaskReference = t.type({
 
 export const TaskReferences = t.partial({
   prescanModelId: t.string,
-  DPIA: t.array(TaskReference)
+  DPIA: t.array(TaskReference),
+  IAMA: t.array(TaskReference),
 })
 
 export type TaskReferences = t.TypeOf<typeof TaskReferences>
@@ -123,6 +127,9 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
     // Optional properties
     t.partial({
       is_official_id: t.boolean,
+      in_fria: t.boolean,
+      action_point_group: t.boolean,
+      action_point_summary: t.boolean,
       valueType: t.string,
       instance_label_template: t.string,
       description: t.string,
@@ -133,6 +140,7 @@ export const Task: t.RecursiveType<any> = t.recursion('Task', () =>
       sources: t.array(Source),
       dependencies: t.array(Dependency),
       defaultValue: t.union([t.string, t.boolean, t.null]),
+      required: t.boolean,
       calculation: Calculation,
       references: TaskReferences,
     }),
@@ -182,5 +190,6 @@ export const DPIA = t.intersection([
   }),
   t.partial({
     assessments: t.array(Assessment),
+    prefixQuestionIds: t.boolean,
   })
 ])
