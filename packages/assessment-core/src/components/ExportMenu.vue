@@ -68,15 +68,14 @@ onBeforeUnmount(removeOutsideListener)
       ref="triggerRef"
       type="button"
       class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-md utrecht-button--icon-gap"
-      aria-haspopup="true"
       :aria-expanded="open"
       @click="toggle"
     >
       Exporteer
+      <!-- Disclosure pattern (real buttons in the panel), not an ARIA menu —
+           rely on aria-expanded; do not advertise aria-haspopup="menu". -->
       <span
         class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw"
-        role="img"
-        aria-label=""
         aria-hidden="true"
       ></span>
     </button>
