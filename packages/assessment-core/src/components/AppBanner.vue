@@ -6,7 +6,7 @@ withDefaults(defineProps<{
   title?: string
   homeUrl?: string
 }>(), {
-  message: 'De invulhulp DPIA is in ontwikkeling.',
+  message: 'De invulhulp voor pre-scan, DPIA en IAMA is in ontwikkeling.',
   linkUrl: 'https://github.com/MinBZK/par-dpia-form',
   linkLabel: 'Bètaversie',
   title: '',
