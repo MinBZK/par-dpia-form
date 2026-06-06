@@ -150,12 +150,14 @@ const cancelPendingDelete = () => {
       class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
       <legend
-        :class="isNestedGroup
+        :class="isNestedGroup && prefixQuestionIds
           ? 'rvo-label rvo-margin-block-end--xs'
           : 'utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend'"
         :id="`group-${taskId}-${instanceId}-legend`" v-html="instanceLabel"></legend>
 
-      <div v-if="task.description" class="utrecht-form-field-description rvo-margin-block-end--sm"
+      <!-- Group-level description: an IAMA addition (gated on prefixQuestionIds, which only
+           IAMA sets). DPIA/pre-scan never showed group descriptions, so keep them hidden there. -->
+      <div v-if="task.description && prefixQuestionIds" class="utrecht-form-field-description rvo-margin-block-end--sm"
         v-html="task.description"></div>
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
