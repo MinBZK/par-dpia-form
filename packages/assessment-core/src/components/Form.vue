@@ -262,7 +262,13 @@ const isInformationalStep = computed(() => {
 
   <!-- If all is well, render the tasks. -->
   <template v-else>
-    <NavHeader v-if="showNavHeader" :navigation="navigation" />
+    <NavHeader v-if="showNavHeader" :navigation="navigation">
+      <template v-if="formStarted && showFileActions">
+        <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
+          FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
+        <ExportMenu @export="handleExport" />
+      </template>
+    </NavHeader>
 
     <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
@@ -272,12 +278,6 @@ const isInformationalStep = computed(() => {
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-        <div v-if="formStarted && showFileActions" class="utrecht-button-group" role="group"
-          aria-label="Formulier opslag">
-          <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
-          <ExportMenu @export="handleExport" />
-        </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
