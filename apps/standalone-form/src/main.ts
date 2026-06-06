@@ -5,12 +5,13 @@ import { useSchemaStore } from '@overheid-assessment/core'
 
 import dpiaJson from '../../../sources/generated/DPIA.json'
 import preScanJson from '../../../sources/generated/PreScanDPIA.json'
+import iamaJson from '../../../sources/generated/IAMA.json'
 
 const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 
 const schemaStore = useSchemaStore(pinia)
-schemaStore.init({ dpia: dpiaJson, preScan: preScanJson })
+schemaStore.init({ dpia: dpiaJson, preScan: preScanJson, iama: iamaJson })
 
 app.mount('#app')

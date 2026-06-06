@@ -219,11 +219,12 @@ watch(fieldRestoreModalOpen, (open) => {
 onMounted(async () => {
   // Load schemas so task labels can be resolved in diffs
   if (!schemaStore.isInitialized) {
-    const [dpiaModule, preScanModule] = await Promise.all([
+    const [dpiaModule, preScanModule, iamaModule] = await Promise.all([
       import('../../../../sources/generated/DPIA.json'),
       import('../../../../sources/generated/PreScanDPIA.json'),
+      import('../../../../sources/generated/IAMA.json'),
     ])
-    schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default })
+    schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default, iama: iamaModule.default })
   }
   for (const ns of [FormType.DPIA, FormType.PRE_SCAN]) {
     if (!taskStore.isInitialized[ns]) {

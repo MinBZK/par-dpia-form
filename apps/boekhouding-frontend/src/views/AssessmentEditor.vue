@@ -215,11 +215,12 @@ onMounted(async () => {
     assessment.value = await assessmentsApi.get(props.assessmentId)
 
     if (!schemaStore.isInitialized) {
-      const [dpiaModule, preScanModule] = await Promise.all([
+      const [dpiaModule, preScanModule, iamaModule] = await Promise.all([
         import('../../../../sources/generated/DPIA.json'),
         import('../../../../sources/generated/PreScanDPIA.json'),
+        import('../../../../sources/generated/IAMA.json'),
       ])
-      schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default })
+      schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default, iama: iamaModule.default })
     }
 
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
