@@ -24,7 +24,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       het IAMA op
       <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener">het instrument</a>
       ontwikkeld door de Universiteit Utrecht.
-      Ze sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
+      Ze sluiten aan op rijksbrede kaders.
     </p>
 
     <h2 class="utrecht-heading-2">Pre-scan</h2>

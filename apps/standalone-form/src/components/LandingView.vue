@@ -88,18 +88,10 @@ defineProps<{
         <p>
           Het IAMA is ook geschikt voor impactvolle algoritmes die niet vallen in de categorie hoog-risico AI-systemen of die buiten het bereik van de AI-verordening vallen.
         </p>
-        <div class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-start--md rvo-margin-block-end--md">
-          <div class="rvo-alert__container">
-            <span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img"
-              aria-label="Info"></span>
-            <div class="rvo-alert-text">
-              <strong>IAMA versie 2.0</strong>
-              <p class="rvo-margin--none">
-                Deze invulhulp bevat het IAMA v2.0. Dit is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.
-              </p>
-            </div>
-          </div>
-        </div>
+        <h3 class="utrecht-heading-3">IAMA versie 2.0</h3>
+        <p>
+          Deze invulhulp bevat het IAMA v2.0. Dit is een actualisatie van de oorspronkelijke versie. Het is gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten vanuit artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te worden.
+        </p>
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
           <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank" rel="noopener noreferrer">IAMA v2.0 - Open Overheid</a></li>
@@ -111,7 +103,7 @@ defineProps<{
       <div class="rvo-margin-block-end--xl">
         <h2 class="utrecht-heading-2">Over deze tools</h2>
         <p>
-          De tools op deze pagina helpen je bij het initieel invullen van de pre-scan, DPIA en het IAMA. Ze sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten. Het product van deze tools kan je exporteren en omvat alle relevante blokken die in het rapportagemodel moeten staan.
+          De tools op deze pagina helpen je bij het initieel invullen van de pre-scan, DPIA en het IAMA. Ze sluiten aan op rijksbrede kaders. Het product van deze tools kan je exporteren en omvat alle relevante blokken die in het rapportagemodel moeten staan.
         </p>
         <p>
           Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
