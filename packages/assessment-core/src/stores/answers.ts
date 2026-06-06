@@ -39,6 +39,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   const answers = ref<Record<FormType, Record<string, Answer>>>({
     [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.IAMA]: {},
   })
 
   /**
@@ -90,6 +91,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     answers.value = {
       [FormType.DPIA]: {},
       [FormType.PRE_SCAN]: {},
+      [FormType.IAMA]: {},
     }
   }
 
