@@ -6,8 +6,8 @@ and converts the markdown abbreviation definitions (*[term]: definition) into a
 YAML file compatible with the definition_enricher.py pipeline.
 
 Usage:
-    python script/convert_definitions_from_AK.py --output sources/begrippenkader-iama.yaml
-    python script/convert_definitions_from_AK.py --input begrippenlijst.md --output sources/begrippenkader-iama.yaml
+    python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader-iama.yaml
+    python script/convert_definitions_from_algoritmekader.py --input begrippenlijst.md --output sources/begrippenkader-iama.yaml
 """
 
 import argparse

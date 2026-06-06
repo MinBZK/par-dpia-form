@@ -116,7 +116,7 @@ jobs:
         run: pip install pyyaml
       - name: Sync Algoritmekader definitions
         run: |
-          python script/convert_definitions_from_AK.py --output sources/begrippenkader_iama.yaml
+          python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader_iama.yaml
       - name: Check for changes
         id: git-check
         run: |
