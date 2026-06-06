@@ -1,0 +1,16 @@
+# Codecov configuration.
+# Coverage is reported (PR comment + per-line patch coverage in the diff) but
+# does not block merges yet — the suite is still building toward the baseline
+# in issue #10. Flip `informational: false` once coverage is meaningful.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "condensed_header, diff, files"
+  require_changes: false
