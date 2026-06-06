@@ -8,19 +8,19 @@ updates:
     ignore:
       - dependency-name: "typescript"
 
-  # Container images
+  # Container images — Containerfiles live under containers/<service>/
   - package-ecosystem: "docker"
-    directory: "/apps/boekhouding-backend/"
+    directory: "/containers/backend"
     schedule:
       interval: weekly
 
   - package-ecosystem: "docker"
-    directory: "/apps/boekhouding-frontend/"
+    directory: "/containers/frontend"
     schedule:
       interval: weekly
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/containers/standalone"
     schedule:
       interval: weekly
 
