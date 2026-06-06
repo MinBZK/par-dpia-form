@@ -67,7 +67,7 @@ onBeforeUnmount(removeOutsideListener)
     <button
       ref="triggerRef"
       type="button"
-      class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-md utrecht-button--icon-gap"
+      class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
       :aria-expanded="open"
       @click="toggle"
     >
