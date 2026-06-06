@@ -34,9 +34,11 @@
                             "text_input",
                             "open_text",
                             "select_option",
+                            "multiselect_option",
                             "checkbox_option",
                             "radio_option",
                             "task_group",
+                            "informational",
                             "date",
                             "image"
                         ]
