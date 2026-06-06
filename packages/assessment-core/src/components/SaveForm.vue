@@ -30,7 +30,11 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 const formName = computed(() =>
-  taskStore.activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+  taskStore.activeNamespace === FormType.DPIA
+    ? 'DPIA'
+    : taskStore.activeNamespace === FormType.IAMA
+      ? 'IAMA'
+      : 'Pre-scan DPIA'
 )
 
 onMounted(() => {

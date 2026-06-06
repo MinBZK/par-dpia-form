@@ -15,7 +15,11 @@ export async function exportToMarkdown(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+  const formType = activeNamespace === FormType.DPIA
+    ? 'DPIA'
+    : activeNamespace === FormType.IAMA
+      ? 'IAMA'
+      : 'Pre-scan DPIA'
   const lines: string[] = []
 
   lines.push(`# ${formType}`)

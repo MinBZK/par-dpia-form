@@ -39,7 +39,11 @@ export async function exportToPdf(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+  const formType = activeNamespace === FormType.DPIA
+    ? 'DPIA'
+    : activeNamespace === FormType.IAMA
+      ? 'IAMA'
+      : 'Pre-scan DPIA'
 
   // Pre-convert WebP images to PNG (pdfmake only supports JPEG/PNG)
   pdfImageCache.clear()
