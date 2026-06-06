@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import {
   Form,
   FormType,
+  ExportMenu,
   useSchemaStore,
   useTaskStore,
   useAnswerStore,
@@ -334,19 +335,14 @@ const handleVersionHistory = () => {
   router.push(`/assessment/${props.assessmentId}/versies`)
 }
 
-const handleDownloadPdf = async () => {
-  menuOpen.value = false
-  await exportToPdf(taskStore, answerStore, calculationStore)
-}
-
-const handleDownloadJson = async () => {
-  menuOpen.value = false
-  await exportToJson(taskStore, answerStore)
-}
-
-const handleDownloadMarkdown = async () => {
-  menuOpen.value = false
-  await exportToMarkdown(taskStore, answerStore)
+const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
+  if (format === 'pdf') {
+    await exportToPdf(taskStore, answerStore, calculationStore)
+  } else if (format === 'json') {
+    await exportToJson(taskStore, answerStore)
+  } else {
+    await exportToMarkdown(taskStore, answerStore)
+  }
 }
 
 const isOwner = computed(() => assessment.value?.role === 'owner')
@@ -414,6 +410,7 @@ const confirmDelete = async () => {
         </div>
         <div class="form-subheader__right">
           <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
+          <ExportMenu @export="handleExport" />
           <div class="kebab-menu" @focusout="closeMenu">
             <button
               class="kebab-menu__trigger"
@@ -425,14 +422,10 @@ const confirmDelete = async () => {
               <IconDotsVertical :size="20" />
             </button>
             <div v-if="menuOpen" class="kebab-menu__dropdown" role="menu">
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleVersionHistory">Versiegeschiedenis</button>
-              <div class="kebab-menu__divider"></div>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadPdf">Download als PDF</button>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadJson">Download als JSON</button>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadMarkdown">Download als Markdown</button>
+              <button class="kebab-menu__item" role="menuitem" @click="handleVersionHistory">Versiegeschiedenis</button>
               <template v-if="isOwner">
                 <div class="kebab-menu__divider"></div>
-                <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="openDeleteModal">Assessment verwijderen</button>
+                <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @click="openDeleteModal">Assessment verwijderen</button>
               </template>
             </div>
           </div>

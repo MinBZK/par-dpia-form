@@ -2,7 +2,7 @@
 import Banner from './AppBanner.vue'
 import ProgressTracker from './ProgressTracker.vue'
 import ExportPdfInfo from './ExportPdfInfo.vue'
-import SaveForm from './SaveForm.vue'
+import ExportMenu from './ExportMenu.vue'
 import TaskSection from './task/TaskSection.vue'
 import UiButton from './ui/UiButton.vue'
 import NavHeader from './NavHeader.vue'
@@ -18,6 +18,7 @@ import { useAnswerStore } from '../stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { useCalculationStore } from '../stores/calculations'
 import { exportToJson } from '../utils/jsonExport'
+import { exportToMarkdown } from '../utils/markdownExport'
 import { exportToPdf } from '../utils/pdfExport'
 import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
@@ -42,7 +43,6 @@ const props = withDefaults(defineProps<{
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
-const isSaveModalOpen = ref(false)
 const formStarted = ref(false)
 
 // Store setup
@@ -187,21 +187,17 @@ const hasRequiredUnanswered = computed(() => {
   }
 })
 
-const openSaveModal = () => {
-  isSaveModalOpen.value = true
-}
-const closeSaveModal = () => {
-  isSaveModalOpen.value = false
-}
-const handleSaveForm = (filename: string) => {
-  exportToJson(taskStore, answerStore, filename)
-}
-
-const handleExportPdf = async () => {
+const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
   try {
-    await exportToPdf(taskStore, answerStore, calculationStore)
+    if (format === 'pdf') {
+      await exportToPdf(taskStore, answerStore, calculationStore)
+    } else if (format === 'json') {
+      exportToJson(taskStore, answerStore)
+    } else {
+      await exportToMarkdown(taskStore, answerStore)
+    }
   } catch (error) {
-    console.error('Failed to export PDF:', error)
+    console.error(`Failed to export ${format}:`, error)
   }
 }
 
@@ -280,8 +276,7 @@ const isInformationalStep = computed(() => {
           aria-label="Formulier opslag">
           <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
             FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
-          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
-            @click="openSaveModal" />
+          <ExportMenu @export="handleExport" />
         </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
@@ -308,7 +303,7 @@ const isInformationalStep = computed(() => {
                   <UiButton variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
                     label="Volgende stap" :disabled="hasRequiredUnanswered" @click="goToNext" />
                 </div>
-                <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
+                <ExportMenu v-if="isLastTask" @export="handleExport" />
               </div>
             </div>
             <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
@@ -324,7 +319,4 @@ const isInformationalStep = computed(() => {
       </div>
     </div>
   </template>
-
-  <!-- Save Form Modal -->
-  <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
 </template>

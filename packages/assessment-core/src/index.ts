@@ -63,6 +63,7 @@ export { default as ImageField } from './components/task/ImageField.vue'
 export { default as ReferenceSuggestions } from './components/ReferenceSuggestions.vue'
 export { default as ActionPointsOverview } from './components/ActionPointsOverview.vue'
 export { default as ExportPdfInfo } from './components/ExportPdfInfo.vue'
+export { default as ExportMenu } from './components/ExportMenu.vue'
 
 // Image utils
 export { resizeImageToDataUri } from './utils/imageResize'
