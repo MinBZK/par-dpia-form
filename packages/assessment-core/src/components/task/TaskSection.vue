@@ -114,6 +114,21 @@ const missingSourceDependencies = computed(() => {
     return result
   }
 
+  // Resolve a task's root section id by climbing parentId. Robust to both
+  // integer root ids ("7") and dotted root ids ("1.0", as used by IAMA) —
+  // a naive sourceId.split('.')[0] would yield "1" for an IAMA "1.0" root,
+  // which never matches props.taskId and then crashed on taskById("1").
+  function resolveRootSectionId(taskId: string): string {
+    let current = taskStore.getTaskByIdFromNamespace(taskStore.activeNamespace, taskId)
+    if (!current) return taskId.split('.')[0]
+    while (current.parentId) {
+      const parent = taskStore.getTaskByIdFromNamespace(taskStore.activeNamespace, current.parentId)
+      if (!parent) break
+      current = parent
+    }
+    return current.id
+  }
+
   const allDescendantIds = task.value.childrenIds.flatMap(id => collectDescendants(id))
 
   for (const descendantId of allDescendantIds) {
@@ -124,19 +139,19 @@ const missingSourceDependencies = computed(() => {
       const sourceStatus = hasSourceTaskValues.value(descendantTask)
 
       if (!sourceStatus.hasValues) {
-        const mainSectionNumber = sourceId.split('.')[0]
+        const mainSectionId = resolveRootSectionId(sourceId)
 
         // Skip dependencies that point to the current section (same root task)
-        if (mainSectionNumber === props.taskId) continue
+        if (mainSectionId === props.taskId) continue
 
-        const mainTask = taskStore.taskById(mainSectionNumber)
-        const mainTaskHeader = mainTask ? mainTask.task : mainSectionNumber
+        const mainTask = taskStore.getTaskByIdFromNamespace(taskStore.activeNamespace, mainSectionId)
+        const mainTaskHeader = mainTask ? mainTask.task : mainSectionId
         const hasOfficialId = mainTask?.is_official_id === true
 
         dependencies.push({
           childId: descendantId,
           sourceId,
-          sectionNumber: mainSectionNumber,
+          sectionNumber: mainSectionId,
           sectionName: mainTaskHeader,
           hasOfficialId,
         })
