@@ -14,7 +14,7 @@ const roleLabels: Record<ProjectRole, string> = { viewer: 'kijker', commenter: '
 type AssessmentAuthRow = {
   id: string
   projectId: string
-  assessmentType: 'dpia' | 'prescan'
+  assessmentType: typeof assessmentInstances.$inferSelect.assessmentType
   name: string
   currentVersion: number
   createdAt: Date

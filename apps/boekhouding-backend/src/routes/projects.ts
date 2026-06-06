@@ -146,7 +146,7 @@ export async function projectRoutes(app: FastifyInstance) {
 
   app.post<{
     Params: { projectId: string }
-    Body: { name?: string; assessmentType: 'dpia' | 'prescan'; state?: unknown }
+    Body: { name?: string; assessmentType: 'dpia' | 'prescan' | 'iama'; state?: unknown }
   }>('/:projectId/assessments', {
     schema: {
       tags: ['assessments'],
@@ -154,7 +154,7 @@ export async function projectRoutes(app: FastifyInstance) {
         type: 'object',
         required: ['assessmentType'],
         properties: {
-          assessmentType: { type: 'string', enum: ['dpia', 'prescan'] },
+          assessmentType: { type: 'string', enum: ['dpia', 'prescan', 'iama'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
           state: { type: 'object' },
         },
@@ -169,7 +169,7 @@ export async function projectRoutes(app: FastifyInstance) {
 
     let finalName = name
     if (!finalName) {
-      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : assessmentType === 'iama' ? 'IAMA' : 'Pre-scan DPIA'
       const existing = await db
         .select()
         .from(assessmentInstances)
