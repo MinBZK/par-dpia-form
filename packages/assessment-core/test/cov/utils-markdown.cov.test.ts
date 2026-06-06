@@ -219,11 +219,13 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(stack.length).toBeGreaterThan(0)
   })
 
-  it('handles a horizontal rule', () => {
+  it('handles a horizontal rule as a width-adaptive bottom-border table', () => {
     const content = markdownToPdfContent('text\n\n---\n\nmore') as any
-    const hr = content.stack.find((c: any) => Array.isArray(c.canvas))
+    const hr = content.stack.find((c: any) => c.table)
     expect(hr).toBeDefined()
-    expect(hr.canvas[0].type).toBe('line')
+    expect(hr.table.widths).toEqual(['*'])
+    expect(hr.table.body[0][0].border).toEqual([false, false, false, true])
+    expect(hr.canvas).toBeUndefined()
   })
 
   it('ignores space tokens (space branch produces no content)', () => {
