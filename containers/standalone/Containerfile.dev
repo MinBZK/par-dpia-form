@@ -19,7 +19,7 @@ COPY sources/ /app/sources/
 RUN mkdir -p /app/sources/generated && \
     python3 /app/script/run_all.py \
       --schema /app/schemas/assessment-definition.v2.schema.json \
-      --source /app/sources/prescan_dpia.yaml \
+      --source /app/sources/prescan.yaml \
       --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
       --output-json /app/sources/generated/PreScanDPIA.json && \
     python3 /app/script/run_all.py \

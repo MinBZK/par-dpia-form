@@ -99,7 +99,7 @@ De `sources/` directory bevat de assessment-definities in YAML:
 | Bestand                      | Omschrijving                      |
 |------------------------------|-----------------------------------|
 | `dpia.yaml`                  | Volledige DPIA-definitie          |
-| `prescan_dpia.yaml`          | Pre-scan DPIA-definitie           |
+| `prescan.yaml`          | Pre-scan DPIA-definitie           |
 | `begrippenkader_dpia.yaml`   | Begrippenlijst met tooltips       |
 
 ### YAML verwerken

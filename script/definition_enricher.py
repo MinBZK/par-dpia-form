@@ -578,12 +578,12 @@ class DefinitionEnricher:
 def main():
     # Set up argument parser for custom paths with new parameter names
     parser = argparse.ArgumentParser(
-        description="Converteer dpia.yaml of prescan_dpia.yaml naar JSON met begrippenkader injecties."
+        description="Converteer dpia.yaml of prescan.yaml naar JSON met begrippenkader injecties."
     )
     parser.add_argument(
         "--source",
         required=True,
-        help="Pad naar bron YAML bestand (dpia.yaml of prescan_dpia.yaml)",
+        help="Pad naar bron YAML bestand (dpia.yaml of prescan.yaml)",
     )
     parser.add_argument(
         "--definitions", required=True, help="Pad naar begrippenkader_dpia.yaml bestand"

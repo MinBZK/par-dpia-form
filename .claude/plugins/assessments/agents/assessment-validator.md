@@ -22,7 +22,7 @@ cd "${PROJECT_DIR}"
 python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
 
 # Validate Pre-scan
-python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan.yaml
 
 # Validate Begrippenkader
 python script/schema_validator.py --schema schemas/begrippenkader.v1.schema.json --source sources/begrippenkader_dpia.yaml
@@ -41,7 +41,7 @@ python script/definition_enricher.py \
   --output /tmp/par_validate_dpia.json
 
 python script/definition_enricher.py \
-  --source sources/prescan_dpia.yaml \
+  --source sources/prescan.yaml \
   --definitions sources/begrippenkader_dpia.yaml \
   --output /tmp/par_validate_prescan.json
 ```
@@ -54,13 +54,13 @@ These checks go beyond what the schema validation covers. Perform them by readin
 
 ### 3a. Dependency ID validity
 
-For every `dependencies[].condition.id` and `dependencies[].source.id` in both `dpia.yaml` and `prescan_dpia.yaml`:
+For every `dependencies[].condition.id` and `dependencies[].source.id` in both `dpia.yaml` and `prescan.yaml`:
 - Verify the referenced ID exists as a task `id` in the same file
 - Report any dangling references: "Task X.Y.Z references non-existent task A.B.C"
 
 ### 3b. Reference integrity (Pre-scan → DPIA)
 
-For every `references.DPIA` entry in `prescan_dpia.yaml`:
+For every `references.DPIA` entry in `prescan.yaml`:
 - Extract the DPIA task ID (from simple string or object with `id` field)
 - Verify it exists in `dpia.yaml`
 - Report mismatches: "Pre-scan task X references DPIA task Y which does not exist"
@@ -106,12 +106,12 @@ Provide a clear summary:
 
 ### Schema Validation
 - dpia.yaml: PASS
-- prescan_dpia.yaml: PASS
+- prescan.yaml: PASS
 - begrippenkader_dpia.yaml: PASS
 
 ### Definition Enrichment
 - dpia.yaml enrichment: PASS
-- prescan_dpia.yaml enrichment: PASS
+- prescan.yaml enrichment: PASS
 
 ### Cross-reference Checks
 - Dependency IDs: PASS (X references checked)

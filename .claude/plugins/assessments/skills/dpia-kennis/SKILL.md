@@ -54,7 +54,7 @@ Tasks with `is_official_id: true` correspond to the numbered paragraphs in the o
 
 ## Pre-scan Logica
 
-The Pre-scan (`sources/prescan_dpia.yaml`) determines which assessments are required based on answers.
+The Pre-scan (`sources/prescan.yaml`) determines which assessments are required based on answers.
 
 ### Risicoscore-berekening
 
@@ -79,7 +79,7 @@ Scores are calculated per category using jexl expressions:
 | **DTIA** | Internationale doorgifte + specifiek doorgifte-mechanisme | - |
 | **IAMA** | Geautomatiseerde besluitvorming criteria | - |
 
-The full evaluation rules are in the `assessments:` section at the bottom of `sources/prescan_dpia.yaml`.
+The full evaluation rules are in the `assessments:` section at the bottom of `sources/prescan.yaml`.
 
 ## Reference Pre-scan ↔ DPIA
 

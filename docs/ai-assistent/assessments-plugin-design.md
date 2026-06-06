@@ -34,7 +34,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 
 ### Skill 1: assessment-schema-yaml
 
-**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `dpia.yaml` of `prescan_dpia.yaml`.
+**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `dpia.yaml` of `prescan.yaml`.
 
 **Inhoud**:
 - Structuur van `schemas/assessment-definition.v1.schema.json`:
@@ -135,7 +135,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 - Speciale taken: id "0" (Inleiding, niet-officieel), id "18" (Management summary), id "19" (Metadata), id "20" (Ondertekening)
 
 **Pre-scan logica:**
-- Pre-scan DPIA v2.0 (`sources/prescan_dpia.yaml`): bepaalt welke assessments verplicht zijn
+- Pre-scan DPIA v2.0 (`sources/prescan.yaml`): bepaalt welke assessments verplicht zijn
 - Risicoscore-berekening: scores per categorie (gewone/bijzondere/gevoelige persoonsgegevens, betrokkenen, frequentie, bewaartermijn, etc.)
 - Assessment-evaluatie:
   - DPIA verplicht als: nieuwe wetgeving OF risicoscore > 4 OF >= 1 AP-lijst item OF >= 2 EDPB-lijst items
@@ -179,7 +179,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 **Taken:**
 1. **Schema-validatie** — draai bestaande scripts:
    - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml`
-   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml`
+   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan.yaml`
    - `python script/schema_validator.py --schema schemas/begrippenkader.v1.schema.json --source sources/begrippenkader_dpia.yaml`
 2. **Definitie-enrichment test** — draai `script/definition_enricher.py` om te verifiëren dat de enrichment nog werkt na wijzigingen
 3. **Cross-referentie checks** (door de agent zelf):
