@@ -1,130 +1,64 @@
 import { computed } from 'vue'
-import { FormType } from '../models/dpia'
-import { useAnswerStore, type AnswerValue } from '../stores/answers'
-import { useTaskStore, type FlatTask } from '../stores/tasks'
+import type { FlatTask } from '../stores/tasks'
+import type { AnswerValue } from '../stores/answers'
 import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
+import { useReferences, type PreScanReference } from './useReferences'
 
-export interface PreScanReference {
-  taskId: string;
-  taskTitle: string;
-  answer: AnswerValue;
-  referenceType: string;
-  dpiaTaskId: string;
-}
+// Re-export the canonical PreScanReference type so existing consumers keep
+// importing it from this module.
+export type { PreScanReference }
 
+/**
+ * Backwards-compatible shim around the unified `useReferences` composable.
+ *
+ * The unified composable resolves both self- and cross-form references for the
+ * active form. This shim preserves the original pre-scan-only public surface
+ * (`findPreScanReferences`, `getPreviewDataForSection`, `getPreScanValueForTask`,
+ * `hasPreScanReference`) so all existing consumers keep compiling and behaving
+ * the same.
+ */
 export function usePreScanReferences() {
-  const answerStore = useAnswerStore()
-  const taskStore = useTaskStore()
+  const { getRootTaskId, findReferences, getPrefillValueForTask, getPreviewDataForSection } =
+    useReferences()
 
-  const getRootTaskId = (taskId: string): string => {
-    return taskId.split('.')[0];
-  }
-
+  // Resolve cross-form references (e.g. pre-scan → DPIA) pointing at a task or
+  // its section, optionally filtered by reference type, mapped to the legacy
+  // PreScanReference shape. Reimplemented on top of the unified findReferences.
   const findPreScanReferences = (
     dpiaTaskId: string,
     referenceTypes?: string | string[],
-    matchBySection: boolean = false
+    matchBySection: boolean = false,
   ): PreScanReference[] => {
-    if (!dpiaTaskId) return []
-
-    const results: PreScanReference[] = []
-    const sectionId = getRootTaskId(dpiaTaskId)
-    const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN))
-
-    // Convert referenceTypes to array for consistent processing
     const typesToMatch: string[] = referenceTypes
-      ? (Array.isArray(referenceTypes) ? referenceTypes : [referenceTypes])
+      ? Array.isArray(referenceTypes)
+        ? referenceTypes
+        : [referenceTypes]
       : []
 
-    for (const task of preScanTasks) {
-      if (!task.references || !task.references.DPIA) continue
-
-      const references = task.references.DPIA
-
-      // Function to check if a reference matches our criteria
-      const matchesReference = (ref: { type: string, id: string }): boolean => {
-        // If no types specified, match all types
-        const refTypeMatches = typesToMatch.length === 0 || typesToMatch.includes(ref.type)
-
-        // Match either by exact ID or by section
-        const refIdMatches = matchBySection
-          ? getRootTaskId(ref.id) === sectionId
-          : ref.id === dpiaTaskId
-
-        return refTypeMatches && refIdMatches
-      }
-
-      // Find matching references
-      const matchingReferences = references.filter(matchesReference)
-
-      // Process matching references
-      if (matchingReferences.length > 0) {
-        // Get Pre-scan value
-        const preScanInstanceIds = taskStore.getInstanceIdsForTaskFromNamespace(FormType.PRE_SCAN, task.id)
-
-        if (preScanInstanceIds.length > 0) {
-          const answer = answerStore.getAnswerFromNamespace(FormType.PRE_SCAN, preScanInstanceIds[0])
-
-          if (answer !== null && answer !== undefined) {
-            // Add each matching reference to results
-            for (const ref of matchingReferences) {
-              results.push({
-                taskId: task.id,
-                taskTitle: getPlainTextWithoutDefinitions(task.task),
-                answer: answer,
-                referenceType: ref.type,
-                dpiaTaskId: ref.id
-              })
-            }
-          }
-        }
-      }
-    }
-
-    return results
+    return findReferences(dpiaTaskId, { matchBySection })
+      .filter(({ scope }) => scope === 'cross')
+      .filter(({ reference }) => typesToMatch.length === 0 || typesToMatch.includes(reference.type))
+      .map(({ sourceTask, reference, answer }) => ({
+        taskId: sourceTask.id,
+        taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
+        answer,
+        referenceType: reference.type,
+        dpiaTaskId: reference.id,
+      }))
   }
 
-  const getPreviewDataForSection = (dpiaTaskId: string): PreScanReference[] => {
-    // Find all pre-view references in this section
-    return findPreScanReferences(dpiaTaskId, ['pre-view', 'many-to-many'], true)
+  // Deterministic prefill value for a DPIA task (delegates to the unified
+  // prefill resolver: prefill types only, string-boolean conversion).
+  const getPreScanValueForTask = (task: FlatTask): AnswerValue | boolean => {
+    return getPrefillValueForTask(task)
   }
 
-  const getPreScanValueForTask = (task: FlatTask): any => {
-    // Only apply to DPIA tasks
-    if (taskStore.activeNamespace !== FormType.DPIA) {
-      return null
-    }
-
-    // Find all references to this task
-    const references = findPreScanReferences(task.id)
-
-    // Process references based on type
-    for (const ref of references) {
-
-      // Skip pre-view references (handled separately)
-      if (ref.referenceType === 'pre-view') {
-        continue
-      }
-
-      // Convert string booleans to actual booleans
-      const processedAnswer = ref.answer === 'true' ? true :
-        ref.answer === 'false' ? false :
-          ref.answer
-
-      // We do not support one-to-many at this stage.
-      if (ref.referenceType === 'pre-fill' || ref.referenceType === 'one-to-one' || ref.referenceType === 'one-to-many') {
-        return processedAnswer
-      }
-    }
-
-    return null
-  }
-
+  // True when any reference of the given type points at the task. Since
+  // findReferences scans all namespaces, `.some(...)` on the reference type is
+  // the faithful equivalent of the original implementation.
   const hasPreScanReference = computed(() => {
-    return (task: FlatTask, referenceType: string): boolean => {
-      const references = findPreScanReferences(task.id, referenceType)
-      return references.length > 0
-    }
+    return (task: FlatTask, referenceType: string): boolean =>
+      findReferences(task.id).some(({ reference }) => reference.type === referenceType)
   })
 
   return {
@@ -132,6 +66,6 @@ export function usePreScanReferences() {
     findPreScanReferences,
     getPreviewDataForSection,
     getPreScanValueForTask,
-    hasPreScanReference
+    hasPreScanReference,
   }
 }
