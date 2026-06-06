@@ -45,7 +45,7 @@ jobs:
 
       - name: Generate assessment JSON sources
         run: |
-          pip install pyyaml jsonschema
+          pip install pyyaml jsonschema pytest
           mkdir -p sources/generated
           python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
@@ -63,6 +63,9 @@ jobs:
             --begrippen-yaml sources/begrippenkader_iama.yaml \
             --output-json sources/generated/IAMA.json \
             --definitions-once-per-page
+
+      - name: Run Python pipeline tests
+        run: pytest script/tests -q
 
       - name: Type check backend
         run: cd apps/boekhouding-backend && npx tsc --noEmit
