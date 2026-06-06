@@ -8,10 +8,17 @@ import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
+import { buildOutputData } from './jsonExport'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
+import type { StyleDictionary, TDocumentDefinitions, TDocumentInformation, Content } from 'pdfmake/interfaces'
 import FontService from '../services/fontService'
+
+// Extends pdfmake's document information with a custom key carrying the full
+// assessment state, so the exported PDF doubles as a re-importable data file.
+interface AssessmentDocumentInformation extends TDocumentInformation {
+  AssessmentData: string
+}
 
 // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
 pdfMake.addVirtualFileSystem(pdfFonts)
@@ -94,6 +101,13 @@ export async function exportToPdf(
     },
   }
 
+  const info: AssessmentDocumentInformation = {
+    title: `${formType} Rapportagemodel`,
+    author: `Invulhulp DPIA`,
+    creator: `Invulhulp DPIA`,
+    AssessmentData: JSON.stringify(buildOutputData(taskStore, answerStore)),
+  }
+
   try {
     const docDefinition: TDocumentDefinitions = {
       defaultStyle: {
@@ -135,11 +149,7 @@ export async function exportToPdf(
         }
       },
 
-      info: {
-        title: `${formType} Rapportagemodel`,
-        author: `Invulhulp DPIA`,
-        creator: `Invulhulp DPIA`,
-      },
+      info,
 
       pageSize: 'A4',
       pageMargins: [70, 70, 70, 70],
