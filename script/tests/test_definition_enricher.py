@@ -147,7 +147,11 @@ def _deel_with_repeated_term():
             "description": "Intro",
             "tasks": [
                 {"id": "1.1", "task": "Een persoonsgegeven hier", "description": ""},
-                {"id": "1.2", "task": "Nog een persoonsgegeven daar", "description": ""},
+                {
+                    "id": "1.2",
+                    "task": "Nog een persoonsgegeven daar",
+                    "description": "",
+                },
             ],
         }
     ]
@@ -161,8 +165,8 @@ def test_once_per_page_false_enriches_every_occurrence():
     )
     subtasks = result[0]["tasks"]
 
-    assert 'aiv-definition' in subtasks[0]["task"]
-    assert 'aiv-definition' in subtasks[1]["task"]
+    assert "aiv-definition" in subtasks[0]["task"]
+    assert "aiv-definition" in subtasks[1]["task"]
 
 
 def test_once_per_page_true_enriches_only_first_occurrence_per_deel():
@@ -174,8 +178,8 @@ def test_once_per_page_true_enriches_only_first_occurrence_per_deel():
     subtasks = result[0]["tasks"]
 
     # First occurrence enriched, second left alone (same page).
-    assert 'aiv-definition' in subtasks[0]["task"]
-    assert 'aiv-definition' not in subtasks[1]["task"]
+    assert "aiv-definition" in subtasks[0]["task"]
+    assert "aiv-definition" not in subtasks[1]["task"]
 
 
 def test_once_per_page_true_resets_between_deels():
@@ -201,8 +205,8 @@ def test_once_per_page_true_resets_between_deels():
     result = process_tasks(two_deels, term_map, level=0, once_per_page=True)
 
     # Each deel starts fresh, so the term is enriched once in each.
-    assert 'aiv-definition' in result[0]["tasks"][0]["task"]
-    assert 'aiv-definition' in result[1]["tasks"][0]["task"]
+    assert "aiv-definition" in result[0]["tasks"][0]["task"]
+    assert "aiv-definition" in result[1]["tasks"][0]["task"]
 
 
 def test_process_dpia_enriches_top_level_description():
@@ -215,4 +219,4 @@ def test_process_dpia_enriches_top_level_description():
     }
     result = process_dpia(dpia, term_map)
 
-    assert 'aiv-definition' in result["description"]
+    assert "aiv-definition" in result["description"]

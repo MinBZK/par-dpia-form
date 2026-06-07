@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - experimenteel/samenwerken
   pull_request:
     branches:
       - main
+      - experimenteel/samenwerken
   workflow_dispatch:
 
 jobs:
