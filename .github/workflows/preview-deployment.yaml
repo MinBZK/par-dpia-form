@@ -1,0 +1,85 @@
+name: Preview deployment
+
+on:
+  pull_request:
+    branches: [experimenteel/samenwerken]
+    types: [opened, reopened, synchronize, closed]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+  deployments: write
+
+env:
+  PROJECT_ID: asses-k2n
+  DEPLOYMENT_CLONE_FROM: acceptatie
+
+jobs:
+  build:
+    if: github.event.action != 'closed' && github.event.pull_request.user.type != 'Bot'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/_build-images.yaml
+    with:
+      frontend-image: ghcr.io/minbzk/par-dpia-form/preview/frontend
+      backend-image: ghcr.io/minbzk/par-dpia-form/preview/backend
+      tag-prefix: pr-${{ github.event.pull_request.number }}-
+
+  deploy-preview:
+    needs: build
+    if: github.event.action != 'closed' && github.event.pull_request.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      deployments: write
+    environment:
+      name: pr-${{ github.event.pull_request.number }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - id: deploy
+        uses: RijksICTGilde/zad-actions/deploy@v4
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          clone-from: ${{ env.DEPLOYMENT_CLONE_FROM }}
+          comment-on-pr: 'true'
+          wait-for-ready: 'true'
+          health-endpoint: /api/health
+          components: >-
+            [
+              {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.build.outputs.backend-image }}"}
+            ]
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: RijksICTGilde/zad-actions/cleanup@v4
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          delete-github-deployments: 'true'
+          delete-pr-comment: 'true'
+      - name: Delete this PR's preview container images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TAG: pr-${{ github.event.pull_request.number }}
+        run: |
+          for pkg in preview/frontend preview/backend; do
+            enc="par-dpia-form%2F${pkg/\//%2F}"
+            gh api --paginate "/orgs/minbzk/packages/container/${enc}/versions" \
+              --jq ".[] | select(.metadata.container.tags[] | startswith(\"${PR_TAG}-\")) | .id" \
+              | while read -r id; do
+                  gh api -X DELETE "/orgs/minbzk/packages/container/${enc}/versions/${id}" || true
+                done
+          done

@@ -6,150 +6,28 @@ on:
       - experimenteel/samenwerken
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
+
 env:
-  REGISTRY: ghcr.io
-  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
-  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
   PROJECT_ID: asses-k2n
   DEPLOYMENT_NAME: productie
 
 jobs:
-  generate-sources:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          python-version: '3.14'
-          enable-cache: true
-
-      - name: Generate JSON from YAML definitions
-        run: |
-          mkdir -p sources/generated
-          uv run --frozen --no-dev python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/prescan.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/PreScanDPIA.json \
-            --output-md docs/questions/questions_prescan_DPIA.md
-
-          uv run --frozen --no-dev python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/dpia.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/DPIA.json \
-            --output-md docs/questions/questions_DPIA.md
-
-          uv run --frozen --no-dev python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/iama.yaml \
-            --begrippen-yaml sources/begrippenkader_iama.yaml \
-            --output-json sources/generated/IAMA.json \
-            --definitions-once-per-page
-
-      - name: Upload generated sources
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-sources
-          path: sources/generated/
-          retention-days: 1
-
-  build-backend:
-    needs: generate-sources
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.image-ref.outputs.image }}
+  build:
     permissions:
       contents: read
       packages: write
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Download generated sources
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-sources
-          path: sources/generated/
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.BACKEND_IMAGE }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
-
-      - name: Build and push backend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: containers/backend/Containerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Set image reference
-        id: image-ref
-        run: echo "image=${{ env.BACKEND_IMAGE }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
-
-  build-frontend:
-    needs: generate-sources
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.image-ref.outputs.image }}
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Download generated sources
-        uses: actions/download-artifact@v4
-        with:
-          name: generated-sources
-          path: sources/generated/
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.FRONTEND_IMAGE }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=latest
-
-      - name: Build and push frontend
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: containers/frontend/Containerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Set image reference
-        id: image-ref
-        run: echo "image=${{ env.FRONTEND_IMAGE }}:${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+    uses: ./.github/workflows/_build-images.yaml
+    with:
+      frontend-image: ghcr.io/minbzk/par-dpia-form/dev/frontend
+      backend-image: ghcr.io/minbzk/par-dpia-form/dev/backend
+      tag-latest: true
 
   deploy:
-    needs: [build-frontend, build-backend]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -164,6 +42,6 @@ jobs:
           wait-for-ready: 'true'
           components: >-
             [
-              {"name": "frontend", "image": "${{ needs.build-frontend.outputs.image }}"},
-              {"name": "api", "image": "${{ needs.build-backend.outputs.image }}"}
+              {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.build.outputs.backend-image }}"}
             ]
