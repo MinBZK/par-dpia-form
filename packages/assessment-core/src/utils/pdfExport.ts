@@ -198,6 +198,22 @@ export async function exportToPdf(
   }
 }
 
+// Build consecutively-numbered report sections for a list of root tasks,
+// starting at `startNumber`. Shared by all three builders below; they differ
+// only in which tasks they pass and what precedes the numbered sections (the
+// pre-scan prepends a calculated Resultaten section, the DPIA prepends
+// unnumbered metadata/signing/summary sections, the IAMA prepends nothing).
+function buildNumberedSections(
+  tasks: FlatTask[],
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+  startNumber: number,
+): Content[] {
+  return tasks.map((task, index) =>
+    buildNumberedSection(task, taskStore, answerStore, startNumber + index),
+  )
+}
+
 function buildDpiaContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType
@@ -226,11 +242,7 @@ function buildDpiaContentSections(
     contentSections.push(buildUnNumberedSection(managementSummaryTask, taskStore, answerStore))
   }
 
-  let sectionNumber = 1
-  for (const task of officialTasks) {
-    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
-    sectionNumber++
-  }
+  contentSections.push(...buildNumberedSections(officialTasks, taskStore, answerStore, 1))
 
   return contentSections
 }
@@ -244,34 +256,19 @@ function buildPreScanContentSections(
   const contentSections: Content[] = []
 
   contentSections.push(buildResultsSection(calculationStore, 1))
-
-  let sectionNumber = 2
-  for (const task of rootTasks) {
-    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
-    sectionNumber++
-  }
+  contentSections.push(...buildNumberedSections(rootTasks, taskStore, answerStore, 2))
 
   return contentSections
 }
 
-// Like the DPIA, the IAMA has no calculated results section — only the pre-scan
-// has one. Its content is the numbered sections starting at 1; reusing the
-// pre-scan section builder would inject a spurious empty "Resultaten" section
-// and shift every IAMA section number by one.
+// The IAMA is plain numbered sections from 1: no calculated Resultaten section
+// (unlike the pre-scan) and no unnumbered special sections (unlike the DPIA).
 function buildIamaContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
 ): Content[] {
   const rootTasks = taskStore.getRootTasks.filter(task => !task.type.includes('signing'))
-  const contentSections: Content[] = []
-
-  let sectionNumber = 1
-  for (const task of rootTasks) {
-    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
-    sectionNumber++
-  }
-
-  return contentSections
+  return buildNumberedSections(rootTasks, taskStore, answerStore, 1)
 }
 
 function buildResultsSection(
