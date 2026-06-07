@@ -80,4 +80,37 @@ describe('POST /projects/:projectId/assessments', () => {
     expect(res.statusCode).toBe(201)
     expect(res.json().name).toBe('IAMA')
   })
+
+  it('rejects an initial state containing a disallowed (SVG) image (no create bypass)', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { answers: { '0.1': { value: { data: 'data:image/svg+xml;base64,PHN2Zz4=' }, lastEditedAt: '2026-01-01T00:00:00Z' } } },
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('afbeeldingsformaat')
+  })
+
+  it('accepts an initial state with an allowed WebP image', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { answers: { '0.1': { value: { data: 'data:image/webp;base64,UklGRg==' }, lastEditedAt: '2026-01-01T00:00:00Z' } } },
+      },
+    })
+    expect(res.statusCode).toBe(201)
+  })
 })

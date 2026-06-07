@@ -4,6 +4,7 @@ import { projects, projectMembers, assessmentInstances, assessmentVersions, asse
 import { eq, and } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
+import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 
 export async function projectRoutes(app: FastifyInstance) {
   // All project routes require auth
@@ -156,6 +157,17 @@ export async function projectRoutes(app: FastifyInstance) {
     const { projectId } = request.params
     const { name, assessmentType, state } = request.body
     const userId = request.user!.id
+
+    // Also applies on create, otherwise an SVG bypasses the image check via create.
+    if (!hasOnlyAllowedImages(state)) {
+      return reply.status(400).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/400',
+        title: 'Ongeldig verzoek',
+        status: 400,
+        detail: 'Ongeldig afbeeldingsformaat. Toegestaan zijn PNG, JPEG, WebP en GIF.',
+        instance: request.url,
+      })
+    }
 
     let finalName = name
     if (!finalName) {

@@ -68,6 +68,7 @@ vi.mock('@overheid-assessment/core', () => ({
     PRE_SCAN: 'prescan',
     IAMA: 'iama',
   },
+  OUTPUT_SCHEMA_URL: 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json',
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
     (html ?? '').replace(/<[^>]*>/g, ''),
   autoGrowTextarea: autoGrowTextareaMock,
@@ -485,7 +486,9 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     const [, restoredState] = apiUpdate.mock.calls[0]
     expect((restoredState as any).metadata).toEqual({ completedTasks: [] })
     expect((restoredState as any).answers).toEqual({})
-    expect((restoredState as any).$schema).toBeUndefined()
+    // Even when the current state lacks $schema (legacy data), restore must emit a
+    // canonical $schema so the strict backend accepts the save.
+    expect((restoredState as any).$schema).toBe('https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json')
   })
 
   it('handleRestore returns early when confirm word not matching', async () => {
@@ -1311,6 +1314,8 @@ describe('VersionHistory — field-level restore', () => {
 
     const [, state, opts] = apiUpdate.mock.calls[0]
     expect((state as any).answers['1.1'].value).toBe('oud')
+    // Field restore emits a canonical $schema even though the current state lacked one.
+    expect((state as any).$schema).toBe('https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json')
     expect(opts.changeDescription).toBe('Antwoord uit versie 1 hersteld')
     expect(opts.newVersion).toBe(true)
     expect(apiVersions).toHaveBeenCalledTimes(2)

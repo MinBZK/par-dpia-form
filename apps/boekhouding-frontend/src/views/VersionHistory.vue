@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -174,6 +174,9 @@ async function handleFieldRestore() {
       : field.editType === 'instance_added' || field.editType === 'instance_removed'
       ? `Groep uit versie ${originVer} hersteld`
       : `Antwoord uit versie ${originVer} hersteld`
+    // Legacy state (saved before $schema was emitted) lacks it; emit a canonical
+    // $schema so the strict backend accepts the field restore.
+    currentState.$schema = currentState.$schema || OUTPUT_SCHEMA_URL
     await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
 
     // Refresh version list
@@ -308,9 +311,9 @@ async function handleRestore() {
       ...currentMeta,
       completedTasks: restoredMeta.completedTasks || [],
     }
-    if (currentState.$schema) {
-      restoredState.$schema = currentState.$schema
-    }
+    // Always emit a canonical $schema so the strict backend accepts the restored
+    // save, even when the current state is legacy data without one.
+    restoredState.$schema = currentState.$schema || OUTPUT_SCHEMA_URL
     if (!restoredState.answers) {
       restoredState.answers = {}
     }
