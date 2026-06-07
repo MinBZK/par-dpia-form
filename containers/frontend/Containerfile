@@ -18,7 +18,7 @@ RUN pnpm install --frozen-lockfile || pnpm install
 # Copy source
 COPY packages/assessment-core/ packages/assessment-core/
 COPY sources/generated/ sources/generated/
-COPY sources/datamodel/ sources/datamodel/
+COPY sources/assets/ sources/assets/
 COPY apps/standalone-form/ apps/standalone-form/
 COPY apps/boekhouding-frontend/ apps/boekhouding-frontend/
 

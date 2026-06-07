@@ -10,8 +10,8 @@ import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '../../stores/tasks'
 import { computed } from 'vue'
-import risicoMatrixImage from '../../../../../sources/datamodel/risico_matrix.png'
-import stroomschemaIamaV2Image from '../../../../../sources/datamodel/stroomschema_iama_v2.png'
+import risicoMatrixImage from '../../../../../sources/assets/risico_matrix.png'
+import stroomschemaIamaV2Image from '../../../../../sources/assets/stroomschema_iama_v2.png'
 
 const props = defineProps<{
   taskId: string
