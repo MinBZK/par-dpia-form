@@ -1,9 +1,14 @@
 name: Pre-commit
 
 on:
+  push:
+    branches:
+      - main
+      - experimenteel/samenwerken
   pull_request:
     branches:
       - main
+      - experimenteel/samenwerken
 
 jobs:
   pre-commit:

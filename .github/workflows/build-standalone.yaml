@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - experimenteel/samenwerken
   pull_request:
     branches:
       - main
+      - experimenteel/samenwerken
   workflow_dispatch:
 
 jobs:
@@ -52,8 +54,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Enable pnpm via corepack
-        run: corepack enable
+      - name: Enable corepack & pin pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
 
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
