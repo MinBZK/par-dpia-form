@@ -18,11 +18,11 @@ Run the existing Python validation scripts against all source files:
 ```bash
 cd "${PROJECT_DIR}"
 
-# Validate DPIA
-python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
-
 # Validate Pre-scan
 python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan.yaml
+
+# Validate DPIA
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
 
 # Validate IAMA
 python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/iama.yaml
@@ -39,14 +39,14 @@ Verify that the definition enricher still works after changes:
 
 ```bash
 python script/definition_enricher.py \
-  --source sources/dpia.yaml \
-  --definitions sources/begrippenkader_dpia.yaml \
-  --output /tmp/par_validate_dpia.json
-
-python script/definition_enricher.py \
   --source sources/prescan.yaml \
   --definitions sources/begrippenkader_dpia.yaml \
   --output /tmp/par_validate_prescan.json
+
+python script/definition_enricher.py \
+  --source sources/dpia.yaml \
+  --definitions sources/begrippenkader_dpia.yaml \
+  --output /tmp/par_validate_dpia.json
 
 # IAMA uses its own begrippenkader and the --definitions-once-per-page flag
 python script/definition_enricher.py \
