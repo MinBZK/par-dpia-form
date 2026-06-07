@@ -270,6 +270,49 @@ describe('createLocalPersistence — loadAppState', () => {
   })
 })
 
+describe('createLocalPersistence — hasSavedState', () => {
+  it('returns false when nothing is stored for the namespace', () => {
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(false)
+  })
+
+  it('returns true for a flat state with at least one answer', () => {
+    localStorage.setItem(
+      storageKey(FormType.DPIA),
+      JSON.stringify({ answers: { '0.1': { value: 'X' } } }),
+    )
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(true)
+  })
+
+  it('returns false for a flat state with empty answers', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {} }))
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(false)
+  })
+
+  it('returns false when the stored state has no answers field', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ metadata: { urn: DPIA_URN } }))
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(false)
+  })
+
+  it('returns true for an old namespaced state with answers for that namespace', () => {
+    localStorage.setItem(
+      storageKey(FormType.DPIA),
+      JSON.stringify({ answers: { [FormType.DPIA]: { '0.1': { value: 'NS' } } } }),
+    )
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(true)
+  })
+
+  it('returns false when the stored JSON is invalid', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), '{ not valid json')
+    const provider = createLocalPersistence()
+    expect(provider.hasSavedState(FormType.DPIA)).toBe(false)
+  })
+})
+
 describe('createLocalPersistence — applyAppState', () => {
   it('writes completedTasks and flat answers into the stores', () => {
     const taskStore = useTaskStore()

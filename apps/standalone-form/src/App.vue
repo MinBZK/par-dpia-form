@@ -29,7 +29,18 @@ const schemaStore = useSchemaStore()
 
 const currentView = ref<ViewState>(ViewState.Landing)
 
+// Which assessments have saved progress in localStorage. Recomputed whenever
+// the landing page is shown, since localStorage is not reactive.
+const cachedTypes = ref<FormType[]>([])
+const refreshCachedTypes = () => {
+  cachedTypes.value = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].filter((type) =>
+    persistence.hasSavedState(type),
+  )
+}
+refreshCachedTypes()
+
 const navigateTo = (view: ViewState) => {
+  if (view === ViewState.Landing) refreshCachedTypes()
   currentView.value = view
 }
 
@@ -54,18 +65,41 @@ const navigationFunctions: NavigationFunctions = {
     navigateTo(ViewState.IAMA)
   },
 }
+
+// "Nieuwe starten": discard the saved session, then open a fresh form.
+const goByType: Record<FormType, () => void> = {
+  [FormType.PRE_SCAN]: () => navigationFunctions.goToPreScanDPIA(),
+  [FormType.DPIA]: () => navigationFunctions.goToDPIA(),
+  [FormType.IAMA]: () => navigationFunctions.goToIAMA!(),
+}
+const startFresh = (type: FormType) => {
+  persistence.clearSavedState(type)
+  goByType[type]()
+}
+
+// Resuming (saved state present) jumps straight into the form; a fresh start
+// shows the intro/upload page. clearSavedState() runs before navigation, so
+// this reflects the right intent at mount time.
+const isResume = (type: FormType) => persistence.hasSavedState(type)
 </script>
 
 <template>
   <!-- Landing page -->
-  <LandingView v-if="currentView === ViewState.Landing" :navigation="navigationFunctions" />
+  <LandingView
+    v-if="currentView === ViewState.Landing"
+    :navigation="navigationFunctions"
+    :cached-types="cachedTypes"
+    @start-fresh="startFresh"
+  />
 
   <!-- DPIA Form -->
   <Form
     v-if="currentView === ViewState.DPIA"
     :navigation="navigationFunctions"
     :namespace="FormType.DPIA"
-     :validData="schemaStore.getSchema(FormType.DPIA)"
+    :validData="schemaStore.getSchema(FormType.DPIA)"
+    :autoStart="isResume(FormType.DPIA)"
+    bannerTitle="Invulhulpen"
   />
 
   <!-- Pre Scan DPIA Form -->
@@ -74,6 +108,8 @@ const navigationFunctions: NavigationFunctions = {
     :navigation="navigationFunctions"
     :namespace="FormType.PRE_SCAN"
     :validData="schemaStore.getSchema(FormType.PRE_SCAN)"
+    :autoStart="isResume(FormType.PRE_SCAN)"
+    bannerTitle="Invulhulpen"
   />
 
   <!-- IAMA Form -->
@@ -82,5 +118,7 @@ const navigationFunctions: NavigationFunctions = {
     :navigation="navigationFunctions"
     :namespace="FormType.IAMA"
     :validData="schemaStore.getSchema(FormType.IAMA)"
+    :autoStart="isResume(FormType.IAMA)"
+    bannerTitle="Invulhulpen"
   />
 </template>

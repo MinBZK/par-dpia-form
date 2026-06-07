@@ -1,40 +1,126 @@
 <script setup lang="ts">
-import { AppBanner, UiButton, ExportPdfInfo, type NavigationFunctions } from '@overheid-assessment/core'
+import { computed, ref } from 'vue'
+import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
 
-defineProps<{
+const props = defineProps<{
   navigation: NavigationFunctions
+  cachedTypes: FormType[]
 }>()
+
+const emit = defineEmits<{
+  startFresh: [type: FormType]
+}>()
+
+interface AssessmentCard {
+  type: FormType
+  title: string
+  description: string
+  startLabel: string
+  freshLabel: string
+  start: () => void
+}
+
+const cards: AssessmentCard[] = [
+  {
+    type: FormType.PRE_SCAN,
+    title: 'Pre-scan',
+    description: 'Toets of een DPIA, DTIA, IAMA of KIA nodig is.',
+    startLabel: 'Start pre-scan',
+    freshLabel: 'Start nieuwe pre-scan',
+    start: () => props.navigation.goToPreScanDPIA(),
+  },
+  {
+    type: FormType.DPIA,
+    title: 'DPIA',
+    description: 'Vul stap voor stap het rijksmodel DPIA in.',
+    startLabel: 'Start DPIA',
+    freshLabel: 'Start nieuwe DPIA',
+    start: () => props.navigation.goToDPIA(),
+  },
+  {
+    type: FormType.IAMA,
+    title: 'IAMA',
+    description: 'Vul stap voor stap het Impact Assessment Mensenrechten en Algoritmes in.',
+    startLabel: 'Start IAMA',
+    freshLabel: 'Start nieuwe IAMA',
+    start: () => props.navigation.goToIAMA?.(),
+  },
+]
+
+function hasCache(type: FormType): boolean {
+  return props.cachedTypes.includes(type)
+}
+
+// "Start nieuwe X" confirmation
+const freshTarget = ref<FormType | null>(null)
+const freshTargetCard = computed(() => cards.find((card) => card.type === freshTarget.value))
+function askFresh(type: FormType) {
+  freshTarget.value = type
+}
+function cancelFresh() {
+  freshTarget.value = null
+}
+function confirmFresh() {
+  emit('startFresh', freshTarget.value as FormType)
+  freshTarget.value = null
+}
+
+// Download the running single-file build as a standalone HTML file.
+// Only meaningful on the hosted, built app: not in dev (no single-file bundle
+// exists) and not in an already-downloaded offline copy opened from disk.
+const canDownloadOfflineCopy = computed(
+  () => import.meta.env.PROD && window.location.protocol !== 'file:',
+)
+const downloading = ref(false)
+const downloadFailed = ref(false)
+async function downloadOfflineApp() {
+  downloading.value = true
+  downloadFailed.value = false
+  try {
+    const response = await fetch(window.location.href, { cache: 'no-store' })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const html = await response.text()
+    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'invulhulp-pre-scan-dpia-iama.html'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch {
+    downloadFailed.value = true
+  } finally {
+    downloading.value = false
+  }
+}
 </script>
 
 <template>
-  <AppBanner />
+  <AppBanner title="Invulhulpen" />
   <div class="rvo-layout-column rvo-layout-gap--3xl rvo-margin-block-start--xl">
     <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
       <h1 class="utrecht-heading-1">Invulhulp voor pre-scan, DPIA en IAMA</h1>
       <div class="rvo-layout-grid-container rvo-margin-inline-end--md">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
+          <div
+            v-for="card in cards"
+            :key="card.type"
+            class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100"
+          >
             <div class="rvo-card__content card-content-flex">
-              <h2 class="utrecht-heading-2 rvo-margin--none">Pre-scan</h2>
-              <p class="rvo-padding-block-end--sm">Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
-              <UiButton variant="primary" label="Start pre-scan" class="card-button"
-                @click="navigation.goToPreScanDPIA" />
-            </div>
-          </div>
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
-            <div class="rvo-card__content card-content-flex">
-              <h2 class="utrecht-heading-2 rvo-margin--none">DPIA</h2>
-              <p class="rvo-padding-block-end--sm">Vul stap voor stap het rijksmodel DPIA in.</p>
-              <UiButton variant="primary" label="Start DPIA" class="card-button"
-                @click="navigation.goToDPIA" />
-            </div>
-          </div>
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card__full-card-link rvo-card--full-colour--grijs-100">
-            <div class="rvo-card__content card-content-flex">
-              <h2 class="utrecht-heading-2 rvo-margin--none">IAMA</h2>
-              <p class="rvo-padding-block-end--sm">Vul stap voor stap het Impact Assessment Mensenrechten en Algoritmes in.</p>
-              <UiButton variant="primary" label="Start IAMA" class="card-button"
-                @click="navigation.goToIAMA?.()" />
+              <h2 class="utrecht-heading-2 rvo-margin--none">{{ card.title }}</h2>
+              <p class="rvo-padding-block-end--sm">{{ card.description }}</p>
+              <template v-if="hasCache(card.type)">
+                <div class="card-actions">
+                  <UiButton variant="primary" label="Verder gaan" class="card-button"
+                    @click="card.start()" />
+                  <UiButton variant="tertiary" :label="card.freshLabel" class="card-button-fresh"
+                    @click="askFresh(card.type)" />
+                </div>
+              </template>
+              <UiButton v-else variant="primary" :label="card.startLabel" class="card-button"
+                @click="card.start()" />
             </div>
           </div>
         </div>
@@ -114,6 +200,69 @@ defineProps<{
         <ExportPdfInfo />
       </div>
 
+      <div v-if="canDownloadOfflineCopy" class="rvo-margin-block-start--xl rvo-margin-block-end--xl">
+        <h2 class="utrecht-heading-2">Offline gebruiken</h2>
+        <p>
+          Je kunt deze invulhulp als één HTML-bestand downloaden en lokaal openen, ook zonder internet.
+          Het bestand bevat de volledige invulhulp. Je gegevens blijven op je eigen computer.
+        </p>
+        <UiButton variant="secondary" label="Download invulhulp als HTML-bestand" :disabled="downloading"
+          @click="downloadOfflineApp" />
+        <p v-if="downloadFailed" role="alert" class="rvo-margin-block-start--sm">
+          Het downloaden is niet gelukt. Probeer het opnieuw.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- "Start nieuwe X" confirmation -->
+  <div v-if="freshTarget" class="fresh-confirm-overlay" @click.self="cancelFresh">
+    <div class="fresh-confirm" role="dialog" aria-modal="true" aria-labelledby="fresh-confirm-title">
+      <h2 id="fresh-confirm-title" class="utrecht-heading-2">Nieuwe {{ freshTargetCard?.title }} starten?</h2>
+      <p class="utrecht-paragraph">
+        Je hebt een opgeslagen versie van de {{ freshTargetCard?.title }}. Als je een nieuwe start, wordt
+        die opgeslagen versie definitief gewist. Dit kan niet ongedaan worden gemaakt.
+      </p>
+      <div class="fresh-confirm__actions">
+        <UiButton variant="tertiary" label="Annuleren" @click="cancelFresh" />
+        <UiButton variant="warning" :label="`Ja, start nieuwe ${freshTargetCard?.title}`" @click="confirmFresh" />
+      </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.fresh-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.fresh-confirm {
+  background: #fff;
+  max-width: 32rem;
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: 4px;
+}
+
+.fresh-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 1rem;
+}
+</style>

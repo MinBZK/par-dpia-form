@@ -7,10 +7,25 @@ import {
   OUTPUT_SCHEMA_URL,
   type PersistenceProvider,
   type AssessmentState,
+  type GroupedAnswerValue,
   migrateStateV1toV2,
   applyStateToStores,
   groupAnswers,
 } from '@overheid-assessment/core'
+
+/** Loosely-typed shape of state read from storage: it may be a current flat
+ *  state, or an older namespaced/taskState format handled during migration. */
+interface LoadedState {
+  metadata?: { urn?: string; createdAt?: string; completedTasks?: string[] }
+  answers?: Record<string, GroupedAnswerValue | Record<string, GroupedAnswerValue>>
+  taskState?: Record<string, { completedRootTaskIds?: string[] }>
+}
+
+/** Persistence provider with standalone-only extras for the landing page. */
+export interface LocalPersistence extends PersistenceProvider {
+  /** Whether a non-empty saved state exists for the given assessment type. */
+  hasSavedState(namespace: FormType): boolean
+}
 
 function getStorageKey(namespace: string): string {
   return `app_state_${namespace}`
@@ -20,7 +35,7 @@ function getUiStorageKey(namespace: string): string {
   return `ui_state_${namespace}`
 }
 
-export function createLocalPersistence(): PersistenceProvider {
+export function createLocalPersistence(): LocalPersistence {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
 
@@ -67,24 +82,24 @@ export function createLocalPersistence(): PersistenceProvider {
       try { urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA) } catch { /* */ }
       try { urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN) } catch { /* */ }
 
-      const raw = JSON.parse(stateData)
-      const migrated = migrateStateV1toV2(raw as any, urnLookup)
+      const raw = JSON.parse(stateData) as AssessmentState
+      const migrated = migrateStateV1toV2(raw, urnLookup) as LoadedState
 
-      const answers = (migrated as any).answers || {}
-      const metadata = migrated.metadata || {} as any
+      const answers = migrated.answers || {}
+      const metadata = migrated.metadata || {}
 
       // Old format: answers wrapped in namespace key
       const isNamespaced = answers[FormType.DPIA] || answers[FormType.PRE_SCAN]
 
-      let resolvedAnswers: Record<string, any>
+      let resolvedAnswers: Record<string, GroupedAnswerValue>
       let completedTasks: string[]
 
       if (isNamespaced) {
-        resolvedAnswers = answers[ns] || {}
-        completedTasks = (migrated as any).taskState?.[ns]?.completedRootTaskIds
+        resolvedAnswers = (answers[ns] as Record<string, GroupedAnswerValue>) || {}
+        completedTasks = migrated.taskState?.[ns]?.completedRootTaskIds
           || metadata.completedTasks || []
       } else {
-        resolvedAnswers = answers
+        resolvedAnswers = answers as Record<string, GroupedAnswerValue>
         completedTasks = metadata.completedTasks || []
       }
 
@@ -108,6 +123,20 @@ export function createLocalPersistence(): PersistenceProvider {
 
   function applyAppState(state: AssessmentState): void {
     applyStateToStores(state, taskStore, answerStore)
+  }
+
+  function hasSavedState(namespace: FormType): boolean {
+    try {
+      const data = localStorage.getItem(getStorageKey(namespace))
+      if (!data) return false
+      const parsed = JSON.parse(data) as { answers?: Record<string, unknown> }
+      const answers = parsed.answers ?? {}
+      // Old caches namespace their answers; current format stores them flat.
+      const scoped = (answers[namespace] as Record<string, unknown> | undefined) ?? answers
+      return Object.keys(scoped).length > 0
+    } catch {
+      return false
+    }
   }
 
   function clearSavedState(namespace?: FormType): void {
@@ -155,6 +184,7 @@ export function createLocalPersistence(): PersistenceProvider {
     saveAppState,
     loadAppState,
     applyAppState,
+    hasSavedState,
     clearSavedState,
     setupWatchers,
     restoreUiState,

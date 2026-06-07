@@ -33,11 +33,13 @@ const props = withDefaults(defineProps<{
   showNavHeader?: boolean
   showFileActions?: boolean
   autoStart?: boolean
+  bannerTitle?: string
 }>(), {
   showBanner: true,
   showNavHeader: true,
   showFileActions: true,
   autoStart: false,
+  bannerTitle: '',
 })
 
 // State
@@ -214,7 +216,7 @@ const isInformationalStep = computed(() => {
 </script>
 
 <template>
-  <Banner v-if="showBanner" />
+  <Banner v-if="showBanner" :title="bannerTitle" />
   <div v-if="isLoading" class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md">
     <p>Ophalen van taken...</p>
   </div>
