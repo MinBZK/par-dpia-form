@@ -25,6 +25,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     uses: ./.github/workflows/_build-images.yaml
     with:
       frontend-image: ghcr.io/minbzk/par-dpia-form/preview/frontend

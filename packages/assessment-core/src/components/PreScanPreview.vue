@@ -78,7 +78,8 @@ const formatAnswer = (answer: AnswerValue): string => {
       <div class="rvo-accordion__content">
         <div v-for="item in preScanAnswers" :key="item.taskId">
           <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
-          <p v-html="formatAnswer(item.answer)"></p>
+          <!-- Pre-scan answers are user input; render as text to prevent stored XSS. -->
+          <p>{{ formatAnswer(item.answer) }}</p>
         </div>
       </div>
     </details>

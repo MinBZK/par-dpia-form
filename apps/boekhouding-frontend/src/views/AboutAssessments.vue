@@ -18,11 +18,11 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <p>
       De invulhulpen helpen je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
       De pre-scan en DPIA zijn gebaseerd op het
-      <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
+      <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener noreferrer">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
       en het
-      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>;
+      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a>;
       het IAMA op
-      <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener">het instrument</a>
+      <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">het instrument</a>
       ontwikkeld door de Universiteit Utrecht.
       Ze sluiten aan op rijksbrede kaders.
     </p>
@@ -36,7 +36,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <h3 class="utrecht-heading-3">Bronnen</h3>
     <ul>
-      <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
+      <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener noreferrer">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
     </ul>
 
     <h2 class="utrecht-heading-2">DPIA</h2>
@@ -69,8 +69,8 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <h3 class="utrecht-heading-3">Bronnen</h3>
     <ul>
-      <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a></li>
-      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
+      <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a></li>
+      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener noreferrer">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
     </ul>
 
     <h2 class="utrecht-heading-2">IAMA</h2>
@@ -111,7 +111,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <h2 class="utrecht-heading-2">Zie ook</h2>
     <ul>
-      <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a></li>
+      <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a></li>
     </ul>
   </div>
 </template>

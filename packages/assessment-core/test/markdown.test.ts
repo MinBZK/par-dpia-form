@@ -102,6 +102,26 @@ describe('renderMarkdownToHtml', () => {
     expect(html).toContain('&#x2610;')
     expect(html).toContain('&#x2611;')
   })
+
+  it('escapes a double-quote breakout in the link href', () => {
+    const html = renderMarkdownToHtml('[click](https://example.com#"><img src=x onerror=alert(1)>)')
+    expect(html).not.toContain('"><')
+    expect(html).not.toMatch(/<img/i)
+    expect(html).toContain('&quot;')
+  })
+
+  it('escapes quotes/spaces in a pointy-bracket link destination', () => {
+    // marked's <...> link syntax preserves literal quotes and spaces in the href
+    const html = renderMarkdownToHtml('[click](<https://a" onmouseover="alert(1)>)')
+    expect(html).not.toMatch(/href="https:\/\/a" onmouseover/)
+    expect(html).not.toContain('onmouseover="alert(1)"')
+    expect(html).toContain('click')
+  })
+
+  it('keeps legitimate ampersands in a link href as an entity', () => {
+    const html = renderMarkdownToHtml('[ok](https://e.com/p?a=1&b=2)')
+    expect(html).toContain('href="https://e.com/p?a=1&amp;b=2"')
+  })
 })
 
 describe('markdownToPdfContent', () => {

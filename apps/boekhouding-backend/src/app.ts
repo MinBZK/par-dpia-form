@@ -15,12 +15,19 @@ export const API_VERSION = '1.0.0'
 
 export interface BuildAppOptions {
   logger?: boolean
+  /** Expose Swagger UI + /api/openapi.json. Defaults to config.exposeApiDocs. */
+  exposeApiDocs?: boolean
+  /** Fastify trustProxy value (proxy CIDR / hop count). Defaults to config.trustProxy. */
+  trustProxy?: string | boolean | number
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
+  const exposeApiDocs = options.exposeApiDocs ?? config.exposeApiDocs
   const app = Fastify({
     logger: options.logger ?? true,
     bodyLimit: 25 * 1024 * 1024, // 25 MB — assessments with embedded images can be large
+    // Trust the proxy hop so req.ip is the real client (rate limiting); see config.ts.
+    trustProxy: options.trustProxy ?? config.trustProxy,
   })
 
   await app.register(helmet, {
@@ -39,7 +46,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(cors, config.cors)
   await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
 
-  await app.register(swagger, {
+  if (exposeApiDocs) await app.register(swagger, {
     openapi: {
       info: {
         title: 'Assessment Boekhouding API',
@@ -106,7 +113,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     },
   })
 
-  await app.register(swaggerUi, {
+  if (exposeApiDocs) await app.register(swaggerUi, {
     routePrefix: '/api/docs',
     logo: { content: Buffer.from(''), type: 'image/svg+xml' },
     theme: {
@@ -168,9 +175,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)
   })
 
-  app.get('/api/openapi.json', { schema: { hide: true } }, async (_request, reply) => {
-    return reply.send(app.swagger())
-  })
+  if (exposeApiDocs) {
+    app.get('/api/openapi.json', { schema: { hide: true } }, async (_request, reply) => {
+      return reply.send(app.swagger())
+    })
+  }
 
   return app
 }

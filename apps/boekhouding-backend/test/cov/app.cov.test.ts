@@ -6,7 +6,9 @@ import { config } from '../../src/config.js'
 let app: FastifyInstance
 
 beforeAll(async () => {
-  app = await buildApp({ logger: false })
+  // exposeApiDocs is off by default; enable it here to exercise the Swagger UI
+  // + /api/openapi.json routes below.
+  app = await buildApp({ logger: false, exposeApiDocs: true })
 
   app.get('/__cov/throw-no-status', async () => {
     throw new Error('iets ging mis')
