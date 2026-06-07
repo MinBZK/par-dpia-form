@@ -1,5 +1,5 @@
 {
   "name": "assessments",
-  "description": "Domeinkennis en tooling voor privacy-assessments bij de overheid: DPIA, Pre-scan DPIA en begrippenkader. Bevat skills voor assessment-schema's, begrippendefinities, UI-componenten en rapportage-export, plus een validatie-agent.",
+  "description": "Domeinkennis en tooling voor privacy-assessments bij de overheid: Pre-scan, DPIA, IAMA en begrippenkaders. Bevat skills voor assessment-schema's, begrippendefinities, UI-componenten en rapportage-export, plus een validatie-agent.",
   "version": "0.1.0"
 }

@@ -160,6 +160,17 @@ describe('ProgressTracker.vue', () => {
       expect(wrapper.find('.rvo-progress-tracker__step--incomplete').exists()).toBe(true)
     })
 
+    it('applies the informational class for an informational root task (isInformational true branch)', () => {
+      seedRootTasks(taskStore, [
+        flatTask({ id: '0', task: 'Toelichting', type: ['informational'], is_official_id: false }),
+      ])
+
+      const wrapper = mountTracker({ props: { navigable: true } })
+      expect(wrapper.find('.rvo-progress-tracker__step--informational').exists()).toBe(true)
+      // Informational tasks omit the id prefix.
+      expect(wrapper.find('.rvo-progress-tracker__step--md .small-text').text()).toBe('Toelichting')
+    })
+
     it('applies the incomplete class when not disabled, not completed and not current', () => {
       seedRootTasks(taskStore, [
         flatTask({ id: '0', task: 'Inleiding' }),

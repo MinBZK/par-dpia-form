@@ -52,6 +52,7 @@ describe('App.vue', () => {
     expect(typeof nav.goToLanding).toBe('function')
     expect(typeof nav.goToDPIA).toBe('function')
     expect(typeof nav.goToPreScanDPIA).toBe('function')
+    expect(typeof nav.goToIAMA).toBe('function')
   })
 
   it('navigates to the DPIA form via goToDPIA and configures the stores', async () => {
@@ -91,6 +92,26 @@ describe('App.vue', () => {
     const form = wrapper.findComponent(FormStub)
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(FormType.PRE_SCAN)
+    expect(form.props('validData')).toBeNull()
+  })
+
+  it('navigates to the IAMA form via goToIAMA and configures the stores', async () => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+    taskStore.isInitialized[FormType.IAMA] = true
+
+    nav.goToIAMA!()
+    await wrapper.vm.$nextTick()
+
+    expect(taskStore.activeNamespace).toBe(FormType.IAMA)
+    expect(answerStore.activeNamespace).toBe(FormType.IAMA)
+    expect(taskStore.isInitialized[FormType.IAMA]).toBe(false)
+
+    expect(wrapper.findComponent(LandingStub).exists()).toBe(false)
+    const form = wrapper.findComponent(FormStub)
+    expect(form.exists()).toBe(true)
+    expect(form.props('namespace')).toBe(FormType.IAMA)
     expect(form.props('validData')).toBeNull()
   })
 

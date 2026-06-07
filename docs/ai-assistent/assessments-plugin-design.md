@@ -2,7 +2,7 @@
 
 ## Doel
 
-Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over DPIA/Pre-scan assessments, het begrippenkader, RVO-styling en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
+Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over Pre-scan-, DPIA- en IAMA-assessments, het begrippenkader, RVO-styling en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
 
 ## Structuur
 
@@ -28,19 +28,21 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 ### plugin.json
 
 - **name**: `par-assessment`
-- **description**: DPIA assessment domeinkennis, schema-validatie en RVO-styling voor de overheid
+- **description**: Pre-scan-, DPIA- en IAMA-assessment domeinkennis, schema-validatie en RVO-styling voor de overheid
 - **version**: 1.0.0
 - **author**: PAR (Privacy Adviseurs Rijk)
 
 ### Skill 1: assessment-schema-yaml
 
-**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `dpia.yaml` of `prescan_dpia.yaml`.
+**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `prescan.yaml`, `dpia.yaml` of `iama.yaml`.
 
 **Inhoud**:
 - Structuur van `schemas/assessment-definition.v1.schema.json`:
   - Top-level velden: `name`, `description`, `urn` (patroon: `urn:nl:<type>:<versie>`), `version`, `tasks`, `assessments`
+  - Top-level vlag `prefixQuestionIds` (gebruikt door `iama.yaml`): prefixt elk label met het officiële vraag-ID
   - Task-structuur: `task`, `id` (patroon: `^[0-9]+(\.[0-9]+)*`), `type` (array), `repeatable` (verplicht), `description`, `category`
-  - Veldtypes: `text_input`, `open_text`, `select_option`, `checkbox_option`, `radio_option`, `task_group`, `date`
+  - IAMA-specifieke task-velden (in `iama.yaml`): `in_fria` (vraag hoort bij de FRIA, art. 27 AI-verordening), `action_point_group` (taakgroep met actiepunten per deel), `action_point_summary` (deel dat alle actiepunten samenvat)
+  - Veldtypes: `text_input`, `open_text`, `select_option`, `multiselect_scrollable`, `checkbox_option`, `radio_option`, `task_group`, `informational`, `date`
   - `select_option` vereist altijd een `options` array
   - `options`: objecten met `value` (string|boolean|null) en optioneel `label`
   - `valueType`: het verwachte datatype (`string`, `boolean`, `number`, `string[]`, `boolean|null`)
@@ -64,11 +66,12 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
   - Criteria: `id`, `expression` (jexl), `explanation`
 - ID-nummering: genest hiërarchisch (`2.1.3`), `is_official_id` geeft aan of ID overeenkomt met het Rapportagemodel DPIA
 - Repeatable tasks: `repeatable: true` met optioneel `instance_label_template` (bijv. `"Gegevensverwerking {4.1.1}"`)
+- IAMA (`sources/iama.yaml`, `urn:nl:iama`, versie `2.0`) is een derde assessment-type naast Pre-scan en DPIA; gestructureerd in Delen (Deel 1 Waarom? … Deel 5 Afsluiting)
 - Instructie: verwijs altijd naar `schemas/assessment-definition.v1.schema.json` als bron van waarheid
 
 ### Skill 2: begrippenkader-schema-yaml
 
-**Triggert bij**: bewerken van `sources/begrippenkader_dpia.yaml`, toevoegen/wijzigen van definities, vragen over de begrippenkader-structuur.
+**Triggert bij**: bewerken van `sources/begrippenkader_dpia.yaml` of `sources/begrippenkader_iama.yaml`, toevoegen/wijzigen van definities, vragen over de begrippenkader-structuur.
 
 **Inhoud**:
 - Structuur van `schemas/begrippenkader.v1.schema.json`:
@@ -79,10 +82,11 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 - Werkelijke YAML-structuur (wijkt af van schema — gebruikt `definitions` i.p.v. `glossary`):
   - `definitions[]` items: `id`, `term`, `category`, `definition`, `metadata`
   - `metadata` per definitie: `kennisbronnen` (array), `toelichting` (string), `redactionele_opmerking` (string), `voorbeelden` (array), `alternatieve_spellingen` (array), `meervoudsvormen` (array)
-- Categorieën volgen het patroon: `"DPIA - <paragraafnummer>. <naam>"` of `"Pre-scan DPIA - <sectieletter>. <naam>"`
+- Categorieën volgen het patroon: `"Pre-scan DPIA - <sectieletter>. <naam>"` of `"DPIA - <paragraafnummer>. <naam>"`
 - Cross-referenties in definitieteksten: termen tussen `[vierkante haken]` verwijzen naar andere definities in het begrippenkader
 - ID-conventie: alleen lowercase letters, cijfers en underscores
-- Het begrippenkader bevat 456 definities
+- Het Pre-scan/DPIA begrippenkader bevat 456 definities
+- IAMA-begrippenkader (`sources/begrippenkader_iama.yaml`, 95 definities): **gegenereerd** uit het Algoritmekader via `script/convert_definitions_from_algoritmekader.py`, niet handmatig bewerkt. Simpeler platte structuur — `definitions[]` met alleen `term` en `definition` (geen `id`, `category`, `metadata`, `urn` of `owners`). Verrijkt `sources/iama.yaml` met de `--definitions-once-per-page` vlag (elke term-tooltip max. één keer per "deel")
 - Definition enricher (`script/definition_enricher.py`) injecteert definities als HTML-spans in de assessment YAML bij export naar JSON
 
 ### Skill 3: rvo-styling
@@ -124,7 +128,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 **Inhoud**:
 
 **Begrippen opzoeken:**
-- Doorzoek `sources/begrippenkader_dpia.yaml` via Grep/Read (456 definities, niet in context laden)
+- Doorzoek `sources/begrippenkader_dpia.yaml` via Grep/Read (456 definities, niet in context laden); voor IAMA-terminologie `sources/begrippenkader_iama.yaml` (95 definities uit het Algoritmekader)
 - Zoek op `term:` veld (case-insensitive)
 - Toon: definitie, toelichting, kennisbronnen, voorbeelden indien aanwezig
 - Let op cross-referenties: termen tussen `[vierkante haken]` in definities verwijzen naar andere begrippen
@@ -134,14 +138,20 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 - Paragrafen: 1. Voorstel, 2. Persoonsgegevens, 3. Gegevensverwerking, ... t/m 17. Maatregelen
 - Speciale taken: id "0" (Inleiding, niet-officieel), id "18" (Management summary), id "19" (Metadata), id "20" (Ondertekening)
 
+**IAMA-structuur:**
+- Impact Assessment Mensenrechten en Algoritmes (IAMA) v2.0 (`sources/iama.yaml`, `urn:nl:iama`): beoordeelt de impact van een algoritme op mensenrechten en publieke waarden vóór ontwikkeling/inzet (ook voor niet-AI-algoritmes)
+- Gestructureerd in Delen, elk met eigen actiepunten: Deel 1 Waarom?, Deel 2 Wat?, Deel 3 Hoe?, Deel 4 Mensenrechten, Deel 5 Afsluiting (+ Deel 0 Inleiding)
+- Deel 4 is de grondrechtentoets (FRIA — Fundamental Rights Impact Assessment); vragen die corresponderen met art. 27 AI-verordening zijn in de YAML gemarkeerd met `in_fria: true`
+- De Pre-scan kan een IAMA aanbevelen (zie Pre-scan logica)
+
 **Pre-scan logica:**
-- Pre-scan DPIA v2.0 (`sources/prescan_dpia.yaml`): bepaalt welke assessments verplicht zijn
+- Pre-scan DPIA v2.0 (`sources/prescan.yaml`): bepaalt welke assessments verplicht of aanbevolen zijn
 - Risicoscore-berekening: scores per categorie (gewone/bijzondere/gevoelige persoonsgegevens, betrokkenen, frequentie, bewaartermijn, etc.)
 - Assessment-evaluatie:
   - DPIA verplicht als: nieuwe wetgeving OF risicoscore > 4 OF >= 1 AP-lijst item OF >= 2 EDPB-lijst items
   - DPIA aanbevolen als: precies 1 EDPB-lijst item
   - DTIA verplicht als: internationale doorgifte + specifiek doorgifte-mechanisme
-  - IAMA: gebaseerd op geautomatiseerde besluitvorming criteria
+  - IAMA aanbevolen als: hoog-risico AI-systeem OF impactvol algoritme (om de impact op grondrechten in kaart te brengen)
 
 **Relaties Pre-scan ↔ DPIA:**
 - `references.prescanModelId`: koppelt prescan-veld aan paragraaf in het Pre-scan Model
@@ -179,7 +189,8 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 **Taken:**
 1. **Schema-validatie** — draai bestaande scripts:
    - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml`
-   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml`
+   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan.yaml`
+   - `python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/iama.yaml`
    - `python script/schema_validator.py --schema schemas/begrippenkader.v1.schema.json --source sources/begrippenkader_dpia.yaml`
 2. **Definitie-enrichment test** — draai `script/definition_enricher.py` om te verifiëren dat de enrichment nog werkt na wijzigingen
 3. **Cross-referentie checks** (door de agent zelf):

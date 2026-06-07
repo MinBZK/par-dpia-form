@@ -12,13 +12,13 @@ function makeNavigation(): NavigationFunctions {
 }
 
 describe('NavHeader rendering', () => {
-  it('renders the back-to-overview link with the Dutch label and back icon', () => {
+  it('renders the back-to-overview button with the Dutch label and back icon', () => {
     const navigation = makeNavigation()
     const wrapper = mount(NavHeader, { props: { navigation } })
 
-    const link = wrapper.find('a.rvo-menubar__link')
-    expect(link.exists()).toBe(true)
-    expect(link.text()).toContain('Terug naar overzicht')
+    const button = wrapper.find('button.utrecht-button--rvo-tertiary-action')
+    expect(button.exists()).toBe(true)
+    expect(button.text()).toContain('Terug naar overzicht')
 
     const icon = wrapper.find('.rvo-icon-terug')
     expect(icon.exists()).toBe(true)
@@ -31,30 +31,29 @@ describe('NavHeader rendering', () => {
     expect(
       wrapper.find('.rvo-menubar__background--horizontal-rule').exists(),
     ).toBe(true)
-    expect(wrapper.find('nav.rvo-menubar').exists()).toBe(true)
+    expect(wrapper.find('button.utrecht-button').exists()).toBe(true)
   })
 })
 
 describe('NavHeader navigation interaction', () => {
-  it('calls navigation.goToLanding when the link is clicked', async () => {
+  it('calls navigation.goToLanding when the button is clicked', async () => {
     const navigation = makeNavigation()
     const wrapper = mount(NavHeader, { props: { navigation } })
 
-    await wrapper.find('a.rvo-menubar__link').trigger('click')
+    await wrapper.find('button.utrecht-button--rvo-tertiary-action').trigger('click')
 
     expect(navigation.goToLanding).toHaveBeenCalledTimes(1)
     expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()
     expect(navigation.goToDPIA).not.toHaveBeenCalled()
   })
 
-  it('prevents the default anchor navigation on click (@click.prevent)', async () => {
+  it('renders the action slot on the right of the bar', () => {
     const navigation = makeNavigation()
-    const wrapper = mount(NavHeader, { props: { navigation } })
+    const wrapper = mount(NavHeader, {
+      props: { navigation },
+      slots: { default: '<span class="slot-marker">actie</span>' },
+    })
 
-    const event = new MouseEvent('click', { cancelable: true, bubbles: true })
-    wrapper.find('a.rvo-menubar__link').element.dispatchEvent(event)
-
-    expect(event.defaultPrevented).toBe(true)
-    expect(navigation.goToLanding).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('.slot-marker').exists()).toBe(true)
   })
 })

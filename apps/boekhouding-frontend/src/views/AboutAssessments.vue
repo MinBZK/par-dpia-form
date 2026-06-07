@@ -16,15 +16,30 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h1 class="utrecht-heading-1">Over de invulhulpen</h1>
 
     <p>
-      De invulhulpen helpen je bij het invullen van een pre-scan DPIA en een volledige DPIA.
-      Ze zijn gebaseerd op het
+      De invulhulpen helpen je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
+      De pre-scan en DPIA zijn gebaseerd op het
       <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
       en het
-      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>
-      en sluiten aan op rijksbrede kaders, inclusief AI en kinderrechten.
+      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a>;
+      het IAMA op
+      <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener">het instrument</a>
+      ontwikkeld door de Universiteit Utrecht.
+      Ze sluiten aan op rijksbrede kaders.
     </p>
 
-    <h2 class="utrecht-heading-2">Waarom een DPIA?</h2>
+    <h2 class="utrecht-heading-2">Pre-scan</h2>
+    <p>
+      De pre-scan is een hulpmiddel om te bepalen of een DPIA, IAMA, DTIA of KIA nodig is. Door een
+      aantal gerichte vragen te beantwoorden krijg je inzicht in welke assessments van toepassing
+      zijn op jouw project.
+    </p>
+
+    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <ul>
+      <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
+    </ul>
+
+    <h2 class="utrecht-heading-2">DPIA</h2>
     <p>
       Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen
       in mogelijke privacyrisico's. Een DPIA is het instrument om van projecten waarbij
@@ -35,7 +50,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       is een rijksbreed model ontwikkeld.
     </p>
 
-    <h2 class="utrecht-heading-2">Wanneer voer je een DPIA uit?</h2>
+    <h3 class="utrecht-heading-3">Wanneer voer je een DPIA uit?</h3>
     <p>
       Een DPIA moet in een vroegtijdig stadium van de beleids- of projectontwikkeling worden
       uitgevoerd. Op dat moment is het namelijk nog mogelijk om met open vizier na te denken over
@@ -52,22 +67,51 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
     </ol>
 
-    <h2 class="utrecht-heading-2">Pre-scan als hulpmiddel</h2>
+    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <ul>
+      <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Rapportagemodel DPIA Rijksdienst</a></li>
+      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
+    </ul>
+
+    <h2 class="utrecht-heading-2">IAMA</h2>
     <p>
-      De Prescan DPIA is bedoeld als hulpmiddel om te bepalen of er volgens stap 3 een DPIA
-      moet worden gemaakt.
+      Het Impact Assessment Mensenrechten en Algoritmes (IAMA) helpt overheidsorganisaties bij
+      het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand
+      aan de ontwikkeling of inzet van een algoritme. Het IAMA is een instrument voor discussie en
+      besluitvorming dat een interdisciplinaire dialoog faciliteert tussen iedereen die betrokken is
+      bij de ontwikkeling of inzet van een algoritmisch systeem. Het kan worden toegepast op
+      AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten.
     </p>
 
-    <h2 class="utrecht-heading-2">Meer informatie</h2>
+    <h3 class="utrecht-heading-3">Wanneer voer je een IAMA uit?</h3>
     <p>
-      Meer uitleg over de pre-scan kan je vinden in de handreiking pre-scan DPIA.<br />
-      Meer uitleg over het rapportagemodel DPIA in dit document:
-      <a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener">Model DPIA Rijksdienst</a>.
+      Het IAMA is een grondrechtenbeoordeling voor impactvolle algoritmes en hoog-risico
+      AI-systemen. Voor hoog-risico AI-systemen schrijft de Europese AI-verordening een beoordeling
+      van de gevolgen voor grondrechten voor (artikel 27 AI-verordening); het IAMA is een instrument
+      om aan die verplichting invulling te geven. Daarnaast is het IAMA geschikt voor impactvolle
+      algoritmes die niet als hoog-risico AI-systeem kwalificeren of die buiten het bereik van de
+      AI-verordening vallen. Voer het IAMA in een vroegtijdig stadium uit, zodat de consequenties
+      van de inzet van een algoritme zorgvuldig kunnen worden afgewogen voordat het wordt ingezet.
     </p>
-    <p>Zie ook:</p>
+
+    <h3 class="utrecht-heading-3">IAMA versie 2.0</h3>
+    <p>
+      Deze invulhulp is gebaseerd op IAMA versie 2.0. Dit is een actualisatie van de oorspronkelijke
+      versie: gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten uit
+      artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te
+      worden.
+    </p>
+    <h3 class="utrecht-heading-3">Bronnen</h3>
     <ul>
-      <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener">Privacy Adviseurs Rijk (PAR) — Rijksportaal</a></li>
-      <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener">Data Protection Impact Assessment | Kenniscentrum voor beleid en regelgeving</a></li>
+      <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank" rel="noopener noreferrer">IAMA v2.0 - Open Overheid</a></li>
+      <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument - Rijksoverheid</a></li>
+      <li><a href="https://minbzk.github.io/Algoritmekader/voldoen-aan-wetten-en-regels/hulpmiddelen/IAMA/" target="_blank" rel="noopener noreferrer">Algoritmekader - IAMA</a></li>
+      <li><a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27" target="_blank" rel="noopener noreferrer">Artikel 27 AI-verordening - EUR-Lex</a></li>
+    </ul>
+
+    <h2 class="utrecht-heading-2">Zie ook</h2>
+    <ul>
+      <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a></li>
     </ul>
   </div>
 </template>

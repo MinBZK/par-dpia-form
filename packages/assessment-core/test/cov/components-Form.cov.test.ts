@@ -11,6 +11,11 @@ vi.mock('../../src/utils/pdfExport', () => ({
   exportToPdf: (...args: unknown[]) => exportToPdfMock(...args),
 }))
 
+const exportToMarkdownMock = vi.fn<() => Promise<void>>()
+vi.mock('../../src/utils/markdownExport', () => ({
+  exportToMarkdown: (...args: unknown[]) => exportToMarkdownMock(...args),
+}))
+
 const rebuildMock = vi.fn()
 vi.mock('../../src/utils/applyState', () => ({
   rebuildRepeatableInstances: (...args: unknown[]) => rebuildMock(...args),
@@ -89,12 +94,11 @@ const stubs = {
     props: ['disabled', 'navigable'],
     template: '<div class="stub-progress" :data-disabled="disabled" :data-navigable="navigable" />',
   },
-  SaveForm: {
-    name: 'SaveForm',
-    props: ['isOpen'],
-    emits: ['close', 'save'],
+  ExportMenu: {
+    name: 'ExportMenu',
+    emits: ['export'],
     template:
-      '<div class="stub-saveform" :data-open="isOpen"><button class="sf-save" @click="$emit(\'save\', \'myfile.json\')" /><button class="sf-close" @click="$emit(\'close\')" /></div>',
+      '<div class="stub-exportmenu"><button class="em-pdf" @click="$emit(\'export\', \'pdf\')">Exporteer als PDF</button><button class="em-json" @click="$emit(\'export\', \'json\')">Exporteer als JSON</button><button class="em-markdown" @click="$emit(\'export\', \'markdown\')">Exporteer als Markdown</button></div>',
   },
   TaskSection: {
     name: 'TaskSection',
@@ -104,7 +108,9 @@ const stubs = {
   NavHeader: {
     name: 'NavHeader',
     props: ['navigation'],
-    template: '<div class="stub-navheader" />',
+    // Render the default slot so the file-action buttons (reset + ExportMenu)
+    // that Form places in the NavHeader slot are visible to assertions.
+    template: '<div class="stub-navheader"><slot /></div>',
   },
   FileUploadPage: {
     name: 'FileUploadPage',
@@ -162,6 +168,7 @@ beforeEach(() => {
   setActivePinia(createPinia())
   exportToJsonMock.mockReset()
   exportToPdfMock.mockReset().mockResolvedValue(undefined)
+  exportToMarkdownMock.mockReset().mockResolvedValue(undefined)
   rebuildMock.mockReset()
 })
 
@@ -325,13 +332,15 @@ describe('Form.vue prop-driven template branches', () => {
   })
 
   it('shows the file-action buttons only when started and showFileActions is true', async () => {
+    // File actions moved into the NavHeader slot: the reset UiButton + ExportMenu.
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: true })
-    expect(uiButtonByLabel(wrapper, 'Opslaan als bestand')).toBeTruthy()
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
+    expect(wrapper.findAll('.stub-exportmenu').length).toBeGreaterThan(0)
   })
 
   it('hides the file-action buttons when showFileActions is false', async () => {
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: false })
-    expect(uiButtonByLabel(wrapper, 'Opslaan als bestand')).toBeFalsy()
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeFalsy()
   })
 
   it('labels the reset button "Begin nieuwe DPIA" for the DPIA namespace', async () => {
@@ -339,9 +348,14 @@ describe('Form.vue prop-driven template branches', () => {
     expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
   })
 
-  it('labels the reset button "Begin nieuwe Pre-scan DPIA" for the PRE_SCAN namespace', async () => {
+  it('labels the reset button "Begin nieuwe Pre-scan" for the PRE_SCAN namespace', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.PRE_SCAN, autoStart: true })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe Pre-scan DPIA')).toBeTruthy()
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe Pre-scan')).toBeTruthy()
+  })
+
+  it('labels the reset button "Begin nieuwe IAMA" for the IAMA namespace', async () => {
+    const { wrapper } = await mountForm({ namespace: FormType.IAMA, autoStart: true })
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')).toBeTruthy()
   })
 })
 
@@ -351,10 +365,11 @@ describe('Form.vue navigation buttons', () => {
     expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeFalsy()
     expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeTruthy()
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
-    expect(uiButtonByLabel(wrapper, 'Exporteer als PDF')).toBeFalsy()
+    // No last-section ExportMenu in the content area on a non-last section.
+    expect(wrapper.find('.rvo-layout-margin-vertical--xl .stub-exportmenu').exists()).toBe(false)
   })
 
-  it('goToNext flushes saves and advances; the last section shows "Vorige stap" + "Exporteer als PDF"', async () => {
+  it('goToNext flushes saves and advances; the last section shows "Vorige stap" + the content ExportMenu', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
     const taskStore = useTaskStore()
 
@@ -365,7 +380,8 @@ describe('Form.vue navigation buttons', () => {
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('1')
 
     expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeTruthy()
-    expect(uiButtonByLabel(wrapper, 'Exporteer als PDF')).toBeTruthy()
+    // The last section renders the shared ExportMenu (with a real PDF export button).
+    expect(wrapper.findAll('.em-pdf').length).toBeGreaterThan(0)
     expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeFalsy()
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
   })
@@ -410,19 +426,19 @@ describe('Form.vue navigation buttons', () => {
 })
 
 describe('Form.vue export handlers', () => {
-  it('handleExportPdf calls exportToPdf on the last section button', async () => {
+  it('handleExport(pdf) calls exportToPdf from the last-section ExportMenu', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
     await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
-    await uiButtonByLabel(wrapper, 'Exporteer als PDF')!.trigger('click')
+    await wrapper.findAll('.em-pdf')[0].trigger('click')
     await flushPromises()
 
     expect(exportToPdfMock).toHaveBeenCalledTimes(1)
   })
 
-  it('handleExportPdf logs an error when exportToPdf rejects', async () => {
+  it('handleExport logs an error when exportToPdf rejects', async () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     exportToPdfMock.mockRejectedValueOnce(new Error('pdf failed'))
 
@@ -430,28 +446,202 @@ describe('Form.vue export handlers', () => {
     await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
-    await uiButtonByLabel(wrapper, 'Exporteer als PDF')!.trigger('click')
+    await wrapper.findAll('.em-pdf')[0].trigger('click')
     await flushPromises()
 
-    expect(consoleSpy).toHaveBeenCalledWith('Failed to export PDF:', expect.any(Error))
+    expect(consoleSpy).toHaveBeenCalledWith('Failed to export pdf:', expect.any(Error))
   })
 
-  it('opens and closes the save modal and saves to JSON via SaveForm events', async () => {
+  it('exports to JSON via the ExportMenu (replaces the removed SaveForm modal)', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
-    expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('false')
+    // The SaveForm modal was removed; JSON export now flows through ExportMenu.
+    await wrapper.findAll('.em-json')[0].trigger('click')
+    await flushPromises()
 
-    await uiButtonByLabel(wrapper, 'Opslaan als bestand')!.trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('true')
-
-    await wrapper.find('.sf-save').trigger('click')
     expect(exportToJsonMock).toHaveBeenCalledTimes(1)
-    expect(exportToJsonMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'myfile.json')
+    expect(exportToJsonMock).toHaveBeenCalledWith(expect.anything(), expect.anything())
+  })
 
-    await wrapper.find('.sf-close').trigger('click')
+  it('exports to Markdown via the ExportMenu (handleExport markdown branch)', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+
+    await wrapper.findAll('.em-markdown')[0].trigger('click')
+    await flushPromises()
+
+    expect(exportToMarkdownMock).toHaveBeenCalledTimes(1)
+    expect(exportToMarkdownMock).toHaveBeenCalledWith(expect.anything(), expect.anything())
+  })
+})
+
+describe('Form.vue hasRequiredUnanswered / countRequiredUnanswered', () => {
+  // validData whose first section has a required leaf field plus a nested group
+  // with another required leaf, so countRequiredUnanswered recurses and counts.
+  function makeRequiredData(): ValidData {
+    return {
+      name: 'DPIA',
+      urn: 'urn:nl:dpia:3.0',
+      version: '1.0',
+      description: 'x',
+      tasks: [
+        {
+          id: '0',
+          task: 'Sectie',
+          type: ['task_group'],
+          tasks: [
+            { id: '0.1', task: 'Verplicht veld', type: ['text_input'], required: true },
+            {
+              id: '0.2',
+              task: 'Subgroep',
+              type: ['task_group'],
+              tasks: [
+                { id: '0.2.1', task: 'Verplicht subveld', type: ['text_input'], required: true },
+              ],
+            },
+          ],
+        },
+        { id: '1', task: 'Ondertekening', type: ['signing'], tasks: [] },
+      ],
+    } as unknown as ValidData
+  }
+
+  it('disables "Volgende stap" and shows the error message while required fields are unanswered', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, validData: makeRequiredData() })
+
+    expect(wrapper.text()).toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
+    const next = uiButtonByLabel(wrapper, 'Volgende stap')
+    expect(next).toBeTruthy()
+    expect(next!.attributes('disabled')).toBeDefined()
+  })
+
+  it('clears the error once every required field (including the nested one) is answered', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, validData: makeRequiredData() })
+    const answerStore = useAnswerStore()
+
+    // Answer both required fields (top-level + nested recursion path).
+    answerStore.setAnswer('0.1', 'ingevuld')
+    answerStore.setAnswer('0.2.1', 'ook ingevuld')
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.stub-saveform').attributes('data-open')).toBe('false')
+
+    expect(wrapper.text()).not.toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
+  })
+
+  it('counts a required field whose answer is an empty string or empty array as unanswered', async () => {
+    const data = {
+      name: 'DPIA',
+      urn: 'urn:nl:dpia:3.0',
+      version: '1.0',
+      description: 'x',
+      tasks: [
+        {
+          id: '0',
+          task: 'Sectie',
+          type: ['task_group'],
+          tasks: [
+            { id: '0.1', task: 'Tekst', type: ['text_input'], required: true },
+            {
+              id: '0.2',
+              task: 'Meerkeuze',
+              type: ['multiselect_scrollable'],
+              required: true,
+              options: [{ value: 'a' }, { value: 'b' }],
+            },
+          ],
+        },
+        { id: '1', task: 'Ondertekening', type: ['signing'], tasks: [] },
+      ],
+    } as unknown as ValidData
+
+    const { wrapper } = await mountForm({ autoStart: true, validData: data })
+    const answerStore = useAnswerStore()
+
+    // Empty string answer (answer === '' branch) and empty array (length 0 branch).
+    answerStore.setAnswer('0.1', '')
+    answerStore.setAnswer('0.2', [])
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
+  })
+
+  it('skips counting required children that are conditionally hidden (shouldShowTask false branch)', async () => {
+    // 0.2 is required but depends on 0.1 === "ja"; while 0.1 is empty it is hidden,
+    // so shouldShowTask returns false and 0.2 is not counted. 0.1 itself is not
+    // required, so with 0.1 empty there are zero required-unanswered fields.
+    const data = {
+      name: 'DPIA',
+      urn: 'urn:nl:dpia:3.0',
+      version: '1.0',
+      description: 'x',
+      tasks: [
+        {
+          id: '0',
+          task: 'Sectie',
+          type: ['task_group'],
+          tasks: [
+            { id: '0.1', task: 'Schakel', type: ['text_input'] },
+            {
+              id: '0.2',
+              task: 'Afhankelijk verplicht veld',
+              type: ['text_input'],
+              required: true,
+              dependencies: [
+                {
+                  type: 'conditional',
+                  action: 'show',
+                  condition: { id: '0.1', operator: 'equals', value: 'ja' },
+                },
+              ],
+            },
+          ],
+        },
+        { id: '1', task: 'Ondertekening', type: ['signing'], tasks: [] },
+      ],
+    } as unknown as ValidData
+
+    const { wrapper } = await mountForm({ autoStart: true, validData: data })
+    await wrapper.vm.$nextTick()
+
+    // 0.2 is hidden -> not counted -> no error message.
+    expect(wrapper.text()).not.toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
+  })
+
+  it('returns false from hasRequiredUnanswered when getRootTaskInstanceIds throws (catch branch)', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, validData: makeRequiredData() })
+    const taskStore = useTaskStore()
+
+    // Point currentRootTaskId at an existing but NON-root task ('0.1' is a child).
+    // taskById still resolves (so isSigningTask/isInformationalStep do not throw),
+    // but getRootTaskInstanceIds throws -> hasRequiredUnanswered catch returns false.
+    taskStore.currentRootTaskId[FormType.DPIA] = '0.1'
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
+  })
+
+  it('returns false from hasRequiredUnanswered when there are no instances for the current root task (length 0 branch)', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, validData: makeRequiredData() })
+    const taskStore = useTaskStore()
+
+    // Drop every instance of the current root task so getRootTaskInstanceIds
+    // returns [] -> hasRequiredUnanswered short-circuits to false.
+    for (const id of taskStore.getInstanceIdsForTask('0')) {
+      delete taskStore.taskInstances[FormType.DPIA][id]
+    }
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).not.toContain(
+      'Beantwoord eerst alle verplichte vragen om verder te gaan.',
+    )
   })
 })
 

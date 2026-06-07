@@ -8,6 +8,7 @@ function makeNavigation(): NavigationFunctions {
     goToLanding: vi.fn(),
     goToDPIA: vi.fn(),
     goToPreScanDPIA: vi.fn(),
+    goToIAMA: vi.fn(),
   }
 }
 
@@ -16,7 +17,7 @@ describe('LandingView rendering', () => {
     const wrapper = mount(LandingView, { props: { navigation: makeNavigation() } })
 
     expect(wrapper.find('h1.utrecht-heading-1').text()).toBe(
-      'Invulhulp voor pre-scan en DPIA',
+      'Invulhulp voor pre-scan, DPIA en IAMA',
     )
     expect(wrapper.findComponent({ name: 'AppBanner' }).exists()).toBe(true)
   })
@@ -38,16 +39,14 @@ describe('LandingView rendering', () => {
     const buttonLabels = wrapper
       .findAll('button.card-button')
       .map((b) => b.text())
-    expect(buttonLabels).toEqual(['Start pre-scan', 'Start DPIA'])
+    expect(buttonLabels).toEqual(['Start pre-scan', 'Start DPIA', 'Start IAMA'])
   })
 
-  it('renders the informational save-and-share card', () => {
+  it('renders the "Over deze tools" informational section', () => {
     const wrapper = mount(LandingView, { props: { navigation: makeNavigation() } })
 
-    expect(wrapper.text()).toContain('Opslaan en delen van je DPIA')
-    expect(wrapper.find('.rvo-status-icon-info').attributes('aria-label')).toBe(
-      'Info',
-    )
+    expect(wrapper.text()).toContain('Over deze tools')
+    expect(wrapper.text()).toContain('pre-scan, DPIA en het IAMA')
   })
 })
 
@@ -74,5 +73,30 @@ describe('LandingView navigation interaction', () => {
     expect(navigation.goToDPIA).toHaveBeenCalledTimes(1)
     expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()
     expect(navigation.goToLanding).not.toHaveBeenCalled()
+  })
+
+  it('calls navigation.goToIAMA when the IAMA button is clicked', async () => {
+    const navigation = makeNavigation()
+    const wrapper = mount(LandingView, { props: { navigation } })
+
+    const buttons = wrapper.findAll('button.card-button')
+    await buttons[2].trigger('click')
+
+    expect(navigation.goToIAMA).toHaveBeenCalledTimes(1)
+    expect(navigation.goToDPIA).not.toHaveBeenCalled()
+    expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()
+    expect(navigation.goToLanding).not.toHaveBeenCalled()
+  })
+
+  it('does not throw when the IAMA button is clicked without a goToIAMA handler', async () => {
+    const navigation: NavigationFunctions = {
+      goToLanding: vi.fn(),
+      goToDPIA: vi.fn(),
+      goToPreScanDPIA: vi.fn(),
+    }
+    const wrapper = mount(LandingView, { props: { navigation } })
+
+    const buttons = wrapper.findAll('button.card-button')
+    await expect(buttons[2].trigger('click')).resolves.not.toThrow()
   })
 })

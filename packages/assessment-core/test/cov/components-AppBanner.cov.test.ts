@@ -7,7 +7,7 @@ describe('AppBanner default props', () => {
     const wrapper = mount(AppBanner)
 
     const text = wrapper.find('.rvo-alert-text')
-    expect(text.text()).toContain('De invulhulp DPIA is in ontwikkeling.')
+    expect(text.text()).toContain('De invulhulp voor pre-scan, DPIA en IAMA is in ontwikkeling.')
 
     const link = text.find('a.rvo-link')
     expect(link.text()).toBe('Bètaversie')

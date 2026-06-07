@@ -730,4 +730,158 @@ describe('FormField.vue', () => {
       wrapper.unmount()
     })
   })
+
+  describe('displayLabel: prefixQuestionIds', () => {
+    it('prefixes the label with the task id when the schema enables prefixQuestionIds and the task is official', async () => {
+      const { useSchemaStore } = await import('../../src/stores/schemas')
+      const schemaStore = useSchemaStore()
+      schemaStore.init({
+        dpia: {
+          name: 'DPIA',
+          urn: 'urn:nl:dpia',
+          version: '3.0',
+          description: 'x',
+          tasks: [],
+          prefixQuestionIds: true,
+        },
+        preScan: { name: 'P', urn: 'urn:nl:prescan', version: '2.0', description: 'x', tasks: [] },
+        iama: { name: 'I', urn: 'urn:nl:iama', version: '1.0', description: 'x', tasks: [] },
+      })
+
+      const wrapper = mountField({
+        task: flatTask({ id: '2.3', is_official_id: true }),
+        instanceId: '2.3[0]',
+        label: 'Mijn vraag',
+      })
+      const label = wrapper.find('label.rvo-label')
+      expect(label.element.innerHTML).toContain('2.3 Mijn vraag')
+    })
+
+    it('does NOT prefix the label when the task is explicitly is_official_id: false', async () => {
+      const { useSchemaStore } = await import('../../src/stores/schemas')
+      const schemaStore = useSchemaStore()
+      schemaStore.init({
+        dpia: {
+          name: 'DPIA',
+          urn: 'urn:nl:dpia',
+          version: '3.0',
+          description: 'x',
+          tasks: [],
+          prefixQuestionIds: true,
+        },
+        preScan: { name: 'P', urn: 'urn:nl:prescan', version: '2.0', description: 'x', tasks: [] },
+        iama: { name: 'I', urn: 'urn:nl:iama', version: '1.0', description: 'x', tasks: [] },
+      })
+
+      const wrapper = mountField({
+        task: flatTask({ id: '2.3', is_official_id: false }),
+        instanceId: '2.3[0]',
+        label: 'Mijn vraag',
+      })
+      const label = wrapper.find('label.rvo-label')
+      expect(label.element.innerHTML).toContain('Mijn vraag')
+      expect(label.element.innerHTML).not.toContain('2.3 Mijn vraag')
+    })
+  })
+
+  describe('multiselect_scrollable rendering', () => {
+    it('renders one checkbox per option for a multiselect_scrollable field', () => {
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['multiselect_scrollable'],
+          options: [{ value: 'Optie A' }, { value: 'Optie B' }, { value: 'Optie C' }],
+        }),
+        instanceId: 'ms[0]',
+        label: 'Kies opties',
+      })
+      const checkboxes = wrapper.findAll('input[type="checkbox"]')
+      expect(checkboxes).toHaveLength(3)
+      expect(wrapper.text()).toContain('Optie A')
+      expect(wrapper.text()).toContain('Optie B')
+      expect(wrapper.text()).toContain('Optie C')
+    })
+
+    it('checks the option that is present in the current array answer (Array.isArray && includes branch)', () => {
+      answerStore.setAnswer('ms2[0]', ['Optie B'])
+
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['multiselect_scrollable'],
+          valueType: 'string[]',
+          options: [{ value: 'Optie A' }, { value: 'Optie B' }],
+        }),
+        instanceId: 'ms2[0]',
+        label: 'Kies opties',
+      })
+      const boxes = wrapper.findAll('input[type="checkbox"]')
+      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
+      expect((boxes[1].element as HTMLInputElement).checked).toBe(true)
+    })
+  })
+
+  describe('currentValue: string defaultValue for a non-boolean field', () => {
+    it('returns the string default when there is no stored answer (else-if string branch)', () => {
+      const wrapper = mountField({
+        task: flatTask({ type: ['text_input'], defaultValue: 'standaardtekst' }),
+        instanceId: 'defstr2[0]',
+        label: 'Met default',
+      })
+      expect((wrapper.find('input[type="text"]').element as HTMLInputElement).value).toBe(
+        'standaardtekst',
+      )
+    })
+  })
+
+  describe('currentValue: non-string defaultValue for a non-boolean field', () => {
+    it('does not apply the string default branch when defaultValue is not a string (else-if false)', () => {
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['multiselect_scrollable'],
+          valueType: 'string[]',
+          // Non-string, non-boolean default: the `else if typeof === 'string'`
+          // condition is false, so no default is returned.
+          defaultValue: ['voorgevuld'] as unknown as string,
+          options: [{ value: 'voorgevuld' }, { value: 'ander' }],
+        }),
+        instanceId: 'nonstrdef[0]',
+      })
+      const boxes = wrapper.findAll('input[type="checkbox"]')
+      // No default applied -> nothing checked.
+      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
+      expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
+    })
+  })
+
+  describe('FRIA tag (task.in_fria)', () => {
+    it('renders the art. 27 AI-verordening tag link when the task is in_fria', () => {
+      const wrapper = mountField({
+        task: flatTask({ in_fria: true }),
+        instanceId: '1.1[0]',
+        label: 'Met FRIA',
+      })
+      const tag = wrapper.find('a.rvo-tag')
+      expect(tag.exists()).toBe(true)
+      expect(tag.text()).toContain('art. 27 AI-verordening')
+      expect(tag.attributes('rel')).toBe('noopener noreferrer')
+    })
+
+    it('does not render the FRIA tag when the task is not in_fria', () => {
+      const wrapper = mountField({
+        task: flatTask({ in_fria: false }),
+        instanceId: '1.1[0]',
+        label: 'Zonder FRIA',
+      })
+      expect(wrapper.find('a.rvo-tag').exists()).toBe(false)
+    })
+  })
+
+  describe('displayLabel with an absent label (defensive !label branch)', () => {
+    it('returns the (falsy) label unchanged when no label is provided', () => {
+      const wrapper = mountField({ task: flatTask(), instanceId: '1.1[0]' })
+      // displayLabel is only read in-template behind v-if="label"; read it directly
+      // to exercise the early `if (!props.label) return props.label` guard.
+      const vm = wrapper.vm as unknown as { displayLabel: string | undefined }
+      expect(vm.displayLabel).toBeUndefined()
+    })
+  })
 })

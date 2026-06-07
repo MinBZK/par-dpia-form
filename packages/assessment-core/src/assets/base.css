@@ -402,9 +402,91 @@
   overflow-y: auto;
 }
 
+/* Export disclosure menu (accessible: real buttons, keyboard works for free) */
+.rvo-theme .export-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.rvo-theme .export-menu__item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--rvo-font-size-md, 1rem);
+  color: var(--rvo-color-zwart, #000);
+  white-space: nowrap;
+}
+
+.rvo-theme .export-menu__item:hover {
+  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.rvo-theme .export-menu__item:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
+  outline-offset: -2px;
+}
+
+.rvo-theme .export-menu__panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  background: var(--rvo-color-wit, #fff);
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  min-width: 14rem;
+  padding: 0.25rem 0;
+}
+
+/* Split export button: a main "Exporteer als PDF" action joined to a chevron
+   toggle that opens the full options panel. */
+.rvo-theme .export-menu__split {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.rvo-theme .export-menu__split-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rvo-theme .export-menu__split-toggle {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+  padding-inline: 0.5rem;
+  min-width: 0;
+}
+
 .rvo-theme .confirm-delete-dialog__actions {
   display: flex;
   gap: 0.75rem;
   margin-top: 1.5rem;
   flex-wrap: wrap;
+}
+
+/* Scrollable container for a multiselect_scrollable field (long static option lists). */
+.rvo-theme .multiselect-scrollable {
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--rvo-color-grijs-300, #b3b3b3);
+  border-radius: 4px;
+  padding: 0.25rem 0;
+}
+
+.rvo-theme .multiselect-scrollable__option {
+  padding: 0.25rem 0.75rem;
+}
+
+/* The RVO checkmark (.rvo-checkbox__input::after) is position:absolute; anchoring
+   it to its own input keeps it scrolling and clipping with the row inside the
+   scroll container instead of detaching to a non-scrolling ancestor. */
+.rvo-theme .multiselect-scrollable .rvo-checkbox__input {
+  position: relative;
 }

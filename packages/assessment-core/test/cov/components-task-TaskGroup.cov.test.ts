@@ -743,3 +743,161 @@ describe('TaskGroup collectInstanceIds recurses through child instances on delet
     expect(answerStore.getAnswer('2.1.1[1]')).toBeNull()
   })
 })
+
+describe('TaskGroup instanceLabel: prefixQuestionIds', () => {
+  it('prefixes the group legend with the task id when prefixQuestionIds is enabled and the group is official', async () => {
+    const { useSchemaStore } = await import('../../src/stores/schemas')
+    const schemaStore = useSchemaStore()
+    schemaStore.init({
+      dpia: {
+        name: 'DPIA',
+        urn: 'urn:nl:dpia',
+        version: '3.0',
+        description: 'x',
+        tasks: [],
+        prefixQuestionIds: true,
+      },
+      preScan: { name: 'P', urn: 'urn:nl:prescan', version: '2.0', description: 'x', tasks: [] },
+      iama: { name: 'I', urn: 'urn:nl:iama', version: '1.0', description: 'x', tasks: [] },
+    })
+
+    taskStore.init(
+      [
+        {
+          id: '3',
+          task: 'Officiele groep',
+          type: ['task_group'],
+          is_official_id: true,
+          tasks: [{ id: '3.1', task: 'Veld', type: ['text_input'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    const w = mountGroup('3', '3[0]')
+    expect(w.find('legend').text()).toBe('3 Officiele groep')
+  })
+
+  it('renders a nested group legend with the label-sized class and shows the group description when prefixQuestionIds is on', async () => {
+    const { useSchemaStore } = await import('../../src/stores/schemas')
+    const schemaStore = useSchemaStore()
+    schemaStore.init({
+      dpia: {
+        name: 'DPIA',
+        urn: 'urn:nl:dpia',
+        version: '3.0',
+        description: 'x',
+        tasks: [],
+        prefixQuestionIds: true,
+      },
+      preScan: { name: 'P', urn: 'urn:nl:prescan', version: '2.0', description: 'x', tasks: [] },
+      iama: { name: 'I', urn: 'urn:nl:iama', version: '1.0', description: 'x', tasks: [] },
+    })
+
+    taskStore.init(
+      [
+        {
+          id: '6',
+          task: 'Buitenste groep',
+          type: ['task_group'],
+          tasks: [
+            {
+              id: '6.1',
+              task: 'Binnenste groep',
+              type: ['task_group'],
+              is_official_id: true,
+              description: 'Groepsuitleg',
+              tasks: [{ id: '6.1.1', task: 'Veld', type: ['text_input'] }],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    const w = mountGroup('6.1', '6.1[0]')
+    // isNestedGroup && prefixQuestionIds -> label-sized legend class.
+    const legend = w.find('legend')
+    expect(legend.classes()).toContain('rvo-label')
+    // Group description rendered (task.description && prefixQuestionIds).
+    expect(w.html()).toContain('Groepsuitleg')
+  })
+})
+
+describe('TaskGroup isNestedGroup: parent lookup failure', () => {
+  it('treats the group as non-nested when its parentId points at a missing task (taskById catch)', () => {
+    taskStore.init(
+      [
+        {
+          id: '5',
+          task: 'Groep',
+          type: ['task_group'],
+          tasks: [{ id: '5.1', task: 'Veld', type: ['text_input'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    // Point the group at a parent that does not exist so taskById throws inside
+    // isNestedGroup and the catch returns false.
+    taskStore.flatTasks[FormType.DPIA]['5'].parentId = 'ontbrekend'
+
+    const w = mountGroup('5', '5[0]')
+    // A non-nested group renders its legend with the heading-sized font (not the
+    // nested label-sized variant). The catch branch simply yields isNestedGroup=false.
+    expect(w.find('legend').exists()).toBe(true)
+    expect(w.find('legend').text()).toBe('Groep')
+  })
+
+  it('treats the group as non-nested when the parent exists but has no type (optional-chaining + ?? false)', () => {
+    taskStore.init(
+      [
+        {
+          id: '8',
+          task: 'Ouder zonder type',
+          type: ['task_group'],
+          tasks: [
+            {
+              id: '8.1',
+              task: 'Kindgroep',
+              type: ['task_group'],
+              tasks: [{ id: '8.1.1', task: 'Veld', type: ['text_input'] }],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    // Remove the parent's type so taskById(parentId).type is undefined -> the
+    // optional chaining yields undefined -> `?? false`.
+    ;(taskStore.flatTasks[FormType.DPIA]['8'] as { type?: unknown }).type = undefined
+
+    const w = mountGroup('8.1', '8.1[0]')
+    expect(w.find('legend').exists()).toBe(true)
+  })
+
+  it('treats the group as non-nested when the parent is not a task_group (includes false)', () => {
+    taskStore.init(
+      [
+        {
+          id: '9',
+          task: 'Niet-groep ouder',
+          type: ['signing'],
+          tasks: [
+            {
+              id: '9.1',
+              task: 'Kindgroep',
+              type: ['task_group'],
+              tasks: [{ id: '9.1.1', task: 'Veld', type: ['text_input'] }],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+
+    const w = mountGroup('9.1', '9.1[0]')
+    expect(w.find('legend').exists()).toBe(true)
+  })
+})

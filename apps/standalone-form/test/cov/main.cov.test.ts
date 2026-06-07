@@ -58,17 +58,18 @@ describe('main.ts bootstrap', () => {
     expect(mockApp.mount).toHaveBeenCalledWith('#app')
   })
 
-  it('resolves the schema store against the created pinia and initialises it with both schemas', async () => {
+  it('resolves the schema store against the created pinia and initialises it with all three schemas', async () => {
     await importMain()
 
     expect(mockUseSchemaStore).toHaveBeenCalledTimes(1)
     expect(mockUseSchemaStore).toHaveBeenCalledWith(mockPinia)
 
     expect(mockInit).toHaveBeenCalledTimes(1)
-    const initArg = mockInit.mock.calls[0][0] as { dpia: unknown; preScan: unknown }
-    expect(Object.keys(initArg).sort()).toEqual(['dpia', 'preScan'])
+    const initArg = mockInit.mock.calls[0][0] as { dpia: unknown; preScan: unknown; iama: unknown }
+    expect(Object.keys(initArg).sort()).toEqual(['dpia', 'iama', 'preScan'])
     expect(initArg.dpia).toMatchObject({ urn: expect.any(String) })
     expect(initArg.preScan).toMatchObject({ urn: expect.any(String) })
+    expect(initArg.iama).toMatchObject({ urn: expect.any(String) })
   })
 
   it('wires pinia before resolving the schema store (use → store → mount order)', async () => {

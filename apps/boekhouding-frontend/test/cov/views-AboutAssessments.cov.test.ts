@@ -73,15 +73,17 @@ describe('AboutAssessments', () => {
       expect(wrapper.find('h1.utrecht-heading-1').text()).toBe('Over de invulhulpen')
     })
 
-    it('renders the key section headings explaining the DPIA', () => {
+    it('renders the key section headings explaining pre-scan, DPIA and IAMA', () => {
       const wrapper = mountAbout()
       const text = wrapper.text()
 
-      expect(text).toContain('Waarom een DPIA?')
+      expect(text).toContain('Pre-scan')
+      expect(text).toContain('DPIA')
       expect(text).toContain('Wanneer voer je een DPIA uit?')
       expect(text).toContain('Wettelijke verplichting')
-      expect(text).toContain('Pre-scan als hulpmiddel')
-      expect(text).toContain('Meer informatie')
+      expect(text).toContain('IAMA')
+      expect(text).toContain('Wanneer voer je een IAMA uit?')
+      expect(text).toContain('Zie ook')
     })
 
     it('links to the DPIA informational models and reporting model', () => {

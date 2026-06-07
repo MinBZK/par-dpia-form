@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
-import { type FlatTask, useTaskStore } from '../stores/tasks'
+import { type FlatTask, useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { PERSISTENCE_KEY } from '../persistence'
 
 defineProps<{
@@ -27,11 +27,15 @@ const conclusionTask = computed(() =>
 )
 
 function displayTitle(task: FlatTask): string {
-  const shouldSkipIdPrefix = !task.is_official_id || (task.type && task.type.includes('signing'))
+  const shouldSkipIdPrefix = !task.is_official_id || (task.type && (task.type.includes('signing') || task.type.includes('informational')))
 
   return shouldSkipIdPrefix
     ? task.task
     : `${task.id}. ${task.task}`;
+}
+
+function isInformational(task: FlatTask): boolean {
+  return taskIsOfTaskType(task, 'informational')
 }
 </script>
 
@@ -47,7 +51,9 @@ function displayTitle(task: FlatTask): string {
         :class="[
           'rvo-progress-tracker__step',
           'rvo-progress-tracker__step--md',
-          disabled
+          isInformational(task)
+            ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
+            : disabled
             ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
             : taskStore.isRootTaskCompleted(task.id)
               ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'

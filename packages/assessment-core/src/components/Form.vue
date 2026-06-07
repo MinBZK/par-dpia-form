@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Banner from './AppBanner.vue'
 import ProgressTracker from './ProgressTracker.vue'
-import SaveForm from './SaveForm.vue'
+import ExportPdfInfo from './ExportPdfInfo.vue'
+import ExportMenu from './ExportMenu.vue'
 import TaskSection from './task/TaskSection.vue'
 import UiButton from './ui/UiButton.vue'
 import NavHeader from './NavHeader.vue'
@@ -17,6 +18,7 @@ import { useAnswerStore } from '../stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { useCalculationStore } from '../stores/calculations'
 import { exportToJson } from '../utils/jsonExport'
+import { exportToMarkdown } from '../utils/markdownExport'
 import { exportToPdf } from '../utils/pdfExport'
 import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
@@ -41,7 +43,6 @@ const props = withDefaults(defineProps<{
 // State
 const error = ref<string | null>(null)
 const isLoading = ref(true)
-const isSaveModalOpen = ref(false)
 const formStarted = ref(false)
 
 // Store setup
@@ -49,7 +50,7 @@ const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 const calculationStore = useCalculationStore()
 
-const { syncInstances } = useTaskDependencies()
+const { syncInstances, shouldShowTask } = useTaskDependencies()
 
 // Keep persisted state clean when conditional fields hide their dependents,
 // with a short in-memory cache so flipping the parent back restores the data.
@@ -152,21 +153,51 @@ const goToPrevious = () => {
   rawGoToPrevious()
 }
 
-const openSaveModal = () => {
-  isSaveModalOpen.value = true
-}
-const closeSaveModal = () => {
-  isSaveModalOpen.value = false
-}
-const handleSaveForm = (filename: string) => {
-  exportToJson(taskStore, answerStore, filename)
+// Recursively count required tasks that are visible but have no answer
+function countRequiredUnanswered(taskId: string, instanceId: string): number {
+  const task = taskStore.taskById(taskId)
+  let count = 0
+
+  if (task.required && !taskIsOfTaskType(task, 'task_group')) {
+    const answer = answerStore.getAnswer(instanceId)
+    if (answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
+      count++
+    }
+  }
+
+  for (const childId of task.childrenIds) {
+    const childInstanceIds = taskStore.getInstanceIdsForTask(childId, instanceId)
+    for (const childInstanceId of childInstanceIds) {
+      if (shouldShowTask.value(childId, childInstanceId)) {
+        count += countRequiredUnanswered(childId, childInstanceId)
+      }
+    }
+  }
+
+  return count
 }
 
-const handleExportPdf = async () => {
+const hasRequiredUnanswered = computed(() => {
   try {
-    await exportToPdf(taskStore, answerStore, calculationStore)
+    const instanceIds = taskStore.getRootTaskInstanceIds(currentRootTaskId.value)
+    if (instanceIds.length === 0) return false
+    return countRequiredUnanswered(currentRootTaskId.value, instanceIds[0]) > 0
+  } catch {
+    return false
+  }
+})
+
+const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
+  try {
+    if (format === 'pdf') {
+      await exportToPdf(taskStore, answerStore, calculationStore)
+    } else if (format === 'json') {
+      exportToJson(taskStore, answerStore)
+    } else {
+      await exportToMarkdown(taskStore, answerStore)
+    }
   } catch (error) {
-    console.error('Failed to export PDF:', error)
+    console.error(`Failed to export ${format}:`, error)
   }
 }
 
@@ -209,6 +240,11 @@ const isSigningTask = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'signing')
 })
+
+const isInformationalStep = computed(() => {
+  const task = taskStore.taskById(currentRootTaskId.value)
+  return taskIsOfTaskType(task, 'informational')
+})
 </script>
 
 <template>
@@ -226,23 +262,23 @@ const isSigningTask = computed(() => {
 
   <!-- If all is well, render the tasks. -->
   <template v-else>
-    <NavHeader v-if="showNavHeader" :navigation="navigation" />
+    <NavHeader v-if="showNavHeader" :navigation="navigation">
+      <template v-if="formStarted && showFileActions">
+        <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
+          FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
+        <ExportMenu @export="handleExport" />
+      </template>
+    </NavHeader>
 
-    <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg">
+    <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg"
+      :class="{ 'rvo-max-width-layout-inline-padding--md': showNavHeader }">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN" />
+          FormType.PRE_SCAN || namespace === FormType.IAMA" />
 
       </nav>
 
       <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
-        <div v-if="formStarted && showFileActions" class="utrecht-button-group" role="group"
-          aria-label="Formulier opslag">
-          <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-            FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'}`" icon="refresh" size="xs" @click="handleReset" />
-          <UiButton variant="tertiary" label="Opslaan als bestand" icon="document-blanco" size="xs"
-            @click="openSaveModal" />
-        </div>
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
@@ -252,7 +288,7 @@ const isSigningTask = computed(() => {
             <!-- Navigation buttons -->
             <div class="button-group-container" role="group" aria-label="Formulier navigatie">
               <UiButton v-if="!isFirstTask" variant="secondary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-              <div v-if="!isLastTask" class="button-group-container__completed">
+              <div v-if="!isLastTask && !isInformationalStep" class="button-group-container__completed">
                 <label class="rvo-checkbox rvo-checkbox--not-checked" :for="`${currentRootTaskId}-completed`">
                   <input :id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
                     type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
@@ -261,10 +297,18 @@ const isSigningTask = computed(() => {
                 </label>
               </div>
               <div class="button-group-container__end">
-                <UiButton v-if="!isLastTask" variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
-                  label="Volgende stap" @click="goToNext" />
-                <UiButton v-if="isLastTask" variant="primary" label="Exporteer als PDF" @click="handleExportPdf" />
+                <div v-if="!isLastTask">
+                  <p v-if="hasRequiredUnanswered" class="rvo-form-field__error-message" style="margin-bottom: 0.5rem;">
+                    Beantwoord eerst alle verplichte vragen om verder te gaan.
+                  </p>
+                  <UiButton variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
+                    label="Volgende stap" :disabled="hasRequiredUnanswered" @click="goToNext" />
+                </div>
+                <ExportMenu v-if="isLastTask" split @export="handleExport" />
               </div>
+            </div>
+            <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
+              <ExportPdfInfo />
             </div>
           </div>
         </template>
@@ -276,7 +320,4 @@ const isSigningTask = computed(() => {
       </div>
     </div>
   </template>
-
-  <!-- Save Form Modal -->
-  <SaveForm :is-open="isSaveModalOpen" @close="closeSaveModal" @save="handleSaveForm" />
 </template>

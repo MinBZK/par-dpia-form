@@ -35,10 +35,10 @@ describe('parseAndValidateImport', () => {
     )
   })
 
-  it('throws when no DPIA/prescan type can be detected', () => {
+  it('throws when no DPIA/prescan/IAMA type can be detected', () => {
     expect(() =>
       parseAndValidateImport(JSON.stringify({ metadata: { createdAt: '2026-01-01' }, answers: {} })),
-    ).toThrow('Bestand bevat geen DPIA- of pre-scan antwoorden')
+    ).toThrow('Bestand bevat geen DPIA-, pre-scan- of IAMA-antwoorden')
   })
 
   it('parses and normalizes a valid modern DPIA export (success path)', () => {

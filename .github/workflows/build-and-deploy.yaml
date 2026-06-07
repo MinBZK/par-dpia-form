@@ -30,7 +30,7 @@ jobs:
           mkdir -p sources/generated
           python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/prescan_dpia.yaml \
+            --source sources/prescan.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json \
             --output-md docs/questions/questions_prescan_DPIA.md
@@ -41,6 +41,13 @@ jobs:
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
+
+          python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --definitions-once-per-page
 
       - name: Upload generated sources
         uses: actions/upload-artifact@v4

@@ -28,7 +28,7 @@ async function goToProjects() {
           <div class="rvo-card__content card-content-flex">
             <h2 class="utrecht-heading-2 rvo-margin--none">Zelfstandig invullen</h2>
             <p class="rvo-padding-block-end--sm">
-              Vul een DPIA of pre-scan in zonder account. Alles blijft lokaal in je browser
+              Vul een pre-scan, DPIA of IAMA in zonder account. Alles blijft lokaal in je browser
               en kan als bestand worden opgeslagen.
             </p>
             <a

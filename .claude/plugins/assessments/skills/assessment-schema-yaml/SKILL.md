@@ -1,12 +1,12 @@
 ---
 name: Assessment Schema YAML
-description: Use when editing assessment YAML sources in sources/, asking about the assessment schema structure, adding tasks/fields to dpia.yaml or prescan_dpia.yaml, or working with dependencies, calculations, or references in assessment definitions.
+description: Use when editing assessment YAML sources in sources/, asking about the assessment schema structure, adding tasks/fields to prescan.yaml, dpia.yaml or iama.yaml, or working with dependencies, calculations, or references in assessment definitions.
 version: 0.1.0
 ---
 
 # Assessment Schema YAML
 
-Guide for editing YAML assessment sources (`sources/dpia.yaml`, `sources/prescan_dpia.yaml`) that conform to `schemas/assessment-definition.v1.schema.json`.
+Guide for editing YAML assessment sources (`sources/prescan.yaml`, `sources/dpia.yaml`, `sources/iama.yaml`) that conform to `schemas/assessment-definition.v1.schema.json`.
 
 ## Top-level Structure
 
@@ -17,7 +17,10 @@ version: "3.0"
 description: "..."
 tasks: [...]                      # Required: array of task objects
 assessments: [...]                # Optional: evaluation rules (used in prescan)
+prefixQuestionIds: true           # Optional: prefix every label with its official question ID (used by iama.yaml)
 ```
+
+The IAMA (`sources/iama.yaml`, `urn: "urn:nl:iama"`, `version: "2.0"`) is a third assessment type alongside Pre-scan and DPIA. It sets `prefixQuestionIds: true`, which prefixes each task label with its official question ID.
 
 ## Task Structure
 
@@ -46,6 +49,11 @@ Optional fields:
 - `required_status`: whether the field is mandatory
 - `instance_label_template`: template for repeatable instance labels (e.g. `"Gegevensverwerking {4.1.1}"`)
 
+IAMA-specific task fields (present in `sources/iama.yaml`):
+- `in_fria: true` — marks a question as part of the FRIA (Fundamental Rights Impact Assessment, art. 27 AI-verordening)
+- `action_point_group: true` — marks a task group that collects the action points ("Actiepunten") for a deel
+- `action_point_summary: true` — marks the deel (Deel 5 – Afsluiting) that summarises all action points
+
 ## Field Types
 
 | Type | Description | Requires |
@@ -53,9 +61,11 @@ Optional fields:
 | `text_input` | Single-line text | - |
 | `open_text` | Multi-line text | - |
 | `select_option` | Dropdown select | `options` array |
+| `multiselect_scrollable` | Scrollable multi-select list (used in iama.yaml) | `options` array |
 | `checkbox_option` | Multiple checkboxes | `options` array |
 | `radio_option` | Radio buttons | `options` array |
 | `task_group` | Container for child tasks | `tasks` array |
+| `informational` | Read-only informational block (no input; used in iama.yaml) | - |
 | `date` | Date picker | - |
 
 A task can have multiple types (array), e.g. `[open_text, select_option]`.
@@ -172,7 +182,8 @@ After editing YAML sources, validate with:
 
 ```bash
 python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/dpia.yaml
-python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan_dpia.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/prescan.yaml
+python script/schema_validator.py --schema schemas/assessment-definition.v1.schema.json --source sources/iama.yaml
 ```
 
 The schema file `schemas/assessment-definition.v1.schema.json` is the source of truth. Always read it when unsure about allowed values.

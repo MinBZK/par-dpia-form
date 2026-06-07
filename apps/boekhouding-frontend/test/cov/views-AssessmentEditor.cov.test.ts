@@ -29,7 +29,7 @@ const {
   fieldClickHolder,
 } = vi.hoisted(() => {
   const { reactive, ref } = require('vue')
-  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan' } as const
+  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama' } as const
 
   const schemaStore = reactive({
     isInitialized: false,
@@ -233,7 +233,11 @@ async function mountEditor(props: { assessmentId?: string } = {}) {
   return wrapper
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Drain any pending async onMounted (dynamic schema imports -> schemaStore.init)
+  // from a prior test before resetting mocks, so a late init call can't leak into
+  // this test and inflate the call count.
+  await flushPromises()
   vi.clearAllMocks()
   routerPush.mockReset()
   fieldClickHolder.fn = null
@@ -398,6 +402,15 @@ describe('AssessmentEditor — onMounted initialization', () => {
     const wrapper = await mountEditor()
     expect(taskStore.init).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('Pre-scan DPIA')
+    wrapper.unmount()
+  })
+
+  it('labels an IAMA assessment as "IAMA" and uses the iama namespace', async () => {
+    schemaStore.isInitialized = true
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama' }))
+    const wrapper = await mountEditor()
+    expect(wrapper.text()).toContain('IAMA')
+    expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('iama')
     wrapper.unmount()
   })
 

@@ -1,6 +1,6 @@
 # Assessment Boekhouding
 
-DPIA- en Pre-scan assessment-applicatie voor de overheid, gebouwd op het RVO component library.
+Pre-scan-, DPIA- en IAMA-assessment-applicatie voor de overheid, gebouwd op het RVO component library.
 
 ## Structuur
 
@@ -10,7 +10,7 @@ pnpm monorepo met workspaces:
 - `apps/boekhouding-frontend` — Vue 3 SPA met multi-user projectbeheer, Keycloak-login
 - `apps/boekhouding-backend` — Fastify REST API, PostgreSQL via Drizzle ORM
 - `apps/standalone-form` — standalone formulier zonder backend (single HTML export)
-- `sources/` — YAML-bronnen voor DPIA en Pre-scan assessments
+- `sources/` — YAML-bronnen voor Pre-scan-, DPIA- en IAMA-assessments
 - `containers/` — Containerfiles, nginx.conf, compose.yaml voor development en productie
 
 ## Conventies
@@ -104,7 +104,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`) en `test:coverage` (`vitest run --coverage`). Volledige suite zoals CI: `pnpm -r --if-present test:coverage` (backend vereist `TEST_DATABASE_URL`, zie hieronder).
 
 - **Coverage-provider: istanbul, niet v8.** v8 kan ongedekte Vue SFC's niet parsen (PARSE_ERROR via rollup); istanbul instrumenteert via de Vite-transformpipeline, dus `.vue`-bestanden tellen volwaardig mee. Daarom staat `@vitejs/plugin-vue` ook in de devDeps van `assessment-core`.
-- **100%-drempel, hard afgedwongen.** Alle vier vitest-configs hebben `coverage.all: true` (élk bronbestand telt mee, niet alleen geïmporteerde) en `thresholds` op 100 voor statements/branches/functions/lines. Nieuwe of gewijzigde code moet de dekking op 100% houden — anders faalt CI.
+- **100%-drempel, hard afgedwongen.** Élk bronbestand telt mee, niet alleen geïmporteerde: alle vier configs zetten `coverage.include: ['src/**']`, en vitest 4 rapporteert standaard álle matchende bestanden (de oude `coverage.all: true`-vlag is in vitest 4 uit het `CoverageOptions`-type verwijderd en niet meer nodig). Alle vier hebben `thresholds` op 100 voor statements/branches/functions/lines. Nieuwe of gewijzigde code moet de dekking op 100% houden — anders faalt CI.
 - **Uitsluitingen** (`coverage.exclude`): alleen niet-uitvoerbare/bootstrap-bestanden — `*.d.ts`, `src/index.ts` (barrel), `src/assets/**` (CSS/fonts), en backend `db/migrate.ts` + `db/migrations/**`.
 - **Testbestanden**: hand-geschreven tests in `test/`. De fijnmazige per-module dekkingstests staan onder `test/cov/` als `<naam>.cov.test.ts` — één self-contained bestand per bronmodule (dekt dat bestand zelfstandig, los van andere tests).
 - **`istanbul ignore` alleen voor aantoonbaar onbereikbare defensieve code**, telkens mét een `-- reden`-justificatie. Geef de voorkeur aan een echte test, of het verwijderen van dode code, boven een ignore.
@@ -162,7 +162,7 @@ Eén unified format voor DB (`cachedState`), file export én API communicatie. G
 }
 ```
 
-- Geen namespace-wrapping (`dpia`/`prescan`) — namespace afgeleid uit `metadata.urn`
+- Geen namespace-wrapping (`prescan`/`dpia`/`iama`) — namespace afgeleid uit `metadata.urn` (bijv. `urn:nl:prescan`, `urn:nl:dpia`, `urn:nl:iama`)
 - Repeatable groepen als arrays met `_index` per element (gaps mogelijk bij verwijdering)
 - `completedTasks` in `metadata`, geen apart `taskState` object
 - `taskInstances` worden NIET opgeslagen — herbouwd bij laden uit task definities + answers

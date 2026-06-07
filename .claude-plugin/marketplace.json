@@ -1,0 +1,31 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "assessment-tools",
+  "metadata": {
+    "description": "Domeinkennis en tooling voor privacy-assessments bij de overheid (Pre-scan, DPIA, IAMA)."
+  },
+  "owner": {
+    "name": "MinBZK"
+  },
+  "plugins": [
+    {
+      "name": "assessments",
+      "description": "Domeinkennis en tooling voor privacy-assessments bij de overheid: Pre-scan, DPIA, IAMA en begrippenkaders. Bevat skills voor assessment-schema's, begrippendefinities, UI-componenten en rapportage-export, plus een validatie-agent.",
+      "version": "0.1.0",
+      "author": {
+        "name": "MinBZK"
+      },
+      "source": "./.claude/plugins/assessments",
+      "category": "productivity",
+      "tags": [
+        "overheid",
+        "privacy",
+        "pre-scan",
+        "dpia",
+        "iama",
+        "assessment",
+        "rijksoverheid"
+      ]
+    }
+  ]
+}

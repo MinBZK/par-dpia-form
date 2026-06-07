@@ -97,3 +97,54 @@ jobs:
             This PR was created automatically by the sync-yaml workflow.
           branch: auto-sync-yaml-${{ github.run_number }}
           delete-branch: true
+
+  sync-begrippenkader-iama:
+    runs-on: ubuntu-latest
+    # Allow this job to continue even if the check-links job fails
+    needs: check-links
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python dependencies
+        run: pip install pyyaml
+      - name: Sync Algoritmekader definitions
+        run: |
+          python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader_iama.yaml
+      - name: Check for changes
+        id: git-check
+        run: |
+          git add sources/begrippenkader_iama.yaml
+          if ! git diff --staged --quiet; then
+            echo "changes=true" >> $GITHUB_ENV
+          else
+            echo "changes=false" >> $GITHUB_ENV
+          fi
+      - name: Commit directly (when in PR)
+        if: env.changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
+          git push
+      - name: Create Pull Request (when scheduled or manual)
+        if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: main
+          commit-message: "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
+          title: "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
+          body: |
+            Automated sync of IAMA definitions from the Algoritmekader begrippenlijst.
+
+            Source: https://github.com/MinBZK/Algoritmekader/blob/main/includes/begrippenlijst.md
+
+            This PR was created automatically by the sync workflow.
+          branch: auto-sync-begrippenkader-iama-${{ github.run_number }}
+          delete-branch: true

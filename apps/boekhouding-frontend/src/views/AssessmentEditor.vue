@@ -192,8 +192,9 @@ watch(
 
 // Map assessment_type to FormType enum
 const assessmentTypeMap: Record<string, FormType> = {
-  dpia: FormType.DPIA,
   prescan: FormType.PRE_SCAN,
+  dpia: FormType.DPIA,
+  iama: FormType.IAMA,
 }
 
 // Navigation: back goes to project detail
@@ -201,8 +202,8 @@ const navigationFunctions: NavigationFunctions = {
   goToLanding: () => {
     if (assessment.value) router.push(`/project/${assessment.value.projectId}`)
   },
-  goToDPIA: () => {},
   goToPreScanDPIA: () => {},
+  goToDPIA: () => {},
 }
 
 onMounted(async () => {
@@ -215,11 +216,12 @@ onMounted(async () => {
     assessment.value = await assessmentsApi.get(props.assessmentId)
 
     if (!schemaStore.isInitialized) {
-      const [dpiaModule, preScanModule] = await Promise.all([
-        import('../../../../sources/generated/DPIA.json'),
+      const [preScanModule, dpiaModule, iamaModule] = await Promise.all([
         import('../../../../sources/generated/PreScanDPIA.json'),
+        import('../../../../sources/generated/DPIA.json'),
+        import('../../../../sources/generated/IAMA.json'),
       ])
-      schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default })
+      schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
     }
 
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
@@ -267,7 +269,9 @@ const namespace = computed(() =>
 )
 
 const assessmentTypeLabel = computed(() =>
-  assessment.value?.assessmentType === 'dpia' ? 'DPIA' : 'Pre-scan DPIA'
+  assessment.value?.assessmentType === 'dpia' ? 'DPIA'
+    : assessment.value?.assessmentType === 'iama' ? 'IAMA'
+    : 'Pre-scan DPIA'
 )
 
 const displayName = computed(() => {

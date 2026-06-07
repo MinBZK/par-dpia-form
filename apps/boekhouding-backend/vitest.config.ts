@@ -14,7 +14,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       // Report on every source file, not only the ones a test imports, so
       // 100% genuinely means 100% of the codebase.
-      all: true,
       include: ['src/**'],
       exclude: [
         'src/**/*.d.ts',

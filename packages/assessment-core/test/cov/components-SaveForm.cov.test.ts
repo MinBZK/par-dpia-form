@@ -52,6 +52,15 @@ describe('SaveForm.vue', () => {
       expect(title.text()).toContain('Sla je DPIA op als bestand')
     })
 
+    it('shows "IAMA" when active namespace is IAMA', () => {
+      const taskStore = useTaskStore()
+      taskStore.setActiveNamespace(FormType.IAMA)
+
+      const wrapper = mountSaveForm(true)
+      const title = wrapper.find('#save-form-title')
+      expect(title.text()).toContain('Sla je IAMA op als bestand')
+    })
+
     it('shows "Pre-scan DPIA" when active namespace is not DPIA', () => {
       const taskStore = useTaskStore()
       taskStore.setActiveNamespace(FormType.PRE_SCAN)

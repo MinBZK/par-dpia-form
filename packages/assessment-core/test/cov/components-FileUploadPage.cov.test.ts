@@ -11,6 +11,11 @@ vi.mock('../../src/utils/jsonExport', () => ({
   importFromJson: (...args: unknown[]) => importFromJson(...args),
 }))
 
+const importFromPdf = vi.fn()
+vi.mock('../../src/utils/pdfImport', () => ({
+  importFromPdf: (...args: unknown[]) => importFromPdf(...args),
+}))
+
 const UiButtonStub = {
   name: 'UiButton',
   props: ['variant', 'label', 'icon', 'disabled'],
@@ -39,6 +44,7 @@ describe('FileUploadPage.vue', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     importFromJson.mockReset()
+    importFromPdf.mockReset()
   })
 
   describe('namespace-driven computed text (dpia branch)', () => {
@@ -53,9 +59,27 @@ describe('FileUploadPage.vue', () => {
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
       expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?.',
+        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.',
       )
       expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de DPIA')
+    })
+  })
+
+  describe('namespace-driven computed text (iama branch)', () => {
+    it('renders IAMA label, intro and upload text when activeNamespace is iama', () => {
+      const taskStore = useTaskStore()
+      taskStore.activeNamespace = FormType.IAMA
+
+      const wrapper = mountPage()
+
+      expect(wrapper.find('h1').text()).toBe('Start het IAMA')
+      expect(wrapper.find('#file-upload-helper').html()).toContain(
+        'Deze tool begeleidt je stap voor stap bij het uitvoeren van een IAMA.',
+      )
+      expect(wrapper.find('label#file-upload-label').text()).toContain(
+        'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
+      )
+      expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met het IAMA')
     })
   })
 
@@ -158,6 +182,23 @@ describe('FileUploadPage.vue', () => {
       expect(onStart).toHaveBeenCalledTimes(1)
       expect(onStart.mock.calls[0][0]).toBe(sampleState)
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
+    })
+
+    it('routes a .pdf upload through importFromPdf (PDF ternary branch)', async () => {
+      importFromPdf.mockResolvedValue(sampleState)
+      const onStart = vi.fn()
+      const wrapper = mountPage(onStart)
+
+      const file = new File([new Uint8Array([1, 2])], 'rapport.PDF', { type: 'application/pdf' })
+      ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
+
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+
+      expect(importFromPdf).toHaveBeenCalledWith(file)
+      expect(importFromJson).not.toHaveBeenCalled()
+      expect(onStart).toHaveBeenCalledTimes(1)
+      expect(onStart.mock.calls[0][0]).toBe(sampleState)
     })
   })
 

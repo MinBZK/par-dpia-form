@@ -30,13 +30,14 @@ describe('useSchemaStore', () => {
   })
 
   describe('init', () => {
-    it('marks initialized and stores both valid schemas, appending conclusion tasks', () => {
+    it('marks initialized and stores all three valid schemas, appending conclusion tasks', () => {
       const store = useSchemaStore()
 
       const dpia = buildSchema({ urn: 'urn:nl:dpia', version: '3.0', tasks: [] })
       const preScan = buildSchema({ urn: 'urn:nl:prescan', version: '2.0', tasks: [] })
+      const iama = buildSchema({ urn: 'urn:nl:iama', version: '1.0', tasks: [] })
 
-      store.init({ dpia, preScan })
+      store.init({ dpia, preScan, iama })
 
       expect(store.isInitialized).toBe(true)
       expect(store.hasErrors).toBe(false)
@@ -55,17 +56,24 @@ describe('useSchemaStore', () => {
       expect(preScanSchema.tasks[0].id).toBe('0')
       expect(preScanSchema.tasks[0].type).toContain('signing')
       expect(preScanSchema.tasks[0].description).toBeUndefined()
+
+      const iamaSchema = store.getSchema(FormType.IAMA)!
+      expect(iamaSchema.tasks).toHaveLength(1)
+      expect(iamaSchema.tasks[0].task).toBe('Afronding')
+      expect(iamaSchema.tasks[0].id).toBe('0')
+      expect(iamaSchema.tasks[0].type).toContain('signing')
+      expect(iamaSchema.tasks[0].description).toContain('alle stappen')
     })
 
     it('returns early and does not reprocess when already initialized', () => {
       const store = useSchemaStore()
 
-      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      store.init({ dpia: buildSchema(), preScan: buildSchema(), iama: buildSchema() })
       expect(store.isInitialized).toBe(true)
 
       const dpiaBefore = store.getSchema(FormType.DPIA)
 
-      store.init({ dpia: { not: 'valid' }, preScan: { also: 'invalid' } })
+      store.init({ dpia: { not: 'valid' }, preScan: { also: 'invalid' }, iama: { still: 'invalid' } })
 
       expect(store.hasErrors).toBe(false)
       expect(store.errorMessage).toBeNull()
@@ -81,27 +89,27 @@ describe('useSchemaStore', () => {
         ],
       })
 
-      store.init({ dpia, preScan: buildSchema() })
+      store.init({ dpia, preScan: buildSchema(), iama: buildSchema() })
 
       const dpiaSchema = store.getSchema(FormType.DPIA)!
       expect(dpiaSchema.tasks).toHaveLength(1)
       expect(dpiaSchema.tasks[0].task).toBe('Sign here')
     })
 
-    it('marks initialized when only one schema is valid (dpiaSuccess || preScanSuccess)', () => {
+    it('marks initialized when only one schema is valid (dpiaSuccess || preScanSuccess || iamaSuccess)', () => {
       const store = useSchemaStore()
 
-      store.init({ dpia: { missing: 'fields' }, preScan: buildSchema() })
+      store.init({ dpia: { missing: 'fields' }, preScan: buildSchema(), iama: { missing: 'fields' } })
 
       expect(store.isInitialized).toBe(true)
       expect(store.getSchema(FormType.DPIA)).toBeNull()
       expect(store.getSchema(FormType.PRE_SCAN)).not.toBeNull()
     })
 
-    it('is not initialized and reports errors when both schemas are invalid', () => {
+    it('is not initialized and reports errors when all schemas are invalid', () => {
       const store = useSchemaStore()
 
-      store.init({ dpia: { bad: true }, preScan: { worse: true } })
+      store.init({ dpia: { bad: true }, preScan: { worse: true }, iama: { worst: true } })
 
       expect(store.isInitialized).toBe(false)
       expect(store.hasErrors).toBe(true)
@@ -112,10 +120,10 @@ describe('useSchemaStore', () => {
     it('resets error state on each init call', () => {
       const store = useSchemaStore()
 
-      store.init({ dpia: { bad: true }, preScan: { bad: true } })
+      store.init({ dpia: { bad: true }, preScan: { bad: true }, iama: { bad: true } })
       expect(store.hasErrors).toBe(true)
 
-      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      store.init({ dpia: buildSchema(), preScan: buildSchema(), iama: buildSchema() })
       expect(store.hasErrors).toBe(false)
       expect(store.errorMessage).toBeNull()
       expect(store.isInitialized).toBe(true)
@@ -137,7 +145,7 @@ describe('useSchemaStore', () => {
         },
       }
 
-      store.init({ dpia: exploding, preScan: buildSchema() })
+      store.init({ dpia: exploding, preScan: buildSchema(), iama: buildSchema() })
 
       expect(store.hasErrors).toBe(true)
       expect(store.errorMessage).toBe('boom from getter')
@@ -161,7 +169,7 @@ describe('useSchemaStore', () => {
         },
       }
 
-      store.init({ dpia: exploding, preScan: buildSchema() })
+      store.init({ dpia: exploding, preScan: buildSchema(), iama: buildSchema() })
 
       expect(store.hasErrors).toBe(true)
       expect(store.errorMessage).toBe('plain string failure')
@@ -177,7 +185,7 @@ describe('useSchemaStore', () => {
 
     it('returns null for an unknown namespace', () => {
       const store = useSchemaStore()
-      store.init({ dpia: buildSchema(), preScan: buildSchema() })
+      store.init({ dpia: buildSchema(), preScan: buildSchema(), iama: buildSchema() })
       expect(store.getSchema('something-else' as FormType)).toBeNull()
     })
   })
@@ -188,6 +196,7 @@ describe('useSchemaStore', () => {
       store.init({
         dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }),
         preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
       })
 
       expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.0')

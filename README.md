@@ -3,12 +3,12 @@
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
 
-Webapplicatie voor het uitvoeren van DPIA- en Pre-scan DPIA-assessments, volgens het Rijksmodel DPIA van de Nederlandse overheid. Gebouwd met het [RVO component library](https://nl-design-system.github.io/rvo/).
+Webapplicatie voor het uitvoeren van Pre-scan-, DPIA- en IAMA-assessments, volgens het Rijksmodel DPIA en het IAMA (Impact Assessment Mensenrechten en Algoritmes) van de Nederlandse overheid. Gebouwd met het [RVO component library](https://nl-design-system.github.io/rvo/).
 
 ## Kenmerken
 
-- DPIA en Pre-scan DPIA invullen in de browser als losstaande applicatie
-- Samenwerken aan DPIA's en Pre-scan DPIA's via de Assessment Boekhouding:
+- Pre-scan, DPIA en IAMA invullen in de browser als losstaande applicatie
+- Samenwerken aan Pre-scans, DPIA's en IAMA's via de Assessment Boekhouding:
   - Samenwerken aan assessments met meerdere gebruikers
   - Projectbeheer met rollen (eigenaar, bewerker, kijker)
   - Voortgang opslaan en later hervatten
@@ -24,7 +24,7 @@ pnpm monorepo:
 | `apps/boekhouding-frontend`  | Vue 3 SPA — projectbeheer, samenwerken, Keycloak-login                          |
 | `apps/boekhouding-backend`   | Fastify REST API — PostgreSQL, JWT-authenticatie                                |
 | `apps/standalone-form`       | Standalone formulier — draait zonder backend, exporteert als single HTML        |
-| `sources/`                   | YAML-bronbestanden voor DPIA en Pre-scan assessments                            |
+| `sources/`                   | YAML-bronbestanden voor Pre-scan-, DPIA- en IAMA-assessments                    |
 
 ### Technologie
 
@@ -96,11 +96,13 @@ pnpm build:frontend     # Frontend
 
 De `sources/` directory bevat de assessment-definities in YAML:
 
-| Bestand                      | Omschrijving                      |
-|------------------------------|-----------------------------------|
-| `dpia.yaml`                  | Volledige DPIA-definitie          |
-| `prescan_dpia.yaml`          | Pre-scan DPIA-definitie           |
-| `begrippenkader_dpia.yaml`   | Begrippenlijst met tooltips       |
+| Bestand                      | Omschrijving                            |
+|------------------------------|-----------------------------------------|
+| `prescan.yaml`               | Pre-scan DPIA-definitie                 |
+| `dpia.yaml`                  | Volledige DPIA-definitie                |
+| `iama.yaml`                  | IAMA-definitie                          |
+| `begrippenkader_dpia.yaml`   | Begrippenlijst met tooltips             |
+| `begrippenkader_iama.yaml`   | Begrippenlijst IAMA / Algoritmekader    |
 
 ### YAML verwerken
 
@@ -115,6 +117,19 @@ uv run script/run_all.py \
   --output-json form-app/src/assets/DPIA.json \
   --output-md docs/questions/questions_DPIA.md
 ```
+
+### Domeinkennis-plugin (AI-assistent)
+
+Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, RVO-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
+
+Installeren:
+
+```
+/plugin marketplace add MinBZK/par-dpia-form
+/plugin install assessments@assessment-tools
+```
+
+Zie het [ontwerp](docs/ai-assistent/assessments-plugin-design.md) en de [verantwoording](docs/ai-assistent/verantwoording.md) van de marketplace en plugin.
 
 ## Standaarden en compliance
 

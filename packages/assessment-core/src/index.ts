@@ -22,6 +22,8 @@ export { useTaskDependencies } from './composables/useTaskDependencies'
 export { useTaskNavigation } from './composables/useTaskNavigation'
 export { usePreScanReferences } from './composables/usePreScanReferences'
 export type { PreScanReference } from './composables/usePreScanReferences'
+export { useReferences } from './composables/useReferences'
+export type { ReferenceSuggestion, ReferenceMatch, ReferenceScope } from './composables/useReferences'
 
 // Persistence
 export { PERSISTENCE_KEY } from './persistence'
@@ -30,6 +32,7 @@ export type { PersistenceProvider } from './persistence'
 // Utils
 export { migrateStateV1toV2 } from './utils/stateMigration'
 export { parseAndValidateImport, detectImportType } from './utils/importDetect'
+export { importFromPdf } from './utils/pdfImport'
 export { applyStateToStores, rebuildRepeatableInstances } from './utils/applyState'
 export { exportToJson, buildOutputData } from './utils/jsonExport'
 export { exportToMarkdown } from './utils/markdownExport'
@@ -57,6 +60,10 @@ export { default as TaskGroup } from './components/task/TaskGroup.vue'
 export { default as TaskItem } from './components/task/TaskItem.vue'
 export { default as FormField } from './components/task/FormField.vue'
 export { default as ImageField } from './components/task/ImageField.vue'
+export { default as ReferenceSuggestions } from './components/ReferenceSuggestions.vue'
+export { default as ActionPointsOverview } from './components/ActionPointsOverview.vue'
+export { default as ExportPdfInfo } from './components/ExportPdfInfo.vue'
+export { default as ExportMenu } from './components/ExportMenu.vue'
 
 // Image utils
 export { resizeImageToDataUri } from './utils/imageResize'

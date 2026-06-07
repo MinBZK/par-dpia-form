@@ -312,19 +312,19 @@ describe('root task navigation', () => {
     const store = freshStore()
     expect(store.currentRootTaskId[FormType.DPIA]).toBe('0')
     store.nextRootTask()
-    expect(store.currentRootTaskId[FormType.DPIA]).toBe('1')
+    expect(store.currentRootTaskId[FormType.DPIA]).toBe('2')
   })
 
   it('nextRootTask does nothing at the last root', () => {
     const store = freshStore()
-    store.setRootTask('1')
+    store.setRootTask('2')
     store.nextRootTask()
-    expect(store.currentRootTaskId[FormType.DPIA]).toBe('1')
+    expect(store.currentRootTaskId[FormType.DPIA]).toBe('2')
   })
 
   it('previousRootTask goes back when possible', () => {
     const store = freshStore()
-    store.setRootTask('1')
+    store.setRootTask('2')
     store.previousRootTask()
     expect(store.currentRootTaskId[FormType.DPIA]).toBe('0')
   })

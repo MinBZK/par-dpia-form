@@ -5,9 +5,14 @@ import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '../utils/taskUtils'
 
+// Shared "Afronding" description for the DPIA and IAMA conclusion steps.
+const AFRONDING_DESCRIPTION =
+  'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'
+
 export const useSchemaStore = defineStore('SchemaStore', () => {
   const validatedDpia = ref<t.TypeOf<typeof DPIA> | null>(null)
   const validatedPreScan = ref<t.TypeOf<typeof DPIA> | null>(null)
+  const validatedIama = ref<t.TypeOf<typeof DPIA> | null>(null)
   const isInitialized = ref(false)
   const hasErrors = ref(false)
   const errorMessage = ref<string | null>(null)
@@ -28,7 +33,9 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         )
         if (!hasSigningTask) {
           if (schemaType === FormType.DPIA) {
-            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION))
+          } else if (schemaType === FormType.IAMA) {
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION, true))
           } else {
             validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           }
@@ -37,6 +44,8 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         // Store in the appropriate ref
         if (schemaType === FormType.DPIA) {
           validatedDpia.value = validData
+        } else if (schemaType === FormType.IAMA) {
+          validatedIama.value = validData
         } else {
           validatedPreScan.value = validData
         }
@@ -64,23 +73,25 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     }
   }
 
-  function init(schemas: { dpia: unknown; preScan: unknown }) {
+  function init(schemas: { preScan: unknown; dpia: unknown; iama: unknown }) {
     if (isInitialized.value) return
 
     // Reset error state
     hasErrors.value = false
     errorMessage.value = null
 
-    const dpiaSuccess = processSchema(schemas.dpia, FormType.DPIA)
     const preScanSuccess = processSchema(schemas.preScan, FormType.PRE_SCAN)
+    const dpiaSuccess = processSchema(schemas.dpia, FormType.DPIA)
+    const iamaSuccess = processSchema(schemas.iama, FormType.IAMA)
 
     // Mark as initialized if at least one schema processed successfully
-    isInitialized.value = dpiaSuccess || preScanSuccess
+    isInitialized.value = preScanSuccess || dpiaSuccess || iamaSuccess
   }
 
   function getSchema(namespace: FormType): t.TypeOf<typeof DPIA> | null {
     if (namespace === FormType.DPIA) return validatedDpia.value
     if (namespace === FormType.PRE_SCAN) return validatedPreScan.value
+    if (namespace === FormType.IAMA) return validatedIama.value
     return null
   }
 

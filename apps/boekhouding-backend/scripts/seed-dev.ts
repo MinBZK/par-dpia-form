@@ -11,6 +11,7 @@ const now = new Date().toISOString()
 const OUTPUT_SCHEMA = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
 const PRESCAN_URN = 'urn:nl:prescan:2.0'
 const DPIA_URN = 'urn:nl:dpia:3.0'
+const IAMA_URN = 'urn:nl:iama:2.0'
 
 // Upsert test users (matching Keycloak config)
 const [sam] = await db.insert(users)
@@ -216,11 +217,79 @@ await db.insert(projectMembers).values({
 
 console.log('Project created:', projectEmpty.name)
 
+// Project 4: IAMA with two versions (algorithmic risk-signalling — a fitting IAMA scenario)
+const [projectIama] = await db.insert(projects).values({
+  name: 'Risicosignalering Jeugdzorg',
+  description: 'Voorgenomen inzet van een algoritme om risicosignalen in gezinssituaties vroegtijdig te herkennen, zodat jeugdzorg eerder passende hulp kan bieden. Vanwege de impact op grondrechten wordt een IAMA uitgevoerd.',
+  createdBy: sam.id,
+}).returning()
+
+await db.insert(projectMembers).values([
+  { projectId: projectIama.id, userId: sam.id, role: 'owner', acceptedAt: new Date() },
+  { projectId: projectIama.id, userId: noor.id, role: 'editor', acceptedAt: new Date() },
+])
+
+const iamaState = {
+  $schema: OUTPUT_SCHEMA,
+  metadata: {
+    createdAt: now,
+    urn: IAMA_URN,
+  },
+  answers: {
+    '1.1.1': {
+      value: 'De jeugdzorgregio ervaart dat risicovolle gezinssituaties soms te laat in beeld komen. Het voornemen is een algoritme in te zetten dat op basis van bestaande dossiergegevens vroegtijdig risicosignalen herkent, zodat eerder passende hulp kan worden geboden.',
+      lastEditedAt: now,
+      lastEditedBy: sam.email,
+    },
+    '1.1.2': {
+      value: 'Hoofddoel: tijdige en passende hulp aan kwetsbare gezinnen. Subdoelen: gerichtere inzet van schaarse capaciteit en het verminderen van het aantal gemiste signalen.',
+      lastEditedAt: now,
+      lastEditedBy: sam.email,
+    },
+    '1.2.1': {
+      value: 'Veiligheid en welzijn van kinderen, tijdige hulpverlening, en gelijke behandeling van gezinnen.',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
+    },
+    '1.2.2': {
+      value: 'Privacy en gezinsleven, non-discriminatie, en het recht op een eerlijke en transparante behandeling door de overheid.',
+      lastEditedAt: now,
+      lastEditedBy: noor.email,
+    },
+  },
+}
+
+const [iamaInstance] = await db.insert(assessmentInstances).values({
+  projectId: projectIama.id,
+  assessmentType: 'iama',
+  name: 'IAMA Risicosignalering Jeugdzorg',
+  createdBy: sam.id,
+  currentVersion: 2,
+  cachedState: iamaState,
+}).returning()
+
+await db.insert(assessmentVersions).values([
+  {
+    assessmentInstanceId: iamaInstance.id,
+    version: 1,
+    createdBy: sam.id,
+    changeDescription: 'Deel 1 – aanleiding en doelstelling ingevuld',
+  },
+  {
+    assessmentInstanceId: iamaInstance.id,
+    version: 2,
+    createdBy: noor.id,
+    changeDescription: 'Publieke waarden (positief en negatief geraakt) aangevuld',
+  },
+])
+
+console.log('Project created:', projectIama.name)
+
 console.log('\nSeed complete! Created:')
 console.log('  - 2 users (sam@example.com, noor@example.com)')
-console.log('  - 3 projects with realistic scenarios')
-console.log('  - 2 assessment instances (1 prescan, 1 DPIA)')
-console.log('  - 3 assessment versions')
+console.log('  - 4 projects with realistic scenarios')
+console.log('  - 3 assessment instances (1 prescan, 1 DPIA, 1 IAMA)')
+console.log('  - 5 assessment versions')
 console.log('  - 5 comments (3 threads, 1 resolved) on DPIA assessment')
 console.log('  - Sam has commenter role on DPIA project')
 

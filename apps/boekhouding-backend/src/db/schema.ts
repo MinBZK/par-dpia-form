@@ -29,7 +29,7 @@ export const projectMembers = pgTable('project_members', {
   primaryKey({ columns: [table.projectId, table.userId] }),
 ])
 
-export const assessmentTypeEnum = pgEnum('assessment_type', ['dpia', 'prescan'])
+export const assessmentTypeEnum = pgEnum('assessment_type', ['dpia', 'prescan', 'iama'])
 
 export const assessmentInstances = pgTable('assessment_instances', {
   id: uuid('id').primaryKey().defaultRandom(),

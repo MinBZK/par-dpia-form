@@ -119,7 +119,7 @@ def create_term_map(begrippenkader):
     return term_map
 
 
-def inject_terms(text, term_map):
+def inject_terms(text, term_map, already_matched_terms=None):
     """
     Inject HTML tags around terms found in the text.
     Returns the modified text with HTML tags.
@@ -130,9 +130,19 @@ def inject_terms(text, term_map):
     3. Alternatieve spellingen (longest first)
     4. Alternatieve termen (longest first)
 
-    All matching is case-insensitive, but original capitalization is preserved.
+    Matching is case-insensitive, EXCEPT for terms that are all uppercase in the
+    begrippenkader (e.g. "DAT") — these only match when written in uppercase in
+    the text, to avoid false positives with common Dutch words.
+
     Terms inside existing <span class="aiv-definition"> tags are NOT processed.
     Also prevents adding overlapping or nested tags during the same processing run.
+
+    Args:
+        text: The text to process.
+        term_map: Dictionary mapping lowercase terms to their definitions.
+        already_matched_terms: Optional set of term keys already matched earlier
+            on the same page. When provided, each term is only enriched once per
+            page and newly matched terms are added to this set.
     """
     if not text or not isinstance(text, str):
         return text
@@ -183,6 +193,12 @@ def inject_terms(text, term_map):
         for pos in range(start, end):
             matched_positions.add(pos)
 
+    # Mark positions inside any HTML tag (<...>) so terms in attributes (e.g. href URLs) are not enriched
+    for match in re.finditer(r"<[^>]+>", text, re.DOTALL):
+        start, end = match.span()
+        for pos in range(start, end):
+            matched_positions.add(pos)
+
     # Process each term list in order
     for term_list_index, term_list in enumerate(all_term_lists):
         if not term_list:
@@ -190,12 +206,25 @@ def inject_terms(text, term_map):
 
         # Process each term in the current list
         for term in term_list:
-            # Create pattern for this specific term with word boundaries
-            term_pattern = r"\b" + re.escape(term) + r"\b"
+            # Skip terms already matched on this page (once-per-page logic)
+            if already_matched_terms is not None and term in already_matched_terms:
+                continue
+
+            # Determine case sensitivity: terms that are all uppercase in the
+            # begrippenkader (e.g. "DAT") are matched case-sensitively to avoid
+            # false positives with common Dutch words like "dat".
+            original_term = term_map.get(term, {}).get("term", term)
+            if len(original_term) > 1 and original_term.isupper():
+                # Use the original uppercase term in the pattern
+                term_pattern = r"\b" + re.escape(original_term) + r"\b"
+                regex_flags = 0  # case-sensitive
+            else:
+                term_pattern = r"\b" + re.escape(term) + r"\b"
+                regex_flags = re.IGNORECASE
 
             # Find all matches for this term in the current state of the text
             current_text = "".join(chars)
-            for match in re.finditer(term_pattern, current_text, re.IGNORECASE):
+            for match in re.finditer(term_pattern, current_text, regex_flags):
                 start, end = match.span()
 
                 # Skip if any part of this match overlaps with positions already matched
@@ -282,6 +311,12 @@ def inject_terms(text, term_map):
                     for pos in range(s, e):
                         updated_matched_positions.add(pos)
 
+                # Re-mark positions inside HTML tags to keep protecting URLs in attributes
+                for html_match in re.finditer(r"<[^>]+>", current_text, re.DOTALL):
+                    s, e = html_match.span()
+                    for pos in range(s, e):
+                        updated_matched_positions.add(pos)
+
                 # Add the original matched positions that weren't part of spans
                 for pos in matched_positions:
                     if pos < start or pos >= start + len(term_html):
@@ -291,14 +326,26 @@ def inject_terms(text, term_map):
                 matched_positions = updated_matched_positions
                 chars = list(current_text)
 
+                # Record this term so it is only enriched once per page
+                if already_matched_terms is not None:
+                    already_matched_terms.add(term)
+                    break  # stop after first match for this term on this page
+
     # Return the final text with all replacements
     return "".join(chars)
 
 
-def process_dpia(dpia_data, term_map):
+def process_dpia(dpia_data, term_map, once_per_page=False):
     """Process the DPIA data and inject terms from the begrippenkader.
 
     Handles main structure elements and delegates to process_tasks for handling tasks.
+
+    Args:
+        dpia_data: The parsed YAML data to enrich.
+        term_map: Dictionary mapping terms to their definitions.
+        once_per_page: When True, each definition is enriched at most once per
+            page (top-level task). When False (default), every occurrence is
+            enriched.
     """
     if not dpia_data:
         return dpia_data
@@ -312,24 +359,34 @@ def process_dpia(dpia_data, term_map):
             result[key] = inject_terms(value, term_map)
         elif key == "tasks" and isinstance(value, list):
             # Process tasks with level 0
-            result[key] = process_tasks(value, term_map, level=0)
+            result[key] = process_tasks(
+                value, term_map, level=0, once_per_page=once_per_page
+            )
         else:
             result[key] = value
 
     return result
 
 
-def process_tasks(tasks, term_map, level=0):
+def process_tasks(
+    tasks, term_map, level=0, already_matched_terms=None, once_per_page=False
+):
     """
     Process tasks recursively based on their level:
     - At level 0 (top level): Only process description
     - At deeper levels: Process both task and description
     - Process options values only for checkbox_option type tasks
 
+    When once_per_page is True, each top-level task (deel/page) gets its own
+    already_matched_terms set so that every definition tooltip appears at most
+    once per page. When False, every occurrence is enriched.
+
     Args:
         tasks: List of task dictionaries
         term_map: Dictionary mapping terms to their definitions
         level: Current nesting level of tasks (0 for top level)
+        already_matched_terms: Set of term keys already matched on this page
+        once_per_page: Enrich each definition at most once per page when True
 
     Returns:
         Processed list of tasks with terms injected according to rules
@@ -343,19 +400,28 @@ def process_tasks(tasks, term_map, level=0):
         # Create a copy of the task to modify
         task_copy = task.copy()
 
+        # At the top level each task (deel) starts fresh: a set enables
+        # once-per-page enrichment, None enriches every occurrence.
+        if level == 0:
+            page_matched = set() if once_per_page else None
+        else:
+            page_matched = already_matched_terms
+
         # For top level (level 0), only process description
         if level == 0:
             if "description" in task_copy and isinstance(task_copy["description"], str):
                 task_copy["description"] = inject_terms(
-                    task_copy["description"], term_map
+                    task_copy["description"], term_map, page_matched
                 )
         # For deeper levels, process both task and description
         else:
             if "task" in task_copy and isinstance(task_copy["task"], str):
-                task_copy["task"] = inject_terms(task_copy["task"], term_map)
+                task_copy["task"] = inject_terms(
+                    task_copy["task"], term_map, page_matched
+                )
             if "description" in task_copy and isinstance(task_copy["description"], str):
                 task_copy["description"] = inject_terms(
-                    task_copy["description"], term_map
+                    task_copy["description"], term_map, page_matched
                 )
 
         # Process options values for both checkbox_option and radio_option type tasks
@@ -379,10 +445,14 @@ def process_tasks(tasks, term_map, level=0):
             for option in task_copy["options"]:
                 option_copy = option.copy()
                 if "value" in option_copy and isinstance(option_copy["value"], str):
-                    option_copy["value"] = inject_terms(option_copy["value"], term_map)
+                    option_copy["value"] = inject_terms(
+                        option_copy["value"], term_map, page_matched
+                    )
                 # Process label if it exists and is a string
                 if "label" in option_copy and isinstance(option_copy["label"], str):
-                    option_copy["label"] = inject_terms(option_copy["label"], term_map)
+                    option_copy["label"] = inject_terms(
+                        option_copy["label"], term_map, page_matched
+                    )
                 options_copy.append(option_copy)
             task_copy["options"] = options_copy
 
@@ -410,7 +480,9 @@ def process_tasks(tasks, term_map, level=0):
 
         # Recursively process subtasks with incremented level
         if "tasks" in task_copy and isinstance(task_copy["tasks"], list):
-            task_copy["tasks"] = process_tasks(task_copy["tasks"], term_map, level + 1)
+            task_copy["tasks"] = process_tasks(
+                task_copy["tasks"], term_map, level + 1, page_matched, once_per_page
+            )
 
         result.append(task_copy)
 
@@ -432,7 +504,9 @@ class DefinitionEnricher:
         """
         self.script_dir = script_dir if script_dir else Path(__file__).parent
 
-    def enrich_and_export(self, source_path, begrippen_yaml_path, output_path):
+    def enrich_and_export(
+        self, source_path, begrippen_yaml_path, output_path, once_per_page=False
+    ):
         """
         Enrich a DPIA YAML file with definitions and export as JSON.
 
@@ -440,6 +514,9 @@ class DefinitionEnricher:
             source_path: Path to the source YAML file
             begrippen_yaml_path: Path to the begrippenkader YAML file
             output_path: Path to write the enriched JSON output
+            once_per_page: When True, enrich each definition at most once per
+                page (top-level task). When False (default), enrich every
+                occurrence.
 
         Returns:
             None
@@ -477,10 +554,11 @@ class DefinitionEnricher:
 
         # Determine if it's a DPIA or PreScan based on the filename
         file_type = "PrescanDPIA" if "prescan" in str(source_path).lower() else "DPIA"
-        print(f"Processing {file_type} data...")
+        mode = "once-per-page" if once_per_page else "every occurrence"
+        print(f"Processing {file_type} data (definition mode: {mode})...")
 
         # Process the DPIA data and inject terms
-        processed_dpia = process_dpia(dpia_data, term_map)
+        processed_dpia = process_dpia(dpia_data, term_map, once_per_page)
 
         print(f"{file_type} data processed and terms injected.")
 
@@ -500,23 +578,34 @@ class DefinitionEnricher:
 def main():
     # Set up argument parser for custom paths with new parameter names
     parser = argparse.ArgumentParser(
-        description="Converteer dpia.yaml of prescan_dpia.yaml naar JSON met begrippenkader injecties."
+        description="Converteer dpia.yaml of prescan.yaml naar JSON met begrippenkader injecties."
     )
     parser.add_argument(
         "--source",
         required=True,
-        help="Pad naar bron YAML bestand (dpia.yaml of prescan_dpia.yaml)",
+        help="Pad naar bron YAML bestand (dpia.yaml of prescan.yaml)",
     )
     parser.add_argument(
         "--definitions", required=True, help="Pad naar begrippenkader_dpia.yaml bestand"
     )
     parser.add_argument("--output", required=True, help="Pad naar output JSON bestand")
+    parser.add_argument(
+        "--definitions-once-per-page",
+        action="store_true",
+        help="Injecteer elke definitie maximaal één keer per pagina (deel) "
+        "in plaats van bij elke voorkomen.",
+    )
     args = parser.parse_args()
 
     try:
         # Create a DefinitionEnricher instance and use it
         enricher = DefinitionEnricher()
-        enricher.enrich_and_export(args.source, args.definitions, args.output)
+        enricher.enrich_and_export(
+            args.source,
+            args.definitions,
+            args.output,
+            once_per_page=args.definitions_once_per_page,
+        )
 
     except Exception as e:
         print(f"Er is een fout opgetreden: {str(e)}")

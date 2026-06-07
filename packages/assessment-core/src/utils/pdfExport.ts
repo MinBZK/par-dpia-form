@@ -8,10 +8,17 @@ import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
+import { buildOutputData } from './jsonExport'
 import pdfMake from 'pdfmake/build/pdfmake'
 import pdfFonts from 'pdfmake/build/vfs_fonts'
-import type { StyleDictionary, TDocumentDefinitions, Content } from 'pdfmake/interfaces'
+import type { StyleDictionary, TDocumentDefinitions, TDocumentInformation, Content } from 'pdfmake/interfaces'
 import FontService from '../services/fontService'
+
+// Extends pdfmake's document information with a custom key carrying the full
+// assessment state, so the exported PDF doubles as a re-importable data file.
+interface AssessmentDocumentInformation extends TDocumentInformation {
+  AssessmentData: string
+}
 
 // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
 pdfMake.addVirtualFileSystem(pdfFonts)
@@ -32,7 +39,11 @@ export async function exportToPdf(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA ? 'DPIA' : 'Pre-scan DPIA'
+  const formType = activeNamespace === FormType.DPIA
+    ? 'DPIA'
+    : activeNamespace === FormType.IAMA
+      ? 'IAMA'
+      : 'Pre-scan DPIA'
 
   // Pre-convert WebP images to PNG (pdfmake only supports JPEG/PNG)
   pdfImageCache.clear()
@@ -40,7 +51,9 @@ export async function exportToPdf(
 
   const contentSections: Content[] = activeNamespace === FormType.DPIA
     ? buildDpiaContentSections(taskStore, answerStore)
-    : buildPreScanContentSections(taskStore, answerStore, calculationStore)
+    : activeNamespace === FormType.IAMA
+      ? buildIamaContentSections(taskStore, answerStore)
+      : buildPreScanContentSections(taskStore, answerStore, calculationStore)
 
   const styles: StyleDictionary = {
     title: {
@@ -94,6 +107,13 @@ export async function exportToPdf(
     },
   }
 
+  const info: AssessmentDocumentInformation = {
+    title: `${formType} Rapportagemodel`,
+    author: `Invulhulp DPIA`,
+    creator: `Invulhulp DPIA`,
+    AssessmentData: JSON.stringify(buildOutputData(taskStore, answerStore)),
+  }
+
   try {
     const docDefinition: TDocumentDefinitions = {
       defaultStyle: {
@@ -135,11 +155,7 @@ export async function exportToPdf(
         }
       },
 
-      info: {
-        title: `${formType} Rapportagemodel`,
-        author: `Invulhulp DPIA`,
-        creator: `Invulhulp DPIA`,
-      },
+      info,
 
       pageSize: 'A4',
       pageMargins: [70, 70, 70, 70],
@@ -182,6 +198,22 @@ export async function exportToPdf(
   }
 }
 
+// Build consecutively-numbered report sections for a list of root tasks,
+// starting at `startNumber`. Shared by all three builders below; they differ
+// only in which tasks they pass and what precedes the numbered sections (the
+// pre-scan prepends a calculated Resultaten section, the DPIA prepends
+// unnumbered metadata/signing/summary sections, the IAMA prepends nothing).
+function buildNumberedSections(
+  tasks: FlatTask[],
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+  startNumber: number,
+): Content[] {
+  return tasks.map((task, index) =>
+    buildNumberedSection(task, taskStore, answerStore, startNumber + index),
+  )
+}
+
 function buildDpiaContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType
@@ -210,11 +242,7 @@ function buildDpiaContentSections(
     contentSections.push(buildUnNumberedSection(managementSummaryTask, taskStore, answerStore))
   }
 
-  let sectionNumber = 1
-  for (const task of officialTasks) {
-    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
-    sectionNumber++
-  }
+  contentSections.push(...buildNumberedSections(officialTasks, taskStore, answerStore, 1))
 
   return contentSections
 }
@@ -228,14 +256,17 @@ function buildPreScanContentSections(
   const contentSections: Content[] = []
 
   contentSections.push(buildResultsSection(calculationStore, 1))
-
-  let sectionNumber = 2
-  for (const task of rootTasks) {
-    contentSections.push(buildNumberedSection(task, taskStore, answerStore, sectionNumber))
-    sectionNumber++
-  }
+  contentSections.push(...buildNumberedSections(rootTasks, taskStore, answerStore, 2))
 
   return contentSections
+}
+
+function buildIamaContentSections(
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): Content[] {
+  const rootTasks = taskStore.getRootTasks.filter(task => !task.type.includes('signing'))
+  return buildNumberedSections(rootTasks, taskStore, answerStore, 1)
 }
 
 function buildResultsSection(
