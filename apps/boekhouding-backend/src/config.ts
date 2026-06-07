@@ -14,15 +14,21 @@ function parseCorsOrigin(): string | string[] {
 
 const corsOrigin = parseCorsOrigin()
 
+// Numeric TRUST_PROXY = hop count (default 1, one ZAD proxy), else a CIDR/IP list.
+// Coerce numerics: Fastify reads a string as a CIDR, not a hop count.
+function parseTrustProxy(): number | string {
+  const v = process.env.TRUST_PROXY
+  if (!v) return 1
+  return /^\d+$/.test(v) ? Number(v) : v
+}
+
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   // API docs (/api/docs + /api/openapi.json): off by default (secure in prod regardless
   // of NODE_ENV); set EXPOSE_API_DOCS=true to enable (dev/staging).
   exposeApiDocs: process.env.EXPOSE_API_DOCS === 'true',
-  // Reverse-proxy hop count (or CIDR) so req.ip is the real client behind the ZAD ingress.
-  // On ZAD set to 1 (single OpenShift router hop). Never 'true' (spoofable). Unset = local/direct.
-  trustProxy: process.env.TRUST_PROXY,
+  trustProxy: parseTrustProxy(),
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
   cors: {
     origin: corsOrigin,

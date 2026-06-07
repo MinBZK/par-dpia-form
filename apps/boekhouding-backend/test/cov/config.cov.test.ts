@@ -14,6 +14,7 @@ const ENV_KEYS = [
   'PORT',
   'HOST',
   'DATABASE_SERVER_FULL',
+  'TRUST_PROXY',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -156,5 +157,24 @@ describe('config — parseCorsOrigin', () => {
     process.env.PUBLIC_HOST = 'https://ignored.example.com'
     const config = await loadConfig()
     expect(config.cors.origin).toBe('https://cors.example.com')
+  })
+})
+
+describe('config — parseTrustProxy', () => {
+  it('defaults to 1 hop when TRUST_PROXY is unset', async () => {
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(1)
+  })
+
+  it('coerces a numeric TRUST_PROXY to a number (hop count)', async () => {
+    process.env.TRUST_PROXY = '2'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(2)
+  })
+
+  it('passes a non-numeric TRUST_PROXY through as a CIDR/IP string', async () => {
+    process.env.TRUST_PROXY = '10.0.0.0/8'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe('10.0.0.0/8')
   })
 })
