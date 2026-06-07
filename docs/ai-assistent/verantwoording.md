@@ -1,6 +1,6 @@
 # Verantwoording — assessment-tools (marketplace + plugin)
 
-Verantwoording voor de in deze repo meegeleverde Claude-/Cursor-marketplace `assessment-tools` en de `assessments`-plugin. De structuur volgt die van `developer-overheid-nl/skills-marketplace` ([`docs/verantwoording.md`](https://github.com/developer-overheid-nl/skills-marketplace/blob/main/docs/verantwoording.md)) — de overheidsnorm voor AI-assistent-tooling. Dit is een **startpunt**; vul de met *(team)* gemarkeerde details aan.
+Verantwoording voor de in deze repo meegeleverde Claude-/Cursor-marketplace `assessment-tools` en de `assessments`-plugin. De structuur volgt die van `developer-overheid-nl/skills-marketplace` ([`docs/verantwoording.md`](https://github.com/developer-overheid-nl/skills-marketplace/blob/main/docs/verantwoording.md)) als basis. Dit is een **startpunt**; vul de met *(team)* gemarkeerde details aan.
 
 ## 1. Doel en toepassingsgebied
 

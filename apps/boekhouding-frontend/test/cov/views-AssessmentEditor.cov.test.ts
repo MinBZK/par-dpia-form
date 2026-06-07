@@ -233,7 +233,11 @@ async function mountEditor(props: { assessmentId?: string } = {}) {
   return wrapper
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Drain any pending async onMounted (dynamic schema imports -> schemaStore.init)
+  // from a prior test before resetting mocks, so a late init call can't leak into
+  // this test and inflate the call count.
+  await flushPromises()
   vi.clearAllMocks()
   routerPush.mockReset()
   fieldClickHolder.fn = null

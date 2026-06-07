@@ -122,7 +122,7 @@ uv run script/run_all.py \
 
 Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, RVO-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
 
-Installeren (de marketplace zit in deze repo):
+Installeren:
 
 ```
 /plugin marketplace add MinBZK/par-dpia-form
