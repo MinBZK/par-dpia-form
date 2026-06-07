@@ -16,14 +16,14 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h1 class="utrecht-heading-1">Privacyverklaring</h1>
 
     <p>
-      De Assessment Boekhouding is een applicatie van het Ministerie van Binnenlandse Zaken en
-      Koninkrijksrelaties (BZK) voor het uitvoeren van assessments. In deze
+      Invulhulpen is een applicatie van het Ministerie van Binnenlandse Zaken en
+      Koninkrijksrelaties (BZK), bedoeld als hulpmiddel bij het uitvoeren van een pre-scan, DPIA of IAMA. In deze
       privacyverklaring leggen we uit welke persoonsgegevens we verwerken, waarom we dat doen,
       en welke rechten je hebt.
     </p>
 
     <h2 class="utrecht-heading-2">Welke gegevens verwerken we?</h2>
-    <p>Bij het gebruik van de Assessment Boekhouding verwerken we de volgende persoonsgegevens:</p>
+    <p>Bij het gebruik van Invulhulpen verwerken we de volgende persoonsgegevens:</p>
     <ul>
       <li><strong>E-mailadres</strong> — verkregen via de inlogvoorziening (SSO Rijk / RIG Keycloak) bij authenticatie</li>
       <li><strong>Weergavenaam</strong> — verkregen via de inlogvoorziening bij authenticatie</li>

@@ -1,4 +1,4 @@
-# Assessment Boekhouding
+# Invulhulpen voor pre-scan, DPIA en IAMA
 
 Pre-scan-, DPIA- en IAMA-assessment-applicatie voor de overheid, gebouwd op het RVO component library.
 
@@ -70,7 +70,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - Database: PostgreSQL 17 via Drizzle ORM
 - Auth: Keycloak JWT-verificatie via `jose` met audience-validatie (geen cookies/sessies)
 - Migraties: `pnpm db:generate` → `pnpm db:migrate`
-- Realm: `assessment-boekhouding`, client: `boekhouding-frontend`
+- Realm: `invulhulpen`, client: `boekhouding-frontend`
 - API-routes onder `/api/v1/` (NL GOV API Design Rules: major versie in URI-pad)
 - Foutresponses: `application/problem+json` (RFC 9457)
 - Security: `@fastify/helmet` (security headers), `@fastify/rate-limit`, `API-Version` response header

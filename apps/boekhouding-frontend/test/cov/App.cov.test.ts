@@ -63,7 +63,7 @@ describe('App.vue', () => {
     expect(footerLinks.map((l) => l.text())).toEqual([
       'Privacyverklaring',
       'Toegankelijkheid',
-      'Over de invulhulpen',
+      'Over Invulhulpen',
     ])
     expect(footerLinks.map((l) => l.attributes('href'))).toEqual([
       '/privacy',

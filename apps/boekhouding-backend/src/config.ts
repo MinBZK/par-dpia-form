@@ -1,6 +1,6 @@
 const oidcUrl = process.env.OIDC_URL || 'http://localhost:8080'
 const oidcInternalUrl = process.env.OIDC_INTERNAL_URL || oidcUrl
-const oidcRealm = process.env.OIDC_REALM || 'assessment-boekhouding'
+const oidcRealm = process.env.OIDC_REALM || 'invulhulpen'
 
 // CORS_ORIGIN supports a single origin, or a comma-separated list for development
 // environments where the app is reached via multiple hostnames (localhost, myserver, etc.)

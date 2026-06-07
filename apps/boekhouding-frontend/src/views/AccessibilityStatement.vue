@@ -23,7 +23,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <h2 class="utrecht-heading-2">Nalevingsstatus</h2>
     <p>
-      De Assessment Boekhouding voldoet <strong>gedeeltelijk</strong> aan de
+      Invulhulpen voldoet <strong>gedeeltelijk</strong> aan de
       <a href="https://www.w3.org/TR/WCAG22/" target="_blank" rel="noopener noreferrer">Web Content Accessibility Guidelines (WCAG) 2.2</a>
       niveau AA. De applicatie is in actieve ontwikkeling en we werken aan volledige naleving.
     </p>

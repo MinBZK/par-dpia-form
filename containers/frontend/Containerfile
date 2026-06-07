@@ -40,8 +40,8 @@ FROM nginxinc/nginx-unprivileged:stable-alpine-slim
 # Hoofd-SPA
 COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
 
-# Standalone invulhulp op /invulhulpen/ (index.html + favicon)
-COPY --from=build /app/apps/standalone-form/dist/ /usr/share/nginx/html/invulhulpen/
+# Standalone invulhulp op /zonder-account/ (index.html + favicon)
+COPY --from=build /app/apps/standalone-form/dist/ /usr/share/nginx/html/zonder-account/
 
 # Nginx configuratie
 COPY containers/frontend/nginx.conf /etc/nginx/nginx.conf
@@ -51,9 +51,9 @@ COPY containers/frontend/config.json.template /etc/nginx/config.json.template
 COPY --chmod=755 containers/frontend/entrypoint.sh /entrypoint.sh
 
 ENV OIDC_URL=http://localhost:8080
-ENV OIDC_REALM=assessment-boekhouding
+ENV OIDC_REALM=invulhulpen
 ENV OIDC_PUBLIC_CLIENT_ID=boekhouding-frontend
-ENV STANDALONE_URL=/invulhulpen/
+ENV STANDALONE_URL=/zonder-account/
 
 EXPOSE 8080
 ENTRYPOINT ["/entrypoint.sh"]

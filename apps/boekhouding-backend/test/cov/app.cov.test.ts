@@ -101,7 +101,7 @@ describe('static utility routes', () => {
     const res = await app.inject({ method: 'GET', url: '/api/openapi.json' })
     expect(res.statusCode).toBe(200)
     const doc = res.json()
-    expect(doc.info.title).toBe('Assessment Boekhouding API')
+    expect(doc.info.title).toBe('Invulhulpen API')
     expect(doc.info.version).toBe(API_VERSION)
     expect(doc.info.contact.url).toBe(config.publicUrl)
   })

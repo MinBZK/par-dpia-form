@@ -15,9 +15,9 @@ export async function loadConfig(): Promise<AppConfig> {
     // Fallback for local development (Vite dev server)
     config = {
       keycloakUrl: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8080',
-      keycloakRealm: import.meta.env.VITE_KEYCLOAK_REALM || 'assessment-boekhouding',
+      keycloakRealm: import.meta.env.VITE_KEYCLOAK_REALM || 'invulhulpen',
       keycloakClientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'boekhouding-frontend',
-      standaloneUrl: import.meta.env.VITE_STANDALONE_URL || '/invulhulpen/',
+      standaloneUrl: import.meta.env.VITE_STANDALONE_URL || '/zonder-account/',
     }
   }
   return config

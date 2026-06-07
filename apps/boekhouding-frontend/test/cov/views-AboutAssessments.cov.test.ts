@@ -70,7 +70,7 @@ describe('AboutAssessments', () => {
 
       const wrapper = mountAbout()
 
-      expect(wrapper.find('h1.utrecht-heading-1').text()).toBe('Over de invulhulpen')
+      expect(wrapper.find('h1.utrecht-heading-1').text()).toBe('Over Invulhulpen')
     })
 
     it('renders the key section headings explaining pre-scan, DPIA and IAMA', () => {

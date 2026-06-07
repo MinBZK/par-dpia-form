@@ -22,9 +22,9 @@ describe('config', () => {
     it('returns the JSON payload from /config.json', async () => {
       const payload = {
         keycloakUrl: 'https://keycloak.assessment.test',
-        keycloakRealm: 'assessment-boekhouding',
+        keycloakRealm: 'invulhulpen',
         keycloakClientId: 'boekhouding-frontend',
-        standaloneUrl: '/invulhulpen/',
+        standaloneUrl: '/zonder-account/',
       }
       const fetchMock = vi.fn().mockResolvedValue({
         json: () => Promise.resolve(payload),
@@ -72,9 +72,9 @@ describe('config', () => {
 
       expect(result).toEqual({
         keycloakUrl: 'http://localhost:8080',
-        keycloakRealm: 'assessment-boekhouding',
+        keycloakRealm: 'invulhulpen',
         keycloakClientId: 'boekhouding-frontend',
-        standaloneUrl: '/invulhulpen/',
+        standaloneUrl: '/zonder-account/',
       })
     })
   })
@@ -89,9 +89,9 @@ describe('config', () => {
     it('returns the cached config after loadConfig() has run', async () => {
       const payload = {
         keycloakUrl: 'https://keycloak.assessment.test',
-        keycloakRealm: 'assessment-boekhouding',
+        keycloakRealm: 'invulhulpen',
         keycloakClientId: 'boekhouding-frontend',
-        standaloneUrl: '/invulhulpen/',
+        standaloneUrl: '/zonder-account/',
       }
       vi.stubGlobal(
         'fetch',

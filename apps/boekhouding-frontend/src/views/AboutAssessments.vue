@@ -13,10 +13,10 @@ const hasHistory = computed(() => !!window.history.state?.back)
       :showBack="hasHistory"
     />
 
-    <h1 class="utrecht-heading-1">Over de invulhulpen</h1>
+    <h1 class="utrecht-heading-1">Over Invulhulpen</h1>
 
     <p>
-      De invulhulpen helpen je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
+      Invulhulpen helpt je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
       De pre-scan en DPIA zijn gebaseerd op het
       <a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener noreferrer">Informatiemodellen voor de DPIA en pre-scan DPIA</a>
       en het

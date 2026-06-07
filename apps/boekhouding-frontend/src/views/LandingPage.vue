@@ -20,7 +20,7 @@ async function goToProjects() {
 <template>
   <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
     <AppHeader />
-    <h1 class="utrecht-heading-1 rvo-margin-block-start--xl">Assessment Boekhouding</h1>
+    <h1 class="utrecht-heading-1 rvo-margin-block-start--xl">Invulhulpen</h1>
 
     <div class="rvo-layout-grid-container rvo-margin-block-start--lg">
       <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
@@ -45,10 +45,10 @@ async function goToProjects() {
             <h2 class="utrecht-heading-2 rvo-margin--none">Samenwerken</h2>
             <p class="rvo-padding-block-end--sm">
               <template v-if="isAuthenticated">
-                Ga naar je projecten om samen met collega's aan assessments te werken.
+                Ga naar je projecten en werk samen met je collega's aan een pre-scan, DPIA en/of IAMA.
               </template>
               <template v-else>
-                Log in om samen met collega's aan assessments te werken. Beheer projecten,
+                Log in om samen met collega's aan een pre-scan, DPIA of IAMA te werken. Beheer projecten,
                 nodig leden uit en houd de voortgang bij.
               </template>
             </p>

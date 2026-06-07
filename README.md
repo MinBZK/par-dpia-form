@@ -8,7 +8,7 @@ Webapplicatie voor het uitvoeren van Pre-scan-, DPIA- en IAMA-assessments, volge
 ## Kenmerken
 
 - Pre-scan, DPIA en IAMA invullen in de browser als losstaande applicatie
-- Samenwerken aan Pre-scans, DPIA's en IAMA's via de Assessment Boekhouding:
+- Samenwerken aan Pre-scans, DPIA's en IAMA's via Invulhulpen:
   - Samenwerken aan assessments met meerdere gebruikers
   - Projectbeheer met rollen (eigenaar, bewerker, kijker)
   - Voortgang opslaan en later hervatten
@@ -133,7 +133,7 @@ Zie het [ontwerp](docs/ai-assistent/assessments-plugin-design.md) en de [verantw
 
 ## Standaarden en compliance
 
-De Assessment Boekhouding conformeert aan de volgende overheidsstandaarden:
+Invulhulpen conformeert aan de volgende overheidsstandaarden:
 
 | Standaard | Status |
 |-----------|--------|

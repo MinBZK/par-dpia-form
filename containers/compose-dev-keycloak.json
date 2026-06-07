@@ -1,6 +1,6 @@
 {
-  "realm": "assessment-boekhouding",
-  "displayName": "Assessment Boekhouding",
+  "realm": "invulhulpen",
+  "displayName": "Invulhulpen",
   "enabled": true,
   "registrationAllowed": false,
   "loginWithEmailAllowed": true,
