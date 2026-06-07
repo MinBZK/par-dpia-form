@@ -437,3 +437,23 @@
   margin-top: 1.5rem;
   flex-wrap: wrap;
 }
+
+/* Scrollable container for a multiselect_scrollable field (long static option lists). */
+.rvo-theme .multiselect-scrollable {
+  max-height: 16rem;
+  overflow-y: auto;
+  border: 1px solid var(--rvo-color-grijs-300, #b3b3b3);
+  border-radius: 4px;
+  padding: 0.25rem 0;
+}
+
+.rvo-theme .multiselect-scrollable__option {
+  padding: 0.25rem 0.75rem;
+}
+
+/* The RVO checkmark (.rvo-checkbox__input::after) is position:absolute; anchoring
+   it to its own input keeps it scrolling and clipping with the row inside the
+   scroll container instead of detaching to a non-scrolling ancestor. */
+.rvo-theme .multiselect-scrollable .rvo-checkbox__input {
+  position: relative;
+}

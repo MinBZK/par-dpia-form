@@ -6,7 +6,7 @@ import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
 import { useAnswerStore } from '../../stores/answers'
-import { useSchemaStore } from '../../stores/schemas'
+import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { renderInstanceLabel } from '../../utils/taskUtils'
 import { findImpactedByDelete, summariseImpact, type ImpactSummary } from '../../utils/impactedAnswers'
 import { computed, nextTick, ref } from 'vue'
@@ -18,17 +18,11 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
-const schemaStore = useSchemaStore()
 const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
 
-// Some forms (e.g. IAMA) prefix group labels with the question ID. Opt-in per
-// form via prefixQuestionIds in the schema, skipped for tasks explicitly marked
-// is_official_id: false (e.g. Deel headers, actiepunten groups).
-const prefixQuestionIds = computed(
-  () => schemaStore.getSchema(taskStore.activeNamespace)?.prefixQuestionIds === true,
-)
+const prefixQuestionIds = usePrefixQuestionIds()
 
 const instanceLabel = computed(() => {
   if (task.value.instance_label_template) {

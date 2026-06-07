@@ -254,10 +254,10 @@ function buildPreScanContentSections(
   return contentSections
 }
 
-// IAMA has no calculated assessment-results section (unlike the pre-scan), so
-// its content is the numbered sections starting at 1 — reusing the pre-scan
-// section builder would inject a spurious empty "Resultaten" section and shift
-// every IAMA section number by one.
+// Like the DPIA, the IAMA has no calculated results section — only the pre-scan
+// has one. Its content is the numbered sections starting at 1; reusing the
+// pre-scan section builder would inject a spurious empty "Resultaten" section
+// and shift every IAMA section number by one.
 function buildIamaContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,

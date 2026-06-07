@@ -4,7 +4,7 @@ import { TaskTypeValue } from '../../models/dpia'
 import { useAnswerStore } from '../../stores/answers'
 import { type FlatTask } from '../../stores/tasks'
 import { useTaskStore } from '../../stores/tasks'
-import { useSchemaStore } from '../../stores/schemas'
+import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
@@ -21,16 +21,10 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
-const schemaStore = useSchemaStore()
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 const { getPrefillValueForTask } = useReferences()
 
-// Some forms (e.g. IAMA) prefix every field label with its official question ID.
-// This is opt-in per form via prefixQuestionIds in the schema, and skipped for
-// tasks explicitly marked is_official_id: false (e.g. headers, actiepunten groups).
-const prefixQuestionIds = computed(
-  () => schemaStore.getSchema(taskStore.activeNamespace)?.prefixQuestionIds === true,
-)
+const prefixQuestionIds = usePrefixQuestionIds()
 
 const displayLabel = computed(() => {
   if (!props.label) return props.label
@@ -286,18 +280,14 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Multi-select checkboxes in scrollable container -->
   <div v-else-if="hasType('multiselect_scrollable')" class="field-group rvo-margin-block-end--md">
-    <div style="max-height:16rem;overflow-y:auto;border:1px solid #b3b3b3;border-radius:4px;padding:0.25rem 0;">
+    <div class="multiselect-scrollable">
       <div class="rvo-checkbox__group">
         <label v-for="option in task.options!" :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`"
-          style="padding:0.25rem 0.75rem;">
-          <!-- position:relative anchors the RVO checkmark (::after, position:absolute)
-               to its own input, so inside this scroll container it scrolls and clips
-               with the row instead of detaching to a non-scrolling ancestor. -->
+          class="rvo-checkbox rvo-checkbox--not-checked multiselect-scrollable__option" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`">
           <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
             :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            style="position:relative" type="checkbox" />
+            type="checkbox" />
           <span>{{ option.value }}</span>
         </label>
       </div>

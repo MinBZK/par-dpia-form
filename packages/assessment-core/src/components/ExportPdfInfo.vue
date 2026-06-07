@@ -14,7 +14,7 @@
     </p>
     <p>
       Wat kun je <strong> niet </strong> met het geëxporteerde PDF-bestand? <br />
-      ❌ Bewerk je gegevens niet rechtstreeks in het PDF-bestand: handmatige wijzigingen worden bij opnieuw uploaden niet overgenomen en kunnen de import verstoren. Pas je gegevens aan in de tool zelf. <br />
+      ❌ Zelf het PDF-bestand wijzigen en vervolgens dit bestand opnieuw importeren. <br />
     </p>
   </div>
 </template>
