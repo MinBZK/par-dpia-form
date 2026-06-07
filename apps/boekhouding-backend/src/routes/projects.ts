@@ -159,7 +159,9 @@ export async function projectRoutes(app: FastifyInstance) {
 
     let finalName = name
     if (!finalName) {
-      const baseLabel = assessmentType === 'dpia' ? 'DPIA' : assessmentType === 'iama' ? 'IAMA' : 'Pre-scan'
+      // assessmentType is enum-validated by the route schema (400 otherwise),
+      // so this is an explicit per-type label, not a fallback for unknown input.
+      const baseLabel = { dpia: 'DPIA', prescan: 'Pre-scan', iama: 'IAMA' }[assessmentType]
       const existing = await db
         .select()
         .from(assessmentInstances)
