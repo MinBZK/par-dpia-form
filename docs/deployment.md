@@ -85,6 +85,8 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `PUBLIC_HOST`          | —                            | Auto-inject (volgt webadres → CORS + OpenAPI `contact.url`) |
 | `PORT`                 | `3000`                       | Default is correct                        |
 | `HOST`                 | `0.0.0.0`                    | Default is correct                        |
+| `TRUST_PROXY`          | — (uit)                      | Zet op `1` (één OpenShift-router-hop) zodat `req.ip` het echte client-IP is en per-IP rate-limiting werkt. Nooit `true`. |
+| `EXPOSE_API_DOCS`      | — (uit)                      | Laat uit in productie (Swagger UI + `/api/openapi.json` zijn dan niet bereikbaar). Zet op `true` voor dev/staging. |
 
 ### Niet nodig op ZAD
 

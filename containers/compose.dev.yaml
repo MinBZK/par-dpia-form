@@ -52,6 +52,7 @@ services:
       OIDC_REALM: assessment-boekhouding
       OIDC_PUBLIC_CLIENT_ID: boekhouding-frontend
       NODE_ENV: development
+      EXPOSE_API_DOCS: "true"
     depends_on:
       postgres:
         condition: service_healthy
