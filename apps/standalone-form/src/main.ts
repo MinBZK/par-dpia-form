@@ -12,6 +12,6 @@ const pinia = createPinia()
 app.use(pinia)
 
 const schemaStore = useSchemaStore(pinia)
-schemaStore.init({ dpia: dpiaJson, preScan: preScanJson, iama: iamaJson })
+schemaStore.init({ preScan: preScanJson, dpia: dpiaJson, iama: iamaJson })
 
 app.mount('#app')

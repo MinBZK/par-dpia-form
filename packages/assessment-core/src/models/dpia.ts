@@ -1,8 +1,8 @@
 import * as t from 'io-ts'
 
 export enum FormType {
-  DPIA = 'dpia',
   PRE_SCAN = 'prescan',
+  DPIA = 'dpia',
   IAMA = 'iama',
 }
 

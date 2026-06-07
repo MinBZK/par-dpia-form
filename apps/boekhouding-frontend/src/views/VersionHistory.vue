@@ -226,9 +226,9 @@ onMounted(async () => {
       import('../../../../sources/generated/PreScanDPIA.json'),
       import('../../../../sources/generated/IAMA.json'),
     ])
-    schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default, iama: iamaModule.default })
+    schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
   }
-  for (const ns of [FormType.DPIA, FormType.PRE_SCAN, FormType.IAMA]) {
+  for (const ns of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
     if (!taskStore.isInitialized[ns]) {
       const schema = schemaStore.getSchema(ns)
       if (schema) {

@@ -37,8 +37,8 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
    */
   const activeNamespace = ref(FormType.DPIA)
   const answers = ref<Record<FormType, Record<string, Answer>>>({
-    [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.DPIA]: {},
     [FormType.IAMA]: {},
   })
 
@@ -89,8 +89,8 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
   function reset() {
     activeNamespace.value = FormType.DPIA
     answers.value = {
-      [FormType.DPIA]: {},
       [FormType.PRE_SCAN]: {},
+      [FormType.DPIA]: {},
       [FormType.IAMA]: {},
     }
   }

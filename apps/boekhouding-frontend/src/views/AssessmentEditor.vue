@@ -221,7 +221,7 @@ onMounted(async () => {
         import('../../../../sources/generated/PreScanDPIA.json'),
         import('../../../../sources/generated/IAMA.json'),
       ])
-      schemaStore.init({ dpia: dpiaModule.default, preScan: preScanModule.default, iama: iamaModule.default })
+      schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
     }
 
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA

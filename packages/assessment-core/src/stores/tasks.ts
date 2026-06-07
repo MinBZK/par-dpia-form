@@ -52,33 +52,33 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
   const activeNamespace = ref(FormType.DPIA)
   const flatTasks = ref<Record<FormType, Record<string, FlatTask>>>({
-    [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.DPIA]: {},
     [FormType.IAMA]: {},
   })
   const taskInstances = ref<Record<FormType, Record<string, TaskInstance>>>({
-    [FormType.DPIA]: {},
     [FormType.PRE_SCAN]: {},
+    [FormType.DPIA]: {},
     [FormType.IAMA]: {},
   })
   const currentRootTaskId = ref<Record<FormType, string>>({
-    [FormType.DPIA]: "0",
     [FormType.PRE_SCAN]: "0",
+    [FormType.DPIA]: "0",
     [FormType.IAMA]: "0",
   })
   const rootTaskIds = ref<Record<FormType, string[]>>({
-    [FormType.DPIA]: [],
     [FormType.PRE_SCAN]: [],
+    [FormType.DPIA]: [],
     [FormType.IAMA]: [],
   })
   const isInitialized = ref<Record<FormType, boolean>>({
-    [FormType.DPIA]: false,
     [FormType.PRE_SCAN]: false,
+    [FormType.DPIA]: false,
     [FormType.IAMA]: false,
   })
   const completedRootTaskIds = ref<Record<FormType, Set<string>>>({
-    [FormType.DPIA]: new Set(),
     [FormType.PRE_SCAN]: new Set(),
+    [FormType.DPIA]: new Set(),
     [FormType.IAMA]: new Set(),
   })
 
@@ -428,12 +428,12 @@ export const useTaskStore = defineStore('TaskStore', () => {
 
   function reset() {
     activeNamespace.value = FormType.DPIA
-    flatTasks.value = { [FormType.DPIA]: {}, [FormType.PRE_SCAN]: {}, [FormType.IAMA]: {} }
-    taskInstances.value = { [FormType.DPIA]: {}, [FormType.PRE_SCAN]: {}, [FormType.IAMA]: {} }
-    currentRootTaskId.value = { [FormType.DPIA]: '0', [FormType.PRE_SCAN]: '0', [FormType.IAMA]: '0' }
-    rootTaskIds.value = { [FormType.DPIA]: [], [FormType.PRE_SCAN]: [], [FormType.IAMA]: [] }
-    isInitialized.value = { [FormType.DPIA]: false, [FormType.PRE_SCAN]: false, [FormType.IAMA]: false }
-    completedRootTaskIds.value = { [FormType.DPIA]: new Set(), [FormType.PRE_SCAN]: new Set(), [FormType.IAMA]: new Set() }
+    flatTasks.value = { [FormType.PRE_SCAN]: {}, [FormType.DPIA]: {}, [FormType.IAMA]: {} }
+    taskInstances.value = { [FormType.PRE_SCAN]: {}, [FormType.DPIA]: {}, [FormType.IAMA]: {} }
+    currentRootTaskId.value = { [FormType.PRE_SCAN]: '0', [FormType.DPIA]: '0', [FormType.IAMA]: '0' }
+    rootTaskIds.value = { [FormType.PRE_SCAN]: [], [FormType.DPIA]: [], [FormType.IAMA]: [] }
+    isInitialized.value = { [FormType.PRE_SCAN]: false, [FormType.DPIA]: false, [FormType.IAMA]: false }
+    completedRootTaskIds.value = { [FormType.PRE_SCAN]: new Set(), [FormType.DPIA]: new Set(), [FormType.IAMA]: new Set() }
   }
 
   return {

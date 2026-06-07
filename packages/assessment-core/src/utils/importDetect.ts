@@ -79,7 +79,7 @@ export const normalizeToState = (json: Record<string, unknown>, detectedType: 'd
       : FormType.PRE_SCAN
 
   // Detect old namespace-wrapped format and unwrap.
-  const isNamespaced = answers?.[FormType.DPIA] || answers?.[FormType.PRE_SCAN] || answers?.[FormType.IAMA]
+  const isNamespaced = answers?.[FormType.PRE_SCAN] || answers?.[FormType.DPIA] || answers?.[FormType.IAMA]
   const unwrapped = (isNamespaced
     ? ((answers?.[namespace] || {}) as Record<string, unknown>)
     : (answers || {})) as Record<string, unknown>

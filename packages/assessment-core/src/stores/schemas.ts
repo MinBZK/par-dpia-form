@@ -73,19 +73,19 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     }
   }
 
-  function init(schemas: { dpia: unknown; preScan: unknown; iama: unknown }) {
+  function init(schemas: { preScan: unknown; dpia: unknown; iama: unknown }) {
     if (isInitialized.value) return
 
     // Reset error state
     hasErrors.value = false
     errorMessage.value = null
 
-    const dpiaSuccess = processSchema(schemas.dpia, FormType.DPIA)
     const preScanSuccess = processSchema(schemas.preScan, FormType.PRE_SCAN)
+    const dpiaSuccess = processSchema(schemas.dpia, FormType.DPIA)
     const iamaSuccess = processSchema(schemas.iama, FormType.IAMA)
 
     // Mark as initialized if at least one schema processed successfully
-    isInitialized.value = dpiaSuccess || preScanSuccess || iamaSuccess
+    isInitialized.value = preScanSuccess || dpiaSuccess || iamaSuccess
   }
 
   function getSchema(namespace: FormType): t.TypeOf<typeof DPIA> | null {

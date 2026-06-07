@@ -15,7 +15,7 @@ const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA'>> = {
 
 // References can originate from any form (self-references within the active
 // form, or cross-form references from another form such as pre-scan).
-const ALL_NAMESPACES: FormType[] = [FormType.DPIA, FormType.PRE_SCAN, FormType.IAMA]
+const ALL_NAMESPACES: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]
 
 // Prefill reference types deterministically populate the target answer.
 const PREFILL_TYPES = ['pre-fill', 'one-to-one', 'one-to-many']
