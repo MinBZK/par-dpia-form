@@ -5,6 +5,10 @@ import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '../utils/taskUtils'
 
+// Shared "Afronding" description for the DPIA and IAMA conclusion steps.
+const AFRONDING_DESCRIPTION =
+  'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'
+
 export const useSchemaStore = defineStore('SchemaStore', () => {
   const validatedDpia = ref<t.TypeOf<typeof DPIA> | null>(null)
   const validatedPreScan = ref<t.TypeOf<typeof DPIA> | null>(null)
@@ -29,9 +33,9 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         )
         if (!hasSigningTask) {
           if (schemaType === FormType.DPIA) {
-            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'))
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION))
           } else if (schemaType === FormType.IAMA) {
-            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), 'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.', true))
+            validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION, true))
           } else {
             validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
           }
