@@ -21,8 +21,7 @@ def make_begrippenkader(*definitions):
     """Build a minimal begrippenkader dict from (term, definition) pairs."""
     return {
         "definitions": [
-            {"id": term.lower(), "term": term, "definition": defn}
-            for term, defn in definitions
+            {"id": term.lower(), "term": term, "definition": defn} for term, defn in definitions
         ]
     }
 
@@ -126,8 +125,7 @@ def test_inject_terms_does_not_double_wrap_existing_definition_span():
     term_map = create_term_map(make_begrippenkader(("term", "uitleg")))
 
     pre_enriched = (
-        '<span class="aiv-definition">term'
-        '<span class="aiv-definition-text">uitleg</span></span>'
+        '<span class="aiv-definition">term<span class="aiv-definition-text">uitleg</span></span>'
     )
     result = inject_terms(pre_enriched, term_map)
 
@@ -160,9 +158,7 @@ def _deel_with_repeated_term():
 def test_once_per_page_false_enriches_every_occurrence():
     term_map = create_term_map(make_begrippenkader(("persoonsgegeven", "een gegeven")))
 
-    result = process_tasks(
-        _deel_with_repeated_term(), term_map, level=0, once_per_page=False
-    )
+    result = process_tasks(_deel_with_repeated_term(), term_map, level=0, once_per_page=False)
     subtasks = result[0]["tasks"]
 
     assert "aiv-definition" in subtasks[0]["task"]
@@ -172,9 +168,7 @@ def test_once_per_page_false_enriches_every_occurrence():
 def test_once_per_page_true_enriches_only_first_occurrence_per_deel():
     term_map = create_term_map(make_begrippenkader(("persoonsgegeven", "een gegeven")))
 
-    result = process_tasks(
-        _deel_with_repeated_term(), term_map, level=0, once_per_page=True
-    )
+    result = process_tasks(_deel_with_repeated_term(), term_map, level=0, once_per_page=True)
     subtasks = result[0]["tasks"]
 
     # First occurrence enriched, second left alone (same page).

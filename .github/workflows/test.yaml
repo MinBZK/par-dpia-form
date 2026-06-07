@@ -44,21 +44,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: '3.14'
+          enable-cache: true
+
       - name: Generate assessment JSON sources
         run: |
-          pip install pyyaml jsonschema pytest
           mkdir -p sources/generated
-          python script/run_all.py \
+          uv run --frozen python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/prescan.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json
-          python script/run_all.py \
+          uv run --frozen python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json
-          python script/run_all.py \
+          uv run --frozen python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/iama.yaml \
             --begrippen-yaml sources/begrippenkader_iama.yaml \
@@ -66,7 +71,7 @@ jobs:
             --definitions-once-per-page
 
       - name: Run Python pipeline tests
-        run: pytest script/tests -q
+        run: uv run --frozen pytest script/tests -q
 
       - name: Type check backend
         run: cd apps/boekhouding-backend && npx tsc --noEmit

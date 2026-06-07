@@ -1,7 +1,11 @@
-import yaml
-import os
 import argparse
+import logging
 import sys
+from pathlib import Path
+
+import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def extract_task_info(task, parent_path=""):
@@ -36,7 +40,7 @@ def extract_task_info(task, parent_path=""):
 
     # Extract options if available
     options = []
-    if "options" in task and task["options"]:
+    if task.get("options"):
         for option in task["options"]:
             if "label" in option and "value" in option:
                 options.append(f"{option['value']}")
@@ -82,7 +86,7 @@ def extract_task_info(task, parent_path=""):
     )
 
     # Process subtasks recursively
-    if "tasks" in task and task["tasks"]:
+    if task.get("tasks"):
         for subtask in task["tasks"]:
             result.extend(extract_task_info(subtask, current_path))
 
@@ -100,7 +104,7 @@ def process_yaml_file(file_path):
         List of dictionaries containing task information
     """
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with Path(file_path).open(encoding="utf-8") as f:
             data = yaml.safe_load(f)
 
         all_tasks = []
@@ -109,12 +113,12 @@ def process_yaml_file(file_path):
             for task in data["tasks"]:
                 all_tasks.extend(extract_task_info(task))
 
-        return all_tasks, data.get("name", os.path.basename(file_path))
+        return all_tasks, data.get("name", Path(file_path).name)
     except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
+        logger.error("Error parsing YAML file: %s", e)
         sys.exit(1)
     except Exception as e:
-        print(f"Error processing file: {e}")
+        logger.error("Error processing file: %s", e)
         sys.exit(1)
 
 
@@ -161,7 +165,10 @@ def generate_markdown_table(tasks, file_name):
         description = description.replace("|", "\\|")
         task_text = task_text.replace("|", "\\|")
 
-        md += f"| {task['id']} | {task_text} | {description} | {task['type']} | {task['options']} | {task['related']} |\n"
+        md += (
+            f"| {task['id']} | {task_text} | {description} "
+            f"| {task['type']} | {task['options']} | {task['related']} |\n"
+        )
 
     return md
 
@@ -198,7 +205,7 @@ def main():
     if args.output:
         output_file = args.output
     else:
-        base_name = os.path.splitext(os.path.basename(yaml_file))[0]
+        base_name = Path(yaml_file).stem
         output_file = f"tasks_{base_name}.md"
 
     # Ensure output file has .md extension
@@ -206,12 +213,12 @@ def main():
         output_file += ".md"
 
     # Create output directory if it doesn't exist
-    output_dir = os.path.dirname(output_file)
-    if output_dir and not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    output_dir = Path(output_file).parent
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True)
 
-    if not os.path.exists(yaml_file):
-        print(f"Error: Source file not found: {yaml_file}")
+    if not Path(yaml_file).exists():
+        logger.error("Error: Source file not found: %s", yaml_file)
         sys.exit(1)
 
     tasks, file_name = process_yaml_file(yaml_file)
@@ -219,15 +226,16 @@ def main():
 
     # Write the result to a Markdown file
     try:
-        with open(output_file, "w", encoding="utf-8") as f:
+        with Path(output_file).open("w", encoding="utf-8") as f:
             f.write(md_content)
 
-        print(f"Successfully processed {yaml_file}")
-        print(f"Markdown file generated: {output_file}")
+        logger.info("Successfully processed %s", yaml_file)
+        logger.info("Markdown file generated: %s", output_file)
     except Exception as e:
-        print(f"Error writing output file: {e}")
+        logger.error("Error writing output file: %s", e)
         sys.exit(1)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     main()

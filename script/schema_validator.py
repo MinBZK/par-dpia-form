@@ -44,13 +44,13 @@ class SchemaValidator:
             with schema_path.open("r", encoding="utf-8") as f:
                 schema = json.load(f)
             self.schemas[schema_path.stem] = schema
-            self.logger.info(f"Successfully loaded schema: {schema_path}")
+            self.logger.info("Successfully loaded schema: %s", schema_path)
             return schema
         except FileNotFoundError:
-            self.logger.exception(f"Schema file not found: {schema_path}")
+            self.logger.exception("Schema file not found: %s", schema_path)
             raise
         except json.JSONDecodeError:
-            self.logger.exception(f"Invalid JSON in schema file {schema_path}")
+            self.logger.exception("Invalid JSON in schema file %s", schema_path)
             raise
 
     def load_yaml(self, yaml_path: Path) -> dict[str, Any]:
@@ -58,13 +58,13 @@ class SchemaValidator:
         try:
             with yaml_path.open("r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-            self.logger.info(f"Successfully loaded YAML: {yaml_path}")
+            self.logger.info("Successfully loaded YAML: %s", yaml_path)
             return data
         except FileNotFoundError:
-            self.logger.exception(f"YAML file not found: {yaml_path}")
+            self.logger.exception("YAML file not found: %s", yaml_path)
             raise
         except yaml.YAMLError:
-            self.logger.exception(f"Invalid YAML in file {yaml_path}")
+            self.logger.exception("Invalid YAML in file %s", yaml_path)
             raise
 
     def validate_yaml(
@@ -100,9 +100,7 @@ class SchemaValidator:
             return True, [], data
         except jsonschema.exceptions.ValidationError as e:
             error_path = " -> ".join(str(x) for x in e.path)
-            error_msg = (
-                f"Validation error in {yaml_path.name} at {error_path}: {e.message}"
-            )
+            error_msg = f"Validation error in {yaml_path.name} at {error_path}: {e.message}"
             result = {
                 "file": yaml_path.name,
                 "schema": schema_path.name,
@@ -129,12 +127,8 @@ def main() -> None:
 
     # Set up argument parser
     parser = argparse.ArgumentParser(description="YAML Schema Validator")
-    parser.add_argument(
-        "--schema", type=Path, required=True, help="Path to the JSON schema file"
-    )
-    parser.add_argument(
-        "--source", type=Path, required=True, help="Path to the source YAML file"
-    )
+    parser.add_argument("--schema", type=Path, required=True, help="Path to the JSON schema file")
+    parser.add_argument("--source", type=Path, required=True, help="Path to the source YAML file")
     parser.add_argument(
         "--output",
         type=Path,
@@ -153,17 +147,17 @@ def main() -> None:
         is_valid, errors, data = validator.validate_yaml(args.source, args.schema)
 
         if not is_valid:
-            validator.logger.error(f"Validation failed: {errors}")
+            validator.logger.error("Validation failed: %s", errors)
             sys.exit(1)
 
-        validator.logger.info(f"Successfully validated {args.source}")
+        validator.logger.info("Successfully validated %s", args.source)
 
         # Save validated data to JSON if output path is provided
         if args.output:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             with args.output.open("w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
-            validator.logger.info(f"Saved validated data to {args.output}")
+            validator.logger.info("Saved validated data to %s", args.output)
 
     except Exception:
         validator.logger.exception("Validation failed")
