@@ -82,10 +82,10 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 - Werkelijke YAML-structuur (wijkt af van schema — gebruikt `definitions` i.p.v. `glossary`):
   - `definitions[]` items: `id`, `term`, `category`, `definition`, `metadata`
   - `metadata` per definitie: `kennisbronnen` (array), `toelichting` (string), `redactionele_opmerking` (string), `voorbeelden` (array), `alternatieve_spellingen` (array), `meervoudsvormen` (array)
-- Categorieën volgen het patroon: `"DPIA - <paragraafnummer>. <naam>"` of `"Pre-scan DPIA - <sectieletter>. <naam>"`
+- Categorieën volgen het patroon: `"Pre-scan DPIA - <sectieletter>. <naam>"` of `"DPIA - <paragraafnummer>. <naam>"`
 - Cross-referenties in definitieteksten: termen tussen `[vierkante haken]` verwijzen naar andere definities in het begrippenkader
 - ID-conventie: alleen lowercase letters, cijfers en underscores
-- Het DPIA/Pre-scan begrippenkader bevat 456 definities
+- Het Pre-scan/DPIA begrippenkader bevat 456 definities
 - IAMA-begrippenkader (`sources/begrippenkader_iama.yaml`, 95 definities): **gegenereerd** uit het Algoritmekader via `script/convert_definitions_from_algoritmekader.py`, niet handmatig bewerkt. Simpeler platte structuur — `definitions[]` met alleen `term` en `definition` (geen `id`, `category`, `metadata`, `urn` of `owners`). Verrijkt `sources/iama.yaml` met de `--definitions-once-per-page` vlag (elke term-tooltip max. één keer per "deel")
 - Definition enricher (`script/definition_enricher.py`) injecteert definities als HTML-spans in de assessment YAML bij export naar JSON
 
