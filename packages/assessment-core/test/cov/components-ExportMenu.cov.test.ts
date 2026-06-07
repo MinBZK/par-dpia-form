@@ -133,4 +133,48 @@ describe('ExportMenu.vue', () => {
     // onBeforeUnmount removes the listener.
     expect(removeSpy).toHaveBeenCalledWith('click', expect.any(Function))
   })
+
+  describe('split mode', () => {
+    function mountSplit() {
+      return mount(ExportMenu, { props: { split: true }, attachTo: document.body })
+    }
+
+    it('renders a main "Exporteer als PDF" button and a chevron toggle', () => {
+      const wrapper = mountSplit()
+      const main = wrapper.find('.export-menu__split-main')
+      const toggle = wrapper.find('.export-menu__split-toggle')
+      expect(main.exists()).toBe(true)
+      expect(main.text()).toBe('Exporteer als PDF')
+      expect(toggle.exists()).toBe(true)
+      expect(toggle.attributes('aria-expanded')).toBe('false')
+      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
+      wrapper.unmount()
+    })
+
+    it('exports PDF directly from the main button without opening the panel', async () => {
+      const wrapper = mountSplit()
+      await wrapper.find('.export-menu__split-main').trigger('click')
+
+      expect(wrapper.emitted('export')![0]).toEqual(['pdf'])
+      // The panel was never opened: choose() -> close() short-circuits on the
+      // already-closed state.
+      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
+      expect(wrapper.find('.export-menu__split-toggle').attributes('aria-expanded')).toBe('false')
+      wrapper.unmount()
+    })
+
+    it('opens all export options via the chevron toggle', async () => {
+      const wrapper = mountSplit()
+      await wrapper.find('.export-menu__split-toggle').trigger('click')
+
+      expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
+      const items = wrapper.findAll('.export-menu__item')
+      expect(items).toHaveLength(3)
+
+      await items[1].trigger('click') // json
+      expect(wrapper.emitted('export')![0]).toEqual(['json'])
+      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
+      wrapper.unmount()
+    })
+  })
 })

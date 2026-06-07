@@ -431,6 +431,39 @@
   outline-offset: -2px;
 }
 
+.rvo-theme .export-menu__panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10;
+  background: var(--rvo-color-wit, #fff);
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  min-width: 14rem;
+  padding: 0.25rem 0;
+}
+
+/* Split export button: a main "Exporteer als PDF" action joined to a chevron
+   toggle that opens the full options panel. */
+.rvo-theme .export-menu__split {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.rvo-theme .export-menu__split-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.rvo-theme .export-menu__split-toggle {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+  padding-inline: 0.5rem;
+  min-width: 0;
+}
+
 .rvo-theme .confirm-delete-dialog__actions {
   display: flex;
   gap: 0.75rem;

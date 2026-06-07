@@ -7,6 +7,10 @@ const emit = defineEmits<{
   (e: 'export', format: ExportFormat): void
 }>()
 
+// In `split` mode the main button exports PDF directly and a chevron toggle
+// opens the full options panel; otherwise a single compact "Exporteer" disclosure.
+defineProps<{ split?: boolean }>()
+
 const open = ref(false)
 const triggerRef = ref<HTMLButtonElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
@@ -35,7 +39,8 @@ function openMenu() {
 }
 
 function close() {
-  /* istanbul ignore if @preserve -- defensive: every caller (toggle, handleEscape, the outside-click listener) only invokes close() while the menu is open, and the listener is removed on close, so close() is never re-entered when already closed */
+  // No-op when already closed — e.g. the split button's direct PDF action calls
+  // choose() -> close() while the panel was never opened.
   if (!open.value) return
   open.value = false
   removeOutsideListener()
@@ -66,7 +71,34 @@ onBeforeUnmount(removeOutsideListener)
 
 <template>
   <div ref="containerRef" class="export-menu" @keydown.escape="handleEscape">
+    <!-- Split button: main action exports PDF directly, the chevron toggle opens
+         all options. Disclosure pattern (real buttons in the panel), not an ARIA
+         menu — rely on aria-expanded; do not advertise aria-haspopup="menu". -->
+    <div v-if="split" class="export-menu__split">
+      <button
+        type="button"
+        class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md export-menu__split-main"
+        @click="choose('pdf')"
+      >
+        Exporteer als PDF
+      </button>
+      <button
+        ref="triggerRef"
+        type="button"
+        class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md export-menu__split-toggle"
+        :aria-expanded="open"
+        aria-label="Meer exportopties"
+        @click="toggle"
+      >
+        <span
+          class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--sm rvo-icon--hemelblauw"
+          aria-hidden="true"
+        ></span>
+      </button>
+    </div>
+    <!-- Compact disclosure used in the header bar. -->
     <button
+      v-else
       ref="triggerRef"
       type="button"
       class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
@@ -74,18 +106,12 @@ onBeforeUnmount(removeOutsideListener)
       @click="toggle"
     >
       Exporteer
-      <!-- Disclosure pattern (real buttons in the panel), not an ARIA menu —
-           rely on aria-expanded; do not advertise aria-haspopup="menu". -->
       <span
         class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--sm rvo-icon--hemelblauw"
         aria-hidden="true"
       ></span>
     </button>
-    <div
-      v-if="open"
-      class="export-menu__panel"
-      style="position: absolute; top: 100%; right: 0; z-index: 10; background: white; border: 1px solid var(--rvo-color-grijs-300, #ccc); border-radius: 4px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); min-width: 14rem; padding: 0.25rem 0;"
-    >
+    <div v-if="open" class="export-menu__panel">
       <button type="button" class="export-menu__item" @click="choose('pdf')">Exporteer als PDF</button>
       <button type="button" class="export-menu__item" @click="choose('json')">Exporteer als JSON</button>
       <button type="button" class="export-menu__item" @click="choose('markdown')">Exporteer als Markdown</button>

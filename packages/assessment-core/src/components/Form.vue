@@ -304,7 +304,7 @@ const isInformationalStep = computed(() => {
                   <UiButton variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
                     label="Volgende stap" :disabled="hasRequiredUnanswered" @click="goToNext" />
                 </div>
-                <ExportMenu v-if="isLastTask" @export="handleExport" />
+                <ExportMenu v-if="isLastTask" split @export="handleExport" />
               </div>
             </div>
             <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
