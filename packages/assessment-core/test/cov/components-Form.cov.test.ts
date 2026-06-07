@@ -546,7 +546,7 @@ describe('Form.vue hasRequiredUnanswered / countRequiredUnanswered', () => {
             {
               id: '0.2',
               task: 'Meerkeuze',
-              type: ['multiselect_option'],
+              type: ['multiselect_scrollable'],
               required: true,
               options: [{ value: 'a' }, { value: 'b' }],
             },

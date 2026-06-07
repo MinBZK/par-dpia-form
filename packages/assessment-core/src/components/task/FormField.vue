@@ -285,7 +285,7 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Multi-select checkboxes in scrollable container -->
-  <div v-else-if="hasType('multiselect_option')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('multiselect_scrollable')" class="field-group rvo-margin-block-end--md">
     <div style="max-height:16rem;overflow-y:auto;border:1px solid #b3b3b3;border-radius:4px;padding:0.25rem 0;">
       <div class="rvo-checkbox__group">
         <label v-for="option in task.options!" :key="safeString(option.value)"

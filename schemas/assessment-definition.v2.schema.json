@@ -34,7 +34,7 @@
                             "text_input",
                             "open_text",
                             "select_option",
-                            "multiselect_option",
+                            "multiselect_scrollable",
                             "checkbox_option",
                             "radio_option",
                             "task_group",

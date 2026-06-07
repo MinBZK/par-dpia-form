@@ -784,11 +784,11 @@ describe('FormField.vue', () => {
     })
   })
 
-  describe('multiselect_option rendering', () => {
-    it('renders one checkbox per option for a multiselect_option field', () => {
+  describe('multiselect_scrollable rendering', () => {
+    it('renders one checkbox per option for a multiselect_scrollable field', () => {
       const wrapper = mountField({
         task: flatTask({
-          type: ['multiselect_option'],
+          type: ['multiselect_scrollable'],
           options: [{ value: 'Optie A' }, { value: 'Optie B' }, { value: 'Optie C' }],
         }),
         instanceId: 'ms[0]',
@@ -806,7 +806,7 @@ describe('FormField.vue', () => {
 
       const wrapper = mountField({
         task: flatTask({
-          type: ['multiselect_option'],
+          type: ['multiselect_scrollable'],
           valueType: 'string[]',
           options: [{ value: 'Optie A' }, { value: 'Optie B' }],
         }),
@@ -836,7 +836,7 @@ describe('FormField.vue', () => {
     it('does not apply the string default branch when defaultValue is not a string (else-if false)', () => {
       const wrapper = mountField({
         task: flatTask({
-          type: ['multiselect_option'],
+          type: ['multiselect_scrollable'],
           valueType: 'string[]',
           // Non-string, non-boolean default: the `else if typeof === 'string'`
           // condition is false, so no default is returned.

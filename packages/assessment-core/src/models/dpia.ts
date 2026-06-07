@@ -14,7 +14,7 @@ export const TaskTypeValue = t.union([
   t.literal('open_text'),
   t.literal('date'),
   t.literal('select_option'),
-  t.literal('multiselect_option'),
+  t.literal('multiselect_scrollable'),
   t.literal('radio_option'),
   t.literal('checkbox_option'),
   t.literal('image'),

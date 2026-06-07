@@ -858,7 +858,7 @@ tasks:
                 id: "4.1.1.1"
                 is_official_id: false
                 type:
-                  - multiselect_option
+                  - multiselect_scrollable
                 repeatable: false
                 options:
                   - value: "Recht op persoonlijke identiteit / persoonlijkheidsrechten / persoonlijke autonomie"
@@ -917,7 +917,7 @@ tasks:
                 id: "4.1.2.2"
                 is_official_id: false
                 type:
-                  - multiselect_option
+                  - multiselect_scrollable
                 repeatable: false
                 options:
                   - value: "Recht op persoonlijke identiteit / persoonlijkheidsrechten / persoonlijke autonomie"
