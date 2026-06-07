@@ -291,10 +291,13 @@ const handleCheckboxInput = (event: Event) => {
         <label v-for="option in task.options!" :key="safeString(option.value)"
           class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`"
           style="padding:0.25rem 0.75rem;">
+          <!-- position:relative anchors the RVO checkmark (::after, position:absolute)
+               to its own input, so inside this scroll container it scrolls and clips
+               with the row instead of detaching to a non-scrolling ancestor. -->
           <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
             :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
+            style="position:relative" type="checkbox" />
           <span>{{ option.value }}</span>
         </label>
       </div>

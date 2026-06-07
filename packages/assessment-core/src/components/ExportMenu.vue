@@ -77,7 +77,7 @@ onBeforeUnmount(removeOutsideListener)
       <!-- Disclosure pattern (real buttons in the panel), not an ARIA menu —
            rely on aria-expanded; do not advertise aria-haspopup="menu". -->
       <span
-        class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw"
+        class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--sm rvo-icon--hemelblauw"
         aria-hidden="true"
       ></span>
     </button>
