@@ -50,7 +50,7 @@ const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 const calculationStore = useCalculationStore()
 
-const { syncInstances, shouldShowTask } = useTaskDependencies()
+const { syncInstances } = useTaskDependencies()
 
 // Keep persisted state clean when conditional fields hide their dependents,
 // with a short in-memory cache so flipping the parent back restores the data.
@@ -152,40 +152,6 @@ const goToPrevious = () => {
   flushBeforeNavigate()
   rawGoToPrevious()
 }
-
-// Recursively count required tasks that are visible but have no answer
-function countRequiredUnanswered(taskId: string, instanceId: string): number {
-  const task = taskStore.taskById(taskId)
-  let count = 0
-
-  if (task.required && !taskIsOfTaskType(task, 'task_group')) {
-    const answer = answerStore.getAnswer(instanceId)
-    if (answer === null || answer === '' || (Array.isArray(answer) && answer.length === 0)) {
-      count++
-    }
-  }
-
-  for (const childId of task.childrenIds) {
-    const childInstanceIds = taskStore.getInstanceIdsForTask(childId, instanceId)
-    for (const childInstanceId of childInstanceIds) {
-      if (shouldShowTask.value(childId, childInstanceId)) {
-        count += countRequiredUnanswered(childId, childInstanceId)
-      }
-    }
-  }
-
-  return count
-}
-
-const hasRequiredUnanswered = computed(() => {
-  try {
-    const instanceIds = taskStore.getRootTaskInstanceIds(currentRootTaskId.value)
-    if (instanceIds.length === 0) return false
-    return countRequiredUnanswered(currentRootTaskId.value, instanceIds[0]) > 0
-  } catch {
-    return false
-  }
-})
 
 const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
   try {
@@ -298,11 +264,8 @@ const isInformationalStep = computed(() => {
               </div>
               <div class="button-group-container__end">
                 <div v-if="!isLastTask">
-                  <p v-if="hasRequiredUnanswered" class="rvo-form-field__error-message" style="margin-bottom: 0.5rem;">
-                    Beantwoord eerst alle verplichte vragen om verder te gaan.
-                  </p>
                   <UiButton variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
-                    label="Volgende stap" :disabled="hasRequiredUnanswered" @click="goToNext" />
+                    label="Volgende stap" @click="goToNext" />
                 </div>
                 <ExportMenu v-if="isLastTask" split @export="handleExport" />
               </div>
