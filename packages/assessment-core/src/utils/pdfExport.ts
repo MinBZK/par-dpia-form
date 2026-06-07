@@ -261,8 +261,6 @@ function buildPreScanContentSections(
   return contentSections
 }
 
-// The IAMA is plain numbered sections from 1: no calculated Resultaten section
-// (unlike the pre-scan) and no unnumbered special sections (unlike the DPIA).
 function buildIamaContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
