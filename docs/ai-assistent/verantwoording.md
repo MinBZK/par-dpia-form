@@ -1,6 +1,6 @@
 # Verantwoording — assessment-tools (marketplace + plugin)
 
-Verantwoording voor de in deze repo meegeleverde Claude-/Cursor-marketplace `assessment-tools` en de `assessments`-plugin. De structuur volgt die van `developer-overheid-nl/skills-marketplace` ([`docs/verantwoording.md`](https://github.com/developer-overheid-nl/skills-marketplace/blob/main/docs/verantwoording.md)) als basis. Dit is een **startpunt**; vul de met *(team)* gemarkeerde details aan.
+Verantwoording voor de in deze repo meegeleverde Claude-/Cursor-marketplace `assessment-tools` en de `assessments`-plugin. De structuur volgt die van `developer-overheid-nl/skills-marketplace` ([`docs/verantwoording.md`](https://github.com/developer-overheid-nl/skills-marketplace/blob/main/docs/verantwoording.md)) als basis.
 
 ## 1. Doel en toepassingsgebied
 
@@ -9,13 +9,13 @@ De `assessments`-plugin biedt domeinkennis en tooling voor **ontwikkelaars en re
 ## 2. Eigenaarschap
 
 - **Eigenaar:** MinBZK is eigenaar van de marketplace (`assessment-tools`) én van de `assessments`-plugin. De plugin woont in déze repo (`source: ./.claude/plugins/assessments`) onder de MinBZK GitHub-org; er is geen externe bron-repo, dus eigenaarschap valt samen met deze repo.
-- **Inhoudelijk verantwoordelijke:** de juistheid van de pre-scan-, DPIA- en IAMA-inhoud ligt bij de eigenaar van het assessment-kader binnen MinBZK *(team: maak expliciet wie — bijv. het PAR-/privacy-team)*.
+- **Inhoudelijk verantwoordelijke:** de juistheid van de DPIA- en pre-scan-inhoud ligt bij het PAR (Privacy Adviseurs Rijk); de juistheid van de IAMA-inhoud bij de AI-/algoritme-functie binnen MinBZK.
 
 ## 3. Review en AI-governance
 
 - De skills en de agent zijn deels met AI-assistentie opgesteld en daarna door mensen gereviewd.
 - Wijzigingen aan de plugin én aan de bronnen (`sources/`) lopen via **pull request met menselijke review** door de maintainers van deze repo; CI valideert vóór merge (de **100%-dekkingsgate** en de schema-validatie van de YAML-bronnen, ondersteund door de `assessment-validator`-agent).
-- Versiebeheer via `plugin.json` / `marketplace.json` (`version`). *(team: leg eventueel een `CODEOWNERS` vast voor wie de plugin en de bronnen reviewt.)*
+- Versiebeheer via `plugin.json` / `marketplace.json` (`version`).
 
 ## 4. Risico's
 
@@ -27,4 +27,4 @@ De `assessments`-plugin biedt domeinkennis en tooling voor **ontwikkelaars en re
 
 ## 5. Licentie en transparantie
 
-EUPL-1.2 (zie [`LICENSE`](../../LICENSE)), publieke GitHub-repo, conform open-tenzij-beleid. *(team: overweeg een `publiccode.yml` met `legal.mainCopyrightOwner` en een onderhouds-contact, zoals de developer-overheid-nl-marketplace doet.)*
+EUPL-1.2 (zie [`LICENSE`](../../LICENSE)), publieke GitHub-repo, conform open-tenzij-beleid.
