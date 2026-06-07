@@ -51,7 +51,6 @@ jobs:
           enable-cache: true
 
       - name: Security audit (production dependencies)
-        # Fail on HIGH/critical advisories in runtime deps (regression guard).
         run: pnpm audit --prod --audit-level high
 
       - name: Generate assessment JSON sources
