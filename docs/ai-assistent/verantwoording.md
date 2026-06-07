@@ -9,7 +9,7 @@ De `assessments`-plugin biedt domeinkennis en tooling voor **ontwikkelaars en re
 ## 2. Eigenaarschap
 
 - **Eigenaar:** MinBZK is eigenaar van de marketplace (`assessment-tools`) én van de `assessments`-plugin. De plugin woont in déze repo (`source: ./.claude/plugins/assessments`) onder de MinBZK GitHub-org; er is geen externe bron-repo, dus eigenaarschap valt samen met deze repo.
-- **Inhoudelijk verantwoordelijke:** de juistheid van de DPIA- en pre-scan-inhoud ligt bij het PAR (Privacy Adviseurs Rijk); de juistheid van de IAMA-inhoud bij de AI-/algoritme-functie binnen MinBZK.
+- **Inhoudelijk verantwoordelijke:** de juistheid van de pre-scan- en DPIA-inhoud ligt bij het PAR (Privacy Adviseurs Rijk); de juistheid van de IAMA-inhoud bij de AI-/algoritme-functie binnen MinBZK.
 
 ## 3. Review en AI-governance
 
