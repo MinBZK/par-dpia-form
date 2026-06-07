@@ -9,16 +9,22 @@ on:
   # Allow manual triggering
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check-links:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v1.5.4
+        uses: lycheeverse/lychee-action@4dcb8bee2a0a4531cba1a1f392c54e8375d6dd81 # v1.5.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -44,20 +50,28 @@ jobs:
           # Fail if any link is broken
           fail: true
 
-      # Only create an issue when broken links are found AND running on schedule/manual
-      - name: Create Issue (Only on schedule or manual run)
+      - name: Update or create the broken-links issue (schedule/manual only)
         if: ${{ failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-        uses: peter-evans/create-issue-from-file@v4
-        with:
-          title: Broken links detected
-          content-filepath: ./lychee/out.md
-          labels: broken-links
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          existing=$(gh issue list --label broken-links --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file ./lychee/out.md
+          else
+            # gh issue create needs the label to exist; ensure it idempotently.
+            gh label create broken-links --color ededed --description "Automatically detected broken links" 2>/dev/null || true
+            gh issue create --title "Broken links detected" --body-file ./lychee/out.md --label broken-links
+          fi
 
   sync-yaml:
     runs-on: ubuntu-latest
     # Allow this job to continue even if the check-links job fails
     needs: check-links
     if: always()
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -71,9 +85,9 @@ jobs:
         run: |
           git add sources/begrippenkader_dpia.yaml
           if ! git diff --staged --quiet; then
-            echo "changes=true" >> $GITHUB_ENV
+            echo "changes=true" >> "$GITHUB_ENV"
           else
-            echo "changes=false" >> $GITHUB_ENV
+            echo "changes=false" >> "$GITHUB_ENV"
           fi
       - name: Commit directly (when in PR)
         if: env.changes == 'true' && github.event_name == 'pull_request'
@@ -82,27 +96,39 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -m "Auto-sync YAML file from external source"
           git push
-      - name: Create Pull Request (when scheduled or manual)
+      - name: Create pull request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
-        with:
-          base: main
-          commit-message: "Auto-sync YAML file from external source"
-          title: "Auto-sync YAML file from external source"
-          body: |
-            Automated sync of `begrippenkader_dpia.yaml` from external source.
-
-            Source: https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml
-
-            This PR was created automatically by the sync-yaml workflow.
-          branch: auto-sync-yaml-${{ github.run_number }}
-          delete-branch: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="auto-sync-yaml-${{ github.run_number }}"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git switch -c "$branch"
+          git commit -m "Auto-sync YAML file from external source"
+          git push --set-upstream origin "$branch"
+          # Single quotes keep the backticks literal markdown (no substitution).
+          # shellcheck disable=SC2016
+          body=$(printf '%s\n' \
+            'Automated sync of `begrippenkader_dpia.yaml` from external source.' \
+            '' \
+            'Source: https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml' \
+            '' \
+            'This PR was created automatically by the sync-yaml workflow.')
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Auto-sync YAML file from external source" \
+            --body "$body"
 
   sync-begrippenkader-iama:
     runs-on: ubuntu-latest
     # Allow this job to continue even if the check-links job fails
     needs: check-links
     if: always()
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -121,9 +147,9 @@ jobs:
         run: |
           git add sources/begrippenkader_iama.yaml
           if ! git diff --staged --quiet; then
-            echo "changes=true" >> $GITHUB_ENV
+            echo "changes=true" >> "$GITHUB_ENV"
           else
-            echo "changes=false" >> $GITHUB_ENV
+            echo "changes=false" >> "$GITHUB_ENV"
           fi
       - name: Commit directly (when in PR)
         if: env.changes == 'true' && github.event_name == 'pull_request'
@@ -132,18 +158,25 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git commit -m "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
           git push
-      - name: Create Pull Request (when scheduled or manual)
+      - name: Create pull request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
-        uses: peter-evans/create-pull-request@v5
-        with:
-          base: main
-          commit-message: "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
-          title: "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
-          body: |
-            Automated sync of IAMA definitions from the Algoritmekader begrippenlijst.
-
-            Source: https://github.com/MinBZK/Algoritmekader/blob/main/includes/begrippenlijst.md
-
-            This PR was created automatically by the sync workflow.
-          branch: auto-sync-begrippenkader-iama-${{ github.run_number }}
-          delete-branch: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          branch="auto-sync-begrippenkader-iama-${{ github.run_number }}"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git switch -c "$branch"
+          git commit -m "Auto-sync begrippenkader_iama.yaml from Algoritmekader"
+          git push --set-upstream origin "$branch"
+          body=$(printf '%s\n' \
+            'Automated sync of IAMA definitions from the Algoritmekader begrippenlijst.' \
+            '' \
+            'Source: https://github.com/MinBZK/Algoritmekader/blob/main/includes/begrippenlijst.md' \
+            '' \
+            'This PR was created automatically by the sync workflow.')
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "Auto-sync begrippenkader_iama.yaml from Algoritmekader" \
+            --body "$body"
