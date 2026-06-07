@@ -7,7 +7,6 @@ against the real assessment-definition schema, using small inline YAML fixtures.
 from pathlib import Path
 
 import yaml
-
 from schema_validator import SchemaValidator
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent

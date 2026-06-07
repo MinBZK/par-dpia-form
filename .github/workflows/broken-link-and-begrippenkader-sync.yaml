@@ -108,15 +108,14 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
-          python-version: '3.12'
-      - name: Install Python dependencies
-        run: pip install pyyaml
+          python-version: '3.14'
+          enable-cache: true
       - name: Sync Algoritmekader definitions
         run: |
-          python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader_iama.yaml
+          uv run --frozen --no-dev python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader_iama.yaml
       - name: Check for changes
         id: git-check
         run: |

@@ -6,28 +6,38 @@ and converts the markdown abbreviation definitions (*[term]: definition) into a
 YAML file compatible with the definition_enricher.py pipeline.
 
 Usage:
-    python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader-iama.yaml
-    python script/convert_definitions_from_algoritmekader.py --input begrippenlijst.md --output sources/begrippenkader-iama.yaml
+    python script/convert_definitions_from_algoritmekader.py \
+        --output sources/begrippenkader-iama.yaml
+    python script/convert_definitions_from_algoritmekader.py \
+        --input begrippenlijst.md --output sources/begrippenkader-iama.yaml
 """
 
 import argparse
+import logging
 import re
 import sys
 import urllib.request
 from copy import deepcopy
+from pathlib import Path
 
 import yaml
 
-BEGRIPPENLIJST_URL = "https://raw.githubusercontent.com/MinBZK/Algoritmekader/main/includes/begrippenlijst.md"
+logger = logging.getLogger(__name__)
+
+BEGRIPPENLIJST_URL = (
+    "https://raw.githubusercontent.com/MinBZK/Algoritmekader/main/includes/begrippenlijst.md"
+)
 
 
 def download_begrippenlijst(url: str) -> str:
     """Download the begrippenlijst markdown from the Algoritmekader repository."""
+    if not url.startswith("https://"):
+        raise ValueError(f"Refusing to open non-HTTPS URL: {url}")
     try:
-        with urllib.request.urlopen(url) as response:
+        with urllib.request.urlopen(url) as response:  # noqa: S310 (scheme checked above)
             return response.read().decode("utf-8")
     except Exception as e:
-        print(f"Error downloading begrippenlijst from {url}: {e}")
+        logger.error("Error downloading begrippenlijst from %s: %s", url, e)
         sys.exit(1)
 
 
@@ -49,7 +59,7 @@ def parse_markdown_definitions(content: str) -> dict[str, str]:
 def read_yaml_definitions(file_path: str) -> list[dict[str, str]]:
     """Read existing YAML definitions file."""
     try:
-        with open(file_path, encoding="utf-8") as f:
+        with Path(file_path).open(encoding="utf-8") as f:
             data = yaml.safe_load(f)
             if data and "definitions" in data:
                 return data["definitions"]
@@ -74,13 +84,13 @@ def upsert_definitions(
         if term in new_defs:
             if item["definition"] != new_defs[term]:
                 result[i]["definition"] = new_defs[term]
-                print(f"Updated definition for: {term}")
+                logger.info("Updated definition for: %s", term)
             updated_terms.add(term)
 
     for term, definition in new_defs.items():
         if term not in updated_terms:
             result.append({"term": term, "definition": definition})
-            print(f"Added new definition for: {term}")
+            logger.info("Added new definition for: %s", term)
 
     return result
 
@@ -88,7 +98,7 @@ def upsert_definitions(
 def write_yaml_definitions(definitions: list[dict[str, str]], output_path: str):
     """Write definitions to YAML file."""
     output_data = {"definitions": definitions}
-    with open(output_path, "w", encoding="utf-8") as f:
+    with Path(output_path).open("w", encoding="utf-8") as f:
         yaml.dump(output_data, f, allow_unicode=True, sort_keys=False, indent=2)
 
 
@@ -109,30 +119,29 @@ def main():
 
     if args.input:
         try:
-            with open(args.input, encoding="utf-8") as f:
+            with Path(args.input).open(encoding="utf-8") as f:
                 markdown_content = f.read()
         except FileNotFoundError:
-            print(f"Error: Input file '{args.input}' not found")
+            logger.error("Error: Input file '%s' not found", args.input)
             sys.exit(1)
     else:
-        print(f"Downloading begrippenlijst from {BEGRIPPENLIJST_URL}...")
+        logger.info("Downloading begrippenlijst from %s...", BEGRIPPENLIJST_URL)
         markdown_content = download_begrippenlijst(BEGRIPPENLIJST_URL)
 
     new_definitions = parse_markdown_definitions(markdown_content)
-    print(f"Parsed {len(new_definitions)} definitions from markdown")
+    logger.info("Parsed %s definitions from markdown", len(new_definitions))
 
     existing_definitions = read_yaml_definitions(args.output)
     if existing_definitions:
-        print(
-            f"Found {len(existing_definitions)} existing definitions in {args.output}"
-        )
+        logger.info("Found %s existing definitions in %s", len(existing_definitions), args.output)
 
     updated_definitions = upsert_definitions(existing_definitions, new_definitions)
 
     write_yaml_definitions(updated_definitions, args.output)
 
-    print(f"\nTotal definitions in output: {len(updated_definitions)}")
+    logger.info("\nTotal definitions in output: %s", len(updated_definitions))
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     main()

@@ -28,31 +28,31 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-
-      - name: Install Python dependencies
-        run: pip install pyyaml jsonschema
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: '3.14'
+          enable-cache: true
 
       - name: Generate JSON from YAML definitions
         run: |
           mkdir -p sources/generated
 
-          python script/run_all.py \
+          uv run --frozen --no-dev python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/prescan.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json \
             --output-md docs/questions/questions_prescan_DPIA.md
 
-          python script/run_all.py \
+          uv run --frozen --no-dev python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/dpia.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/DPIA.json \
             --output-md docs/questions/questions_DPIA.md
 
-          python script/run_all.py \
+          uv run --frozen --no-dev python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
             --source sources/iama.yaml \
             --begrippen-yaml sources/begrippenkader_iama.yaml \

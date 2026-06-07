@@ -6,7 +6,11 @@ Usage:
 """
 
 import json
+import logging
 import sys
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 HEADER = """\
 MinBZK Assessments
@@ -49,17 +53,20 @@ def main() -> None:
         lines.append(f"└── license files: {pkg['license']}")
         lines.append("")
 
-    license_types = sorted(set(p["license"] for p in all_packages))
+    license_types = sorted({p["license"] for p in all_packages})
     lines.append(f"LICENSES: {', '.join(license_types)}")
 
     output = "\n".join(lines) + "\n"
-    with open("LICENSES.txt", "w") as f:
+    with Path("LICENSES.txt").open("w") as f:
         f.write(output)
 
-    print(
-        f"LICENSES.txt gegenereerd: {len(all_packages)} packages, {len(license_types)} licentietypes"
+    logger.info(
+        "LICENSES.txt gegenereerd: %s packages, %s licentietypes",
+        len(all_packages),
+        len(license_types),
     )
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     main()
