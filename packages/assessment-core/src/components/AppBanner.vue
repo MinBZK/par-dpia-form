@@ -15,14 +15,14 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: nowrap;">
+  <div class="rvo-alert rvo-alert--warning rvo-alert--padding-sm" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: nowrap;">
     <span
       class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
       role="img"
       aria-label="Waarschuwing"
       style="flex-shrink: 0;"
     ></span>
-    <div class="rvo-alert-text">
+    <div class="rvo-alert-text" style="text-align: center;">
       <a class="rvo-link" :href="linkUrl">{{ linkLabel }}</a>
       {{ message }}
     </div>
