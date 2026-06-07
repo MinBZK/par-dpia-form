@@ -68,6 +68,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
@@ -96,6 +97,43 @@ jobs:
       - id: image-ref
         run: echo "image=${{ inputs.backend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
+      - name: Trivy image scan (report-only, SARIF)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ steps.image-ref.outputs.image }}
+          scan-type: image
+          format: sarif
+          output: trivy-backend.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Trivy results to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-backend.sarif
+          category: trivy-backend
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ steps.image-ref.outputs.image }}
+          scan-type: image
+          format: cyclonedx
+          output: trivy-sbom-backend.json
+          list-all-pkgs: 'true'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-backend
+          path: trivy-sbom-backend.json
+          retention-days: 30
+
   build-frontend:
     needs: generate-sources
     runs-on: ubuntu-latest
@@ -104,6 +142,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
@@ -131,3 +170,40 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
       - id: image-ref
         run: echo "image=${{ inputs.frontend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Trivy image scan (report-only, SARIF)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ steps.image-ref.outputs.image }}
+          scan-type: image
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Trivy results to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: trivy-frontend.sarif
+          category: trivy-frontend
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ${{ steps.image-ref.outputs.image }}
+          scan-type: image
+          format: cyclonedx
+          output: trivy-sbom-frontend.json
+          list-all-pkgs: 'true'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-frontend
+          path: trivy-sbom-frontend.json
+          retention-days: 30
