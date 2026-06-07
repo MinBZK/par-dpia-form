@@ -52,6 +52,29 @@ The DPIA (`sources/dpia.yaml`) follows the Rijksmodel DPIA v3.0 with 17 official
 
 Tasks with `is_official_id: true` correspond to the numbered paragraphs in the official report.
 
+## IAMA Structuur
+
+The IAMA (Impact Assessment Mensenrechten en Algoritmes) v2.0 (`sources/iama.yaml`, urn `urn:nl:iama`) helps government organisations assess the impact of an algorithm on human rights and public values *before* developing or deploying it. It applies to AI systems and to non-AI algorithmic systems alike.
+
+It is structured in **Delen** (parts), each with its own action points ("Actiepunten"):
+
+| Deel | Titel | Focus |
+|------|-------|-------|
+| 0 | Inleiding | Toepassing, toepassingsbereik, instructie |
+| 1 | Waarom? | Aanleiding/doelstelling, publieke waarden, wettelijke grondslag, verantwoordelijkheden |
+| 2 | Wat? | Het algoritme zelf: data, techniek, totstandkoming |
+| 3 | Hoe? | Gebruikscontext, rol van de medewerker, impact op betrokkenen (output) |
+| 4 | Mensenrechten | Grondrechtentoets (FRIA) — impact op grondrechten en rechtvaardiging van inbreuken |
+| 5 | Afsluiting | Belangenafweging, eindadvies, samenvatting van actiepunten |
+
+Key concepts:
+- **Grondrechten / FRIA** — Deel 4 is the Fundamental Rights Impact Assessment. Questions that correspond to a requirement from **art. 27 van de AI-verordening** are flagged in the YAML with `in_fria: true` (and shown with an "art. 27 AI-verordening"-icon in the UI).
+- **Actiepunten** — each deel has an `action_point_group: true` task collecting its action points; Deel 5 carries `action_point_summary: true` to summarise them all.
+- **Verhouding tot de Pre-scan** — the Pre-scan can *advise* an IAMA (see the IAMA row under [Assessment Evaluatie](#assessment-evaluatie)) when the impact on grondrechten needs to be mapped.
+- The IAMA is a tool for interdisciplinary dialogue and decision-making, not a checklist; it concludes with an advice on whether and under which conditions the algorithm should be deployed.
+
+When looking up IAMA terminology, search `sources/begrippenkader_iama.yaml` (definitions from the Algoritmekader) rather than the DPIA begrippenkader.
+
 ## Pre-scan Logica
 
 The Pre-scan (`sources/prescan.yaml`) determines which assessments are required based on answers.
@@ -77,7 +100,7 @@ Scores are calculated per category using jexl expressions:
 |------------|--------------|----------------|
 | **DPIA** | Nieuwe wetgeving OR risicoscore > 4 OR >= 1 AP-lijst item OR >= 2 EDPB-lijst items | Precies 1 EDPB-lijst item |
 | **DTIA** | Internationale doorgifte + specifiek doorgifte-mechanisme | - |
-| **IAMA** | Geautomatiseerde besluitvorming criteria | - |
+| **IAMA** | - | Hoog-risico AI-systeem OR impactvol algoritme (om de impact op grondrechten in kaart te brengen) |
 
 The full evaluation rules are in the `assessments:` section at the bottom of `sources/prescan.yaml`.
 

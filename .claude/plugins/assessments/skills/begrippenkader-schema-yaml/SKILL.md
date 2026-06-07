@@ -1,12 +1,14 @@
 ---
 name: Begrippenkader Schema YAML
-description: Use when editing sources/begrippenkader_dpia.yaml, adding or modifying definitions, asking about the begrippenkader structure or schema, or working with term definitions and their metadata.
+description: Use when editing sources/begrippenkader_dpia.yaml or sources/begrippenkader_iama.yaml, adding or modifying definitions, asking about the begrippenkader structure or schema, or working with term definitions and their metadata.
 version: 0.1.0
 ---
 
 # Begrippenkader Schema YAML
 
 Guide for editing the begrippenkader (`sources/begrippenkader_dpia.yaml`) that conforms to `schemas/begrippenkader.v1.schema.json`.
+
+There is a second begrippenkader for the IAMA assessment, `sources/begrippenkader_iama.yaml`, used to enrich `sources/iama.yaml`. It is **generated**, not hand-edited — see [IAMA begrippenkader](#iama-begrippenkader) below.
 
 ## Top-level Structure
 
@@ -111,6 +113,29 @@ python script/schema_validator.py \
 
 **Note:** The schema expects `glossary[]` but the actual YAML uses `definitions[]`. The schema may need updating to match. Always check the actual file structure alongside the schema.
 
+## IAMA begrippenkader
+
+The IAMA assessment uses a separate begrippenkader, `sources/begrippenkader_iama.yaml`, which enriches `sources/iama.yaml` (urn `urn:nl:iama`, version `2.0`).
+
+- **Generated, not hand-edited.** It is produced from the [Algoritmekader](https://minbzk.github.io/Algoritmekader/) begrippenlijst via `script/convert_definitions_from_algoritmekader.py`. Edit the source begrippenlijst / regenerate rather than editing the YAML by hand.
+- **Simpler structure** than the DPIA begrippenkader: a flat `definitions[]` list where each entry has only `term` and `definition` — no `id`, `category`, `metadata`, top-level `urn`, or `owners`.
+
+```yaml
+definitions:
+  - term: aanbieder
+    definition: >-
+      Een natuurlijke of rechtspersoon, overheidsinstantie, agentschap of ander
+      orgaan die/dat een AI-systeem ... ontwikkelt of laat ontwikkelen ...
+```
+
+Regenerate with:
+
+```bash
+python script/convert_definitions_from_algoritmekader.py --output sources/begrippenkader_iama.yaml
+```
+
+When generating `sources/generated/IAMA.json`, enrichment runs with the `--definitions-once-per-page` flag, so each term tooltip is injected at most once per "deel" instead of at every occurrence.
+
 ## Statistics
 
-The begrippenkader currently contains 456 definitions covering DPIA and Pre-scan terminology.
+The DPIA/Pre-scan begrippenkader currently contains 456 definitions; the IAMA begrippenkader (`begrippenkader_iama.yaml`) contains 95 definitions from the Algoritmekader.
