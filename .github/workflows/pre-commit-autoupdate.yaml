@@ -27,14 +27,29 @@ jobs:
       - name: Run pre-commit autoupdate
         run: pre-commit autoupdate
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        with:
-          commit-message: "chore: pre-commit autoupdate"
-          branch: chore/pre-commit-autoupdate
-          delete-branch: true
-          base: experimenteel/samenwerken
-          title: "chore: pre-commit autoupdate"
-          body: |
-            Wekelijkse automatische update van de pre-commit hook-versies via
-            `pre-commit autoupdate`.
+      - name: Create or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "No pre-commit updates."
+            exit 0
+          fi
+          branch="chore/pre-commit-autoupdate"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # Reuse a single rolling branch; force-push updates an already-open PR in place.
+          git switch -C "$branch"
+          git commit -am "chore: pre-commit autoupdate"
+          git push --force --set-upstream origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')" ]; then
+            # shellcheck disable=SC2016
+            body=$(printf '%s\n' \
+              'Wekelijkse automatische update van de pre-commit hook-versies via' \
+              '`pre-commit autoupdate`.')
+            gh pr create \
+              --base experimenteel/samenwerken \
+              --head "$branch" \
+              --title "chore: pre-commit autoupdate" \
+              --body "$body"
+          fi
