@@ -37,6 +37,9 @@ RUN pnpm install --frozen-lockfile --prod || pnpm install --prod
 COPY --from=build /app/apps/boekhouding-backend/dist apps/boekhouding-backend/dist
 COPY --from=build /app/apps/boekhouding-backend/drizzle apps/boekhouding-backend/drizzle
 
+# Canonical output schema — read at startup by validateState.ts (resolved at /app/schemas).
+COPY schemas/assessment-output.v2.schema.json schemas/assessment-output.v2.schema.json
+
 WORKDIR /app/apps/boekhouding-backend
 
 USER 1000

@@ -9,6 +9,7 @@ import {
   useAnswerStore,
   useSchemaStore,
   FormType,
+  OUTPUT_SCHEMA_URL,
 } from '@overheid-assessment/core'
 
 // ApiError/SessionExpiredError must be real classes so `instanceof` checks inside ApiPersistence work.
@@ -601,7 +602,14 @@ describe('clearSavedState', () => {
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     await p.clearSavedState(FormType.DPIA)
-    expect(mockUpdate).toHaveBeenCalledWith('a1', { metadata: { createdAt: expect.any(String) }, answers: {} })
+    expect(mockUpdate).toHaveBeenCalledWith('a1', expect.objectContaining({
+      $schema: OUTPUT_SCHEMA_URL,
+      answers: {},
+      metadata: expect.objectContaining({
+        createdAt: expect.any(String),
+        urn: expect.stringContaining('urn:nl:dpia'),
+      }),
+    }))
     expect(localStorage.getItem('ui:a1')).toBeNull()
   })
 

@@ -735,8 +735,11 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
 
   async function clearSavedState(namespace: FormType): Promise<void> {
     try {
+      // Send a schema-conforming empty state: the backend validates saves against
+      // assessment-output.v2.schema.json, which requires $schema + urn.
       await assessments.update(assessmentId, {
-        metadata: { createdAt: new Date().toISOString() },
+        $schema: OUTPUT_SCHEMA_URL,
+        metadata: { createdAt: new Date().toISOString(), urn: useSchemaStore().getUrn(namespace) },
         answers: {},
       })
       localStorage.removeItem(UI_STORAGE_PREFIX + assessmentId)
