@@ -51,6 +51,7 @@ describe('config — defaults when no env vars are set', () => {
     )
     expect(config.cors.origin).toBe('http://localhost:5174')
     expect(config.cors.credentials).toBe(true)
+    expect(config.publicUrl).toBe('http://localhost:5174')
     expect(config.keycloak.issuer).toBe('http://localhost:8080/realms/assessment-boekhouding')
     expect(config.keycloak.jwksUri).toBe(
       'http://localhost:8080/realms/assessment-boekhouding/protocol/openid-connect/certs',
@@ -123,6 +124,7 @@ describe('config — parseCorsOrigin', () => {
       'https://b.example.com',
       'https://c.example.com',
     ])
+    expect(config.publicUrl).toBe('https://a.example.com')
   })
 
   it('drops empty segments via filter(Boolean) (trailing comma / blanks)', async () => {

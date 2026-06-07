@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { buildApp, API_VERSION } from '../../src/app.js'
+import { config } from '../../src/config.js'
 
 let app: FastifyInstance
 
@@ -100,6 +101,7 @@ describe('static utility routes', () => {
     const doc = res.json()
     expect(doc.info.title).toBe('Assessment Boekhouding API')
     expect(doc.info.version).toBe(API_VERSION)
+    expect(doc.info.contact.url).toBe(config.publicUrl)
   })
 
   it('serves the Swagger UI at /api/docs', async () => {
