@@ -120,7 +120,16 @@ uv run script/run_all.py \
 
 ### Domeinkennis-plugin (AI-assistent)
 
-Voor wie aan de assessment-definities of -applicatie werkt is er een Claude-plugin met domeinkennis over de assessments (schema's, begrippenkaders, RVO-styling, validatie). Het ontwerp staat beschreven in [`docs/ai-assistent/assessments-plugin-design.md`](docs/ai-assistent/assessments-plugin-design.md).
+Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, RVO-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
+
+Installeren vanaf een lokale clone van deze repo:
+
+```
+/plugin marketplace add ./.claude/plugins
+/plugin install assessments@assessment-tools
+```
+
+Zie het [ontwerp](docs/ai-assistent/assessments-plugin-design.md) en de [verantwoording](docs/ai-assistent/assessments-plugin-verantwoording.md) van de plugin.
 
 ## Standaarden en compliance
 
