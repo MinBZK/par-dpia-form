@@ -192,8 +192,8 @@ watch(
 
 // Map assessment_type to FormType enum
 const assessmentTypeMap: Record<string, FormType> = {
-  dpia: FormType.DPIA,
   prescan: FormType.PRE_SCAN,
+  dpia: FormType.DPIA,
   iama: FormType.IAMA,
 }
 
@@ -202,8 +202,8 @@ const navigationFunctions: NavigationFunctions = {
   goToLanding: () => {
     if (assessment.value) router.push(`/project/${assessment.value.projectId}`)
   },
-  goToDPIA: () => {},
   goToPreScanDPIA: () => {},
+  goToDPIA: () => {},
 }
 
 onMounted(async () => {
@@ -216,9 +216,9 @@ onMounted(async () => {
     assessment.value = await assessmentsApi.get(props.assessmentId)
 
     if (!schemaStore.isInitialized) {
-      const [dpiaModule, preScanModule, iamaModule] = await Promise.all([
-        import('../../../../sources/generated/DPIA.json'),
+      const [preScanModule, dpiaModule, iamaModule] = await Promise.all([
         import('../../../../sources/generated/PreScanDPIA.json'),
+        import('../../../../sources/generated/DPIA.json'),
         import('../../../../sources/generated/IAMA.json'),
       ])
       schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })

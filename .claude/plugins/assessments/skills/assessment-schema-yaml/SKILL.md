@@ -1,12 +1,12 @@
 ---
 name: Assessment Schema YAML
-description: Use when editing assessment YAML sources in sources/, asking about the assessment schema structure, adding tasks/fields to dpia.yaml, prescan.yaml or iama.yaml, or working with dependencies, calculations, or references in assessment definitions.
+description: Use when editing assessment YAML sources in sources/, asking about the assessment schema structure, adding tasks/fields to prescan.yaml, dpia.yaml or iama.yaml, or working with dependencies, calculations, or references in assessment definitions.
 version: 0.1.0
 ---
 
 # Assessment Schema YAML
 
-Guide for editing YAML assessment sources (`sources/dpia.yaml`, `sources/prescan.yaml`, `sources/iama.yaml`) that conform to `schemas/assessment-definition.v1.schema.json`.
+Guide for editing YAML assessment sources (`sources/prescan.yaml`, `sources/dpia.yaml`, `sources/iama.yaml`) that conform to `schemas/assessment-definition.v1.schema.json`.
 
 ## Top-level Structure
 
@@ -20,7 +20,7 @@ assessments: [...]                # Optional: evaluation rules (used in prescan)
 prefixQuestionIds: true           # Optional: prefix every label with its official question ID (used by iama.yaml)
 ```
 
-The IAMA (`sources/iama.yaml`, `urn: "urn:nl:iama"`, `version: "2.0"`) is a third assessment type alongside DPIA and Pre-scan. It sets `prefixQuestionIds: true`, which prefixes each task label with its official question ID.
+The IAMA (`sources/iama.yaml`, `urn: "urn:nl:iama"`, `version: "2.0"`) is a third assessment type alongside Pre-scan and DPIA. It sets `prefixQuestionIds: true`, which prefixes each task label with its official question ID.
 
 ## Task Structure
 

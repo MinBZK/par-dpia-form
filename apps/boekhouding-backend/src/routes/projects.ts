@@ -136,7 +136,7 @@ export async function projectRoutes(app: FastifyInstance) {
 
   app.post<{
     Params: { projectId: string }
-    Body: { name?: string; assessmentType: 'dpia' | 'prescan' | 'iama'; state?: unknown }
+    Body: { name?: string; assessmentType: 'prescan' | 'dpia' | 'iama'; state?: unknown }
   }>('/:projectId/assessments', {
     schema: {
       tags: ['assessments'],
@@ -144,7 +144,7 @@ export async function projectRoutes(app: FastifyInstance) {
         type: 'object',
         required: ['assessmentType'],
         properties: {
-          assessmentType: { type: 'string', enum: ['dpia', 'prescan', 'iama'] },
+          assessmentType: { type: 'string', enum: ['prescan', 'dpia', 'iama'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
           state: { type: 'object' },
         },

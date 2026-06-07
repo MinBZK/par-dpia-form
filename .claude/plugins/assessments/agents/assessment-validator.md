@@ -64,7 +64,7 @@ These checks go beyond what the schema validation covers. Perform them by readin
 
 ### 3a. Dependency ID validity
 
-For every `dependencies[].condition.id` and `dependencies[].source.id` in `dpia.yaml`, `prescan.yaml` and `iama.yaml`:
+For every `dependencies[].condition.id` and `dependencies[].source.id` in `prescan.yaml`, `dpia.yaml` and `iama.yaml`:
 - Verify the referenced ID exists as a task `id` in the same file
 - Report any dangling references: "Task X.Y.Z references non-existent task A.B.C"
 
@@ -100,7 +100,7 @@ python script/schema_validator.py --schema schemas/assessment-output.v2.schema.j
 
 Additionally check:
 - `metadata.snapshotVersion` equals `2`
-- `metadata.urn` matches a known URN (`urn:nl:dpia:3.0`, `urn:nl:prescan:2.0`, or `urn:nl:iama:2.0`)
+- `metadata.urn` matches a known URN (`urn:nl:prescan:2.0`, `urn:nl:dpia:3.0`, or `urn:nl:iama:2.0`)
 - All answer keys match the instance ID format: `taskId` (e.g. `2.1.3`) or `taskId[index]` (e.g. `2.1.1[0]`)
 - No legacy nanoid-style keys (containing `_` followed by random characters)
 - Every answer key has a corresponding entry in `taskState.taskInstances`

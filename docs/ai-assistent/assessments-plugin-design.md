@@ -34,7 +34,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 
 ### Skill 1: assessment-schema-yaml
 
-**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `dpia.yaml`, `prescan.yaml` of `iama.yaml`.
+**Triggert bij**: bewerken van assessment YAML-bronnen in `sources/`, vragen over het assessment-schema, toevoegen van taken/velden aan `prescan.yaml`, `dpia.yaml` of `iama.yaml`.
 
 **Inhoud**:
 - Structuur van `schemas/assessment-definition.v1.schema.json`:
@@ -66,7 +66,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
   - Criteria: `id`, `expression` (jexl), `explanation`
 - ID-nummering: genest hiërarchisch (`2.1.3`), `is_official_id` geeft aan of ID overeenkomt met het Rapportagemodel DPIA
 - Repeatable tasks: `repeatable: true` met optioneel `instance_label_template` (bijv. `"Gegevensverwerking {4.1.1}"`)
-- IAMA (`sources/iama.yaml`, `urn:nl:iama`, versie `2.0`) is een derde assessment-type naast DPIA en Pre-scan; gestructureerd in Delen (Deel 1 Waarom? … Deel 5 Afsluiting)
+- IAMA (`sources/iama.yaml`, `urn:nl:iama`, versie `2.0`) is een derde assessment-type naast Pre-scan en DPIA; gestructureerd in Delen (Deel 1 Waarom? … Deel 5 Afsluiting)
 - Instructie: verwijs altijd naar `schemas/assessment-definition.v1.schema.json` als bron van waarheid
 
 ### Skill 2: begrippenkader-schema-yaml
