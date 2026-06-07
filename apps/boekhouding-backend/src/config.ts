@@ -12,14 +12,20 @@ function parseCorsOrigin(): string | string[] {
   return raw
 }
 
+const corsOrigin = parseCorsOrigin()
+
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
   cors: {
-    origin: parseCorsOrigin(),
+    origin: corsOrigin,
     credentials: true,
   },
+  // Public-facing base URL of this deployment. ZAD injects PUBLIC_HOST per
+  // deployment (including per review branch), so this stays correct everywhere
+  // instead of hardcoding one environment. Used for OpenAPI metadata.
+  publicUrl: Array.isArray(corsOrigin) ? corsOrigin[0] : corsOrigin,
   keycloak: {
     issuer: `${oidcUrl}/realms/${oidcRealm}`,
     jwksUri: `${oidcInternalUrl}/realms/${oidcRealm}/protocol/openid-connect/certs`,

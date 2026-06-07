@@ -47,7 +47,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         version: API_VERSION,
         contact: {
           name: 'Assessment Boekhouding — MinBZK',
-          url: 'https://assessments.rijksapp.nl',
+          url: config.publicUrl,
           email: 'RIG@rijksoverheid.nl',
         },
       },
