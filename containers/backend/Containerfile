@@ -38,4 +38,7 @@ COPY --from=build /app/apps/boekhouding-backend/dist apps/boekhouding-backend/di
 COPY --from=build /app/apps/boekhouding-backend/drizzle apps/boekhouding-backend/drizzle
 
 WORKDIR /app/apps/boekhouding-backend
+
+USER 1000
+
 CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]

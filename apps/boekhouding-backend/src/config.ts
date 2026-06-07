@@ -17,6 +17,11 @@ const corsOrigin = parseCorsOrigin()
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
+  // API docs (/api/docs + /api/openapi.json): off in production unless EXPOSE_API_DOCS=true.
+  exposeApiDocs: process.env.EXPOSE_API_DOCS === 'true' || process.env.NODE_ENV !== 'production',
+  // Proxy CIDR/hop count so req.ip is the real client behind the ZAD ingress.
+  // Never 'true' (X-Forwarded-For becomes spoofable). Unset for direct/local access.
+  trustProxy: process.env.TRUST_PROXY,
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
   cors: {
     origin: corsOrigin,
