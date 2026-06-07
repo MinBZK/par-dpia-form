@@ -2,7 +2,7 @@ import type { FastifyRequest, FastifyReply } from 'fastify'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { db } from '../db/connection.js'
 import { users } from '../db/schema.js'
-import { eq } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
 import { config } from '../config.js'
 
 export interface AuthUser {
@@ -81,30 +81,72 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     .limit(1)
 
   if (user) {
-    // Sync email and name from Keycloak (e.g. after email change)
+    // Sync email and name from Keycloak (e.g. after an email/name change). The
+    // email is only synced when no other account already uses it: a collision
+    // would violate the unique(email) constraint and lock this user out, so the
+    // existing email is kept in that case (and logged). The name always syncs.
     if (user.email !== payload.email || user.displayName !== displayName) {
+      let email = payload.email
+      if (email !== user.email) {
+        const [clash] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1)
+        if (clash) {
+          request.log.warn('Skipping email sync: address already linked to another account')
+          email = user.email
+        }
+      }
       const [updated] = await db
         .update(users)
-        .set({ email: payload.email, displayName })
+        .set({ email, displayName })
         .where(eq(users.oidcSub, payload.sub))
         .returning({ id: users.id, email: users.email, displayName: users.displayName })
       user = updated
     }
   } else {
-    // First login — create user record
-    const [created] = await db
-      .insert(users)
-      .values({
-        email: payload.email,
-        displayName,
-        oidcSub: payload.sub,
-      })
-      .onConflictDoUpdate({
-        target: users.email,
-        set: { oidcSub: payload.sub, displayName },
-      })
+    // First login for this subject.
+    // Claim an invite placeholder — a row created by an invite that is still
+    // without an oidcSub — but ONLY while it is unclaimed (guarded by the
+    // isNull condition, which is atomic with the update). A row that is already
+    // linked to another subject is NEVER overwritten, preventing account takeover.
+    const [claimed] = await db
+      .update(users)
+      .set({ oidcSub: payload.sub, displayName })
+      .where(and(eq(users.email, payload.email), isNull(users.oidcSub)))
       .returning({ id: users.id, email: users.email, displayName: users.displayName })
-    user = created
+
+    if (claimed) {
+      user = claimed
+    } else {
+      // No unclaimed placeholder. Insert a fresh account; if a row with this
+      // email already exists — linked to a different subject, or created by a
+      // concurrent first-login — DO NOTHING (never relink/overwrite) and refuse.
+      // onConflictDoNothing makes this race-safe: exactly one concurrent insert
+      // wins, the other gets no row back and falls through to 409 (not a 500).
+      const [created] = await db
+        .insert(users)
+        .values({
+          email: payload.email,
+          displayName,
+          oidcSub: payload.sub,
+        })
+        .onConflictDoNothing({ target: users.email })
+        .returning({ id: users.id, email: users.email, displayName: users.displayName })
+
+      if (created) {
+        user = created
+      } else {
+        return reply.status(409).type('application/problem+json').send({
+          type: 'https://httpproblems.com/http-status/409',
+          title: 'Conflict',
+          status: 409,
+          detail: 'Dit e-mailadres is al gekoppeld aan een ander account.',
+          instance: request.url,
+        })
+      }
+    }
   }
 
   request.user = {

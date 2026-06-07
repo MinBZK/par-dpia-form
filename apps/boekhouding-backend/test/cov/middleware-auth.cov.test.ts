@@ -171,21 +171,23 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
     expect(row.displayName).toBe('Nieuwe Naam')
   })
 
-  it('first login with an email already taken updates the existing row by email (onConflictDoUpdate)', async () => {
+  it('first login does NOT take over an email already claimed by another subject (409)', async () => {
     const sharedEmail = `shared-${randomUUID()}@example.com`
+    const legacySub = `legacy-${randomUUID()}`
     const [existing] = await db
       .insert(users)
-      .values({ email: sharedEmail, displayName: 'Origineel', oidcSub: `legacy-${randomUUID()}` })
+      .values({ email: sharedEmail, displayName: 'Origineel', oidcSub: legacySub })
       .returning()
 
     const newSub = randomUUID()
     const t = await token({ sub: newSub, email: sharedEmail, name: 'Gemigreerde Naam' })
     const res = await getProjects(authHeader(t))
-    expect(res.statusCode).toBe(200)
+    // Account linking must refuse: relinking a claimed row would be a takeover.
+    expect(res.statusCode).toBe(409)
 
     const [row] = await db.select().from(users).where(eq(users.email, sharedEmail))
     expect(row.id).toBe(existing.id)
-    expect(row.oidcSub).toBe(newSub)
-    expect(row.displayName).toBe('Gemigreerde Naam')
+    expect(row.oidcSub).toBe(legacySub)
+    expect(row.displayName).toBe('Origineel')
   })
 })
