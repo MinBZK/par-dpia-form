@@ -115,14 +115,15 @@ Provide a clear summary:
 ## Validation Results
 
 ### Schema Validation
-- dpia.yaml: PASS
 - prescan.yaml: PASS
+- dpia.yaml: PASS
 - iama.yaml: PASS
 - begrippenkader_dpia.yaml: PASS
+- begrippenkader_iama.yaml: PASS
 
 ### Definition Enrichment
-- dpia.yaml enrichment: PASS
 - prescan.yaml enrichment: PASS
+- dpia.yaml enrichment: PASS
 - iama.yaml enrichment: PASS
 
 ### Cross-reference Checks

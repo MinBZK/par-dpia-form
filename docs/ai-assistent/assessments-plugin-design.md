@@ -2,7 +2,7 @@
 
 ## Doel
 
-Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over DPIA-, Pre-scan- en IAMA-assessments, het begrippenkader, RVO-styling en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
+Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over Pre-scan-, DPIA- en IAMA-assessments, het begrippenkader, RVO-styling en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
 
 ## Structuur
 
@@ -28,7 +28,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 ### plugin.json
 
 - **name**: `par-assessment`
-- **description**: DPIA-, Pre-scan- en IAMA-assessment domeinkennis, schema-validatie en RVO-styling voor de overheid
+- **description**: Pre-scan-, DPIA- en IAMA-assessment domeinkennis, schema-validatie en RVO-styling voor de overheid
 - **version**: 1.0.0
 - **author**: PAR (Privacy Adviseurs Rijk)
 

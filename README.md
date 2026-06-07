@@ -118,6 +118,10 @@ uv run script/run_all.py \
   --output-md docs/questions/questions_DPIA.md
 ```
 
+### Domeinkennis-plugin (AI-assistent)
+
+Voor wie aan de assessment-definities of -applicatie werkt is er een Claude-plugin met domeinkennis over de assessments (schema's, begrippenkaders, RVO-styling, validatie). Het ontwerp staat beschreven in [`docs/ai-assistent/assessments-plugin-design.md`](docs/ai-assistent/assessments-plugin-design.md).
+
 ## Standaarden en compliance
 
 De Assessment Boekhouding conformeert aan de volgende overheidsstandaarden:
