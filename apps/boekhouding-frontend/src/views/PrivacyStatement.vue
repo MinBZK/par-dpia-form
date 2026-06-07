@@ -43,7 +43,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h2 class="utrecht-heading-2">Rechtsgrond</h2>
     <p>
       De verwerking is gebaseerd op gerechtvaardigd belang
-      (<a href="https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32016R0679#d1e1883-1-1" target="_blank" rel="noopener">artikel 6, lid 1, sub f AVG</a>).
+      (<a href="https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32016R0679#d1e1883-1-1" target="_blank" rel="noopener noreferrer">artikel 6, lid 1, sub f AVG</a>).
       Het belang is het mogelijk maken om veilig en reproduceerbaar samen te werken aan assessments
       in de context van de overheid.
     </p>
@@ -109,7 +109,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h2 class="utrecht-heading-2">Klacht indienen</h2>
     <p>
       Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen
-      bij de <a href="https://www.autoriteitpersoonsgegevens.nl/een-tip-of-klacht-indienen-bij-de-ap" target="_blank" rel="noopener">Autoriteit Persoonsgegevens</a>.
+      bij de <a href="https://www.autoriteitpersoonsgegevens.nl/een-tip-of-klacht-indienen-bij-de-ap" target="_blank" rel="noopener noreferrer">Autoriteit Persoonsgegevens</a>.
     </p>
 
     <h2 class="utrecht-heading-2">Contact</h2>

@@ -18,19 +18,19 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <p>
       Het Ministerie van Binnenlandse Zaken en Koninkrijksrelaties streeft ernaar deze applicatie
       toegankelijk te maken voor iedereen, overeenkomstig het
-      <a href="https://wetten.overheid.nl/BWBR0040936/2018-07-01" target="_blank" rel="noopener">Tijdelijk besluit digitale toegankelijkheid overheid</a>.
+      <a href="https://wetten.overheid.nl/BWBR0040936/2018-07-01" target="_blank" rel="noopener noreferrer">Tijdelijk besluit digitale toegankelijkheid overheid</a>.
     </p>
 
     <h2 class="utrecht-heading-2">Nalevingsstatus</h2>
     <p>
       De Assessment Boekhouding voldoet <strong>gedeeltelijk</strong> aan de
-      <a href="https://www.w3.org/TR/WCAG22/" target="_blank" rel="noopener">Web Content Accessibility Guidelines (WCAG) 2.2</a>
+      <a href="https://www.w3.org/TR/WCAG22/" target="_blank" rel="noopener noreferrer">Web Content Accessibility Guidelines (WCAG) 2.2</a>
       niveau AA. De applicatie is in actieve ontwikkeling en we werken aan volledige naleving.
     </p>
 
     <h2 class="utrecht-heading-2">Wat we doen</h2>
     <ul>
-      <li>We gebruiken het <a href="https://nldesignsystem.nl/" target="_blank" rel="noopener">NL Design System</a> (RVO componentbibliotheek) als basis voor onze interface-componenten</li>
+      <li>We gebruiken het <a href="https://nldesignsystem.nl/" target="_blank" rel="noopener noreferrer">NL Design System</a> (RVO componentbibliotheek) als basis voor onze interface-componenten</li>
       <li>Formulieren zijn voorzien van correcte labels en foutmeldingen</li>
       <li>Interactieve elementen zijn bereikbaar via het toetsenbord</li>
       <li>Foutmeldingen worden aangekondigd aan screenreaders via ARIA-attributen</li>
@@ -48,7 +48,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     </p>
     <ul>
       <li>E-mail: <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a></li>
-      <li>GitHub: <a href="https://github.com/MinBZK/par-dpia-form/issues" target="_blank" rel="noopener">Issues melden</a></li>
+      <li>GitHub: <a href="https://github.com/MinBZK/par-dpia-form/issues" target="_blank" rel="noopener noreferrer">Issues melden</a></li>
     </ul>
 
     <h2 class="utrecht-heading-2">Escalatie</h2>

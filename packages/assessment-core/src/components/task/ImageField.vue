@@ -138,7 +138,7 @@ watch(() => imageData.value?.description, () => {
     <!-- Legacy string/URL reference -->
     <div v-if="legacyValue" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm rvo-margin-block-end--md">
       <p>Bestaande referentie:
-        <a v-if="legacyIsUrl" :href="legacyValue" target="_blank" rel="noopener">{{ legacyValue }}</a>
+        <a v-if="legacyIsUrl" :href="legacyValue" target="_blank" rel="noopener noreferrer">{{ legacyValue }}</a>
         <span v-else>{{ legacyValue }}</span>
       </p>
       <p>Upload een afbeelding om deze referentie te vervangen.</p>
