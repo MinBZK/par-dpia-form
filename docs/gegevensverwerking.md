@@ -1,8 +1,8 @@
-# Gegevensverwerking Assessment Boekhouding
+# Gegevensverwerking Invulhulpen
 
 ## Status
 
-Dit document beschrijft welke persoonsgegevens de Assessment Boekhouding verwerkt. Het dient als input voor privacy-gerelateerde besluitvorming.
+Dit document beschrijft welke persoonsgegevens Invulhulpen verwerkt. Het dient als input voor privacy-gerelateerde besluitvorming.
 
 **Te bespreken met het team:**
 

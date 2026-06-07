@@ -22,9 +22,9 @@ vi.mock('../../src/composables/useAuth', () => ({
 vi.mock('../../src/config', () => ({
   getConfig: () => ({
     keycloakUrl: 'http://localhost:8080',
-    keycloakRealm: 'assessment-boekhouding',
+    keycloakRealm: 'invulhulpen',
     keycloakClientId: 'boekhouding-frontend',
-    standaloneUrl: '/invulhulpen/',
+    standaloneUrl: '/zonder-account/',
   }),
 }))
 
@@ -51,13 +51,13 @@ describe('LandingPage', () => {
       const wrapper = mountPage()
       const link = wrapper.find('a.utrecht-button')
       expect(link.exists()).toBe(true)
-      expect(link.attributes('href')).toBe('/invulhulpen/')
+      expect(link.attributes('href')).toBe('/zonder-account/')
       expect(link.text()).toBe('Start zonder account')
     })
 
     it('renders the page heading', () => {
       const wrapper = mountPage()
-      expect(wrapper.find('h1').text()).toBe('Assessment Boekhouding')
+      expect(wrapper.find('h1').text()).toBe('Invulhulpen')
     })
   })
 

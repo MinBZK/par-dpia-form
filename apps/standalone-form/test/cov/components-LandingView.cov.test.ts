@@ -32,7 +32,7 @@ describe('LandingView rendering', () => {
     const wrapper = mountLanding()
 
     expect(wrapper.find('h1.utrecht-heading-1').text()).toBe(
-      'Invulhulp voor pre-scan, DPIA en IAMA',
+      'Invulhulpen voor pre-scan, DPIA en IAMA',
     )
     expect(wrapper.findComponent({ name: 'AppBanner' }).exists()).toBe(true)
   })

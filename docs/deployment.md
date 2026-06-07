@@ -12,7 +12,7 @@ URL: https://invulhulpen.rijksapp.nl
 │
 ├── /                              → ZAD ingress → frontend (nginx:8080)
 │   ├── /                          → Vue SPA
-│   ├── /invulhulpen/              → standalone form
+│   ├── /zonder-account/           → standalone form
 │   └── /.well-known/security.txt  → 302 → ncsc.nl
 │
 └── /api                           → ZAD ingress → api (node:3000)
@@ -36,7 +36,7 @@ podman build -f containers/backend/Containerfile -t backend .
 
 # Verificatie
 podman run --rm frontend sh -c \
-  "ls /usr/share/nginx/html/invulhulpen/ && cat /etc/nginx/nginx.conf"
+  "ls /usr/share/nginx/html/zonder-account/ && cat /etc/nginx/nginx.conf"
 ```
 
 ## Database migraties
@@ -70,9 +70,9 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | Variabele               | Default                  | ZAD                           |
 |-------------------------|--------------------------|-------------------------------|
 | `OIDC_URL`              | `http://localhost:8080`  | Auto-inject door ZAD Keycloak |
-| `OIDC_REALM`            | `assessment-boekhouding` | Auto-inject door ZAD Keycloak |
+| `OIDC_REALM`            | `invulhulpen` | Auto-inject door ZAD Keycloak |
 | `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend`   | Auto-inject door ZAD Keycloak |
-| `STANDALONE_URL`        | `/invulhulpen/`          | Default is correct            |
+| `STANDALONE_URL`        | `/zonder-account/`          | Default is correct            |
 
 ### Backend (runtime)
 
@@ -80,7 +80,7 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 |------------------------|------------------------------|-------------------------------------------|
 | `DATABASE_SERVER_FULL` | `postgresql://...@localhost` | Auto-inject door ZAD                      |
 | `OIDC_URL`             | `http://localhost:8080`      | Auto-inject door ZAD Keycloak             |
-| `OIDC_REALM`           | `assessment-boekhouding`     | Auto-inject door ZAD Keycloak             |
+| `OIDC_REALM`           | `invulhulpen`     | Auto-inject door ZAD Keycloak             |
 | `OIDC_CLIENT_ID`       | `boekhouding-frontend`       | Auto-inject door ZAD Keycloak             |
 | `PUBLIC_HOST`          | —                            | Auto-inject (volgt webadres → CORS + OpenAPI `contact.url`) |
 | `PORT`                 | `3000`                       | Default is correct                        |

@@ -19,7 +19,7 @@ async function login(context, email, password) {
   await page.getByRole('button', { name: /inloggen/i }).first().click()
 
   // Nu zit je op Keycloak login
-  await page.waitForURL(/\/realms\/assessment-boekhouding\/protocol\/openid-connect\/auth/, { timeout: 15_000 })
+  await page.waitForURL(/\/realms\/invulhulpen\/protocol\/openid-connect\/auth/, { timeout: 15_000 })
 
   await page.fill('input[name="username"]', email)
   await page.fill('input[name="password"]', password)

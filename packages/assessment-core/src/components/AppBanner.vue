@@ -4,12 +4,14 @@ withDefaults(defineProps<{
   linkUrl?: string
   linkLabel?: string
   title?: string
+  subtitle?: string
   homeUrl?: string
 }>(), {
   message: 'De invulhulp voor pre-scan, DPIA en IAMA is in ontwikkeling.',
   linkUrl: 'https://github.com/MinBZK/par-dpia-form',
   linkLabel: 'Bètaversie',
-  title: '',
+  title: 'Invulhulpen',
+  subtitle: 'Pre-scan, DPIA en IAMA',
   homeUrl: '#',
 })
 </script>
@@ -28,7 +30,7 @@ withDefaults(defineProps<{
     </div>
   </div>
   <div class="rvo-header__logo-wrapper">
-    <a :href="homeUrl" class="rvo-header__logo-link rvo-link rvo-link--no-underline" style="display: inline-flex; align-items: center; gap: 0.75rem;">
+    <a :href="homeUrl" class="rvo-header__logo-link rvo-link rvo-link--no-underline">
       <div class="rvo-logo rvo-header__logo-img">
         <div class="rvo-logo__emblem">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -12 44 88" role="img">
@@ -46,8 +48,11 @@ withDefaults(defineProps<{
             ></path>
           </svg>
         </div>
+        <div v-if="title || subtitle" class="rvo-logo__wordmark">
+          <p v-if="title" class="rvo-logo__title">{{ title }}</p>
+          <p v-if="subtitle" class="rvo-logo__subtitle">{{ subtitle }}</p>
+        </div>
       </div>
-      <p v-if="title" class="rvo-logo__title" style="line-height: normal; color: var(--rvo-color-logoblauw, #154273); font-weight: 550; align-self: center; margin-top: 20px;">{{ title }}</p>
     </a>
   </div>
 </template>

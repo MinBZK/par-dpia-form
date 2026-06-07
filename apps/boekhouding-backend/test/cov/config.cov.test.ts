@@ -53,9 +53,9 @@ describe('config — defaults when no env vars are set', () => {
     expect(config.cors.origin).toBe('http://localhost:5174')
     expect(config.cors.credentials).toBe(true)
     expect(config.publicUrl).toBe('http://localhost:5174')
-    expect(config.keycloak.issuer).toBe('http://localhost:8080/realms/assessment-boekhouding')
+    expect(config.keycloak.issuer).toBe('http://localhost:8080/realms/invulhulpen')
     expect(config.keycloak.jwksUri).toBe(
-      'http://localhost:8080/realms/assessment-boekhouding/protocol/openid-connect/certs',
+      'http://localhost:8080/realms/invulhulpen/protocol/openid-connect/certs',
     )
     expect(config.keycloak.audience).toBe('boekhouding-frontend')
   })

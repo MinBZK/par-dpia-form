@@ -49,11 +49,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   if (exposeApiDocs) await app.register(swagger, {
     openapi: {
       info: {
-        title: 'Assessment Boekhouding API',
+        title: 'Invulhulpen API',
         description: 'REST API voor het beheren van assessments en projecten waarin assessments gegroepeerd kunnen worden.',
         version: API_VERSION,
         contact: {
-          name: 'Assessment Boekhouding — MinBZK',
+          name: 'Invulhulpen — MinBZK',
           url: config.publicUrl,
           email: 'RIG@rijksoverheid.nl',
         },
@@ -117,7 +117,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     routePrefix: '/api/docs',
     logo: { content: Buffer.from(''), type: 'image/svg+xml' },
     theme: {
-      title: 'Assessment Boekhouding API',
+      title: 'Invulhulpen API',
       css: [
         {
           filename: 'custom.css',

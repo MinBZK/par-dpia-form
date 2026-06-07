@@ -10,7 +10,7 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
 
 <template>
   <div class="app-layout">
-    <AppBanner message="De Assessment Boekhouding en de invulhulpen zijn in ontwikkeling." title="Assessment Boekhouding" :homeUrl="homeUrl" />
+    <AppBanner message="Invulhulpen is in ontwikkeling." :homeUrl="homeUrl" />
     <router-view :key="$route.path" class="app-main" />
     <SessionExpiredDialog />
     <footer class="app-footer">
@@ -19,7 +19,7 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
         <span class="app-footer__separator">|</span>
         <router-link to="/toegankelijkheid" class="app-footer__link">Toegankelijkheid</router-link>
         <span class="app-footer__separator">|</span>
-        <router-link to="/over" class="app-footer__link">Over de invulhulpen</router-link>
+        <router-link to="/over" class="app-footer__link">Over Invulhulpen</router-link>
       </nav>
     </footer>
   </div>

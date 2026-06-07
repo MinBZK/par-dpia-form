@@ -17,7 +17,7 @@ postgres + keycloak + backend + frontend + standalone. Runs on **podman**
 | frontend (boekhouding) | http://localhost:5174 | Vite dev, live-reload via `src/` mount |
 | standalone (zelfstandig invullen) | http://localhost:5175 | Vite dev, live-reload via `src/` mount |
 | backend API | http://localhost:3000/api | health: `/api/health` |
-| keycloak | http://localhost:8080 | realm `assessment-boekhouding`; admin `admin`/`admin` |
+| keycloak | http://localhost:8080 | realm `invulhulpen`; admin `admin`/`admin` |
 | postgres | localhost:5432 | `parassessment`/`parassessment`; shared by backend **and** keycloak |
 
 **App logins** (frontend → "Inloggen"): `sam@example.com` / `welkom123`,
@@ -80,7 +80,7 @@ curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/health   # 20
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5174/              # 200
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:5175/              # 200
 curl -s -o /dev/null -w '%{http_code}\n' \
-  http://localhost:8080/realms/assessment-boekhouding/.well-known/openid-configuration  # 200
+  http://localhost:8080/realms/invulhulpen/.well-known/openid-configuration  # 200
 ```
 
 Then load http://localhost:5174 in a browser and confirm the landing page

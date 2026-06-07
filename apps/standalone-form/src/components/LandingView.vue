@@ -100,7 +100,7 @@ async function downloadOfflineApp() {
   <AppBanner title="Invulhulpen" />
   <div class="rvo-layout-column rvo-layout-gap--3xl rvo-margin-block-start--xl">
     <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-      <h1 class="utrecht-heading-1">Invulhulp voor pre-scan, DPIA en IAMA</h1>
+      <h1 class="utrecht-heading-1">Invulhulpen voor pre-scan, DPIA en IAMA</h1>
       <div class="rvo-layout-grid-container rvo-margin-inline-end--md">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div

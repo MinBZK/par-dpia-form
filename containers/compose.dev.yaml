@@ -49,7 +49,7 @@ services:
       CORS_ORIGIN: http://localhost:5174
       OIDC_URL: http://localhost:8080
       OIDC_INTERNAL_URL: http://keycloak:8080
-      OIDC_REALM: assessment-boekhouding
+      OIDC_REALM: invulhulpen
       OIDC_PUBLIC_CLIENT_ID: boekhouding-frontend
       NODE_ENV: development
       EXPOSE_API_DOCS: "true"
@@ -93,7 +93,7 @@ services:
       API_URL: http://backend:3000
       VITE_STANDALONE_URL: http://localhost:5175/
       VITE_KEYCLOAK_URL: http://localhost:8080
-      VITE_KEYCLOAK_REALM: assessment-boekhouding
+      VITE_KEYCLOAK_REALM: invulhulpen
       VITE_KEYCLOAK_CLIENT_ID: boekhouding-frontend
     volumes:
       - ../packages/assessment-core/src:/app/packages/assessment-core/src
