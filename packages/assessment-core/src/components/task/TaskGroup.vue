@@ -41,8 +41,7 @@ const instanceLabel = computed(() => {
   return baseLabel
 })
 
-// True when this task_group is itself nested inside another task_group.
-// Used to render the legend with a label-sized font instead of a heading font.
+// Nested groups render their legend with a label-sized font instead of a heading.
 const isNestedGroup = computed(() => {
   const parentId = task.value.parentId
   if (!parentId) return false

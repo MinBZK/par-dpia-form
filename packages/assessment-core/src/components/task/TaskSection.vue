@@ -165,11 +165,8 @@ const missingSourceDependencies = computed(() => {
   )
 })
 
-// De actiepunten-samenvatting hoort helemaal onderaan de sectie, na de volledige
-// lus van subsecties (zie template). Dit moet sectie-breed gebeuren (niet na een
-// specifiek kind), want leaf-taken zouden de overview anders niet renderen.
-// Welke sectie de samenvatting toont, is data-gedreven via action_point_summary;
-// ActionPointsOverview ontdekt zelf de bronnen via action_point_group.
+// Section-wide flag (data-driven via action_point_summary): the action-points
+// overview renders once at the bottom of the section, after all subsections.
 const showActiepuntenOverview = computed(() => task.value.action_point_summary === true)
 
 const imageMap = {

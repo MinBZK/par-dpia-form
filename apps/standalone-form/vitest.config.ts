@@ -21,9 +21,7 @@ export default defineConfig({
       provider: 'istanbul',
       reporter: ['text', 'html', 'lcov'],
       // Report on every source file, not only the ones a test imports, so
-      // 100% genuinely means 100% of the codebase. (In vitest 4 reporting on
-      // all matched `include` files is the default; the old `all` flag was
-      // removed from CoverageOptions.)
+      // 100% genuinely means 100% of the codebase.
       include: ['src/**'],
       exclude: [
         'src/**/*.d.ts',
