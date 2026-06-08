@@ -15,6 +15,11 @@ const ENV_KEYS = [
   'HOST',
   'DATABASE_SERVER_FULL',
   'TRUST_PROXY',
+  'DB_POOL_MAX',
+  'DB_CONNECT_TIMEOUT',
+  'DB_IDLE_TIMEOUT',
+  'WEB_CONCURRENCY',
+  'RATE_LIMIT_MAX',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -176,5 +181,82 @@ describe('config — parseTrustProxy', () => {
     process.env.TRUST_PROXY = '10.0.0.0/8'
     const config = await loadConfig()
     expect(config.trustProxy).toBe('10.0.0.0/8')
+  })
+})
+
+describe('config — db pool (parsePositiveInt with clamping)', () => {
+  it('uses safe defaults when the pool env vars are unset', async () => {
+    const config = await loadConfig()
+    expect(config.db).toEqual({ max: 10, connectTimeout: 10, idleTimeout: 30 })
+  })
+
+  it('accepts a valid override within range', async () => {
+    process.env.DB_POOL_MAX = '20'
+    process.env.DB_CONNECT_TIMEOUT = '5'
+    process.env.DB_IDLE_TIMEOUT = '120'
+    const config = await loadConfig()
+    expect(config.db).toEqual({ max: 20, connectTimeout: 5, idleTimeout: 120 })
+  })
+
+  it('falls back to the default for a non-numeric value', async () => {
+    process.env.DB_POOL_MAX = 'abc'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(10)
+  })
+
+  it('falls back to the default for a value below 1 (e.g. 0)', async () => {
+    process.env.DB_POOL_MAX = '0'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(10)
+  })
+
+  it('clamps a value above the maximum (pool capped at 100)', async () => {
+    process.env.DB_POOL_MAX = '500'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(100)
+  })
+})
+
+describe('config — webConcurrency (parseWebConcurrency)', () => {
+  it('returns null when WEB_CONCURRENCY is unset (entry point defaults to CPU count)', async () => {
+    const config = await loadConfig()
+    expect(config.webConcurrency).toBeNull()
+  })
+
+  it('returns the parsed worker count when set to a valid value', async () => {
+    process.env.WEB_CONCURRENCY = '4'
+    const config = await loadConfig()
+    expect(config.webConcurrency).toBe(4)
+  })
+
+  it('returns null for a non-numeric value', async () => {
+    process.env.WEB_CONCURRENCY = 'abc'
+    const config = await loadConfig()
+    expect(config.webConcurrency).toBeNull()
+  })
+
+  it('returns null for a value below 1 (e.g. 0)', async () => {
+    process.env.WEB_CONCURRENCY = '0'
+    const config = await loadConfig()
+    expect(config.webConcurrency).toBeNull()
+  })
+
+  it('clamps an excessive value to 64 (prevents a fork bomb)', async () => {
+    process.env.WEB_CONCURRENCY = '100'
+    const config = await loadConfig()
+    expect(config.webConcurrency).toBe(64)
+  })
+})
+
+describe('config — rateLimit', () => {
+  it('defaults the rate-limit max to 300', async () => {
+    const config = await loadConfig()
+    expect(config.rateLimit.max).toBe(300)
+  })
+
+  it('honours a RATE_LIMIT_MAX override', async () => {
+    process.env.RATE_LIMIT_MAX = '500'
+    const config = await loadConfig()
+    expect(config.rateLimit.max).toBe(500)
   })
 })

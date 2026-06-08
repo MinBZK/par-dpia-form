@@ -61,6 +61,18 @@ describe('buildApp — options handling', () => {
       await defaultApp.close()
     }
   })
+
+  it('applies the rateLimitMax option (per-worker limit) instead of the config default', async () => {
+    const limitedApp = await buildApp({ logger: false, rateLimitMax: 1 })
+    await limitedApp.ready()
+    try {
+      expect((await limitedApp.inject({ method: 'GET', url: '/api/health' })).statusCode).toBe(200)
+      // A second request from the same client exceeds the per-instance limit of 1.
+      expect((await limitedApp.inject({ method: 'GET', url: '/api/health' })).statusCode).toBe(429)
+    } finally {
+      await limitedApp.close()
+    }
+  })
 })
 
 describe('API_VERSION constant', () => {

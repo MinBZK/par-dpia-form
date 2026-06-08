@@ -19,6 +19,12 @@ export interface BuildAppOptions {
   exposeApiDocs?: boolean
   /** Fastify trustProxy value (proxy CIDR / hop count). Defaults to config.trustProxy. */
   trustProxy?: string | boolean | number
+  /**
+   * Per-instance rate-limit max (requests per IP per minute). The entry point
+   * passes the global limit divided by the worker count, since each worker has
+   * its own in-memory store. Defaults to config.rateLimit.max.
+   */
+  rateLimitMax?: number
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
@@ -44,7 +50,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
-  await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
+  await app.register(rateLimit, { max: options.rateLimitMax ?? config.rateLimit.max, timeWindow: '1 minute' })
 
   if (exposeApiDocs) await app.register(swagger, {
     openapi: {

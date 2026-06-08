@@ -4,6 +4,7 @@ import { db } from '../db/connection.js'
 import { users } from '../db/schema.js'
 import { eq, and, isNull } from 'drizzle-orm'
 import { config } from '../config.js'
+import { userIdCache } from '../utils/userIdCache.js'
 
 export interface AuthUser {
   id: string
@@ -33,7 +34,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
 
   const token = authHeader.slice(7)
 
-  let payload: { sub?: string; email?: string; name?: string; preferred_username?: string; azp?: string }
+  let payload: { sub?: string; email?: string; name?: string; preferred_username?: string; azp?: string; exp?: number }
   try {
     const result = await jwtVerify(token, jwks, {
       issuer: config.keycloak.issuer,
@@ -72,6 +73,18 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   }
 
   const displayName = payload.name || payload.preferred_username || payload.email
+
+  // Identity cache: the token is already fully validated above (signature,
+  // issuer, azp, exp), so a hit only skips the users-lookup — never validation.
+  // Authorization is still checked live downstream, so a cache hit cannot leak
+  // access. On a hit, email/displayName come from this request's token, so no
+  // personal data is kept in the cache itself.
+  const now = Date.now()
+  const cachedId = userIdCache.get(payload.sub, now)
+  if (cachedId !== undefined) {
+    request.user = { id: cachedId, email: payload.email, displayName }
+    return
+  }
 
   // Find or create user by OIDC subject
   let [user] = await db
@@ -148,6 +161,10 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
       }
     }
   }
+
+  // Cache the resolved id. The TTL is bounded and never outlives the token, so
+  // a stale identity (or a removed user) can persist for at most the TTL.
+  userIdCache.set(payload.sub, user.id, payload.exp, now)
 
   request.user = {
     id: user.id,
