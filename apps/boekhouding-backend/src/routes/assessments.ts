@@ -7,6 +7,15 @@ import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
 
+// Sentinel to trigger transaction rollback when a concurrent write wins the
+// optimistic-lock race (conditional UPDATE affected 0 rows).
+class OptimisticLockError extends Error {
+  constructor() {
+    super('Optimistic lock conflict')
+    this.name = 'OptimisticLockError'
+  }
+}
+
 export async function assessmentRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
 
@@ -68,6 +77,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
         instance: request.url,
       })
     }
+    // Fast-fail for obviously stale clients. The authoritative check below
+    // runs in the WHERE-clause of the UPDATE to prevent simultaneous races
+    // (two concurrent writes with the same expectedVersion).
     if (assessment.currentVersion !== expectedVersion) {
       return reply.status(409).type('application/problem+json').send({
         type: 'https://httpproblems.com/http-status/409',
@@ -86,7 +98,8 @@ export async function assessmentRoutes(app: FastifyInstance) {
       : []
 
     // No content changes: update cachedState only (saves UI-state like
-    // navigation position without creating a new version)
+    // navigation position without creating a new version). No version bump,
+    // no race risk — cachedState UI-state only, overwrite is acceptable.
     if (previousState && edits.length === 0 && !changeDescription) {
       await db
         .update(assessmentInstances)
@@ -112,71 +125,86 @@ export async function assessmentRoutes(app: FastifyInstance) {
       && !lastVersion.changeDescription
       && (Date.now() - lastVersion.createdAt.getTime()) < CONSOLIDATION_WINDOW_MS
 
-    if (canConsolidate) {
-      // Consolidate: add edits to existing version, update timestamps.
-      // Bump currentVersion so optimistic locking detects concurrent writes
-      // from sessions that hold a stale expectedVersion.
-      const nextVersion = assessment.currentVersion + 1
-
-      if (edits.length > 0) {
-        await db.insert(assessmentEdits).values(
-          edits.map(edit => ({ ...edit, assessmentVersionId: lastVersion.id })),
-        )
-      }
-
-      await db
-        .update(assessmentVersions)
-        .set({ version: nextVersion, updatedAt: new Date() })
-        .where(eq(assessmentVersions.id, lastVersion.id))
-
-      const updateData: Record<string, unknown> = {
-        currentVersion: nextVersion,
-        cachedState: state,
-        updatedAt: new Date(),
-      }
-      if (name) updateData.name = name
-
-      const [updated] = await db
-        .update(assessmentInstances)
-        .set(updateData)
-        .where(eq(assessmentInstances.id, assessmentId))
-        .returning()
-
-      return updated
-    }
-
-    // New version
     const nextVersion = assessment.currentVersion + 1
 
-    const [versionRow] = await db.insert(assessmentVersions).values({
-      assessmentInstanceId: assessmentId,
-      version: nextVersion,
-      createdBy: userId,
-      changeDescription,
-    }).returning()
+    // Single transaction with the optimistic-lock check in the UPDATE's
+    // WHERE-clause (currentVersion = expectedVersion): this both closes the
+    // simultaneous-save race and prevents orphan version/edit rows.
+    try {
+      const updated = await db.transaction(async (tx) => {
+        // Conditional UPDATE first: it gates the version/edit writes below.
+        const updateData: Record<string, unknown> = {
+          currentVersion: nextVersion,
+          cachedState: state,
+          updatedAt: new Date(),
+        }
+        if (name) updateData.name = name
 
-    // Log field-level changes linked to the new version
-    if (edits.length > 0) {
-      await db.insert(assessmentEdits).values(
-        edits.map(edit => ({ ...edit, assessmentVersionId: versionRow.id })),
-      )
+        const lockedRows = await tx
+          .update(assessmentInstances)
+          .set(updateData)
+          .where(and(
+            eq(assessmentInstances.id, assessmentId),
+            eq(assessmentInstances.currentVersion, expectedVersion),
+          ))
+          .returning()
+
+        if (lockedRows.length === 0) {
+          // Signal 409 to outer handler via a sentinel throw that triggers rollback.
+          throw new OptimisticLockError()
+        }
+
+        if (canConsolidate) {
+          // Consolidate: add edits to existing version, bump its version number.
+          if (edits.length > 0) {
+            await tx.insert(assessmentEdits).values(
+              edits.map(edit => ({ ...edit, assessmentVersionId: lastVersion.id })),
+            )
+          }
+
+          await tx
+            .update(assessmentVersions)
+            .set({ version: nextVersion, updatedAt: new Date() })
+            .where(eq(assessmentVersions.id, lastVersion.id))
+        } else {
+          // New version row.
+          const [versionRow] = await tx.insert(assessmentVersions).values({
+            assessmentInstanceId: assessmentId,
+            version: nextVersion,
+            createdBy: userId,
+            changeDescription,
+          }).returning()
+
+          if (edits.length > 0) {
+            await tx.insert(assessmentEdits).values(
+              edits.map(edit => ({ ...edit, assessmentVersionId: versionRow.id })),
+            )
+          }
+        }
+
+        return lockedRows[0]
+      })
+
+      return updated
+    } catch (err) {
+      if (err instanceof OptimisticLockError) {
+        // Read fresh version for the client response.
+        const [fresh] = await db
+          .select({ currentVersion: assessmentInstances.currentVersion })
+          .from(assessmentInstances)
+          .where(eq(assessmentInstances.id, assessmentId))
+          .limit(1)
+        return reply.status(409).type('application/problem+json').send({
+          type: 'https://httpproblems.com/http-status/409',
+          title: 'Conflict',
+          status: 409,
+          detail: 'Assessment is gewijzigd door een andere gebruiker',
+          instance: request.url,
+          currentVersion: fresh?.currentVersion,
+        })
+      }
+      throw err
     }
-
-    // Update assessment instance: cachedState + currentVersion
-    const updateData: Record<string, unknown> = {
-      currentVersion: nextVersion,
-      cachedState: state,
-      updatedAt: new Date(),
-    }
-    if (name) updateData.name = name
-
-    const [updated] = await db
-      .update(assessmentInstances)
-      .set(updateData)
-      .where(eq(assessmentInstances.id, assessmentId))
-      .returning()
-
-    return updated
   })
 
   // Delete assessment
