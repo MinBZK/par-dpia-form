@@ -20,12 +20,50 @@ function parseTrustProxy(): number | string {
   return /^\d+$/.test(v) ? Number(v) : v
 }
 
+// Parse a positive-integer env var, clamped to [1, max]. Falls back to the
+// default when unset, non-numeric, or below 1 — so a misconfigured value can
+// never produce an unsafe state (e.g. a pool of 0 or an absurdly large value).
+function parsePositiveInt(value: string | undefined, fallback: number, max: number): number {
+  if (!value) return fallback
+  const n = parseInt(value, 10)
+  if (!Number.isFinite(n) || n < 1) return fallback
+  return Math.min(n, max)
+}
+
+// Worker-process count for clustering. Returns null when unset/invalid so the
+// entry point can default to one worker per CPU core; an explicit value is
+// clamped to [1, 64] (1 effectively disables clustering). The clamp prevents a
+// misconfigured value from fork-bombing the host.
+function parseWebConcurrency(): number | null {
+  const v = process.env.WEB_CONCURRENCY
+  if (!v) return null
+  const n = parseInt(v, 10)
+  if (!Number.isFinite(n) || n < 1) return null
+  return Math.min(n, 64)
+}
+
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
+  webConcurrency: parseWebConcurrency(),
   exposeApiDocs: process.env.EXPOSE_API_DOCS === 'true',
   trustProxy: parseTrustProxy(),
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
+  // Postgres connection pool. Defaults match postgres.js but are now explicit and
+  // tunable per deployment. With clustering, size DB_POOL_MAX so that
+  // workers × DB_POOL_MAX stays below the server's max_connections (default 100),
+  // leaving headroom for migrations and other clients.
+  db: {
+    max: parsePositiveInt(process.env.DB_POOL_MAX, 10, 100),
+    connectTimeout: parsePositiveInt(process.env.DB_CONNECT_TIMEOUT, 10, 300),
+    idleTimeout: parsePositiveInt(process.env.DB_IDLE_TIMEOUT, 30, 86400),
+  },
+  // Global request limit per IP per minute. Under clustering the in-memory store
+  // is per worker, so the entry point divides this across workers to keep the
+  // cluster-wide limit close to `max`.
+  rateLimit: {
+    max: parsePositiveInt(process.env.RATE_LIMIT_MAX, 300, 100000),
+  },
   cors: {
     origin: corsOrigin,
     credentials: true,
