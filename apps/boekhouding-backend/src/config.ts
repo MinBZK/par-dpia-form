@@ -49,12 +49,16 @@ export const config = {
   exposeApiDocs: process.env.EXPOSE_API_DOCS === 'true',
   trustProxy: parseTrustProxy(),
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
-  // Postgres connection pool. Defaults match postgres.js but are now explicit and
-  // tunable per deployment. With clustering, size DB_POOL_MAX so that
-  // workers × DB_POOL_MAX stays below the server's max_connections (default 100),
-  // leaving headroom for migrations and other clients.
+  // Postgres connection pool, PER worker process. The RIG shared Postgres caps
+  // each project DB user at 20 connections total (see README), and a rolling
+  // deploy briefly runs two pods (old + surge), so the budget is:
+  //   pods × WEB_CONCURRENCY × DB_POOL_MAX  ≤  20.
+  // Default 9 → 2 pods × 1 worker × 9 = 18, a tight margin under 20. The app is
+  // I/O-bound so one worker with this pool is plenty; the ceiling is the cap.
+  // Raise the pool / add workers/replicas only within that budget, or put a
+  // connection pooler (PgBouncer) in front.
   db: {
-    max: parsePositiveInt(process.env.DB_POOL_MAX, 10, 100),
+    max: parsePositiveInt(process.env.DB_POOL_MAX, 9, 20),
     connectTimeout: parsePositiveInt(process.env.DB_CONNECT_TIMEOUT, 10, 300),
     idleTimeout: parsePositiveInt(process.env.DB_IDLE_TIMEOUT, 30, 86400),
   },

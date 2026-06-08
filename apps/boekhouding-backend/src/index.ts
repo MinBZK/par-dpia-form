@@ -1,12 +1,13 @@
 import cluster from 'node:cluster'
-import { availableParallelism } from 'node:os'
 import { buildApp } from './app.js'
 import { config } from './config.js'
 
-// One worker per CPU core by default, so we actually use the available CPU.
-// WEB_CONCURRENCY pins the count (1 disables clustering; lower it when scaling
-// horizontally via replicas instead). The value is clamped in config.ts.
-const workers = config.webConcurrency ?? availableParallelism()
+// Single worker by default. The app is I/O-bound (low CPU), and the shared
+// Postgres caps this DB user at 20 connections total, so each extra worker
+// multiplies connection pressure (workers × DB_POOL_MAX). Opt into clustering
+// by setting WEB_CONCURRENCY > 1, and then lower DB_POOL_MAX so that
+// WEB_CONCURRENCY × DB_POOL_MAX stays within the budget (see README/config.ts).
+const workers = config.webConcurrency ?? 1
 
 if (workers > 1 && cluster.isPrimary) {
   // Migrations already ran once before this process started (the container CMD

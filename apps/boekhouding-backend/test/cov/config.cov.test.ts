@@ -187,38 +187,38 @@ describe('config — parseTrustProxy', () => {
 describe('config — db pool (parsePositiveInt with clamping)', () => {
   it('uses safe defaults when the pool env vars are unset', async () => {
     const config = await loadConfig()
-    expect(config.db).toEqual({ max: 10, connectTimeout: 10, idleTimeout: 30 })
+    expect(config.db).toEqual({ max: 9, connectTimeout: 10, idleTimeout: 30 })
   })
 
   it('accepts a valid override within range', async () => {
-    process.env.DB_POOL_MAX = '20'
+    process.env.DB_POOL_MAX = '12'
     process.env.DB_CONNECT_TIMEOUT = '5'
     process.env.DB_IDLE_TIMEOUT = '120'
     const config = await loadConfig()
-    expect(config.db).toEqual({ max: 20, connectTimeout: 5, idleTimeout: 120 })
+    expect(config.db).toEqual({ max: 12, connectTimeout: 5, idleTimeout: 120 })
   })
 
   it('falls back to the default for a non-numeric value', async () => {
     process.env.DB_POOL_MAX = 'abc'
     const config = await loadConfig()
-    expect(config.db.max).toBe(10)
+    expect(config.db.max).toBe(9)
   })
 
   it('falls back to the default for a value below 1 (e.g. 0)', async () => {
     process.env.DB_POOL_MAX = '0'
     const config = await loadConfig()
-    expect(config.db.max).toBe(10)
+    expect(config.db.max).toBe(9)
   })
 
-  it('clamps a value above the maximum (pool capped at 100)', async () => {
+  it('clamps a value above the per-user cap (pool capped at 20)', async () => {
     process.env.DB_POOL_MAX = '500'
     const config = await loadConfig()
-    expect(config.db.max).toBe(100)
+    expect(config.db.max).toBe(20)
   })
 })
 
 describe('config — webConcurrency (parseWebConcurrency)', () => {
-  it('returns null when WEB_CONCURRENCY is unset (entry point defaults to CPU count)', async () => {
+  it('returns null when WEB_CONCURRENCY is unset (entry point defaults to 1 worker)', async () => {
     const config = await loadConfig()
     expect(config.webConcurrency).toBeNull()
   })
