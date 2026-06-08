@@ -199,11 +199,10 @@ const handleCheckboxInput = (event: Event) => {
     <!-- FRIA tag is a link (interactive content) so it must NOT live inside the
          <label> (invalid HTML + pollutes the field's accessible name). Kept as a
          sibling within the same rvo-form-field__label wrapper for visual adjacency. -->
-    <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon"
+    <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon form-field__fria-tag"
       href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
       target="_blank" rel="noopener noreferrer"
-      title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening"
-      style="margin-inline-start: 0.4em; vertical-align: middle; text-decoration: none; gap: 0.25em;">
+      title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening">
       art. 27 AI-verordening
       <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
     </a>

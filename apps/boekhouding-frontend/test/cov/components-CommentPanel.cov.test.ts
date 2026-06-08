@@ -1098,7 +1098,8 @@ describe('CommentPanel', () => {
       // jsdom reports scrollHeight 0; override it so the resize handler has a value.
       Object.defineProperty(el, 'scrollHeight', { configurable: true, value: 42 })
       await textarea.trigger('input')
-      expect(el.style.height).toBe('42px')
+      expect(el.classList.contains('autogrow-textarea')).toBe(true)
+      expect(el.style.getPropertyValue('--autogrow-height')).toBe('42px')
     })
   })
 })

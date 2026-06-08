@@ -460,7 +460,7 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
     const items = options
       ? val.map((v) => stripHtml(options[String(v)] || String(v)))
       : val.map((v) => stripHtml(String(v)))
-    return '<ul style="margin: 0; padding-left: 1.25rem;">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>'
+    return '<ul class="value-list">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>'
   }
 
   if (typeof val === 'object') {
@@ -491,7 +491,7 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
           const items = options
             ? v.map((item) => stripHtml(options[String(item)] || String(item)))
             : v.map((item) => stripHtml(String(item)))
-          parts.push('<ul style="margin: 0; padding-left: 1.25rem;">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>')
+          parts.push('<ul class="value-list">' + items.map((item) => `<li>${escapeHtml(item)}</li>`).join('') + '</ul>')
         }
       } else {
         const formatted = typeof v === 'boolean' ? (v ? 'Ja' : 'Nee')

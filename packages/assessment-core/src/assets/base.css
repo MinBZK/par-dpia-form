@@ -490,3 +490,70 @@
 .rvo-theme .multiselect-scrollable .rvo-checkbox__input {
   position: relative;
 }
+
+.rvo-theme .app-banner__alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+.rvo-theme .app-banner__alert-icon {
+  flex-shrink: 0;
+}
+
+.rvo-theme .app-banner__alert-text {
+  text-align: center;
+}
+
+.rvo-theme .nav-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rvo-space-md, 1rem);
+  padding-block: var(--rvo-space-2xs, 0.5rem);
+}
+
+.rvo-theme .nav-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--rvo-space-sm, 0.5rem);
+}
+
+.rvo-theme .export-pdf-info__heading-row {
+  align-items: center;
+}
+
+.rvo-theme .reference-suggestions__alert {
+  display: flex;
+}
+
+.rvo-theme .form-field__fria-tag {
+  margin-inline-start: 0.4em;
+  vertical-align: middle;
+  text-decoration: none;
+  gap: 0.25em;
+}
+
+.rvo-theme .task-section__source-image {
+  max-width: 100%;
+  height: auto;
+}
+
+/* element+class-selector i.p.v. losse class: wint qua specificiteit van RVO. */
+.rvo-theme textarea.autogrow-textarea {
+  overflow: hidden;
+  height: var(--autogrow-height, auto);
+}
+
+.rvo-theme .content-alert--flex {
+  display: flex;
+}
+
+.rvo-theme .content-tag-link {
+  margin-inline-start: 0.2em;
+  vertical-align: middle;
+  text-decoration: none;
+  gap: 0.25em;
+}

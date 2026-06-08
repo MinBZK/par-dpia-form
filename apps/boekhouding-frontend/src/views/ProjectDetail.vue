@@ -337,7 +337,7 @@ const formatDate = (dateStr: string) =>
     <template v-else-if="project">
       <AppHeader backLabel="Terug naar projecten" backRoute="/projecten" />
 
-      <div class="rvo-layout-row rvo-layout-gap--md rvo-margin-block-end--lg" style="justify-content: space-between; align-items: center;">
+      <div class="rvo-layout-row rvo-layout-gap--md rvo-margin-block-end--lg project-detail-header">
         <h1 v-if="!editingName" class="utrecht-heading-1 rvo-heading--no-margins" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om projectnaam te bewerken' : undefined" @click="startEditName" @keydown.enter="startEditName">{{ project.name }}</h1>
         <div v-else class="editable-field-group">
           <input
@@ -378,7 +378,7 @@ const formatDate = (dateStr: string) =>
         </div>
       </div>
 
-      <p v-if="!editingDescription && project.description" class="rvo-margin-block-end--md preserve-whitespace" style="margin-top: 0;" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
+      <p v-if="!editingDescription && project.description" class="rvo-margin-block-end--md preserve-whitespace project-detail-description" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
       <div v-if="!editingDescription && !project.description && isEditable()" class="description-add rvo-margin-block-end--md" role="button" tabindex="0" aria-label="Klik om een beschrijving toe te voegen" @click="startEditDescription" @keydown.enter="startEditDescription">
         <span class="description-add__label">Beschrijving toevoegen</span>
       </div>

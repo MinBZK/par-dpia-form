@@ -430,7 +430,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (typeof v === 'boolean' || v === 'true' || v === 'false') return (v === true || v === 'true') ? 'Ja' : 'Nee'
       if (Array.isArray(v)) {
         if (v.length === 0) return 'Geen selectie'
-        return '<ul style="margin: 0; padding-left: 1.25rem;">' + v.map(item => `<li>${escapeHtml(stripHtml(String(item)))}</li>`).join('') + '</ul>'
+        return '<ul class="value-list">' + v.map(item => `<li>${escapeHtml(stripHtml(String(item)))}</li>`).join('') + '</ul>'
       }
       return escapeHtml(stripHtml(String(v))).replace(/\n/g, '<br>')
     }
