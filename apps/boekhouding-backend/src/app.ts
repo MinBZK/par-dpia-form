@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from 'fastify'
+import compress from '@fastify/compress'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -50,6 +51,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
+  await app.register(compress, { global: true })
   await app.register(rateLimit, { max: options.rateLimitMax ?? config.rateLimit.max, timeWindow: '1 minute' })
 
   if (exposeApiDocs) await app.register(swagger, {

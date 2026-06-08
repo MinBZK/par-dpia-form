@@ -12,8 +12,8 @@ import { requireAuth } from '../middleware/auth.js'
  *
  * Does NOT expose user UUIDs (AVG dataminimalisatie).
  *
- * Performance: uses a single query combining auth check (project_members) and sync data (assessment_instances +
- * assessment_versions) via joins. This avoids 3 sequential round-trips per poll.
+ * Performance: fires two independent queries in parallel (Promise.all) — one join query for auth + sync data,
+ * one count query for comments. This avoids sequential round-trips per poll.
  */
 export async function syncRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
@@ -42,34 +42,42 @@ export async function syncRoutes(app: FastifyInstance) {
     const { assessmentId } = request.params
     const userId = request.user!.id
 
-    // Single query: combines assessment lookup, project membership check, and latest version author.
-    // - INNER JOIN project_members: fails (no rows) if user has no access → 403/404 decision below
-    // - LEFT JOIN assessment_versions on currentVersion: latest version row (nullable for edge cases)
-    const [row] = await db
-      .select({
-        currentVersion: assessmentInstances.currentVersion,
-        updatedAt: assessmentInstances.updatedAt,
-        projectId: assessmentInstances.projectId,
-        memberRole: projectMembers.role,
-        latestVersionCreatedBy: assessmentVersions.createdBy,
-      })
-      .from(assessmentInstances)
-      .leftJoin(
-        assessmentVersions,
-        and(
-          eq(assessmentVersions.assessmentInstanceId, assessmentInstances.id),
-          eq(assessmentVersions.version, assessmentInstances.currentVersion),
-        ),
-      )
-      .leftJoin(
-        projectMembers,
-        and(
-          eq(projectMembers.projectId, assessmentInstances.projectId),
-          eq(projectMembers.userId, userId),
-        ),
-      )
-      .where(eq(assessmentInstances.id, assessmentId))
-      .limit(1)
+    // The row/access query and the comment count are independent — run them in
+    // parallel so a poll costs one round-trip, not two. Guards apply after both resolve.
+    const [rowResult, countResult] = await Promise.all([
+      db
+        .select({
+          currentVersion: assessmentInstances.currentVersion,
+          updatedAt: assessmentInstances.updatedAt,
+          projectId: assessmentInstances.projectId,
+          memberRole: projectMembers.role,
+          latestVersionCreatedBy: assessmentVersions.createdBy,
+        })
+        .from(assessmentInstances)
+        .leftJoin(
+          assessmentVersions,
+          and(
+            eq(assessmentVersions.assessmentInstanceId, assessmentInstances.id),
+            eq(assessmentVersions.version, assessmentInstances.currentVersion),
+          ),
+        )
+        .leftJoin(
+          projectMembers,
+          and(
+            eq(projectMembers.projectId, assessmentInstances.projectId),
+            eq(projectMembers.userId, userId),
+          ),
+        )
+        .where(eq(assessmentInstances.id, assessmentId))
+        .limit(1),
+      db
+        .select({ total: count() })
+        .from(comments)
+        .where(eq(comments.assessmentInstanceId, assessmentId)),
+    ])
+
+    const [row] = rowResult
+    const [{ total }] = countResult
 
     if (!row) {
       return reply.status(404).type('application/problem+json').send({
@@ -90,14 +98,6 @@ export async function syncRoutes(app: FastifyInstance) {
         instance: request.url,
       })
     }
-
-    // Comment count lets clients detect deletions — when a comment is removed, the
-    // /comments?since=... poll returns nothing about it (there's no row left to match).
-    // A mismatch between server count and local thread+reply count triggers a full refresh.
-    const [{ total }] = await db
-      .select({ total: count() })
-      .from(comments)
-      .where(eq(comments.assessmentInstanceId, assessmentId))
 
     return {
       version: row.currentVersion,
