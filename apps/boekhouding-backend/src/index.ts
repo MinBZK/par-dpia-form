@@ -1,6 +1,7 @@
 import cluster from 'node:cluster'
 import { buildApp } from './app.js'
 import { config } from './config.js'
+import { warmUpJwks } from './middleware/auth.js'
 
 // Single worker by default. The app is I/O-bound (low CPU), and the shared
 // Postgres caps this DB user at 20 connections total, so each extra worker
@@ -22,6 +23,10 @@ if (workers > 1 && cluster.isPrimary) {
   // limit across workers to keep the cluster-wide limit close to the configured value.
   const rateLimitMax = Math.max(1, Math.ceil(config.rateLimit.max / workers))
   const app = await buildApp({ rateLimitMax })
+
+  // Best-effort: prime the JWKS cache so the first authenticated request doesn't
+  // pay the cold Keycloak fetch. Failure here is swallowed (warmUpJwks is best-effort).
+  await warmUpJwks()
 
   try {
     await app.listen({ port: config.port, host: config.host })

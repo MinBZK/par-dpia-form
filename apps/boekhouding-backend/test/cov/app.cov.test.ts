@@ -136,6 +136,18 @@ describe('registered route prefixes', () => {
   })
 })
 
+describe('response compression', () => {
+  it('compresses a large response with gzip when Accept-Encoding: gzip is sent', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/openapi.json',
+      headers: { 'accept-encoding': 'gzip' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['content-encoding']).toBe('gzip')
+  })
+})
+
 describe('error handler — RFC 9457 problem+json', () => {
   it('returns 500 with generic detail when the error has no statusCode', async () => {
     const res = await app.inject({ method: 'GET', url: '/__cov/throw-no-status' })

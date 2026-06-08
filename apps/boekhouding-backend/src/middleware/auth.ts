@@ -18,7 +18,34 @@ declare module 'fastify' {
   }
 }
 
-const jwks = createRemoteJWKSet(new URL(config.keycloak.jwksUri))
+// Tighter timeout than the jose default (5000ms): fail fast on a cold/slow
+// Keycloak so the first request is not blocked for 5 seconds. The cooldown
+// matches the jose default so burst behaviour is unchanged.
+const jwks = createRemoteJWKSet(new URL(config.keycloak.jwksUri), {
+  timeoutDuration: 2500,
+  cooldownDuration: 30000,
+})
+
+async function defaultWarm() {
+  await jwks.reload()
+}
+
+/**
+ * Pre-warm the JWKS cache so the first authenticated request does not pay the
+ * cold-fetch cost. Best-effort: any error (Keycloak unreachable at startup) is
+ * swallowed silently.
+ *
+ * The `warm` parameter is injectable for testing; production code uses the
+ * default which calls `jwks.reload()`.
+ */
+export async function warmUpJwks(warm: () => Promise<void> = defaultWarm): Promise<void> {
+  try {
+    await warm()
+  } catch {
+    // Keycloak may not be reachable yet at worker start — that is expected.
+    // The first real request will trigger a fresh fetch.
+  }
+}
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
   const authHeader = request.headers.authorization
