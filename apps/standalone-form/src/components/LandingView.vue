@@ -155,6 +155,10 @@ async function downloadOfflineApp() {
           <li>wanneer sprake is van een verplichting op basis van departementaal beleid; of</li>
           <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
         </ol>
+        <h3 class="utrecht-heading-3">DPIA versie 3.0</h3>
+        <p>
+          Deze invulhulp is gebaseerd op het Rapportagemodel DPIA Rijksdienst, versie 3.0. Dit is het actuele rijksbrede rapportagemodel voor de DPIA.
+        </p>
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
           <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a></li>

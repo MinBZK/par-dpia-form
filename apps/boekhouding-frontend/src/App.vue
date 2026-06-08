@@ -10,7 +10,7 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
 
 <template>
   <div class="app-layout">
-    <AppBanner message="Invulhulpen is in ontwikkeling." :homeUrl="homeUrl" />
+    <AppBanner :homeUrl="homeUrl" />
     <router-view :key="$route.path" class="app-main" />
     <SessionExpiredDialog />
     <footer class="app-footer">

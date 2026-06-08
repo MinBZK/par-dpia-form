@@ -1305,3 +1305,42 @@ a.card-link:hover {
 .sync-toast-leave-to {
   opacity: 0;
 }
+
+/* ───────────────────────────────────────────────
+   Landing page
+   ─────────────────────────────────────────────── */
+
+.landing-hero {
+  margin-block-start: var(--rvo-space-xl, 2rem);
+}
+
+.landing-hero__lead {
+  max-width: 42rem;
+  margin-block-start: var(--rvo-space-md, 1rem);
+  font-size: var(--rvo-font-size-lg, 1.125rem);
+  color: var(--rvo-color-grijs-700, #4f4f4f);
+}
+
+.landing-section {
+  margin-block-start: var(--rvo-space-xl, 2rem);
+}
+
+.landing-pillars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--rvo-space-lg, 1.5rem);
+}
+
+.landing-pillar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.landing-pillar__icon {
+  flex-shrink: 0;
+  color: var(--rvo-color-donkerblauw, #01689b);
+}
