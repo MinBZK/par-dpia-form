@@ -55,6 +55,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/AboutAssessments.vue'),
     meta: { public: true },
   },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: () => import('./views/ContactPage.vue'),
+    meta: { public: true },
+  },
 ]
 
 export const router = createRouter({
