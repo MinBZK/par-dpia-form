@@ -19,7 +19,7 @@ vi.mock('@overheid-assessment/core', () => ({
   AppBanner: {
     name: 'AppBanner',
     props: ['message', 'title', 'homeUrl'],
-    template: '<div class="app-banner-stub" :data-home-url="homeUrl" />',
+    template: '<div class="app-banner-stub" :data-home-url="homeUrl" :data-message="message" />',
   },
 }))
 

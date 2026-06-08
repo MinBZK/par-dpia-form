@@ -86,6 +86,12 @@ describe('AboutAssessments', () => {
       expect(text).toContain('Zie ook')
     })
 
+    it('has parallel version headings: "DPIA versie 3.0" and "IAMA versie 2.0"', () => {
+      const text = mountAbout().text()
+      expect(text).toContain('DPIA versie 3.0')
+      expect(text).toContain('IAMA versie 2.0')
+    })
+
     it('links to the DPIA informational models and reporting model', () => {
       const wrapper = mountAbout()
       const hrefs = wrapper.findAll('a').map((a) => a.attributes('href'))
