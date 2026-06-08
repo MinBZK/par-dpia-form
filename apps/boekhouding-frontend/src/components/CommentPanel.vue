@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
+import { autoGrowTextarea } from '@overheid-assessment/core'
 import type { CommentThread } from '../api'
 import { IconX, IconMessage, IconTrash, IconCheck, IconArrowBackUp } from '@tabler/icons-vue'
 
@@ -182,9 +183,7 @@ function cancelReply() {
 }
 
 function autoResize(event: Event) {
-  const el = event.target as HTMLTextAreaElement
-  el.style.height = 'auto'
-  el.style.height = el.scrollHeight + 'px'
+  autoGrowTextarea(event.target as HTMLTextAreaElement)
 }
 
 async function startEdit(id: string, currentBody: string) {
@@ -195,8 +194,7 @@ async function startEdit(id: string, currentBody: string) {
     `.comment-item__edit textarea`,
   )
   if (textarea) {
-    textarea.style.height = 'auto'
-    textarea.style.height = textarea.scrollHeight + 'px'
+    autoGrowTextarea(textarea)
     textarea.focus()
   }
 }
@@ -264,7 +262,7 @@ async function handleReopen(commentId: string) {
         :data-field-group="entry.fieldId"
         class="comment-field-group"
         :class="{ 'comment-field-group--active': activeFieldId === entry.fieldId }"
-        :style="{ top: entry.top + 'px' }"
+        :style="{ '--comment-top': entry.top + 'px' }"
       >
         <button
           v-if="fieldLabels.get(entry.fieldId)"

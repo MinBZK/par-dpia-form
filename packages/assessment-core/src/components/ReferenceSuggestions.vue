@@ -23,8 +23,8 @@ const formatAnswer = (answer: AnswerValue): string => {
 
 <template>
   <div v-if="suggestions.length > 0" class="rvo-margin-block-end--md">
-    <div v-for="suggestion in suggestions" :key="suggestion.sourceTaskId" class="rvo-alert rvo-alert--warning"
-      style="display: flex;">
+    <div v-for="suggestion in suggestions" :key="suggestion.sourceTaskId"
+      class="rvo-alert rvo-alert--warning reference-suggestions__alert">
       <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
         aria-label="Waarschuwing"></span>
       <div class="rvo-alert-text">

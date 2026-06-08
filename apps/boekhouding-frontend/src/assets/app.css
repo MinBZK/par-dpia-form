@@ -924,6 +924,7 @@ a.card-link:hover {
   position: absolute;
   left: 0.75rem;
   right: 0.75rem;
+  top: var(--comment-top, 0);
 }
 
 .comment-field-group--active {
@@ -1343,4 +1344,18 @@ a.card-link:hover {
 .landing-pillar__icon {
   flex-shrink: 0;
   color: var(--rvo-color-donkerblauw, #01689b);
+}
+
+.project-detail-header {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-detail-description {
+  margin-top: 0;
+}
+
+.value-list {
+  margin: 0;
+  padding-left: 1.25rem;
 }
