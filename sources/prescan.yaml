@@ -953,7 +953,7 @@ tasks:
 - task: Kinderrechten
   description: >-
     Bij het verwerken van persoonsgegevens kan er een digitale dienst worden aangeboden die gericht is op personen jonger dan 18 jaar.<br>
-    Als de dienst primair bedoeld is voor deze doelgroep, moet een Kinderrechten Impact Assessment (KIA) worden uitgevoerd. In dat geval is er sprake van een KIA-verplichting.
+    Als de dienst primair bedoeld is voor deze doelgroep, dan wordt aanbevolen om een Kinderrechten Impact Assessment (KIA) uit te voeren (zie de richtsnoeren van de Europese Commissie bij artikel 28 van de Digital Services Act).
   id: "7"
   type:
   - task_group
@@ -1009,9 +1009,9 @@ tasks:
       dependencies:
         - type: conditional
           condition:
-            id: "7.1.1"
+            id: "7.1.2"
             operator: equals
-            value: true
+            value: false
           action: show
           calculation:
             scoreKey: "digitaledienst_minderjarig"
@@ -1080,10 +1080,10 @@ assessments:
         criteria:
           - id: "digitale_dienst"
             expression: "bool(answers('7.1.1'))"
-            explanation: "er een digitale dienst wordt aangeboden"
+            explanation: "Er een digitale dienst wordt aangeboden"
           - id: "minderjarigen"
             expression: "bool(answers('7.1.2'))"
-            explanation: "deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
+            explanation: "Deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
   - id: "IAMA"
     levels:
       - level: "recommended"
@@ -1092,7 +1092,10 @@ assessments:
         criteria:
           - id: "hoog_risico_ai"
             expression: "bool(answers('6.1.2'))"
-            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
+            explanation: "Er gebruik wordt gemaakt van een hoog risico AI-systeem"
           - id: "impactvol_algoritme"
             expression: "bool(answers('6.1.3'))"
+            explanation: "Er gebruik wordt gemaakt van een impactvol algoritme"
+          - id: "impact_grondrechten"
+            expression: "bool(answers('6.1.2')) || bool(answers('6.1.3'))"
             explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
