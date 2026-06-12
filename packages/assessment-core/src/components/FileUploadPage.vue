@@ -5,6 +5,7 @@ import ExportPdfInfo from './ExportPdfInfo.vue'
 import { type AssessmentState } from '../models/assessmentState'
 import { importFromJson } from '../utils/jsonExport'
 import { importFromPdf } from '../utils/pdfImport'
+import { assertImportMatchesNamespace } from '../utils/importDetect'
 import { useTaskStore } from '../stores/tasks'
 import { FormType } from '../models/dpia'
 
@@ -55,6 +56,7 @@ const startDpia = async () => {
         const file = uploadedFile.value
         const isPdf = file.name.toLowerCase().endsWith('.pdf')
         const fileData = isPdf ? await importFromPdf(file) : await importFromJson(file)
+        assertImportMatchesNamespace(fileData, taskStore.activeNamespace)
         // Start with loaded state
         emit('start', fileData)
       } catch (error) {

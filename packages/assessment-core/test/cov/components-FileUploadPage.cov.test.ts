@@ -202,6 +202,53 @@ describe('FileUploadPage.vue', () => {
     })
   })
 
+  describe('startDpia namespace-guard (mismatch tussen bestand en formulier)', () => {
+    it('weigert een DPIA-bestand in het IAMA-formulier en emit geen start', async () => {
+      const taskStore = useTaskStore()
+      taskStore.activeNamespace = FormType.IAMA
+      importFromJson.mockResolvedValue({
+        metadata: { createdAt: '2026-01-01T00:00:00Z', urn: 'urn:nl:dpia:3.0' },
+        answers: {},
+      })
+      const onStart = vi.fn()
+      const wrapper = mountPage(onStart)
+
+      const file = new File(['{}'], 'dpia.json', { type: 'application/json' })
+      ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
+
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+
+      expect(onStart).not.toHaveBeenCalled()
+      const alert = wrapper.find('.rvo-alert--warning')
+      expect(alert.exists()).toBe(true)
+      expect(alert.text()).toContain('Dit bestand bevat geen IAMA-gegevens.')
+      expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
+    })
+
+    it('accepteert een pre-scan-bestand in het DPIA-formulier (cross-form prefill)', async () => {
+      const taskStore = useTaskStore()
+      taskStore.activeNamespace = FormType.DPIA
+      const prescanState = {
+        metadata: { createdAt: '2026-01-01T00:00:00Z', urn: 'urn:nl:prescan' },
+        answers: {},
+      }
+      importFromJson.mockResolvedValue(prescanState)
+      const onStart = vi.fn()
+      const wrapper = mountPage(onStart)
+
+      const file = new File(['{}'], 'prescan.json', { type: 'application/json' })
+      ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
+
+      await wrapper.find('button').trigger('click')
+      await flushPromises()
+
+      expect(onStart).toHaveBeenCalledTimes(1)
+      expect(onStart.mock.calls[0][0]).toBe(prescanState)
+      expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    })
+  })
+
   describe('startDpia inner catch (import failure)', () => {
     it('shows the Error message when importFromJson rejects with an Error', async () => {
       importFromJson.mockRejectedValue(new Error('Ongeldig JSON-bestand'))

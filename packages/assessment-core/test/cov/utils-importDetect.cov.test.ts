@@ -4,7 +4,11 @@ import {
   detectImportType,
   deriveCompletedRootTaskIds,
   normalizeToState,
+  namespaceFromUrn,
+  assertImportMatchesNamespace,
 } from '../../src/utils/importDetect'
+import { FormType } from '../../src/models/dpia'
+import type { AssessmentState } from '../../src/models/assessmentState'
 
 describe('parseAndValidateImport', () => {
   it('throws "Ongeldig JSON-bestand" on invalid JSON (catch branch)', () => {
@@ -299,5 +303,59 @@ describe('normalizeToState', () => {
     expect(Date.parse(state.metadata.createdAt)).toBeGreaterThanOrEqual(before)
     expect(state.answers).toEqual({})
     expect(state.metadata.completedTasks).toBeUndefined()
+  })
+})
+
+describe('namespaceFromUrn', () => {
+  it('maps urn prefixes to FormType', () => {
+    expect(namespaceFromUrn('urn:nl:dpia:3.0')).toBe(FormType.DPIA)
+    expect(namespaceFromUrn('urn:nl:prescan')).toBe(FormType.PRE_SCAN)
+    expect(namespaceFromUrn('urn:nl:iama:2.0')).toBe(FormType.IAMA)
+  })
+
+  it('returns null for a missing urn', () => {
+    expect(namespaceFromUrn(undefined)).toBeNull()
+  })
+
+  it('returns null for an unknown urn', () => {
+    expect(namespaceFromUrn('urn:nl:onbekend')).toBeNull()
+  })
+})
+
+describe('assertImportMatchesNamespace', () => {
+  const stateWithUrn = (urn?: string): AssessmentState => ({
+    metadata: { createdAt: '2026-01-01T00:00:00Z', ...(urn && { urn }) },
+    answers: {},
+  })
+
+  it('accepts a file of the active namespace', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:iama:2.0'), FormType.IAMA)).not.toThrow()
+  })
+
+  it('accepts a legacy file without urn', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn(), FormType.IAMA)).not.toThrow()
+  })
+
+  it('accepts DPIA and pre-scan files interchangeably (cross-form prefill)', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:dpia:3.0'), FormType.PRE_SCAN)).not.toThrow()
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:prescan'), FormType.DPIA)).not.toThrow()
+  })
+
+  it('rejects a DPIA file in the IAMA form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:dpia:3.0'), FormType.IAMA)).toThrow(
+      'Dit bestand bevat geen IAMA-gegevens.',
+    )
+  })
+
+  it('rejects an IAMA file in the DPIA form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:iama:2.0'), FormType.DPIA)).toThrow(
+      'Dit bestand bevat geen DPIA- of pre-scan-gegevens.',
+    )
+  })
+
+  it('rejects an IAMA file in the pre-scan form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:iama:2.0'), FormType.PRE_SCAN)).toThrow(
+      'Dit bestand bevat geen pre-scan- of DPIA-gegevens.',
+    )
   })
 })

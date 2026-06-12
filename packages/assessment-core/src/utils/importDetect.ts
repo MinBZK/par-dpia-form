@@ -55,6 +55,28 @@ export const detectImportType = (json: Record<string, unknown>): ImportType => {
   return null
 }
 
+// FormType for a metadata.urn, or null for legacy files without a known urn.
+export const namespaceFromUrn = (urn: string | undefined): FormType | null => {
+  if (!urn) return null
+  if (urn.startsWith('urn:nl:dpia')) return FormType.DPIA
+  if (urn.startsWith('urn:nl:prescan')) return FormType.PRE_SCAN
+  if (urn.startsWith('urn:nl:iama')) return FormType.IAMA
+  return null
+}
+
+// Reject an import that belongs to another form: DPIA and pre-scan accept each
+// other's file (cross-form prefill), IAMA only its own. Legacy files without
+// urn cannot be classified reliably and are accepted as-is.
+export const assertImportMatchesNamespace = (state: AssessmentState, active: FormType): void => {
+  const detected = namespaceFromUrn(state.metadata.urn)
+  if (!detected || detected === active) return
+  const dpiaFamily = [FormType.DPIA, FormType.PRE_SCAN]
+  if (dpiaFamily.includes(detected) && dpiaFamily.includes(active)) return
+  const expected =
+    active === FormType.IAMA ? 'IAMA-' : active === FormType.DPIA ? 'DPIA- of pre-scan-' : 'pre-scan- of DPIA-'
+  throw new Error(`Dit bestand bevat geen ${expected}gegevens.`)
+}
+
 export const deriveCompletedRootTaskIds = (answerKeys: string[]): string[] => {
   const rootIds = new Set<string>()
   for (const key of answerKeys) {
