@@ -13,6 +13,7 @@ dist-ssr
 coverage
 **/coverage/
 *.local
+.claude/settings.local.json
 reports/
 
 # Build output

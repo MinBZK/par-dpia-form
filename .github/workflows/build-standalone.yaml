@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Set up uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
@@ -33,7 +33,7 @@ jobs:
             --source sources/prescan.yaml \
             --begrippen-yaml sources/begrippenkader_dpia.yaml \
             --output-json sources/generated/PreScanDPIA.json \
-            --output-md docs/questions/questions_prescan_DPIA.md
+            --output-md docs/questions/questions_prescan.md
 
           uv run --frozen --no-dev python script/run_all.py \
             --schema schemas/assessment-definition.v2.schema.json \
@@ -50,7 +50,7 @@ jobs:
             --definitions-once-per-page
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: '22'
 
@@ -66,7 +66,7 @@ jobs:
         run: cd apps/standalone-form && pnpm build
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: standalone-form
           path: apps/standalone-form/dist/

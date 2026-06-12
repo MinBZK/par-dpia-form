@@ -1,7 +1,6 @@
 {
   "name": "standalone-form",
-  "version": "0.0.1",
-  "private": false,
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
