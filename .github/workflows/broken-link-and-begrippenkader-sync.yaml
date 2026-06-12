@@ -1,4 +1,4 @@
-name: Check for broken links and sync YAML
+name: Check for broken links and sync definitions
 on:
   # Run daily at 9:00 AM
   schedule:
@@ -20,11 +20,11 @@ jobs:
       issues: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@4dcb8bee2a0a4531cba1a1f392c54e8375d6dd81 # v1.5.4
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -32,7 +32,10 @@ jobs:
           args: >-
             --verbose
             --no-progress
-            --exclude-mail
+            --root-dir "${{ github.workspace }}"
+            --timeout 30
+            --max-retries 3
+            --retry-wait-time 2
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
@@ -64,9 +67,8 @@ jobs:
             gh issue create --title "Broken links detected" --body-file ./lychee/out.md --label broken-links
           fi
 
-  sync-yaml:
+  sync-begrippenkader-dpia:
     runs-on: ubuntu-latest
-    # Allow this job to continue even if the check-links job fails
     needs: check-links
     if: always()
     permissions:
@@ -74,7 +76,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Download YAML file
@@ -94,7 +96,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "Auto-sync YAML file from external source"
+          git commit -m "Auto-sync begrippenkader-dpia.yaml from external source"
           git push
       - name: Create pull request (when scheduled or manual)
         if: env.changes == 'true' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
@@ -131,7 +133,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up uv
