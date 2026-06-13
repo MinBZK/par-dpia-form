@@ -1,5 +1,5 @@
 # Stage 1: build
-FROM node:22-alpine AS build
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS build
 
 RUN corepack enable && corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
 
@@ -35,7 +35,7 @@ WORKDIR /app/apps/boekhouding-frontend
 RUN npx vite build
 
 # Stage 2: unprivileged nginx voor statische bestanden
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:bcb4860e2d7877cf140e4c945f5f9cb304ccb5efbe1dd4fa606a2206142241bf
 
 # Hoofd-SPA
 COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
