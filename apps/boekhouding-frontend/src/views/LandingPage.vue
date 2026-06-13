@@ -88,7 +88,7 @@ const assessments = [
               </p>
               <a
                 :href="standaloneUrl"
-                class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+                class="rvo-button rvo-button--primary rvo-button--size-md"
               >
                 Start zonder account
               </a>
@@ -109,7 +109,7 @@ const assessments = [
                 mogelijkheid om opmerkingen te plaatsen.
               </p>
               <button
-                class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+                class="rvo-button rvo-button--primary rvo-button--size-md"
                 @click="goToProjects"
               >
                 {{ isAuthenticated ? 'Naar projecten' : 'Inloggen' }}

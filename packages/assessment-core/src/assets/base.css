@@ -263,18 +263,18 @@
 
 /* Override RVO's :invalid styling on required empty fields — red border should only
    appear after user interaction (:user-invalid), not on page load. We reset the
-   invalid border to match the normal border (logoblauw). This includes the
+   invalid border to match the normal border (lintblauw). This includes the
    :focus:invalid compound selector that RVO uses (lines 3544-3550 of RVO's index.css). */
 .rvo-theme .utrecht-textbox--html-input:invalid,
 .rvo-theme .utrecht-textbox:invalid,
 .rvo-theme .utrecht-textbox:focus.utrecht-textbox:invalid,
 .rvo-theme .utrecht-textbox:focus.utrecht-textbox--html-input:invalid,
 .rvo-theme .utrecht-textbox--focus.utrecht-textbox:invalid {
-  --utrecht-textbox-invalid-border-color: var(--rvo-color-logoblauw, #154273);
+  --utrecht-textbox-invalid-border-color: var(--rvo-color-lintblauw, #154273);
   --utrecht-textbox-invalid-border-width: var(--utrecht-form-control-border-width, 1px);
-  --rvo-textbox-invalid-focus-border-color: var(--rvo-color-logoblauw, #154273);
+  --rvo-textbox-invalid-focus-border-color: var(--rvo-color-lintblauw, #154273);
   --rvo-textbox-invalid-focus-outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw));
-  border-color: var(--rvo-color-logoblauw, #154273) !important;
+  border-color: var(--rvo-color-lintblauw, #154273) !important;
   border-width: 1px;
   outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw)) !important;
 }
@@ -286,12 +286,9 @@
   outline-color: var(--rvo-color-rood) !important;
 }
 
-.rvo-theme .utrecht-button--icon-gap {
+.rvo-theme .rvo-button--icon-before,
+.rvo-theme .rvo-button--icon-after {
   gap: 0.25rem;
-}
-
-.rvo-theme .utrecht-button--align-content {
-  margin-inline-start: -12px;
 }
 
 /* Fix: progress tracker connecting line should stretch to full step height

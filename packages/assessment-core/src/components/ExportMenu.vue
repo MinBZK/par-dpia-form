@@ -77,7 +77,7 @@ onBeforeUnmount(removeOutsideListener)
     <div v-if="split" class="export-menu__split">
       <button
         type="button"
-        class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md export-menu__split-main"
+        class="rvo-button rvo-button--secondary rvo-button--size-md export-menu__split-main"
         @click="choose('pdf')"
       >
         Exporteer als PDF
@@ -85,7 +85,7 @@ onBeforeUnmount(removeOutsideListener)
       <button
         ref="triggerRef"
         type="button"
-        class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md export-menu__split-toggle"
+        class="rvo-button rvo-button--secondary rvo-button--size-md export-menu__split-toggle"
         :aria-expanded="open"
         aria-label="Meer exportopties"
         @click="toggle"
@@ -101,7 +101,7 @@ onBeforeUnmount(removeOutsideListener)
       v-else
       ref="triggerRef"
       type="button"
-      class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
+      class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-after"
       :aria-expanded="open"
       @click="toggle"
     >

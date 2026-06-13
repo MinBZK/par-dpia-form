@@ -74,11 +74,11 @@ importers:
         specifier: ^1.0.0-alpha.360
         version: 1.0.0
       '@nl-rvo/component-library-css':
-        specifier: 4.8.0
-        version: 4.8.0
+        specifier: 4.20.2
+        version: 4.20.2
       '@nl-rvo/design-tokens':
-        specifier: 1.9.0
-        version: 1.9.0
+        specifier: 2.4.1
+        version: 2.4.1
       '@overheid-assessment/core':
         specifier: workspace:*
         version: link:../../packages/assessment-core
@@ -138,11 +138,11 @@ importers:
         specifier: ^1.0.0-alpha.360
         version: 1.0.0
       '@nl-rvo/component-library-css':
-        specifier: 4.8.0
-        version: 4.8.0
+        specifier: 4.20.2
+        version: 4.20.2
       '@nl-rvo/design-tokens':
-        specifier: 1.9.0
-        version: 1.9.0
+        specifier: 2.4.1
+        version: 2.4.1
       '@overheid-assessment/core':
         specifier: workspace:*
         version: link:../../packages/assessment-core
@@ -1175,11 +1175,11 @@ packages:
   '@nl-rvo/assets@1.0.0':
     resolution: {integrity: sha512-YEhM9bzgtsTFU1rbDhjm9oraHHCdeC9DqhiB473y4/NYaaENW8eP7ZCJYcEdG4ax/1tyDoC5e0FSkZNIgz4gJA==}
 
-  '@nl-rvo/component-library-css@4.8.0':
-    resolution: {integrity: sha512-9mTYqf1JJiaRW7+R0dKNG44FoBOVmj6+UHcTv/ONFmkmmN9QmfzSiXouDlfI/O7E3fcBQuPIVzSlwRlAxuWtwg==}
+  '@nl-rvo/component-library-css@4.20.2':
+    resolution: {integrity: sha512-BiFN67cQfPy3gqniXln7AmHGYEltF2FK8pysl07gVHqfIQjp9k7P2xRUb+Kn1pd+iU1ueafJwL7m8U7m6jjgXA==}
 
-  '@nl-rvo/design-tokens@1.9.0':
-    resolution: {integrity: sha512-dkBtuj0JcBbTNLlkaZZfNPxFTzoQNWpSe9jdUCNJkPSgHCSI1V1TEyN2y0eJXlpufJRC39uAHZUaHn3Bvx0Ebw==}
+  '@nl-rvo/design-tokens@2.4.1':
+    resolution: {integrity: sha512-6niaHcxA8MESqnIsuZ87C1ubUO1lC9HfqvrvCORceufKYOXzcKNpCBnFo+IVpGN41ISbLNaM7oiNeMIvWZBN+A==}
 
   '@noble/ciphers@1.3.0':
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
@@ -4306,11 +4306,11 @@ snapshots:
 
   '@nl-rvo/assets@1.0.0': {}
 
-  '@nl-rvo/component-library-css@4.8.0':
+  '@nl-rvo/component-library-css@4.20.2':
     dependencies:
       modern-normalize: 3.0.1
 
-  '@nl-rvo/design-tokens@1.9.0': {}
+  '@nl-rvo/design-tokens@2.4.1': {}
 
   '@noble/ciphers@1.3.0': {}
 

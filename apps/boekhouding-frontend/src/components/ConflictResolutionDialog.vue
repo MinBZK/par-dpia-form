@@ -87,7 +87,7 @@ function handleResolve() {
       <div class="confirm-dialog__actions">
         <button
           type="button"
-          class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+          class="rvo-button rvo-button--primary rvo-button--size-md"
           @click="handleResolve"
         >Toepassen</button>
       </div>

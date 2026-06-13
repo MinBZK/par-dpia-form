@@ -376,7 +376,7 @@ const confirmDelete = async () => {
   <div v-else-if="error" class="rvo-max-width-layout rvo-max-width-layout--md" role="alert">
     <h2 class="utrecht-heading-2">Foutmelding</h2>
     <p>{{ error }}</p>
-    <button class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap" @click="assessment ? router.push(`/project/${assessment.projectId}`) : router.push('/projecten')">
+    <button class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before" @click="assessment ? router.push(`/project/${assessment.projectId}`) : router.push('/projecten')">
       <IconArrowLeft :size="16" /> Terug naar project
     </button>
   </div>
@@ -411,8 +411,8 @@ const confirmDelete = async () => {
               @keydown.enter="saveName"
               @keydown.escape="cancelName"
             />
-            <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs" @click="saveName">Opslaan</button>
-            <button class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs" @click="cancelName">Annuleer</button>
+            <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveName">Opslaan</button>
+            <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelName">Annuleer</button>
           </div>
         </div>
         <div class="form-subheader__right">
@@ -496,14 +496,14 @@ const confirmDelete = async () => {
       </label>
       <div class="confirm-dialog__actions">
         <button
-          class="utrecht-button utrecht-button--rvo-md confirm-dialog__delete"
-          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'utrecht-button--primary-action' : 'confirm-dialog__delete--disabled'"
+          class="rvo-button rvo-button--size-md confirm-dialog__delete"
+          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
           :disabled="deleteConfirmInput !== 'VERWIJDEREN'"
           @click="confirmDelete"
         >
           Assessment verwijderen
         </button>
-        <button class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md" @click="deleteModalOpen = false; deleteConfirmInput = ''">
+        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="deleteModalOpen = false; deleteConfirmInput = ''">
           Annuleer
         </button>
       </div>

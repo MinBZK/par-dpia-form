@@ -796,7 +796,7 @@ describe('ProjectDetail', () => {
       await confirmInput.setValue('VERWIJDEREN')
       const deleteBtn = wrapper.find('.confirm-dialog__delete')
       expect(deleteBtn.attributes('disabled')).toBeUndefined()
-      expect(deleteBtn.classes()).toContain('utrecht-button--primary-action')
+      expect(deleteBtn.classes()).toContain('rvo-button--primary')
       await deleteBtn.trigger('click')
       await flushPromises()
       expect(projectsDelete).toHaveBeenCalledWith('p1')

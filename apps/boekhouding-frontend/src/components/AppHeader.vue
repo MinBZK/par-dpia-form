@@ -18,7 +18,7 @@ const { user, isAuthenticated, logout } = useAuth()
     <div class="app-header__left">
       <button
         v-if="backRoute || showBack"
-        class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap app-header__back"
+        class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before app-header__back"
         @click="backRoute ? router.push(backRoute) : router.back()"
       >
         <IconArrowLeft :size="16" /> {{ backLabel || 'Terug' }}
@@ -30,7 +30,7 @@ const { user, isAuthenticated, logout } = useAuth()
       <template v-if="isAuthenticated">
         <span v-if="user" class="app-header__user">{{ user.displayName }}</span>
         <button
-          class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
+          class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
           @click="logout"
         >
           <IconLogout :size="16" /> Uitloggen

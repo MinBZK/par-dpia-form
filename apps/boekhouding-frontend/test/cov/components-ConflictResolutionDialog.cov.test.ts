@@ -119,7 +119,7 @@ describe('ConflictResolutionDialog', () => {
     expect(wrapper2Rows).toHaveLength(1)
     expect(wrapper2Rows[0].find('.conflict-field').text()).toBe('Nieuw veld')
 
-    await wrapper.find('button.utrecht-button').trigger('click')
+    await wrapper.find('button.rvo-button').trigger('click')
     const resolved = wrapper.emitted('resolve')![0][0] as Map<string, string>
     expect([...resolved.keys()]).toEqual(['new'])
   })
@@ -172,7 +172,7 @@ describe('ConflictResolutionDialog', () => {
       .trigger('change')
 
     close.mockClear()
-    await wrapper.find('button.utrecht-button').trigger('click')
+    await wrapper.find('button.rvo-button').trigger('click')
 
     expect(close).toHaveBeenCalledTimes(1)
 
@@ -191,7 +191,7 @@ describe('ConflictResolutionDialog', () => {
     await wrapper.setProps({ active: true })
     await nextTick()
 
-    await wrapper.find('button.utrecht-button').trigger('click')
+    await wrapper.find('button.rvo-button').trigger('click')
 
     const map = wrapper.emitted('resolve')![0][0] as Map<string, string>
     expect(map.size).toBe(0)

@@ -61,7 +61,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
       <div class="rvo-accordion__item">
         <div class="rvo-accordion__item-summary">
           <div class="rvo-accordion__item-title-container">
-            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
               Tussenresultaten pre-scan
             </h3>
             <p class="rvo-accordion-teaser">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
@@ -85,7 +85,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
               role="img" aria-label="Delta omhoog"></span>
           </div>
           <div class="rvo-accordion__item-title-container">
-            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
               Tussenresultaten pre-scan
             </h3>
             <div class="rvo-accordion-teaser">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</div>

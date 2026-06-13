@@ -14,7 +14,7 @@ defineProps<{
     <div class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md nav-header__bar">
       <button
         type="button"
-        class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
+        class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
         @click="navigation.goToLanding"
       >
         <span

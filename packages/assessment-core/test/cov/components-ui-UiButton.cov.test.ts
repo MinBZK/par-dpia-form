@@ -6,59 +6,59 @@ describe('UiButton variantClass computed', () => {
   it('uses primary-action by default when no variant is given', () => {
     const wrapper = mount(UiButton)
     const button = wrapper.find('button')
-    expect(button.classes()).toContain('utrecht-button')
-    expect(button.classes()).toContain('utrecht-button--primary-action')
+    expect(button.classes()).toContain('rvo-button')
+    expect(button.classes()).toContain('rvo-button--primary')
   })
 
   it('uses primary-action when variant is explicitly primary', () => {
     const wrapper = mount(UiButton, { props: { variant: 'primary' } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--primary-action')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--primary')
   })
 
   it('uses secondary-action for the secondary variant', () => {
     const wrapper = mount(UiButton, { props: { variant: 'secondary' } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--secondary-action')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--secondary')
   })
 
   it('uses rvo tertiary-action for the tertiary variant', () => {
     const wrapper = mount(UiButton, { props: { variant: 'tertiary' } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--rvo-tertiary-action')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--tertiary')
   })
 
   it('uses rvo quaternary-action for the quaternary variant', () => {
     const wrapper = mount(UiButton, { props: { variant: 'quaternary' } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--rvo-quaternary-action')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--quaternary')
   })
 
   it('uses primary-action plus warning modifier for the warning variant', () => {
     const wrapper = mount(UiButton, { props: { variant: 'warning' } })
     const classes = wrapper.find('button').classes()
-    expect(classes).toContain('utrecht-button--primary-action')
-    expect(classes).toContain('utrecht-button--warning')
+    expect(classes).toContain('rvo-button--primary')
+    expect(classes).toContain('rvo-button--warning')
   })
 })
 
 describe('UiButton size class', () => {
   it('defaults to rvo-md size when no size prop is given', () => {
     const wrapper = mount(UiButton)
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--rvo-md')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--size-md')
   })
 
   it('applies the given size', () => {
     const wrapper = mount(UiButton, { props: { size: 'xs' } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--rvo-xs')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--size-xs')
   })
 })
 
 describe('UiButton fullWidth', () => {
   it('does not add the full-width class by default', () => {
     const wrapper = mount(UiButton)
-    expect(wrapper.find('button').classes()).not.toContain('utrecht-button--rvo-full-width')
+    expect(wrapper.find('button').classes()).not.toContain('rvo-button--full-width')
   })
 
   it('adds the full-width class when fullWidth is true', () => {
     const wrapper = mount(UiButton, { props: { fullWidth: true } })
-    expect(wrapper.find('button').classes()).toContain('utrecht-button--rvo-full-width')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--full-width')
   })
 })
 
