@@ -14,26 +14,26 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
-    "@nl-rvo/component-library-css": "4.8.0",
-    "@nl-rvo/design-tokens": "1.9.0",
+    "@nl-rvo/component-library-css": "4.20.2",
+    "@nl-rvo/design-tokens": "2.4.1",
     "@overheid-assessment/core": "workspace:*",
-    "@tabler/icons-vue": "^3.40.0",
-    "keycloak-js": "^26.0.7",
-    "pdfmake": "^0.3.6",
+    "@tabler/icons-vue": "^3.44.0",
+    "keycloak-js": "^26.2.4",
+    "pdfmake": "^0.3.11",
     "pinia": "^3.0.3",
-    "vue": "^3.5.17",
-    "vue-router": "^4.5.1"
+    "vue": "^3.5.38",
+    "vue-router": "^5.1.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@vitest/coverage-istanbul": "^4.1.4",
     "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.7.0",
-    "jsdom": "^29.0.1",
-    "npm-run-all2": "^8.0.4",
+    "@vue/tsconfig": "^0.9.1",
+    "jsdom": "^29.1.1",
+    "npm-run-all2": "^9.0.2",
     "typescript": "~5.7.3",
-    "vite": "^7.3.1",
+    "vite": "^8.0.16",
     "vitest": "^4.1.4",
-    "vue-tsc": "^2.2.10"
+    "vue-tsc": "^3.3.5"
   }
 }
