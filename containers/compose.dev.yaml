@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: parassessment
+      POSTGRES_PASSWORD: parassessment
+      POSTGRES_DB: parassessment
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parassessment"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/parassessment
+      KC_DB_USERNAME: parassessment
+      KC_DB_PASSWORD: parassessment
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./compose-dev-keycloak.json:/opt/keycloak/data/import/realm.json:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ..
+      dockerfile: containers/backend/Containerfile
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    environment:
+      DATABASE_SERVER_FULL: postgresql://parassessment:parassessment@postgres:5432/parassessment
+      CORS_ORIGIN: http://localhost:5174
+      OIDC_URL: http://localhost:8080
+      OIDC_INTERNAL_URL: http://keycloak:8080
+      OIDC_REALM: invulhulpen
+      OIDC_PUBLIC_CLIENT_ID: boekhouding-frontend
+      NODE_ENV: development
+      EXPOSE_API_DOCS: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+
+  standalone:
+    build:
+      context: ..
+      dockerfile: containers/standalone/Containerfile.dev
+    ports:
+      - "5175:5175"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5175/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    command: ["pnpm", "--filter", "standalone-form", "dev"]
+    volumes:
+      - ../packages/assessment-core/src:/app/packages/assessment-core/src
+      - ../apps/standalone-form/src:/app/apps/standalone-form/src
+      - ../apps/standalone-form/index.html:/app/apps/standalone-form/index.html
+      - ../apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
+      - ../sources:/app/sources
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: containers/frontend/Containerfile.dev
+    ports:
+      - "5174:5174"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5174/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    environment:
+      API_URL: http://backend:3000
+      VITE_STANDALONE_URL: http://localhost:5175/
+      VITE_KEYCLOAK_URL: http://localhost:8080
+      VITE_KEYCLOAK_REALM: invulhulpen
+      VITE_KEYCLOAK_CLIENT_ID: boekhouding-frontend
+    volumes:
+      - ../packages/assessment-core/src:/app/packages/assessment-core/src
+      - ../apps/boekhouding-frontend/src:/app/apps/boekhouding-frontend/src
+      - ../apps/boekhouding-frontend/index.html:/app/apps/boekhouding-frontend/index.html
+      - ../apps/boekhouding-frontend/vite.config.ts:/app/apps/boekhouding-frontend/vite.config.ts
+      - ../sources:/app/sources
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

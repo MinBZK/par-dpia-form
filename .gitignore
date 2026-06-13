@@ -11,9 +11,22 @@ node_modules
 .DS_Store
 dist-ssr
 coverage
+**/coverage/
 *.local
 .claude/settings.local.json
 reports/
+
+# Build output
+apps/**/dist/
+packages/**/dist/
+backend/dist/
+
+# Environment files with secrets
+.env
+.env.*
+!.env.example
+
+
 
 /cypress/videos/
 /cypress/screenshots/
@@ -34,3 +47,15 @@ reports/
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Generated assessment JSON (built from sources/*.yaml)
+sources/generated/
+
+# Playwright
+.playwright-mcp
+
+# Local podman compose overrides (per-machine port shifts etc.)
+containers/compose.override.yaml
+containers/compose-dev-keycloak.local.json
+containers/Caddyfile.local
+containers/certs/

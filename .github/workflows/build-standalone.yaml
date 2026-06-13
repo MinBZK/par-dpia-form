@@ -1,0 +1,68 @@
+name: Build standalone form
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: '3.14'
+          enable-cache: true
+
+      - name: Generate JSON from YAML definitions
+        run: |
+          mkdir -p sources/generated
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/prescan.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/PreScanDPIA.json \
+            --output-md docs/questions/questions_prescan.md
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/DPIA.json \
+            --output-md docs/questions/questions_DPIA.md
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --definitions-once-per-page
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+
+      - name: Enable corepack & pin pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build standalone form
+        run: cd apps/standalone-form && pnpm build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: standalone-form
+          path: apps/standalone-form/dist/

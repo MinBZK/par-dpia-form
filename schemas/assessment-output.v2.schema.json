@@ -1,0 +1,150 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json",
+    "title": "Assessment Output",
+    "description": "Output format for a completed or in-progress assessment. Contains metadata and answers. Non-repeatable answers are keyed by task ID (e.g. '2.1.3'). Repeatable answers are grouped under the parent task ID as arrays with _index per element.",
+    "type": "object",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "const": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json",
+            "description": "Reference to the JSON Schema that describes this output format"
+        },
+        "metadata": {
+            "type": "object",
+            "description": "Output metadata including URN identifier of the assessment definition",
+            "properties": {
+                "urn": {
+                    "type": "string",
+                    "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+$",
+                    "description": "URN identifier of the assessment definition including version (e.g. 'urn:nl:dpia:3.0'). Composed from the definition's urn + version fields.",
+                    "examples": ["urn:nl:dpia:3.0", "urn:nl:prescan:2.0"]
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of when this output was created"
+                },
+                "createdBy": {
+                    "type": "object",
+                    "description": "User who created this export (optional, for audit exports)",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "Display name of the user"
+                        },
+                        "email": {
+                            "type": "string",
+                            "format": "email",
+                            "description": "Email address of the user"
+                        }
+                    },
+                    "required": ["name"]
+                },
+                "completedTasks": {
+                    "type": "array",
+                    "description": "IDs of tasks marked as completed by the user (e.g. ['0', '1', '3']). Only present when at least one task is completed.",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[0-9]+$"
+                    }
+                }
+            },
+            "required": ["urn", "createdAt"]
+        },
+        "answers": {
+            "type": "object",
+            "description": "User answers keyed by task ID. Non-repeatable: direct answer object (e.g. '0.1'). Repeatable: array of indexed group elements under the parent task ID (e.g. '2.1').",
+            "propertyNames": {
+                "$ref": "#/$defs/answerKey"
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    { "$ref": "#/$defs/answer" },
+                    {
+                        "type": "array",
+                        "description": "Grouped answers for a repeatable parent task. Each element represents one repetition with its index and child answers.",
+                        "items": { "$ref": "#/$defs/indexedGroupElement" }
+                    }
+                ]
+            }
+        }
+    },
+    "required": ["$schema", "metadata", "answers"],
+    "$defs": {
+        "answerKey": {
+            "type": "string",
+            "pattern": "^[0-9]+(\\.[0-9]+)*(\\[[0-9]+\\])?$",
+            "description": "Answer key: a task ID for non-repeatable answers (e.g. '0.1', '2.1.3') or a parent task ID for grouped repeatable answers (e.g. '2.1').",
+            "examples": ["0.1", "2.1.3", "2.1", "0", "1.2"]
+        },
+        "answer": {
+            "type": "object",
+            "description": "A single answer value with metadata",
+            "properties": {
+                "value": {
+                    "description": "The answer value. Type depends on the field: string for text/date/radio/image-url, string[] for checkboxes, imageValue for uploaded images, null for cleared answers.",
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } },
+                        { "type": "null" },
+                        { "$ref": "#/$defs/imageValue" }
+                    ]
+                },
+                "lastEditedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "ISO 8601 timestamp of when this answer was last modified"
+                },
+                "lastEditedBy": {
+                    "type": "string",
+                    "description": "Display name of the user who last edited this answer (optional, for audit exports)"
+                }
+            },
+            "required": ["value", "lastEditedAt"]
+        },
+        "imageValue": {
+            "type": "object",
+            "description": "An uploaded image with optional metadata",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "pattern": "^data:image/",
+                    "description": "Base64 data URI of the embedded image"
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Image title / caption, also used as alt text"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Image description providing context"
+                },
+                "source": {
+                    "type": "string",
+                    "description": "Source attribution (URL, document reference, or free text)"
+                }
+            },
+            "required": ["data"],
+            "additionalProperties": false
+        },
+        "indexedGroupElement": {
+            "type": "object",
+            "description": "A single repetition within a grouped repeatable answer. Contains _index and child task answers.",
+            "properties": {
+                "_index": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Zero-based index of this repetition"
+                }
+            },
+            "required": ["_index"],
+            "additionalProperties": {
+                "oneOf": [
+                    { "$ref": "#/$defs/answer" },
+                    { "type": "integer" }
+                ]
+            }
+        }
+    }
+}

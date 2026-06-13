@@ -1,0 +1,13 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "paths": {
+      "@overheid-assessment/core": ["../../packages/assessment-core/src/index.ts"]
+    }
+  },
+  "references": [
+    { "path": "../../packages/assessment-core" }
+  ]
+}

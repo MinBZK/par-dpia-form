@@ -1,18 +1,37 @@
 #!/usr/bin/env python3
-import yaml
-import json
-import re
+"""Convert assessment YAML files to JSON and inject term definitions.
+
+Injects terms from the begrippenkader as HTML tags for definitions.
+
+Term matching priority:
+1. Main terms (longest first)
+2. Alternative spellings (longest first)
+3. Alternative terms (longest first)
+
+Matching is case-insensitive, but the original casing in the text is preserved.
+Terms already inside an existing ``<span class="aiv-definition">`` tag are skipped
+to avoid nested definition spans.
+"""
+
 import argparse
+import html
+import json
+import logging
+import re
 from pathlib import Path
+
+import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def load_yaml(file_path):
     """Load YAML file and return its content as a dictionary."""
     try:
-        with open(file_path, "r", encoding="utf-8") as file:
+        with Path(file_path).open(encoding="utf-8") as file:
             return yaml.safe_load(file)
     except Exception as e:
-        print(f"Fout bij het inlezen van {file_path}: {str(e)}")
+        logger.error("Fout bij het inlezen van %s: %s", file_path, e)
         raise
 
 
@@ -193,14 +212,15 @@ def inject_terms(text, term_map, already_matched_terms=None):
         for pos in range(start, end):
             matched_positions.add(pos)
 
-    # Mark positions inside any HTML tag (<...>) so terms in attributes (e.g. href URLs) are not enriched
+    # Mark positions inside any HTML tag (<...>) so terms in attributes
+    # (e.g. href URLs) are not enriched.
     for match in re.finditer(r"<[^>]+>", text, re.DOTALL):
         start, end = match.span()
         for pos in range(start, end):
             matched_positions.add(pos)
 
     # Process each term list in order
-    for term_list_index, term_list in enumerate(all_term_lists):
+    for _term_list_index, term_list in enumerate(all_term_lists):
         if not term_list:
             continue
 
@@ -253,11 +273,20 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 if not term_data:
                     continue
 
+                # Begrippenkader content is (partly) synced from external
+                # sources and must not be trusted as HTML: escape every text
+                # field before interpolating it into the tooltip markup.
+                definition = html.escape(term_data["definition"])
+                hoofdterm = html.escape(term_data.get("hoofdterm") or "")
+
                 # Create the HTML with the original matched text
-                term_html = f'<span class="aiv-definition">{matched_text}<span class="aiv-definition-text">{term_data["definition"]}'
+                term_html = (
+                    f'<span class="aiv-definition">{html.escape(matched_text)}'
+                    f'<span class="aiv-definition-text">{definition}'
+                )
 
                 # Add toelichting if available
-                toelichting = term_data.get("toelichting", "")
+                toelichting = html.escape(term_data.get("toelichting", ""))
                 if toelichting:
                     term_html += f"\n<br><strong>Toelichting</strong>: {toelichting}"
 
@@ -265,31 +294,22 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 voorbeelden = term_data.get("voorbeelden", [])
                 if voorbeelden:
                     if isinstance(voorbeelden, list):
-                        voorbeelden_text = "; ".join(voorbeelden)
-                        term_html += (
-                            f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden_text}"
-                        )
+                        voorbeelden_text = html.escape("; ".join(voorbeelden))
+                        term_html += f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden_text}"
                     elif isinstance(voorbeelden, str):
-                        term_html += (
-                            f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden}"
-                        )
+                        voorbeelden_text = html.escape(voorbeelden)
+                        term_html += f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden_text}"
 
                 # Add alternative term information
-                if term_data.get("is_alternatief_term", False) and term_data.get(
-                    "hoofdterm"
-                ):
-                    term_html += f"\n<br><i>Dit is een alternatieve term van {term_data.get('hoofdterm')}</i>"
+                if term_data.get("is_alternatief_term", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een alternatieve term van {hoofdterm}</i>"
 
-                if term_data.get("is_alternatief_spelling", False) and term_data.get(
-                    "hoofdterm"
-                ):
-                    term_html += f"\n<br><i>Dit is een alternatieve spelling van {term_data.get('hoofdterm')}</i>"
+                if term_data.get("is_alternatief_spelling", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een alternatieve spelling van {hoofdterm}</i>"
 
                 # Add plural form information - NEW CODE
-                if term_data.get("is_meervoudsvorm", False) and term_data.get(
-                    "hoofdterm"
-                ):
-                    term_html += f"\n<br><i>Dit is een meervoudsvorm van {term_data.get('hoofdterm')}</i>"
+                if term_data.get("is_meervoudsvorm", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een meervoudsvorm van {hoofdterm}</i>"
 
                 term_html += "</span></span>"
 
@@ -359,18 +379,14 @@ def process_dpia(dpia_data, term_map, once_per_page=False):
             result[key] = inject_terms(value, term_map)
         elif key == "tasks" and isinstance(value, list):
             # Process tasks with level 0
-            result[key] = process_tasks(
-                value, term_map, level=0, once_per_page=once_per_page
-            )
+            result[key] = process_tasks(value, term_map, level=0, once_per_page=once_per_page)
         else:
             result[key] = value
 
     return result
 
 
-def process_tasks(
-    tasks, term_map, level=0, already_matched_terms=None, once_per_page=False
-):
+def process_tasks(tasks, term_map, level=0, already_matched_terms=None, once_per_page=False):
     """
     Process tasks recursively based on their level:
     - At level 0 (top level): Only process description
@@ -402,10 +418,7 @@ def process_tasks(
 
         # At the top level each task (deel) starts fresh: a set enables
         # once-per-page enrichment, None enriches every occurrence.
-        if level == 0:
-            page_matched = set() if once_per_page else None
-        else:
-            page_matched = already_matched_terms
+        page_matched = (set() if once_per_page else None) if level == 0 else already_matched_terms
 
         # For top level (level 0), only process description
         if level == 0:
@@ -416,9 +429,7 @@ def process_tasks(
         # For deeper levels, process both task and description
         else:
             if "task" in task_copy and isinstance(task_copy["task"], str):
-                task_copy["task"] = inject_terms(
-                    task_copy["task"], term_map, page_matched
-                )
+                task_copy["task"] = inject_terms(task_copy["task"], term_map, page_matched)
             if "description" in task_copy and isinstance(task_copy["description"], str):
                 task_copy["description"] = inject_terms(
                     task_copy["description"], term_map, page_matched
@@ -430,17 +441,11 @@ def process_tasks(
         if isinstance(task_type, str):
             is_option_task = task_type in ["checkbox_option", "radio_option"]
         elif isinstance(task_type, list):
-            is_option_task = any(
-                t in ["checkbox_option", "radio_option"] for t in task_type
-            )
+            is_option_task = any(t in ["checkbox_option", "radio_option"] for t in task_type)
         else:
             is_option_task = False
 
-        if (
-            is_option_task
-            and "options" in task_copy
-            and isinstance(task_copy["options"], list)
-        ):
+        if is_option_task and "options" in task_copy and isinstance(task_copy["options"], list):
             options_copy = []
             for option in task_copy["options"]:
                 option_copy = option.copy()
@@ -464,8 +469,7 @@ def process_tasks(
                 if (
                     isinstance(dependency_copy, dict)
                     and dependency_copy.get("type") == "conditional"
-                    and dependency_copy.get("condition", {}).get("operator")
-                    == "contains"
+                    and dependency_copy.get("condition", {}).get("operator") == "contains"
                 ):
                     # Include the value in the processing if it exists
                     condition = dependency_copy.get("condition", {}).copy()
@@ -504,9 +508,7 @@ class DefinitionEnricher:
         """
         self.script_dir = script_dir if script_dir else Path(__file__).parent
 
-    def enrich_and_export(
-        self, source_path, begrippen_yaml_path, output_path, once_per_page=False
-    ):
+    def enrich_and_export(self, source_path, begrippen_yaml_path, output_path, once_per_page=False):
         """
         Enrich a DPIA YAML file with definitions and export as JSON.
 
@@ -525,16 +527,16 @@ class DefinitionEnricher:
         output_dir = Path(output_path).parent
         if not output_dir.exists():
             output_dir.mkdir(parents=True, exist_ok=True)
-            print(f"Output directory created: {output_dir}")
+            logger.info("Output directory created: %s", output_dir)
 
         # Load the YAML files
-        print(f"Reading input YAML from: {source_path}")
+        logger.info("Reading input YAML from: %s", source_path)
         dpia_data = load_yaml(source_path)
 
-        print(f"Reading begrippenkader from: {begrippen_yaml_path}")
+        logger.info("Reading begrippenkader from: %s", begrippen_yaml_path)
         begrippenkader_data = load_yaml(begrippen_yaml_path)
 
-        print("YAML files successfully loaded.")
+        logger.info("YAML files successfully loaded.")
 
         # Create a map of terms to their definitions
         term_map = create_term_map(begrippenkader_data)
@@ -555,22 +557,22 @@ class DefinitionEnricher:
         # Determine if it's a DPIA or PreScan based on the filename
         file_type = "PrescanDPIA" if "prescan" in str(source_path).lower() else "DPIA"
         mode = "once-per-page" if once_per_page else "every occurrence"
-        print(f"Processing {file_type} data (definition mode: {mode})...")
+        logger.info("Processing %s data (definition mode: %s)...", file_type, mode)
 
         # Process the DPIA data and inject terms
         processed_dpia = process_dpia(dpia_data, term_map, once_per_page)
 
-        print(f"{file_type} data processed and terms injected.")
+        logger.info("%s data processed and terms injected.", file_type)
 
         # Convert to JSON
         json_output = json.dumps(processed_dpia, indent=2, ensure_ascii=False)
 
         # Write the output to a file
-        print(f"Writing output to: {output_path}")
-        with open(output_path, "w", encoding="utf-8") as file:
+        logger.info("Writing output to: %s", output_path)
+        with Path(output_path).open("w", encoding="utf-8") as file:
             file.write(json_output)
 
-        print(f"Successfully enriched and exported to: {output_path}")
+        logger.info("Successfully enriched and exported to: %s", output_path)
 
         return processed_dpia
 
@@ -578,15 +580,15 @@ class DefinitionEnricher:
 def main():
     # Set up argument parser for custom paths with new parameter names
     parser = argparse.ArgumentParser(
-        description="Converteer DPIA.yaml of prescan_DPIA.yaml naar JSON met begrippenkader injecties."
+        description="Converteer dpia.yaml of prescan.yaml naar JSON met begrippenkader injecties."
     )
     parser.add_argument(
         "--source",
         required=True,
-        help="Pad naar bron YAML bestand (DPIA.yaml of prescan_DPIA.yaml)",
+        help="Pad naar bron YAML bestand (dpia.yaml of prescan.yaml)",
     )
     parser.add_argument(
-        "--definitions", required=True, help="Pad naar begrippenkader-dpia.yaml bestand"
+        "--definitions", required=True, help="Pad naar begrippenkader_dpia.yaml bestand"
     )
     parser.add_argument("--output", required=True, help="Pad naar output JSON bestand")
     parser.add_argument(
@@ -608,33 +610,12 @@ def main():
         )
 
     except Exception as e:
-        print(f"Er is een fout opgetreden: {str(e)}")
+        logger.error("Er is een fout opgetreden: %s", e)
         import traceback
 
         traceback.print_exc()
 
 
 if __name__ == "__main__":
-    print("DPIA/PreScan YAML naar JSON Converter met Begrippenkader")
-    print("=======================================================")
-    print("Dit script zet YAML bestanden om naar JSON en injecteert termen")
-    print("uit het begrippenkader met HTML-tags voor definities.")
-    print("")
-    print("Prioriteit van term-matching:")
-    print("1. Hoofdtermen (langste eerst)")
-    print("2. Alternatieve spellingen (langste eerst)")
-    print("3. Alternatieve termen (langste eerst)")
-    print("")
-    print("Alle matching gebeurt hoofdletter-ongevoelig, maar de oorspronkelijke")
-    print("hoofdletters in de tekst blijven behouden.")
-    print("")
-    print('Termen binnen bestaande <span class="aiv-definition"> tags worden')
-    print("overgeslagen om te voorkomen dat er geneste definitie-spans ontstaan.")
-    print("")
-    print("Gebruik:")
-    print("  --source [PATH]          Pad naar bron YAML bestand")
-    print("  --definitions [PATH]     Pad naar begrippenkader-dpia.yaml")
-    print("  --output [PATH]          Pad naar output JSON bestand")
-    print("")
-
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     main()

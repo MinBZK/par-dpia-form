@@ -1,0 +1,58 @@
+version: 2
+updates:
+  # GitHub Actions — also bumps hash-pinned actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # npm — all workspaces via the root lockfile
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+    ignore:
+      # vue-tsc 2.2.x sets a TypeScript peer ceiling; let bumps go via a
+      # deliberate PR instead of an automatic major TypeScript update.
+      - dependency-name: "typescript"
+
+  # Python build pipeline (uv lockfile)
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      uv-dependencies:
+        patterns:
+          - "*"
+
+  # Container base images — one entry covers every Containerfile directory
+  - package-ecosystem: "docker"
+    directories:
+      - "/containers/backend"
+      - "/containers/frontend"
+      - "/containers/standalone"
+    schedule:
+      interval: "weekly"
+    groups:
+      container-images:
+        patterns:
+          - "*"
+
+  # Images referenced in the compose files (postgres, keycloak, ...)
+  - package-ecosystem: "docker-compose"
+    directory: "/containers"
+    schedule:
+      interval: "weekly"
+    groups:
+      compose-images:
+        patterns:
+          - "*"

@@ -1,0 +1,48 @@
+{
+  "name": "standalone-form",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@nl-rvo/assets": "^1.0.0-alpha.360",
+    "@nl-rvo/component-library-css": "4.8.0",
+    "@nl-rvo/design-tokens": "1.9.0",
+    "@overheid-assessment/core": "workspace:*",
+    "pdfmake": "^0.3.6",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.17"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "^22.0.5",
+    "@types/jexl": "^2.3.4",
+    "@types/node": "^24.0.3",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/coverage-istanbul": "^4.1.4",
+    "@vue/eslint-config-prettier": "^10.2.0",
+    "@vue/eslint-config-typescript": "^14.6.0",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/tsconfig": "^0.7.0",
+    "eslint": "^9.38.0",
+    "eslint-plugin-vue": "^10.5.1",
+    "jiti": "^2.4.2",
+    "jsdom": "^29.0.1",
+    "npm-run-all2": "^8.0.4",
+    "prettier": "^3.6.2",
+    "typescript": "~5.7.3",
+    "vite": "^7.3.1",
+    "vite-plugin-singlefile": "^2.3.0",
+    "vite-plugin-vue-devtools": "^8.0.3",
+    "vitest": "^4.1.4",
+    "vue-tsc": "^2.2.10"
+  }
+}

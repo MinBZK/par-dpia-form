@@ -1,0 +1,479 @@
+import { Dependency, Option, Source, Task, TaskTypeValue, FormType, TaskReferences } from '../models/dpia'
+import { nanoid } from 'nanoid'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+
+import { buildInstanceId, parseInstanceId } from '../utils/instanceId'
+export { buildInstanceId, parseInstanceId }
+
+export interface FlatTask {
+  id: string
+  task: string
+  type: TaskTypeValue[]
+  parentId: string | null
+  childrenIds: string[]
+  is_official_id?: boolean
+  in_fria?: boolean
+  action_point_group?: boolean
+  action_point_summary?: boolean
+  valueType?: string
+  description?: string
+  category?: string
+  repeatable?: boolean
+  options?: Option[]
+  sources?: Source[]
+  dependencies?: Dependency[]
+  instance_label_template?: string
+  item_name?: string
+  defaultValue?: boolean | string | null
+  references?: TaskReferences
+}
+
+export function taskIsOfTaskType(task: FlatTask, type: TaskTypeValue): boolean {
+  return task.type?.includes(type)
+}
+
+export interface TaskInstance {
+  id: string
+  taskId: string
+  groupId: string
+  parentInstanceId: string | null
+  childInstanceIds: string[]
+  mappedFromInstanceId?: string
+}
+
+export const useTaskStore = defineStore('TaskStore', () => {
+  /**
+   * ==============================================
+   * Store properties
+   * ==============================================
+   */
+
+  const activeNamespace = ref(FormType.DPIA)
+  const flatTasks = ref<Record<FormType, Record<string, FlatTask>>>({
+    [FormType.PRE_SCAN]: {},
+    [FormType.DPIA]: {},
+    [FormType.IAMA]: {},
+  })
+  const taskInstances = ref<Record<FormType, Record<string, TaskInstance>>>({
+    [FormType.PRE_SCAN]: {},
+    [FormType.DPIA]: {},
+    [FormType.IAMA]: {},
+  })
+  const currentRootTaskId = ref<Record<FormType, string>>({
+    [FormType.PRE_SCAN]: "0",
+    [FormType.DPIA]: "0",
+    [FormType.IAMA]: "0",
+  })
+  const rootTaskIds = ref<Record<FormType, string[]>>({
+    [FormType.PRE_SCAN]: [],
+    [FormType.DPIA]: [],
+    [FormType.IAMA]: [],
+  })
+  const isInitialized = ref<Record<FormType, boolean>>({
+    [FormType.PRE_SCAN]: false,
+    [FormType.DPIA]: false,
+    [FormType.IAMA]: false,
+  })
+  const completedRootTaskIds = ref<Record<FormType, Set<string>>>({
+    [FormType.PRE_SCAN]: new Set(),
+    [FormType.DPIA]: new Set(),
+    [FormType.IAMA]: new Set(),
+  })
+
+  /**
+   * ==============================================
+   * Store actions
+   * ==============================================
+   */
+
+  const getNamespacedState = computed(() => ({
+    flatTasks: flatTasks.value[activeNamespace.value],
+    taskInstances: taskInstances.value[activeNamespace.value],
+    currentRootTaskId: currentRootTaskId.value[activeNamespace.value],
+    rootTaskIds: rootTaskIds.value[activeNamespace.value],
+    isInitialized: isInitialized.value[activeNamespace.value],
+    completedRootTaskIds: completedRootTaskIds.value[activeNamespace.value],
+  }))
+
+  function setActiveNamespace(namespace: FormType) {
+    if (activeNamespace.value !== namespace) {
+      activeNamespace.value = namespace
+
+      // Reset the current root task ID to the first task if we have any
+      if (rootTaskIds.value[namespace] && rootTaskIds.value[namespace].length > 0) {
+        currentRootTaskId.value[namespace] = rootTaskIds.value[namespace][0]
+      } else {
+        currentRootTaskId.value[namespace] = '0'
+      }
+    }
+  }
+
+  function clearStateForNamespace(namespace: FormType): void {
+    flatTasks.value[namespace] = {}
+    taskInstances.value[namespace] = {}
+    currentRootTaskId.value[namespace] = '0'
+    rootTaskIds.value[namespace] = []
+    completedRootTaskIds.value[namespace] = new Set()
+  }
+
+  function init(tasks: Task[], forceInit: boolean = false) {
+    const namespace = activeNamespace.value
+
+    if (forceInit) {
+      isInitialized.value[namespace] = false
+    }
+
+    if (!isInitialized.value[namespace]) {
+      clearStateForNamespace(namespace)
+      createTasks(tasks)
+
+      createDefaultInstances()
+      isInitialized.value[namespace] = true
+    }
+  }
+
+  function createTasks(tasks: Task[], parentId: string | null = null) {
+    if (!parentId) {
+      rootTaskIds.value[activeNamespace.value] = []
+    }
+    tasks.forEach((task) => {
+      const flatTask: FlatTask = {
+        id: task.id,
+        task: task.task,
+        type: task.type,
+        description: task.description,
+        category: task.category,
+        repeatable: task.repeatable,
+        is_official_id: task.is_official_id,
+        in_fria: task.in_fria,
+        action_point_group: task.action_point_group,
+        action_point_summary: task.action_point_summary,
+        options: task.options,
+        sources: task.sources,
+        dependencies: task.dependencies,
+        instance_label_template: task.instance_label_template,
+        item_name: task.item_name,
+        valueType: task.valueType,
+        defaultValue: task.defaultValue,
+        references: task.references,
+        parentId,
+        childrenIds: [],
+      }
+
+      flatTasks.value[activeNamespace.value][task.id] = flatTask
+
+      if (parentId) {
+        flatTasks.value[activeNamespace.value][parentId].childrenIds.push(task.id)
+      } else {
+        rootTaskIds.value[activeNamespace.value].push(task.id)
+      }
+
+      if (task.tasks && task.tasks.length > 0) {
+        createTasks(task.tasks, task.id)
+      }
+    })
+  }
+
+  function nextAvailableIndex(ns: FormType, taskId: string): number {
+    const existing = Object.values(taskInstances.value[ns])
+      .filter(inst => inst.taskId === taskId)
+      .map(inst => parseInstanceId(inst.id).index ?? -1)
+    return existing.length > 0 ? Math.max(...existing) + 1 : 0
+  }
+
+  function createTaskInstance(
+    taskId: string,
+    parentInstanceId?: string,
+    forceNewGroupId: boolean = false,
+    specificIndex?: number,
+  ): string {
+    const task = flatTasks.value[activeNamespace.value][taskId]
+    const ns = activeNamespace.value
+
+    // Determine instance ID: repeatable tasks get [index], non-repeatable just taskId
+    let instanceId: string
+    if (task?.repeatable || (parentInstanceId && parseInstanceId(parentInstanceId).index !== undefined)) {
+      if (specificIndex !== undefined) {
+        instanceId = buildInstanceId(taskId, specificIndex)
+      } else {
+        instanceId = buildInstanceId(taskId, nextAvailableIndex(ns, taskId))
+      }
+    } else {
+      instanceId = taskId
+    }
+
+    let groupId
+    if (parentInstanceId && !forceNewGroupId) {
+      groupId = taskInstances.value[ns][parentInstanceId].groupId
+    } else {
+      groupId = taskId + '_' + nanoid()
+    }
+    taskInstances.value[ns][instanceId] = {
+      id: instanceId,
+      taskId,
+      parentInstanceId: parentInstanceId || null,
+      childInstanceIds: [],
+      groupId,
+    }
+
+    if (parentInstanceId && taskInstances.value[ns][parentInstanceId]) {
+      taskInstances.value[ns][parentInstanceId].childInstanceIds.push(instanceId)
+    }
+
+    // Propagate specificIndex to children of repeatable tasks so children
+    // get matching indices (e.g. 2.1[2] → 2.1.1[2], 2.1.2[2])
+    const childTaskIds = flatTasks.value[ns][taskId].childrenIds
+    if (childTaskIds.length > 0) {
+      const childIndex = task?.repeatable ? (specificIndex ?? parseInstanceId(instanceId).index) : undefined
+      childTaskIds.forEach((childTaskId) => {
+        createTaskInstance(childTaskId, instanceId, false, childIndex)
+      })
+    }
+    return instanceId
+  }
+
+  function createDefaultInstances() {
+    const currentNamespace = activeNamespace.value
+    if (!rootTaskIds.value[currentNamespace] || rootTaskIds.value[currentNamespace].length === 0) {
+      console.error(`No root tasks found for namespace: ${currentNamespace}`)
+      return
+    }
+
+    rootTaskIds.value[activeNamespace.value].forEach((taskId) => {
+      createTaskInstance(taskId)
+    })
+  }
+
+  function addRepeatableTaskInstance(taskId: string, parentInstanceId?: string, specificIndex?: number): string {
+    const task = taskById.value(taskId)
+    if (!task.repeatable) return ''
+    return createTaskInstance(taskId, parentInstanceId, true, specificIndex)
+  }
+
+  function removeRepeatableTaskInstance(instanceId: string): void {
+    const instance = taskInstances.value[activeNamespace.value][instanceId]
+
+    if (!instance) return
+
+    const childrenToRemove = [...instance.childInstanceIds]
+    childrenToRemove.forEach((childId) => {
+      removeRepeatableTaskInstance(childId)
+    })
+
+    if (
+      instance.parentInstanceId &&
+      taskInstances.value[activeNamespace.value][instance.parentInstanceId]
+    ) {
+      const parent = taskInstances.value[activeNamespace.value][instance.parentInstanceId]
+      parent.childInstanceIds = parent.childInstanceIds.filter((id) => id !== instanceId)
+    }
+
+    delete taskInstances.value[activeNamespace.value][instanceId]
+  }
+
+  function getInstancesForTask(taskId: string, parentInstanceId?: string): TaskInstance[] {
+    return Object.values(taskInstances.value[activeNamespace.value]).filter(
+      (instance) =>
+        instance.taskId === taskId &&
+        (parentInstanceId === undefined || instance.parentInstanceId === parentInstanceId),
+    )
+  }
+
+  function getInstanceIdsForTask(taskId: string, parentInstanceId?: string): string[] {
+    return getInstancesForTask(taskId, parentInstanceId).map((instance) => instance.id)
+  }
+
+  function getRootTaskInstanceIds(taskId: string): string[] {
+    if (!rootTaskIds.value[activeNamespace.value].includes(taskId)) {
+      throw new Error(`Task ${taskId} is not a root task.`)
+    }
+    return getInstanceIdsForTask(taskId)
+  }
+
+  function findRelatedInstance(
+    conditionTaskId: string,
+    currentInstanceId: string,
+  ): TaskInstance | null {
+    const currentInstance = taskInstances.value[activeNamespace.value][currentInstanceId]
+    if (!currentInstance) return null
+
+    const relatedInstance = Object.values(taskInstances.value[activeNamespace.value]).find(
+      (instance) =>
+        instance.taskId === conditionTaskId && instance.groupId === currentInstance.groupId,
+    )
+    return relatedInstance || null
+  }
+
+  function setInstanceMappingSource(instanceId: string, sourceInstanceId: string): void {
+    if (taskInstances.value[activeNamespace.value][instanceId]) {
+      taskInstances.value[activeNamespace.value][instanceId].mappedFromInstanceId = sourceInstanceId
+    }
+  }
+
+  function setRootTask(id: string) {
+    currentRootTaskId.value[activeNamespace.value] = id
+  }
+
+  function nextRootTask() {
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const nextIndex = currentIndex + 1
+    if (nextIndex < ids.length) {
+      setRootTask(ids[nextIndex])
+    }
+  }
+
+  function previousRootTask() {
+    const ids = rootTaskIds.value[activeNamespace.value]
+    const currentIndex = ids.indexOf(currentRootTaskId.value[activeNamespace.value])
+    const prevIndex = currentIndex - 1
+    if (prevIndex >= 0) {
+      setRootTask(ids[prevIndex])
+    }
+  }
+
+  function toggleCompleteForTaskId(taskId: string) {
+    if (!rootTaskIds.value[activeNamespace.value].includes(taskId)) {
+      throw new Error(`Task with id ${taskId} is not a root task`)
+    }
+    const ns = activeNamespace.value
+    const next = new Set(completedRootTaskIds.value[ns])
+    if (next.has(taskId)) {
+      next.delete(taskId)
+    } else {
+      next.add(taskId)
+    }
+    completedRootTaskIds.value[ns] = next
+  }
+
+  function isRootTaskCompleted(taskId: string): boolean {
+    return completedRootTaskIds.value[activeNamespace.value].has(taskId)
+  }
+
+  /**
+   * ==============================================
+   * Store getters
+   * ==============================================
+   */
+  const taskById = computed(() => {
+    return (taskId: string): FlatTask => {
+      const task = flatTasks.value[activeNamespace.value][taskId]
+
+      if (!task) {
+        throw new Error(`Task with id ${taskId} not found`)
+      }
+
+      return task
+    }
+  })
+
+  const getRootTasks = computed(() => {
+    return rootTaskIds.value[activeNamespace.value].map(
+      (id) => flatTasks.value[activeNamespace.value][id],
+    )
+  })
+
+  const getParentTaskId = computed(() => {
+    return (taskId: string): string | null => {
+      return flatTasks.value[activeNamespace.value][taskId]?.parentId || null
+    }
+  })
+
+  const getChildTaskIds = computed(() => {
+    return (taskId: string): string[] => {
+      return flatTasks.value[activeNamespace.value][taskId]?.childrenIds || []
+    }
+  })
+
+  const getInstanceById = computed(() => {
+    return (instanceId: string): TaskInstance | null => {
+      return taskInstances.value[activeNamespace.value][instanceId] || null
+    }
+  })
+
+  function getTasksFromNamespace(namespace: FormType): Record<string, FlatTask> {
+    return flatTasks.value[namespace] || {};
+  }
+
+  function getTaskByIdFromNamespace(namespace: FormType, taskId: string): FlatTask | null {
+    const tasks = flatTasks.value[namespace];
+    if (!tasks || !tasks[taskId]) {
+      return null;
+    }
+    return tasks[taskId];
+  }
+
+  function getTaskInstancesFromNamespace(namespace: FormType): Record<string, TaskInstance> {
+    return taskInstances.value[namespace] || {};
+  }
+
+  function getInstancesForTaskFromNamespace(namespace: FormType, taskId: string, parentInstanceId?: string): TaskInstance[] {
+    const instances = taskInstances.value[namespace] || {};
+
+    return Object.values(instances).filter(
+      (instance) =>
+        instance.taskId === taskId &&
+        (parentInstanceId === undefined || instance.parentInstanceId === parentInstanceId),
+    );
+  }
+
+  function getInstanceIdsForTaskFromNamespace(namespace: FormType, taskId: string, parentInstanceId?: string): string[] {
+    return getInstancesForTaskFromNamespace(namespace, taskId, parentInstanceId).map((instance) => instance.id);
+  }
+
+
+
+  function reset() {
+    activeNamespace.value = FormType.DPIA
+    flatTasks.value = { [FormType.PRE_SCAN]: {}, [FormType.DPIA]: {}, [FormType.IAMA]: {} }
+    taskInstances.value = { [FormType.PRE_SCAN]: {}, [FormType.DPIA]: {}, [FormType.IAMA]: {} }
+    currentRootTaskId.value = { [FormType.PRE_SCAN]: '0', [FormType.DPIA]: '0', [FormType.IAMA]: '0' }
+    rootTaskIds.value = { [FormType.PRE_SCAN]: [], [FormType.DPIA]: [], [FormType.IAMA]: [] }
+    isInitialized.value = { [FormType.PRE_SCAN]: false, [FormType.DPIA]: false, [FormType.IAMA]: false }
+    completedRootTaskIds.value = { [FormType.PRE_SCAN]: new Set(), [FormType.DPIA]: new Set(), [FormType.IAMA]: new Set() }
+  }
+
+  return {
+    // Properties
+    activeNamespace,
+    flatTasks,
+    taskInstances,
+    currentRootTaskId,
+    rootTaskIds,
+    completedRootTaskIds,
+    isInitialized,
+
+    // Actions
+    reset,
+    init,
+    getNamespacedState,
+    setActiveNamespace,
+    addRepeatableTaskInstance,
+    removeRepeatableTaskInstance,
+    getInstancesForTask,
+    getInstanceIdsForTask,
+    getRootTaskInstanceIds,
+    findRelatedInstance,
+    setInstanceMappingSource,
+    setRootTask,
+    nextRootTask,
+    previousRootTask,
+    toggleCompleteForTaskId,
+    isRootTaskCompleted,
+
+    // Getters
+    taskById,
+    getRootTasks,
+    getParentTaskId,
+    getChildTaskIds,
+    getInstanceById,
+    getTasksFromNamespace,
+    getTaskByIdFromNamespace,
+    getTaskInstancesFromNamespace,
+    getInstancesForTaskFromNamespace,
+    getInstanceIdsForTaskFromNamespace,
+  }
+})
+
+export type TaskStoreType = ReturnType<typeof useTaskStore>

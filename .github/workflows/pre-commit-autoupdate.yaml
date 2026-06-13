@@ -1,0 +1,55 @@
+name: Pre-commit autoupdate
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.14"
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run pre-commit autoupdate
+        run: pre-commit autoupdate
+
+      - name: Create or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet; then
+            echo "No pre-commit updates."
+            exit 0
+          fi
+          branch="chore/pre-commit-autoupdate"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          # Reuse a single rolling branch; force-push updates an already-open PR in place.
+          git switch -C "$branch"
+          git commit -am "chore: pre-commit autoupdate"
+          git push --force --set-upstream origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')" ]; then
+            # shellcheck disable=SC2016
+            body=$(printf '%s\n' \
+              'Wekelijkse automatische update van de pre-commit hook-versies via' \
+              '`pre-commit autoupdate`.')
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "chore: pre-commit autoupdate" \
+              --body "$body"
+          fi

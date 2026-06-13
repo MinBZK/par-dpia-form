@@ -1,0 +1,46 @@
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4
+
+RUN corepack enable && corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
+
+# Python toolchain for generating sources/generated/*.json from the YAML
+# sources — mirrors the CI step in .github/workflows/test.yaml.
+RUN apk add --no-cache python3 py3-pip py3-yaml py3-jsonschema
+
+WORKDIR /app
+
+# Copy workspace config and manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages/assessment-core/package.json packages/assessment-core/
+COPY apps/standalone-form/package.json apps/standalone-form/
+COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
+COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
+
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Generate the assessment-definition JSONs so the frontend can resolve
+# `import('../../../../sources/generated/DPIA.json')` on the first Vite
+# transform. HMR volume mounts don't overwrite these — fine for dev use.
+COPY script/ /app/script/
+COPY schemas/ /app/schemas/
+COPY sources/ /app/sources/
+RUN mkdir -p /app/sources/generated && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/prescan.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/PreScanDPIA.json && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/dpia.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_dpia.yaml \
+      --output-json /app/sources/generated/DPIA.json && \
+    python3 /app/script/run_all.py \
+      --schema /app/schemas/assessment-definition.v2.schema.json \
+      --source /app/sources/iama.yaml \
+      --begrippen-yaml /app/sources/begrippenkader_iama.yaml \
+      --output-json /app/sources/generated/IAMA.json \
+      --definitions-once-per-page
+
+WORKDIR /app
+EXPOSE 5174
+CMD ["pnpm", "--filter", "@overheid-assessment/boekhouding-frontend", "dev"]

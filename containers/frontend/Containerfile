@@ -1,0 +1,59 @@
+# Stage 1: build
+FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS build
+
+RUN corepack enable && corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
+
+WORKDIR /app
+
+# Copy workspace config en package manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
+COPY packages/assessment-core/package.json packages/assessment-core/
+COPY apps/standalone-form/package.json apps/standalone-form/
+COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
+COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
+
+# Install all dependencies (inclusief devDependencies voor build)
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# Copy source
+COPY packages/assessment-core/ packages/assessment-core/
+COPY sources/generated/ sources/generated/
+COPY sources/assets/ sources/assets/
+COPY apps/standalone-form/ apps/standalone-form/
+COPY apps/boekhouding-frontend/ apps/boekhouding-frontend/
+
+# Build standalone form (viteSingleFile → alles inlined in index.html)
+WORKDIR /app/apps/standalone-form
+RUN npx vite build
+
+RUN mkdir -p /app/apps/boekhouding-frontend/public && \
+    cp /app/apps/boekhouding-frontend/node_modules/@nl-rvo/assets/images/favicon/favicon.ico \
+       /app/apps/boekhouding-frontend/public/favicon.ico
+
+# Build frontend SPA
+WORKDIR /app/apps/boekhouding-frontend
+RUN npx vite build
+
+# Stage 2: unprivileged nginx voor statische bestanden
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:bcb4860e2d7877cf140e4c945f5f9cb304ccb5efbe1dd4fa606a2206142241bf
+
+# Hoofd-SPA
+COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
+
+# Standalone invulhulp op /zonder-account/ (index.html + favicon)
+COPY --from=build /app/apps/standalone-form/dist/ /usr/share/nginx/html/zonder-account/
+
+# Nginx configuratie
+COPY containers/frontend/nginx.conf /etc/nginx/nginx.conf
+COPY containers/frontend/default.conf /etc/nginx/conf.d/default.conf
+
+COPY containers/frontend/config.json.template /etc/nginx/config.json.template
+COPY --chmod=755 containers/frontend/entrypoint.sh /entrypoint.sh
+
+ENV OIDC_URL=http://localhost:8080
+ENV OIDC_REALM=invulhulpen
+ENV OIDC_PUBLIC_CLIENT_ID=boekhouding-frontend
+ENV STANDALONE_URL=/zonder-account/
+
+EXPOSE 8080
+ENTRYPOINT ["/entrypoint.sh"]

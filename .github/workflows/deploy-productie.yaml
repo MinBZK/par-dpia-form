@@ -1,0 +1,118 @@
+name: Deploy productie
+
+# Started by release.yaml (after the GitHub release has been created) or
+# manually. Promotes the exact image that was built for that commit on main and
+# runs on acceptatie: the manifests get an extra CalVer tag (no rebuild) and the
+# ZAD "productie" deployment is updated. It is workflow_dispatch-only so it never
+# runs on a raw tag push before its release exists.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'CalVer-tag (bv. v2026.6.14); de tag moet al bestaan'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-productie
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: asses-k2n
+  DEPLOYMENT_NAME: productie
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend-image: ${{ steps.promote.outputs.frontend-image }}
+      backend-image: ${{ steps.promote.outputs.backend-image }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      # CalVer format and changelog section via the same scripts as release.yaml.
+      - name: Valideer CalVer-tagformaat
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: bash script/ci/validate-calver-tag.sh "$TAG_NAME"
+
+      - name: Controleer changelog-sectie
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: bash script/ci/changelog-section.sh "$TAG_NAME" > /dev/null
+
+      # Production is forward-only: block deploying an older tag.
+      - name: Bescherm tegen downgrade
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: bash script/ci/assert-newest-calver-tag.sh "$TAG_NAME"
+
+      - name: Controleer dat de tag op main staat
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          commit="$(git rev-list -n1 "$TAG_NAME")"
+          if ! git merge-base --is-ancestor "$commit" origin/main; then
+            echo "Tag ${TAG_NAME} (commit ${commit}) staat niet op main; alleen main-commits gaan naar productie." >&2
+            exit 1
+          fi
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promoot acceptatie-images naar CalVer-tag
+        id: promote
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          commit="$(git rev-list -n1 "$TAG_NAME")"
+          short="${commit:0:7}"
+          for image in "$FRONTEND_IMAGE" "$BACKEND_IMAGE"; do
+            if ! docker buildx imagetools inspect "${image}:${short}" >/dev/null 2>&1; then
+              echo "Image ${image}:${short} bestaat niet. Is de 'Deploy acceptatie'-run voor commit ${commit} geslaagd?" >&2
+              exit 1
+            fi
+            docker buildx imagetools create --tag "${image}:${TAG_NAME}" "${image}:${short}"
+          done
+          echo "frontend-image=${FRONTEND_IMAGE}:${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "backend-image=${BACKEND_IMAGE}:${TAG_NAME}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: promote
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment:
+      name: productie
+      url: https://invulhulpen.rijksapp.nl
+    steps:
+      - name: Deploy to ZAD
+        uses: RijksICTGilde/zad-actions/deploy@ea7dec7d0df396741cdfb4f393090b170056dd19 # v4.0.5
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          wait-for-ready: 'true'
+          health-endpoint: /api/health
+          components: >-
+            [
+              {"name": "frontend", "image": "${{ needs.promote.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.promote.outputs.backend-image }}"}
+            ]

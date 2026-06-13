@@ -1,0 +1,207 @@
+name: Build images (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      frontend-image:
+        required: true
+        type: string
+      backend-image:
+        required: true
+        type: string
+      tag-prefix:
+        required: false
+        type: string
+        default: ''
+      tag-latest:
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      frontend-image:
+        value: ${{ jobs.build-frontend.outputs.image }}
+      backend-image:
+        value: ${{ jobs.build-backend.outputs.image }}
+
+jobs:
+  generate-sources:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: '3.14'
+          enable-cache: true
+      - name: Generate JSON from YAML definitions
+        run: |
+          mkdir -p sources/generated
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/prescan.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/PreScanDPIA.json \
+            --output-md docs/questions/questions_prescan.md
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/DPIA.json \
+            --output-md docs/questions/questions_DPIA.md
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --definitions-once-per-page
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: generated-sources
+          path: sources/generated/
+          retention-days: 1
+
+  # Build jobs have packages:write (push to GHCR) and run only trusted, pinned
+  # docker actions. The image scan deliberately lives in a separate job (see
+  # scan) with a read-only token, so the third-party Trivy action never holds
+  # a write-scoped secret.
+  build-backend:
+    needs: generate-sources
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: generated-sources
+          path: sources/generated/
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        with:
+          images: ${{ inputs.backend-image }}
+          tags: |
+            type=sha,prefix=${{ inputs.tag-prefix }}
+            type=raw,value=latest,enable=${{ inputs.tag-latest }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: containers/backend/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - id: image-ref
+        run: echo "image=${{ inputs.backend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  build-frontend:
+    needs: generate-sources
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-ref.outputs.image }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: generated-sources
+          path: sources/generated/
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        with:
+          images: ${{ inputs.frontend-image }}
+          tags: |
+            type=sha,prefix=${{ inputs.tag-prefix }}
+            type=raw,value=latest,enable=${{ inputs.tag-latest }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: containers/frontend/Containerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - id: image-ref
+        run: echo "image=${{ inputs.frontend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+  # Report-only image scan + SBOM, one matrix leg per component. Separate job
+  # with a read-only token (packages:read) and continue-on-error so a scan
+  # hiccup never blocks a deploy. No packages:write, so a compromised Trivy
+  # action cannot push images to GHCR.
+  scan:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy image scan (report-only, SARIF)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ matrix.component == 'backend' && needs.build-backend.outputs.image || needs.build-frontend.outputs.image }}
+          scan-type: image
+          format: sarif
+          output: trivy-${{ matrix.component }}.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Trivy results to Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
+        with:
+          sarif_file: trivy-${{ matrix.component }}.sarif
+          category: trivy-${{ matrix.component }}
+      - name: Generate SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ matrix.component == 'backend' && needs.build-backend.outputs.image || needs.build-frontend.outputs.image }}
+          scan-type: image
+          format: cyclonedx
+          output: trivy-sbom-${{ matrix.component }}.json
+          list-all-pkgs: 'true'
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-${{ matrix.component }}
+          path: trivy-sbom-${{ matrix.component }}.json
+          retention-days: 30
