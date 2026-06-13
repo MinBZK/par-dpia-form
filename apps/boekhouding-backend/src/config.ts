@@ -57,10 +57,17 @@ export const config = {
   // I/O-bound so one worker with this pool is plenty; the ceiling is the cap.
   // Raise the pool / add workers/replicas only within that budget, or put a
   // connection pooler (PgBouncer) in front.
+  // statementTimeout/idleInTransactionTimeout are in SECONDS (like the timeouts
+  // above) and converted to ms at the postgres-js boundary. They make a query
+  // fail fast instead of holding a pooled connection indefinitely — without a
+  // statement timeout, one stuck query under pool exhaustion blocks the pool
+  // with no backpressure (availability risk under the 20-connection cap).
   db: {
     max: parsePositiveInt(process.env.DB_POOL_MAX, 9, 20),
     connectTimeout: parsePositiveInt(process.env.DB_CONNECT_TIMEOUT, 10, 300),
     idleTimeout: parsePositiveInt(process.env.DB_IDLE_TIMEOUT, 30, 86400),
+    statementTimeout: parsePositiveInt(process.env.DB_STATEMENT_TIMEOUT, 15, 300),
+    idleInTransactionTimeout: parsePositiveInt(process.env.DB_IDLE_IN_TX_TIMEOUT, 15, 300),
   },
   // Global request limit per IP per minute. Under clustering the in-memory store
   // is per worker, so the entry point divides this across workers to keep the

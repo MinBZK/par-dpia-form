@@ -18,6 +18,8 @@ const ENV_KEYS = [
   'DB_POOL_MAX',
   'DB_CONNECT_TIMEOUT',
   'DB_IDLE_TIMEOUT',
+  'DB_STATEMENT_TIMEOUT',
+  'DB_IDLE_IN_TX_TIMEOUT',
   'WEB_CONCURRENCY',
   'RATE_LIMIT_MAX',
 ] as const
@@ -187,7 +189,13 @@ describe('config — parseTrustProxy', () => {
 describe('config — db pool (parsePositiveInt with clamping)', () => {
   it('uses safe defaults when the pool env vars are unset', async () => {
     const config = await loadConfig()
-    expect(config.db).toEqual({ max: 9, connectTimeout: 10, idleTimeout: 30 })
+    expect(config.db).toEqual({
+      max: 9,
+      connectTimeout: 10,
+      idleTimeout: 30,
+      statementTimeout: 15,
+      idleInTransactionTimeout: 15,
+    })
   })
 
   it('accepts a valid override within range', async () => {
@@ -195,7 +203,13 @@ describe('config — db pool (parsePositiveInt with clamping)', () => {
     process.env.DB_CONNECT_TIMEOUT = '5'
     process.env.DB_IDLE_TIMEOUT = '120'
     const config = await loadConfig()
-    expect(config.db).toEqual({ max: 12, connectTimeout: 5, idleTimeout: 120 })
+    expect(config.db).toEqual({
+      max: 12,
+      connectTimeout: 5,
+      idleTimeout: 120,
+      statementTimeout: 15,
+      idleInTransactionTimeout: 15,
+    })
   })
 
   it('falls back to the default for a non-numeric value', async () => {
@@ -214,6 +228,34 @@ describe('config — db pool (parsePositiveInt with clamping)', () => {
     process.env.DB_POOL_MAX = '500'
     const config = await loadConfig()
     expect(config.db.max).toBe(20)
+  })
+})
+
+describe('config — db statement/idle-in-transaction timeouts (M2 fast-fail)', () => {
+  it('defaults statementTimeout and idleInTransactionTimeout to 15 seconds', async () => {
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(15)
+    expect(config.db.idleInTransactionTimeout).toBe(15)
+  })
+
+  it('honours DB_STATEMENT_TIMEOUT and DB_IDLE_IN_TX_TIMEOUT overrides', async () => {
+    process.env.DB_STATEMENT_TIMEOUT = '30'
+    process.env.DB_IDLE_IN_TX_TIMEOUT = '20'
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(30)
+    expect(config.db.idleInTransactionTimeout).toBe(20)
+  })
+
+  it('clamps an excessive statement timeout to 300 seconds', async () => {
+    process.env.DB_STATEMENT_TIMEOUT = '99999'
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(300)
+  })
+
+  it('falls back to the default for a non-numeric idle-in-transaction value', async () => {
+    process.env.DB_IDLE_IN_TX_TIMEOUT = 'abc'
+    const config = await loadConfig()
+    expect(config.db.idleInTransactionTimeout).toBe(15)
   })
 })
 
