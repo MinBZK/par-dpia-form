@@ -26,8 +26,12 @@ on:
 jobs:
   generate-sources:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - name: Set up uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
@@ -60,6 +64,10 @@ jobs:
           path: sources/generated/
           retention-days: 1
 
+  # Build jobs have packages:write (push to GHCR) and run only trusted, pinned
+  # docker actions. The image scan deliberately lives in a separate job (see
+  # scan) with a read-only token, so the third-party Trivy action never holds
+  # a write-scoped secret.
   build-backend:
     needs: generate-sources
     runs-on: ubuntu-latest
@@ -68,9 +76,10 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: generated-sources
@@ -97,43 +106,6 @@ jobs:
       - id: image-ref
         run: echo "image=${{ inputs.backend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Trivy image scan (report-only, SARIF)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
-        with:
-          image-ref: ${{ steps.image-ref.outputs.image }}
-          scan-type: image
-          format: sarif
-          output: trivy-backend.sarif
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '0'
-        env:
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Trivy results to Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
-        with:
-          sarif_file: trivy-backend.sarif
-          category: trivy-backend
-      - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
-        with:
-          image-ref: ${{ steps.image-ref.outputs.image }}
-          scan-type: image
-          format: cyclonedx
-          output: trivy-sbom-backend.json
-          list-all-pkgs: 'true'
-        env:
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: sbom-backend
-          path: trivy-sbom-backend.json
-          retention-days: 30
-
   build-frontend:
     needs: generate-sources
     runs-on: ubuntu-latest
@@ -142,9 +114,10 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: generated-sources
@@ -171,13 +144,38 @@ jobs:
       - id: image-ref
         run: echo "image=${{ inputs.frontend-image }}:${{ inputs.tag-prefix }}${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
-      - name: Trivy image scan (report-only, SARIF)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+  # Report-only image scan + SBOM, one matrix leg per component. Separate job
+  # with a read-only token (packages:read) and continue-on-error so a scan
+  # hiccup never blocks a deploy. No packages:write, so a compromised Trivy
+  # action cannot push images to GHCR.
+  scan:
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          image-ref: ${{ steps.image-ref.outputs.image }}
+          persist-credentials: false
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy image scan (report-only, SARIF)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ matrix.component == 'backend' && needs.build-backend.outputs.image || needs.build-frontend.outputs.image }}
           scan-type: image
           format: sarif
-          output: trivy-frontend.sarif
+          output: trivy-${{ matrix.component }}.sarif
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '0'
@@ -188,15 +186,15 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
         with:
-          sarif_file: trivy-frontend.sarif
-          category: trivy-frontend
+          sarif_file: trivy-${{ matrix.component }}.sarif
+          category: trivy-${{ matrix.component }}
       - name: Generate SBOM (CycloneDX)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
-          image-ref: ${{ steps.image-ref.outputs.image }}
+          image-ref: ${{ matrix.component == 'backend' && needs.build-backend.outputs.image || needs.build-frontend.outputs.image }}
           scan-type: image
           format: cyclonedx
-          output: trivy-sbom-frontend.json
+          output: trivy-sbom-${{ matrix.component }}.json
           list-all-pkgs: 'true'
         env:
           TRIVY_USERNAME: ${{ github.actor }}
@@ -204,6 +202,6 @@ jobs:
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: sbom-frontend
-          path: trivy-sbom-frontend.json
+          name: sbom-${{ matrix.component }}
+          path: trivy-sbom-${{ matrix.component }}.json
           retention-days: 30
