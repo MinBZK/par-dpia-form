@@ -1,39 +1,61 @@
-publiccodeYmlVersion: "0.3"
-name: Invulhulp voor pre-scan en DPIA
+publiccodeYmlVersion: "0.5"
+name: Invulhulp voor Pre-scan, DPIA en IAMA
 url: "https://github.com/MinBZK/par-dpia-form"
 landingURL: "https://invulhulpen.rijksapp.nl"
+releaseDate: "2026-06-14"
 softwareType: standalone/web
-releaseDate: "2025-06-02"
 platforms:
   - web
 categories:
   - it-development
+  - compliance-management
+  - regulations-and-directives
+usedBy:
+  - Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
 developmentStatus: beta
 description:
-  en:
+  nl:
+    shortDescription: >-
+      Webapplicatie voor Pre-scan-, DPIA- en IAMA-assessments volgens het
+      Rijksmodel DPIA en het IAMA-kader van de Nederlandse overheid.
     longDescription: >
-      The PAR-DPIA-Form project provides a browser-based tool for completing Pre-scan DPIA and DPIA
-      forms and generating reports without requiring installation or server hosting.
-      The Pre-scan DPIA form help organizations evaluate privacy risks associated with data
-      processing activities and determine whether a full DPIA, DTIA (Data Transfer Impact
-      Assessment), IAMA (Impact Assessment Mensenrechten en Algoritmes), or KIA (Kinderrechten
-      Impact Assessment) is necessary.
-    shortDescription: A standalone web application for completing Data Protection Impact Assessments (DPIA) and Pre-scan DPIAs, following the Dutch government's Rijksmodel DPIA framework.
+      De invulhulp is een browsergebaseerde applicatie waarmee organisaties een
+      Pre-scan, een volledige DPIA (Data Protection Impact Assessment / Gegevensbeschermingseffectbeoordeling)
+      en een IAMA (Impact Assessment Mensenrechten en Algoritmes) kunnen invullen en als rapport
+      kunnen exporteren. De Pre-scan helpt organisaties privacyrisico's van gegevensverwerkingen
+      in te schatten en te bepalen of een volledige DPIA, DTIA (Data Transfer Impact Assessment)
+      of IAMA nodig is.
+
+      De applicatie is op twee manieren te gebruiken: als losstaande, offline single-file
+      applicatie die zonder installatie of server in de browser draait, en als
+      samenwerkomgeving waarin meerdere personen met rollen (eigenaar, bewerker, commentator,
+      lezer) samen aan dezelfde assessments werken. De assessments volgen het Rijksmodel DPIA
+      en het IAMA-kader van de Nederlandse overheid en zijn gebouwd met het
+      NL Design System / RVO-componentenbibliotheek.
+    documentation: "https://github.com/MinBZK/par-dpia-form/blob/main/README.md"
     features:
-      - Web form
+      - Pre-scan invullen
+      - DPIA (Data Protection Impact Assessment) invullen
+      - IAMA (Impact Assessment Mensenrechten en Algoritmes) invullen
+      - Rapport exporteren
+      - Offline single-file gebruik (zonder account)
+      - Samenwerken met rollen en uitnodigingen per e-mail
 legal:
   license: EUPL-1.2
+  mainCopyrightOwner: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
+  repoOwner: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
 intendedAudience:
   countries:
     - nl
   scope:
     - government
 localisation:
+  localisationReady: false
   availableLanguages:
     - nl
-  localisationReady: false
 maintenance:
   type: internal
   contacts:
-    - name: TODO
-      email: TODO
+    - name: Digi Gilde (Rijksorganisatie ODI)
+      affiliation: Rijksorganisatie ODI
+      email: digigilde@rijksoverheid.nl
