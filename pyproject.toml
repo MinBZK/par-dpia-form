@@ -26,4 +26,5 @@ extend-exclude = [".claude"]
 select = ["E", "W", "F", "I", "UP", "B", "S", "SIM", "C4", "RUF", "PTH", "PT", "A", "T20", "LOG", "G"]
 
 [tool.ruff.lint.per-file-ignores]
-"script/tests/**" = ["S101"]  # asserts are expected in tests
+# Tests use asserts, and shell out to known tools (git/bash) with fixed args.
+"script/tests/**" = ["S101", "S603", "S607"]
