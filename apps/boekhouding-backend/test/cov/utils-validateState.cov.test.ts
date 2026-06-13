@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { validateState } from '../../src/utils/validateState.js'
+import { validateState, OUTPUT_SCHEMA_URL } from '../../src/utils/validateState.js'
 
 const SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+
+describe('OUTPUT_SCHEMA_URL', () => {
+  it('is derived from the schema $schema const', () => {
+    expect(OUTPUT_SCHEMA_URL).toBe(SCHEMA_URL)
+  })
+})
 
 function validState(answers: Record<string, unknown> = {}) {
   return {

@@ -17,6 +17,11 @@ const schemaPath = resolve(
 )
 const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'))
 
+// The canonical $schema value every conforming state must carry, derived from the
+// schema itself so it cannot drift from the source of truth. Used to normalise lean
+// create payloads that omit it (see normalizeCreateState).
+export const OUTPUT_SCHEMA_URL: string = schema.properties.$schema.const
+
 // Fail-fast (not allErrors): allErrors lets a malformed payload enumerate thousands
 // of errors, blocking the event loop and bloating the log line.
 const ajv = new Ajv2020()
