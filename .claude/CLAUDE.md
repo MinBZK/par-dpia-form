@@ -133,10 +133,12 @@ Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`)
 - Container config: `containers/` directory met Containerfiles, nginx.conf, compose.dev.yaml
 - Frontend: `nginxinc/nginx-unprivileged` op poort 8080, security headers conform NCSC/BIO2
 - Lokaal bouwen: `podman build -f containers/frontend/Containerfile -t frontend .` (vereist `sources/generated/`)
-- CI: GitHub Actions workflows in `.github/workflows/`:
-  - `build-standalone.yaml` — bouwt standalone formulier (main branch)
-  - `build-containers.yaml` — bouwt frontend + backend containers → GHCR (experimenteel branch)
-  - `release-and-deploy.yaml` — release naar GitHub Pages
+- CI: GitHub Actions workflows in `.github/workflows/` (main is leidend; zie `docs/deployment.md`):
+  - `deploy-acceptatie.yaml` — bouwt frontend + backend containers → GHCR en werkt ZAD-deployment `acceptatie` bij (push naar main)
+  - `deploy-productie.yaml` — promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij; `workflow_dispatch`-only, gestart door `release.yaml` (of handmatig)
+  - `deploy-preview.yaml` — preview-omgeving per PR naar main (kloon van `acceptatie`)
+  - `release.yaml` — bij een CalVer-tag: maakt de GitHub-release (changelog-notes), start daarna `deploy-productie`, en hangt het standalone formulier (offline single-file) als release-asset aan
+  - `build-standalone.yaml` — bouwt standalone formulier als artifact (main branch)
   - `test.yaml` — type-check, tests én coverage (100%-drempel over alle workspaces; Postgres-service voor backend-integratietests)
 - GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
 

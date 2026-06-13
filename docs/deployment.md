@@ -98,36 +98,87 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 
 ## CI/CD
 
+### Omgevingen
+
+| Omgeving   | ZAD-deployment | Bijgewerkt door                                                     |
+|------------|----------------|---------------------------------------------------------------------|
+| Preview    | `pr-<nummer>`  | Elke PR naar `main` (kloon van `acceptatie`); opgeruimd bij sluiten |
+| Acceptatie | `acceptatie`   | Elke push naar `main`                                               |
+| Productie  | `productie`    | CalVer-tag (`vYYYY.M.D[.MICRO]`), via image-promotie                |
+
 ### Workflows
 
-| Workflow                  | Trigger                    | Wat het doet                    |
-|---------------------------|----------------------------|---------------------------------|
-| `build-containers.yaml`  | Push naar dev branch       | Bouwt frontend + backend → GHCR  |
-| `build-standalone.yaml`  | Push naar `main`           | Bouwt standalone formulier       |
-| `release-and-deploy.yaml`| Push naar `main`           | Release naar GitHub Pages        |
-| `test.yaml`              | Push/PR naar `main`        | Type-check en tests              |
+| Workflow                   | Trigger                                | Wat het doet                                                      |
+|----------------------------|----------------------------------------|-------------------------------------------------------------------|
+| `test.yaml`                | Push naar `main`, elke PR              | Type-checks, tests en coverage (100%-drempel)                     |
+| `pre-commit.yaml`          | Push naar `main`, elke PR              | Linting via pre-commit                                            |
+| `deploy-preview.yaml`      | PR naar `main`                         | Preview-deployment op ZAD, kloon van `acceptatie`                 |
+| `deploy-acceptatie.yaml`   | Push naar `main`                       | Bouwt images → GHCR en werkt ZAD-deployment `acceptatie` bij      |
+| `release.yaml`             | CalVer-tag                             | Valideert tag, maakt GitHub-release met changelog-notes, **start daarna `deploy-productie`**, en hangt het standalone formulier (offline single-file) als release-asset aan |
+| `deploy-productie.yaml`    | Gestart door `release.yaml` (of handmatig) | Promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij |
+| `build-standalone.yaml`    | Push/PR naar `main`                    | Bouwt standalone formulier (artifact)                             |
 
-De deploy-workflow zet uitsluitend de container-*images* van de componenten
+De deploy-workflows zetten uitsluitend de container-*images* van de componenten
 (`[{name, image}]` via `zad-actions/deploy`). Domeinen, redirects en env-vars
 worden in de ZAD Operations Manager beheerd, niet in de workflow.
+
+### Een release uitbrengen
+
+1. Verplaats in `CHANGELOG.md` de inhoud van `## [Unreleased]` naar een nieuwe
+   sectie `## [YYYY.M.D] - YYYY-MM-DD` (versie zonder voorloopnullen) en breng
+   die wijziging via een PR naar `main`.
+2. Zet een tag op de gewenste main-commit en push die:
+
+   ```bash
+   git tag v2026.6.14
+   git push origin v2026.6.14
+   ```
+
+3. De rest gaat vanzelf: `release.yaml` maakt eerst de GitHub-release met de
+   changelog-sectie als notes; **pas daarna** start het `deploy-productie`, dat
+   de bestaande acceptatie-images naar de CalVer-tag promoot en productie
+   bijwerkt. Het standalone formulier wordt in een aparte job als release-asset
+   aangehangen, zodat een hapering daarin de release of de productie-deploy niet
+   blokkeert.
+
+Voorwaarden: de tag staat op een commit op `main`, de tag is de nieuwste
+CalVer (downgrade-bescherming), en de `Deploy acceptatie`-run voor die commit
+is geslaagd (anders bestaat het te promoten image niet). De changelog-sectie
+voor de versie moet bestaan, anders maakt `release.yaml` geen release en start
+de productie-deploy niet. `deploy-productie` draait alleen via `release.yaml`
+of handmatig (Run workflow met de tag), nooit los op een tag-push.
+
+> **Eenmalige voorwaarde voor de eerste release:** `deploy-productie` wordt via
+> `workflow_dispatch` gestart en is pas dispatchbaar zodra het bestand op de
+> **default branch (`main`)** staat. Zet de eerste CalVer-tag dus pas nadat
+> `release.yaml` én `deploy-productie.yaml` naar `main` zijn gemerged. Tagt
+> iemand eerder, dan faalt `release.yaml` bewust bij de "Start productie-deploy"-stap
+> met een duidelijke melding.
+
+De productie-deploy is een **aparte, losgekoppelde run**: de release-run kan
+groen zijn terwijl de gestarte `Deploy productie`-run zelfstandig faalt (bv.
+downgrade-guard, ontbrekend image of een ZAD-fout). Controleer na een release
+dus ook de `Deploy productie`-run in het Actions-tabblad.
 
 ### GHCR images
 
 Images staan onder `ghcr.io/minbzk/par-dpia-form/dev/`:
 
-| Image      | Tags              |
-|------------|-------------------|
-| `frontend` | `<sha>`, `latest` |
-| `backend`  | `<sha>`, `latest` |
+| Image      | Tags                                                          |
+|------------|---------------------------------------------------------------|
+| `frontend` | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
+| `backend`  | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
 
 ## ZAD configuratie
 
-De productie-deployment bestaat uit twee componenten:
+Elke deployment (`acceptatie`, `productie`, previews) bestaat uit twee
+componenten; de image-tag verschilt per omgeving (acceptatie: `<sha>`,
+productie: `vYYYY.M.D[.MICRO]`):
 
-| Component  | Image                                              | Poort | Pad    | Domein                    | Services                          |
-|------------|----------------------------------------------------|-------|--------|---------------------------|-----------------------------------|
-| `frontend` | `ghcr.io/minbzk/par-dpia-form/dev/frontend:latest` | 8080  | `/`    | `invulhulpen.rijksapp.nl` | `publish-on-web`                  |
-| `api`      | `ghcr.io/minbzk/par-dpia-form/dev/backend:latest`  | 3000  | `/api` | `invulhulpen.rijksapp.nl` | `publish-on-web`, `postgresql-database`, `keycloak` |
+| Component  | Image                                       | Poort | Pad    | Domein (productie)        | Services                          |
+|------------|---------------------------------------------|-------|--------|---------------------------|-----------------------------------|
+| `frontend` | `ghcr.io/minbzk/par-dpia-form/dev/frontend` | 8080  | `/`    | `invulhulpen.rijksapp.nl` | `publish-on-web`                  |
+| `api`      | `ghcr.io/minbzk/par-dpia-form/dev/backend`  | 3000  | `/api` | `invulhulpen.rijksapp.nl` | `publish-on-web`, `postgresql-database`, `keycloak` |
 
 Configuratie via de ZAD Operations Manager UI.
 

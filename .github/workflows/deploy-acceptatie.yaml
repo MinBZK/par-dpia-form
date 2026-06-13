@@ -1,9 +1,13 @@
-name: Build and Deploy
+name: Deploy acceptatie
+
+# Every push to main builds the containers and updates the ZAD "acceptatie"
+# deployment. Production follows from a CalVer tag (see deploy-productie.yaml),
+# which promotes the image built here without rebuilding.
 
 on:
   push:
     branches:
-      - experimenteel/samenwerken
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,9 +15,13 @@ permissions:
   packages: write
   pull-requests: write
 
+concurrency:
+  group: deploy-acceptatie
+  cancel-in-progress: false
+
 env:
   PROJECT_ID: asses-k2n
-  DEPLOYMENT_NAME: productie
+  DEPLOYMENT_NAME: acceptatie
 
 jobs:
   build:
@@ -33,6 +41,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+    environment:
+      name: acceptatie
+      url: https://acceptatie-asses-k2n.rijksapp.dev/
     steps:
       - name: Deploy to ZAD
         uses: RijksICTGilde/zad-actions/deploy@ea7dec7d0df396741cdfb4f393090b170056dd19 # v4.0.5
@@ -41,6 +52,7 @@ jobs:
           project-id: ${{ env.PROJECT_ID }}
           deployment-name: ${{ env.DEPLOYMENT_NAME }}
           wait-for-ready: 'true'
+          health-endpoint: /api/health
           components: >-
             [
               {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
