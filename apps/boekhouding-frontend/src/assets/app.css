@@ -1649,3 +1649,42 @@ a.card-link:hover {
     background-color: #e6f4ea;
   }
 }
+
+/* Status page (/status) */
+.status-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--rvo-space-2xs, 0.5rem);
+}
+
+.status-card__tag {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.status-spin {
+  animation: status-rotate 1s linear infinite;
+}
+
+@keyframes status-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-spin {
+    animation: none;
+  }
+}
+
+.version-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rvo-space-md, 1rem);
+}
+
+.version-card__line {
+  word-break: break-word;
+}

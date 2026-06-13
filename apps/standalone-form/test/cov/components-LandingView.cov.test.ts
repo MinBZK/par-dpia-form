@@ -67,6 +67,12 @@ describe('LandingView rendering', () => {
     expect(wrapper.text()).toContain('Over deze tools')
     expect(wrapper.text()).toContain('pre-scan, DPIA en het IAMA')
   })
+
+  it('shows the baked build version in the "Over deze tools" section', () => {
+    const wrapper = mountLanding()
+    // Test config bakes a CalVer tag, so this renders as a release version.
+    expect(wrapper.find('.version-info').text()).toBe('Versie van de invulhulp: v2026.6.14')
+  })
 })
 
 describe('LandingView navigation interaction (no cache)', () => {

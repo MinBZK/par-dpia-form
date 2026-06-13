@@ -39,6 +39,9 @@ COPY --from=build /app/apps/boekhouding-backend/drizzle apps/boekhouding-backend
 
 WORKDIR /app/apps/boekhouding-backend
 
+ARG GIT_SHA=dev
+ENV APP_COMMIT=$GIT_SHA
+
 USER 1000
 
 CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]

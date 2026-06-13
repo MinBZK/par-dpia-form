@@ -59,6 +59,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build standalone form
+        env:
+          GIT_SHA: ${{ github.sha }}
         run: cd apps/standalone-form && pnpm build
 
       - name: Upload build artifact

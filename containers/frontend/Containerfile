@@ -15,6 +15,8 @@ COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
 # Install all dependencies (inclusief devDependencies voor build)
 RUN pnpm install --frozen-lockfile || pnpm install
 
+ARG GIT_SHA=dev
+
 # Copy source
 COPY packages/assessment-core/ packages/assessment-core/
 COPY sources/generated/ sources/generated/
@@ -33,6 +35,8 @@ RUN mkdir -p /app/apps/boekhouding-frontend/public && \
 # Build frontend SPA
 WORKDIR /app/apps/boekhouding-frontend
 RUN npx vite build
+
+RUN printf '{"version":"dev","commit":"%s","channel":"acceptatie"}\n' "$(printf '%s' "$GIT_SHA" | cut -c1-7)" > dist/version.json
 
 # Stage 2: unprivileged nginx voor statische bestanden
 FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:bcb4860e2d7877cf140e4c945f5f9cb304ccb5efbe1dd4fa606a2206142241bf

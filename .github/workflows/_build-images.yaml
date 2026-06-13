@@ -101,6 +101,8 @@ jobs:
           context: .
           file: containers/backend/Containerfile
           push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - id: image-ref
@@ -139,6 +141,8 @@ jobs:
           context: .
           file: containers/frontend/Containerfile
           push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
       - id: image-ref
