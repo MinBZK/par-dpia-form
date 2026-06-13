@@ -7,6 +7,10 @@ import vue from '@vitejs/plugin-vue'
 // disruptive) under vitest. Only the Vue plugin and path aliases are needed.
 export default defineConfig({
   plugins: [vue()],
+  define: {
+    __APP_TAG__: JSON.stringify('v2026.6.14'),
+    __APP_COMMIT__: JSON.stringify('abc1234'),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

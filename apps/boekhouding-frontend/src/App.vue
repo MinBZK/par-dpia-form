@@ -20,6 +20,8 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
         <router-link to="/toegankelijkheid" class="app-footer__link">Toegankelijkheid</router-link>
         <span class="app-footer__separator">|</span>
         <router-link to="/over" class="app-footer__link">Over Invulhulpen</router-link>
+        <span class="app-footer__separator">|</span>
+        <router-link to="/status" class="app-footer__link">Status</router-link>
       </nav>
     </footer>
   </div>

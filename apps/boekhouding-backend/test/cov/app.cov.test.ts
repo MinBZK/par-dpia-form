@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest'
 import type { FastifyInstance } from 'fastify'
 import { buildApp, API_VERSION } from '../../src/app.js'
 import { config } from '../../src/config.js'
@@ -75,7 +75,7 @@ describe('onSend hook — response headers', () => {
     expect(res.statusCode).toBe(200)
     expect(res.headers['api-version']).toBe(API_VERSION)
     expect(res.headers['cache-control']).toBe('no-store')
-    expect(res.json()).toEqual({ status: 'ok' })
+    expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
   })
 
   it('applies helmet security headers (CSP) on responses', async () => {
@@ -84,11 +84,29 @@ describe('onSend hook — response headers', () => {
   })
 })
 
+describe('/api/health — version fields', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('returns apiVersion and defaults version/commit to "dev" when env is unset', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/health' })
+    expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
+  })
+
+  it('reflects APP_VERSION and APP_COMMIT from the environment', async () => {
+    vi.stubEnv('APP_VERSION', 'v2026.6.14')
+    vi.stubEnv('APP_COMMIT', 'abc1234')
+    const res = await app.inject({ method: 'GET', url: '/api/health' })
+    expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'v2026.6.14', commit: 'abc1234' })
+  })
+})
+
 describe('static utility routes', () => {
   it('GET /api/health returns ok', async () => {
     const res = await app.inject({ method: 'GET', url: '/api/health' })
     expect(res.statusCode).toBe(200)
-    expect(res.json()).toEqual({ status: 'ok' })
+    expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
   })
 
   it('GET /.well-known/security.txt redirects 301 to NCSC', async () => {

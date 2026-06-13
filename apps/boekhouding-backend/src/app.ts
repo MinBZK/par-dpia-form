@@ -169,7 +169,12 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
 
-  app.get('/api/health', { schema: { hide: true } }, async () => ({ status: 'ok' }))
+  app.get('/api/health', { schema: { hide: true } }, async () => ({
+    status: 'ok',
+    apiVersion: API_VERSION,
+    version: process.env.APP_VERSION || 'dev',
+    commit: (process.env.APP_COMMIT || 'dev').slice(0, 7),
+  }))
 
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
     return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)

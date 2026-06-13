@@ -42,6 +42,9 @@ COPY schemas/assessment-output.v2.schema.json schemas/assessment-output.v2.schem
 
 WORKDIR /app/apps/boekhouding-backend
 
+ARG GIT_SHA=dev
+ENV APP_COMMIT=$GIT_SHA
+
 USER 1000
 
 CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]

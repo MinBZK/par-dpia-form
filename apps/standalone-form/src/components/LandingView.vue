@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
+import { formatBuildVersion } from '@/version'
 
 const props = defineProps<{
   navigation: NavigationFunctions
@@ -10,6 +11,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   startFresh: [type: FormType]
 }>()
+
+const appVersion = formatBuildVersion(__APP_TAG__, __APP_COMMIT__)
 
 interface AssessmentCard {
   type: FormType
@@ -198,6 +201,7 @@ async function downloadOfflineApp() {
         <p>
           Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
         </p>
+        <p class="version-info">Versie van de invulhulp: {{ appVersion }}</p>
       </div>
 
       <div class="rvo-layout-margin-vertical--xl">

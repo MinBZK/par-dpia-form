@@ -48,6 +48,10 @@ export default defineConfig(({ mode }) => ({
     viteSingleFile(),
   ],
   base: '/',
+  define: {
+    __APP_TAG__: JSON.stringify(process.env.RELEASE_TAG ?? 'dev'),
+    __APP_COMMIT__: JSON.stringify((process.env.GIT_SHA ?? 'dev').slice(0, 7)),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
