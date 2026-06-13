@@ -25,6 +25,7 @@ Dit document beschrijft welke persoonsgegevens Invulhulpen verwerkt. Het dient a
 | Projectlidmaatschap | Gebruikersinvoer (uitnodiging) | Rolgebaseerde toegangscontrole | Zolang project bestaat |
 | Uitnodigings- en acceptatietijdstip | Automatisch bij uitnodiging/eerste login | Audit trail lidmaatschap | Zolang project bestaat |
 | Bewerkingsgeschiedenis | Automatisch bij opslaan | Audit trail, verantwoording | Zolang assessment bestaat |
+| Reacties (commentaren) | Gebruikersinvoer | Samenwerking: opmerkingen bij vragen, met auteur, inhoud, oplosstatus en tijdstippen (zichtbaar voor projectleden) | Zolang assessment bestaat |
 | Assessment-antwoorden | Gebruikersinvoer | Kernfunctionaliteit DPIA-proces | Zolang assessment bestaat |
 | IP-adres en request-metadata | Automatisch (serverlogboeken) | Beveiliging, foutopsporing | Conform logrotatie-instellingen server |
 
@@ -44,7 +45,20 @@ Bij elke authenticatie worden het e-mailadres en de weergavenaam uit Keycloak ge
 
 ## Rate limiting
 
-De API hanteert een limiet van 100 verzoeken per minuut per IP-adres (via `@fastify/rate-limit`). Hiervoor worden IP-adressen tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
+De API hanteert een limiet van 300 verzoeken per minuut per IP-adres (via `@fastify/rate-limit`). Hiervoor worden IP-adressen tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
+
+## Serverlogs
+
+Voor de beveiliging en het beheer van de dienst worden technische serverlogs vastgelegd:
+
+- De **backend-API** logt per verzoek de methode, het opgevraagde pad, de HTTP-statuscode en het IP-adres van de aanvrager. De inhoud van formulierantwoorden, authenticatietokens en het `Authorization`-veld worden **niet** gelogd.
+- Op het **ZAD-platform** (ingress) worden daarnaast toegangslogs bijgehouden.
+
+**Doel:** het detecteren en onderzoeken van misbruik en beveiligingsincidenten, het waarborgen van beschikbaarheid en foutopsporing.
+
+**Bewaartermijn:** de backend schrijft logs naar de standaarduitvoer (`stdout`), die door het ZAD-platform worden verzameld. De bewaartermijn volgt de logretentie van het platform; er worden geen logbestanden in de applicatiecontainer zelf bewaard.
+
+Dit staat los van de inhoudelijke **auditlogging** van wijzigingen (de bewerkingsgeschiedenis in de `assessment_edits`-tabel), die hierboven onder "Verwerkte persoonsgegevens" valt.
 
 ## Ontvangers
 
@@ -57,10 +71,10 @@ Persoonsgegevens worden niet gedeeld met derden en niet doorgegeven aan landen b
 
 - Versleutelde verbindingen (TLS)
 - Authenticatie via SSO Rijk / RIG Keycloak (OpenID Connect)
-- Rolgebaseerde toegangscontrole (eigenaar, bewerker, lezer)
+- Rolgebaseerde toegangscontrole (eigenaar, bewerker, commentator, lezer)
 - Veld-niveau auditlogging (bewerkingsgeschiedenis)
 - Security headers via `@fastify/helmet` (CSP, X-Frame-Options, etc.)
-- Rate limiting (100 verzoeken per minuut per IP)
+- Rate limiting (300 verzoeken per minuut per IP)
 
 ## Geautomatiseerde besluitvorming
 

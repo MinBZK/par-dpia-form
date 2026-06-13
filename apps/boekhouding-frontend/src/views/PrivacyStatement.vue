@@ -76,7 +76,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <ul>
       <li>Versleutelde verbindingen (TLS)</li>
       <li>Authenticatie via SSO Rijk (OpenID Connect)</li>
-      <li>Rolgebaseerde toegangscontrole (eigenaar, bewerker, lezer)</li>
+      <li>Rolgebaseerde toegangscontrole (eigenaar, bewerker, commentator, lezer)</li>
       <li>Veld-niveau auditlogging</li>
     </ul>
 
