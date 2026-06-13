@@ -92,6 +92,12 @@ vi.mock('@overheid-assessment/core', () => ({
   useAnswerStore: () => ({
     reset: answerReset,
   }),
+  // Mirror the real raster-only predicate (rejects SVG) used by formatValue.
+  isImageValue: (value: unknown) => {
+    if (typeof value !== 'object' || value === null || !('data' in value) || typeof (value as Record<string, unknown>).data !== 'string') return false
+    const data = (value as Record<string, unknown>).data as string
+    return data.startsWith('data:image/') && !data.startsWith('data:image/svg')
+  },
 }))
 
 import VersionHistory from '../../src/views/VersionHistory.vue'
@@ -1098,9 +1104,11 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
     expect(out).not.toContain('diff-image-meta')
   })
 
-  it('treats an object value with non-image data as a normal object', () => {
-    const out = vm.formatValue({ value: { data: 'plain text' } }, null)
-    expect(out).toContain('data')
+  it('treats an object value with non-allowed image data as a normal object', () => {
+    // Plain text and SVG (rejected by the raster-only policy) both fall through to
+    // object rendering instead of an <img>, matching the write-time image policy.
+    expect(vm.formatValue({ value: { data: 'plain text' } }, null)).toContain('data')
+    expect(vm.formatValue({ value: { data: 'data:image/svg;base64,PHN2Zz4=' } }, null)).not.toContain('<img')
   })
 
   it('appends remaining object keys (skipping value/timestamp/lastEditedAt/empty)', () => {

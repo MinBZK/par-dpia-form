@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -476,7 +476,9 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
       // ImageValue: render as thumbnail
       if (typeof v === 'object' && v !== null && 'data' in (v as Record<string, unknown>)) {
         const img = v as Record<string, unknown>
-        if (typeof img.data === 'string' && /^data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+$/.test(img.data as string)) {
+        // Reuse the shared raster-only predicate (rejects SVG) so the diff view
+        // matches the write-time image policy instead of a looser local regex.
+        if (isImageValue(v)) {
           const alt = escapeHtml(String(img.title || 'Afbeelding'))
           let html = `<img src="${(img.data as string).replace(/"/g, '&quot;')}" alt="${alt}" class="diff-image">`
           const meta: string[] = []
