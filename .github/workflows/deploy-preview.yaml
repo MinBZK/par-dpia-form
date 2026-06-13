@@ -1,9 +1,14 @@
-name: Preview deployment
+name: Deploy preview
 
 on:
   pull_request:
-    branches: [experimenteel/samenwerken]
-    types: [opened, reopened, synchronize, closed]
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
@@ -19,9 +24,15 @@ env:
   PROJECT_ID: asses-k2n
   DEPLOYMENT_CLONE_FROM: acceptatie
 
+# Previews only run for PRs from this repo: fork PRs have no access to
+# ZAD_API_KEY or GHCR push and would only produce failing runs.
+
 jobs:
   build:
-    if: github.event.action != 'closed' && github.event.pull_request.user.type != 'Bot'
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       packages: write
@@ -34,7 +45,10 @@ jobs:
 
   deploy-preview:
     needs: build
-    if: github.event.action != 'closed' && github.event.pull_request.user.type != 'Bot'
+    if: >-
+      github.event.action != 'closed' &&
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,7 +75,10 @@ jobs:
             ]
 
   cleanup-preview:
-    if: github.event.action == 'closed'
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: RijksICTGilde/zad-actions/cleanup@ea7dec7d0df396741cdfb4f393090b170056dd19 # v4.0.5
