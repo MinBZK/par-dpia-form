@@ -5,7 +5,8 @@ on:
     - cron: '0 9 * * *'
   # Run on PRs to main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
   # Allow manual triggering
   workflow_dispatch:
 
