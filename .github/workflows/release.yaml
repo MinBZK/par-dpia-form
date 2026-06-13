@@ -1,0 +1,142 @@
+name: Release
+
+# A CalVer tag (vYYYY.M.D[.MICRO]) first creates the GitHub release with the
+# changelog section as notes, then triggers the production deploy
+# (deploy-productie.yaml). The offline single-file standalone form is attached
+# as a release asset in a separate job, so a flaky standalone build can never
+# block the release or the production deploy.
+
+on:
+  push:
+    tags:
+      # CalVer only (4-digit year); old SemVer tags like v0.1.3 don't trigger.
+      - "v[0-9][0-9][0-9][0-9].*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'CalVer-tag (bv. v2026.6.14); de tag moet al bestaan'
+        required: true
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Valideer CalVer-tagformaat
+        run: bash script/ci/validate-calver-tag.sh "$TAG_NAME"
+
+      - name: Haal changelog-sectie op
+        run: bash script/ci/changelog-section.sh "$TAG_NAME" > release-notes.md
+
+      - name: Maak of werk de GitHub-release bij
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Idempotent: if the release already exists (e.g. a re-run via
+          # workflow_dispatch), only update its notes.
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --notes-file release-notes.md
+          else
+            gh release create "$TAG_NAME" --title "$TAG_NAME" --notes-file release-notes.md
+          fi
+
+      # The release now exists; only then start the production deploy. A
+      # workflow_dispatch via GITHUB_TOKEN does start a new run (unlike
+      # release/push events). If the release creation above fails, this step is
+      # not reached and production is not deployed.
+      - name: Start productie-deploy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # workflow_dispatch is only dispatchable when the workflow lives on
+          # the default branch (main). Give a clear message instead of a bare
+          # 404 if that is not (yet) the case.
+          if ! gh workflow view deploy-productie.yaml >/dev/null 2>&1; then
+            echo "deploy-productie.yaml is nog niet dispatchbaar." >&2
+            echo "Het moet op de default branch (main) staan; zet de eerste CalVer-tag pas na de merge naar main." >&2
+            exit 1
+          fi
+          gh workflow run deploy-productie.yaml --ref "$TAG_NAME" -f tag="$TAG_NAME"
+
+  standalone-asset:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          python-version: '3.14'
+          enable-cache: true
+
+      - name: Generate JSON from YAML definitions
+        run: |
+          mkdir -p sources/generated
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/prescan.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/PreScanDPIA.json \
+            --output-md docs/questions/questions_prescan.md
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/dpia.yaml \
+            --begrippen-yaml sources/begrippenkader_dpia.yaml \
+            --output-json sources/generated/DPIA.json \
+            --output-md docs/questions/questions_DPIA.md
+
+          uv run --frozen --no-dev python script/run_all.py \
+            --schema schemas/assessment-definition.v2.schema.json \
+            --source sources/iama.yaml \
+            --begrippen-yaml sources/begrippenkader_iama.yaml \
+            --output-json sources/generated/IAMA.json \
+            --output-md docs/questions/questions_IAMA.md \
+            --definitions-once-per-page
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: '22'
+
+      - name: Enable corepack & pin pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be --activate
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build the standalone form
+        run: |
+          cd apps/standalone-form
+          pnpm build
+
+      # index.html is self-contained via viteSingleFile + inlined favicon (the
+      # offline download). --clobber makes a re-run idempotent.
+      - name: Hang standalone formulier aan de release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$TAG_NAME" apps/standalone-form/dist/index.html --clobber
