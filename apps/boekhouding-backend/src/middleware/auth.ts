@@ -7,9 +7,11 @@ import { config } from '../config.js'
 import { userIdCache } from '../utils/userIdCache.js'
 
 export interface AuthUser {
+  // Only the internal id. email/displayName are intentionally NOT exposed on the
+  // request: nothing consumes them (routes authorize on id), and keeping them off
+  // the request avoids carrying personal data around (AVG) and the latent trap of
+  // an attribute that differed between a cache hit (token) and miss (DB).
   id: string
-  email: string
-  displayName: string
 }
 
 declare module 'fastify' {
@@ -77,12 +79,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   // Identity cache: the token is already fully validated above (signature,
   // issuer, azp, exp), so a hit only skips the users-lookup — never validation.
   // Authorization is still checked live downstream, so a cache hit cannot leak
-  // access. On a hit, email/displayName come from this request's token, so no
-  // personal data is kept in the cache itself.
+  // access. The cache stores nothing but the internal id.
   const now = Date.now()
   const cachedId = userIdCache.get(payload.sub, now)
   if (cachedId !== undefined) {
-    request.user = { id: cachedId, email: payload.email, displayName }
+    request.user = { id: cachedId }
     return
   }
 
@@ -166,9 +167,5 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   // a stale identity (or a removed user) can persist for at most the TTL.
   userIdCache.set(payload.sub, user.id, payload.exp, now)
 
-  request.user = {
-    id: user.id,
-    email: user.email,
-    displayName: user.displayName,
-  }
+  request.user = { id: user.id }
 }
