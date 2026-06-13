@@ -19,6 +19,11 @@
   background-color: var(--rvo-color-grijs-100);
 }
 
+.kebab-menu__trigger:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -2px;
+}
+
 .kebab-menu__dropdown {
   position: absolute;
   top: 100%;
@@ -249,6 +254,7 @@ a.card-link:hover {
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .app-header__right {
@@ -256,6 +262,7 @@ a.card-link:hover {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .app-header__back {
@@ -264,6 +271,29 @@ a.card-link:hover {
 
 .app-header__user {
   white-space: nowrap;
+}
+
+/* Phone portrait: tighten header gaps. The username stays visible — flex-wrap
+   lets it drop to its own line instead of overlapping — and is truncated with
+   an ellipsis so a long display name can never overflow. Keeping it rendered
+   preserves the logged-in identity for everyone, including screen-reader users
+   (a shared/multi-user civil-service context relies on this). */
+@media (max-width: 480px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .app-header__left,
+  .app-header__right {
+    gap: 0.5rem;
+  }
+
+  .app-header__user {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 18ch;
+  }
 }
 
 /* ProjectDetail */
@@ -460,6 +490,19 @@ a.card-link:hover {
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+/* Stack title above actions (badge + kebab) on narrow screens */
+@media (max-width: 560px) {
+  .form-subheader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .form-subheader__right {
+    justify-content: flex-end;
+  }
 }
 
 .form-name {
@@ -1257,6 +1300,35 @@ a.card-link:hover {
 
   .comment-field-group__label {
     display: block;
+  }
+}
+
+/* Large phone / small tablet portrait: reclaim horizontal space on forms and
+   bring touch targets up to 44x44 (WCAG 2.5.5 AAA). The RVO --rvo-xs header
+   buttons are only ~32px tall (min-block-size: auto) — above the 24px AA
+   minimum but below the 44px AAA target — so we raise them here to match the
+   icon controls and keep the whole mobile header uniformly comfortable. */
+@media (max-width: 560px) {
+  .rvo-form-fieldset,
+  fieldset.rvo-form-fieldset {
+    padding-inline: var(--rvo-space-sm, 12px);
+    padding-block: var(--rvo-space-md, 16px);
+    margin-inline-start: 0;
+  }
+
+  .kebab-menu__trigger,
+  .comment-badge,
+  .comment-panel__close,
+  .app-header__left .utrecht-button,
+  .app-header__right .utrecht-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Center the icon once the close control is sized up to 44x44 (the RVO
+     buttons already center their own content via .utrecht-button). */
+  .comment-panel__close {
+    justify-content: center;
   }
 }
 
