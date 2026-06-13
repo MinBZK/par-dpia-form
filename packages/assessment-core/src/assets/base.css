@@ -146,6 +146,15 @@
   display: block;
 }
 
+/* On phones the 500px min-width overflows the viewport (WCAG 1.4.10 Reflow);
+   cap it to the available width instead. */
+@media (max-width: 560px) {
+  .aiv-definition .aiv-definition-text {
+    min-width: auto;
+    max-width: calc(100vw - 2rem);
+  }
+}
+
 .rvo-theme .rvo-icon--with-spacing-left {
   margin-left: 0.5rem;
 }

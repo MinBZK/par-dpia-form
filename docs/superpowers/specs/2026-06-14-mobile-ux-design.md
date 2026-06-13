@@ -63,7 +63,17 @@ Doel: de goedkope, geverifieerde WCAG-fouten wegnemen zonder template-wijziginge
 6. **sync-toast mobiel** — `@media (max-width:560px){ .sync-toast{ flex-direction:column; align-items:stretch; max-width:calc(100vw - 1rem); } }`. *WCAG 1.4.10.*
 7. **iOS zoom-on-focus** — selects die nu `sm` (14px) zijn → `font-size:16px` op mobiel (bv. `.member-select` en de form-selects via hun app.css-selector). RVO text-inputs zijn al `md` (16px) en blijven ongemoeid; alleen de sub-16px selects worden gelijkgetrokken. *UX (iOS Safari).*
 
-**Bewust NIET in PR1** (→ PR2, want template-werk): de ledentabel en versiegeschiedenis-tabel zelf (kaart-per-rij vergt kleine template-aanpassingen zoals naam/e-mail splitsen en rol-label), de conflict/diff-tabellen, en het comment-bottom-sheet. PR1 brengt deze surfaces dus op tap-target- en grid-niveau op orde, maar de volledige tabel-reflow volgt in PR2. Dit is een bewuste, gecommuniceerde afbakening.
+**Bewust NIET in PR1** (→ PR2, want template-werk): de ledentabel en versiegeschiedenis-tabel zelf (kaart-per-rij vergt kleine template-aanpassingen zoals naam/e-mail splitsen en rol-label), de conflict/diff-tabellen, en het comment-bottom-sheet. PR1 brengt deze surfaces dus op tap-target-niveau op orde, maar de volledige tabel-reflow volgt in PR2. Dit is een bewuste, gecommuniceerde afbakening.
+
+### Implementatie-notitie (empirisch geverifieerd tegen RVO-tokens + harness)
+
+Tijdens implementatie zijn drie geplande items **vervallen** omdat meting aantoonde dat ze al voldoen — false positives in de audit:
+
+- **Punt 3 (RVO 2-koloms grid → 1 kolom):** RVO's `.rvo-layout-grid-columns--two` krijgt `repeat(2,1fr)` pas vanaf `min-width:552px`; eronder is er géén template → al 1 kolom op telefoon. Harness bevestigt 1 kolom @360px zonder override. Regel **niet toegevoegd**. (Geldt vermoedelijk ook voor de LandingPage `--three` grid — in PR2 verifiëren vóór actie.)
+- **Punt 4, deelitem "Nieuw project"/dialog-knoppen:** `--rvo-md` heeft geen `min-block-size`-override en valt terug op de base 44px → die knoppen zijn al 44px. Alleen `--rvo-xs` ("Leden beheren") en de custom controls (`member-select/delete`, `comment-action-btn`, `sync-toast__action`) waren <44px en zijn gefixt.
+- **Punt 7 (iOS-zoom selects):** `--utrecht-form-control-font-size` = `--rvo-font-size-md` = 16px → alle selects zijn al 16px. Geen fix nodig.
+
+**Daadwerkelijk geïmplementeerd in PR1** (geverifieerd @320/360/800px met de echte RVO-CSS + `body.rvo-theme`): kebab-dropdown overflow-cap, aiv-tooltip-cap (base.css), tap-targets ≥44px (member-select/delete + nowrap-verwijdering, comment-action-btn, sync-toast__action, "Leden beheren"), dialog wrap/scroll/padding, sync-toast mobiel stacken. Het PR1-mediablok staat aan het **einde** van `app.css` zodat het qua bronvolgorde wint van de base-regels die het target (de `.sync-toast`-base staat verderop in de file).
 
 ## 6. Verificatie
 

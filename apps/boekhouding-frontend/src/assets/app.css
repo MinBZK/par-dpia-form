@@ -89,6 +89,8 @@ dialog::backdrop {
   padding: 2rem;
   max-width: 36rem;
   width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 
@@ -104,6 +106,7 @@ dialog::backdrop {
 
 .confirm-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
@@ -415,6 +418,7 @@ a.card-link:hover {
 
 .start-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -1430,4 +1434,53 @@ a.card-link:hover {
 .value-list {
   margin: 0;
   padding-left: 1.25rem;
+}
+
+/* PR1 mobile conformance — keep controls within the viewport and at >=44px on
+   phones (WCAG 1.4.10 Reflow, 2.5.5 Target Size AAA). Placed at end of file so
+   these overrides win over the base rules they target by source order. */
+@media (max-width: 560px) {
+  /* Kebab dropdown must not overflow the right viewport edge */
+  .kebab-menu__dropdown {
+    min-width: auto;
+    max-width: calc(100vw - 1rem);
+  }
+
+  /* Member-row controls to 44px; let "Verwijderen" wrap instead of clipping */
+  .member-select,
+  .member-delete {
+    height: 2.75rem;
+  }
+
+  .member-delete {
+    white-space: normal;
+  }
+
+  /* Comment-thread action buttons and the sync-toast action to 44px */
+  .comment-action-btn,
+  .sync-toast__action {
+    min-height: 44px;
+  }
+
+  .sync-toast__action {
+    white-space: normal;
+  }
+
+  /* "Leden beheren" (rvo-xs, ~32px) up to 44px like the other touch controls */
+  .project-actions .utrecht-button {
+    min-height: 44px;
+  }
+
+  /* Sync toast spans the width and stacks its action below the message */
+  .sync-toast {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: calc(100vw - 1rem);
+  }
+
+  /* Reclaim dialog padding on narrow screens */
+  .confirm-dialog__content,
+  .start-dialog__content {
+    padding: 1.25rem;
+  }
 }
