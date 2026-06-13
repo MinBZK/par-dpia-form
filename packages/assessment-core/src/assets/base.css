@@ -172,14 +172,50 @@
   padding: var(--utrecht-textbox-padding-block-start, 12px) var(--utrecht-textbox-padding-inline-end, 12px) var(--utrecht-textbox-padding-block-end, 12px) var(--utrecht-textbox-padding-inline-start, 12px);
 }
 
-.rvo-theme .rvo-form-field__label.rvo-form-field__label:has(.open-text-field__toggle) {
-  flex-direction: row;
-  flex-wrap: wrap;
+/* Editor header bar: the formatting toolbar on the left, the read/edit toggle
+   pushed to the right via the toggle's auto inline-start margin. */
+.rvo-theme .open-text-field__header {
+  display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-end: 0.4rem;
 }
 
-.rvo-theme .rvo-form-field__label:has(.open-text-field__toggle) .utrecht-form-field-description {
-  flex-basis: 100%;
+.rvo-theme .markdown-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.rvo-theme .markdown-toolbar__button {
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: none;
+  color: var(--rvo-color-hemelblauw);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rvo-theme .markdown-toolbar__button:hover {
+  background: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.rvo-theme .markdown-toolbar__button:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: 1px;
+}
+
+.rvo-theme .markdown-toolbar__button--bold {
+  font-weight: 700;
+}
+
+.rvo-theme .markdown-toolbar__button--italic {
+  font-style: italic;
 }
 
 .rvo-theme .open-text-field__toggle {

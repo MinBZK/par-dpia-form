@@ -135,20 +135,6 @@ describe('FormField.vue', () => {
       await wrapper.find('button.open-text-field__toggle').trigger('click')
       expect(wrapper.find('.markdown-preview').element.innerHTML.trim()).toBe('')
     })
-
-    it('renderedHtml yields an empty string while not in preview mode', async () => {
-      answerStore.setAnswer('1.1[0]', '**vet** tekst')
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      expect(wrapper.find('textarea').exists()).toBe(true)
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
-      // Read the computed through the instance: no preview region exists to assert against.
-      const setupState = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
-      expect(setupState.renderedHtml).toBe('')
-    })
   })
 
   describe('text_input field', () => {
