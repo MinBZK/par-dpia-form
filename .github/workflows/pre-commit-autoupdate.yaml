@@ -48,7 +48,7 @@ jobs:
               'Wekelijkse automatische update van de pre-commit hook-versies via' \
               '`pre-commit autoupdate`.')
             gh pr create \
-              --base experimenteel/samenwerken \
+              --base main \
               --head "$branch" \
               --title "chore: pre-commit autoupdate" \
               --body "$body"
