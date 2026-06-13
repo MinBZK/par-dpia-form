@@ -13,16 +13,52 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Toegevoegd
+
+* Samenwerkomgeving: log in en werk met meerdere mensen aan dezelfde
+  assessments. Maak projecten aan, nodig collega's uit per e-mailadres en
+  bepaal per lid de rol (eigenaar, bewerker, commentator of lezer).
+* Opmerkingen per vraag: plaats opmerkingen en reacties bij individuele
+  velden, markeer discussies als opgelost en zie per assessment hoeveel
+  open opmerkingen er zijn.
+* Versiegeschiedenis: bekijk per versie wie wat wanneer heeft gewijzigd
+  (per veld, met oude en nieuwe waarde), zet een individueel antwoord
+  terug of herstel een volledige eerdere versie.
+* Gelijktijdig werken: wijzigingen van collega's worden automatisch
+  gesignaleerd en bij een opslagconflict kies je per veld welke versie
+  behouden blijft.
+* Markdown-opmaak in open tekstvelden, met een lees-/bewerkknop en
+  veilige weergave (HTML en onveilige links worden gestript).
+* Afbeeldingen toevoegen aan assessments; metadata (zoals EXIF) wordt
+  bij het uploaden automatisch verwijderd.
+* De invulhulp blijft zonder account te gebruiken via `/zonder-account/`:
+  formulieren invullen zonder in te loggen, met opslag in de browser en
+  import/export via JSON en PDF.
+
 ### Opgelost
 
 * Kapotte link naar het IAMA-toelichtingsdocument hersteld.
 
 ### Onder de motorkap
 
-* Geautomatiseerde releases ingericht op basis van deze changelog.
+* Herbouwd als pnpm-monorepo: gedeelde assessment-engine
+  (`packages/assessment-core`), Vue-frontend met projectbeheer,
+  Fastify-API met PostgreSQL en het standalone formulier als aparte app.
+  Authenticatie via Keycloak, API onder `/api/v1/` met foutmeldingen
+  volgens RFC 9457.
+* Deploystraat heringericht: elke push naar `main` werkt de
+  acceptatie-omgeving op ZAD bij, een CalVer-tag (`vJJJJ.M.D`) promoot de
+  geteste images zonder rebuild naar productie en pull requests krijgen
+  een eigen preview-omgeving.
+* Geautomatiseerde releases ingericht op basis van deze changelog; de
+  release hangt ook het standalone formulier (offline single-file) als
+  downloadbare asset aan.
+* Testdekking van 100% afgedwongen in CI voor alle workspaces.
 * Externe links openen nu met `rel="noopener noreferrer"`.
 * Linkcontrole (lychee) robuuster gemaakt bij tijdelijke fouten en
-  root-relatieve links; Dependabot bewaakt nu ook GitHub Actions.
+  root-relatieve links; Dependabot bewaakt nu ook GitHub Actions,
+  containers en de Python-pipeline (configuratie samengevoegd in
+  `dependabot.yml`).
 * Diverse dependency-updates (@types/node 25, @vitejs/plugin-vue 6.0.6,
   @types/pdfmake 0.3, string-strip-html 13.5).
 
