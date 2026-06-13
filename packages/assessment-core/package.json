@@ -14,11 +14,11 @@
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
     "jexl": "^2.3.0",
-    "marked": "^17.0.5",
-    "nanoid": "^5.1.5",
-    "pdfmake": "^0.3.6",
+    "marked": "^18.0.5",
+    "nanoid": "^5.1.11",
+    "pdfmake": "^0.3.11",
     "pinia": "^3.0.3",
-    "vue": "^3.5.17"
+    "vue": "^3.5.38"
   },
   "scripts": {
     "test": "vitest run",
@@ -26,15 +26,15 @@
   },
   "devDependencies": {
     "@types/jexl": "^2.3.4",
-    "@types/pdfmake": "^0.2.13",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@types/pdfmake": "^0.3.3",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@vitest/coverage-istanbul": "^4.1.4",
     "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.7.0",
-    "ajv": "^8.18.0",
+    "@vue/tsconfig": "^0.9.1",
+    "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "jsdom": "^29.0.1",
-    "typescript": "~5.7.3",
+    "jsdom": "^29.1.1",
+    "typescript": "~5.9.3",
     "vitest": "^4.1.4"
   }
 }

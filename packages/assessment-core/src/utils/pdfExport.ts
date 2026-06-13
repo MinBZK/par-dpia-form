@@ -20,7 +20,6 @@ interface AssessmentDocumentInformation extends TDocumentInformation {
   AssessmentData: string
 }
 
-// @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
 pdfMake.addVirtualFileSystem(pdfFonts)
 
 const dutchDateFormatter = new Intl.DateTimeFormat('nl-NL', {
@@ -184,9 +183,7 @@ export async function exportToPdf(
     const vfs = await FontService.getVFS()
 
     // pdfmake 0.3: register fonts and VFS on the instance before creating PDF
-    // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
     pdfMake.addFonts(fontDefinitions)
-    // @ts-expect-error pdfmake 0.3.x types not yet in @types/pdfmake
     pdfMake.addVirtualFileSystem(vfs)
     pdfMake.createPdf(docDefinition).download(actualFilename)
 

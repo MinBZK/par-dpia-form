@@ -56,3 +56,8 @@ updates:
       compose-images:
         patterns:
           - "*"
+    ignore:
+      # ZAD/production runs on PostgreSQL 17; do not propose major bumps to
+      # 18+ (the data volume does not auto-upgrade across a major version).
+      - dependency-name: "postgres"
+        update-types: ["version-update:semver-major"]
