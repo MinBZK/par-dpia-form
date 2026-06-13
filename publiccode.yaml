@@ -1,7 +1,7 @@
 publiccodeYmlVersion: "0.3"
 name: Invulhulp voor pre-scan en DPIA
 url: "https://github.com/MinBZK/par-dpia-form"
-landingURL: "https://minbzk.github.io/par-dpia-form/"
+landingURL: "https://invulhulpen.rijksapp.nl"
 softwareType: standalone/web
 releaseDate: "2025-06-02"
 platforms:
