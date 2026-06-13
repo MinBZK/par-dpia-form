@@ -5,6 +5,8 @@ Covers the core enrichment behavior:
 - case-insensitive matching for normal terms,
 - all-uppercase terms (e.g. "DAT") only match uppercase occurrences,
 - terms inside existing HTML tags / URLs are not enriched,
+- definition/toelichting/voorbeelden fields are HTML-escaped before they are
+  interpolated into tooltip markup (stored-XSS guard for synced content),
 - once_per_page injects a repeated term only once per top-level deel, while
   the default mode enriches every occurrence.
 """
@@ -131,6 +133,37 @@ def test_inject_terms_does_not_double_wrap_existing_definition_span():
 
     # No additional nested span was introduced.
     assert result.count('<span class="aiv-definition">') == 1
+
+
+def test_inject_terms_escapes_html_in_definition_fields():
+    """Begrippenkader content is synced from external sources: raw HTML in
+    definition, toelichting or voorbeelden must end up escaped, never as
+    markup in the generated JSON (stored-XSS guard)."""
+    begrippenkader = {
+        "definitions": [
+            {
+                "id": "cloud",
+                "term": "cloud",
+                "definition": "<img src=x onerror=alert(1)>",
+                "metadata": {
+                    "toelichting": "<script>exfiltreer()</script>",
+                    "voorbeelden": ["<b>vet</b>", "gewoon voorbeeld"],
+                },
+            }
+        ]
+    }
+    term_map = create_term_map(begrippenkader)
+
+    result = inject_terms("Wij gebruiken de cloud.", term_map)
+
+    # The tooltip markup itself is still produced...
+    assert '<span class="aiv-definition">cloud' in result
+    # ...but the externally sourced fields are escaped, not raw HTML.
+    assert "<img" not in result
+    assert "<script>" not in result
+    assert "&lt;img src=x onerror=alert(1)&gt;" in result
+    assert "&lt;script&gt;exfiltreer()&lt;/script&gt;" in result
+    assert "&lt;b&gt;vet&lt;/b&gt;; gewoon voorbeeld" in result
 
 
 # --- once_per_page via process_tasks --------------------------------------

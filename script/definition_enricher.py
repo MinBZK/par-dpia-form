@@ -14,6 +14,7 @@ to avoid nested definition spans.
 """
 
 import argparse
+import html
 import json
 import logging
 import re
@@ -272,14 +273,20 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 if not term_data:
                     continue
 
+                # Begrippenkader content is (partly) synced from external
+                # sources and must not be trusted as HTML: escape every text
+                # field before interpolating it into the tooltip markup.
+                definition = html.escape(term_data["definition"])
+                hoofdterm = html.escape(term_data.get("hoofdterm") or "")
+
                 # Create the HTML with the original matched text
                 term_html = (
-                    f'<span class="aiv-definition">{matched_text}'
-                    f'<span class="aiv-definition-text">{term_data["definition"]}'
+                    f'<span class="aiv-definition">{html.escape(matched_text)}'
+                    f'<span class="aiv-definition-text">{definition}'
                 )
 
                 # Add toelichting if available
-                toelichting = term_data.get("toelichting", "")
+                toelichting = html.escape(term_data.get("toelichting", ""))
                 if toelichting:
                     term_html += f"\n<br><strong>Toelichting</strong>: {toelichting}"
 
@@ -287,29 +294,22 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 voorbeelden = term_data.get("voorbeelden", [])
                 if voorbeelden:
                     if isinstance(voorbeelden, list):
-                        voorbeelden_text = "; ".join(voorbeelden)
+                        voorbeelden_text = html.escape("; ".join(voorbeelden))
                         term_html += f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden_text}"
                     elif isinstance(voorbeelden, str):
-                        term_html += f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden}"
+                        voorbeelden_text = html.escape(voorbeelden)
+                        term_html += f"\n<br><strong>Voorbeeld(en)</strong>: {voorbeelden_text}"
 
                 # Add alternative term information
-                if term_data.get("is_alternatief_term", False) and term_data.get("hoofdterm"):
-                    term_html += (
-                        f"\n<br><i>Dit is een alternatieve term van "
-                        f"{term_data.get('hoofdterm')}</i>"
-                    )
+                if term_data.get("is_alternatief_term", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een alternatieve term van {hoofdterm}</i>"
 
-                if term_data.get("is_alternatief_spelling", False) and term_data.get("hoofdterm"):
-                    term_html += (
-                        f"\n<br><i>Dit is een alternatieve spelling van "
-                        f"{term_data.get('hoofdterm')}</i>"
-                    )
+                if term_data.get("is_alternatief_spelling", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een alternatieve spelling van {hoofdterm}</i>"
 
                 # Add plural form information - NEW CODE
-                if term_data.get("is_meervoudsvorm", False) and term_data.get("hoofdterm"):
-                    term_html += (
-                        f"\n<br><i>Dit is een meervoudsvorm van {term_data.get('hoofdterm')}</i>"
-                    )
+                if term_data.get("is_meervoudsvorm", False) and hoofdterm:
+                    term_html += f"\n<br><i>Dit is een meervoudsvorm van {hoofdterm}</i>"
 
                 term_html += "</span></span>"
 
