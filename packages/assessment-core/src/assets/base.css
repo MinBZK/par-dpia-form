@@ -305,6 +305,16 @@
   gap: 0.25rem;
 }
 
+/* RVO 4.20 spaces the button icon twice: a flex `gap` (tamed above) plus an
+   extra margin on the icon itself (--rvo-space-sm ≈ 12px). Drop that margin so
+   the 0.25rem gap is the only spacing, matching the pre-4.20 button look. */
+.rvo-theme .rvo-button--icon-before .utrecht-icon {
+  margin-inline-end: 0;
+}
+.rvo-theme .rvo-button--icon-after .utrecht-icon {
+  margin-inline-start: 0;
+}
+
 /* RVO 4.20 stripte de standaard onder-marge van koppen (utrecht-heading-*),
    waardoor koppen tegen de tekst eronder kleven. Herstel de 4.8-spacing, maar
    respecteer expliciete margin-utilities (rvo-margin*, rvo-heading--no-margins)
