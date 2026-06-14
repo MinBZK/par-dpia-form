@@ -28,6 +28,7 @@ vi.mock('../../src/views/PrivacyStatement.vue', () => stub('PrivacyStatement'))
 vi.mock('../../src/views/AccessibilityStatement.vue', () => stub('AccessibilityStatement'))
 vi.mock('../../src/views/AboutAssessments.vue', () => stub('AboutAssessments'))
 vi.mock('../../src/views/StatusPage.vue', () => stub('StatusPage'))
+vi.mock('../../src/views/NotFound.vue', () => stub('NotFound'))
 
 let router: typeof import('../../src/router').router
 
@@ -63,6 +64,7 @@ describe('router route table', () => {
     expect(paths.get('accessibility')).toBe('/toegankelijkheid')
     expect(paths.get('about')).toBe('/over')
     expect(paths.get('status')).toBe('/status')
+    expect(paths.get('not-found')).toBe('/:pathMatch(.*)*')
   })
 
   it('marks the public routes with meta.public and leaves the rest unset', () => {
@@ -71,6 +73,7 @@ describe('router route table', () => {
     expect(byName('accessibility').meta?.public).toBe(true)
     expect(byName('about').meta?.public).toBe(true)
     expect(byName('status').meta?.public).toBe(true)
+    expect(byName('not-found').meta?.public).toBe(true)
 
     expect(byName('projects').meta?.public).toBeUndefined()
     expect(byName('project').meta?.public).toBeUndefined()
@@ -89,6 +92,7 @@ describe('router route table', () => {
       accessibility: 'AccessibilityStatement',
       about: 'AboutAssessments',
       status: 'StatusPage',
+      'not-found': 'NotFound',
     }
 
     for (const [name, componentName] of Object.entries(expected)) {
