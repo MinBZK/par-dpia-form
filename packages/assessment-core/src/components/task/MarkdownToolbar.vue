@@ -6,22 +6,28 @@ import type { MarkdownCommand } from '../../utils/markdownCommands'
 // Authoring Practices "toolbar" pattern: a single tab stop, roving tabindex, and
 // arrow/Home/End navigation between controls. Buttons emit a semantic command;
 // the parent editor applies it to whatever surface it owns.
+//
+// Icons are inline, monochrome line icons (stroke="currentColor") so they inherit
+// the button colour, render crisply at small sizes, and need no external asset —
+// which keeps them working in the offline single-file build and under the strict
+// CSP (SVG presentation attributes are not inline styles). The RVO/NL Design
+// System icon set is illustrative and has no text-formatting glyphs, so we use
+// Tabler Icons (MIT, https://tabler.io/icons) for bold/italic/heading/list/link.
 const emit = defineEmits<{ command: [command: MarkdownCommand] }>()
 
 interface ToolbarButton {
   command: MarkdownCommand
   label: string
-  glyph: string
-  modifier?: string
+  paths: string[]
 }
 
 const buttons: ToolbarButton[] = [
-  { command: 'bold', label: 'Vet', glyph: 'B', modifier: 'markdown-toolbar__button--bold' },
-  { command: 'italic', label: 'Cursief', glyph: 'I', modifier: 'markdown-toolbar__button--italic' },
-  { command: 'heading', label: 'Kop', glyph: 'H' },
-  { command: 'bulletList', label: 'Opsommingslijst', glyph: '•' },
-  { command: 'orderedList', label: 'Genummerde lijst', glyph: '1.' },
-  { command: 'link', label: 'Link', glyph: '\u{1F517}' },
+  { command: 'bold', label: 'Vet', paths: ['M7 5h6a3.5 3.5 0 0 1 0 7h-6z', 'M13 12h1a3.5 3.5 0 0 1 0 7h-7v-7'] },
+  { command: 'italic', label: 'Cursief', paths: ['M11 5h6', 'M7 19h6', 'M14 5l-4 14'] },
+  { command: 'heading', label: 'Kop', paths: ['M7 5v14', 'M17 5v14', 'M7 12h10'] },
+  { command: 'bulletList', label: 'Opsommingslijst', paths: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M5 6h.01', 'M5 12h.01', 'M5 18h.01'] },
+  { command: 'orderedList', label: 'Genummerde lijst', paths: ['M11 6h9', 'M11 12h9', 'M12 18h8', 'M4 16a2 2 0 1 1 4 0c0 .591 -.602 1.46 -1 2l-3 3h4', 'M6 10v-6l-2 2'] },
+  { command: 'link', label: 'Link', paths: ['M9 15l6 -6', 'M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464', 'M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463'] },
 ]
 
 const activeIndex = ref(0)
@@ -47,12 +53,16 @@ function onKeydown(event: KeyboardEvent) {
 <template>
   <div class="markdown-toolbar" role="toolbar" aria-label="Tekstopmaak" @keydown="onKeydown">
     <button v-for="(button, index) in buttons" :key="button.command" type="button"
-      class="markdown-toolbar__button" :class="button.modifier"
+      class="markdown-toolbar__button"
       :tabindex="index === activeIndex ? 0 : -1"
       :aria-label="button.label" :title="button.label"
       @click="emit('command', button.command)"
       @focus="activeIndex = index">
-      <span aria-hidden="true">{{ button.glyph }}</span>
+      <svg class="markdown-toolbar__icon" viewBox="0 0 24 24" width="18" height="18"
+        fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path v-for="(d, i) in button.paths" :key="i" :d="d" />
+      </svg>
     </button>
   </div>
 </template>

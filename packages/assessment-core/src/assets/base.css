@@ -189,14 +189,16 @@
 }
 
 .rvo-theme .markdown-toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 1.75rem;
   min-height: 1.75rem;
-  padding: 0.2rem 0.45rem;
+  padding: 0.25rem;
   border: 1px solid transparent;
   border-radius: 3px;
   background: none;
   color: var(--rvo-color-hemelblauw);
-  font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
 }
@@ -210,12 +212,8 @@
   outline-offset: 1px;
 }
 
-.rvo-theme .markdown-toolbar__button--bold {
-  font-weight: 700;
-}
-
-.rvo-theme .markdown-toolbar__button--italic {
-  font-style: italic;
+.rvo-theme .markdown-toolbar__icon {
+  display: block;
 }
 
 .rvo-theme .open-text-field__toggle {
