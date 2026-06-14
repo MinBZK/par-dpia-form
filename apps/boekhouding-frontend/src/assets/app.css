@@ -1276,17 +1276,26 @@ a.card-link:hover {
   outline-offset: -1px;
 }
 
-
-/* Responsive: stack panel below on small screens */
+/* On phones the comment panel becomes a bottom-sheet, closed with its X button. */
 @media (max-width: 768px) {
-  .assessment-editor__content {
-    flex-direction: column;
-  }
-
   .comment-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     max-width: 100%;
+    max-height: 75vh;
+    overflow-y: auto;
+    z-index: 90;
+    transform: none;
     border-top: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 12px 12px 0 0;
+    /* sheet elevation + dim scrim over the rest of the screen */
+    box-shadow:
+      0 -2px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 100vmax rgba(0, 0, 0, 0.4);
+    animation: comment-sheet-up 0.2s ease-out;
   }
 
   .comment-panel__body {
@@ -1303,6 +1312,15 @@ a.card-link:hover {
   }
 }
 
+@keyframes comment-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
 @media (max-width: 560px) {
   .rvo-form-fieldset,
   fieldset.rvo-form-fieldset {
