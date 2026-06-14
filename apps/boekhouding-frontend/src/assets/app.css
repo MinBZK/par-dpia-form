@@ -1484,3 +1484,194 @@ a.card-link:hover {
     padding: 1.25rem;
   }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   PR2: data tables reflow to cards on phones (WCAG 1.4.10 Reflow). Column
+   headers are hidden and each value gets an inline ::before label so no
+   information is lost. Desktop is untouched (rules scoped to <=560px).
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  /* Members → card per row: name on top, role select + delete stacked below */
+  .member-row--header {
+    display: none;
+  }
+
+  .member-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .member-col--who {
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  }
+
+  .member-col--role,
+  .member-col--action {
+    width: 100%;
+  }
+
+  .member-delete {
+    width: 100%;
+  }
+
+  /* Version history → card per row with labelled fields */
+  .version-row--header {
+    display: none;
+  }
+
+  .version-row {
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+    padding: 0.75rem;
+  }
+
+  .version-col--nr {
+    width: auto;
+    font-weight: 700;
+  }
+
+  .version-col--nr::before {
+    content: "Versie ";
+    font-weight: 400;
+  }
+
+  .version-col--date,
+  .version-col--who {
+    width: auto;
+    font-size: 0.875rem;
+    color: var(--rvo-color-grijs-600, #666);
+  }
+
+  .version-col--who::before {
+    content: "· ";
+  }
+
+  .version-col--action {
+    margin-left: auto;
+  }
+
+  .version-col--desc {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  /* Version diff table → stacked card per changed field ("Was" / "Wordt") */
+  .diff-table,
+  .diff-table tbody,
+  .diff-table tr,
+  .diff-table td {
+    display: block;
+    width: auto;
+  }
+
+  .diff-table colgroup,
+  .diff-table thead {
+    display: none;
+  }
+
+  .diff-table tr {
+    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .diff-table td {
+    border-bottom: none;
+  }
+
+  .diff-field__group,
+  .diff-old,
+  .diff-new {
+    height: auto;
+  }
+
+  .diff-old::before,
+  .diff-new::before {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--rvo-color-grijs-600, #666);
+    margin-bottom: 0.25rem;
+  }
+
+  .diff-old::before {
+    content: "Was";
+  }
+
+  .diff-new::before {
+    content: "Wordt";
+  }
+
+  /* Conflict resolution → stacked comparison card (your value above theirs) */
+  .conflict-table,
+  .conflict-table tbody,
+  .conflict-table tr,
+  .conflict-table td {
+    display: block;
+    width: auto;
+  }
+
+  .conflict-table thead {
+    display: none;
+  }
+
+  .conflict-table tr {
+    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .conflict-table td {
+    border-bottom: none;
+    padding: 0.25rem 0;
+  }
+
+  .conflict-field {
+    font-weight: 600;
+  }
+
+  .conflict-value--mine,
+  .conflict-value--theirs {
+    border-radius: 6px;
+    padding: 0.5rem;
+  }
+
+  .conflict-value--mine {
+    background-color: rgba(0, 123, 199, 0.08);
+  }
+
+  .conflict-value--theirs {
+    background-color: rgba(224, 134, 0, 0.08);
+  }
+
+  .conflict-value--mine::before,
+  .conflict-value--theirs::before {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .conflict-value--mine::before {
+    content: "Jouw waarde";
+    color: #007bc7;
+  }
+
+  .conflict-value--theirs::before {
+    content: "Andere waarde";
+    color: #b35a00;
+  }
+
+  /* Selected choice keeps the green highlight over the side tint */
+  .conflict-value--selected {
+    background-color: #e6f4ea;
+  }
+}
