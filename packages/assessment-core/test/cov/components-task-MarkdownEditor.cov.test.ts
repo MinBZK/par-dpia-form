@@ -1,6 +1,18 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import MarkdownEditor from '../../src/components/task/MarkdownEditor.vue'
+
+// jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
+// during selection/link operations. Stub those layout calls so they don't throw.
+beforeAll(() => {
+  const proto = Range.prototype as unknown as Record<string, unknown>
+  if (typeof proto.getClientRects !== 'function') {
+    proto.getClientRects = () => ({ length: 0, item: () => null, [Symbol.iterator]: function* () {} })
+  }
+  if (typeof proto.getBoundingClientRect !== 'function') {
+    proto.getBoundingClientRect = () => ({ x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({}) })
+  }
+})
 
 // Mount the editor and wait for the TipTap/ProseMirror instance to initialise
 // (the .ProseMirror element appears once useEditor has mounted).
@@ -13,17 +25,10 @@ async function mountEditor(props: Record<string, unknown>) {
 }
 
 describe('MarkdownEditor.vue (WYSIWYG)', () => {
-  beforeEach(() => {
-    // window.prompt is unimplemented in jsdom; default it to "cancelled".
-    vi.stubGlobal('prompt', () => null)
-  })
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('renders the toolbar and a contenteditable editor that shows formatted markdown', async () => {
+  it('renders a contenteditable editor with a footer toolbar and formatted markdown', async () => {
     const wrapper = await mountEditor({ modelValue: '**vet** tekst', inputId: 'field-1', ariaLabelledby: 'label-1' })
-    expect(wrapper.find('[role="toolbar"]').exists()).toBe(true)
+    // Toolbar lives in the always-visible footer.
+    expect(wrapper.find('.markdown-editor__footer [role="toolbar"]').exists()).toBe(true)
     const pm = wrapper.find('.ProseMirror')
     expect(pm.exists()).toBe(true)
     expect(pm.attributes('role')).toBe('textbox')
@@ -54,19 +59,39 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('inserts a link when a url is given and is a no-op when cancelled', async () => {
+  it('opens an inline link editor, applies a url, and clears on an empty submit', async () => {
     const wrapper = await mountEditor({ modelValue: 'Linktekst' })
 
-    // Cancelled prompt (returns null) → the if (url) branch is skipped.
+    // Open the link bar via the toolbar.
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
 
-    // A provided url → setLink runs.
-    vi.stubGlobal('prompt', () => 'https://example.org')
+    // Apply a url (setLink branch).
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+
+    // Open again and submit empty (unsetLink branch).
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
 
-    expect(wrapper.find('.ProseMirror').exists()).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('cancels the link editor without applying', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
+    // The "Annuleren" button is the non-submit button in the link form.
+    await wrapper.find('.markdown-editor__linkbar button[type="button"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
     wrapper.unmount()
   })
 
