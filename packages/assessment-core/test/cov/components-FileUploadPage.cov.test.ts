@@ -74,7 +74,13 @@ describe('FileUploadPage.vue', () => {
 
       expect(wrapper.find('h1').text()).toBe('Start het IAMA')
       expect(wrapper.find('#file-upload-helper').html()).toContain(
-        'Deze tool begeleidt je stap voor stap bij het uitvoeren van een IAMA.',
+        'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een IAMA.',
+      )
+      expect(wrapper.find('#file-upload-helper').html()).toContain(
+        'Het IAMA is een groepsproces en is niet bedoeld om individueel te doorlopen.',
+      )
+      expect(wrapper.find('#file-upload-helper a').attributes('href')).toBe(
+        'https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes',
       )
       expect(wrapper.find('label#file-upload-label').text()).toContain(
         'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
