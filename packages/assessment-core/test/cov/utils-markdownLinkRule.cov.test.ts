@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule } from '../../src/utils/markdownLinkRule'
+import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnModifierClick } from '../../src/utils/markdownLinkRule'
+
+function clickEvent(target: EventTarget | null, mods: { metaKey?: boolean; ctrlKey?: boolean } = {}): MouseEvent {
+  const event = new MouseEvent('click', mods)
+  Object.defineProperty(event, 'target', { value: target })
+  return event
+}
 
 // jsdom has no layout engine; ProseMirror may measure the DOM on dispatch.
 beforeAll(() => {
@@ -56,5 +62,34 @@ describe('markdownLinkRule', () => {
     editor.destroy()
     expect(html).toContain('href="https://nu.nl"')
     expect(html).toContain('>een link</a>')
+  })
+})
+
+describe('openLinkOnModifierClick', () => {
+  it('opens the clicked link in a new tab when Cmd or Ctrl is held', () => {
+    const openSpy = vi.fn()
+    vi.stubGlobal('open', openSpy)
+    const anchor = document.createElement('a')
+    anchor.href = 'https://x.org'
+
+    expect(openLinkOnModifierClick(clickEvent(anchor, { metaKey: true }))).toBe(true)
+    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
+    expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true)
+
+    vi.unstubAllGlobals()
+  })
+
+  it('does nothing on a plain click, a non-link target, or no target', () => {
+    const openSpy = vi.fn()
+    vi.stubGlobal('open', openSpy)
+    const anchor = document.createElement('a')
+    anchor.href = 'https://x.org'
+
+    expect(openLinkOnModifierClick(clickEvent(anchor))).toBe(false) // no modifier
+    expect(openLinkOnModifierClick(clickEvent(document.createElement('span'), { metaKey: true }))).toBe(false) // not a link
+    expect(openLinkOnModifierClick(clickEvent(null, { metaKey: true }))).toBe(false) // no target
+    expect(openSpy).not.toHaveBeenCalled()
+
+    vi.unstubAllGlobals()
   })
 })

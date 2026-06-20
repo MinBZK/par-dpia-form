@@ -17,6 +17,14 @@ describe('MarkdownToolbar.vue', () => {
     expect(wrapper.find('button').attributes('aria-label')).toBe('Vet')
   })
 
+  it('shows the keyboard shortcut in the tooltip, or just the label when there is none', () => {
+    const wrapper = mount(MarkdownToolbar)
+    // Vet has a shortcut (Mod+B); Doorhalen adds Shift; Link has none.
+    expect(wrapper.find('button[aria-label="Vet"]').attributes('title')).toMatch(/^Vet \((⌘|Ctrl\+)B\)$/)
+    expect(wrapper.find('button[aria-label="Doorhalen"]').attributes('title')).toMatch(/(⇧|Shift\+)S/)
+    expect(wrapper.find('button[aria-label="Link"]').attributes('title')).toBe('Link')
+  })
+
   it('emits the matching command when a button is clicked', async () => {
     const wrapper = mount(MarkdownToolbar)
     await wrapper.findAll('button')[3].trigger('click') // heading

@@ -5,7 +5,7 @@ import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
-import { markdownLinkInputRule } from '../../utils/markdownLinkRule'
+import { markdownLinkInputRule, openLinkOnModifierClick } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
 
 // WYSIWYG editor surface for open_text fields. The text is shown in its formatted
@@ -179,7 +179,8 @@ defineExpose({ editor })
 
 <template>
   <div class="markdown-editor rvo-margin-block-end--md">
-    <EditorContent class="markdown-editor__content" :editor="editor" />
+    <!-- Cmd/Ctrl+click on a link opens it in a new tab while editing. -->
+    <EditorContent class="markdown-editor__content" :editor="editor" @click="openLinkOnModifierClick" />
 
     <div v-if="linkEditorOpen" class="markdown-editor__linkbar">
       <form class="markdown-editor__linkform" @submit.prevent="applyLink">

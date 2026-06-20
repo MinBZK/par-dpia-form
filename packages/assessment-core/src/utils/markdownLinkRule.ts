@@ -32,3 +32,16 @@ export function markdownLinkInputRule(link: MarkType): InputRule {
       applyMarkdownLink(state.tr, link, range.from, range.to, match[1], match[2]),
   })
 }
+
+// While editing, a plain click on a link just places the cursor. Holding the
+// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a new tab,
+// matching common editors. Returns true when a link was opened.
+export function openLinkOnModifierClick(event: MouseEvent): boolean {
+  const target = event.target as HTMLElement | null
+  const anchor = target?.closest('a') as HTMLAnchorElement | null
+  if (anchor && (event.metaKey || event.ctrlKey)) {
+    window.open(anchor.href, '_blank', 'noopener,noreferrer')
+    return true
+  }
+  return false
+}
