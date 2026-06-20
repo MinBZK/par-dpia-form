@@ -113,12 +113,12 @@ describe('UiButton icon and label rendering (showIconAfter=false branch)', () =>
     expect(wrapper.find('.rvo-icon').exists()).toBe(false)
   })
 
-  it('renders the icon before the label with the spacing-right modifier', () => {
+  it('renders the icon before the label with rvo-button--icon-before on the button', () => {
     const wrapper = mount(UiButton, { props: { icon: 'pijl-naar-rechts', label: 'Verder' } })
     const icon = wrapper.find('.rvo-icon')
     expect(icon.exists()).toBe(true)
     expect(icon.classes()).toContain('rvo-icon-pijl-naar-rechts')
-    expect(icon.classes()).toContain('rvo-icon--with-spacing-right')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--icon-before')
     expect(icon.attributes('role')).toBe('img')
     expect(wrapper.text()).toContain('Verder')
   })
@@ -137,14 +137,14 @@ describe('UiButton icon and label rendering (showIconAfter=true branch)', () => 
     expect(wrapper.find('.rvo-icon').exists()).toBe(false)
   })
 
-  it('renders the icon after the label with the spacing-left modifier', () => {
+  it('renders the icon after the label with rvo-button--icon-after on the button', () => {
     const wrapper = mount(UiButton, {
       props: { showIconAfter: true, icon: 'pijl-naar-links', label: 'Terug' },
     })
     const icon = wrapper.find('.rvo-icon')
     expect(icon.exists()).toBe(true)
     expect(icon.classes()).toContain('rvo-icon-pijl-naar-links')
-    expect(icon.classes()).toContain('rvo-icon--with-spacing-left')
+    expect(wrapper.find('button').classes()).toContain('rvo-button--icon-after')
     expect(icon.attributes('aria-label')).toBe('icon')
     expect(wrapper.find('span').html()).toContain('Terug')
   })

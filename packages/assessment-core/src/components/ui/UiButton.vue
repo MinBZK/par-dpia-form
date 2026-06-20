@@ -37,6 +37,7 @@ defineEmits<{
       variantClass,
       `rvo-button--size-${size || 'md'}`,
       fullWidth ? 'rvo-button--full-width' : '',
+      icon ? (showIconAfter ? 'rvo-button--icon-after' : 'rvo-button--icon-before') : '',
     ]"
     :type="type || 'button'"
     :disabled="disabled"
@@ -54,7 +55,6 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-left',
       ]"
       role="img"
       aria-label="icon"
@@ -69,7 +69,6 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-right',
       ]"
       role="img"
       aria-label="icon"
