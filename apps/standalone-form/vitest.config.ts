@@ -8,8 +8,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   define: {
-    __APP_TAG__: JSON.stringify('v2026.6.14'),
-    __APP_COMMIT__: JSON.stringify('abc1234'),
+    __APP_VERSION__: JSON.stringify('v2026.6.14'),
   },
   resolve: {
     alias: {

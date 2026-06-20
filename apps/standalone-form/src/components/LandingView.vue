@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
-import { formatBuildVersion } from '@/version'
 
 const props = defineProps<{
   navigation: NavigationFunctions
@@ -12,7 +11,7 @@ const emit = defineEmits<{
   startFresh: [type: FormType]
 }>()
 
-const appVersion = formatBuildVersion(__APP_TAG__, __APP_COMMIT__)
+const appVersion = __APP_VERSION__
 
 interface AssessmentCard {
   type: FormType
