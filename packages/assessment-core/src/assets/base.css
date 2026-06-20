@@ -146,6 +146,20 @@
   display: block;
 }
 
+/* On phones the term-anchored tooltip overflows the viewport edges, so pin it
+   to the bottom of the screen as a full-width sheet instead. */
+@media (max-width: 560px) {
+  .aiv-definition .aiv-definition-text {
+    position: fixed;
+    inset: auto 0.75rem 0.75rem;
+    min-width: 0;
+    max-width: none;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-top: 0;
+  }
+}
+
 .rvo-theme .rvo-icon--with-spacing-left {
   margin-left: 0.5rem;
 }
