@@ -81,7 +81,7 @@ const handleSave = () => {
         </p>
       </div>
 
-      <p class="utrecht-button-group rvo-action-groul--position-right" role="group" aria-label="Formulier opslag">
+      <p class="rvo-action-group rvo-action-group--position-right" role="group" aria-label="Formulier opslag">
         <UiButton variant="secondary" label="Annuleren" @click="closeModal" />
         <UiButton variant="primary" label="Bestand maken" @click="handleSave" />
       </p>

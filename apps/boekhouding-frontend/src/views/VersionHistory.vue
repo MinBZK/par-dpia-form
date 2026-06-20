@@ -833,11 +833,11 @@ function mapEditsToDiffFields(
         ></textarea>
         <div class="confirm-dialog__actions">
           <button
-            class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+            class="rvo-button rvo-button--primary rvo-button--size-md"
             @click="saveDescription"
           >Opslaan</button>
           <button
-            class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md"
+            class="rvo-button rvo-button--secondary rvo-button--size-md"
             @click="descModalOpen = false"
           >Annuleren</button>
         </div>
@@ -863,13 +863,13 @@ function mapEditsToDiffFields(
         </label>
         <div class="confirm-dialog__actions">
           <button
-            class="utrecht-button utrecht-button--rvo-md confirm-dialog__delete"
-            :class="restoreConfirmed ? 'utrecht-button--primary-action' : 'confirm-dialog__delete--disabled'"
+            class="rvo-button rvo-button--size-md confirm-dialog__delete"
+            :class="restoreConfirmed ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
             :disabled="!restoreConfirmed"
             @click="handleRestore"
           >Herstellen</button>
           <button
-            class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md"
+            class="rvo-button rvo-button--secondary rvo-button--size-md"
             @click="restoreModalOpen = false; restoreConfirmText = ''"
           >Annuleren</button>
         </div>
@@ -886,11 +886,11 @@ function mapEditsToDiffFields(
         </p>
         <div class="confirm-dialog__actions">
           <button
-            class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+            class="rvo-button rvo-button--primary rvo-button--size-md"
             @click="handleFieldRestore"
           >Herstellen</button>
           <button
-            class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md"
+            class="rvo-button rvo-button--secondary rvo-button--size-md"
             @click="fieldRestoreModalOpen = false"
           >Annuleren</button>
         </div>

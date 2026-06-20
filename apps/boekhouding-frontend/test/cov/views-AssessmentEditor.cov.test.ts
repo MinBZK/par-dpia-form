@@ -779,7 +779,7 @@ describe('AssessmentEditor — delete flow', () => {
     await input.setValue('VERWIJDEREN')
     await nextTick()
     expect((deleteBtn.element as HTMLButtonElement).disabled).toBe(false)
-    expect(deleteBtn.classes()).toContain('utrecht-button--primary-action')
+    expect(deleteBtn.classes()).toContain('rvo-button--primary')
 
     await deleteBtn.trigger('click')
     await flushPromises()

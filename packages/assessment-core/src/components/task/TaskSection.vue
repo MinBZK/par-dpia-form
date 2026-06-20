@@ -284,7 +284,7 @@ function shouldSkipTask(taskId: string): boolean {
                     role="img" aria-label="Inklappen"></span>
                 </div>
                 <div class="rvo-accordion__item-title-container">
-                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
                     {{ taskStore.taskById(childId).task }}
                   </h3>
                 </div>

@@ -133,7 +133,7 @@ const whoLabel = (member: Member) => {
           <span class="member-col--action">
             <button
               v-if="!isOnlyOwner(member)"
-              class="utrecht-button utrecht-button--primary-action confirm-dialog__delete member-delete"
+              class="rvo-button rvo-button--primary confirm-dialog__delete member-delete"
               @click="openDeleteModal(member)"
             >
               Verwijderen
@@ -157,7 +157,7 @@ const whoLabel = (member: Member) => {
             <option value="viewer">Lezer</option>
           </select>
         </div>
-        <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" type="submit">Toevoegen</button>
+        <button class="rvo-button rvo-button--primary rvo-button--size-md" type="submit">Toevoegen</button>
       </form>
     </template>
   </div>
@@ -169,12 +169,12 @@ const whoLabel = (member: Member) => {
       <p>Weet je zeker dat je <strong>{{ memberToDelete ? whoLabel(memberToDelete) : '' }}</strong> wilt verwijderen uit dit project?</p>
       <div class="confirm-dialog__actions">
         <button
-          class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md confirm-dialog__delete"
+          class="rvo-button rvo-button--primary rvo-button--size-md confirm-dialog__delete"
           @click="confirmRemove"
         >
           Verwijderen
         </button>
-        <button class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md" @click="closeDeleteModal">
+        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="closeDeleteModal">
           Annuleer
         </button>
       </div>

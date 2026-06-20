@@ -82,7 +82,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - API-calls via `api.ts` naar `/api/v1/`, Bearer token via `useAuth().getToken()`
 - Gedeelde componenten komen uit `@overheid-assessment/core`
 - Dialogen: native `<dialog>` met `showModal()` (focus trap automatisch, `::backdrop` voor overlay). Geen handmatige backdrop-divs of `.open` property.
-- RVO buttons: `utrecht-button utrecht-button--primary-action utrecht-button--rvo-md` (NIET `--rvo-primary-action`). Varianten: `--primary-action`, `--secondary-action`, `--rvo-tertiary-action`. Sizes: `--rvo-xs`, `--rvo-md`
+- RVO buttons: `rvo-button rvo-button--primary rvo-button--size-md`. Varianten: `--primary`, `--secondary`, `--tertiary`, `--quaternary`, `--warning`. Sizes: `--size-xs`, `--size-sm`, `--size-md`. Icon-positie: `--icon-before` / `--icon-after`. Volle breedte: `--full-width`. (Sinds `@nl-rvo/component-library-css` 4.16 is Button van `utrecht-button*` naar `rvo-button*` gemigreerd; `utrecht-button` bestaat niet meer.)
 
 ## Database
 

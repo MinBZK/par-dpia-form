@@ -108,7 +108,7 @@ dialog::backdrop {
   border-color: var(--rvo-color-rood, #d52b1e);
 }
 
-.confirm-dialog__actions .utrecht-button--secondary-action:hover {
+.confirm-dialog__actions .rvo-button--secondary:hover {
   background-color: var(--rvo-color-hemelblauw);
   border-color: var(--rvo-color-hemelblauw);
   color: var(--rvo-color-wit, #fff);
@@ -132,14 +132,14 @@ dialog::backdrop {
   color: var(--rvo-color-grijs-500, #666);
 }
 
-.rvo-alert .utrecht-button:hover {
+.rvo-alert .rvo-button:hover {
   text-decoration: none;
 }
 
 /* Fix anchor elements styled as buttons (RVO button classes don't fully reset anchor defaults) */
-a.utrecht-button {
+a.rvo-button {
   text-decoration: none;
-  color: var(--_utrecht-button-color);
+  color: var(--rvo-button-color);
 }
 
 a.card-link {

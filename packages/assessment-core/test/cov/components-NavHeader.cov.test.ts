@@ -16,7 +16,7 @@ describe('NavHeader rendering', () => {
     const navigation = makeNavigation()
     const wrapper = mount(NavHeader, { props: { navigation } })
 
-    const button = wrapper.find('button.utrecht-button--rvo-tertiary-action')
+    const button = wrapper.find('button.rvo-button--tertiary')
     expect(button.exists()).toBe(true)
     expect(button.text()).toContain('Terug naar overzicht')
 
@@ -31,7 +31,7 @@ describe('NavHeader rendering', () => {
     expect(
       wrapper.find('.rvo-menubar__background--horizontal-rule').exists(),
     ).toBe(true)
-    expect(wrapper.find('button.utrecht-button').exists()).toBe(true)
+    expect(wrapper.find('button.rvo-button').exists()).toBe(true)
   })
 })
 
@@ -40,7 +40,7 @@ describe('NavHeader navigation interaction', () => {
     const navigation = makeNavigation()
     const wrapper = mount(NavHeader, { props: { navigation } })
 
-    await wrapper.find('button.utrecht-button--rvo-tertiary-action').trigger('click')
+    await wrapper.find('button.rvo-button--tertiary').trigger('click')
 
     expect(navigation.goToLanding).toHaveBeenCalledTimes(1)
     expect(navigation.goToPreScanDPIA).not.toHaveBeenCalled()

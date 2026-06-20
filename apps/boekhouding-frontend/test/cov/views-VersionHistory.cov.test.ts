@@ -133,7 +133,7 @@ async function fieldRestoreDialogConfirm(wrapper: ReturnType<typeof mountView>) 
   await item.trigger('mousedown')
   await flushPromises()
   const dialog = wrapper.findAll('dialog.confirm-dialog').find((d) => d.text().includes('Antwoord herstellen'))!
-  await dialog.find('.utrecht-button--primary-action').trigger('click')
+  await dialog.find('.rvo-button--primary').trigger('click')
   await flushPromises()
 }
 
@@ -351,7 +351,7 @@ describe('VersionHistory — description modal', () => {
     await textarea.setValue('Nieuwe beschrijving')
     await textarea.trigger('input')
 
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
 
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 2, 'Nieuwe beschrijving')
@@ -381,14 +381,14 @@ describe('VersionHistory — description modal', () => {
     await flushPromises()
     const ta = wrapper.find('textarea#desc-input')
     await ta.setValue('')
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenLastCalledWith(ASSESSMENT_ID, 2, '')
 
     apiUpdateVersionDescription.mockClear()
     vm.openDescModal(999, 'whatever')
     await flushPromises()
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 999, 'whatever')
   })
@@ -403,7 +403,7 @@ describe('VersionHistory — description modal', () => {
 
     await wrapper.find('.desc-edit-btn').trigger('click')
     await flushPromises()
-    const secondary = wrapper.findAll('.confirm-dialog .utrecht-button--secondary-action')[0]
+    const secondary = wrapper.findAll('.confirm-dialog .rvo-button--secondary')[0]
     await secondary.trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).not.toHaveBeenCalled()
@@ -532,7 +532,7 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     const restoreDialog = wrapper
       .findAll('dialog.confirm-dialog')
       .find((d) => d.text().includes('Versie herstellen'))!
-    await restoreDialog.find('.utrecht-button--secondary-action').trigger('click')
+    await restoreDialog.find('.rvo-button--secondary').trigger('click')
     await flushPromises()
     expect((wrapper.vm as any).restoreConfirmText).toBe('')
   })
@@ -1264,7 +1264,7 @@ describe('VersionHistory — field-level restore', () => {
       .find((d) => d.text().includes('Antwoord herstellen'))!
   }
   async function confirmFieldRestore(wrapper: ReturnType<typeof mountView>) {
-    await fieldRestoreDialog(wrapper).find('.utrecht-button--primary-action').trigger('click')
+    await fieldRestoreDialog(wrapper).find('.rvo-button--primary').trigger('click')
     await flushPromises()
   }
 
@@ -1727,7 +1727,7 @@ describe('VersionHistory — field-level restore', () => {
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
     apiUpdate.mockClear()
-    await fieldRestoreDialog(wrapper).find('.utrecht-button--secondary-action').trigger('click')
+    await fieldRestoreDialog(wrapper).find('.rvo-button--secondary').trigger('click')
     await flushPromises()
     expect(apiUpdate).not.toHaveBeenCalled()
     expect((wrapper.vm as any).fieldRestoreModalOpen).toBe(false)
@@ -2188,7 +2188,7 @@ describe('VersionHistory — remaining branch coverage', () => {
       const dialog = wrapper
         .findAll('dialog.confirm-dialog')
         .find((d) => d.text().includes('Antwoord herstellen'))!
-      await dialog.find('.utrecht-button--primary-action').trigger('click')
+      await dialog.find('.rvo-button--primary').trigger('click')
       await flushPromises()
       const [, state] = apiUpdate.mock.calls[0]
       expect((state as any).answers['2.1'][0]['2.1.1'].value).toBe('oud')
