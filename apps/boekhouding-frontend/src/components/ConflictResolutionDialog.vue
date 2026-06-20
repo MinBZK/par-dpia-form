@@ -58,7 +58,7 @@ function handleResolve() {
         <tbody>
           <tr v-for="field in fields" :key="field.fieldId">
             <td class="conflict-field">{{ field.label }}</td>
-            <td class="conflict-value" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'mine' }">
+            <td class="conflict-value conflict-value--mine" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'mine' }">
               <label class="conflict-radio">
                 <input
                   type="radio"
@@ -69,7 +69,7 @@ function handleResolve() {
                 <span v-html="field.myFormatted"></span>
               </label>
             </td>
-            <td class="conflict-value" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'theirs' }">
+            <td class="conflict-value conflict-value--theirs" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'theirs' }">
               <label class="conflict-radio">
                 <input
                   type="radio"
