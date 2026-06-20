@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
+import type { Editor } from '@tiptap/core'
 import MarkdownEditor from '../../src/components/task/MarkdownEditor.vue'
 
 // jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
@@ -14,8 +15,6 @@ beforeAll(() => {
   }
 })
 
-// Mount the editor and wait for the TipTap/ProseMirror instance to initialise
-// (the .ProseMirror element appears once useEditor has mounted).
 async function mountEditor(props: Record<string, unknown>) {
   const wrapper = mount(MarkdownEditor, { props, attachTo: document.body })
   for (let i = 0; i < 30 && !wrapper.find('.ProseMirror').exists(); i++) {
@@ -24,13 +23,21 @@ async function mountEditor(props: Record<string, unknown>) {
   return wrapper
 }
 
+// The component exposes the editor; unwrap the ref regardless of how vm surfaces it.
+function getEditor(wrapper: ReturnType<typeof mount>): Editor {
+  const exposed = (wrapper.vm as unknown as { editor: Editor | { value: Editor } }).editor
+  return 'getMarkdown' in exposed ? exposed : exposed.value
+}
+
+function linkButton(wrapper: ReturnType<typeof mount>, label: string) {
+  return wrapper.findAll('.markdown-editor__linkbar button').find((b) => b.text() === label)!
+}
+
 describe('MarkdownEditor.vue (WYSIWYG)', () => {
   it('renders a contenteditable editor with a footer toolbar and formatted markdown', async () => {
     const wrapper = await mountEditor({ modelValue: '**vet** tekst', inputId: 'field-1', ariaLabelledby: 'label-1' })
-    // Toolbar lives in the always-visible footer.
     expect(wrapper.find('.markdown-editor__footer [role="toolbar"]').exists()).toBe(true)
     const pm = wrapper.find('.ProseMirror')
-    expect(pm.exists()).toBe(true)
     expect(pm.attributes('role')).toBe('textbox')
     expect(pm.attributes('aria-multiline')).toBe('true')
     expect(pm.attributes('id')).toBe('field-1')
@@ -47,9 +54,10 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('applies toolbar commands and emits markdown when the document changes', async () => {
+  it('applies every formatting command and emits markdown on a document change', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
-    for (const label of ['Vet', 'Cursief', 'Opsommingslijst', 'Genummerde lijst', 'Kop']) {
+    const labels = ['Vet', 'Cursief', 'Doorhalen', 'Kop', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code']
+    for (const label of labels) {
       await wrapper.find(`button[aria-label="${label}"]`).trigger('click')
       await flushPromises()
     }
@@ -59,27 +67,59 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('opens an inline link editor, applies a url, and clears on an empty submit', async () => {
+  it('adds a new link via the inline bar and clears it on an empty submit', async () => {
     const wrapper = await mountEditor({ modelValue: 'Linktekst' })
 
-    // Open the link bar via the toolbar.
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
+    // A new link shows "Toevoegen" and no open/remove actions.
+    expect(linkButton(wrapper, 'Toevoegen').exists()).toBe(true)
+    expect(wrapper.findAll('.markdown-editor__linkbar button').some((b) => b.text() === 'Openen')).toBe(false)
 
-    // Apply a url (setLink branch).
     await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
     await wrapper.find('.markdown-editor__linkform').trigger('submit')
     await flushPromises()
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
 
-    // Open again and submit empty (unsetLink branch).
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('') // clear → empty submit removes the link
     await wrapper.find('.markdown-editor__linkform').trigger('submit')
     await flushPromises()
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+    wrapper.unmount()
+  })
 
+  it('edits an existing link: pre-fills the url, opens it, and removes it', async () => {
+    const openSpy = vi.fn()
+    vi.stubGlobal('open', openSpy)
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://x.org">link</a></p>')
+    editor.commands.setTextSelection(2) // inside the link
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    expect((wrapper.find('.markdown-editor__linkinput').element as HTMLInputElement).value).toBe('https://x.org')
+    expect(linkButton(wrapper, 'Opslaan').exists()).toBe(true)
+
+    // Openen → opens in a new tab.
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(openSpy).toHaveBeenCalledWith('https://x.org', '_blank', 'noopener,noreferrer')
+
+    // With an empty url, Openen is a no-op.
+    await wrapper.find('.markdown-editor__linkinput').setValue('')
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(openSpy).toHaveBeenCalledTimes(1)
+
+    // Verwijderen removes the link and closes the bar.
+    await linkButton(wrapper, 'Verwijderen').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+
+    vi.unstubAllGlobals()
     wrapper.unmount()
   })
 
@@ -87,9 +127,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
-    // The "Annuleren" button is the non-submit button in the link form.
-    await wrapper.find('.markdown-editor__linkbar button[type="button"]').trigger('click')
+    await linkButton(wrapper, 'Annuleren').trigger('click')
     await flushPromises()
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
     wrapper.unmount()
@@ -101,12 +139,9 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     await flushPromises()
     const ownMarkdown = wrapper.emitted('update:modelValue')!.at(-1)![0] as string
 
-    // Echo of the editor's own output → value equals getMarkdown() → no re-set.
-    await wrapper.setProps({ modelValue: ownMarkdown })
+    await wrapper.setProps({ modelValue: ownMarkdown }) // echo → no re-set
     await flushPromises()
-
-    // Genuinely different external value → setContent re-syncs the editor.
-    await wrapper.setProps({ modelValue: '# Extern gewijzigd' })
+    await wrapper.setProps({ modelValue: '# Extern gewijzigd' }) // different → setContent
     await flushPromises()
     expect(wrapper.find('.ProseMirror').text()).toContain('Extern gewijzigd')
     wrapper.unmount()

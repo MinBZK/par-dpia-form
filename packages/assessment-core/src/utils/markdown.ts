@@ -66,8 +66,7 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
         parts.push({ text: processInlineTokens(t.tokens), italics: true })
         break
       case 'del':
-        // Strikethrough has no pdfmake equivalent — render as plain text
-        parts.push({ text: processInlineTokens(t.tokens) })
+        parts.push({ text: processInlineTokens(t.tokens), decoration: 'lineThrough' })
         break
       case 'codespan':
         parts.push({ text: t.text, background: '#e8e8e8' } as PdfText)

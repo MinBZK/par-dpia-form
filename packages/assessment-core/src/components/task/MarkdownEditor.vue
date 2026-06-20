@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import { Extension } from '@tiptap/core'
+import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
@@ -25,11 +25,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
-// Turn the typed markdown link syntax `[text](url)` into a real link.
-const MarkdownLinkRule = Extension.create({
-  name: 'markdownLinkRule',
+// Input rules: typed `[text](url)` becomes a link, and any `#`..`######` heading
+// shortcut becomes an H3 — H1/H2 are the document and section levels, so a
+// heading inside a field is always a sub-heading.
+const MarkdownInputRules = Extension.create({
+  name: 'markdownInputRules',
   addInputRules() {
-    return [markdownLinkInputRule(this.editor.schema.marks.link)]
+    return [
+      markdownLinkInputRule(this.editor.schema.marks.link),
+      textblockTypeInputRule({ find: /^#{1,6}\s$/, type: this.editor.schema.nodes.heading, getAttributes: { level: 3 } }),
+    ]
   },
 })
 
@@ -41,10 +46,11 @@ const editor = useEditor({
     StarterKit.configure({
       dropcursor: false,
       gapcursor: false,
+      heading: { levels: [3] },
       link: { openOnClick: false },
     }),
     Markdown,
-    MarkdownLinkRule,
+    MarkdownInputRules,
   ],
   editorProps: {
     attributes: {
@@ -73,8 +79,10 @@ watch(() => props.modelValue, (value) => {
 })
 
 // Inline link editor (replaces a window.prompt). Opening it shows a URL field in
-// the field's footer area; submitting applies the link to the current selection.
+// the field's footer area; when the cursor is on a link it is pre-filled and can
+// be opened or removed, otherwise it adds a new link to the selection.
 const linkEditorOpen = ref(false)
+const editingExistingLink = ref(false)
 const linkUrl = ref('')
 const linkInput = ref<HTMLInputElement | null>(null)
 
@@ -82,7 +90,9 @@ function openLinkEditor() {
   const instance = editor.value
   /* istanbul ignore if @preserve -- the toolbar is only interactive once mounted. */
   if (!instance) return
-  linkUrl.value = ''
+  const href = instance.getAttributes('link').href as string | undefined
+  editingExistingLink.value = Boolean(href)
+  linkUrl.value = href ?? ''
   linkEditorOpen.value = true
   nextTick(() => {
     /* istanbul ignore else @preserve -- the input renders whenever the link bar is open. */
@@ -105,6 +115,18 @@ function applyLink() {
   linkEditorOpen.value = false
 }
 
+function openLink() {
+  const url = linkUrl.value.trim()
+  if (url) window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+function removeLink() {
+  const instance = editor.value
+  /* istanbul ignore else @preserve -- the editor stays mounted while the link bar is open. */
+  if (instance) instance.chain().focus().extendMarkRange('link').unsetLink().run()
+  linkEditorOpen.value = false
+}
+
 function cancelLink() {
   linkEditorOpen.value = false
   const instance = editor.value
@@ -124,9 +146,10 @@ function handleCommand(command: MarkdownCommand) {
     case 'italic':
       instance.chain().focus().toggleItalic().run()
       break
+    case 'strikethrough':
+      instance.chain().focus().toggleStrike().run()
+      break
     case 'heading':
-      // H1/H2 are the document and section levels, so a heading inside a field
-      // is a sub-heading: H3.
       instance.chain().focus().toggleHeading({ level: 3 }).run()
       break
     case 'bulletList':
@@ -135,11 +158,20 @@ function handleCommand(command: MarkdownCommand) {
     case 'orderedList':
       instance.chain().focus().toggleOrderedList().run()
       break
+    case 'blockquote':
+      instance.chain().focus().toggleBlockquote().run()
+      break
+    case 'code':
+      instance.chain().focus().toggleCode().run()
+      break
     case 'link':
       openLinkEditor()
       break
   }
 }
+
+// Exposed for tests that need to drive the editor selection directly.
+defineExpose({ editor })
 </script>
 
 <template>
@@ -152,9 +184,13 @@ function handleCommand(command: MarkdownCommand) {
           class="utrecht-textbox utrecht-textbox--html-input markdown-editor__linkinput"
           placeholder="https://" @keydown.esc.prevent="cancelLink" />
         <button type="submit"
-          class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs">Toevoegen</button>
+          class="rvo-button rvo-button--primary rvo-button--size-xs">{{ editingExistingLink ? 'Opslaan' : 'Toevoegen' }}</button>
+        <button v-if="editingExistingLink" type="button" @click="openLink"
+          class="rvo-button rvo-button--secondary rvo-button--size-xs">Openen</button>
+        <button v-if="editingExistingLink" type="button" @click="removeLink"
+          class="rvo-button rvo-button--secondary rvo-button--size-xs">Verwijderen</button>
         <button type="button" @click="cancelLink"
-          class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-xs">Annuleren</button>
+          class="rvo-button rvo-button--secondary rvo-button--size-xs">Annuleren</button>
       </form>
     </div>
 

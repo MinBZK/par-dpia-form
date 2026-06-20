@@ -12,15 +12,22 @@ describe('MarkdownToolbar.vue', () => {
     const toolbar = wrapper.find('[role="toolbar"]')
     expect(toolbar.exists()).toBe(true)
     expect(toolbar.attributes('aria-label')).toBe('Tekstopmaak')
-    expect(wrapper.findAll('button')).toHaveLength(6)
-    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1'])
+    expect(wrapper.findAll('button')).toHaveLength(9)
+    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
     expect(wrapper.find('button').attributes('aria-label')).toBe('Vet')
   })
 
   it('emits the matching command when a button is clicked', async () => {
     const wrapper = mount(MarkdownToolbar)
-    await wrapper.findAll('button')[2].trigger('click') // heading
+    await wrapper.findAll('button')[3].trigger('click') // heading
     expect(wrapper.emitted('command')?.[0]).toEqual(['heading'])
+  })
+
+  it('prevents the default mousedown so the editor keeps focus and selection', () => {
+    const wrapper = mount(MarkdownToolbar)
+    const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    wrapper.find('button').element.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(true)
   })
 
   it('moves the tab stop with ArrowRight/ArrowLeft including wraparound', async () => {
@@ -34,7 +41,7 @@ describe('MarkdownToolbar.vue', () => {
     expect(tabindexes(wrapper)[0]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // 0 -> last (wrap)
-    expect(tabindexes(wrapper)[5]).toBe('0')
+    expect(tabindexes(wrapper)[8]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> 0 (wrap)
     expect(tabindexes(wrapper)[0]).toBe('0')
@@ -45,7 +52,7 @@ describe('MarkdownToolbar.vue', () => {
     const toolbar = wrapper.find('[role="toolbar"]')
 
     await toolbar.trigger('keydown', { key: 'End' })
-    expect(tabindexes(wrapper)[5]).toBe('0')
+    expect(tabindexes(wrapper)[8]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'Home' })
     expect(tabindexes(wrapper)[0]).toBe('0')
@@ -55,7 +62,7 @@ describe('MarkdownToolbar.vue', () => {
     const wrapper = mount(MarkdownToolbar)
     const toolbar = wrapper.find('[role="toolbar"]')
     await toolbar.trigger('keydown', { key: 'a' })
-    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1'])
+    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
   })
 
   it('updates the active control when a button receives focus', async () => {

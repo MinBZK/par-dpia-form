@@ -102,10 +102,10 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
     expect(italic).toBeDefined()
   })
 
-  it('handles del (strikethrough) as plain styled text', () => {
+  it('renders del (strikethrough) with a lineThrough decoration', () => {
     const content = markdownToPdfContent('~~struck~~') as any
     const delItem = textArray(content).find(
-      (t: any) => typeof t === 'object' && !t.bold && !t.italics && !t.background && Array.isArray(t.text),
+      (t: any) => typeof t === 'object' && t.decoration === 'lineThrough',
     )
     expect(delItem).toBeDefined()
   })

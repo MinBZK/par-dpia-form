@@ -4,7 +4,10 @@
 export type MarkdownCommand =
   | 'bold'
   | 'italic'
+  | 'strikethrough'
   | 'heading'
   | 'bulletList'
   | 'orderedList'
+  | 'blockquote'
+  | 'code'
   | 'link'

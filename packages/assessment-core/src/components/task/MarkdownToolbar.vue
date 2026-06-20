@@ -24,9 +24,12 @@ interface ToolbarButton {
 const buttons: ToolbarButton[] = [
   { command: 'bold', label: 'Vet', paths: ['M7 5h6a3.5 3.5 0 0 1 0 7h-6z', 'M13 12h1a3.5 3.5 0 0 1 0 7h-7v-7'] },
   { command: 'italic', label: 'Cursief', paths: ['M11 5h6', 'M7 19h6', 'M14 5l-4 14'] },
+  { command: 'strikethrough', label: 'Doorhalen', paths: ['M5 12h14', 'M16 6.5a4 2 0 0 0 -4 -1.5h-1a3.5 3.5 0 0 0 0 7', 'M8.5 17.5a4 2 0 0 0 4 1.5h1a3.5 3.5 0 0 0 .5 -6.95'] },
   { command: 'heading', label: 'Kop', paths: ['M7 5v14', 'M17 5v14', 'M7 12h10'] },
   { command: 'bulletList', label: 'Opsommingslijst', paths: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M5 6h.01', 'M5 12h.01', 'M5 18h.01'] },
   { command: 'orderedList', label: 'Genummerde lijst', paths: ['M11 6h9', 'M11 12h9', 'M12 18h8', 'M4 16a2 2 0 1 1 4 0c0 .591 -.602 1.46 -1 2l-3 3h4', 'M6 10v-6l-2 2'] },
+  { command: 'blockquote', label: 'Citaat', paths: ['M6 15h15', 'M21 19h-15', 'M15 11h6', 'M21 7h-6', 'M9 9h1a1 1 0 0 1 -1 1v-2.5a2 2 0 0 1 2 -2', 'M3 9h1a1 1 0 0 1 -1 1v-2.5a2 2 0 0 1 2 -2'] },
+  { command: 'code', label: 'Code', paths: ['M7 8l-4 4l4 4', 'M17 8l4 4l-4 4', 'M14 4l-4 16'] },
   { command: 'link', label: 'Link', paths: ['M9 15l6 -6', 'M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464', 'M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463'] },
 ]
 
@@ -56,6 +59,7 @@ function onKeydown(event: KeyboardEvent) {
       class="markdown-toolbar__button"
       :tabindex="index === activeIndex ? 0 : -1"
       :aria-label="button.label" :title="button.label"
+      @mousedown.prevent
       @click="emit('command', button.command)"
       @focus="activeIndex = index">
       <svg class="markdown-toolbar__icon" viewBox="0 0 24 24" width="18" height="18"
