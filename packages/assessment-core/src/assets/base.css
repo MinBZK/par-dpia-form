@@ -292,14 +292,15 @@
 }
 
 /* RVO 4.20 stripte de standaard onder-marge van koppen (utrecht-heading-*),
-   waardoor koppen tegen de tekst eronder kleven. Herstel de 4.8-spacing waar de
-   app-layout op is gebouwd; rvo-heading--no-margins (nu door RVO verwijderd)
-   blijft de marge nullen waar dat de bedoeling is. */
-.rvo-theme .utrecht-heading-1,
-.rvo-theme .utrecht-heading-2 {
+   waardoor koppen tegen de tekst eronder kleven. Herstel de 4.8-spacing, maar
+   respecteer expliciete margin-utilities (rvo-margin*, rvo-heading--no-margins)
+   die de marge bewust op 0 zetten — bv. op card-titels die hun ruimte van de
+   card-layout krijgen. */
+.rvo-theme .utrecht-heading-1:not([class*="rvo-margin"]),
+.rvo-theme .utrecht-heading-2:not([class*="rvo-margin"]) {
   margin-block-end: 1rem;
 }
-.rvo-theme .utrecht-heading-3 {
+.rvo-theme .utrecht-heading-3:not([class*="rvo-margin"]):not(.rvo-heading--no-margins) {
   margin-block-end: 0.75rem;
 }
 .rvo-theme .rvo-heading--no-margins {
