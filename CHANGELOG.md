@@ -13,6 +13,12 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* Het standalone formulier op `/zonder-account/` toonde in productie
+  "ontwikkel" met een commit in plaats van de release-versie; het laat nu
+  dezelfde versie zien als de statuspagina.
+
 ## [2026.6.20] - 2026-06-20
 
 ### Toegevoegd

@@ -4,6 +4,16 @@ import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { viteSingleFile } from 'vite-plugin-singlefile'
+import { formatBuildVersion } from './src/version'
+
+// Resolve the full display version at build time so it lands in the single-file
+// bundle as one string literal. The production overlay (containers/frontend/
+// overlay.Dockerfile) can then sed-replace the baked "ontwikkel (commit …)"
+// marker with the CalVer tag, since the tag is unknown when this image is built.
+const appVersion = formatBuildVersion(
+  process.env.RELEASE_TAG ?? 'dev',
+  (process.env.GIT_SHA ?? 'dev').slice(0, 7),
+)
 
 /** Inline favicon as data-URI in built HTML so the output is truly a single file. */
 function inlineFavicon(): Plugin {
@@ -49,8 +59,7 @@ export default defineConfig(({ mode }) => ({
   ],
   base: '/',
   define: {
-    __APP_TAG__: JSON.stringify(process.env.RELEASE_TAG ?? 'dev'),
-    __APP_COMMIT__: JSON.stringify((process.env.GIT_SHA ?? 'dev').slice(0, 7)),
+    __APP_VERSION__: JSON.stringify(appVersion),
   },
   resolve: {
     alias: {
