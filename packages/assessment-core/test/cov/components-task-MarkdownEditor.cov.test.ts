@@ -56,7 +56,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
 
   it('applies every formatting command and emits markdown on a document change', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
-    const labels = ['Vet', 'Cursief', 'Doorhalen', 'Kop', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code']
+    const labels = ['Vet', 'Cursief', 'Doorhalen', 'Kop', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code', 'Scheidingslijn']
     for (const label of labels) {
       await wrapper.find(`button[aria-label="${label}"]`).trigger('click')
       await flushPromises()

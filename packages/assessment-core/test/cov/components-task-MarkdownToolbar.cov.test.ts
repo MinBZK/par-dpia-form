@@ -12,8 +12,8 @@ describe('MarkdownToolbar.vue', () => {
     const toolbar = wrapper.find('[role="toolbar"]')
     expect(toolbar.exists()).toBe(true)
     expect(toolbar.attributes('aria-label')).toBe('Tekstopmaak')
-    expect(wrapper.findAll('button')).toHaveLength(9)
-    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
+    expect(wrapper.findAll('button')).toHaveLength(10)
+    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
     expect(wrapper.find('button').attributes('aria-label')).toBe('Vet')
   })
 
@@ -41,7 +41,7 @@ describe('MarkdownToolbar.vue', () => {
     expect(tabindexes(wrapper)[0]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // 0 -> last (wrap)
-    expect(tabindexes(wrapper)[8]).toBe('0')
+    expect(tabindexes(wrapper)[9]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> 0 (wrap)
     expect(tabindexes(wrapper)[0]).toBe('0')
@@ -52,7 +52,7 @@ describe('MarkdownToolbar.vue', () => {
     const toolbar = wrapper.find('[role="toolbar"]')
 
     await toolbar.trigger('keydown', { key: 'End' })
-    expect(tabindexes(wrapper)[8]).toBe('0')
+    expect(tabindexes(wrapper)[9]).toBe('0')
 
     await toolbar.trigger('keydown', { key: 'Home' })
     expect(tabindexes(wrapper)[0]).toBe('0')
@@ -62,7 +62,7 @@ describe('MarkdownToolbar.vue', () => {
     const wrapper = mount(MarkdownToolbar)
     const toolbar = wrapper.find('[role="toolbar"]')
     await toolbar.trigger('keydown', { key: 'a' })
-    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
+    expect(tabindexes(wrapper)).toEqual(['0', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1'])
   })
 
   it('updates the active control when a button receives focus', async () => {

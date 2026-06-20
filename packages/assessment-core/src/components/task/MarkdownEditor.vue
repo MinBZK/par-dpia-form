@@ -164,6 +164,9 @@ function handleCommand(command: MarkdownCommand) {
     case 'code':
       instance.chain().focus().toggleCode().run()
       break
+    case 'divider':
+      instance.chain().focus().setHorizontalRule().run()
+      break
     case 'link':
       openLinkEditor()
       break
