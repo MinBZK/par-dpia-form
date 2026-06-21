@@ -4,7 +4,7 @@ import { DPIA, FormType } from '../models/dpia'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '../utils/taskUtils'
-import { coarseVersion, isPrerelease } from '../versioning/semver'
+import { canonicalVersion } from '../versioning/semver'
 import { namespaceFromUrn } from '../utils/importDetect'
 
 // Shared "Afronding" description for the DPIA and IAMA conclusion steps.
@@ -20,8 +20,9 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
   const isInitialized = ref(false)
   const hasErrors = ref(false)
   const errorMessage = ref<string | null>(null)
-  // Definitions keyed by their full canonical urn (e.g. 'urn:nl:dpia:3.1.0-concept.2'),
-  // so a specific version can be resolved independent of the active-per-type view.
+  // Definitions keyed by their canonical urn (official coarse MAJOR.MINOR, concept full —
+  // the same form getUrn stamps), so getByUrn(getUrn(ns)) resolves and a specific version
+  // can be looked up independent of the active-per-type view.
   const registry = ref(new Map<string, ValidatedDefinition>())
 
   // Decode a raw definition and append its conclusion task. Returns the validated
@@ -77,7 +78,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     } else {
       validatedPreScan.value = validData
     }
-    registry.value.set(`${validData.urn}:${validData.version}`, validData)
+    registry.value.set(`${validData.urn}:${canonicalVersion(validData.version)}`, validData)
     return true
   }
 
@@ -108,11 +109,11 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     }
     const validData = validateAndAugment(jsonData, schemaType)
     if (!validData) return false
-    registry.value.set(`${validData.urn}:${validData.version}`, validData)
+    registry.value.set(`${validData.urn}:${canonicalVersion(validData.version)}`, validData)
     return true
   }
 
-  // Look up a registered definition by its full canonical urn (urn + full version).
+  // Look up a registered definition by its canonical urn (the form getUrn stamps).
   function getByUrn(urn: string): ValidatedDefinition | null {
     return registry.value.get(urn) ?? null
   }
@@ -131,10 +132,9 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
   function getUrn(namespace: FormType): string {
     const schema = getSchema(namespace)
     if (!schema) throw new Error(`Schema not loaded for namespace: ${namespace}`)
-    // D1: an official version is stamped coarse (MAJOR.MINOR) since its patches are
-    // compatible; a concept (prerelease) version keeps its full identifier so the exact
-    // in-development iteration stays visible and pinnable.
-    return `${schema.urn}:${isPrerelease(schema.version) ? schema.version : coarseVersion(schema.version)}`
+    // D1: official -> coarse MAJOR.MINOR, concept -> full identifier. Same canonical form
+    // as the registry key, so getByUrn(getUrn(ns)) round-trips.
+    return `${schema.urn}:${canonicalVersion(schema.version)}`
   }
 
   return {

@@ -287,5 +287,33 @@ describe('useSchemaStore', () => {
       expect(store.getByUrn('urn:nl:dpia:3.0')).not.toBeNull()
       expect(store.getByUrn('urn:nl:dpia:3.1.0-concept.1')).not.toBeNull()
     })
+
+    it('keys an official version by its coarse canonical urn so getByUrn(getUrn(...)) round-trips', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+      // 3.1.0 official is stamped AND keyed coarse as 3.1 (not 3.1.0).
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.1')
+      expect(store.getByUrn(store.getUrn(FormType.DPIA))).not.toBeNull()
+      expect(store.registeredUrns()).toContain('urn:nl:dpia:3.1')
+      expect(store.getByUrn('urn:nl:dpia:3.1.0')).toBeNull()
+    })
+
+    it('register does not touch the active-per-type view', () => {
+      const store = useSchemaStore()
+      expect(store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0-concept.2' }))).toBe(true)
+      expect(store.getByUrn('urn:nl:dpia:3.1.0-concept.2')).not.toBeNull()
+      expect(store.getSchema(FormType.DPIA)).toBeNull()
+    })
+
+    it('register is last-write-wins for the same canonical urn (no duplicate keys)', () => {
+      const store = useSchemaStore()
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }))
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }))
+      expect(store.registeredUrns().filter(u => u === 'urn:nl:dpia:3.0')).toHaveLength(1)
+    })
   })
 })

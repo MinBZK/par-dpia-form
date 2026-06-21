@@ -39,6 +39,14 @@ export function coarseVersion(version: string): string {
   return `${parts[0]}.${parts[1] ?? '0'}`
 }
 
+// The canonical version used both in the stamped urn (getUrn) and as the schemaStore
+// registry key: an official version is coarsened to MAJOR.MINOR (its patches are
+// compatible); a concept keeps its full prerelease identifier (D1). Deriving both sites
+// from this one function guarantees getByUrn(getUrn(...)) round-trips.
+export function canonicalVersion(version: string): string {
+  return isPrerelease(version) ? version : coarseVersion(version)
+}
+
 function splitVersion(version: string): { main: number[]; pre: string[] | null } {
   const dash = version.indexOf('-')
   const mainStr = dash === -1 ? version : version.slice(0, dash)
@@ -74,7 +82,8 @@ function comparePre(a: string[], b: string[]): number {
 }
 
 // Compare two version strings (-1 | 0 | 1). A missing patch is treated as 0 and a
-// prerelease ranks below its corresponding release.
+// prerelease ranks below its corresponding release. Main segments are assumed numeric
+// (guaranteed by the version schemas); non-numeric input yields undefined ordering.
 export function compareVersions(a: string, b: string): number {
   const va = splitVersion(a)
   const vb = splitVersion(b)
