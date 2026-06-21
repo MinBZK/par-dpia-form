@@ -174,4 +174,71 @@ describe('POST /projects/:projectId/assessments', () => {
     expect(res.statusCode).toBe(201)
     expect(res.json().cachedState.metadata.urn).toBe('urn:nl:dpia:2.0')
   })
+
+  it('records the default pinned definitionVersion when none is supplied', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { assessmentType: 'dpia' },
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().definitionVersion).toBe('3.0')
+  })
+
+  it('records an explicit pinned definitionVersion and stamps a concept urn precisely', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        definitionVersion: '3.1.0-concept.2',
+        state: { answers: {} },
+      },
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().definitionVersion).toBe('3.1.0-concept.2')
+    // D1: a concept pin yields a precise metadata.urn.
+    expect(res.json().cachedState.metadata.urn).toBe('urn:nl:dpia:3.1.0-concept.2')
+  })
+
+  it('rejects a malformed definitionVersion at the route, even without a state body', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    // No state -> validateState is skipped, so the route schema must guard the column.
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { assessmentType: 'dpia', definitionVersion: 'kapot!' },
+    })
+
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('rejects a 3-segment official definitionVersion (official must stay MAJOR.MINOR)', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    // '3.1.0' would compose an out-of-grammar metadata.urn; the route rejects it so the
+    // pin can never diverge from what the output schema accepts.
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { assessmentType: 'dpia', definitionVersion: '3.1.0' },
+    })
+
+    expect(res.statusCode).toBe(400)
+  })
 })

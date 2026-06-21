@@ -17,6 +17,7 @@ type AssessmentAuthRow = {
   assessmentType: typeof assessmentInstances.$inferSelect.assessmentType
   name: string
   currentVersion: number
+  definitionVersion: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -52,6 +53,7 @@ export async function requireAssessmentAccess(
     assessmentType: assessmentInstances.assessmentType,
     name: assessmentInstances.name,
     currentVersion: assessmentInstances.currentVersion,
+    definitionVersion: assessmentInstances.definitionVersion,
     createdAt: assessmentInstances.createdAt,
     updatedAt: assessmentInstances.updatedAt,
     memberRole: projectMembers.role,

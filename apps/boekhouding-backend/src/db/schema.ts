@@ -38,6 +38,12 @@ export const assessmentInstances = pgTable('assessment_instances', {
   name: text('name').notNull(),
   createdBy: uuid('created_by').notNull().references(() => users.id),
   currentVersion: integer('current_version').notNull().default(1),
+  // Pinned content version of the questionnaire (precise, e.g. '3.0' or
+  // '3.1.0-concept.2'). Distinct from currentVersion (the per-save checkpoint counter).
+  // Nullable: only pre-pin rows are NULL — every row created since this column exists is
+  // populated. A consumer needing the version of a NULL row derives it from
+  // cachedState.metadata.urn (resolve-by-pin, follow-up; no read-path fallback yet).
+  definitionVersion: text('definition_version'),
   cachedState: jsonb('cached_state'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
