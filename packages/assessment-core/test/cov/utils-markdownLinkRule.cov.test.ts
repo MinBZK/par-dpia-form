@@ -66,9 +66,8 @@ describe('markdownLinkRule', () => {
 })
 
 describe('openLinkOnModifierClick', () => {
-  it('opens a focused tab and prevents the default on Cmd/Ctrl+click of a link', () => {
-    const focusSpy = vi.fn()
-    const openSpy = vi.fn(() => ({ focus: focusSpy }))
+  it('opens a noopener tab and prevents the default on Cmd/Ctrl+click of an http(s) link', () => {
+    const openSpy = vi.fn()
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
@@ -76,25 +75,25 @@ describe('openLinkOnModifierClick', () => {
     const event = clickEvent(anchor, { metaKey: true })
     expect(openLinkOnModifierClick(event)).toBe(true)
     expect(event.defaultPrevented).toBe(true)
-    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank')
-    expect(focusSpy).toHaveBeenCalled()
+    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
 
     expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true) // Ctrl variant
     vi.unstubAllGlobals()
   })
 
-  it('does nothing on a plain click, a non-link target, or no target', () => {
-    const openSpy = vi.fn(() => null) // window.open may return null; the optional focus must be safe
+  it('does nothing on a plain click, a non-link target, no target, or a non-http scheme', () => {
+    const openSpy = vi.fn()
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
+    const jsAnchor = document.createElement('a')
+    jsAnchor.setAttribute('href', 'javascript:alert(1)') // scheme blocked by the allowlist
 
     expect(openLinkOnModifierClick(clickEvent(anchor))).toBe(false) // no modifier
     expect(openLinkOnModifierClick(clickEvent(document.createElement('span'), { metaKey: true }))).toBe(false) // not a link
     expect(openLinkOnModifierClick(clickEvent(null, { metaKey: true }))).toBe(false) // no target
+    expect(openLinkOnModifierClick(clickEvent(jsAnchor, { metaKey: true }))).toBe(false) // disallowed scheme
     expect(openSpy).not.toHaveBeenCalled()
-
-    expect(openLinkOnModifierClick(clickEvent(anchor, { metaKey: true }))).toBe(true) // open() → null, focus skipped
     vi.unstubAllGlobals()
   })
 })

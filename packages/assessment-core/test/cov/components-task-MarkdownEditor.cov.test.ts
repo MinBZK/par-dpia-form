@@ -136,14 +136,14 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
   it('opens a link in a new tab on Cmd/Ctrl+click via the editor handleClick', async () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
-    const openSpy = vi.fn(() => ({ focus: vi.fn() }))
+    const openSpy = vi.fn()
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
     const event = new MouseEvent('click', { cancelable: true, metaKey: true })
     Object.defineProperty(event, 'target', { value: anchor })
     editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
-    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank')
+    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
     vi.unstubAllGlobals()
     wrapper.unmount()
   })
