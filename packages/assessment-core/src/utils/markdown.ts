@@ -30,7 +30,7 @@ const safeMarked = new Marked({
 
 /**
  * Parse markdown to sanitized HTML for preview rendering.
- * Uses an allowlist renderer: only safe tags (p, strong, em, ul, ol, li, h1-h3,
+ * Uses an allowlist renderer: only safe tags (p, strong, em, ul, ol, li, h1-h6,
  * code, pre, blockquote, hr, br, del, a) are produced. Raw HTML and images
  * are stripped. Links open in a new tab.
  */
@@ -109,7 +109,9 @@ function processBlockTokens(tokens: Token[]): Content[] {
         content.push({ text: processInlineTokens(t.tokens) as any, margin: [0, 0, 0, 5] })
         break
       case 'heading': {
-        const fontSize = Math.max(10, 16 - (t.depth - 1) * 2)
+        // Distinct, monotonically shrinking sizes for every level so H2..H6 stay
+        // visually distinguishable in the PDF (floored at 9pt for readability).
+        const fontSize = Math.max(9, 16 - (t.depth - 1) * 1.5)
         content.push({ text: processInlineTokens(t.tokens) as any, bold: true, fontSize, margin: [0, 5, 0, 3] })
         break
       }

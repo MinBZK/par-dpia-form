@@ -185,9 +185,18 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(content.margin).toEqual([0, 5, 0, 3])
   })
 
-  it('clamps heading font size to a minimum of 10 for deep headings', () => {
+  it('gives each heading level a distinct, shrinking font size', () => {
+    const sizeOf = (md: string) => (markdownToPdfContent(md) as any).fontSize
+    // H2..H4 each step down by 1.5pt; the sequence stays strictly decreasing.
+    expect(sizeOf('## Two')).toBe(14.5)
+    expect(sizeOf('### Three')).toBe(13)
+    expect(sizeOf('#### Four')).toBe(11.5)
+    expect(sizeOf('##### Five')).toBe(10)
+  })
+
+  it('clamps heading font size to a minimum of 9 for the deepest heading', () => {
     const content = markdownToPdfContent('###### Deep') as any
-    expect(content.fontSize).toBe(10)
+    expect(content.fontSize).toBe(9)
   })
 
   it('handles an ordered list (ordered branch)', () => {

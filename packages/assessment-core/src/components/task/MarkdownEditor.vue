@@ -21,28 +21,37 @@ const props = defineProps<{
   modelValue: string
   inputId?: string
   ariaLabelledby?: string
-  // The single heading level available inside the field. A field sits below the
-  // document title (H1) and the section/question (H2), so its headings start at
-  // H3 by default. A different host (e.g. a project description below only its
-  // title) can start them at H2. There is intentionally one level: an answer
-  // needs a sub-heading, not a multi-level outline.
+  // The top heading level available inside the field. A field sits below the
+  // document/section structure, so its first heading defaults to H2; a deeper
+  // host can raise it (e.g. H3). Levels from here down to H6 are all available,
+  // so an answer can have a small sub-heading hierarchy.
   baseHeadingLevel?: number
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 // 1..6 matches TipTap's Level union without importing the heading extension type.
-const headingLevel = (props.baseHeadingLevel ?? 3) as 1 | 2 | 3 | 4 | 5 | 6
+type Level = 1 | 2 | 3 | 4 | 5 | 6
+// Clamp to a valid HTML heading level. An out-of-range or fractional prop would
+// otherwise build an invalid schema and emit <hundefined>/<h0> tags.
+const baseLevel = Math.min(Math.max(Math.round(props.baseHeadingLevel ?? 2), 1), 6) as Level
+// Every level from the base down to H6, so deeper markdown (## , ### ...) and
+// pasted content keep their depth instead of collapsing onto one level.
+const headingLevels = Array.from({ length: 6 - baseLevel + 1 }, (_, i) => baseLevel + i) as Level[]
 
-// Input rules: typed `[text](url)` becomes a link, and any `#`..`######` heading
-// shortcut collapses to the single field heading level — the field exposes one
-// heading, so the hash count is forgiven rather than mapped to distinct levels.
+// Input rules: typed `[text](url)` becomes a link, and a `#`..`######` shortcut
+// maps relatively onto the field's levels — one hash is the base level, each extra
+// hash one level deeper, capped at H6 (a field never has H1).
 const MarkdownInputRules = Extension.create({
   name: 'markdownInputRules',
   addInputRules() {
     return [
       markdownLinkInputRule(this.editor.schema.marks.link),
-      textblockTypeInputRule({ find: /^#{1,6}\s$/, type: this.editor.schema.nodes.heading, getAttributes: { level: headingLevel } }),
+      textblockTypeInputRule({
+        find: /^(#{1,6})\s$/,
+        type: this.editor.schema.nodes.heading,
+        getAttributes: (match) => ({ level: Math.min(baseLevel - 1 + match[1].length, 6) }),
+      }),
     ]
   },
 })
@@ -55,7 +64,7 @@ const editor = useEditor({
     StarterKit.configure({
       dropcursor: false,
       gapcursor: false,
-      heading: { levels: [headingLevel] },
+      heading: { levels: headingLevels },
       link: { openOnClick: false },
     }),
     Markdown,
@@ -75,8 +84,29 @@ const editor = useEditor({
   },
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getMarkdown())
+    syncActiveHeading()
   },
+  onSelectionUpdate: syncActiveHeading,
 })
+
+// The level dropdown reflects the block at the cursor. Tracked explicitly off the
+// editor's own events (selection + content) rather than relying on render-time
+// reactivity, so it stays correct as the cursor moves.
+const activeHeadingLevel = ref<number | null>(null)
+function syncActiveHeading() {
+  const instance = editor.value
+  /* istanbul ignore if @preserve -- only invoked from the editor's own events, after creation. */
+  if (!instance) return
+  if (!instance.isActive('heading')) {
+    activeHeadingLevel.value = null
+    return
+  }
+  // Clamp into the field's range so a legacy out-of-range heading (e.g. a stored
+  // '# ' H1, which the editor renders at the base level) still maps to a real
+  // dropdown option instead of silently showing "Gewone tekst".
+  const level = instance.getAttributes('heading').level as number
+  activeHeadingLevel.value = Math.min(Math.max(level, baseLevel), 6)
+}
 
 // Apply external value changes (e.g. reference prefill) without clobbering what
 // the user is typing — only re-set when the incoming markdown actually differs.
@@ -161,9 +191,6 @@ function handleCommand(command: MarkdownCommand) {
     case 'strikethrough':
       instance.chain().focus().toggleStrike().run()
       break
-    case 'heading':
-      instance.chain().focus().toggleHeading({ level: headingLevel }).run()
-      break
     case 'bulletList':
       instance.chain().focus().toggleBulletList().run()
       break
@@ -182,6 +209,19 @@ function handleCommand(command: MarkdownCommand) {
     case 'link':
       openLinkEditor()
       break
+  }
+}
+
+// Apply a heading level from the toolbar dropdown; null turns the block back into
+// a paragraph.
+function setHeading(level: number | null) {
+  const instance = editor.value
+  /* istanbul ignore if @preserve -- the toolbar is only interactive once mounted. */
+  if (!instance) return
+  if (level === null) {
+    instance.chain().focus().setParagraph().run()
+  } else {
+    instance.chain().focus().setHeading({ level: level as Level }).run()
   }
 }
 
@@ -210,7 +250,8 @@ defineExpose({ editor })
     </div>
 
     <div class="markdown-editor__footer">
-      <MarkdownToolbar @command="handleCommand" />
+      <MarkdownToolbar :heading-levels="headingLevels" :active-heading-level="activeHeadingLevel"
+        @command="handleCommand" @heading="setHeading" />
     </div>
   </div>
 </template>

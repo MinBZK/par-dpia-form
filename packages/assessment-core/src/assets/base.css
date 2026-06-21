@@ -206,6 +206,16 @@
   display: block;
 }
 
+/* The heading-level dropdown sits in the footer toolbar, so keep it compact and
+   aligned with the icon buttons rather than at the full form-field height. */
+.rvo-theme .markdown-toolbar__heading {
+  height: 1.75rem;
+  min-height: 0;
+  padding-block: 0;
+  font-size: 0.8rem;
+  margin-inline-end: 0.2rem;
+}
+
 /* WYSIWYG editor surface (Mattermost-style): one bordered shell with the
    contenteditable area on top and the formatting toolbar as an always-visible
    footer. Base ProseMirror rules are inlined here (no runtime <style>) so the
@@ -272,12 +282,14 @@
   margin-block: 0.7em 0.1em;
 }
 
-.rvo-theme .markdown-editor .ProseMirror h1 { font-size: 1.35rem; }
-.rvo-theme .markdown-editor .ProseMirror h2 { font-size: 1.2rem; }
-.rvo-theme .markdown-editor .ProseMirror h3 { font-size: 1.08rem; }
-.rvo-theme .markdown-editor .ProseMirror h4 { font-size: 1rem; }
-.rvo-theme .markdown-editor .ProseMirror h5,
-.rvo-theme .markdown-editor .ProseMirror h6 { font-size: 0.95rem; }
+/* Distinct, shrinking sizes for every level so a multi-level sub-heading
+   hierarchy (H2..H6) stays visually distinguishable inside the field. */
+.rvo-theme .markdown-editor .ProseMirror h1 { font-size: 1.45rem; }
+.rvo-theme .markdown-editor .ProseMirror h2 { font-size: 1.3rem; }
+.rvo-theme .markdown-editor .ProseMirror h3 { font-size: 1.17rem; }
+.rvo-theme .markdown-editor .ProseMirror h4 { font-size: 1.05rem; }
+.rvo-theme .markdown-editor .ProseMirror h5 { font-size: 0.95rem; }
+.rvo-theme .markdown-editor .ProseMirror h6 { font-size: 0.88rem; color: var(--rvo-color-grijs-700, #555); }
 
 .rvo-theme .markdown-editor .ProseMirror p {
   margin-block: 0.25rem;
