@@ -21,19 +21,28 @@ const props = defineProps<{
   modelValue: string
   inputId?: string
   ariaLabelledby?: string
+  // The single heading level available inside the field. A field sits below the
+  // document title (H1) and the section/question (H2), so its headings start at
+  // H3 by default. A different host (e.g. a project description below only its
+  // title) can start them at H2. There is intentionally one level: an answer
+  // needs a sub-heading, not a multi-level outline.
+  baseHeadingLevel?: number
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
+// 1..6 matches TipTap's Level union without importing the heading extension type.
+const headingLevel = (props.baseHeadingLevel ?? 3) as 1 | 2 | 3 | 4 | 5 | 6
+
 // Input rules: typed `[text](url)` becomes a link, and any `#`..`######` heading
-// shortcut becomes an H3 — H1/H2 are the document and section levels, so a
-// heading inside a field is always a sub-heading.
+// shortcut collapses to the single field heading level — the field exposes one
+// heading, so the hash count is forgiven rather than mapped to distinct levels.
 const MarkdownInputRules = Extension.create({
   name: 'markdownInputRules',
   addInputRules() {
     return [
       markdownLinkInputRule(this.editor.schema.marks.link),
-      textblockTypeInputRule({ find: /^#{1,6}\s$/, type: this.editor.schema.nodes.heading, getAttributes: { level: 3 } }),
+      textblockTypeInputRule({ find: /^#{1,6}\s$/, type: this.editor.schema.nodes.heading, getAttributes: { level: headingLevel } }),
     ]
   },
 })
@@ -46,7 +55,7 @@ const editor = useEditor({
     StarterKit.configure({
       dropcursor: false,
       gapcursor: false,
-      heading: { levels: [3] },
+      heading: { levels: [headingLevel] },
       link: { openOnClick: false },
     }),
     Markdown,
@@ -153,7 +162,7 @@ function handleCommand(command: MarkdownCommand) {
       instance.chain().focus().toggleStrike().run()
       break
     case 'heading':
-      instance.chain().focus().toggleHeading({ level: 3 }).run()
+      instance.chain().focus().toggleHeading({ level: headingLevel }).run()
       break
     case 'bulletList':
       instance.chain().focus().toggleBulletList().run()

@@ -148,6 +148,14 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
+  it('uses the configured baseHeadingLevel for the Kop command', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Titel', baseHeadingLevel: 2 })
+    await wrapper.find('button[aria-label="Kop"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.ProseMirror').html()).toContain('<h2')
+    wrapper.unmount()
+  })
+
   it('re-syncs on an external value change and ignores an echo of its own output', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
     await wrapper.find('button[aria-label="Kop"]').trigger('click')
