@@ -4,6 +4,7 @@ import { DPIA, FormType } from '../models/dpia'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '../utils/taskUtils'
+import { coarseVersion } from '../versioning/semver'
 
 // Shared "Afronding" description for the DPIA and IAMA conclusion steps.
 const AFRONDING_DESCRIPTION =
@@ -98,7 +99,9 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
   function getUrn(namespace: FormType): string {
     const schema = getSchema(namespace)
     if (!schema) throw new Error(`Schema not loaded for namespace: ${namespace}`)
-    return `${schema.urn}:${schema.version}`
+    // Coarsen to MAJOR.MINOR: the output schema constrains metadata.urn to that form,
+    // so a 3-segment or -concept source version must not leak into the stamped urn.
+    return `${schema.urn}:${coarseVersion(schema.version)}`
   }
 
   return {
