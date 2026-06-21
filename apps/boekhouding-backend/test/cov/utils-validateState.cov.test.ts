@@ -115,4 +115,22 @@ describe('validateState', () => {
     const result = validateState(validState({ '0.1': answer({ data: 'javascript:alert(1)' }) }))
     expect(result.valid).toBe(false)
   })
+
+  it('accepts a concept (prerelease) urn — D1 stamps concept versions precise', () => {
+    const result = validateState({
+      $schema: SCHEMA_URL,
+      metadata: { urn: 'urn:nl:dpia:3.1.0-concept.2', createdAt: '2026-01-01T00:00:00.000Z' },
+      answers: {},
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it('rejects a 3-segment urn without a concept suffix (official stays MAJOR.MINOR)', () => {
+    const result = validateState({
+      $schema: SCHEMA_URL,
+      metadata: { urn: 'urn:nl:dpia:3.1.0', createdAt: '2026-01-01T00:00:00.000Z' },
+      answers: {},
+    })
+    expect(result.valid).toBe(false)
+  })
 })

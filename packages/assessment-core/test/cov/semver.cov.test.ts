@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseUrn, isPrerelease, coarseVersion, compareVersions } from '../../src/versioning/semver'
+import { parseUrn, isPrerelease, coarseVersion, canonicalVersion, compareVersions } from '../../src/versioning/semver'
 
 describe('parseUrn', () => {
   it('parses an official versioned urn into type/version/channel', () => {
@@ -64,6 +64,17 @@ describe('coarseVersion', () => {
 
   it('drops a prerelease suffix and patch', () => {
     expect(coarseVersion('3.1.0-concept.2')).toBe('3.1')
+  })
+})
+
+describe('canonicalVersion', () => {
+  it('coarsens an official version to MAJOR.MINOR', () => {
+    expect(canonicalVersion('3.0')).toBe('3.0')
+    expect(canonicalVersion('3.1.0')).toBe('3.1')
+  })
+
+  it('keeps a concept version in full', () => {
+    expect(canonicalVersion('3.1.0-concept.2')).toBe('3.1.0-concept.2')
   })
 })
 
