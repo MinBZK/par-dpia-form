@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeCreateState, ASSESSMENT_TYPE_URNS } from '../../src/utils/normalizeCreateState.js'
+import { normalizeCreateState, ASSESSMENT_TYPE_URNS, DEFAULT_DEFINITION_VERSIONS } from '../../src/utils/normalizeCreateState.js'
 import { OUTPUT_SCHEMA_URL } from '../../src/utils/validateState.js'
 
 const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/
@@ -11,6 +11,12 @@ describe('ASSESSMENT_TYPE_URNS', () => {
       dpia: 'urn:nl:dpia:3.0',
       iama: 'urn:nl:iama:2.0',
     })
+  })
+})
+
+describe('DEFAULT_DEFINITION_VERSIONS', () => {
+  it('carries the latest-official version per type', () => {
+    expect(DEFAULT_DEFINITION_VERSIONS).toEqual({ prescan: '2.0', dpia: '3.0', iama: '2.0' })
   })
 })
 
@@ -27,6 +33,16 @@ describe('normalizeCreateState', () => {
   it('derives the URN from the assessment type', () => {
     expect((normalizeCreateState({}, 'prescan').metadata as Record<string, unknown>).urn).toBe('urn:nl:prescan:2.0')
     expect((normalizeCreateState({}, 'iama').metadata as Record<string, unknown>).urn).toBe('urn:nl:iama:2.0')
+  })
+
+  it('composes the urn from a provided definitionVersion (concept stays precise)', () => {
+    const result = normalizeCreateState({}, 'dpia', '3.1.0-concept.2')
+    expect((result.metadata as Record<string, unknown>).urn).toBe('urn:nl:dpia:3.1.0-concept.2')
+  })
+
+  it('composes a coarse official urn from a MAJOR.MINOR definitionVersion', () => {
+    const result = normalizeCreateState({}, 'iama', '2.1')
+    expect((result.metadata as Record<string, unknown>).urn).toBe('urn:nl:iama:2.1')
   })
 
   it('preserves values the client did provide and never overwrites them', () => {

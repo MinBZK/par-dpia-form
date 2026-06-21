@@ -14,6 +14,14 @@ export const ASSESSMENT_TYPE_URNS = {
 
 export type AssessmentType = keyof typeof ASSESSMENT_TYPE_URNS
 
+// Default pinned version per type (the version part of ASSESSMENT_TYPE_URNS), used when a
+// create request omits one. These are the current latest-official versions.
+export const DEFAULT_DEFINITION_VERSIONS: Record<AssessmentType, string> = {
+  prescan: '2.0',
+  dpia: '3.0',
+  iama: '2.0',
+}
+
 function asObject(value: unknown): Record<string, unknown> {
   return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {}
 }
@@ -24,14 +32,21 @@ function asObject(value: unknown): Record<string, unknown> {
 export function normalizeCreateState(
   state: Record<string, unknown>,
   assessmentType: AssessmentType,
+  definitionVersion?: string,
 ): Record<string, unknown> {
   const metadata = asObject(state.metadata)
+  // Compose the fallback urn from the pinned version (official stays MAJOR.MINOR by
+  // convention, concept keeps its full identifier — mirrors the client getUrn / D1);
+  // fall back to the type default when no version is given.
+  const fallbackUrn = definitionVersion
+    ? `urn:nl:${assessmentType}:${definitionVersion}`
+    : ASSESSMENT_TYPE_URNS[assessmentType]
   return {
     ...state,
     $schema: typeof state.$schema === 'string' ? state.$schema : OUTPUT_SCHEMA_URL,
     metadata: {
       ...metadata,
-      urn: typeof metadata.urn === 'string' ? metadata.urn : ASSESSMENT_TYPE_URNS[assessmentType],
+      urn: typeof metadata.urn === 'string' ? metadata.urn : fallbackUrn,
       createdAt: typeof metadata.createdAt === 'string' ? metadata.createdAt : new Date().toISOString(),
     },
     answers: typeof state.answers === 'object' && state.answers !== null ? state.answers : {},

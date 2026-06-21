@@ -174,4 +174,40 @@ describe('POST /projects/:projectId/assessments', () => {
     expect(res.statusCode).toBe(201)
     expect(res.json().cachedState.metadata.urn).toBe('urn:nl:dpia:2.0')
   })
+
+  it('records the default pinned definitionVersion when none is supplied', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { assessmentType: 'dpia' },
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().definitionVersion).toBe('3.0')
+  })
+
+  it('records an explicit pinned definitionVersion and stamps a concept urn precisely', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        definitionVersion: '3.1.0-concept.2',
+        state: { answers: {} },
+      },
+    })
+
+    expect(res.statusCode).toBe(201)
+    expect(res.json().definitionVersion).toBe('3.1.0-concept.2')
+    // D1: a concept pin yields a precise metadata.urn.
+    expect(res.json().cachedState.metadata.urn).toBe('urn:nl:dpia:3.1.0-concept.2')
+  })
 })

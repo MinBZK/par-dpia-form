@@ -108,6 +108,7 @@ export interface AssessmentInstance {
   assessmentType: 'dpia' | 'prescan' | 'iama'
   name: string
   currentVersion: number
+  definitionVersion: string | null
   createdAt: string
   updatedAt: string
   state?: unknown
