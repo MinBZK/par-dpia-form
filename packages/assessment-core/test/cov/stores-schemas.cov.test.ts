@@ -222,4 +222,68 @@ describe('useSchemaStore', () => {
       )
     })
   })
+
+  describe('version registry', () => {
+    it('registers a definition by its full canonical urn and looks it up, augmented', () => {
+      const store = useSchemaStore()
+      expect(
+        store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0-concept.2', tasks: [] })),
+      ).toBe(true)
+      const def = store.getByUrn('urn:nl:dpia:3.1.0-concept.2')
+      expect(def).not.toBeNull()
+      expect(def!.tasks).toHaveLength(1)
+      expect(def!.tasks[0].task).toBe('Afronding')
+      expect(store.registeredUrns()).toContain('urn:nl:dpia:3.1.0-concept.2')
+    })
+
+    it('derives the type from the urn prefix for the conclusion task', () => {
+      const store = useSchemaStore()
+      store.register(buildSchema({ urn: 'urn:nl:prescan', version: '2.0', tasks: [] }))
+      store.register(buildSchema({ urn: 'urn:nl:iama', version: '2.0', tasks: [] }))
+      expect(store.getByUrn('urn:nl:prescan:2.0')!.tasks[0].task).toBe('Resultaat pre-scan')
+      expect(store.getByUrn('urn:nl:iama:2.0')!.tasks[0].task).toBe('Afronding')
+    })
+
+    it('returns false for a definition with an unknown urn', () => {
+      const store = useSchemaStore()
+      expect(store.register(buildSchema({ urn: 'urn:nl:onbekend', version: '1.0' }))).toBe(false)
+    })
+
+    it('returns false when given a null or urn-less value', () => {
+      const store = useSchemaStore()
+      expect(store.register(null)).toBe(false)
+      expect(store.register({ version: '1.0' })).toBe(false)
+    })
+
+    it('returns false for an invalid definition shape', () => {
+      const store = useSchemaStore()
+      expect(store.register({ ...buildSchema({ urn: 'urn:nl:dpia' }), tasks: 'kapot' })).toBe(false)
+    })
+
+    it('returns null for an unregistered urn', () => {
+      const store = useSchemaStore()
+      expect(store.getByUrn('urn:nl:dpia:9.9')).toBeNull()
+    })
+
+    it('init also populates the registry', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+      expect(store.getByUrn('urn:nl:dpia:3.0')).not.toBeNull()
+      expect(store.registeredUrns()).toEqual(
+        expect.arrayContaining(['urn:nl:dpia:3.0', 'urn:nl:prescan:2.0', 'urn:nl:iama:1.0']),
+      )
+    })
+
+    it('keeps multiple versions of the same type side by side', () => {
+      const store = useSchemaStore()
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }))
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0-concept.1' }))
+      expect(store.getByUrn('urn:nl:dpia:3.0')).not.toBeNull()
+      expect(store.getByUrn('urn:nl:dpia:3.1.0-concept.1')).not.toBeNull()
+    })
+  })
 })
