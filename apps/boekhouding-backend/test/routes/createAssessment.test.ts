@@ -225,4 +225,20 @@ describe('POST /projects/:projectId/assessments', () => {
 
     expect(res.statusCode).toBe(400)
   })
+
+  it('rejects a 3-segment official definitionVersion (official must stay MAJOR.MINOR)', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    // '3.1.0' would compose an out-of-grammar metadata.urn; the route rejects it so the
+    // pin can never diverge from what the output schema accepts.
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { assessmentType: 'dpia', definitionVersion: '3.1.0' },
+    })
+
+    expect(res.statusCode).toBe(400)
+  })
 })

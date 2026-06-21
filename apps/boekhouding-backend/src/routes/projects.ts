@@ -150,7 +150,10 @@ export async function projectRoutes(app: FastifyInstance) {
           assessmentType: { type: 'string', enum: ['prescan', 'dpia', 'iama'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
           state: { type: 'object' },
-          definitionVersion: { type: 'string', pattern: '^\\d+(\\.\\d+){0,2}(-concept(\\.\\d+)?)?$' },
+          // Same grammar as the output-schema metadata.urn: official is exactly MAJOR.MINOR,
+          // concept keeps its full -concept[.N] identifier. Bounded so an oversized string
+          // can never reach the column on the stateless create path (validateState is skipped there).
+          definitionVersion: { type: 'string', maxLength: 40, pattern: '^(?:\\d+\\.\\d+|\\d+(?:\\.\\d+){0,2}-concept(?:\\.\\d+)?)$' },
         },
         additionalProperties: false,
       },
