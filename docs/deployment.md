@@ -225,4 +225,4 @@ De frontend container configureert de volgende headers conform NCSC/BIO2 richtli
 - `Strict-Transport-Security: max-age=31536000`
 - `server_tokens off` (verberg nginx versie)
 
-Configuratie in `containers/frontend/nginx.conf` en `containers/frontend/default.conf`.
+Configuratie in `containers/frontend/nginx/` (`nginx.conf`, `default.conf` en de gedeelde header-/CSP-`snippets/`).
