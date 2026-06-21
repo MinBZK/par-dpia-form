@@ -11,7 +11,10 @@ const emit = defineEmits<{
   startFresh: [type: FormType]
 }>()
 
-const appVersion = __APP_VERSION__
+// Injected as a <meta> tag at build time (see vite.config.ts injectVersionMeta),
+// so the production overlay can sed-patch the version without touching the
+// CSP-hashed inline script.
+const appVersion = document.querySelector('meta[name="app-version"]')?.getAttribute('content') ?? ''
 
 interface AssessmentCard {
   type: FormType

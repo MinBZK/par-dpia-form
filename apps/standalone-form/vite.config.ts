@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { formatBuildVersion } from './src/version'
+import { cspHashPlugin } from './build/cspHashPlugin'
 
 // Resolve the full display version at build time so it lands in the single-file
 // bundle as one string literal. The production overlay (containers/frontend/
@@ -14,6 +15,21 @@ const appVersion = formatBuildVersion(
   process.env.RELEASE_TAG ?? 'dev',
   (process.env.GIT_SHA ?? 'dev').slice(0, 7),
 )
+
+/**
+ * Inject the build version as a <meta> tag instead of a baked-in JS literal, so
+ * the production overlay can sed-patch the version WITHOUT changing the inlined
+ * <script> bytes (which would invalidate its CSP hash). LandingView reads it.
+ */
+function injectVersionMeta(version: string): Plugin {
+  return {
+    name: 'inject-version-meta',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: () => [{ tag: 'meta', attrs: { name: 'app-version', content: version }, injectTo: 'head-prepend' }],
+    },
+  }
+}
 
 /** Inline favicon as data-URI in built HTML so the output is truly a single file. */
 function inlineFavicon(): Plugin {
@@ -54,13 +70,13 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
     mode === 'development' && vueDevTools(),
+    injectVersionMeta(appVersion),
     inlineFavicon(),
     viteSingleFile(),
+    // Must run last: hashes the inlined script/style and injects the <meta> CSP.
+    cspHashPlugin(),
   ],
   base: '/',
-  define: {
-    __APP_VERSION__: JSON.stringify(appVersion),
-  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
