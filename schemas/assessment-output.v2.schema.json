@@ -16,8 +16,8 @@
             "properties": {
                 "urn": {
                     "type": "string",
-                    "pattern": "^urn:nl:[a-z]+:[0-9]+\\.[0-9]+$",
-                    "description": "URN identifier of the assessment definition including version (e.g. 'urn:nl:dpia:3.0'). Composed from the definition's urn + version fields.",
+                    "pattern": "^urn:nl:[a-z]+:(?:[0-9]+\\.[0-9]+|[0-9]+(?:\\.[0-9]+){0,2}-concept(?:\\.[0-9]+)?)$",
+                    "description": "URN identifier of the assessment definition. Official versions are stamped coarse MAJOR.MINOR (e.g. 'urn:nl:dpia:3.0'); concept versions keep their full prerelease identifier (e.g. 'urn:nl:dpia:3.1.0-concept.2').",
                     "examples": ["urn:nl:dpia:3.0", "urn:nl:prescan:2.0"]
                 },
                 "createdAt": {

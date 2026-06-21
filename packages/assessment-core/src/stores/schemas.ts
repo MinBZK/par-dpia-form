@@ -4,7 +4,7 @@ import { DPIA, FormType } from '../models/dpia'
 import * as t from 'io-ts'
 import { isRight } from 'fp-ts/lib/Either'
 import { createConclusionTask } from '../utils/taskUtils'
-import { coarseVersion } from '../versioning/semver'
+import { coarseVersion, isPrerelease } from '../versioning/semver'
 import { namespaceFromUrn } from '../utils/importDetect'
 
 // Shared "Afronding" description for the DPIA and IAMA conclusion steps.
@@ -131,9 +131,10 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
   function getUrn(namespace: FormType): string {
     const schema = getSchema(namespace)
     if (!schema) throw new Error(`Schema not loaded for namespace: ${namespace}`)
-    // Coarsen to MAJOR.MINOR: the output schema constrains metadata.urn to that form,
-    // so a 3-segment or -concept source version must not leak into the stamped urn.
-    return `${schema.urn}:${coarseVersion(schema.version)}`
+    // D1: an official version is stamped coarse (MAJOR.MINOR) since its patches are
+    // compatible; a concept (prerelease) version keeps its full identifier so the exact
+    // in-development iteration stays visible and pinnable.
+    return `${schema.urn}:${isPrerelease(schema.version) ? schema.version : coarseVersion(schema.version)}`
   }
 
   return {

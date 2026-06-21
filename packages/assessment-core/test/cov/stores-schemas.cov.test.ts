@@ -203,7 +203,7 @@ describe('useSchemaStore', () => {
       expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:2.0')
     })
 
-    it('coarsens the version to MAJOR.MINOR so metadata.urn stays output-schema valid', () => {
+    it('stamps official versions coarse (MAJOR.MINOR) and concept versions precise (D1)', () => {
       const store = useSchemaStore()
       store.init({
         dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
@@ -211,8 +211,10 @@ describe('useSchemaStore', () => {
         iama: buildSchema({ urn: 'urn:nl:iama', version: '2.0' }),
       })
 
+      // Official: stable line -> MAJOR.MINOR is enough.
       expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.1')
-      expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:3.1')
+      // Concept: in-flux -> keep the exact iteration.
+      expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:3.1.0-concept.2')
     })
 
     it('throws when the schema for the namespace is not loaded', () => {
