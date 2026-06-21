@@ -150,7 +150,7 @@ export async function projectRoutes(app: FastifyInstance) {
           assessmentType: { type: 'string', enum: ['prescan', 'dpia', 'iama'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
           state: { type: 'object' },
-          definitionVersion: { type: 'string' },
+          definitionVersion: { type: 'string', pattern: '^\\d+(\\.\\d+){0,2}(-concept(\\.\\d+)?)?$' },
         },
         additionalProperties: false,
       },
