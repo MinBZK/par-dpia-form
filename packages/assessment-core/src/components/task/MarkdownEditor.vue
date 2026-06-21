@@ -60,6 +60,9 @@ const editor = useEditor({
       ...(props.inputId ? { id: props.inputId } : {}),
       ...(props.ariaLabelledby ? { 'aria-labelledby': props.ariaLabelledby } : {}),
     },
+    // Cmd/Ctrl+click opens a link in a focused tab and stops the editor from
+    // moving the selection (the logic lives in openLinkOnModifierClick).
+    handleClick: (_view, _pos, event) => openLinkOnModifierClick(event as MouseEvent),
   },
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getMarkdown())
@@ -179,8 +182,7 @@ defineExpose({ editor })
 
 <template>
   <div class="markdown-editor rvo-margin-block-end--md">
-    <!-- Cmd/Ctrl+click on a link opens it in a new tab while editing. -->
-    <EditorContent class="markdown-editor__content" :editor="editor" @click="openLinkOnModifierClick" />
+    <EditorContent class="markdown-editor__content" :editor="editor" />
 
     <div v-if="linkEditorOpen" class="markdown-editor__linkbar">
       <form class="markdown-editor__linkform" @submit.prevent="applyLink">

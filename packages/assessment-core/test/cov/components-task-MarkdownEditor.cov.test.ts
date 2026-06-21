@@ -133,6 +133,21 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
+  it('opens a link in a new tab on Cmd/Ctrl+click via the editor handleClick', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    const openSpy = vi.fn(() => ({ focus: vi.fn() }))
+    vi.stubGlobal('open', openSpy)
+    const anchor = document.createElement('a')
+    anchor.href = 'https://x.org'
+    const event = new MouseEvent('click', { cancelable: true, metaKey: true })
+    Object.defineProperty(event, 'target', { value: anchor })
+    editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
+    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank')
+    vi.unstubAllGlobals()
+    wrapper.unmount()
+  })
+
   it('re-syncs on an external value change and ignores an echo of its own output', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
     await wrapper.find('button[aria-label="Kop"]').trigger('click')

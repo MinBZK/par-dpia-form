@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnModifierClick } from '../../src/utils/markdownLinkRule'
 
 function clickEvent(target: EventTarget | null, mods: { metaKey?: boolean; ctrlKey?: boolean } = {}): MouseEvent {
-  const event = new MouseEvent('click', mods)
+  const event = new MouseEvent('click', { cancelable: true, ...mods })
   Object.defineProperty(event, 'target', { value: target })
   return event
 }
@@ -66,21 +66,25 @@ describe('markdownLinkRule', () => {
 })
 
 describe('openLinkOnModifierClick', () => {
-  it('opens the clicked link in a new tab when Cmd or Ctrl is held', () => {
-    const openSpy = vi.fn()
+  it('opens a focused tab and prevents the default on Cmd/Ctrl+click of a link', () => {
+    const focusSpy = vi.fn()
+    const openSpy = vi.fn(() => ({ focus: focusSpy }))
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
 
-    expect(openLinkOnModifierClick(clickEvent(anchor, { metaKey: true }))).toBe(true)
-    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
-    expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true)
+    const event = clickEvent(anchor, { metaKey: true })
+    expect(openLinkOnModifierClick(event)).toBe(true)
+    expect(event.defaultPrevented).toBe(true)
+    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank')
+    expect(focusSpy).toHaveBeenCalled()
 
+    expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true) // Ctrl variant
     vi.unstubAllGlobals()
   })
 
   it('does nothing on a plain click, a non-link target, or no target', () => {
-    const openSpy = vi.fn()
+    const openSpy = vi.fn(() => null) // window.open may return null; the optional focus must be safe
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
@@ -90,6 +94,7 @@ describe('openLinkOnModifierClick', () => {
     expect(openLinkOnModifierClick(clickEvent(null, { metaKey: true }))).toBe(false) // no target
     expect(openSpy).not.toHaveBeenCalled()
 
+    expect(openLinkOnModifierClick(clickEvent(anchor, { metaKey: true }))).toBe(true) // open() → null, focus skipped
     vi.unstubAllGlobals()
   })
 })

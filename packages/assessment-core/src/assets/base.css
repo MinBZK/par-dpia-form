@@ -296,6 +296,7 @@
 .rvo-theme .markdown-editor .ProseMirror a {
   color: var(--rvo-color-hemelblauw);
   text-decoration: underline;
+  cursor: pointer;
 }
 
 .rvo-theme .markdown-editor .ProseMirror blockquote {

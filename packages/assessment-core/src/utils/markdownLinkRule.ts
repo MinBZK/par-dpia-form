@@ -34,14 +34,17 @@ export function markdownLinkInputRule(link: MarkType): InputRule {
 }
 
 // While editing, a plain click on a link just places the cursor. Holding the
-// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a new tab,
-// matching common editors. Returns true when a link was opened.
+// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a focused
+// new tab, matching common editors. Used as a ProseMirror handleClick: it
+// preventDefaults the native open and returns true so the editor does not also
+// move the selection. Returns false (lets the editor handle the click) otherwise.
 export function openLinkOnModifierClick(event: MouseEvent): boolean {
-  const target = event.target as HTMLElement | null
-  const anchor = target?.closest('a') as HTMLAnchorElement | null
-  if (anchor && (event.metaKey || event.ctrlKey)) {
-    window.open(anchor.href, '_blank', 'noopener,noreferrer')
-    return true
-  }
-  return false
+  if (!(event.metaKey || event.ctrlKey)) return false
+  const anchor = (event.target as HTMLElement | null)?.closest('a') as HTMLAnchorElement | null
+  if (!anchor) return false
+  event.preventDefault()
+  // Focus the new tab so the user lands on it. These are links the user added to
+  // their own document; target=_blank keeps the editor tab navigable.
+  window.open(anchor.href, '_blank')?.focus()
+  return true
 }
