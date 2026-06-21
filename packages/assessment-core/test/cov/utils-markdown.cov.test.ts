@@ -15,6 +15,14 @@ describe('renderMarkdownToHtml', () => {
     expect(renderMarkdownToHtml('Hello world')).toContain('<p>Hello world</p>')
   })
 
+  it('renders ++text++ as <u> underline, and leaves an unterminated ++ literal', () => {
+    expect(renderMarkdownToHtml('++onder++ streep')).toContain('<u>onder</u>')
+    // Nested inline marks inside the underline are still parsed.
+    expect(renderMarkdownToHtml('++**vet**++')).toContain('<u><strong>vet</strong></u>')
+    // No closing ++ -> the tokenizer returns undefined and the text stays literal.
+    expect(renderMarkdownToHtml('++incompleet')).toContain('++incompleet')
+  })
+
   it('strips raw HTML via the html() renderer', () => {
     const html = renderMarkdownToHtml('<script>alert("xss")</script>')
     expect(html).not.toContain('<script>')
@@ -108,6 +116,14 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
       (t: any) => typeof t === 'object' && t.decoration === 'lineThrough',
     )
     expect(delItem).toBeDefined()
+  })
+
+  it('renders ++underline++ with an underline decoration', () => {
+    const content = markdownToPdfContent('++onder++') as any
+    const item = textArray(content).find(
+      (t: any) => typeof t === 'object' && t.decoration === 'underline',
+    )
+    expect(item).toBeDefined()
   })
 
   it('handles codespan with background colour', () => {

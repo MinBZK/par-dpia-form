@@ -6,6 +6,7 @@
 export type MarkdownCommand =
   | 'bold'
   | 'italic'
+  | 'underline'
   | 'strikethrough'
   | 'bulletList'
   | 'orderedList'

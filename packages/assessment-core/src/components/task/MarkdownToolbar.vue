@@ -44,18 +44,19 @@ const groups: Btn[][] = [
   [
     { command: 'bold', label: 'Vet', toggle: true, shortcut: { key: 'B' }, paths: ['M7 5h6a3.5 3.5 0 0 1 0 7h-6z', 'M13 12h1a3.5 3.5 0 0 1 0 7h-7v-7'] },
     { command: 'italic', label: 'Cursief', toggle: true, shortcut: { key: 'I' }, paths: ['M11 5h6', 'M7 19h6', 'M14 5l-4 14'] },
+    { command: 'underline', label: 'Onderstrepen', toggle: true, shortcut: { key: 'U' }, paths: ['M7 5v5a5 5 0 0 0 10 0v-5', 'M5 19h14'] },
     { command: 'strikethrough', label: 'Doorhalen', toggle: true, shortcut: { key: 'S', shift: true }, paths: ['M5 12h14', 'M16 6.5a4 2 0 0 0 -4 -1.5h-1a3.5 3.5 0 0 0 0 7', 'M8.5 17.5a4 2 0 0 0 4 1.5h1a3.5 3.5 0 0 0 .5 -6.95'] },
-    { command: 'code', label: 'Code', toggle: true, shortcut: { key: 'E' }, paths: ['M7 8l-4 4l4 4', 'M17 8l4 4l-4 4', 'M14 4l-4 16'] },
   ],
   [
     { command: 'bulletList', label: 'Opsommingslijst', toggle: true, shortcut: { key: '8', shift: true }, paths: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M5 6h.01', 'M5 12h.01', 'M5 18h.01'] },
     { command: 'orderedList', label: 'Genummerde lijst', toggle: true, shortcut: { key: '7', shift: true }, paths: ['M11 6h9', 'M11 12h9', 'M12 18h8', 'M4 16a2 2 0 1 1 4 0c0 .591 -.602 1.46 -1 2l-3 3h4', 'M6 10v-6l-2 2'] },
     { command: 'blockquote', label: 'Citaat', toggle: true, shortcut: { key: 'B', shift: true }, paths: ['M6 15h15', 'M21 19h-15', 'M15 11h6', 'M21 7h-6', 'M9 9h1a1 1 0 0 1 -1 1v-2.5a2 2 0 0 1 2 -2', 'M3 9h1a1 1 0 0 1 -1 1v-2.5a2 2 0 0 1 2 -2'] },
-    { command: 'codeBlock', label: 'Codeblok', toggle: true, paths: ['M7 4a2 2 0 0 0 -2 2v3a2 2 0 0 1 -2 2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2', 'M17 4a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2a2 2 0 0 0 -2 2v3a2 2 0 0 1 -2 2'] },
-    { command: 'divider', label: 'Scheidingslijn', paths: ['M4 12h16'] },
   ],
   [
     { command: 'link', label: 'Link', paths: ['M9 15l6 -6', 'M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464', 'M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463'] },
+    { command: 'divider', label: 'Scheidingslijn', paths: ['M4 12h16'] },
+    { command: 'code', label: 'Code', toggle: true, shortcut: { key: 'E' }, paths: ['M7 8l-4 4l4 4', 'M17 8l4 4l-4 4', 'M14 4l-4 16'] },
+    { command: 'codeBlock', label: 'Codeblok', toggle: true, paths: ['M7 4a2 2 0 0 0 -2 2v3a2 2 0 0 1 -2 2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2', 'M17 4a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2a2 2 0 0 0 -2 2v3a2 2 0 0 1 -2 2'] },
   ],
 ]
 

@@ -97,6 +97,7 @@ function syncActiveState() {
   activeMarks.value = {
     bold: instance.isActive('bold'),
     italic: instance.isActive('italic'),
+    underline: instance.isActive('underline'),
     strikethrough: instance.isActive('strike'),
     code: instance.isActive('code'),
     bulletList: instance.isActive('bulletList'),
@@ -157,7 +158,20 @@ function applyLink() {
 
 function openLink() {
   const url = linkUrl.value.trim()
-  if (url) window.open(url, '_blank', 'noopener,noreferrer')
+  if (/^https?:\/\//i.test(url)) {
+    // Open in the FOREGROUND: a blank same-origin tab whose opener we null before
+    // navigating, so the user lands on the link without the reverse-tabnabbing
+    // risk of an opener reference (noopener would block the foreground focus).
+    const tab = window.open('about:blank', '_blank')
+    /* istanbul ignore else @preserve -- a popup blocker can return null. */
+    if (tab) {
+      tab.opener = null
+      tab.location.replace(url)
+      tab.focus()
+    }
+  } else if (/^mailto:/i.test(url)) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }
 
 function removeLink() {
@@ -185,6 +199,9 @@ function handleCommand(command: MarkdownCommand) {
       break
     case 'italic':
       instance.chain().focus().toggleItalic().run()
+      break
+    case 'underline':
+      instance.chain().focus().toggleUnderline().run()
       break
     case 'strikethrough':
       instance.chain().focus().toggleStrike().run()

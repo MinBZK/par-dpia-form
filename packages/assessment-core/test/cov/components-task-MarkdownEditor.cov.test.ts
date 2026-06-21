@@ -58,7 +58,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
 
   it('applies every formatting command and emits markdown on a document change', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
-    const labels = ['Vet', 'Cursief', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code', 'Scheidingslijn']
+    const labels = ['Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code', 'Scheidingslijn']
     for (const label of labels) {
       await wrapper.find(`button[aria-label="${label}"]`).trigger('click')
       await flushPromises()
@@ -93,8 +93,9 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('edits an existing link: pre-fills the url, opens it, and removes it', async () => {
-    const openSpy = vi.fn()
+  it('edits an existing link: pre-fills the url, opens it in the foreground, and removes it', async () => {
+    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
+    const openSpy = vi.fn(() => tab)
     vi.stubGlobal('open', openSpy)
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
@@ -107,14 +108,23 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     expect((wrapper.find('.markdown-editor__linkinput').element as HTMLInputElement).value).toBe('https://x.org')
     expect(linkButton(wrapper, 'Opslaan').exists()).toBe(true)
 
-    // Openen → opens in a new tab.
+    // Openen → foreground tab: a blank tab whose opener is severed before navigating.
     await linkButton(wrapper, 'Openen').trigger('click')
-    expect(openSpy).toHaveBeenCalledWith('https://x.org', '_blank', 'noopener,noreferrer')
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
+    expect(tab.opener).toBeNull()
+    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org')
+    expect(tab.focus).toHaveBeenCalled()
 
-    // With an empty url, Openen is a no-op.
+    // A mailto link opens via window.open with noopener.
+    await wrapper.find('.markdown-editor__linkinput').setValue('mailto:a@b.nl')
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(openSpy).toHaveBeenCalledWith('mailto:a@b.nl', '_blank', 'noopener,noreferrer')
+
+    // A non-openable url (empty) is a no-op.
+    openSpy.mockClear()
     await wrapper.find('.markdown-editor__linkinput').setValue('')
     await linkButton(wrapper, 'Openen').trigger('click')
-    expect(openSpy).toHaveBeenCalledTimes(1)
+    expect(openSpy).not.toHaveBeenCalled()
 
     // Verwijderen removes the link and closes the bar.
     await linkButton(wrapper, 'Verwijderen').trigger('click')

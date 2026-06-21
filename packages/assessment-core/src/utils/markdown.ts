@@ -1,6 +1,25 @@
-import { Marked, type Tokens, type Token, type MarkedToken } from 'marked'
+import { Marked, type Tokens, type Token, type MarkedToken, type TokenizerAndRendererExtension } from 'marked'
 import type { Content } from 'pdfmake/interfaces'
 import { escapeHtml } from './escapeHtml'
+
+// `++text++` underline, matching what @tiptap/markdown serialises (marked has no
+// built-in underline). A small inline extension renders it for both the HTML
+// preview and the PDF lexer. The rendered output is a fixed <u> tag whose inner
+// content goes through the safe inline renderers, so no raw HTML can leak in.
+const underlineExtension: TokenizerAndRendererExtension = {
+  name: 'underline',
+  level: 'inline',
+  start(src) { return src.indexOf('++') },
+  tokenizer(src) {
+    const match = /^\+\+([\s\S]+?)\+\+/.exec(src)
+    if (!match) return undefined
+    return { type: 'underline', raw: match[0], text: match[1], tokens: this.lexer.inlineTokens(match[1]) }
+  },
+  renderer(token) {
+    // The tokenizer always sets `tokens`, so it is present here.
+    return `<u>${this.parser.parseInline(token.tokens!)}</u>`
+  },
+}
 
 // Marked instance with a custom renderer that acts as an allowlist.
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
@@ -27,10 +46,11 @@ const safeMarked = new Marked({
     // All remaining methods use the default renderer (safe tags only)
   },
 })
+safeMarked.use({ extensions: [underlineExtension] })
 
 /**
  * Parse markdown to sanitized HTML for preview rendering.
- * Uses an allowlist renderer: only safe tags (p, strong, em, ul, ol, li, h1-h6,
+ * Uses an allowlist renderer: only safe tags (p, strong, em, u, ul, ol, li, h1-h6,
  * code, pre, blockquote, hr, br, del, a) are produced. Raw HTML and images
  * are stripped. Links open in a new tab.
  */
@@ -58,6 +78,11 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
   const parts: PdfText[] = []
   for (const token of tokens) {
     const t = token as MarkedToken
+    // `underline` is our custom inline token (not part of MarkedToken's union).
+    if ((t as { type: string }).type === 'underline') {
+      parts.push({ text: processInlineTokens((t as unknown as { tokens: Token[] }).tokens), decoration: 'underline' })
+      continue
+    }
     switch (t.type) {
       case 'strong':
         parts.push({ text: processInlineTokens(t.tokens), bold: true })
@@ -189,7 +214,9 @@ function processBlockTokens(tokens: Token[]): Content[] {
 export function markdownToPdfContent(markdown: string): Content {
   if (!markdown) return { text: '' }
 
-  const tokens = new Marked({ breaks: true }).lexer(markdown)
+  const pdfMarked = new Marked({ breaks: true })
+  pdfMarked.use({ extensions: [underlineExtension] })
+  const tokens = pdfMarked.lexer(markdown)
   const content = processBlockTokens(tokens)
 
   if (content.length === 0) return { text: '' }

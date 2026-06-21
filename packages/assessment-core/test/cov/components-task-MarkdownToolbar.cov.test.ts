@@ -17,19 +17,19 @@ function blockButton(wrapper: ReturnType<typeof mount>) {
   return wrapper.find('.markdown-toolbar__block-button')
 }
 
-// block dropdown (index 0) + 10 buttons.
-const TEN_MINUS = Array(10).fill('-1')
+// block dropdown (index 0) + 11 buttons.
+const BUTTONS_MINUS = Array(11).fill('-1')
 
 describe('MarkdownToolbar.vue', () => {
   it('renders a labelled toolbar: block dropdown (tab stop) + grouped buttons with separators', () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
     expect(toolbar.attributes('aria-label')).toBe('Tekstopmaak')
-    expect(wrapper.findAll('.markdown-toolbar__button')).toHaveLength(10)
+    expect(wrapper.findAll('.markdown-toolbar__button')).toHaveLength(11)
     expect(wrapper.findAll('.markdown-toolbar__sep')).toHaveLength(3)
-    expect(controlTabindexes(wrapper)).toEqual(['0', ...TEN_MINUS]) // dropdown holds the tab stop
+    expect(controlTabindexes(wrapper)).toEqual(['0', ...BUTTONS_MINUS]) // dropdown holds the tab stop
     expect(wrapper.findAll('.markdown-toolbar__button').map((b) => b.attributes('aria-label'))).toEqual([
-      'Vet', 'Cursief', 'Doorhalen', 'Code', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Codeblok', 'Scheidingslijn', 'Link',
+      'Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Link', 'Scheidingslijn', 'Code', 'Codeblok',
     ])
   })
 
@@ -171,11 +171,11 @@ describe('MarkdownToolbar.vue', () => {
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // Vet(1) -> dropdown(0)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // dropdown(0) -> last (wrap)
-    expect(controlTabindexes(wrapper)[10]).toBe('0')
+    expect(controlTabindexes(wrapper)[11]).toBe('0')
     await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> dropdown(0) (wrap)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
     await toolbar.trigger('keydown', { key: 'End' })
-    expect(controlTabindexes(wrapper)[10]).toBe('0')
+    expect(controlTabindexes(wrapper)[11]).toBe('0')
     await toolbar.trigger('keydown', { key: 'Home' })
     expect(controlTabindexes(wrapper)[0]).toBe('0')
   })
@@ -184,7 +184,7 @@ describe('MarkdownToolbar.vue', () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
     await toolbar.trigger('keydown', { key: 'ArrowDown' }) // not a roving key
-    expect(controlTabindexes(wrapper)).toEqual(['0', ...TEN_MINUS])
+    expect(controlTabindexes(wrapper)).toEqual(['0', ...BUTTONS_MINUS])
     // A key bubbling from the menu must not move the toolbar tab stop.
     await blockButton(wrapper).trigger('click')
     await flushPromises()
