@@ -32,13 +32,20 @@ vi.mock('../../src/api', () => ({
 const parseAndValidateImport = vi.fn()
 const importFromPdf = vi.fn()
 const detectImportType = vi.fn()
-const autoGrowTextarea = vi.fn()
 vi.mock('@overheid-assessment/core', () => ({
   FormType: { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama' },
   parseAndValidateImport: (...a: unknown[]) => parseAndValidateImport(...a),
   importFromPdf: (...a: unknown[]) => importFromPdf(...a),
   detectImportType: (...a: unknown[]) => detectImportType(...a),
-  autoGrowTextarea: (...a: unknown[]) => autoGrowTextarea(...a),
+  renderMarkdownToHtml: (md: string) => `<p data-rendered>${md}</p>`,
+  // Stub the editor as a plain textarea that mirrors the v-model contract, so the
+  // description tests can drive it without a real ProseMirror instance.
+  MarkdownEditor: {
+    name: 'MarkdownEditor',
+    props: ['modelValue', 'baseHeadingLevel', 'ariaLabel', 'inputId', 'ariaLabelledby'],
+    emits: ['update:modelValue'],
+    template: '<textarea class="markdown-editor-stub" :aria-label="ariaLabel" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)"></textarea>',
+  },
 }))
 
 import ProjectDetail from '../../src/views/ProjectDetail.vue'
@@ -109,7 +116,6 @@ beforeEach(() => {
   parseAndValidateImport.mockReset()
   importFromPdf.mockReset()
   detectImportType.mockReset()
-  autoGrowTextarea.mockReset()
 
   // jsdom's <dialog> lacks showModal/close; provide no-op shims for the watchers.
   if (!HTMLDialogElement.prototype.showModal) {
@@ -274,66 +280,59 @@ describe('ProjectDetail', () => {
       expect(wrapper.find('.description-add').exists()).toBe(false)
     })
 
-    it('does not enter description edit mode when not editable', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'viewer', description: 'Tekst' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
-      await flushPromises()
-      expect(wrapper.find('textarea[aria-label="Projectbeschrijving"]').exists()).toBe(false)
+    it('renders the description as markdown and shows an edit button only for an editable role', async () => {
+      const owner = await mountDetail({ project: makeProject({ role: 'owner', description: 'Tekst' }) })
+      // Read mode renders markdown (the stubbed renderer marks it with data-rendered).
+      expect(owner.find('.markdown-content [data-rendered]').exists()).toBe(true)
+      expect(owner.find('.markdown-content').text()).toContain('Tekst')
+      expect(owner.findAll('button').some((b) => b.text() === 'Beschrijving bewerken')).toBe(true)
+
+      const viewer = await mountDetail({ project: makeProject({ role: 'viewer', description: 'Tekst' }) })
+      expect(viewer.find('.markdown-content').exists()).toBe(true) // still readable
+      expect(viewer.findAll('button').some((b) => b.text() === 'Beschrijving bewerken')).toBe(false)
     })
 
-    it('enters description edit mode from the paragraph and autosizes', async () => {
+    it('enters edit mode via the edit button and pre-fills the editor', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Bestaand' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
+      await wrapper.findAll('button').find((b) => b.text() === 'Beschrijving bewerken')!.trigger('click')
       await flushPromises()
-      const ta = wrapper.find<HTMLTextAreaElement>('textarea[aria-label="Projectbeschrijving"]')
-      expect(ta.exists()).toBe(true)
-      expect(ta.element.value).toBe('Bestaand')
-      expect(autoGrowTextarea).toHaveBeenCalled()
+      const editor = wrapper.find<HTMLTextAreaElement>('.markdown-editor-stub')
+      expect(editor.exists()).toBe(true)
+      expect(editor.element.value).toBe('Bestaand')
     })
 
-    it('enters description edit mode from the empty-add affordance (description || "")', async () => {
+    it('enters edit mode from the empty-add affordance (description || "")', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: '' }) })
       await wrapper.find('.description-add').trigger('click')
       await flushPromises()
-      const ta = wrapper.find<HTMLTextAreaElement>('textarea[aria-label="Projectbeschrijving"]')
-      expect(ta.exists()).toBe(true)
-      expect(ta.element.value).toBe('')
-    })
-
-    it('autosizes on input', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
-      await flushPromises()
-      autoGrowTextarea.mockClear()
-      await wrapper.find('textarea[aria-label="Projectbeschrijving"]').trigger('input')
-      expect(autoGrowTextarea).toHaveBeenCalled()
+      const editor = wrapper.find<HTMLTextAreaElement>('.markdown-editor-stub')
+      expect(editor.exists()).toBe(true)
+      expect(editor.element.value).toBe('')
     })
 
     it('saves a changed description', async () => {
       projectsUpdate.mockResolvedValue({ description: 'Vernieuwd' })
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Oud' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
+      await wrapper.findAll('button').find((b) => b.text() === 'Beschrijving bewerken')!.trigger('click')
       await flushPromises()
-      const ta = wrapper.find('textarea[aria-label="Projectbeschrijving"]')
-      await ta.setValue('Vernieuwd')
+      await wrapper.find('.markdown-editor-stub').setValue('Vernieuwd')
       const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!
       await saveBtn.trigger('click')
       await flushPromises()
       expect(projectsUpdate).toHaveBeenCalledWith('p1', { description: 'Vernieuwd' })
-      expect(wrapper.text()).toContain('Vernieuwd')
+      expect(wrapper.find('.markdown-content').text()).toContain('Vernieuwd')
     })
 
     it('does not save when the trimmed description is unchanged (description || "")', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Zelfde' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
+      await wrapper.findAll('button').find((b) => b.text() === 'Beschrijving bewerken')!.trigger('click')
       await flushPromises()
-      const ta = wrapper.find('textarea[aria-label="Projectbeschrijving"]')
-      await ta.setValue('  Zelfde  ')
+      await wrapper.find('.markdown-editor-stub').setValue('  Zelfde  ')
       const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!
       await saveBtn.trigger('click')
       await flushPromises()
       expect(projectsUpdate).not.toHaveBeenCalled()
-      expect(wrapper.find('textarea[aria-label="Projectbeschrijving"]').exists()).toBe(false)
+      expect(wrapper.find('.markdown-editor-stub').exists()).toBe(false)
     })
 
     it('treats a null description as "" when unchanged on save', async () => {
@@ -346,23 +345,14 @@ describe('ProjectDetail', () => {
       expect(projectsUpdate).not.toHaveBeenCalled()
     })
 
-    it('cancels description editing with Escape', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
-      await flushPromises()
-      await wrapper.find('textarea[aria-label="Projectbeschrijving"]').trigger('keydown.escape')
-      await flushPromises()
-      expect(wrapper.find('textarea[aria-label="Projectbeschrijving"]').exists()).toBe(false)
-    })
-
     it('cancels description editing with the Annuleer button', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: 'Verwerking van klantgegevens' }) })
-      await wrapper.find('p.preserve-whitespace').trigger('click')
+      await wrapper.findAll('button').find((b) => b.text() === 'Beschrijving bewerken')!.trigger('click')
       await flushPromises()
       const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Annuleer')!
       await cancelBtn.trigger('click')
       await flushPromises()
-      expect(wrapper.find('textarea[aria-label="Projectbeschrijving"]').exists()).toBe(false)
+      expect(wrapper.find('.markdown-editor-stub').exists()).toBe(false)
     })
   })
 
@@ -865,13 +855,6 @@ describe('ProjectDetail', () => {
       const vm = wrapper.vm as unknown as { formTypeLabel: (t: string) => string }
       expect(vm.formTypeLabel('dpia')).toBe('DPIA')
       expect(vm.formTypeLabel('prescan')).toBe('Pre-scan')
-    })
-
-    it('autosizeTextarea is a no-op when no textarea is mounted (descriptionInput null)', async () => {
-      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
-      const vm = wrapper.vm as unknown as { autosizeTextarea: () => void }
-      vm.autosizeTextarea()
-      expect(autoGrowTextarea).not.toHaveBeenCalled()
     })
 
     it('submitDpiaDialog falls through when the option is not a DPIA option', async () => {

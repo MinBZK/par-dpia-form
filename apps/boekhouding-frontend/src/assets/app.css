@@ -1461,6 +1461,81 @@ a.card-link:hover {
   margin-top: 0;
 }
 
+.description-edit-button {
+  margin-top: 0.5rem;
+}
+
+/* Rendered markdown (read mode) for the project description. Modest, document-like
+   spacing; the editor's own surface styling lives in the core base.css. */
+.markdown-content > :first-child {
+  margin-block-start: 0;
+}
+
+.markdown-content > :last-child {
+  margin-block-end: 0;
+}
+
+.markdown-content h2 { font-size: 1.3rem; }
+.markdown-content h3 { font-size: 1.17rem; }
+.markdown-content h4 { font-size: 1.05rem; }
+.markdown-content h5 { font-size: 0.95rem; }
+.markdown-content h6 { font-size: 0.88rem; }
+
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin-block: 0.7em 0.1em;
+}
+
+.markdown-content p,
+.markdown-content ul,
+.markdown-content ol {
+  margin-block: 0.4rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  padding-inline-start: 1.5rem;
+}
+
+.markdown-content a {
+  color: var(--rvo-color-hemelblauw);
+  text-decoration: underline;
+}
+
+.markdown-content blockquote {
+  border-inline-start: 3px solid var(--rvo-color-hemelblauw);
+  padding-inline-start: 0.75rem;
+  margin-inline-start: 0;
+  margin-block: 0.5rem;
+  color: var(--rvo-color-grijs-700, #555);
+}
+
+.markdown-content code {
+  background: #e8e8e8;
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: #e8e8e8;
+  padding: 0.5rem;
+  border-radius: 3px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+}
+
 .value-list {
   margin: 0;
   padding-left: 1.25rem;

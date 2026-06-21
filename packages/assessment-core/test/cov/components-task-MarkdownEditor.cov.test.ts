@@ -35,22 +35,24 @@ function linkButton(wrapper: ReturnType<typeof mount>, label: string) {
 
 describe('MarkdownEditor.vue (WYSIWYG)', () => {
   it('renders a contenteditable editor with a footer toolbar and formatted markdown', async () => {
-    const wrapper = await mountEditor({ modelValue: '**vet** tekst', inputId: 'field-1', ariaLabelledby: 'label-1' })
+    const wrapper = await mountEditor({ modelValue: '**vet** tekst', inputId: 'field-1', ariaLabelledby: 'label-1', ariaLabel: 'Mijn veld' })
     expect(wrapper.find('.markdown-editor__footer [role="toolbar"]').exists()).toBe(true)
     const pm = wrapper.find('.ProseMirror')
     expect(pm.attributes('role')).toBe('textbox')
     expect(pm.attributes('aria-multiline')).toBe('true')
     expect(pm.attributes('id')).toBe('field-1')
     expect(pm.attributes('aria-labelledby')).toBe('label-1')
+    expect(pm.attributes('aria-label')).toBe('Mijn veld')
     expect(pm.html()).toContain('<strong>vet</strong>')
     wrapper.unmount()
   })
 
-  it('omits id and aria-labelledby when those props are not given', async () => {
+  it('omits id, aria-labelledby and aria-label when those props are not given', async () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const pm = wrapper.find('.ProseMirror')
     expect(pm.attributes('id')).toBeUndefined()
     expect(pm.attributes('aria-labelledby')).toBeUndefined()
+    expect(pm.attributes('aria-label')).toBeUndefined()
     wrapper.unmount()
   })
 

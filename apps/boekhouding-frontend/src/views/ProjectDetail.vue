@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
+import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, MarkdownEditor, renderMarkdownToHtml } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -18,7 +18,6 @@ const editingDescription = ref(false)
 const editName = ref('')
 const editDescription = ref('')
 const nameInput = ref<HTMLInputElement | null>(null)
-const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 
 // Start-form dialog state
 const startDialogRef = ref<HTMLDialogElement | null>(null)
@@ -102,17 +101,10 @@ const saveName = async () => {
   editingName.value = false
 }
 
-const autosizeTextarea = () => {
-  if (descriptionInput.value) autoGrowTextarea(descriptionInput.value)
-}
-
-const startEditDescription = async () => {
-  if (!isEditable()) return
+// Only reachable from controls already gated by v-if="isEditable()".
+const startEditDescription = () => {
   editDescription.value = project.value!.description || ''
   editingDescription.value = true
-  await nextTick()
-  autosizeTextarea()
-  descriptionInput.value?.focus()
 }
 
 const cancelDescription = () => {
@@ -378,19 +370,19 @@ const formatDate = (dateStr: string) =>
         </div>
       </div>
 
-      <p v-if="!editingDescription && project.description" class="rvo-margin-block-end--md preserve-whitespace project-detail-description" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
+      <div v-if="!editingDescription && project.description" class="rvo-margin-block-end--md project-detail-description">
+        <div class="markdown-content" v-html="renderMarkdownToHtml(project.description)"></div>
+        <button v-if="isEditable()" type="button" class="rvo-button rvo-button--tertiary rvo-button--size-xs description-edit-button" @click="startEditDescription">Beschrijving bewerken</button>
+      </div>
       <div v-if="!editingDescription && !project.description && isEditable()" class="description-add rvo-margin-block-end--md" role="button" tabindex="0" aria-label="Klik om een beschrijving toe te voegen" @click="startEditDescription" @keydown.enter="startEditDescription">
         <span class="description-add__label">Beschrijving toevoegen</span>
       </div>
       <div v-if="editingDescription" class="editable-field-group rvo-margin-block-end--md">
-        <textarea
-          ref="descriptionInput"
-          v-model="editDescription"
-          class="utrecht-textarea utrecht-textarea--html-textarea editable-field-input editable-field-input--autosize"
-          rows="1"
+        <MarkdownEditor
+          :model-value="editDescription"
+          :base-heading-level="2"
           aria-label="Projectbeschrijving"
-          @input="autosizeTextarea"
-          @keydown.escape="cancelDescription"
+          @update:model-value="(value) => editDescription = value"
         />
         <div class="editable-field-actions">
           <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveDescription">Opslaan</button>

@@ -21,6 +21,9 @@ const props = defineProps<{
   modelValue: string
   inputId?: string
   ariaLabelledby?: string
+  // A direct accessible name, for hosts without a separate visible label element
+  // to point at via ariaLabelledby.
+  ariaLabel?: string
   // The top heading level available inside the field. A field sits below the
   // document/section structure, so its first heading defaults to H2; a deeper
   // host can raise it (e.g. H3). Levels from here down to H6 are all available,
@@ -77,6 +80,7 @@ const editor = useEditor({
       class: 'markdown-editor__prosemirror',
       ...(props.inputId ? { id: props.inputId } : {}),
       ...(props.ariaLabelledby ? { 'aria-labelledby': props.ariaLabelledby } : {}),
+      ...(props.ariaLabel ? { 'aria-label': props.ariaLabel } : {}),
     },
     // Cmd/Ctrl+click opens a link in a focused tab and stops the editor from
     // moving the selection (the logic lives in openLinkOnModifierClick).
