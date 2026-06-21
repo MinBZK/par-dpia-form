@@ -1,121 +1,202 @@
 import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import MarkdownToolbar from '../../src/components/task/MarkdownToolbar.vue'
 
-const DEFAULT_PROPS = { headingLevels: [2, 3, 4, 5, 6], activeHeadingLevel: null as number | null }
+type Props = { headingLevels: number[]; activeBlock: number | null; activeMarks: Record<string, boolean> }
+const DEFAULTS: Props = { headingLevels: [1, 2, 3, 4, 5, 6], activeBlock: null, activeMarks: {} }
 
-function mountToolbar(props: Partial<typeof DEFAULT_PROPS> = {}) {
-  return mount(MarkdownToolbar, { props: { ...DEFAULT_PROPS, ...props } })
+function mountToolbar(props: Partial<Props> = {}) {
+  return mount(MarkdownToolbar, { props: { ...DEFAULTS, ...props }, attachTo: document.body })
 }
 
-// All roving controls in DOM order: the heading dropdown (index 0) then the buttons.
 function controlTabindexes(wrapper: ReturnType<typeof mount>): string[] {
-  return wrapper
-    .findAll('select.markdown-toolbar__heading, button.markdown-toolbar__button')
-    .map((c) => c.attributes('tabindex') ?? '')
+  return wrapper.findAll('.markdown-toolbar__control').map((c) => c.attributes('tabindex') ?? '')
 }
 
-// select + 9 buttons; only one is the tab stop at a time.
-const ALL_BUT_FIRST = ['-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1', '-1']
+function blockButton(wrapper: ReturnType<typeof mount>) {
+  return wrapper.find('.markdown-toolbar__block-button')
+}
+
+// block dropdown (index 0) + 10 buttons.
+const TEN_MINUS = Array(10).fill('-1')
 
 describe('MarkdownToolbar.vue', () => {
-  it('renders a labelled toolbar that is a single tab stop starting on the dropdown', () => {
+  it('renders a labelled toolbar: block dropdown (tab stop) + grouped buttons with separators', () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
-    expect(toolbar.exists()).toBe(true)
     expect(toolbar.attributes('aria-label')).toBe('Tekstopmaak')
-    expect(wrapper.findAll('button')).toHaveLength(9)
-    // The dropdown holds the tab stop; every button starts at -1.
-    expect(controlTabindexes(wrapper)).toEqual(['0', ...ALL_BUT_FIRST])
-    expect(wrapper.find('button').attributes('aria-label')).toBe('Vet')
+    expect(wrapper.findAll('.markdown-toolbar__button')).toHaveLength(10)
+    expect(wrapper.findAll('.markdown-toolbar__sep')).toHaveLength(3)
+    expect(controlTabindexes(wrapper)).toEqual(['0', ...TEN_MINUS]) // dropdown holds the tab stop
+    expect(wrapper.findAll('.markdown-toolbar__button').map((b) => b.attributes('aria-label'))).toEqual([
+      'Vet', 'Cursief', 'Doorhalen', 'Code', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Codeblok', 'Scheidingslijn', 'Link',
+    ])
   })
 
-  it('renders a heading-level dropdown with "Gewone tekst" plus one "Kop N" per level', () => {
-    const wrapper = mountToolbar()
-    const select = wrapper.find('select.markdown-toolbar__heading')
-    expect(select.attributes('aria-label')).toBe('Kopniveau')
-    const options = select.findAll('option')
-    expect(options.map((o) => o.text())).toEqual(['Gewone tekst', 'Kop 1', 'Kop 2', 'Kop 3', 'Kop 4', 'Kop 5'])
-    expect(options.map((o) => (o.element as HTMLOptionElement).value)).toEqual(['', '2', '3', '4', '5', '6'])
+  it('shows the current block on the dropdown button (paragraph, heading, or out-of-range fallback)', () => {
+    expect(blockButton(mountToolbar({ activeBlock: null })).text()).toContain('Paragraaf')
+    expect(blockButton(mountToolbar({ activeBlock: 2 })).text()).toContain('Kop 2')
+    expect(blockButton(mountToolbar({ activeBlock: 2 })).text()).toContain('H2')
+    // An out-of-range level falls back to the first option (Paragraaf).
+    expect(blockButton(mountToolbar({ activeBlock: 99 })).text()).toContain('Paragraaf')
   })
 
-  it('reflects the active block in the dropdown value (level, or empty for a paragraph)', () => {
-    expect((mountToolbar({ activeHeadingLevel: 3 }).find('select').element as HTMLSelectElement).value).toBe('3')
-    expect((mountToolbar({ activeHeadingLevel: null }).find('select').element as HTMLSelectElement).value).toBe('')
+  it('opens the block menu with Paragraaf + Kop 1..6 and a check on the active option', async () => {
+    const wrapper = mountToolbar({ activeBlock: 2 })
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    const items = wrapper.findAll('.markdown-toolbar__menuitem')
+    expect(items.map((i) => i.find('.markdown-toolbar__menuitem-label').text())).toEqual([
+      'Paragraaf', 'Kop 1', 'Kop 2', 'Kop 3', 'Kop 4', 'Kop 5', 'Kop 6',
+    ])
+    expect(items.map((i) => i.find('.markdown-toolbar__block-marker').text())).toEqual(['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'])
+    // The active option (Kop 2) is marked and carries the check icon.
+    const active = items.filter((i) => i.classes().includes('is-active'))
+    expect(active).toHaveLength(1)
+    expect(active[0].text()).toContain('Kop 2')
+    expect(active[0].find('.markdown-toolbar__check').exists()).toBe(true)
   })
 
-  it('emits the chosen heading level, and null when "Gewone tekst" is picked', async () => {
-    const wrapper = mountToolbar()
-    const select = wrapper.find('select')
-    await select.setValue('4')
+  it('emits the chosen level (null for Paragraaf) and closes the menu when an option is picked', async () => {
+    const wrapper = mountToolbar({ activeBlock: 2 })
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    // A menu item keeps the editor selection by preventing its mousedown.
+    const md = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    wrapper.find('.markdown-toolbar__menuitem').element.dispatchEvent(md)
+    expect(md.defaultPrevented).toBe(true)
+    await wrapper.findAll('.markdown-toolbar__menuitem').find((i) => i.text().includes('Kop 4'))!.trigger('click')
     expect(wrapper.emitted('heading')?.at(-1)).toEqual([4])
-    await select.setValue('')
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    await wrapper.findAll('.markdown-toolbar__menuitem').find((i) => i.text().includes('Paragraaf'))!.trigger('click')
     expect(wrapper.emitted('heading')?.at(-1)).toEqual([null])
+  })
+
+  it('toggles the menu shut on a second click and closes it when focus leaves the dropdown', async () => {
+    const wrapper = mountToolbar()
+    await blockButton(wrapper).trigger('click') // open (no active option -> focuses first)
+    await flushPromises()
+    await blockButton(wrapper).trigger('click') // toggle shut
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    // focus moves inside the dropdown -> stays open
+    await wrapper.find('.markdown-toolbar__block').trigger('focusout', { relatedTarget: wrapper.find('.markdown-toolbar__menuitem').element })
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(true)
+    // focus leaves the dropdown (null relatedTarget) -> closes
+    await wrapper.find('.markdown-toolbar__block').trigger('focusout', { relatedTarget: null })
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    // focus leaves to an element outside the dropdown -> closes
+    await wrapper.find('.markdown-toolbar__block').trigger('focusout', { relatedTarget: document.body })
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+  })
+
+  it('navigates the menu with Up/Down and closes on Escape', async () => {
+    const wrapper = mountToolbar()
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    const items = wrapper.findAll('.markdown-toolbar__menuitem')
+    items[0].element.focus()
+    const menu = wrapper.find('.markdown-toolbar__menu')
+    await menu.trigger('keydown', { key: 'ArrowDown' }) // 0 -> 1
+    expect(document.activeElement).toBe(items[1].element)
+    await menu.trigger('keydown', { key: 'ArrowUp' }) // 1 -> 0
+    expect(document.activeElement).toBe(items[0].element)
+    await menu.trigger('keydown', { key: 'ArrowUp' }) // 0 -> last (wrap)
+    expect(document.activeElement).toBe(items[items.length - 1].element)
+    await menu.trigger('keydown', { key: 'ArrowDown' }) // last -> 0 (wrap)
+    expect(document.activeElement).toBe(items[0].element)
+    await menu.trigger('keydown', { key: 'x' }) // ignored
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(true)
+    await menu.trigger('keydown', { key: 'Escape' })
+    expect(wrapper.find('.markdown-toolbar__menu').exists()).toBe(false)
+  })
+
+  it('focuses the active option when opening, or the first option when none is active', async () => {
+    const withActive = mountToolbar({ activeBlock: 3 })
+    await blockButton(withActive).trigger('click')
+    await flushPromises()
+    expect((document.activeElement as HTMLElement).textContent).toContain('Kop 3')
+
+    const noActive = mountToolbar({ activeBlock: 99 }) // out of range -> no active option
+    await blockButton(noActive).trigger('click')
+    await flushPromises()
+    expect((document.activeElement as HTMLElement).textContent).toContain('Paragraaf')
+  })
+
+  it('lights up active toggle buttons (is-active + aria-pressed) and leaves inserts unpressed', () => {
+    const wrapper = mountToolbar({ activeMarks: { bold: true, blockquote: false } })
+    const bold = wrapper.find('button[aria-label="Vet"]')
+    expect(bold.classes()).toContain('is-active')
+    expect(bold.attributes('aria-pressed')).toBe('true')
+    const quote = wrapper.find('button[aria-label="Citaat"]')
+    expect(quote.classes()).not.toContain('is-active')
+    expect(quote.attributes('aria-pressed')).toBe('false')
+    // Inserts (divider, link) are not toggles -> no aria-pressed, never active.
+    expect(wrapper.find('button[aria-label="Scheidingslijn"]').attributes('aria-pressed')).toBeUndefined()
+    expect(wrapper.find('button[aria-label="Link"]').attributes('aria-pressed')).toBeUndefined()
   })
 
   it('shows the keyboard shortcut in the tooltip, or just the label when there is none', () => {
     const wrapper = mountToolbar()
-    // Vet has a shortcut (Mod+B); Doorhalen adds Shift; Link has none.
     expect(wrapper.find('button[aria-label="Vet"]').attributes('title')).toMatch(/^Vet \((⌘|Ctrl\+)B\)$/)
     expect(wrapper.find('button[aria-label="Doorhalen"]').attributes('title')).toMatch(/(⇧|Shift\+)S/)
+    expect(wrapper.find('button[aria-label="Codeblok"]').attributes('title')).toBe('Codeblok')
     expect(wrapper.find('button[aria-label="Link"]').attributes('title')).toBe('Link')
   })
 
-  it('emits the matching command when a button is clicked', async () => {
+  it('emits the matching command and prevents the default mousedown so the editor keeps its selection', async () => {
     const wrapper = mountToolbar()
-    await wrapper.find('button[aria-label="Citaat"]').trigger('click')
-    expect(wrapper.emitted('command')?.at(-1)).toEqual(['blockquote'])
-  })
-
-  it('prevents the default mousedown so the editor keeps focus and selection', () => {
-    const wrapper = mountToolbar()
+    await wrapper.find('button[aria-label="Codeblok"]').trigger('click')
+    expect(wrapper.emitted('command')?.at(-1)).toEqual(['codeBlock'])
     const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
-    wrapper.find('button').element.dispatchEvent(event)
+    wrapper.find('button[aria-label="Vet"]').element.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
   })
 
-  it('rotates the tab stop across the dropdown and buttons with ArrowRight/ArrowLeft (wraparound)', async () => {
+  it('rotates the single tab stop across the dropdown and buttons (Arrow/Home/End, wraparound)', async () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
 
-    await toolbar.trigger('keydown', { key: 'ArrowRight' }) // select(0) -> Vet(1)
+    await toolbar.trigger('keydown', { key: 'ArrowRight' }) // dropdown(0) -> Vet(1)
     expect(controlTabindexes(wrapper)[1]).toBe('0')
-
-    await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // Vet(1) -> select(0)
+    await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // Vet(1) -> dropdown(0)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
-
-    await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // select(0) -> last button (wrap)
-    expect(controlTabindexes(wrapper)[9]).toBe('0')
-
-    await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> select(0) (wrap)
+    await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // dropdown(0) -> last (wrap)
+    expect(controlTabindexes(wrapper)[10]).toBe('0')
+    await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> dropdown(0) (wrap)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
-  })
-
-  it('jumps to the ends with Home and End', async () => {
-    const wrapper = mountToolbar()
-    const toolbar = wrapper.find('[role="toolbar"]')
-
     await toolbar.trigger('keydown', { key: 'End' })
-    expect(controlTabindexes(wrapper)[9]).toBe('0')
-
+    expect(controlTabindexes(wrapper)[10]).toBe('0')
     await toolbar.trigger('keydown', { key: 'Home' })
     expect(controlTabindexes(wrapper)[0]).toBe('0')
   })
 
-  it('leaves Up/Down to the dropdown (only Left/Right/Home/End rove)', async () => {
+  it('ignores non-navigation keys and keys originating from the open menu', async () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
-    await toolbar.trigger('keydown', { key: 'ArrowDown' }) // native option-cycling, not roving
-    expect(controlTabindexes(wrapper)).toEqual(['0', ...ALL_BUT_FIRST])
-    await toolbar.trigger('keydown', { key: 'a' }) // unrelated key
-    expect(controlTabindexes(wrapper)).toEqual(['0', ...ALL_BUT_FIRST])
+    await toolbar.trigger('keydown', { key: 'ArrowDown' }) // not a roving key
+    expect(controlTabindexes(wrapper)).toEqual(['0', ...TEN_MINUS])
+    // A key bubbling from the menu must not move the toolbar tab stop.
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-toolbar__menuitem').trigger('keydown', { key: 'ArrowRight' })
+    expect(controlTabindexes(wrapper)[0]).toBe('0')
   })
 
   it('updates the active control when the dropdown or a button receives focus', async () => {
     const wrapper = mountToolbar()
-    await wrapper.findAll('button')[3].trigger('focus') // 4th button -> control index 4
-    expect(controlTabindexes(wrapper)[4]).toBe('0')
-    await wrapper.find('select').trigger('focus') // back to the dropdown
+    await wrapper.findAll('.markdown-toolbar__button')[2].trigger('focus') // 3rd button -> control index 3
+    expect(controlTabindexes(wrapper)[3]).toBe('0')
+    await blockButton(wrapper).trigger('focus')
     expect(controlTabindexes(wrapper)[0]).toBe('0')
   })
 })

@@ -11,5 +11,6 @@ export type MarkdownCommand =
   | 'orderedList'
   | 'blockquote'
   | 'code'
+  | 'codeBlock'
   | 'divider'
   | 'link'

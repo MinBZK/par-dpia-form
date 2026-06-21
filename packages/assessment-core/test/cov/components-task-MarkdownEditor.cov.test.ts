@@ -150,31 +150,36 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('applies and clears heading levels via the toolbar dropdown, and syncs the active level', async () => {
-    const wrapper = await mountEditor({ modelValue: 'Titel', baseHeadingLevel: 2 })
-    const select = wrapper.find('select.markdown-toolbar__heading')
-    expect((select.element as HTMLSelectElement).value).toBe('') // starts as a paragraph
-
-    await select.setValue('2') // Kop 1 = base = H2
+  // Drive the block-style dropdown: open it and pick an option by its visible label.
+  async function pickBlock(wrapper: ReturnType<typeof mount>, label: string) {
+    await wrapper.find('.markdown-toolbar__block-button').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.ProseMirror').html()).toContain('<h2')
-    expect((select.element as HTMLSelectElement).value).toBe('2') // dropdown follows the cursor block
-
-    await select.setValue('3') // Kop 2 = H3
+    await wrapper.findAll('.markdown-toolbar__menuitem').find((i) => i.text().includes(label))!.trigger('click')
     await flushPromises()
+  }
+
+  it('applies and clears heading levels via the toolbar dropdown, and reflects the active block', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Titel' })
+    const blockLabel = () => wrapper.find('.markdown-toolbar__block-button').text()
+    expect(blockLabel()).toContain('Paragraaf') // starts as a paragraph
+
+    await pickBlock(wrapper, 'Kop 1')
+    expect(wrapper.find('.ProseMirror').html()).toContain('<h1')
+    expect(blockLabel()).toContain('Kop 1') // dropdown follows the cursor block
+
+    await pickBlock(wrapper, 'Kop 3')
     expect(wrapper.find('.ProseMirror').html()).toContain('<h3')
 
-    await select.setValue('') // back to a paragraph
-    await flushPromises()
+    await pickBlock(wrapper, 'Paragraaf')
     const html = wrapper.find('.ProseMirror').html()
-    expect(html).not.toContain('<h2')
+    expect(html).not.toContain('<h1')
     expect(html).not.toContain('<h3')
-    expect((select.element as HTMLSelectElement).value).toBe('')
+    expect(blockLabel()).toContain('Paragraaf')
     wrapper.unmount()
   })
 
-  it('maps a #-shortcut relatively onto the field levels and caps at H6 (custom rule wins over built-ins)', async () => {
-    const wrapper = await mountEditor({ modelValue: '', baseHeadingLevel: 2 })
+  it('maps a #-shortcut to the matching heading level (one hash = H1 .. six = H6)', async () => {
+    const wrapper = await mountEditor({ modelValue: '' })
     const editor = getEditor(wrapper)
     // Input rules fire on text input, not on programmatic inserts: put the hashes
     // in a paragraph, then drive the trailing space through handleTextInput.
@@ -186,51 +191,51 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
       view.someProp('handleTextInput', (handle: (...a: unknown[]) => boolean) => handle(view, pos, pos, ' '))
       return (view.dom.firstElementChild as HTMLElement).tagName
     }
-    // One hash = base (H2), each extra hash one deeper, capped at H6. The divergent
-    // cases (##→H3 etc.) also pin that the custom relative rule beats the heading
-    // extension's built-in ABSOLUTE rules, which would map ## to H2.
-    expect(headingTagFor('#')).toBe('H2')
-    expect(headingTagFor('##')).toBe('H3')
-    expect(headingTagFor('###')).toBe('H4')
-    expect(headingTagFor('####')).toBe('H5')
-    expect(headingTagFor('#####')).toBe('H6')
-    expect(headingTagFor('######')).toBe('H6') // capped
+    expect(headingTagFor('#')).toBe('H1')
+    expect(headingTagFor('##')).toBe('H2')
+    expect(headingTagFor('######')).toBe('H6')
     wrapper.unmount()
   })
 
-  it('keeps an out-of-schema heading (legacy H1) lossless and shows it as the base level in the dropdown', async () => {
-    const wrapper = await mountEditor({ modelValue: '# Legacy H1\n\n## Echte H2', baseHeadingLevel: 2 })
+  it('loads markdown headings at their own level and reflects them in the dropdown', async () => {
+    const wrapper = await mountEditor({ modelValue: '# Titel\n\n## Sub' })
     const editor = getEditor(wrapper)
-    // Lossless round-trip: the editor neither drops nor rewrites the stored markdown
-    // on load (the single `#` is preserved, not normalised to `##`).
-    const md = editor.getMarkdown()
-    expect(md.startsWith('# Legacy H1')).toBe(true)
-    expect(md).toContain('## Echte H2')
-    // Cursor into the legacy H1 (rendered at the base level): the dropdown clamps to
-    // the base level (Kop 1 = H2) instead of silently showing "Gewone tekst".
-    editor.commands.setTextSelection(3)
+    const html = wrapper.find('.ProseMirror').html()
+    expect(html).toContain('<h1')
+    expect(html).toContain('<h2')
+    expect(editor.getMarkdown()).toContain('# Titel') // lossless round-trip
+    editor.commands.setTextSelection(3) // inside the H1
     await flushPromises()
-    expect((wrapper.find('select.markdown-toolbar__heading').element as HTMLSelectElement).value).toBe('2')
+    expect(wrapper.find('.markdown-toolbar__block-button').text()).toContain('Kop 1')
     wrapper.unmount()
   })
 
-  it('clamps an out-of-range baseHeadingLevel to a valid level (no <hundefined>)', async () => {
-    const wrapper = await mountEditor({ modelValue: 'Titel', baseHeadingLevel: 7 })
-    // base clamps to 6 → a single available level ("Kop 1" = H6).
-    const select = wrapper.find('select.markdown-toolbar__heading')
-    expect(select.findAll('option').map((o) => o.text())).toEqual(['Gewone tekst', 'Kop 1'])
-    await select.setValue('6')
+  it('lights up an active mark on the toolbar', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Tekst' })
+    getEditor(wrapper).commands.selectAll()
+    await wrapper.find('button[aria-label="Vet"]').trigger('click')
     await flushPromises()
-    const html = wrapper.find('.ProseMirror').html()
-    expect(html).toContain('<h6')
-    expect(html).not.toContain('hundefined')
+    expect(wrapper.find('button[aria-label="Vet"]').classes()).toContain('is-active')
+    wrapper.unmount()
+  })
+
+  it('toggles a code block and reflects it as active', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(2)
+    await wrapper.find('button[aria-label="Codeblok"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.ProseMirror').html()).toContain('<pre')
+    expect(editor.isActive('codeBlock')).toBe(true)
+    editor.commands.setTextSelection(2) // re-sync the toolbar to the cursor inside the block
+    await flushPromises()
+    expect(wrapper.find('button[aria-label="Codeblok"]').classes()).toContain('is-active')
     wrapper.unmount()
   })
 
   it('re-syncs on an external value change and ignores an echo of its own output', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
-    await wrapper.find('select.markdown-toolbar__heading').setValue('2')
-    await flushPromises()
+    await pickBlock(wrapper, 'Kop 2')
     const ownMarkdown = wrapper.emitted('update:modelValue')!.at(-1)![0] as string
 
     await wrapper.setProps({ modelValue: ownMarkdown }) // echo → no re-set

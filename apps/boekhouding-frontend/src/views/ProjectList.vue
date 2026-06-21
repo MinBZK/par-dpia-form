@@ -88,7 +88,7 @@ const descriptionPreview = (markdown: string): string =>
         </div>
         <div class="rvo-form-field rvo-margin-block-end--md">
           <label class="rvo-form-field__label" id="projectDescLabel" for="projectDesc">Beschrijving (optioneel)</label>
-          <MarkdownEditor :model-value="newProjectDescription" :base-heading-level="2"
+          <MarkdownEditor :model-value="newProjectDescription"
             input-id="projectDesc" aria-labelledby="projectDescLabel"
             @update:model-value="(value) => newProjectDescription = value" />
         </div>

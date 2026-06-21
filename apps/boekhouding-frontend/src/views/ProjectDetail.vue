@@ -380,7 +380,6 @@ const formatDate = (dateStr: string) =>
       <div v-if="editingDescription" class="editable-field-group rvo-margin-block-end--md">
         <MarkdownEditor
           :model-value="editDescription"
-          :base-heading-level="2"
           aria-label="Projectbeschrijving"
           @update:model-value="(value) => editDescription = value"
         />
