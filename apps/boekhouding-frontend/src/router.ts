@@ -62,6 +62,12 @@ const routes: RouteRecordRaw[] = [
     meta: { public: true },
   },
   {
+    path: '/modellen',
+    name: 'modellen',
+    component: () => import('./views/ModellenPage.vue'),
+    meta: { public: true },
+  },
+  {
     // Catch-all 404; public so it doesn't trigger the login redirect.
     // Must stay last so it only matches when no other route does.
     path: '/:pathMatch(.*)*',

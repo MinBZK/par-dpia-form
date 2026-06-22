@@ -23,6 +23,9 @@ export default defineConfig({
         'src/**/*.d.ts',
         // Static assets (CSS, fonts) carry no executable code.
         'src/assets/**',
+        // Only resolves the gitignored generated manifest.json (a build artefact absent
+        // during tests); the page test mocks it. Nothing else to cover.
+        'src/sourceManifest.ts',
       ],
       thresholds: {
         statements: 100,

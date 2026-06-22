@@ -59,17 +59,19 @@ describe('App.vue', () => {
     expect(wrapper.find('.session-expired-stub').exists()).toBe(true)
 
     const footerLinks = wrapper.findAll('.app-footer__link')
-    expect(footerLinks).toHaveLength(4)
+    expect(footerLinks).toHaveLength(5)
     expect(footerLinks.map((l) => l.text())).toEqual([
       'Privacyverklaring',
       'Toegankelijkheid',
       'Over Invulhulpen',
+      'Modelversies',
       'Status',
     ])
     expect(footerLinks.map((l) => l.attributes('href'))).toEqual([
       '/privacy',
       '/toegankelijkheid',
       '/over',
+      '/modellen',
       '/status',
     ])
   })
