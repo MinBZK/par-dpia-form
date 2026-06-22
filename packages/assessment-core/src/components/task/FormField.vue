@@ -185,6 +185,7 @@ const handleCheckboxInput = (event: Event) => {
     :model-value="String(currentValue ?? '')"
     :input-id="`field-${task.id}-${instanceId}`"
     :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+    :heading-levels="[3]"
     @update:model-value="(value) => answerStore.setAnswer(instanceId, value)" />
 
   <!-- Select radio -->

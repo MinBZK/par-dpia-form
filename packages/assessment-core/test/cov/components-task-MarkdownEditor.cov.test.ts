@@ -203,8 +203,14 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
   // Drive the block-style dropdown: open it and pick an option by its visible label.
   async function pickBlock(wrapper: ReturnType<typeof mount>, label: string) {
     await wrapper.find('.markdown-toolbar__block-button').trigger('click')
-    await flushPromises()
-    await wrapper.findAll('.markdown-toolbar__menuitem').find((i) => i.text().includes(label))!.trigger('click')
+    // The menu renders reactively (and the dropdown focuses an item on a nextTick);
+    // settle those before querying so the lookup is deterministic under load.
+    let item
+    for (let i = 0; i < 10 && !item; i++) {
+      await flushPromises()
+      item = wrapper.findAll('.markdown-toolbar__menuitem').find((m) => m.text().includes(label))
+    }
+    await item!.trigger('click')
     await flushPromises()
   }
 
@@ -244,6 +250,23 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     expect(headingTagFor('#')).toBe('H1')
     expect(headingTagFor('##')).toBe('H2')
     expect(headingTagFor('######')).toBe('H6')
+    wrapper.unmount()
+  })
+
+  it('offers a single generic "Koptekst" when restricted to one heading level', async () => {
+    const wrapper = await mountEditor({ modelValue: '', headingLevels: [3] })
+    const editor = getEditor(wrapper)
+    await wrapper.find('.markdown-toolbar__block-button').trigger('click')
+    await flushPromises()
+    const items = wrapper.findAll('.markdown-toolbar__menuitem')
+    expect(items.map((i) => i.find('.markdown-toolbar__menuitem-label').text())).toEqual(['Paragraaf', 'Koptekst'])
+    // Any number of hashes maps to the single level (H3).
+    editor.commands.setContent('<p>######</p>')
+    editor.commands.focus('end')
+    const view = editor.view
+    const pos = view.state.selection.from
+    view.someProp('handleTextInput', (handle: (...a: unknown[]) => boolean) => handle(view, pos, pos, ' '))
+    expect((view.dom.firstElementChild as HTMLElement).tagName).toBe('H3')
     wrapper.unmount()
   })
 

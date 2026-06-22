@@ -76,11 +76,19 @@ function buttonTitle(button: Btn): string {
   return `${button.label} (${formatShortcut(button.shortcut.key, button.shortcut.shift ?? false, isMac)})`
 }
 
-// Block-style dropdown options: paragraph + each heading level.
-const blockOptions = computed(() => [
-  { value: null as number | null, label: 'Paragraaf', marker: 'P' },
-  ...props.headingLevels.map((level) => ({ value: level as number | null, label: `Kop ${level}`, marker: `H${level}` })),
-])
+// Block-style dropdown options: paragraph + each heading level. With a single
+// level the field offers one generic "Koptekst"; with several, numbered "Kop N".
+const blockOptions = computed(() => {
+  const single = props.headingLevels.length === 1
+  return [
+    { value: null as number | null, label: 'Paragraaf', marker: 'P' },
+    ...props.headingLevels.map((level) => ({
+      value: level as number | null,
+      label: single ? 'Koptekst' : `Kop ${level}`,
+      marker: single ? 'H' : `H${level}`,
+    })),
+  ]
+})
 const currentBlock = computed(() => blockOptions.value.find((o) => o.value === props.activeBlock) ?? blockOptions.value[0])
 
 const menuOpen = ref(false)

@@ -24,17 +24,23 @@ const props = defineProps<{
   // A direct accessible name, for hosts without a separate visible label element
   // to point at via ariaLabelledby.
   ariaLabel?: string
+  // Heading levels offered in the block dropdown. Default is the full range H1..H6;
+  // a host can restrict it — e.g. a single level for a simple answer field, which
+  // shows one generic "Koptekst" instead of numbered levels.
+  headingLevels?: number[]
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 // 1..6 matches TipTap's Level union without importing the heading extension type.
 type Level = 1 | 2 | 3 | 4 | 5 | 6
-const headingLevels: Level[] = [1, 2, 3, 4, 5, 6]
+const headingLevels = (props.headingLevels ?? [1, 2, 3, 4, 5, 6]) as Level[]
+const minLevel = headingLevels[0]
+const maxLevel = headingLevels[headingLevels.length - 1]
 
 // Input rules: typed `[text](url)` becomes a link, and a `#`..`######` shortcut
-// becomes the matching heading level (one hash = H1, six = H6) — standard markdown.
-// A document-aware offset for PDF export is applied later, not here.
+// becomes a heading clamped into the offered range — for the full range one hash =
+// H1..six = H6, and for a single-level field any number of hashes is that level.
 const MarkdownInputRules = Extension.create({
   name: 'markdownInputRules',
   addInputRules() {
@@ -43,7 +49,7 @@ const MarkdownInputRules = Extension.create({
       textblockTypeInputRule({
         find: /^(#{1,6})\s$/,
         type: this.editor.schema.nodes.heading,
-        getAttributes: (match) => ({ level: match[1].length }),
+        getAttributes: (match) => ({ level: Math.min(Math.max(match[1].length, minLevel), maxLevel) }),
       }),
     ]
   },

@@ -58,6 +58,15 @@ describe('MarkdownToolbar.vue', () => {
     expect(active[0].find('.markdown-toolbar__check').exists()).toBe(true)
   })
 
+  it('shows a single generic "Koptekst" (marker H) when only one level is offered', async () => {
+    const wrapper = mountToolbar({ headingLevels: [3] })
+    await blockButton(wrapper).trigger('click')
+    await flushPromises()
+    const items = wrapper.findAll('.markdown-toolbar__menuitem')
+    expect(items.map((i) => i.find('.markdown-toolbar__menuitem-label').text())).toEqual(['Paragraaf', 'Koptekst'])
+    expect(items[1].find('.markdown-toolbar__block-marker').text()).toBe('H')
+  })
+
   it('emits the chosen level (null for Paragraaf) and closes the menu when an option is picked', async () => {
     const wrapper = mountToolbar({ activeBlock: 2 })
     await blockButton(wrapper).trigger('click')
