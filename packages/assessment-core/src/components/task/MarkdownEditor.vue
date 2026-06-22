@@ -5,7 +5,7 @@ import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
-import { markdownLinkInputRule, openLinkOnModifierClick } from '../../utils/markdownLinkRule'
+import { markdownLinkInputRule, openLinkOnModifierClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
 
 // WYSIWYG editor surface for open_text fields. The text is shown in its formatted
@@ -187,16 +187,7 @@ function applyLink() {
 function openLink() {
   const url = linkUrl.value.trim()
   if (/^https?:\/\//i.test(url)) {
-    // Open in the FOREGROUND: a blank same-origin tab whose opener we null before
-    // navigating, so the user lands on the link without the reverse-tabnabbing
-    // risk of an opener reference (noopener would block the foreground focus).
-    const tab = window.open('about:blank', '_blank')
-    /* istanbul ignore else @preserve -- a popup blocker can return null. */
-    if (tab) {
-      tab.opener = null
-      tab.location.replace(url)
-      tab.focus()
-    }
+    openUrlInNewTab(url)
   } else if (/^mailto:/i.test(url)) {
     window.open(url, '_blank', 'noopener,noreferrer')
   }

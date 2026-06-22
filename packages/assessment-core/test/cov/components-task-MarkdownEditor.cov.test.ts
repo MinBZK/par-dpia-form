@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import type { Editor } from '@tiptap/core'
 import { Slice } from '@tiptap/pm/model'
 import MarkdownEditor from '../../src/components/task/MarkdownEditor.vue'
+import MarkdownToolbar from '../../src/components/task/MarkdownToolbar.vue'
 
 // jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
 // during selection/link operations. Stub those layout calls so they don't throw.
@@ -95,8 +96,11 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
   })
 
   it('edits an existing link: pre-fills the url, opens it in the foreground, and removes it', async () => {
-    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
-    const openSpy = vi.fn(() => tab)
+    const clicks: { href: string; target: string; rel: string }[] = []
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicks.push({ href: this.href, target: this.target, rel: this.rel })
+    })
+    const openSpy = vi.fn()
     vi.stubGlobal('open', openSpy)
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
@@ -109,12 +113,9 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     expect((wrapper.find('.markdown-editor__linkinput').element as HTMLInputElement).value).toBe('https://x.org')
     expect(linkButton(wrapper, 'Opslaan').exists()).toBe(true)
 
-    // Openen → foreground tab: a blank tab whose opener is severed before navigating.
+    // Openen → foreground tab via a synthetic noopener anchor.
     await linkButton(wrapper, 'Openen').trigger('click')
-    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
-    expect(tab.opener).toBeNull()
-    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org')
-    expect(tab.focus).toHaveBeenCalled()
+    expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
 
     // A mailto link opens via window.open with noopener.
     await wrapper.find('.markdown-editor__linkinput').setValue('mailto:a@b.nl')
@@ -123,9 +124,12 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
 
     // A non-openable url (empty) is a no-op.
     openSpy.mockClear()
+    clicks.length = 0
     await wrapper.find('.markdown-editor__linkinput').setValue('')
     await linkButton(wrapper, 'Openen').trigger('click')
     expect(openSpy).not.toHaveBeenCalled()
+    expect(clicks).toEqual([])
+    clickSpy.mockRestore()
 
     // Verwijderen removes the link and closes the bar.
     await linkButton(wrapper, 'Verwijderen').trigger('click')
@@ -182,35 +186,28 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('opens a focused tab on Cmd/Ctrl+click via the editor handleClick', async () => {
+  it('opens a foreground tab on Cmd/Ctrl+click via the editor handleClick', async () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
-    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
-    const openSpy = vi.fn(() => tab)
-    vi.stubGlobal('open', openSpy)
+    const clicks: { href: string; target: string; rel: string }[] = []
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicks.push({ href: this.href, target: this.target, rel: this.rel })
+    })
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
     const event = new MouseEvent('click', { cancelable: true, metaKey: true })
     Object.defineProperty(event, 'target', { value: anchor })
     editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
-    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
-    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org/')
-    expect(tab.focus).toHaveBeenCalled()
-    vi.unstubAllGlobals()
+    expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
+    clickSpy.mockRestore()
     wrapper.unmount()
   })
 
-  // Drive the block-style dropdown: open it and pick an option by its visible label.
+  // Pick a block type by driving the toolbar's `heading` event directly — robust
+  // under parallel load. The dropdown menu UI itself is covered by the toolbar test.
   async function pickBlock(wrapper: ReturnType<typeof mount>, label: string) {
-    await wrapper.find('.markdown-toolbar__block-button').trigger('click')
-    // The menu renders reactively (and the dropdown focuses an item on a nextTick);
-    // settle those before querying so the lookup is deterministic under load.
-    let item
-    for (let i = 0; i < 10 && !item; i++) {
-      await flushPromises()
-      item = wrapper.findAll('.markdown-toolbar__menuitem').find((m) => m.text().includes(label))
-    }
-    await item!.trigger('click')
+    const level = label === 'Paragraaf' ? null : Number(label.replace('Kop ', ''))
+    wrapper.findComponent(MarkdownToolbar).vm.$emit('heading', level)
     await flushPromises()
   }
 
@@ -253,13 +250,11 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('offers a single generic "Koptekst" when restricted to one heading level', async () => {
+  it('restricts the field to a single heading level and clamps the #-shortcut to it', async () => {
     const wrapper = await mountEditor({ modelValue: '', headingLevels: [3] })
     const editor = getEditor(wrapper)
-    await wrapper.find('.markdown-toolbar__block-button').trigger('click')
-    await flushPromises()
-    const items = wrapper.findAll('.markdown-toolbar__menuitem')
-    expect(items.map((i) => i.find('.markdown-toolbar__menuitem-label').text())).toEqual(['Paragraaf', 'Koptekst'])
+    // The single level is passed to the toolbar (which renders it as one "Koptekst").
+    expect(wrapper.findComponent(MarkdownToolbar).props('headingLevels')).toEqual([3])
     // Any number of hashes maps to the single level (H3).
     editor.commands.setContent('<p>######</p>')
     editor.commands.focus('end')

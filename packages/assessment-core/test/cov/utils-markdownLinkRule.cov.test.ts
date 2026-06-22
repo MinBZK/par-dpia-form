@@ -1,7 +1,16 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnModifierClick } from '../../src/utils/markdownLinkRule'
+import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnModifierClick, openUrlInNewTab } from '../../src/utils/markdownLinkRule'
+
+// openUrlInNewTab clicks a freshly created anchor; capture those clicks' attributes.
+function spyAnchorClick() {
+  const clicks: { href: string; target: string; rel: string }[] = []
+  const spy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    clicks.push({ href: this.href, target: this.target, rel: this.rel })
+  })
+  return { clicks, spy }
+}
 
 function clickEvent(target: EventTarget | null, mods: { metaKey?: boolean; ctrlKey?: boolean } = {}): MouseEvent {
   const event = new MouseEvent('click', { cancelable: true, ...mods })
@@ -65,29 +74,30 @@ describe('markdownLinkRule', () => {
   })
 })
 
-describe('openLinkOnModifierClick', () => {
-  it('opens a focused tab (opener severed before navigating) on Cmd/Ctrl+click of an http(s) link', () => {
-    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
-    const openSpy = vi.fn(() => tab)
-    vi.stubGlobal('open', openSpy)
+describe('openUrlInNewTab / openLinkOnModifierClick', () => {
+  it('openUrlInNewTab clicks a synthetic noopener _blank anchor (foreground tab)', () => {
+    const { clicks, spy } = spyAnchorClick()
+    openUrlInNewTab('https://x.org/')
+    expect(clicks).toEqual([{ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' }])
+    spy.mockRestore()
+  })
+
+  it('opens a new tab and prevents the default on Cmd/Ctrl+click of an http(s) link', () => {
+    const { clicks, spy } = spyAnchorClick()
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
 
     const event = clickEvent(anchor, { metaKey: true })
     expect(openLinkOnModifierClick(event)).toBe(true)
     expect(event.defaultPrevented).toBe(true)
-    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
-    expect(tab.opener).toBeNull()
-    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org/')
-    expect(tab.focus).toHaveBeenCalled()
+    expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
 
     expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true) // Ctrl variant
-    vi.unstubAllGlobals()
+    spy.mockRestore()
   })
 
   it('does nothing on a plain click, a non-link target, no target, or a non-http scheme', () => {
-    const openSpy = vi.fn()
-    vi.stubGlobal('open', openSpy)
+    const { clicks, spy } = spyAnchorClick()
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
     const jsAnchor = document.createElement('a')
@@ -97,7 +107,7 @@ describe('openLinkOnModifierClick', () => {
     expect(openLinkOnModifierClick(clickEvent(document.createElement('span'), { metaKey: true }))).toBe(false) // not a link
     expect(openLinkOnModifierClick(clickEvent(null, { metaKey: true }))).toBe(false) // no target
     expect(openLinkOnModifierClick(clickEvent(jsAnchor, { metaKey: true }))).toBe(false) // disallowed scheme
-    expect(openSpy).not.toHaveBeenCalled()
-    vi.unstubAllGlobals()
+    expect(clicks).toEqual([])
+    spy.mockRestore()
   })
 })

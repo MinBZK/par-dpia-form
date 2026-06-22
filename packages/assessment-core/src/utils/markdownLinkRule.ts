@@ -33,28 +33,33 @@ export function markdownLinkInputRule(link: MarkType): InputRule {
   })
 }
 
+// Open a URL in a new FOREGROUND tab. A programmatic window.open inherits the
+// triggering gesture's modifier keys, so a Cmd/Ctrl+click would open the tab in
+// the background (and window.focus() cannot steal focus back). A synthetic anchor
+// click carries no modifiers, so the browser opens it in the foreground;
+// rel="noopener" severs window.opener (reverse tabnabbing). Callers pass an
+// already-validated http(s) URL.
+export function openUrlInNewTab(url: string): void {
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.target = '_blank'
+  anchor.rel = 'noopener noreferrer'
+  anchor.click()
+}
+
 // While editing, a plain click on a link just places the cursor. Holding the
 // platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a focused
 // new tab, matching common editors. Used as a ProseMirror handleClick: it
 // preventDefaults the native handling and returns true so the editor does not
 // also move the selection (which would otherwise select the clicked line).
 // Returns false (lets the editor place the cursor) for a plain click or a
-// non-openable link.
-//
-// Foreground without reverse-tabnabbing: open a blank same-origin tab, null its
-// opener before navigating to the (possibly cross-origin) href, then focus it.
-// Only http(s) is opened, blocking javascript:/data: hidden in link markdown.
+// non-openable link. Only http(s) is opened, blocking javascript:/data: hidden
+// in link markdown.
 export function openLinkOnModifierClick(event: MouseEvent): boolean {
   if (!(event.metaKey || event.ctrlKey)) return false
   const anchor = (event.target as HTMLElement | null)?.closest('a') as HTMLAnchorElement | null
   if (!anchor || !/^https?:\/\//i.test(anchor.href)) return false
   event.preventDefault()
-  const tab = window.open('about:blank', '_blank')
-  /* istanbul ignore else @preserve -- a popup blocker can return null. */
-  if (tab) {
-    tab.opener = null
-    tab.location.replace(anchor.href)
-    tab.focus()
-  }
+  openUrlInNewTab(anchor.href)
   return true
 }
