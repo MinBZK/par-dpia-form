@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import type { Editor } from '@tiptap/core'
+import { Slice } from '@tiptap/pm/model'
 import MarkdownEditor from '../../src/components/task/MarkdownEditor.vue'
 
 // jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
@@ -145,17 +146,56 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('opens a link in a new tab on Cmd/Ctrl+click via the editor handleClick', async () => {
+  it('opens the link editor on Cmd/Ctrl+K and ignores other modifier keys', async () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
-    const openSpy = vi.fn()
+    const press = (key: string, mods: Record<string, boolean> = {}) =>
+      editor.view.someProp('handleKeyDown', (h: (...a: unknown[]) => boolean) =>
+        h(editor.view, new KeyboardEvent('keydown', { key, cancelable: true, ...mods })))
+    press('k', { metaKey: true })
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
+    // The handler runs for another Cmd shortcut but declines it.
+    press('q', { ctrlKey: true })
+    wrapper.unmount()
+  })
+
+  it('links the selected text when a URL is pasted, and otherwise pastes normally', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Mijn site' })
+    const editor = getEditor(wrapper)
+    // someProp also runs other extensions' paste handlers (Link reads the slice,
+    // CodeBlock JSON-parses a clipboard key); pass an empty slice and only return
+    // text for text/plain so those handlers no-op instead of throwing.
+    const paste = (text: string) =>
+      editor.view.someProp('handlePaste', (h: (...a: unknown[]) => boolean) =>
+        h(editor.view, { clipboardData: { getData: (type: string) => (type === 'text/plain' ? text : '') } }, Slice.empty))
+
+    editor.commands.selectAll()
+    paste('https://example.org') // URL over a selection → link the text
+    await flushPromises()
+    expect(wrapper.find('.ProseMirror').html()).toContain('href="https://example.org"')
+
+    expect(paste('gewone tekst')).toBeFalsy() // non-URL → default paste
+    expect(paste('')).toBeFalsy() // empty clipboard → default paste
+    editor.commands.setTextSelection(1) // collapse the selection
+    expect(paste('https://x.org')).toBeFalsy() // URL but nothing selected → default paste
+    wrapper.unmount()
+  })
+
+  it('opens a focused tab on Cmd/Ctrl+click via the editor handleClick', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
+    const openSpy = vi.fn(() => tab)
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
     const event = new MouseEvent('click', { cancelable: true, metaKey: true })
     Object.defineProperty(event, 'target', { value: anchor })
     editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
-    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
+    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org/')
+    expect(tab.focus).toHaveBeenCalled()
     vi.unstubAllGlobals()
     wrapper.unmount()
   })

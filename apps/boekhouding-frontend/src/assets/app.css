@@ -1475,11 +1475,13 @@ a.card-link:hover {
   margin-block-end: 0;
 }
 
-.markdown-content h2 { font-size: 1.3rem; }
-.markdown-content h3 { font-size: 1.17rem; }
-.markdown-content h4 { font-size: 1.05rem; }
-.markdown-content h5 { font-size: 0.95rem; }
-.markdown-content h6 { font-size: 0.88rem; }
+/* em-based so a heading is never smaller than the body text. */
+.markdown-content h1 { font-size: 1.5em; }
+.markdown-content h2 { font-size: 1.36em; }
+.markdown-content h3 { font-size: 1.24em; }
+.markdown-content h4 { font-size: 1.14em; }
+.markdown-content h5 { font-size: 1.06em; }
+.markdown-content h6 { font-size: 1em; }
 
 .markdown-content h2,
 .markdown-content h3,

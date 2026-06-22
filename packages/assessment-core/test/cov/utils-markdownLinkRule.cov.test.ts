@@ -66,8 +66,9 @@ describe('markdownLinkRule', () => {
 })
 
 describe('openLinkOnModifierClick', () => {
-  it('opens a noopener tab and prevents the default on Cmd/Ctrl+click of an http(s) link', () => {
-    const openSpy = vi.fn()
+  it('opens a focused tab (opener severed before navigating) on Cmd/Ctrl+click of an http(s) link', () => {
+    const tab = { opener: {} as unknown, location: { replace: vi.fn() }, focus: vi.fn() }
+    const openSpy = vi.fn(() => tab)
     vi.stubGlobal('open', openSpy)
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
@@ -75,7 +76,10 @@ describe('openLinkOnModifierClick', () => {
     const event = clickEvent(anchor, { metaKey: true })
     expect(openLinkOnModifierClick(event)).toBe(true)
     expect(event.defaultPrevented).toBe(true)
-    expect(openSpy).toHaveBeenCalledWith('https://x.org/', '_blank', 'noopener,noreferrer')
+    expect(openSpy).toHaveBeenCalledWith('about:blank', '_blank')
+    expect(tab.opener).toBeNull()
+    expect(tab.location.replace).toHaveBeenCalledWith('https://x.org/')
+    expect(tab.focus).toHaveBeenCalled()
 
     expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true) // Ctrl variant
     vi.unstubAllGlobals()

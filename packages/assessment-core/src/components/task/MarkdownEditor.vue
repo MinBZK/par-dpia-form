@@ -75,6 +75,27 @@ const editor = useEditor({
     // Cmd/Ctrl+click opens a link in a focused tab and stops the editor from
     // moving the selection (the logic lives in openLinkOnModifierClick).
     handleClick: (_view, _pos, event) => openLinkOnModifierClick(event as MouseEvent),
+    // Cmd/Ctrl+K opens the inline link editor (add a new link or edit the one at
+    // the cursor), matching the common editor shortcut.
+    handleKeyDown: (_view, event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        openLinkEditor()
+        return true
+      }
+      return false
+    },
+    // Pasting a URL over a non-empty selection links that text instead of
+    // replacing it with the raw URL.
+    handlePaste: (view, event) => {
+      const text = event.clipboardData?.getData('text/plain')?.trim()
+      if (text && !view.state.selection.empty && /^https?:\/\/\S+$/i.test(text)) {
+        // The editor exists while the user is pasting into it.
+        editor.value!.chain().focus().setLink({ href: text }).run()
+        return true
+      }
+      return false
+    },
   },
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getMarkdown())
@@ -104,6 +125,7 @@ function syncActiveState() {
     orderedList: instance.isActive('orderedList'),
     blockquote: instance.isActive('blockquote'),
     codeBlock: instance.isActive('codeBlock'),
+    link: instance.isActive('link'),
   }
 }
 

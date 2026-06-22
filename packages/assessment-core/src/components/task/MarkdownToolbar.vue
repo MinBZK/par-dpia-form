@@ -179,7 +179,7 @@ function onKeydown(event: KeyboardEvent) {
       <span class="markdown-toolbar__sep" role="separator" aria-orientation="vertical"></span>
       <button v-for="button in group" :key="button.command" type="button"
         class="markdown-toolbar__control markdown-toolbar__button"
-        :class="{ 'is-active': button.toggle && activeMarks[button.command] }"
+        :class="{ 'is-active': activeMarks[button.command] }"
         :tabindex="rovingIndex[button.command] === activeIndex ? 0 : -1"
         :aria-label="button.label" :title="buttonTitle(button)"
         :aria-pressed="button.toggle ? Boolean(activeMarks[button.command]) : undefined"

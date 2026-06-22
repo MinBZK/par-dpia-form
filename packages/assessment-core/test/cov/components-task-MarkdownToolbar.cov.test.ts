@@ -132,17 +132,21 @@ describe('MarkdownToolbar.vue', () => {
     expect((document.activeElement as HTMLElement).textContent).toContain('Paragraaf')
   })
 
-  it('lights up active toggle buttons (is-active + aria-pressed) and leaves inserts unpressed', () => {
-    const wrapper = mountToolbar({ activeMarks: { bold: true, blockquote: false } })
+  it('lights up active toggle buttons (is-active + aria-pressed) and the link button when on a link', () => {
+    const wrapper = mountToolbar({ activeMarks: { bold: true, blockquote: false, link: true } })
     const bold = wrapper.find('button[aria-label="Vet"]')
     expect(bold.classes()).toContain('is-active')
     expect(bold.attributes('aria-pressed')).toBe('true')
     const quote = wrapper.find('button[aria-label="Citaat"]')
     expect(quote.classes()).not.toContain('is-active')
     expect(quote.attributes('aria-pressed')).toBe('false')
-    // Inserts (divider, link) are not toggles -> no aria-pressed, never active.
+    // Link highlights when the cursor is on a link, but it is not a toggle (no aria-pressed).
+    const link = wrapper.find('button[aria-label="Link"]')
+    expect(link.classes()).toContain('is-active')
+    expect(link.attributes('aria-pressed')).toBeUndefined()
+    // Divider is neither active nor pressed.
+    expect(wrapper.find('button[aria-label="Scheidingslijn"]').classes()).not.toContain('is-active')
     expect(wrapper.find('button[aria-label="Scheidingslijn"]').attributes('aria-pressed')).toBeUndefined()
-    expect(wrapper.find('button[aria-label="Link"]').attributes('aria-pressed')).toBeUndefined()
   })
 
   it('shows the keyboard shortcut in the tooltip, or just the label when there is none', () => {

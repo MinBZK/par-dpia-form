@@ -34,22 +34,27 @@ export function markdownLinkInputRule(link: MarkType): InputRule {
 }
 
 // While editing, a plain click on a link just places the cursor. Holding the
-// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a new tab,
-// matching common editors. Used as a ProseMirror handleClick: it preventDefaults
-// the native handling and returns true so the editor does not also move the
-// selection (which would otherwise select the clicked line). Returns false (lets
-// the editor place the cursor) for a plain click or a non-openable link.
+// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a focused
+// new tab, matching common editors. Used as a ProseMirror handleClick: it
+// preventDefaults the native handling and returns true so the editor does not
+// also move the selection (which would otherwise select the clicked line).
+// Returns false (lets the editor place the cursor) for a plain click or a
+// non-openable link.
 //
-// Security: only http(s) hrefs are opened, blocking javascript:/data: that could
-// hide in user-entered link markdown. noopener,noreferrer severs window.opener so
-// the opened page cannot navigate this tab back to a phishing page (reverse
-// tabnabbing). A programmatic window.open already lands in the foreground, so no
-// .focus() is needed (and noopener makes the return value null anyway).
+// Foreground without reverse-tabnabbing: open a blank same-origin tab, null its
+// opener before navigating to the (possibly cross-origin) href, then focus it.
+// Only http(s) is opened, blocking javascript:/data: hidden in link markdown.
 export function openLinkOnModifierClick(event: MouseEvent): boolean {
   if (!(event.metaKey || event.ctrlKey)) return false
   const anchor = (event.target as HTMLElement | null)?.closest('a') as HTMLAnchorElement | null
   if (!anchor || !/^https?:\/\//i.test(anchor.href)) return false
   event.preventDefault()
-  window.open(anchor.href, '_blank', 'noopener,noreferrer')
+  const tab = window.open('about:blank', '_blank')
+  /* istanbul ignore else @preserve -- a popup blocker can return null. */
+  if (tab) {
+    tab.opener = null
+    tab.location.replace(anchor.href)
+    tab.focus()
+  }
   return true
 }
