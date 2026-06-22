@@ -35,6 +35,7 @@ const {
     isInitialized: false,
     init: vi.fn(),
     getSchema: vi.fn(),
+    activatePin: vi.fn(() => ({ fellBack: false })),
   })
   const taskStore: any = reactive({
     activeNamespace: FormTypeMock.DPIA,
@@ -252,6 +253,8 @@ beforeEach(async () => {
 
   schemaStore.isInitialized = false
   schemaStore.getSchema.mockReset()
+  schemaStore.activatePin.mockReset()
+  schemaStore.activatePin.mockReturnValue({ fellBack: false })
   taskStore.activeNamespace = FormTypeMock.DPIA
   taskStore.currentRootTaskId = { dpia: '0', prescan: '0' }
   taskStore.isInitialized = { dpia: false, prescan: false }
@@ -332,6 +335,28 @@ describe('AssessmentEditor — onMounted initialization', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     expect(schemaStore.init).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('activates the pinned definition version for the active namespace', async () => {
+    schemaStore.isInitialized = true
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', definitionVersion: '3.0' }))
+    const wrapper = await mountEditor()
+    expect(schemaStore.activatePin).toHaveBeenCalledWith(FormTypeMock.DPIA, '3.0')
+    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('warns without blocking when the pinned version is not bundled (fellBack)', async () => {
+    schemaStore.isInitialized = true
+    schemaStore.activatePin.mockReturnValueOnce({ fellBack: true })
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', definitionVersion: '2.9' }))
+    const wrapper = await mountEditor()
+    const warning = wrapper.find('.rvo-alert--warning')
+    expect(warning.exists()).toBe(true)
+    expect(warning.text()).toContain('2.9')
+    // The form still renders: the warning is non-blocking.
+    expect(wrapper.find('.form-stub').exists()).toBe(true)
     wrapper.unmount()
   })
 

@@ -137,6 +137,29 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     return `${schema.urn}:${canonicalVersion(schema.version)}`
   }
 
+  function setActiveSlot(namespace: FormType, definition: ValidatedDefinition) {
+    if (namespace === FormType.DPIA) validatedDpia.value = definition
+    else if (namespace === FormType.IAMA) validatedIama.value = definition
+    else validatedPreScan.value = definition
+  }
+
+  // Resolve a per-assessment version pin into the active-per-type slot, so that all
+  // downstream consumers (getSchema/getUrn, task structure, save/export) work against the
+  // pinned definition rather than the bundled latest. A null pin keeps the loaded latest.
+  // When the pinned version is not bundled, the loaded latest is kept and `fellBack` is set
+  // so the caller can warn — the pin is never silently restamped to the wrong version.
+  function activatePin(namespace: FormType, pinnedVersion: string | null): { fellBack: boolean } {
+    const active = getSchema(namespace)
+    if (!active) throw new Error(`Schema not loaded for namespace: ${namespace}`)
+    if (!pinnedVersion) return { fellBack: false }
+
+    const pinned = registry.value.get(`${active.urn}:${canonicalVersion(pinnedVersion)}`)
+    if (!pinned) return { fellBack: true }
+
+    setActiveSlot(namespace, pinned)
+    return { fellBack: false }
+  }
+
   return {
     isInitialized,
     hasErrors,
@@ -146,6 +169,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     getByUrn,
     registeredUrns,
     getSchema,
-    getUrn
+    getUrn,
+    activatePin
   }
 })

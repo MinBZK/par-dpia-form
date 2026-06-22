@@ -316,4 +316,88 @@ describe('useSchemaStore', () => {
       expect(store.registeredUrns().filter(u => u === 'urn:nl:dpia:3.0')).toHaveLength(1)
     })
   })
+
+  describe('activatePin', () => {
+    it('switches the active-per-type slot to the pinned version so getUrn reflects the pin', () => {
+      const store = useSchemaStore()
+      // Bundled latest is 3.1; an older 3.0 is also registered (as a future multi-version
+      // bundle would do). Pinning to 3.0 must make the active view resolve to 3.0.
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }))
+
+      const result = store.activatePin(FormType.DPIA, '3.0')
+
+      expect(result.fellBack).toBe(false)
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.0')
+      expect(store.getSchema(FormType.DPIA)!.version).toBe('3.0')
+    })
+
+    it('pins the PRE_SCAN and IAMA slots too (covers all namespace branches)', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.1' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '2.1' }),
+      })
+      store.register(buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }))
+      store.register(buildSchema({ urn: 'urn:nl:iama', version: '2.0' }))
+
+      expect(store.activatePin(FormType.PRE_SCAN, '2.0').fellBack).toBe(false)
+      expect(store.activatePin(FormType.IAMA, '2.0').fellBack).toBe(false)
+      expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:2.0')
+      expect(store.getUrn(FormType.IAMA)).toBe('urn:nl:iama:2.0')
+    })
+
+    it('canonicalizes the pin so a coarse pin resolves an official version', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+      store.register(buildSchema({ urn: 'urn:nl:dpia', version: '3.0.7' }))
+
+      // Pin "3.0" must resolve the official 3.0.x registered under coarse key urn:nl:dpia:3.0.
+      expect(store.activatePin(FormType.DPIA, '3.0').fellBack).toBe(false)
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.0')
+    })
+
+    it('falls back to the loaded latest and reports fellBack when the pin is not bundled', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+
+      const result = store.activatePin(FormType.DPIA, '2.0')
+
+      expect(result.fellBack).toBe(true)
+      // Slot stays on the loaded latest: never silently restamp to a wrong version.
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.1')
+    })
+
+    it('is a no-op (no fallback) when no pin is given', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '2.0' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '1.0' }),
+      })
+
+      expect(store.activatePin(FormType.DPIA, null).fellBack).toBe(false)
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.1')
+    })
+
+    it('throws when no schema is loaded for the namespace', () => {
+      const store = useSchemaStore()
+      expect(() => store.activatePin(FormType.DPIA, '3.0')).toThrow(
+        'Schema not loaded for namespace: dpia',
+      )
+    })
+  })
 })
