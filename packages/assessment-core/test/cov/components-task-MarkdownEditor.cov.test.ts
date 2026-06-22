@@ -186,7 +186,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('opens a foreground tab on Cmd/Ctrl+click via the editor handleClick', async () => {
+  it('opens a link on a plain click via the editor handleClick', async () => {
     const wrapper = await mountEditor({ modelValue: 'tekst' })
     const editor = getEditor(wrapper)
     const clicks: { href: string; target: string; rel: string }[] = []
@@ -195,7 +195,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     })
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
-    const event = new MouseEvent('click', { cancelable: true, metaKey: true })
+    const event = new MouseEvent('click', { cancelable: true }) // plain click → opens
     Object.defineProperty(event, 'target', { value: anchor })
     editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
     expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnModifierClick, openUrlInNewTab } from '../../src/utils/markdownLinkRule'
+import { MARKDOWN_LINK_PATTERN, applyMarkdownLink, markdownLinkInputRule, openLinkOnClick, openUrlInNewTab } from '../../src/utils/markdownLinkRule'
 
 // openUrlInNewTab clicks a freshly created anchor; capture those clicks' attributes.
 function spyAnchorClick() {
@@ -74,7 +74,7 @@ describe('markdownLinkRule', () => {
   })
 })
 
-describe('openUrlInNewTab / openLinkOnModifierClick', () => {
+describe('openUrlInNewTab / openLinkOnClick', () => {
   it('openUrlInNewTab clicks a synthetic noopener _blank anchor (foreground tab)', () => {
     const { clicks, spy } = spyAnchorClick()
     openUrlInNewTab('https://x.org/')
@@ -82,31 +82,28 @@ describe('openUrlInNewTab / openLinkOnModifierClick', () => {
     spy.mockRestore()
   })
 
-  it('opens a new tab and prevents the default on Cmd/Ctrl+click of an http(s) link', () => {
+  it('opens the link and prevents the default on a (plain or modifier) click of an http(s) link', () => {
     const { clicks, spy } = spyAnchorClick()
     const anchor = document.createElement('a')
     anchor.href = 'https://x.org'
 
-    const event = clickEvent(anchor, { metaKey: true })
-    expect(openLinkOnModifierClick(event)).toBe(true)
+    const event = clickEvent(anchor) // plain click → opens (foreground)
+    expect(openLinkOnClick(event)).toBe(true)
     expect(event.defaultPrevented).toBe(true)
     expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
 
-    expect(openLinkOnModifierClick(clickEvent(anchor, { ctrlKey: true }))).toBe(true) // Ctrl variant
+    expect(openLinkOnClick(clickEvent(anchor, { metaKey: true }))).toBe(true) // modifier click also opens
     spy.mockRestore()
   })
 
-  it('does nothing on a plain click, a non-link target, no target, or a non-http scheme', () => {
+  it('does nothing on a non-link target, no target, or a non-http scheme', () => {
     const { clicks, spy } = spyAnchorClick()
-    const anchor = document.createElement('a')
-    anchor.href = 'https://x.org'
     const jsAnchor = document.createElement('a')
     jsAnchor.setAttribute('href', 'javascript:alert(1)') // scheme blocked by the allowlist
 
-    expect(openLinkOnModifierClick(clickEvent(anchor))).toBe(false) // no modifier
-    expect(openLinkOnModifierClick(clickEvent(document.createElement('span'), { metaKey: true }))).toBe(false) // not a link
-    expect(openLinkOnModifierClick(clickEvent(null, { metaKey: true }))).toBe(false) // no target
-    expect(openLinkOnModifierClick(clickEvent(jsAnchor, { metaKey: true }))).toBe(false) // disallowed scheme
+    expect(openLinkOnClick(clickEvent(document.createElement('span')))).toBe(false) // not a link
+    expect(openLinkOnClick(clickEvent(null))).toBe(false) // no target
+    expect(openLinkOnClick(clickEvent(jsAnchor))).toBe(false) // disallowed scheme
     expect(clicks).toEqual([])
     spy.mockRestore()
   })

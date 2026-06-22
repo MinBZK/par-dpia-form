@@ -47,16 +47,14 @@ export function openUrlInNewTab(url: string): void {
   anchor.click()
 }
 
-// While editing, a plain click on a link just places the cursor. Holding the
-// platform modifier (Cmd on macOS, Ctrl elsewhere) opens the link in a focused
-// new tab, matching common editors. Used as a ProseMirror handleClick: it
-// preventDefaults the native handling and returns true so the editor does not
-// also move the selection (which would otherwise select the clicked line).
-// Returns false (lets the editor place the cursor) for a plain click or a
-// non-openable link. Only http(s) is opened, blocking javascript:/data: hidden
-// in link markdown.
-export function openLinkOnModifierClick(event: MouseEvent): boolean {
-  if (!(event.metaKey || event.ctrlKey)) return false
+// Clicking a link opens it (Obsidian-style), rather than placing the cursor. A
+// plain click opens in the foreground; a Cmd/Ctrl+click opens in the background
+// (the browser applies the held modifier — see openUrlInNewTab). Used as a
+// ProseMirror handleClick: it preventDefaults the cursor placement and returns
+// true when it handled a link click, and false (let the editor place the cursor)
+// for any other click. Only http(s) is opened, blocking javascript:/data: hidden
+// in link markdown. To put the cursor inside a link for editing, drag-select it.
+export function openLinkOnClick(event: MouseEvent): boolean {
   const anchor = (event.target as HTMLElement | null)?.closest('a') as HTMLAnchorElement | null
   if (!anchor || !/^https?:\/\//i.test(anchor.href)) return false
   event.preventDefault()

@@ -5,7 +5,7 @@ import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from '@tiptap/markdown'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
-import { markdownLinkInputRule, openLinkOnModifierClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
+import { markdownLinkInputRule, openLinkOnClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
 
 // WYSIWYG editor surface for open_text fields. The text is shown in its formatted
@@ -78,9 +78,9 @@ const editor = useEditor({
       ...(props.ariaLabelledby ? { 'aria-labelledby': props.ariaLabelledby } : {}),
       ...(props.ariaLabel ? { 'aria-label': props.ariaLabel } : {}),
     },
-    // Cmd/Ctrl+click opens a link in a focused tab and stops the editor from
-    // moving the selection (the logic lives in openLinkOnModifierClick).
-    handleClick: (_view, _pos, event) => openLinkOnModifierClick(event as MouseEvent),
+    // Clicking a link opens it (foreground for a plain click) instead of moving
+    // the cursor; the logic lives in openLinkOnClick.
+    handleClick: (_view, _pos, event) => openLinkOnClick(event as MouseEvent),
     // Cmd/Ctrl+K opens the inline link editor (add a new link or edit the one at
     // the cursor), matching the common editor shortcut.
     handleKeyDown: (_view, event) => {
