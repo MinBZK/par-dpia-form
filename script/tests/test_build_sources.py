@@ -27,6 +27,22 @@ def test_builds_one_enriched_json_per_manifest_version(tmp_path):
             assert "tasks" in data
 
 
+def test_flat_output_mirrors_the_latest_official_nested_build(tmp_path):
+    # The apps still import the flat PreScanDPIA.json/DPIA.json/IAMA.json. Those must be
+    # byte-identical to the latest-official nested build, so build_sources is a true
+    # drop-in for run_all.py (same DefinitionEnricher + same source -> same bytes).
+    generated = tmp_path / "generated"
+    build_sources(MANIFEST_PATH, SOURCES_DIR, SCHEMA_PATH, generated)
+
+    flat_names = {"prescan": "PreScanDPIA.json", "dpia": "DPIA.json", "iama": "IAMA.json"}
+    manifest = load_manifest(MANIFEST_PATH)
+    for type_name, type_def in manifest["types"].items():
+        flat = generated / flat_names[type_name]
+        nested = generated / type_name / f"{type_def['latestOfficial']}.json"
+        assert flat.exists(), f"missing flat output {flat}"
+        assert flat.read_bytes() == nested.read_bytes(), f"flat != nested for {type_name}"
+
+
 def test_emits_a_runtime_manifest_mirroring_the_source(tmp_path):
     generated = tmp_path / "generated"
     build_sources(MANIFEST_PATH, SOURCES_DIR, SCHEMA_PATH, generated)

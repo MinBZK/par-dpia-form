@@ -25,6 +25,15 @@ from schema_validator import SchemaValidator
 
 logger = logging.getLogger(__name__)
 
+# Legacy flat output filenames the apps still import statically. build_sources mirrors the
+# latest-official enrichment of each type to these names so it is a drop-in for run_all.py,
+# alongside the per-version (nested) output. Removed once the apps load the nested output.
+LEGACY_FLAT_OUTPUTS = {
+    "prescan": "PreScanDPIA.json",
+    "dpia": "DPIA.json",
+    "iama": "IAMA.json",
+}
+
 
 def build_sources(
     manifest_path: Path,
@@ -57,6 +66,13 @@ def build_sources(
             output = generated_dir / type_name / f"{version['version']}.json"
             enricher.enrich_and_export(source, begrippen_yaml, output, once_per_page=once_per_page)
             logger.info("Built %s %s -> %s", type_name, version["version"], output)
+
+        # Mirror the latest-official build to the legacy flat filename (drop-in for run_all.py).
+        flat_name = LEGACY_FLAT_OUTPUTS.get(type_name)
+        if flat_name:
+            latest_nested = generated_dir / type_name / f"{type_def['latestOfficial']}.json"
+            (generated_dir / flat_name).write_bytes(latest_nested.read_bytes())
+            logger.info("Mirrored %s latest-official -> %s", type_name, flat_name)
 
     runtime_path = generated_dir / "manifest.json"
     runtime_path.parent.mkdir(parents=True, exist_ok=True)
