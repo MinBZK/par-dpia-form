@@ -24,6 +24,8 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
         <span class="app-footer__separator">|</span>
         <router-link to="/over" class="app-footer__link">Over Invulhulpen</router-link>
         <span class="app-footer__separator">|</span>
+        <router-link to="/modellen" class="app-footer__link">Modelversies</router-link>
+        <span class="app-footer__separator">|</span>
         <router-link to="/status" class="app-footer__link">Status</router-link>
       </nav>
     </footer>
