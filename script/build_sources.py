@@ -20,7 +20,7 @@ import logging
 from pathlib import Path
 
 from definition_enricher import DefinitionEnricher
-from manifest import load_manifest
+from manifest import load_manifest, validate_manifest
 from schema_validator import SchemaValidator
 
 logger = logging.getLogger(__name__)
@@ -50,6 +50,16 @@ def build_sources(
     """
     script_dir = script_dir or Path(__file__).parent
     manifest = load_manifest(manifest_path)
+
+    # Gate on the manifest's own consistency (duplicate versions, latestOfficial sanity,
+    # referenced files exist) on every build site -- not only under pytest -- so a bad
+    # manifest fails with a clear message instead of a cryptic FileNotFoundError later.
+    problems = validate_manifest(
+        manifest, schema_path.parent / "source-manifest.v1.schema.json", sources_dir
+    )
+    if problems:
+        raise ValueError("manifest is inconsistent: " + "; ".join(problems))
+
     validator = SchemaValidator(script_dir)
     enricher = DefinitionEnricher(script_dir)
 

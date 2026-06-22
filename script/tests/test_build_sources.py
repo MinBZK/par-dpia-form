@@ -79,3 +79,27 @@ def test_raises_when_a_source_fails_schema_validation(tmp_path):
     )
     with pytest.raises(ValueError, match="schema validation failed"):
         build_sources(manifest_file, sources, SCHEMA_PATH, tmp_path / "out")
+
+
+def test_raises_a_clear_message_when_the_manifest_is_inconsistent(tmp_path):
+    # latestOfficial points at a version absent from `versions`. Without the gate this
+    # crashed later with a cryptic FileNotFoundError; the build must fail up front.
+    sources = tmp_path / "src"
+    sources.mkdir()
+    (sources / "ok.yaml").write_text("name: Placeholder\n", encoding="utf-8")
+    (sources / "begrippen.yaml").write_text("begrippen: []\n", encoding="utf-8")
+    manifest_file = sources / "manifest.yaml"
+    manifest_file.write_text(
+        "schemaVersion: 1\n"
+        "types:\n"
+        "  dpia:\n"
+        "    latestOfficial: '9.9'\n"
+        "    begrippenkader: begrippen.yaml\n"
+        "    versions:\n"
+        "      - version: '1.0'\n"
+        "        channel: official\n"
+        "        file: ok.yaml\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="inconsistent"):
+        build_sources(manifest_file, sources, SCHEMA_PATH, tmp_path / "out")
