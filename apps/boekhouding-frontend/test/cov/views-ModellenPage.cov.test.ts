@@ -37,7 +37,7 @@ const MANIFEST = {
     onbekend: {
       latestOfficial: '1.0',
       begrippenkader: 'x.yaml',
-      versions: [{ version: '1.0', channel: 'official', file: 'x/1.0.yaml' }],
+      versions: [{ version: '1.0', channel: 'official', file: 'x/1.0.yaml', releasedAt: 'geen-datum' }],
     },
   },
 }
@@ -80,7 +80,9 @@ describe('ModellenPage', () => {
     expect(wrapper.find('[data-test="latest-dpia"]').exists()).toBe(true)
 
     // releasedAt + changelog present on 3.0, absent on the concept.
-    expect(wrapper.find('[data-test="released-dpia-3.0"]').exists()).toBe(true)
+    // Valid ISO -> Dutch long date; unparseable value falls back to the raw string.
+    expect(wrapper.find('[data-test="released-dpia-3.0"]').text()).toContain('januari')
+    expect(wrapper.find('[data-test="released-onbekend-1.0"]').text()).toContain('geen-datum')
     expect(wrapper.find('[data-test="changelog-dpia-3.0"]').exists()).toBe(true)
     expect(wrapper.find('[data-test="released-dpia-3.1.0-concept.1"]').exists()).toBe(false)
     expect(wrapper.find('[data-test="changelog-dpia-3.1.0-concept.1"]').exists()).toBe(false)

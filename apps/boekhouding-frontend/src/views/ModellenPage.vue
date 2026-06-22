@@ -38,6 +38,14 @@ function isConcept(version: ManifestVersion): boolean {
   return version.channel === 'concept'
 }
 
+// Format an ISO date as a Dutch long date; fall back to the raw value if unparseable.
+function formatDate(iso: string): string {
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime())
+    ? iso
+    : new Intl.DateTimeFormat('nl-NL', { dateStyle: 'long' }).format(date)
+}
+
 onMounted(async () => {
   try {
     manifest.value = await loadSourceManifest()
@@ -95,25 +103,25 @@ onMounted(async () => {
               :data-test="`version-${t.type}-${v.version}`"
             >
               <div class="rvo-card__content card-content-flex">
-                <h3 class="utrecht-heading-3 rvo-margin--none model-card__title">
-                  Versie {{ v.version }}
+                <h3 class="utrecht-heading-3 rvo-margin--none">Versie {{ v.version }}</h3>
+                <p class="model-card__tags rvo-margin--none">
                   <span
                     class="rvo-tag"
                     :class="isConcept(v) ? 'rvo-tag--warning' : 'rvo-tag--success'"
                     :data-test="`channel-${t.type}-${v.version}`"
                   >
-                    {{ isConcept(v) ? 'Concept — nog niet vastgesteld' : 'Officieel' }}
+                    {{ isConcept(v) ? 'Concept - nog niet vastgesteld' : 'Officieel' }}
                   </span>
                   <span
                     v-if="v.version === t.latestOfficial"
-                    class="rvo-tag rvo-tag--default"
+                    class="rvo-tag rvo-tag--info"
                     :data-test="`latest-${t.type}`"
                   >
                     Huidige officiële versie
                   </span>
-                </h3>
+                </p>
                 <p v-if="v.releasedAt" class="rvo-text--sm rvo-margin--none" :data-test="`released-${t.type}-${v.version}`">
-                  Uitgebracht op {{ v.releasedAt }}
+                  Uitgebracht op <time :datetime="v.releasedAt">{{ formatDate(v.releasedAt) }}</time>
                 </p>
                 <details
                   v-if="v.changelog && v.changelog.length"

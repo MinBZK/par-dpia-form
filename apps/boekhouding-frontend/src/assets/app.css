@@ -180,6 +180,18 @@ a.card-link:hover {
   margin-top: auto;
 }
 
+/* /modellen: version tags below the heading, and a dashed outline to mark concept cards
+   (a non-colour cue that keeps full text contrast). */
+.model-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rvo-space-2xs, 0.5rem);
+}
+
+.model-card--concept {
+  border-style: dashed;
+}
+
 /* Equal-height cards in grid layouts */
 .rvo-layout-grid > .rvo-card {
   height: 100%;
