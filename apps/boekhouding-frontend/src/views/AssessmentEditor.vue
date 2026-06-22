@@ -37,6 +37,8 @@ const calculationStore = useCalculationStore()
 const assessment = ref<(AssessmentInstance & { role?: string }) | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+// Non-blocking notice when the assessment's pinned definition version is not bundled.
+const versionWarning = ref<string | null>(null)
 const canEdit = computed(() => assessment.value?.role === 'owner' || assessment.value?.role === 'editor')
 const isReadonly = computed(() => !canEdit.value)
 
@@ -227,6 +229,15 @@ onMounted(async () => {
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
     taskStore.setActiveNamespace(namespace)
     answerStore.setActiveNamespace(namespace)
+
+    // Resolve the version this assessment was filled against into the active slot, so the
+    // form, save and export work against the pinned definition rather than the bundled
+    // latest. If that version is not bundled, keep the latest but warn — never silently
+    // restamp to a different version.
+    const { fellBack } = schemaStore.activatePin(namespace, assessment.value.definitionVersion)
+    if (fellBack) {
+      versionWarning.value = `De vastgelegde modelversie (${assessment.value.definitionVersion}) is niet beschikbaar. Je werkt nu met de nieuwste versie; controleer of dit klopt voordat je wijzigingen opslaat.`
+    }
 
     // If this is a DPIA with embedded pre-scan answers, initialize the PRE_SCAN
     // task structure and load answers so usePreScanReferences can work.
@@ -447,6 +458,10 @@ const confirmDelete = async () => {
       </div>
       <div v-else-if="assessment.role === 'commenter'" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
         Je kunt opmerkingen plaatsen maar niet het formulier bewerken.
+      </div>
+
+      <div v-if="versionWarning" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm rvo-margin-block-end--md" role="alert">
+        {{ versionWarning }}
       </div>
 
     </div>
