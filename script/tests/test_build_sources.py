@@ -27,6 +27,22 @@ def test_builds_one_enriched_json_per_manifest_version(tmp_path):
             assert "tasks" in data
 
 
+def test_flat_output_mirrors_the_latest_official_nested_build(tmp_path):
+    # The apps still import the flat PreScanDPIA.json/DPIA.json/IAMA.json. Those must be
+    # byte-identical to the latest-official nested build, so build_sources is a true
+    # drop-in for run_all.py (same DefinitionEnricher + same source -> same bytes).
+    generated = tmp_path / "generated"
+    build_sources(MANIFEST_PATH, SOURCES_DIR, SCHEMA_PATH, generated)
+
+    flat_names = {"prescan": "PreScanDPIA.json", "dpia": "DPIA.json", "iama": "IAMA.json"}
+    manifest = load_manifest(MANIFEST_PATH)
+    for type_name, type_def in manifest["types"].items():
+        flat = generated / flat_names[type_name]
+        nested = generated / type_name / f"{type_def['latestOfficial']}.json"
+        assert flat.exists(), f"missing flat output {flat}"
+        assert flat.read_bytes() == nested.read_bytes(), f"flat != nested for {type_name}"
+
+
 def test_emits_a_runtime_manifest_mirroring_the_source(tmp_path):
     generated = tmp_path / "generated"
     build_sources(MANIFEST_PATH, SOURCES_DIR, SCHEMA_PATH, generated)
@@ -62,4 +78,28 @@ def test_raises_when_a_source_fails_schema_validation(tmp_path):
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="schema validation failed"):
+        build_sources(manifest_file, sources, SCHEMA_PATH, tmp_path / "out")
+
+
+def test_raises_a_clear_message_when_the_manifest_is_inconsistent(tmp_path):
+    # latestOfficial points at a version absent from `versions`. Without the gate this
+    # crashed later with a cryptic FileNotFoundError; the build must fail up front.
+    sources = tmp_path / "src"
+    sources.mkdir()
+    (sources / "ok.yaml").write_text("name: Placeholder\n", encoding="utf-8")
+    (sources / "begrippen.yaml").write_text("begrippen: []\n", encoding="utf-8")
+    manifest_file = sources / "manifest.yaml"
+    manifest_file.write_text(
+        "schemaVersion: 1\n"
+        "types:\n"
+        "  dpia:\n"
+        "    latestOfficial: '9.9'\n"
+        "    begrippenkader: begrippen.yaml\n"
+        "    versions:\n"
+        "      - version: '1.0'\n"
+        "        channel: official\n"
+        "        file: ok.yaml\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="inconsistent"):
         build_sources(manifest_file, sources, SCHEMA_PATH, tmp_path / "out")

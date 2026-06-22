@@ -57,23 +57,11 @@ jobs:
 
       - name: Generate assessment JSON sources
         run: |
-          mkdir -p sources/generated
-          uv run --frozen python script/run_all.py \
+          uv run --frozen python script/build_sources.py \
+            --manifest sources/manifest.yaml \
+            --sources-dir sources \
             --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/prescan.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/PreScanDPIA.json
-          uv run --frozen python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/dpia.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/DPIA.json
-          uv run --frozen python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/iama.yaml \
-            --begrippen-yaml sources/begrippenkader_iama.yaml \
-            --output-json sources/generated/IAMA.json \
-            --definitions-once-per-page
+            --generated-dir sources/generated
 
       - name: Run Python pipeline tests
         run: uv run --frozen pytest script/tests -q

@@ -20,10 +20,19 @@ import logging
 from pathlib import Path
 
 from definition_enricher import DefinitionEnricher
-from manifest import load_manifest
+from manifest import load_manifest, validate_manifest
 from schema_validator import SchemaValidator
 
 logger = logging.getLogger(__name__)
+
+# Legacy flat output filenames the apps still import statically. build_sources mirrors the
+# latest-official enrichment of each type to these names so it is a drop-in for run_all.py,
+# alongside the per-version (nested) output. Removed once the apps load the nested output.
+LEGACY_FLAT_OUTPUTS = {
+    "prescan": "PreScanDPIA.json",
+    "dpia": "DPIA.json",
+    "iama": "IAMA.json",
+}
 
 
 def build_sources(
@@ -41,6 +50,16 @@ def build_sources(
     """
     script_dir = script_dir or Path(__file__).parent
     manifest = load_manifest(manifest_path)
+
+    # Gate on the manifest's own consistency (duplicate versions, latestOfficial sanity,
+    # referenced files exist) on every build site -- not only under pytest -- so a bad
+    # manifest fails with a clear message instead of a cryptic FileNotFoundError later.
+    problems = validate_manifest(
+        manifest, schema_path.parent / "source-manifest.v1.schema.json", sources_dir
+    )
+    if problems:
+        raise ValueError("manifest is inconsistent: " + "; ".join(problems))
+
     validator = SchemaValidator(script_dir)
     enricher = DefinitionEnricher(script_dir)
 
@@ -57,6 +76,13 @@ def build_sources(
             output = generated_dir / type_name / f"{version['version']}.json"
             enricher.enrich_and_export(source, begrippen_yaml, output, once_per_page=once_per_page)
             logger.info("Built %s %s -> %s", type_name, version["version"], output)
+
+        # Mirror the latest-official build to the legacy flat filename (drop-in for run_all.py).
+        flat_name = LEGACY_FLAT_OUTPUTS.get(type_name)
+        if flat_name:
+            latest_nested = generated_dir / type_name / f"{type_def['latestOfficial']}.json"
+            (generated_dir / flat_name).write_bytes(latest_nested.read_bytes())
+            logger.info("Mirrored %s latest-official -> %s", type_name, flat_name)
 
     runtime_path = generated_dir / "manifest.json"
     runtime_path.parent.mkdir(parents=True, exist_ok=True)

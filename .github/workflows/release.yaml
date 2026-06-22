@@ -92,29 +92,11 @@ jobs:
 
       - name: Generate JSON from YAML definitions
         run: |
-          mkdir -p sources/generated
-
-          uv run --frozen --no-dev python script/run_all.py \
+          uv run --frozen --no-dev python script/build_sources.py \
+            --manifest sources/manifest.yaml \
+            --sources-dir sources \
             --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/prescan.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/PreScanDPIA.json \
-            --output-md docs/questions/questions_prescan.md
-
-          uv run --frozen --no-dev python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/dpia.yaml \
-            --begrippen-yaml sources/begrippenkader_dpia.yaml \
-            --output-json sources/generated/DPIA.json \
-            --output-md docs/questions/questions_DPIA.md
-
-          uv run --frozen --no-dev python script/run_all.py \
-            --schema schemas/assessment-definition.v2.schema.json \
-            --source sources/iama.yaml \
-            --begrippen-yaml sources/begrippenkader_iama.yaml \
-            --output-json sources/generated/IAMA.json \
-            --output-md docs/questions/questions_IAMA.md \
-            --definitions-once-per-page
+            --generated-dir sources/generated
 
       - name: Set up Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
