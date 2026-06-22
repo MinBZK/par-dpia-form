@@ -8,7 +8,7 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import MarkdownEditor from './MarkdownEditor.vue'
+import MarkdownEditor from '../editor/MarkdownEditor.vue'
 import { computed } from 'vue'
 
 const props = defineProps<{

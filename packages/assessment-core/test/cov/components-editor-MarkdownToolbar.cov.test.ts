@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import MarkdownToolbar from '../../src/components/task/MarkdownToolbar.vue'
+import MarkdownToolbar from '../../src/components/editor/MarkdownToolbar.vue'
 
 type Props = { headingLevels: number[]; activeBlock: number | null; activeMarks: Record<string, boolean> }
 const DEFAULTS: Props = { headingLevels: [1, 2, 3, 4, 5, 6], activeBlock: null, activeMarks: {} }

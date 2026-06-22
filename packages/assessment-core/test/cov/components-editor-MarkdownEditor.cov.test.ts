@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import type { Editor } from '@tiptap/core'
 import { Slice } from '@tiptap/pm/model'
-import MarkdownEditor from '../../src/components/task/MarkdownEditor.vue'
-import MarkdownToolbar from '../../src/components/task/MarkdownToolbar.vue'
+import MarkdownEditor from '../../src/components/editor/MarkdownEditor.vue'
+import MarkdownToolbar from '../../src/components/editor/MarkdownToolbar.vue'
 
 // jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
 // during selection/link operations. Stub those layout calls so they don't throw.
