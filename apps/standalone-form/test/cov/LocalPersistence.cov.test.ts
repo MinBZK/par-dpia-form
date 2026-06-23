@@ -438,3 +438,40 @@ describe('createLocalPersistence — restoreUiState', () => {
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('0')
   })
 })
+
+describe('createLocalPersistence — savedVersion', () => {
+  it('returns the version parsed from the saved metadata.urn', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+      metadata: { urn: 'urn:nl:dpia:3.0' },
+      answers: { '0.1': { value: 'x' } },
+    }))
+    const provider = createLocalPersistence()
+    expect(provider.savedVersion(FormType.DPIA)).toBe('3.0')
+  })
+
+  it('returns the precise concept version when the saved urn carries a prerelease', () => {
+    localStorage.setItem(storageKey(FormType.IAMA), JSON.stringify({
+      metadata: { urn: 'urn:nl:iama:2.1.0-concept.3' },
+      answers: {},
+    }))
+    const provider = createLocalPersistence()
+    expect(provider.savedVersion(FormType.IAMA)).toBe('2.1.0-concept.3')
+  })
+
+  it('returns null when there is no saved state for the namespace', () => {
+    const provider = createLocalPersistence()
+    expect(provider.savedVersion(FormType.IAMA)).toBeNull()
+  })
+
+  it('returns null when the saved state has no parseable urn', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {} }))
+    const provider = createLocalPersistence()
+    expect(provider.savedVersion(FormType.DPIA)).toBeNull()
+  })
+
+  it('returns null when the saved state is malformed JSON', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), '{not json')
+    const provider = createLocalPersistence()
+    expect(provider.savedVersion(FormType.DPIA)).toBeNull()
+  })
+})

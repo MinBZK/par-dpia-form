@@ -29,6 +29,10 @@ const schemaStore = useSchemaStore()
 
 const currentView = ref<ViewState>(ViewState.Landing)
 
+// Non-blocking notice when a resumed assessment was filled against a definition
+// version that this build no longer bundles.
+const versionWarning = ref<string | null>(null)
+
 // Which assessments have saved progress in localStorage. Recomputed whenever
 // the landing page is shown, since localStorage is not reactive.
 const cachedTypes = ref<FormType[]>([])
@@ -40,8 +44,25 @@ const refreshCachedTypes = () => {
 refreshCachedTypes()
 
 const navigateTo = (view: ViewState) => {
-  if (view === ViewState.Landing) refreshCachedTypes()
+  if (view === ViewState.Landing) {
+    refreshCachedTypes()
+    versionWarning.value = null
+  }
   currentView.value = view
+}
+
+// Before opening a form, pin the bundled definition to the version a resumed
+// assessment was filled against, so the form, autosave and export keep that
+// version rather than silently adopting the bundled latest. If that version is
+// not bundled, keep the latest but warn — never silently restamp.
+const resolvePin = (ns: FormType) => {
+  const version = persistence.savedVersion(ns)
+  versionWarning.value = null
+  if (!version) return
+  const { fellBack } = schemaStore.activatePin(ns, version)
+  if (fellBack) {
+    versionWarning.value = `De opgeslagen versie (${version}) zit niet in deze versie van het formulier. Je werkt nu met de nieuwste versie; controleer je antwoorden voordat je verdergaat.`
+  }
 }
 
 const navigationFunctions: NavigationFunctions = {
@@ -50,18 +71,21 @@ const navigationFunctions: NavigationFunctions = {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.setActiveNamespace(FormType.DPIA)
     taskStore.isInitialized[FormType.DPIA] = false
+    resolvePin(FormType.DPIA)
     navigateTo(ViewState.DPIA)
   },
   goToPreScanDPIA: () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     taskStore.isInitialized[FormType.PRE_SCAN] = false
+    resolvePin(FormType.PRE_SCAN)
     navigateTo(ViewState.PreScanDPIA)
   },
   goToIAMA: () => {
     taskStore.setActiveNamespace(FormType.IAMA)
     answerStore.setActiveNamespace(FormType.IAMA)
     taskStore.isInitialized[FormType.IAMA] = false
+    resolvePin(FormType.IAMA)
     navigateTo(ViewState.IAMA)
   },
 }
@@ -91,6 +115,16 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
     :cached-types="cachedTypes"
     @start-fresh="startFresh"
   />
+
+  <!-- Version-mismatch notice when resuming an assessment filled against a version
+       this build no longer bundles. -->
+  <div
+    v-if="versionWarning"
+    class="rvo-alert rvo-alert--warning rvo-alert--padding-sm"
+    role="alert"
+  >
+    {{ versionWarning }}
+  </div>
 
   <!-- DPIA Form -->
   <Form

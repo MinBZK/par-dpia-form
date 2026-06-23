@@ -11,6 +11,7 @@ import {
   migrateStateV1toV2,
   applyStateToStores,
   groupAnswers,
+  parseUrn,
 } from '@overheid-assessment/core'
 
 /** Loosely-typed shape of state read from storage: it may be a current flat
@@ -25,6 +26,9 @@ interface LoadedState {
 export interface LocalPersistence extends PersistenceProvider {
   /** Whether a non-empty saved state exists for the given assessment type. */
   hasSavedState(namespace: FormType): boolean
+  /** The definition version a saved state was filled against (from metadata.urn),
+   *  or null when there is no saved state or its urn is unparseable. */
+  savedVersion(namespace: FormType): string | null
 }
 
 function getStorageKey(namespace: string): string {
@@ -139,6 +143,17 @@ export function createLocalPersistence(): LocalPersistence {
     }
   }
 
+  function savedVersion(namespace: FormType): string | null {
+    try {
+      const data = localStorage.getItem(getStorageKey(namespace))
+      if (!data) return null
+      const parsed = JSON.parse(data) as { metadata?: { urn?: string } }
+      return parseUrn(parsed.metadata?.urn)?.version ?? null
+    } catch {
+      return null
+    }
+  }
+
   function clearSavedState(namespace?: FormType): void {
     const ns = namespace ?? taskStore.activeNamespace
     localStorage.removeItem(getStorageKey(ns))
@@ -185,6 +200,7 @@ export function createLocalPersistence(): LocalPersistence {
     loadAppState,
     applyAppState,
     hasSavedState,
+    savedVersion,
     clearSavedState,
     setupWatchers,
     restoreUiState,
