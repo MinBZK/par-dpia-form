@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import {
   FormType,
   useTaskStore,
   useAnswerStore,
+  useSchemaStore,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import App from '../../src/App.vue'
@@ -220,5 +221,63 @@ describe('App.vue — cached sessions (#322)', () => {
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(type)
     expect(form.props('autoStart')).toBe(true)
+  })
+})
+
+describe('App.vue — version pin on resume', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+  })
+
+  function seedVersioned(ns: FormType, urn: string): void {
+    localStorage.setItem(storageKey(ns), JSON.stringify({
+      metadata: { urn },
+      answers: { '0.1': { value: 'X' } },
+    }))
+  }
+
+  it('activates the saved version on resume and shows no warning when it is bundled', async () => {
+    seedVersioned(FormType.DPIA, 'urn:nl:dpia:3.0')
+    const activatePin = vi.spyOn(useSchemaStore(), 'activatePin').mockReturnValue({ fellBack: false })
+
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    nav.goToDPIA()
+    await wrapper.vm.$nextTick()
+
+    expect(activatePin).toHaveBeenCalledWith(FormType.DPIA, '3.0')
+    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+  })
+
+  it('warns without blocking when the saved version is not bundled (fellBack)', async () => {
+    seedVersioned(FormType.IAMA, 'urn:nl:iama:1.9')
+    vi.spyOn(useSchemaStore(), 'activatePin').mockReturnValue({ fellBack: true })
+
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    nav.goToIAMA!()
+    await wrapper.vm.$nextTick()
+
+    const warning = wrapper.find('.rvo-alert--warning')
+    expect(warning.exists()).toBe(true)
+    expect(warning.text()).toContain('1.9')
+    // Non-blocking: the form still renders.
+    expect(wrapper.findComponent(FormStub).exists()).toBe(true)
+  })
+
+  it('clears the warning when returning to the landing page', async () => {
+    seedVersioned(FormType.DPIA, 'urn:nl:dpia:2.9')
+    vi.spyOn(useSchemaStore(), 'activatePin').mockReturnValue({ fellBack: true })
+
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    nav.goToDPIA()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(true)
+
+    nav.goToLanding()
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
   })
 })
