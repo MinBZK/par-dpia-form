@@ -126,6 +126,23 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
     expect(item).toBeDefined()
   })
 
+  it('collapses a nested mark onto one string-text leaf (bold + underline)', () => {
+    // pdfmake drops styling on array-text wrappers, so nested marks must end up
+    // on a single string-text leaf carrying every style for it to render.
+    const content = markdownToPdfContent('**++both++**') as any
+    const leaf = textArray(content).find((t: any) => typeof t === 'object' && t.text === 'both')
+    expect(leaf).toBeDefined()
+    expect(leaf.bold).toBe(true)
+    expect(leaf.decoration).toBe('underline')
+  })
+
+  it('combines stacked decorations into an array (strikethrough + underline)', () => {
+    const content = markdownToPdfContent('++~~both~~++') as any
+    const leaf = textArray(content).find((t: any) => typeof t === 'object' && t.text === 'both')
+    expect(leaf).toBeDefined()
+    expect(leaf.decoration).toEqual(['lineThrough', 'underline'])
+  })
+
   it('handles codespan with background colour', () => {
     const content = markdownToPdfContent('`code`') as any
     const span = textArray(content).find((t: any) => typeof t === 'object' && t.background === '#e8e8e8')

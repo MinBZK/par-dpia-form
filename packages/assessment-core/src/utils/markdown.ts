@@ -63,7 +63,30 @@ export function renderMarkdownToHtml(markdown: string): string {
 // Markdown → pdfmake Content
 // ---------------------------------------------------------------------------
 
-type PdfText = string | { text: string | PdfText[]; bold?: boolean; italics?: boolean; link?: string; color?: string; decoration?: string; background?: string }
+type PdfText = string | { text: string | PdfText[]; bold?: boolean; italics?: boolean; link?: string; color?: string; decoration?: string | string[]; background?: string }
+
+// pdfmake 0.3 drops styling set on a wrapper whose `text` is an array
+// (flattenTextArray, see TextInlines.js "TODO: Styling in nested text" / issue
+// #1174). So inline marks must live on a string-text leaf, not wrap an array.
+// applyMark pushes a mark onto every leaf produced for the marked span, merging
+// with any mark already there (stacked decorations become an array so e.g.
+// underline + strikethrough both render).
+function applyMark(
+  parts: PdfText[],
+  mark: { bold?: boolean; italics?: boolean; decoration?: string },
+): PdfText[] {
+  return parts.map(part => {
+    const leaf = typeof part === 'string' ? { text: part } : { ...part }
+    if (mark.bold) leaf.bold = true
+    if (mark.italics) leaf.italics = true
+    if (mark.decoration) {
+      leaf.decoration = leaf.decoration
+        ? ([] as string[]).concat(leaf.decoration, mark.decoration)
+        : mark.decoration
+    }
+    return leaf
+  })
+}
 
 function flattenToString(tokens: Token[]): string {
   return tokens.map(token => {
@@ -80,18 +103,18 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
     const t = token as MarkedToken
     // `underline` is our custom inline token (not part of MarkedToken's union).
     if ((t as { type: string }).type === 'underline') {
-      parts.push({ text: processInlineTokens((t as unknown as { tokens: Token[] }).tokens), decoration: 'underline' })
+      parts.push(...applyMark(processInlineTokens((t as unknown as { tokens: Token[] }).tokens), { decoration: 'underline' }))
       continue
     }
     switch (t.type) {
       case 'strong':
-        parts.push({ text: processInlineTokens(t.tokens), bold: true })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { bold: true }))
         break
       case 'em':
-        parts.push({ text: processInlineTokens(t.tokens), italics: true })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { italics: true }))
         break
       case 'del':
-        parts.push({ text: processInlineTokens(t.tokens), decoration: 'lineThrough' })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { decoration: 'lineThrough' }))
         break
       case 'codespan':
         parts.push({ text: t.text, background: '#e8e8e8' } as PdfText)
