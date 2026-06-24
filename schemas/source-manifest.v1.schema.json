@@ -1,0 +1,74 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/source-manifest.v1.schema.json",
+    "title": "Source Manifest",
+    "description": "Registry of versioned questionnaire source definitions (Pre-scan, DPIA, IAMA) and their channels. The begrippenkader is externally auto-synced and is referenced only as an enrichment input, never versioned here.",
+    "type": "object",
+    "required": ["schemaVersion", "types"],
+    "additionalProperties": false,
+    "properties": {
+        "schemaVersion": {
+            "const": 1,
+            "description": "Version of this manifest format."
+        },
+        "types": {
+            "type": "object",
+            "description": "Assessment types keyed by namespace (prescan, dpia, iama).",
+            "minProperties": 1,
+            "additionalProperties": {
+                "type": "object",
+                "required": ["latestOfficial", "begrippenkader", "versions"],
+                "additionalProperties": false,
+                "properties": {
+                    "latestOfficial": {
+                        "$ref": "#/$defs/version",
+                        "description": "The version unpinned consumers resolve to. Must be an official-channel entry in versions."
+                    },
+                    "begrippenkader": {
+                        "type": "string",
+                        "description": "Begrippenkader YAML used as enrichment input (not versioned by this manifest)."
+                    },
+                    "enrichOncePerPage": {
+                        "type": "boolean",
+                        "description": "Inject each term definition once per page instead of at every occurrence (IAMA)."
+                    },
+                    "versions": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {
+                            "type": "object",
+                            "required": ["version", "channel", "file"],
+                            "additionalProperties": false,
+                            "properties": {
+                                "version": { "$ref": "#/$defs/version" },
+                                "channel": {
+                                    "enum": ["official", "concept"],
+                                    "description": "official = stable/published; concept = in-development prerelease."
+                                },
+                                "file": {
+                                    "type": "string",
+                                    "description": "Source YAML path, relative to sources/."
+                                },
+                                "releasedAt": {
+                                    "type": "string",
+                                    "description": "ISO date the version was published (optional)."
+                                },
+                                "changelog": {
+                                    "type": "array",
+                                    "description": "Curated, user-facing changes versus the previous version (plain text / markdown).",
+                                    "items": { "type": "string" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+(\\.\\d+){0,2}(-concept(\\.\\d+)?)?$"
+        }
+    }
+}

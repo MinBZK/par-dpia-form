@@ -77,3 +77,9 @@ export { autoGrowTextarea } from './utils/autoGrowTextarea'
 
 // Security
 export { installTrustedTypesPolicy } from './security/trustedTypes'
+
+// Content versioning
+export { parseUrn, isPrerelease, coarseVersion, compareVersions } from './versioning/semver'
+export type { ParsedUrn, Channel } from './versioning/semver'
+export { versionsForType, latestOfficialVersion, findNewerVersion } from './versioning/manifest'
+export type { SourceManifest, ManifestType, ManifestVersion } from './versioning/manifest'
