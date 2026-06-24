@@ -6,6 +6,8 @@ import { requireAuth } from '../middleware/auth.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
+import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
+import { validateState } from '../utils/validateState.js'
 
 // Sentinel to trigger transaction rollback when a concurrent write wins the
 // optimistic-lock race (conditional UPDATE affected 0 rows).
@@ -62,6 +64,28 @@ export async function assessmentRoutes(app: FastifyInstance) {
         title: 'Ongeldig verzoek',
         status: 400,
         detail: 'Gegevens of naam is verplicht',
+        instance: request.url,
+      })
+    }
+
+    if (!hasOnlyAllowedImages(state)) {
+      return reply.status(400).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/400',
+        title: 'Ongeldig verzoek',
+        status: 400,
+        detail: 'Ongeldig afbeeldingsformaat. Toegestaan zijn PNG, JPEG, WebP en GIF.',
+        instance: request.url,
+      })
+    }
+
+    const stateValidation = validateState(state)
+    if (!stateValidation.valid) {
+      request.log.warn({ errors: stateValidation.errors }, 'Assessment state rejected: schema validation failed')
+      return reply.status(400).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/400',
+        title: 'Ongeldig verzoek',
+        status: 400,
+        detail: 'Assessmentgegevens voldoen niet aan het verwachte formaat.',
         instance: request.url,
       })
     }

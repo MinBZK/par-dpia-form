@@ -187,6 +187,32 @@ De 301-redirect van het oude domein `assessments.rijksapp.nl` is **optioneel** e
 ZAD-deployment met één `haproxy-redirect`-component die los van productie beheerd
 en verwijderd kan worden.
 
+## Container-hardening: readOnlyRootFilesystem
+
+De `api`-deployment draait non-root (`USER 1000`, zie
+`containers/backend/Containerfile`) en schrijft niets naar het
+root-filesystem: logs gaan naar stdout, migraties naar Postgres en het
+output-schema wordt alleen gelezen. Zet daarom in de ZAD Operations Manager voor
+de `api`-deployment de runtime-optie **`readOnlyRootFilesystem: true`**, met één
+expliciet beschrijfbaar pad voor Node's tijdelijke bestanden:
+
+```yaml
+securityContext:
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+volumes:
+  - name: tmp
+    emptyDir: {}
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+```
+
+De daadwerkelijke runtime-config wordt in de ZAD Operations Manager UI beheerd
+(net als domeinen en env-vars), niet in deze repo. De backend-container is
+hierop voorbereid: er zijn geen schrijfacties naar het applicatiepad nodig.
+
 ## Nginx security headers
 
 De frontend container configureert de volgende headers conform NCSC/BIO2 richtlijnen:
@@ -199,4 +225,4 @@ De frontend container configureert de volgende headers conform NCSC/BIO2 richtli
 - `Strict-Transport-Security: max-age=31536000`
 - `server_tokens off` (verberg nginx versie)
 
-Configuratie in `containers/frontend/nginx.conf` en `containers/frontend/default.conf`.
+Configuratie in `containers/frontend/nginx/` (`nginx.conf`, `default.conf` en de gedeelde header-/CSP-`snippets/`).

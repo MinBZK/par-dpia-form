@@ -13,6 +13,14 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* Het standalone formulier op `/zonder-account/` toonde in productie
+  "ontwikkel" met een commit in plaats van de release-versie; het laat nu
+  dezelfde versie zien als de statuspagina.
+
+## [2026.6.20] - 2026-06-20
+
 ### Toegevoegd
 
 * Samenwerkomgeving: log in en werk met meerdere mensen aan dezelfde
@@ -34,6 +42,11 @@ build) staan kort onder "Onder de motorkap".
 * De invulhulp blijft zonder account te gebruiken via `/zonder-account/`:
   formulieren invullen zonder in te loggen, met opslag in de browser en
   import/export via JSON en PDF.
+* Mobiele weergave: de invulhulp is geoptimaliseerd voor telefoons met een
+  responsieve lay-out; het opmerkingen-paneel verschijnt als bottom-sheet en
+  er is een skip-link toegevoegd voor toetsenbord- en screenreadergebruik.
+* Versie-informatie en statuspagina: in de interface is zichtbaar welke versie
+  draait en een statuspagina toont de beschikbaarheid van de dienst.
 
 ### Opgelost
 
@@ -54,13 +67,23 @@ build) staan kort onder "Onder de motorkap".
   release hangt ook het standalone formulier (offline single-file) als
   downloadbare asset aan.
 * Testdekking van 100% afgedwongen in CI voor alle workspaces.
+* Beveiliging aangescherpt: de server valideert de begintoestand bij het
+  aanmaken én de volledige assessment-state server-side, geüploade
+  afbeeldingen worden tegen een allowlist gecontroleerd (SVG wordt geweigerd,
+  ook in de versievergelijking) en de frontend-container draait met een
+  alleen-lezen rootbestandssysteem.
+* `@nl-rvo/component-library-css` bijgewerkt naar 4.20.2 (met design-tokens
+  2.4.1); knoppen gemigreerd van `utrecht-button` naar `rvo-button`.
+* `publiccode.yml` bijgewerkt naar v0.5 en de landingspagina omgezet naar
+  invulhulpen.rijksapp.nl.
 * Externe links openen nu met `rel="noopener noreferrer"`.
 * Linkcontrole (lychee) robuuster gemaakt bij tijdelijke fouten en
   root-relatieve links; Dependabot bewaakt nu ook GitHub Actions,
   containers en de Python-pipeline (configuratie samengevoegd in
   `dependabot.yml`).
 * Diverse dependency-updates (@types/node 25, @vitejs/plugin-vue 6.0.6,
-  @types/pdfmake 0.3, string-strip-html 13.5).
+  @types/pdfmake 0.3, string-strip-html 13.5, en aanvullende npm-, GitHub
+  Actions- en Python-bumps).
 
 ## [0.1.3] - 2026-06-04
 
@@ -214,7 +237,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.6.20...HEAD
+[2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20
 [0.1.3]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.2
 [0.1.1]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.1

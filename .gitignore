@@ -13,7 +13,6 @@ dist-ssr
 coverage
 **/coverage/
 *.local
-.claude/settings.local.json
 reports/
 
 # Build output
@@ -53,6 +52,11 @@ sources/generated/
 
 # Playwright
 .playwright-mcp
+
+# Claude (local-only, never commit)
+.claude/settings.local.json
+.claude/worktrees/
+.superpowers/
 
 # Local podman compose overrides (per-machine port shifts etc.)
 containers/compose.override.yaml

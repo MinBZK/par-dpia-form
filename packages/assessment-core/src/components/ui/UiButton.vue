@@ -17,11 +17,11 @@ const variantClass = computed(() => {
   switch (props.variant) {
     case 'tertiary':
     case 'quaternary':
-      return `utrecht-button--rvo-${props.variant}-action`
+      return `rvo-button--${props.variant}`
     case 'warning':
-      return 'utrecht-button--primary-action utrecht-button--warning'
+      return 'rvo-button--primary rvo-button--warning'
     default:
-      return `utrecht-button--${props.variant || 'primary'}-action`
+      return `rvo-button--${props.variant || 'primary'}`
   }
 })
 
@@ -33,10 +33,11 @@ defineEmits<{
 <template>
   <button
     :class="[
-      'utrecht-button',
+      'rvo-button',
       variantClass,
-      `utrecht-button--rvo-${size || 'md'}`,
-      fullWidth ? 'utrecht-button--rvo-full-width' : '',
+      `rvo-button--size-${size || 'md'}`,
+      fullWidth ? 'rvo-button--full-width' : '',
+      icon ? (showIconAfter ? 'rvo-button--icon-after' : 'rvo-button--icon-before') : '',
     ]"
     :type="type || 'button'"
     :disabled="disabled"
@@ -54,7 +55,6 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-left',
       ]"
       role="img"
       aria-label="icon"
@@ -69,7 +69,6 @@ defineEmits<{
         `rvo-icon-${icon}`,
         'rvo-icon--md',
         'rvo-icon--hemelblauw',
-        'rvo-icon--with-spacing-right',
       ]"
       role="img"
       aria-label="icon"

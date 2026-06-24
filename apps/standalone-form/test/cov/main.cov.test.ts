@@ -13,6 +13,7 @@ const mockSchemaStore = { init: mockInit }
 const mockUseSchemaStore = vi.fn(() => mockSchemaStore)
 vi.mock('@overheid-assessment/core', () => ({
   useSchemaStore: mockUseSchemaStore,
+  installTrustedTypesPolicy: vi.fn(),
 }))
 
 const mockApp = {

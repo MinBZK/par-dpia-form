@@ -11,6 +11,8 @@ import { getJwks } from '../helpers/testContext.js'
 import { truncateAll } from '../helpers/testDb.js'
 import { createUser, createProject, addMember, type SeededUser } from '../helpers/fixtures.js'
 
+const SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+
 let app: FastifyInstance
 const jwks = getJwks()
 
@@ -79,5 +81,97 @@ describe('POST /projects/:projectId/assessments', () => {
 
     expect(res.statusCode).toBe(201)
     expect(res.json().name).toBe('IAMA')
+  })
+
+  it('rejects an initial state containing a disallowed (SVG) image (no create bypass)', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { answers: { '0.1': { value: { data: 'data:image/svg+xml;base64,PHN2Zz4=' }, lastEditedAt: '2026-01-01T00:00:00Z' } } },
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('afbeeldingsformaat')
+  })
+
+  it('accepts an initial state with an allowed WebP image', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { answers: { '0.1': { value: { data: 'data:image/webp;base64,UklGRg==' }, lastEditedAt: '2026-01-01T00:00:00Z' } } },
+      },
+    })
+    expect(res.statusCode).toBe(201)
+  })
+
+  it('normalises a lean pre-scan-conversion initial state and persists it schema-conforming', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        // buildPrescanState() shape: no $schema, no metadata.urn, extra _prescanAnswers key.
+        state: {
+          metadata: { createdAt: '2026-01-01T00:00:00Z' },
+          answers: {},
+          _prescanAnswers: { '0.1': { value: 'Pre-scan waarde', lastEditedAt: '2026-01-01T00:00:00Z' } },
+        },
+      },
+    })
+    expect(res.statusCode).toBe(201)
+    const persisted = res.json().cachedState
+    expect(persisted.$schema).toBe(SCHEMA_URL)
+    expect(persisted.metadata.urn).toBe('urn:nl:dpia:3.0')
+    expect(persisted._prescanAnswers).toEqual({ '0.1': { value: 'Pre-scan waarde', lastEditedAt: '2026-01-01T00:00:00Z' } })
+  })
+
+  it('rejects a malformed initial answer (missing lastEditedAt) — no create bypass of schema validation', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { answers: { '0.1': { value: 'x' } } }, // missing required lastEditedAt
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('verwachte formaat')
+  })
+
+  it('preserves a client-provided URN instead of overwriting it', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        assessmentType: 'dpia',
+        state: { $schema: SCHEMA_URL, metadata: { urn: 'urn:nl:dpia:2.0', createdAt: '2026-01-01T00:00:00Z' }, answers: {} },
+      },
+    })
+    expect(res.statusCode).toBe(201)
+    expect(res.json().cachedState.metadata.urn).toBe('urn:nl:dpia:2.0')
   })
 })

@@ -83,7 +83,12 @@ function thread(
 // Builds a fake form container with `label-*` elements so
 // updateFieldPositions() can resolve positions and labels.
 function buildFormContainer(
-  specs: Array<{ id: string; rvoLabel?: string; textLabel?: string }>,
+  specs: Array<{
+    id: string
+    rvoLabel?: string
+    textLabel?: string
+    aivLabel?: { title: string; term: string; definition: string }
+  }>,
 ): HTMLElement {
   const form = document.createElement('div')
   for (const spec of specs) {
@@ -94,6 +99,21 @@ function buildFormContainer(
       wrap.className = 'rvo-form-field__label'
       const span = document.createElement('span')
       span.textContent = spec.rvoLabel
+      wrap.appendChild(span)
+      label.appendChild(wrap)
+    } else if (spec.aivLabel !== undefined) {
+      const wrap = document.createElement('div')
+      wrap.className = 'rvo-form-field__label'
+      const span = document.createElement('span')
+      span.textContent = `${spec.aivLabel.title} `
+      const aiv = document.createElement('span')
+      aiv.className = 'aiv-definition'
+      aiv.textContent = spec.aivLabel.term
+      const def = document.createElement('span')
+      def.className = 'aiv-definition-text'
+      def.textContent = spec.aivLabel.definition
+      aiv.appendChild(def)
+      span.appendChild(aiv)
       wrap.appendChild(span)
       label.appendChild(wrap)
     } else if (spec.textLabel !== undefined) {
@@ -218,6 +238,25 @@ describe('CommentPanel', () => {
       expect(group.attributes('data-field-group')).toBe('1.1')
       expect(group.get('.comment-field-group__label').text()).toBe(
         'Opmerking voor: Naam van veld',
+      )
+    })
+
+    it('excludes the begrip-definition tooltip text from the field label', async () => {
+      const form = buildFormContainer([{
+        id: 'label-dpia-1.1',
+        aivLabel: {
+          title: 'Aanvullende informatie over de',
+          term: 'verwerkingsdoeleinden',
+          definition: 'Het verwerkingsdoeleinde is het resultaat dat wordt beoogd.',
+        },
+      }])
+      const t = thread({ id: 'root', fieldId: '1.1' })
+      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.get('.comment-field-group__label').text()).toBe(
+        'Opmerking voor: Aanvullende informatie over de verwerkingsdoeleinden',
       )
     })
 

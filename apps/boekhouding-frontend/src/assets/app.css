@@ -19,6 +19,11 @@
   background-color: var(--rvo-color-grijs-100);
 }
 
+.kebab-menu__trigger:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -2px;
+}
+
 .kebab-menu__dropdown {
   position: absolute;
   top: 100%;
@@ -84,6 +89,9 @@ dialog::backdrop {
   padding: 2rem;
   max-width: 36rem;
   width: 90vw;
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 
@@ -99,6 +107,7 @@ dialog::backdrop {
 
 .confirm-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 1.5rem;
 }
@@ -108,7 +117,7 @@ dialog::backdrop {
   border-color: var(--rvo-color-rood, #d52b1e);
 }
 
-.confirm-dialog__actions .utrecht-button--secondary-action:hover {
+.confirm-dialog__actions .rvo-button--secondary:hover {
   background-color: var(--rvo-color-hemelblauw);
   border-color: var(--rvo-color-hemelblauw);
   color: var(--rvo-color-wit, #fff);
@@ -132,14 +141,14 @@ dialog::backdrop {
   color: var(--rvo-color-grijs-500, #666);
 }
 
-.rvo-alert .utrecht-button:hover {
+.rvo-alert .rvo-button:hover {
   text-decoration: none;
 }
 
 /* Fix anchor elements styled as buttons (RVO button classes don't fully reset anchor defaults) */
-a.utrecht-button {
+a.rvo-button {
   text-decoration: none;
-  color: var(--_utrecht-button-color);
+  color: var(--rvo-button-color);
 }
 
 a.card-link {
@@ -202,11 +211,30 @@ a.card-link:hover {
   white-space: pre-line;
 }
 
+/* Skip-link: hidden until focused (WCAG 2.4.1 Bypass Blocks). */
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -3rem;
+  z-index: 200;
+  padding: 0.5rem 1rem;
+  background: var(--rvo-color-hemelblauw, #007bc7);
+  color: #fff;
+  border-radius: 0 0 4px 4px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 /* App layout: sticky footer */
 .app-layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-main {
@@ -249,6 +277,7 @@ a.card-link:hover {
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .app-header__right {
@@ -256,6 +285,7 @@ a.card-link:hover {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .app-header__back {
@@ -264,6 +294,26 @@ a.card-link:hover {
 
 .app-header__user {
   white-space: nowrap;
+}
+
+/* Keep the username visible (truncated) on phones, not hidden — hiding it
+   drops the logged-in identity for screen-reader users. */
+@media (max-width: 480px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .app-header__left,
+  .app-header__right {
+    gap: 0.5rem;
+  }
+
+  .app-header__user {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 18ch;
+  }
 }
 
 /* ProjectDetail */
@@ -344,6 +394,7 @@ a.card-link:hover {
   border-radius: 8px;
   padding: 2rem;
   max-height: 80vh;
+  max-height: 80dvh;
   overflow-y: auto;
 }
 
@@ -385,6 +436,7 @@ a.card-link:hover {
 
 .start-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -460,6 +512,18 @@ a.card-link:hover {
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .form-subheader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .form-subheader__right {
+    justify-content: flex-end;
+  }
 }
 
 .form-name {
@@ -1233,17 +1297,27 @@ a.card-link:hover {
   outline-offset: -1px;
 }
 
-
-/* Responsive: stack panel below on small screens */
+/* On phones the comment panel becomes a bottom-sheet, closed with its X button. */
 @media (max-width: 768px) {
-  .assessment-editor__content {
-    flex-direction: column;
-  }
-
   .comment-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: 100%;
     max-width: 100%;
+    max-height: 75vh;
+    max-height: 75dvh;
+    overflow-y: auto;
+    z-index: 90;
+    transform: none;
     border-top: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 12px 12px 0 0;
+    /* sheet elevation + dim scrim over the rest of the screen */
+    box-shadow:
+      0 -2px 12px rgba(0, 0, 0, 0.2),
+      0 0 0 100vmax rgba(0, 0, 0, 0.4);
+    animation: comment-sheet-up 0.2s ease-out;
   }
 
   .comment-panel__body {
@@ -1257,6 +1331,37 @@ a.card-link:hover {
 
   .comment-field-group__label {
     display: block;
+  }
+}
+
+@keyframes comment-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+@media (max-width: 560px) {
+  .rvo-form-fieldset,
+  fieldset.rvo-form-fieldset {
+    padding-inline: var(--rvo-space-sm, 12px);
+    padding-block: var(--rvo-space-md, 16px);
+    margin-inline-start: 0;
+  }
+
+  .kebab-menu__trigger,
+  .comment-badge,
+  .comment-panel__close,
+  .app-header__left .rvo-button,
+  .app-header__right .rvo-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .comment-panel__close {
+    justify-content: center;
   }
 }
 
@@ -1348,7 +1453,8 @@ a.card-link:hover {
 
 .project-detail-header {
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  margin-block-end: var(--rvo-space-2xs);
 }
 
 .project-detail-description {
@@ -1358,4 +1464,264 @@ a.card-link:hover {
 .value-list {
   margin: 0;
   padding-left: 1.25rem;
+}
+
+/* At end of file so these phone overrides win over the base rules they target
+   by source order (e.g. .sync-toast). */
+@media (max-width: 560px) {
+  .kebab-menu__dropdown {
+    min-width: auto;
+    max-width: calc(100vw - 1rem);
+  }
+
+  .member-select,
+  .member-delete {
+    height: 2.75rem;
+  }
+
+  .member-delete {
+    white-space: normal;
+  }
+
+  .sync-toast__action {
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .project-actions .rvo-button {
+    min-height: 44px;
+  }
+
+  .sync-toast {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: calc(100vw - 1rem);
+  }
+
+  .confirm-dialog__content,
+  .start-dialog__content {
+    padding: 1.25rem;
+  }
+}
+
+/* Data tables reflow to cards on phones; the column header row is hidden, so
+   each value carries its label in a ::before. */
+@media (max-width: 560px) {
+  .member-row--header {
+    display: none;
+  }
+
+  .member-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .member-col--who {
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  }
+
+  .member-col--role,
+  .member-col--action {
+    width: 100%;
+  }
+
+  .member-delete {
+    width: 100%;
+  }
+
+  .version-row--header {
+    display: none;
+  }
+
+  .version-row {
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+    padding: 0.75rem;
+  }
+
+  .version-col--nr {
+    width: auto;
+    font-weight: 700;
+  }
+
+  .version-col--nr::before {
+    content: "Versie ";
+    font-weight: 400;
+  }
+
+  .version-col--date,
+  .version-col--who {
+    width: auto;
+    font-size: 0.875rem;
+    color: var(--rvo-color-grijs-600, #666);
+  }
+
+  .version-col--who::before {
+    content: "· ";
+  }
+
+  .version-col--action {
+    margin-left: auto;
+  }
+
+  .version-col--desc {
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .diff-table,
+  .diff-table tbody,
+  .diff-table tr,
+  .diff-table td {
+    display: block;
+    width: auto;
+  }
+
+  .diff-table colgroup,
+  .diff-table thead {
+    display: none;
+  }
+
+  .diff-table tr {
+    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 6px;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+  }
+
+  .diff-table td {
+    border-bottom: none;
+  }
+
+  .diff-field__group,
+  .diff-old,
+  .diff-new {
+    height: auto;
+  }
+
+  .diff-old::before,
+  .diff-new::before {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--rvo-color-grijs-600, #666);
+    margin-bottom: 0.25rem;
+  }
+
+  .diff-old::before {
+    content: "Was";
+  }
+
+  .diff-new::before {
+    content: "Wordt";
+  }
+
+  .conflict-table,
+  .conflict-table tbody,
+  .conflict-table tr,
+  .conflict-table td {
+    display: block;
+    width: auto;
+  }
+
+  .conflict-table thead {
+    display: none;
+  }
+
+  .conflict-table tr {
+    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .conflict-table td {
+    border-bottom: none;
+    padding: 0.25rem 0;
+  }
+
+  .conflict-field {
+    font-weight: 600;
+  }
+
+  .conflict-value--mine,
+  .conflict-value--theirs {
+    border-radius: 6px;
+    padding: 0.5rem;
+  }
+
+  .conflict-value--mine {
+    background-color: rgba(0, 123, 199, 0.08);
+  }
+
+  .conflict-value--theirs {
+    background-color: rgba(224, 134, 0, 0.08);
+  }
+
+  .conflict-value--mine::before,
+  .conflict-value--theirs::before {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .conflict-value--mine::before {
+    content: "Jouw waarde";
+    color: #007bc7;
+  }
+
+  .conflict-value--theirs::before {
+    content: "Andere waarde";
+    color: #b35a00;
+  }
+
+  .conflict-value--selected {
+    background-color: #e6f4ea;
+  }
+}
+
+/* Status page (/status) */
+.status-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--rvo-space-2xs, 0.5rem);
+}
+
+.status-card__tag {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
+.status-spin {
+  animation: status-rotate 1s linear infinite;
+}
+
+@keyframes status-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-spin {
+    animation: none;
+  }
+}
+
+.version-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rvo-space-md, 1rem);
+}
+
+.version-card__line {
+  word-break: break-word;
 }

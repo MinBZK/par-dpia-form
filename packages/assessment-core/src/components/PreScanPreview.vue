@@ -68,7 +68,7 @@ const formatAnswer = (answer: AnswerValue): string => {
             role="img" aria-label="Delta omhoog"></span>
         </div>
         <div class="rvo-accordion__item-title-container">
-          <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--mixed">
+          <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
             Informatie uit pre-scan
           </h3>
           <div class="rvo-accordion-teaser">Je hebt in de pre-scan informatie ingevuld die mogelijk

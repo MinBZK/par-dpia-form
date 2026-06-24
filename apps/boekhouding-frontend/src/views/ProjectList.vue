@@ -68,7 +68,7 @@ const handleCreate = async () => {
       </div>
 
       <div v-if="!showCreateForm">
-        <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md utrecht-button--icon-gap" @click="showCreateForm = true">
+        <button class="rvo-button rvo-button--primary rvo-button--size-md rvo-button--icon-before" @click="showCreateForm = true">
           <IconPlus :size="20" /> Nieuw project
         </button>
       </div>
@@ -85,7 +85,7 @@ const handleCreate = async () => {
             @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
           ></textarea>
         </div>
-        <div class="utrecht-button-group">
+        <div class="rvo-action-group">
           <UiButton variant="primary" type="submit" label="Project toevoegen" />
           <UiButton variant="secondary" label="Annuleren" @click="showCreateForm = false" />
         </div>

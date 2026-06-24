@@ -236,7 +236,15 @@ async function mountEditor(props: { assessmentId?: string } = {}) {
 beforeEach(async () => {
   // Drain any pending async onMounted (dynamic schema imports -> schemaStore.init)
   // from a prior test before resetting mocks, so a late init call can't leak into
-  // this test and inflate the call count.
+  // this test and inflate the call count. The real dynamic schema imports settle on
+  // a macrotask tick that flushPromises (microtasks only) can't drain, so await the
+  // same module singletons first — under load this is what a prior test's late
+  // init() is waiting on.
+  await Promise.all([
+    import('../../../../sources/generated/PreScanDPIA.json'),
+    import('../../../../sources/generated/DPIA.json'),
+    import('../../../../sources/generated/IAMA.json'),
+  ]).catch(() => {})
   await flushPromises()
   vi.clearAllMocks()
   routerPush.mockReset()
@@ -779,7 +787,7 @@ describe('AssessmentEditor — delete flow', () => {
     await input.setValue('VERWIJDEREN')
     await nextTick()
     expect((deleteBtn.element as HTMLButtonElement).disabled).toBe(false)
-    expect(deleteBtn.classes()).toContain('utrecht-button--primary-action')
+    expect(deleteBtn.classes()).toContain('rvo-button--primary')
 
     await deleteBtn.trigger('click')
     await flushPromises()

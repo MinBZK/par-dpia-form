@@ -57,10 +57,15 @@ function updateFieldPositions() {
     if (parts.length < 2) continue
     const fieldId = parts.slice(1).join('-')
     positions.set(fieldId, label.getBoundingClientRect().top - bodyRect.top)
-    const text = label.querySelector('.rvo-form-field__label > :first-child')?.textContent?.trim()
-      || label.textContent?.trim().split('\n')[0]?.trim()
-      || fieldId
-    labels.set(fieldId, text)
+    const titleEl = label.querySelector('.rvo-form-field__label > :first-child')
+    let text: string | undefined
+    if (titleEl) {
+      // Exclude any begrip-definition tooltip text nested in the title.
+      const clone = titleEl.cloneNode(true) as HTMLElement
+      clone.querySelectorAll('.aiv-definition-text').forEach((el) => el.remove())
+      text = clone.textContent?.trim()
+    }
+    labels.set(fieldId, text || label.textContent?.trim().split('\n')[0]?.trim() || fieldId)
   }
 
   fieldPositions.value = positions

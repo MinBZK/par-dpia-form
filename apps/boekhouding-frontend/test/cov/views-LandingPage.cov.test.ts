@@ -107,8 +107,8 @@ describe('LandingPage', () => {
 
     it('makes the login button primary (blue), like the start button', () => {
       const wrapper = mountPage()
-      const button = wrapper.find('button.utrecht-button')
-      expect(button.classes()).toContain('utrecht-button--primary-action')
+      const button = wrapper.find('button.rvo-button')
+      expect(button.classes()).toContain('rvo-button--primary')
     })
   })
 
@@ -136,13 +136,13 @@ describe('LandingPage', () => {
     it('labels the button "Inloggen" when not authenticated', () => {
       authenticated.value = false
       const wrapper = mountPage()
-      expect(wrapper.find('button.utrecht-button').text()).toBe('Inloggen')
+      expect(wrapper.find('button.rvo-button').text()).toBe('Inloggen')
     })
 
     it('labels the button "Naar projecten" when authenticated', () => {
       authenticated.value = true
       const wrapper = mountPage()
-      expect(wrapper.find('button.utrecht-button').text()).toBe('Naar projecten')
+      expect(wrapper.find('button.rvo-button').text()).toBe('Naar projecten')
     })
   })
 
@@ -150,7 +150,7 @@ describe('LandingPage', () => {
     it('navigates to /projecten when authenticated and does not call login', async () => {
       authenticated.value = true
       const wrapper = mountPage()
-      await wrapper.find('button.utrecht-button').trigger('click')
+      await wrapper.find('button.rvo-button').trigger('click')
       await flushPromises()
       expect(routerPush).toHaveBeenCalledWith('/projecten')
       expect(login).not.toHaveBeenCalled()
@@ -159,7 +159,7 @@ describe('LandingPage', () => {
     it('awaits login() when not authenticated and does not navigate', async () => {
       authenticated.value = false
       const wrapper = mountPage()
-      await wrapper.find('button.utrecht-button').trigger('click')
+      await wrapper.find('button.rvo-button').trigger('click')
       await flushPromises()
       expect(login).toHaveBeenCalledTimes(1)
       expect(routerPush).not.toHaveBeenCalled()

@@ -12,6 +12,7 @@
     "format": "pnpm --filter standalone-form format",
     "db:generate": "pnpm --filter @overheid-assessment/boekhouding-backend db:generate",
     "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate",
+    "check:csp": "node --test scripts/check-inline-styles.test.mjs && node scripts/check-inline-styles.mjs",
     "test:e2e": "node tests/e2e/sync.spec.mjs",
     "test:coverage": "pnpm -r --if-present test:coverage"
   },
@@ -19,7 +20,7 @@
     "jexl": "^2.3.0"
   },
   "devDependencies": {
-    "playwright": "1.60.0"
+    "playwright": "1.61.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

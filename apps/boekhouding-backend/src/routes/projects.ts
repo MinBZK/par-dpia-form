@@ -4,6 +4,9 @@ import { projects, projectMembers, assessmentInstances, assessmentVersions, asse
 import { eq, and } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
+import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
+import { validateState } from '../utils/validateState.js'
+import { normalizeCreateState } from '../utils/normalizeCreateState.js'
 
 export async function projectRoutes(app: FastifyInstance) {
   // All project routes require auth
@@ -157,6 +160,36 @@ export async function projectRoutes(app: FastifyInstance) {
     const { name, assessmentType, state } = request.body
     const userId = request.user!.id
 
+    // Also applies on create, otherwise an SVG bypasses the image check via create.
+    if (!hasOnlyAllowedImages(state)) {
+      return reply.status(400).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/400',
+        title: 'Ongeldig verzoek',
+        status: 400,
+        detail: 'Ongeldig afbeeldingsformaat. Toegestaan zijn PNG, JPEG, WebP en GIF.',
+        instance: request.url,
+      })
+    }
+
+    // Lean create payloads (pre-scan conversion, imports) omit $schema/urn; fill
+    // those in, then enforce the same output schema as save. A malformed initial
+    // state must not be persisted and later replayed verbatim by rebuildState.
+    let initialState: Record<string, unknown> = {}
+    if (state !== undefined) {
+      initialState = normalizeCreateState(state as Record<string, unknown>, assessmentType)
+      const stateValidation = validateState(initialState)
+      if (!stateValidation.valid) {
+        request.log.warn({ errors: stateValidation.errors }, 'Initial assessment state rejected: schema validation failed')
+        return reply.status(400).type('application/problem+json').send({
+          type: 'https://httpproblems.com/http-status/400',
+          title: 'Ongeldig verzoek',
+          status: 400,
+          detail: 'Assessmentgegevens voldoen niet aan het verwachte formaat.',
+          instance: request.url,
+        })
+      }
+    }
+
     let finalName = name
     if (!finalName) {
       // assessmentType is enum-validated by the route schema (400 otherwise),
@@ -173,8 +206,6 @@ export async function projectRoutes(app: FastifyInstance) {
         )
       finalName = existing.length === 0 ? baseLabel : `${baseLabel} ${existing.length + 1}`
     }
-
-    const initialState = state || {}
 
     const [assessment] = await db
       .insert(assessmentInstances)

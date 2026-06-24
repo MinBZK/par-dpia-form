@@ -25,8 +25,11 @@ function authHeader(token: string) {
   return { authorization: `Bearer ${token}` }
 }
 
+const OUTPUT_SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+
 function makeState(urn: string, answers: Record<string, unknown> = {}) {
   return {
+    $schema: OUTPUT_SCHEMA_URL,
     metadata: { createdAt: '2026-01-01T00:00:00Z', urn },
     answers,
   }

@@ -55,6 +55,20 @@ const routes: RouteRecordRaw[] = [
     component: () => import('./views/AboutAssessments.vue'),
     meta: { public: true },
   },
+  {
+    path: '/status',
+    name: 'status',
+    component: () => import('./views/StatusPage.vue'),
+    meta: { public: true },
+  },
+  {
+    // Catch-all 404; public so it doesn't trigger the login redirect.
+    // Must stay last so it only matches when no other route does.
+    path: '/:pathMatch(.*)*',
+    name: 'not-found',
+    component: () => import('./views/NotFound.vue'),
+    meta: { public: true },
+  },
 ]
 
 export const router = createRouter({

@@ -30,6 +30,7 @@ vi.mock('../../src/router', () => ({
 const mockUseSchemaStore = vi.fn(() => ({}))
 vi.mock('@overheid-assessment/core', () => ({
   useSchemaStore: mockUseSchemaStore,
+  installTrustedTypesPolicy: vi.fn(),
 }))
 
 const mockApp = {

@@ -67,6 +67,25 @@ describe('LandingView rendering', () => {
     expect(wrapper.text()).toContain('Over deze tools')
     expect(wrapper.text()).toContain('pre-scan, DPIA en het IAMA')
   })
+
+  it('shows the build version from the app-version meta tag', () => {
+    const meta = document.createElement('meta')
+    meta.setAttribute('name', 'app-version')
+    meta.setAttribute('content', 'v2026.6.14')
+    document.head.appendChild(meta)
+    try {
+      const wrapper = mountLanding()
+      expect(wrapper.find('.version-info').text()).toBe('Versie van de invulhulp: v2026.6.14')
+    } finally {
+      meta.remove()
+    }
+  })
+
+  it('renders an empty version when the app-version meta tag is absent', () => {
+    document.querySelector('meta[name="app-version"]')?.remove()
+    const wrapper = mountLanding()
+    expect(wrapper.find('.version-info').text()).toBe('Versie van de invulhulp:')
+  })
 })
 
 describe('LandingView navigation interaction (no cache)', () => {

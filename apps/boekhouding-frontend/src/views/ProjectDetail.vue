@@ -349,14 +349,14 @@ const formatDate = (dateStr: string) =>
             @keydown.escape="cancelName"
           />
           <div class="editable-field-actions">
-            <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs" @click="saveName">Opslaan</button>
-            <button class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs" @click="cancelName">Annuleer</button>
+            <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveName">Opslaan</button>
+            <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelName">Annuleer</button>
           </div>
         </div>
         <div class="project-actions">
           <button
             v-if="isOwner"
-            class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs utrecht-button--icon-gap"
+            class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
             @click="router.push(`/project/${projectId}/leden`)"
           >
             <IconUsers :size="16" /> Leden beheren
@@ -393,8 +393,8 @@ const formatDate = (dateStr: string) =>
           @keydown.escape="cancelDescription"
         />
         <div class="editable-field-actions">
-          <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-xs" @click="saveDescription">Opslaan</button>
-          <button class="utrecht-button utrecht-button--rvo-tertiary-action utrecht-button--rvo-xs" @click="cancelDescription">Annuleer</button>
+          <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveDescription">Opslaan</button>
+          <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelDescription">Annuleer</button>
         </div>
       </div>
 
@@ -423,7 +423,7 @@ const formatDate = (dateStr: string) =>
             <h3 class="utrecht-heading-3 rvo-margin--none">Pre-scan</h3>
             <p>Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
             <div class="card-button">
-              <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="openStartDialog('prescan')">
+              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('prescan')">
                 Start pre-scan
               </button>
             </div>
@@ -434,7 +434,7 @@ const formatDate = (dateStr: string) =>
             <h3 class="utrecht-heading-3 rvo-margin--none">DPIA</h3>
             <p>Vul stap voor stap het rijksmodel DPIA in.</p>
             <div class="card-button">
-              <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="openStartDialog('dpia')">
+              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('dpia')">
                 Start DPIA
               </button>
             </div>
@@ -445,7 +445,7 @@ const formatDate = (dateStr: string) =>
             <h3 class="utrecht-heading-3 rvo-margin--none">IAMA</h3>
             <p>Breng de impact op mensenrechten van een algoritme in kaart.</p>
             <div class="card-button">
-              <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md" @click="openStartDialog('iama')">
+              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('iama')">
                 Start IAMA
               </button>
             </div>
@@ -567,14 +567,14 @@ const formatDate = (dateStr: string) =>
 
       <div class="start-dialog__actions">
         <button
-          class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md"
+          class="rvo-button rvo-button--primary rvo-button--size-md"
           :disabled="dialogSubmitting"
           @click="submitDialog"
         >
           {{ dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan') }}
         </button>
         <button
-          class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md"
+          class="rvo-button rvo-button--secondary rvo-button--size-md"
           :disabled="dialogSubmitting"
           @click="closeDialog"
         >
@@ -598,14 +598,14 @@ const formatDate = (dateStr: string) =>
       </label>
       <div class="confirm-dialog__actions">
         <button
-          class="utrecht-button utrecht-button--rvo-md confirm-dialog__delete"
-          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'utrecht-button--primary-action' : 'confirm-dialog__delete--disabled'"
+          class="rvo-button rvo-button--size-md confirm-dialog__delete"
+          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
           :disabled="deleteConfirmInput !== 'VERWIJDEREN'"
           @click="confirmDeleteProject"
         >
           Project verwijderen
         </button>
-        <button class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md" @click="deleteProjectModalOpen = false; deleteConfirmInput = ''">
+        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="deleteProjectModalOpen = false; deleteConfirmInput = ''">
           Annuleer
         </button>
       </div>

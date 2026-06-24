@@ -74,3 +74,6 @@ export { renderMarkdownToHtml, markdownToPdfContent } from './utils/markdown'
 
 // DOM utils
 export { autoGrowTextarea } from './utils/autoGrowTextarea'
+
+// Security
+export { installTrustedTypesPolicy } from './security/trustedTypes'

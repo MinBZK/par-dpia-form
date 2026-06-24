@@ -28,9 +28,11 @@ function authHeader(token: string) {
 }
 
 const URN = 'urn:nl:dpia:3.0'
+const OUTPUT_SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
 
 function makeState(answers: Record<string, unknown>, completedTasks?: string[]) {
   return {
+    $schema: OUTPUT_SCHEMA_URL,
     metadata: {
       createdAt: '2026-01-01T00:00:00Z',
       urn: URN,
@@ -381,6 +383,7 @@ describe('PUT /assessments/:id', () => {
     })
 
     const state2 = {
+      $schema: OUTPUT_SCHEMA_URL,
       metadata: { createdAt: '2026-02-02T00:00:00Z', urn: URN },
       answers: { '0.1': answer('Eerste') },
     }
@@ -466,6 +469,109 @@ describe('PUT /assessments/:id', () => {
     expect(res.json().currentVersion).toBe(2)
     const versions = await db.select().from(assessmentVersions)
     expect(versions[0].changeDescription).toBe('Hersteld naar versie 1')
+  })
+})
+
+describe('PUT /assessments/:id — input hardening', () => {
+  const imageAnswer = (data: string) => ({ value: { data }, lastEditedAt: '2026-01-01T00:00:00Z' })
+
+  it('accepts a save with an allowed WebP image', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        state: makeState({ '0.1': imageAnswer('data:image/webp;base64,UklGRg==') }),
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json().currentVersion).toBe(2)
+    const [row] = await db
+      .select({ cachedState: assessmentInstances.cachedState })
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.id, assessment.id))
+    expect(JSON.stringify(row.cachedState)).toContain('data:image/webp;base64,UklGRg==')
+  })
+
+  it('rejects a save with an embedded SVG image (XSS vector) and writes nothing', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        state: makeState({ '0.1': imageAnswer('data:image/svg+xml;base64,PHN2Zz4=') }),
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.headers['content-type']).toContain('application/problem+json')
+    expect(res.json().detail).toContain('afbeeldingsformaat')
+    expect(await db.select().from(assessmentVersions)).toHaveLength(0)
+    const [row] = await db
+      .select({ cachedState: assessmentInstances.cachedState })
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.id, assessment.id))
+    expect(JSON.stringify(row.cachedState)).not.toContain('svg')
+  })
+
+  it('rejects an image nested in a grouped repeatable array', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        state: makeState({
+          '2.1': [{ _index: 0, '2.1.1': imageAnswer('data:image/svg+xml;base64,PHN2Zz4=') }],
+        }),
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('afbeeldingsformaat')
+  })
+
+  it('rejects a state with an invalid answer key', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        state: makeState({ 'invalid key with spaces': answer('x') }),
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('verwachte formaat')
+  })
+
+  it('rejects a state that omits the required $schema field', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: {
+        state: { metadata: { createdAt: '2026-01-01T00:00:00Z', urn: URN }, answers: {} },
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().detail).toContain('verwachte formaat')
   })
 })
 

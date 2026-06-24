@@ -9,6 +9,8 @@ import { db } from '../../src/db/connection.js'
 import { assessmentInstances, assessmentVersions, assessmentEdits } from '../../src/db/schema.js'
 import { eq } from 'drizzle-orm'
 
+const SCHEMA_URL = 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json'
+
 let app: FastifyInstance
 const jwks = getJwks()
 
@@ -339,7 +341,13 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
   it('uses the provided name when given and stores the provided state', async () => {
     const owner = await createUser()
     const project = await projectWithRole(owner, 'owner')
-    const state = { answers: { '0.1': { value: 'Inleiding' } } }
+    // A fully conforming state so create's normalise-then-validate is a no-op and
+    // the stored value matches verbatim.
+    const state = {
+      $schema: SCHEMA_URL,
+      metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00.000Z' },
+      answers: { '0.1': { value: 'Inleiding', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
+    }
 
     const res = await app.inject({
       method: 'POST',

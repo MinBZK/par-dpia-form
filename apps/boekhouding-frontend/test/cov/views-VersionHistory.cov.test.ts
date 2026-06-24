@@ -68,6 +68,7 @@ vi.mock('@overheid-assessment/core', () => ({
     PRE_SCAN: 'prescan',
     IAMA: 'iama',
   },
+  OUTPUT_SCHEMA_URL: 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json',
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
     (html ?? '').replace(/<[^>]*>/g, ''),
   autoGrowTextarea: autoGrowTextareaMock,
@@ -91,6 +92,12 @@ vi.mock('@overheid-assessment/core', () => ({
   useAnswerStore: () => ({
     reset: answerReset,
   }),
+  // Mirror the real raster-only predicate (rejects SVG) used by formatValue.
+  isImageValue: (value: unknown) => {
+    if (typeof value !== 'object' || value === null || !('data' in value) || typeof (value as Record<string, unknown>).data !== 'string') return false
+    const data = (value as Record<string, unknown>).data as string
+    return data.startsWith('data:image/') && !data.startsWith('data:image/svg')
+  },
 }))
 
 import VersionHistory from '../../src/views/VersionHistory.vue'
@@ -133,7 +140,7 @@ async function fieldRestoreDialogConfirm(wrapper: ReturnType<typeof mountView>) 
   await item.trigger('mousedown')
   await flushPromises()
   const dialog = wrapper.findAll('dialog.confirm-dialog').find((d) => d.text().includes('Antwoord herstellen'))!
-  await dialog.find('.utrecht-button--primary-action').trigger('click')
+  await dialog.find('.rvo-button--primary').trigger('click')
   await flushPromises()
 }
 
@@ -351,7 +358,7 @@ describe('VersionHistory — description modal', () => {
     await textarea.setValue('Nieuwe beschrijving')
     await textarea.trigger('input')
 
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
 
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 2, 'Nieuwe beschrijving')
@@ -381,14 +388,14 @@ describe('VersionHistory — description modal', () => {
     await flushPromises()
     const ta = wrapper.find('textarea#desc-input')
     await ta.setValue('')
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenLastCalledWith(ASSESSMENT_ID, 2, '')
 
     apiUpdateVersionDescription.mockClear()
     vm.openDescModal(999, 'whatever')
     await flushPromises()
-    await wrapper.find('.utrecht-button--primary-action').trigger('click')
+    await wrapper.find('.rvo-button--primary').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 999, 'whatever')
   })
@@ -403,7 +410,7 @@ describe('VersionHistory — description modal', () => {
 
     await wrapper.find('.desc-edit-btn').trigger('click')
     await flushPromises()
-    const secondary = wrapper.findAll('.confirm-dialog .utrecht-button--secondary-action')[0]
+    const secondary = wrapper.findAll('.confirm-dialog .rvo-button--secondary')[0]
     await secondary.trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).not.toHaveBeenCalled()
@@ -485,7 +492,9 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     const [, restoredState] = apiUpdate.mock.calls[0]
     expect((restoredState as any).metadata).toEqual({ completedTasks: [] })
     expect((restoredState as any).answers).toEqual({})
-    expect((restoredState as any).$schema).toBeUndefined()
+    // Even when the current state lacks $schema (legacy data), restore must emit a
+    // canonical $schema so the strict backend accepts the save.
+    expect((restoredState as any).$schema).toBe('https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json')
   })
 
   it('handleRestore returns early when confirm word not matching', async () => {
@@ -532,7 +541,7 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     const restoreDialog = wrapper
       .findAll('dialog.confirm-dialog')
       .find((d) => d.text().includes('Versie herstellen'))!
-    await restoreDialog.find('.utrecht-button--secondary-action').trigger('click')
+    await restoreDialog.find('.rvo-button--secondary').trigger('click')
     await flushPromises()
     expect((wrapper.vm as any).restoreConfirmText).toBe('')
   })
@@ -1095,9 +1104,11 @@ describe('VersionHistory — formatValue & formatInstanceFields', () => {
     expect(out).not.toContain('diff-image-meta')
   })
 
-  it('treats an object value with non-image data as a normal object', () => {
-    const out = vm.formatValue({ value: { data: 'plain text' } }, null)
-    expect(out).toContain('data')
+  it('treats an object value with non-allowed image data as a normal object', () => {
+    // Plain text and SVG (rejected by the raster-only policy) both fall through to
+    // object rendering instead of an <img>, matching the write-time image policy.
+    expect(vm.formatValue({ value: { data: 'plain text' } }, null)).toContain('data')
+    expect(vm.formatValue({ value: { data: 'data:image/svg;base64,PHN2Zz4=' } }, null)).not.toContain('<img')
   })
 
   it('appends remaining object keys (skipping value/timestamp/lastEditedAt/empty)', () => {
@@ -1264,7 +1275,7 @@ describe('VersionHistory — field-level restore', () => {
       .find((d) => d.text().includes('Antwoord herstellen'))!
   }
   async function confirmFieldRestore(wrapper: ReturnType<typeof mountView>) {
-    await fieldRestoreDialog(wrapper).find('.utrecht-button--primary-action').trigger('click')
+    await fieldRestoreDialog(wrapper).find('.rvo-button--primary').trigger('click')
     await flushPromises()
   }
 
@@ -1311,6 +1322,8 @@ describe('VersionHistory — field-level restore', () => {
 
     const [, state, opts] = apiUpdate.mock.calls[0]
     expect((state as any).answers['1.1'].value).toBe('oud')
+    // Field restore emits a canonical $schema even though the current state lacked one.
+    expect((state as any).$schema).toBe('https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json')
     expect(opts.changeDescription).toBe('Antwoord uit versie 1 hersteld')
     expect(opts.newVersion).toBe(true)
     expect(apiVersions).toHaveBeenCalledTimes(2)
@@ -1727,7 +1740,7 @@ describe('VersionHistory — field-level restore', () => {
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
     apiUpdate.mockClear()
-    await fieldRestoreDialog(wrapper).find('.utrecht-button--secondary-action').trigger('click')
+    await fieldRestoreDialog(wrapper).find('.rvo-button--secondary').trigger('click')
     await flushPromises()
     expect(apiUpdate).not.toHaveBeenCalled()
     expect((wrapper.vm as any).fieldRestoreModalOpen).toBe(false)
@@ -2188,7 +2201,7 @@ describe('VersionHistory — remaining branch coverage', () => {
       const dialog = wrapper
         .findAll('dialog.confirm-dialog')
         .find((d) => d.text().includes('Antwoord herstellen'))!
-      await dialog.find('.utrecht-button--primary-action').trigger('click')
+      await dialog.find('.rvo-button--primary').trigger('click')
       await flushPromises()
       const [, state] = apiUpdate.mock.calls[0]
       expect((state as any).answers['2.1'][0]['2.1.1'].value).toBe('oud')

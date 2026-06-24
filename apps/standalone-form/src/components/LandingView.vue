@@ -11,6 +11,11 @@ const emit = defineEmits<{
   startFresh: [type: FormType]
 }>()
 
+// Injected as a <meta> tag at build time (see vite.config.ts injectVersionMeta),
+// so the production overlay can sed-patch the version without touching the
+// CSP-hashed inline script.
+const appVersion = document.querySelector('meta[name="app-version"]')?.getAttribute('content') ?? ''
+
 interface AssessmentCard {
   type: FormType
   title: string
@@ -198,6 +203,7 @@ async function downloadOfflineApp() {
         <p>
           Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
         </p>
+        <p class="version-info">Versie van de invulhulp: {{ appVersion }}</p>
       </div>
 
       <div class="rvo-layout-margin-vertical--xl">

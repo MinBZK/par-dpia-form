@@ -10,8 +10,11 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
 
 <template>
   <div class="app-layout">
+    <a class="skip-link" href="#main-content">Naar hoofdinhoud</a>
     <AppBanner :homeUrl="homeUrl" />
-    <router-view :key="$route.path" class="app-main" />
+    <main id="main-content" tabindex="-1" class="app-main">
+      <router-view :key="$route.path" />
+    </main>
     <SessionExpiredDialog />
     <footer class="app-footer">
       <nav aria-label="Juridische informatie">
@@ -20,6 +23,8 @@ const homeUrl = computed(() => isAuthenticated.value ? '/projecten' : '/')
         <router-link to="/toegankelijkheid" class="app-footer__link">Toegankelijkheid</router-link>
         <span class="app-footer__separator">|</span>
         <router-link to="/over" class="app-footer__link">Over Invulhulpen</router-link>
+        <span class="app-footer__separator">|</span>
+        <router-link to="/status" class="app-footer__link">Status</router-link>
       </nav>
     </footer>
   </div>

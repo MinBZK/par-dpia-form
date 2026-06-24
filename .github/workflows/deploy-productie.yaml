@@ -35,7 +35,7 @@ jobs:
       frontend-image: ${{ steps.promote.outputs.frontend-image }}
       backend-image: ${{ steps.promote.outputs.backend-image }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
@@ -89,8 +89,20 @@ jobs:
               echo "Image ${image}:${short} bestaat niet. Is de 'Deploy acceptatie'-run voor commit ${commit} geslaagd?" >&2
               exit 1
             fi
-            docker buildx imagetools create --tag "${image}:${TAG_NAME}" "${image}:${short}"
           done
+          docker build --pull \
+            --build-arg "BASE=${FRONTEND_IMAGE}:${short}" \
+            --build-arg "TAG=${TAG_NAME}" \
+            --build-arg "COMMIT=${short}" \
+            -f containers/frontend/overlay.Dockerfile \
+            -t "${FRONTEND_IMAGE}:${TAG_NAME}" .
+          docker push "${FRONTEND_IMAGE}:${TAG_NAME}"
+          docker build --pull \
+            --build-arg "BASE=${BACKEND_IMAGE}:${short}" \
+            --build-arg "TAG=${TAG_NAME}" \
+            -f containers/backend/overlay.Dockerfile \
+            -t "${BACKEND_IMAGE}:${TAG_NAME}" .
+          docker push "${BACKEND_IMAGE}:${TAG_NAME}"
           echo "frontend-image=${FRONTEND_IMAGE}:${TAG_NAME}" >> "$GITHUB_OUTPUT"
           echo "backend-image=${BACKEND_IMAGE}:${TAG_NAME}" >> "$GITHUB_OUTPUT"
 

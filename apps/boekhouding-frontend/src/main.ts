@@ -1,7 +1,7 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { useSchemaStore } from '@overheid-assessment/core'
+import { useSchemaStore, installTrustedTypesPolicy } from '@overheid-assessment/core'
 import { loadConfig } from './config'
 import { useAuth } from './composables/useAuth'
 
@@ -11,6 +11,10 @@ import '@nl-rvo/assets/images/index.css'
 import '@nl-rvo/component-library-css/dist/index.css'
 import '@nl-rvo/design-tokens/dist/index.css'
 import './assets/app.css'
+
+// Register the Trusted Types default policy before anything (Keycloak, Vue
+// v-html) touches a DOM sink. No-op where Trusted Types is unsupported.
+installTrustedTypesPolicy()
 
 await loadConfig()
 const { init, user } = useAuth()
