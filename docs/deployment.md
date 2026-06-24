@@ -87,6 +87,23 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `HOST`                 | `0.0.0.0`                    | Default is correct                        |
 | `TRUST_PROXY`          | `1` (één hop)                | Default klopt voor ZAD (één OpenShift-router-hop) → `req.ip` is het echte client-IP voor per-IP rate-limiting. Alleen overschrijven voor andere topologie (CIDR) of `0` om uit te zetten. Nooit `true`. |
 | `EXPOSE_API_DOCS`      | — (uit)                      | Laat uit in productie (Swagger UI + `/api/openapi.json` zijn dan niet bereikbaar). Zet op `true` voor dev/staging. |
+| `WEB_CONCURRENCY`      | `1` (clustering uit)         | Aantal worker-processen. Laat op 1 (app is I/O-bound); verhogen **alleen** samen met een lagere `DB_POOL_MAX` — zie connectiebudget. Geclampt op `[1, 64]`. |
+| `DB_POOL_MAX`          | `9`                          | Postgres-poolgrootte **per worker**. Geclampt op `[1, 20]` (de per-user cap). Zie connectiebudget. |
+| `DB_CONNECT_TIMEOUT`   | `10` (s)                     | Default is correct. |
+| `DB_IDLE_TIMEOUT`      | `30` (s)                     | Default is correct. |
+| `DB_STATEMENT_TIMEOUT` | `15` (s)                     | Max queryduur voordat Postgres de query afbreekt — fail-fast i.p.v. een pooled connectie onbeperkt vasthouden. |
+| `DB_IDLE_IN_TX_TIMEOUT`| `15` (s)                     | Max idle-in-transaction voordat de sessie wordt afgebroken (geeft een blokkerende connectie terug aan de pool). |
+| `RATE_LIMIT_MAX`       | `300`                        | Verzoeken per IP per minuut (cluster-breed). Onder clustering deelt het entrypoint dit door het aantal workers; de in-memory store is per worker, dus de cluster-brede limiet is een benadering. |
+
+### Connectiebudget (RIG-Postgres 20-cap)
+
+De gedeelde RIG-Postgres capt **elke project-DB-user op 20 connecties totaal** (na een incident waarbij één project alle slots opslokte en Keycloak brak). Dat budget geldt over **álle pods, replica's én workers samen**:
+
+```
+pods × WEB_CONCURRENCY × DB_POOL_MAX  ≤  20
+```
+
+Een **rolling deploy** draait kort 2 pods (oude + surge), dus de default `2 × 1 × 9 = 18` zit krap onder 20. **Verhoog `replicas`, `maxSurge` of `WEB_CONCURRENCY` nooit zonder `DB_POOL_MAX` navenant te verlagen** — anders worden nieuwe DB-connecties geweigerd (HTTP 500). De backend logt bij startup een `WARN` als de waarden in deze pod het budget al dreigen te overschrijden. Voor echte schaal hoort een **connection pooler (PgBouncer)** vóór de DB, niet een grotere per-worker-pool.
 
 ### Niet nodig op ZAD
 
