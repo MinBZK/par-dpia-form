@@ -375,6 +375,18 @@
   min-width: 0;
 }
 
+/* On a narrow (mobile) screen the edit buttons don't fit beside the URL field, so
+   stack: the field takes a full row and the buttons wrap below it instead of
+   overflowing off-screen. Desktop keeps the compact single row. */
+@media (max-width: 552px) {
+  .rvo-theme .markdown-editor__linkform {
+    flex-wrap: wrap;
+  }
+  .rvo-theme .markdown-editor__linkinput {
+    flex-basis: 100%;
+  }
+}
+
 .rvo-theme .markdown-editor .ProseMirror > :first-child {
   margin-block-start: 0;
 }
