@@ -1493,9 +1493,9 @@ a.card-link:hover {
   margin-block: 0.7em 0.1em;
 }
 
-/* Highlight (Markeren) — same marker yellow as the editor and the PDF export. */
+/* Highlight (Markeren) — same soft-blue tint as the editor and the PDF export. */
 .markdown-content mark {
-  background-color: #fff3a0;
+  background-color: #cfe6fb;
   color: inherit;
 }
 

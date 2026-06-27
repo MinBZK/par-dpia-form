@@ -433,9 +433,9 @@
 }
 
 /* Highlight (Markeren). Colour matches HIGHLIGHT_COLOR in utils/markdown.ts so the
-   editor, the HTML preview and the PDF export all use the same marker yellow. */
+   editor, the HTML preview and the PDF export all use the same soft-blue tint. */
 .rvo-theme .markdown-editor .ProseMirror mark {
-  background-color: #fff3a0;
+  background-color: #cfe6fb;
   color: inherit;
   border-radius: 2px;
   padding: 0 0.1em;

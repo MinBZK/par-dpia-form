@@ -137,7 +137,7 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
   it('renders ==highlight== with a background colour', () => {
     const content = markdownToPdfContent('==gemarkeerd==') as any
     const item = textArray(content).find(
-      (t: any) => typeof t === 'object' && t.background === '#fff3a0',
+      (t: any) => typeof t === 'object' && t.background === '#cfe6fb',
     )
     expect(item).toBeDefined()
     expect(item.text).toBe('gemarkeerd')

@@ -23,7 +23,7 @@ const underlineExtension: TokenizerAndRendererExtension = {
 
 // Highlight background colour, shared by the PDF renderer here and the `mark`
 // styling in the CSS (keep the two in sync).
-const HIGHLIGHT_COLOR = '#fff3a0'
+const HIGHLIGHT_COLOR = '#cfe6fb'
 
 // `==text==` highlight, matching what @tiptap/markdown serialises (marked has no
 // built-in highlight). Mirrors the underline extension: renders a fixed <mark>
