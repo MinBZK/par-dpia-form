@@ -7,7 +7,7 @@ import Highlight from '@tiptap/extension-highlight'
 import { Markdown } from '@tiptap/markdown'
 import { Plugin, Selection, type EditorState } from '@tiptap/pm/state'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
-import { markdownLinkInputRule, openLinkOnClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
+import { markdownLinkInputRule, openLinkOnClick, openLinkUrl, normalizeLinkHref } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
 
 // WYSIWYG editor surface for open_text fields. The text is shown in its formatted
@@ -216,7 +216,9 @@ function applyLink() {
   const instance = editor.value
   /* istanbul ignore else @preserve -- the editor stays mounted while the link bar is open. */
   if (instance) {
-    const url = linkUrl.value.trim()
+    const raw = linkUrl.value.trim()
+    // google.com -> https://google.com, foo@bar.nl -> mailto:foo@bar.nl, etc.
+    const url = normalizeLinkHref(raw)
     if (!url) {
       instance.chain().focus().extendMarkRange('link').unsetLink().run()
     } else if (instance.state.selection.empty && !instance.isActive('link')) {
@@ -225,12 +227,12 @@ function applyLink() {
         // Cursor inside a word: turn that whole word into the link.
         instance.chain().focus().setTextSelection(word).setLink({ href: url }).run()
       } else {
-        // Cursor in empty space: insert the URL as the visible, clickable link
-        // text. (setLink on an empty selection only sets a stored mark, so
-        // nothing would appear.)
+        // Cursor in empty space: insert the typed address as the visible link text,
+        // pointing at the normalised href. (setLink on an empty selection only sets
+        // a stored mark, so nothing would appear.)
         instance.chain().focus().insertContent({
           type: 'text',
-          text: url,
+          text: raw,
           marks: [{ type: 'link', attrs: { href: url } }],
         }).run()
       }
@@ -244,12 +246,7 @@ function applyLink() {
 }
 
 function openLink() {
-  const url = linkUrl.value.trim()
-  if (/^https?:\/\//i.test(url)) {
-    openUrlInNewTab(url)
-  } else if (/^mailto:/i.test(url)) {
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
+  openLinkUrl(normalizeLinkHref(linkUrl.value))
 }
 
 function removeLink() {
@@ -328,9 +325,12 @@ defineExpose({ editor })
 
     <div v-if="linkEditorOpen" class="markdown-editor__linkbar">
       <form class="markdown-editor__linkform" @submit.prevent="applyLink">
-        <input ref="linkInput" v-model="linkUrl" type="url" aria-label="Link-URL"
+        <!-- type=text (not url) so a bare domain or e-mail can be submitted; the
+             scheme is added by normalizeLinkHref. type=url would block those via
+             HTML5 validation. -->
+        <input ref="linkInput" v-model="linkUrl" type="text" aria-label="Link-URL"
           class="utrecht-textbox utrecht-textbox--html-input markdown-editor__linkinput"
-          placeholder="https://" @keydown.esc.prevent="cancelLink" />
+          placeholder="bijv. rijksoverheid.nl of e-mailadres" @keydown.esc.prevent="cancelLink" />
         <button type="submit"
           class="rvo-button rvo-button--primary rvo-button--size-xs">{{ editingExistingLink ? 'Opslaan' : 'Toevoegen' }}</button>
         <button v-if="editingExistingLink" type="button" @click="openLink"

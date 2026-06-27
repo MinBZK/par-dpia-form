@@ -125,6 +125,38 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
+  it('normalises a typed bare domain to an https link, keeping the typed text', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Begin ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size) // empty selection in whitespace
+    await flushPromises()
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    // type=text (not url) so a schemeless value isn't blocked by HTML5 validation.
+    expect(wrapper.find('.markdown-editor__linkinput').attributes('type')).toBe('text')
+    await wrapper.find('.markdown-editor__linkinput').setValue('google.com')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://google.com"')
+    expect(html).toContain('>google.com</a>') // visible text stays what was typed
+    wrapper.unmount()
+  })
+
+  it('normalises a typed email address to a mailto link', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Mail ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size)
+    await flushPromises()
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('info@example.nl')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(editor.getHTML()).toContain('href="mailto:info@example.nl"')
+    wrapper.unmount()
+  })
+
   it('links the selected text when a range is selected', async () => {
     const wrapper = await mountEditor({ modelValue: 'Ga naar website nu' })
     const editor = getEditor(wrapper)
