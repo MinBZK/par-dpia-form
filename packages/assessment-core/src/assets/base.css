@@ -445,6 +445,14 @@
   padding: 0 0.1em;
 }
 
+/* Stop painting the text selection once the editor loses focus. Otherwise a
+   selection — notably the rectangle the browser draws on an empty line — lingers
+   as a stray blue bar after you click away. It reappears on refocus. */
+.rvo-theme .markdown-editor .ProseMirror:not(.ProseMirror-focused)::selection,
+.rvo-theme .markdown-editor .ProseMirror:not(.ProseMirror-focused) *::selection {
+  background: transparent;
+}
+
 .rvo-theme .markdown-editor .ProseMirror pre {
   background: #e8e8e8;
   padding: 0.5rem;
