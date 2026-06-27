@@ -205,7 +205,11 @@
 .rvo-theme .markdown-toolbar__button.is-active {
   background: var(--rvo-color-lichtblauw, #e5f1fb);
   border-color: var(--rvo-color-logoblauw, #007bc7);
-  color: var(--rvo-color-logoblauw, #007bc7);
+  /* Darker blue so the icon keeps a strong contrast on the (fairly saturated)
+     active fill: logoblauw-on-lichtblauw was only ~2.5:1, below the WCAG 1.4.11
+     minimum of 3:1 for icons. #154273 (the RVO dark blue used in the PDF) is
+     ~5.7:1. */
+  color: #154273;
 }
 
 .rvo-theme .markdown-toolbar__button:focus-visible,
