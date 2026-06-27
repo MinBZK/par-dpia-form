@@ -71,6 +71,24 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
+  it('toggles a mark on and off at a collapsed cursor (active state stays in sync)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Hallo' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(3) // collapsed cursor, no selection
+    await flushPromises()
+    const boldBtn = () => wrapper.find('button[aria-label="Vet"]')
+    expect(boldBtn().classes()).not.toContain('is-active')
+    // Turning a mark on at the cursor lights the button (stored-mark change)...
+    await boldBtn().trigger('click')
+    await flushPromises()
+    expect(boldBtn().classes()).toContain('is-active')
+    // ...and clicking again turns it back off.
+    await boldBtn().trigger('click')
+    await flushPromises()
+    expect(boldBtn().classes()).not.toContain('is-active')
+    wrapper.unmount()
+  })
+
   it('inserts the URL as clickable text when nothing is selected', async () => {
     const wrapper = await mountEditor({ modelValue: 'Begin ' })
     const editor = getEditor(wrapper)

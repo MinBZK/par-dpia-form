@@ -108,9 +108,13 @@ const editor = useEditor({
   },
   onUpdate: ({ editor }) => {
     emit('update:modelValue', editor.getMarkdown())
-    syncActiveState()
   },
-  onSelectionUpdate: syncActiveState,
+  // Re-sync the toolbar's active state on every transaction. This also covers
+  // stored-mark changes at a collapsed cursor (toggling bold/highlight with no
+  // selection), which change neither the document nor the selection and so fire
+  // neither onUpdate nor onSelectionUpdate — without this the button would stay
+  // lit and could not be toggled back off.
+  onTransaction: () => syncActiveState(),
 })
 
 // The toolbar reflects the block + marks at the cursor: the dropdown shows the
