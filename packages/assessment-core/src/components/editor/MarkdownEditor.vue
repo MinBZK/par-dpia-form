@@ -5,7 +5,7 @@ import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Highlight from '@tiptap/extension-highlight'
 import { Markdown } from '@tiptap/markdown'
-import type { EditorState } from '@tiptap/pm/state'
+import { Plugin, Selection, type EditorState } from '@tiptap/pm/state'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
 import { markdownLinkInputRule, openLinkOnClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
@@ -57,6 +57,26 @@ const MarkdownInputRules = Extension.create({
   },
 })
 
+// After deleting everything (e.g. Ctrl+A then Backspace), ProseMirror can leave a
+// non-collapsed selection over the now-empty document, which the browser paints as
+// a stray vertical "pipe" until you type. Collapse it back to a plain caret.
+const CollapseEmptySelection = Extension.create({
+  name: 'collapseEmptySelection',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        appendTransaction(transactions, _oldState, newState) {
+          if (!transactions.some((tr) => tr.docChanged)) return null
+          if (!newState.selection.empty && newState.doc.textContent.length === 0) {
+            return newState.tr.setSelection(Selection.atStart(newState.doc))
+          }
+          return null
+        },
+      }),
+    ]
+  },
+})
+
 const editor = useEditor({
   content: props.modelValue,
   contentType: 'markdown',
@@ -71,6 +91,7 @@ const editor = useEditor({
     Highlight,
     Markdown,
     MarkdownInputRules,
+    CollapseEmptySelection,
   ],
   editorProps: {
     attributes: {

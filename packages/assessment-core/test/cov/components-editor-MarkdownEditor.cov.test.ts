@@ -71,6 +71,20 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
+  it('collapses the selection after all content is deleted (no stray selection bar)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Iets om te wissen' })
+    const editor = getEditor(wrapper)
+    editor.commands.selectAll()
+    expect(editor.state.selection.empty).toBe(false)
+    editor.commands.deleteSelection()
+    await flushPromises()
+    expect(editor.state.doc.textContent).toBe('')
+    // Without the collapse plugin the selection stays non-collapsed over the empty
+    // paragraph (painted as a stray "pipe"); it should be a plain caret instead.
+    expect(editor.state.selection.empty).toBe(true)
+    wrapper.unmount()
+  })
+
   it('toggles a mark on and off at a collapsed cursor (active state stays in sync)', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
     const editor = getEditor(wrapper)
