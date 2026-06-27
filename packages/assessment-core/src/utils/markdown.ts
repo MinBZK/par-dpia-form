@@ -21,6 +21,28 @@ const underlineExtension: TokenizerAndRendererExtension = {
   },
 }
 
+// Highlight background colour, shared by the PDF renderer here and the `mark`
+// styling in the CSS (keep the two in sync).
+const HIGHLIGHT_COLOR = '#fff3a0'
+
+// `==text==` highlight, matching what @tiptap/markdown serialises (marked has no
+// built-in highlight). Mirrors the underline extension: renders a fixed <mark>
+// tag whose inner content goes through the safe inline renderers.
+const highlightExtension: TokenizerAndRendererExtension = {
+  name: 'highlight',
+  level: 'inline',
+  start(src) { return src.indexOf('==') },
+  tokenizer(src) {
+    const match = /^==([\s\S]+?)==/.exec(src)
+    if (!match) return undefined
+    return { type: 'highlight', raw: match[0], text: match[1], tokens: this.lexer.inlineTokens(match[1]) }
+  },
+  renderer(token) {
+    // The tokenizer always sets `tokens`, so it is present here.
+    return `<mark>${this.parser.parseInline(token.tokens!)}</mark>`
+  },
+}
+
 // Marked instance with a custom renderer that acts as an allowlist.
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
 // Links are rendered with target="_blank" and rel="noopener noreferrer".
@@ -46,7 +68,7 @@ const safeMarked = new Marked({
     // All remaining methods use the default renderer (safe tags only)
   },
 })
-safeMarked.use({ extensions: [underlineExtension] })
+safeMarked.use({ extensions: [underlineExtension, highlightExtension] })
 
 /**
  * Parse markdown to sanitized HTML for preview rendering.
@@ -73,12 +95,13 @@ type PdfText = string | { text: string | PdfText[]; bold?: boolean; italics?: bo
 // underline + strikethrough both render).
 function applyMark(
   parts: PdfText[],
-  mark: { bold?: boolean; italics?: boolean; decoration?: string },
+  mark: { bold?: boolean; italics?: boolean; decoration?: string; background?: string },
 ): PdfText[] {
   return parts.map(part => {
     const leaf = typeof part === 'string' ? { text: part } : { ...part }
     if (mark.bold) leaf.bold = true
     if (mark.italics) leaf.italics = true
+    if (mark.background) leaf.background = mark.background
     if (mark.decoration) {
       leaf.decoration = leaf.decoration
         ? ([] as string[]).concat(leaf.decoration, mark.decoration)
@@ -104,6 +127,10 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
     // `underline` is our custom inline token (not part of MarkedToken's union).
     if ((t as { type: string }).type === 'underline') {
       parts.push(...applyMark(processInlineTokens((t as unknown as { tokens: Token[] }).tokens), { decoration: 'underline' }))
+      continue
+    }
+    if ((t as { type: string }).type === 'highlight') {
+      parts.push(...applyMark(processInlineTokens((t as unknown as { tokens: Token[] }).tokens), { background: HIGHLIGHT_COLOR }))
       continue
     }
     switch (t.type) {
@@ -238,7 +265,7 @@ export function markdownToPdfContent(markdown: string): Content {
   if (!markdown) return { text: '' }
 
   const pdfMarked = new Marked({ breaks: true })
-  pdfMarked.use({ extensions: [underlineExtension] })
+  pdfMarked.use({ extensions: [underlineExtension, highlightExtension] })
   const tokens = pdfMarked.lexer(markdown)
   const content = processBlockTokens(tokens)
 

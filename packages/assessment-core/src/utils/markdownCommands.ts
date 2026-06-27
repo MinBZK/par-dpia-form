@@ -11,6 +11,6 @@ export type MarkdownCommand =
   | 'bulletList'
   | 'orderedList'
   | 'blockquote'
-  | 'code'
+  | 'highlight'
   | 'divider'
   | 'link'

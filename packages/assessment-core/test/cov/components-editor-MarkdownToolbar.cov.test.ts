@@ -29,7 +29,7 @@ describe('MarkdownToolbar.vue', () => {
     expect(wrapper.findAll('.markdown-toolbar__sep')).toHaveLength(3)
     expect(controlTabindexes(wrapper)).toEqual(['0', ...BUTTONS_MINUS]) // dropdown holds the tab stop
     expect(wrapper.findAll('.markdown-toolbar__button').map((b) => b.attributes('aria-label'))).toEqual([
-      'Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Link', 'Scheidingslijn', 'Code',
+      'Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Markeren', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Link', 'Scheidingslijn',
     ])
   })
 
@@ -168,8 +168,8 @@ describe('MarkdownToolbar.vue', () => {
 
   it('emits the matching command and prevents the default mousedown so the editor keeps its selection', async () => {
     const wrapper = mountToolbar()
-    await wrapper.find('button[aria-label="Code"]').trigger('click')
-    expect(wrapper.emitted('command')?.at(-1)).toEqual(['code'])
+    await wrapper.find('button[aria-label="Markeren"]').trigger('click')
+    expect(wrapper.emitted('command')?.at(-1)).toEqual(['highlight'])
     const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
     wrapper.find('button[aria-label="Vet"]').element.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)

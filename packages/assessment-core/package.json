@@ -12,6 +12,7 @@
   "dependencies": {
     "@pdfme/pdf-lib": "^6.1.8",
     "@tiptap/core": "^3.26.1",
+    "@tiptap/extension-highlight": "^3.27.1",
     "@tiptap/markdown": "^3.26.1",
     "@tiptap/pm": "^3.26.1",
     "@tiptap/starter-kit": "^3.26.1",

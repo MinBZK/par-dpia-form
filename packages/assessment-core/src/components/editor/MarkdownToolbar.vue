@@ -46,6 +46,7 @@ const groups: Btn[][] = [
     { command: 'italic', label: 'Cursief', toggle: true, shortcut: { key: 'I' }, paths: ['M11 5h6', 'M7 19h6', 'M14 5l-4 14'] },
     { command: 'underline', label: 'Onderstrepen', toggle: true, shortcut: { key: 'U' }, paths: ['M7 5v5a5 5 0 0 0 10 0v-5', 'M5 19h14'] },
     { command: 'strikethrough', label: 'Doorhalen', toggle: true, shortcut: { key: 'S', shift: true }, paths: ['M5 12h14', 'M16 6.5a4 2 0 0 0 -4 -1.5h-1a3.5 3.5 0 0 0 0 7', 'M8.5 17.5a4 2 0 0 0 4 1.5h1a3.5 3.5 0 0 0 .5 -6.95'] },
+    { command: 'highlight', label: 'Markeren', toggle: true, shortcut: { key: 'H', shift: true }, paths: ['M3 19h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4', 'M12.5 5.5l4 4', 'M4.5 13.5l4 4', 'M21 15v4h-8l4 -4z'] },
   ],
   [
     { command: 'bulletList', label: 'Opsommingslijst', toggle: true, shortcut: { key: '8', shift: true }, paths: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M5 6h.01', 'M5 12h.01', 'M5 18h.01'] },
@@ -55,7 +56,6 @@ const groups: Btn[][] = [
   [
     { command: 'link', label: 'Link', paths: ['M9 15l6 -6', 'M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464', 'M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463'] },
     { command: 'divider', label: 'Scheidingslijn', paths: ['M4 12h16'] },
-    { command: 'code', label: 'Code', toggle: true, shortcut: { key: 'E' }, paths: ['M7 8l-4 4l4 4', 'M17 8l4 4l-4 4', 'M14 4l-4 16'] },
   ],
 ]
 

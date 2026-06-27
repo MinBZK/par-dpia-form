@@ -3,7 +3,9 @@ import { ref, nextTick, watch } from 'vue'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { Extension, textblockTypeInputRule } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
+import Highlight from '@tiptap/extension-highlight'
 import { Markdown } from '@tiptap/markdown'
+import type { EditorState } from '@tiptap/pm/state'
 import { type MarkdownCommand } from '../../utils/markdownCommands'
 import { markdownLinkInputRule, openLinkOnClick, openUrlInNewTab } from '../../utils/markdownLinkRule'
 import MarkdownToolbar from './MarkdownToolbar.vue'
@@ -66,6 +68,7 @@ const editor = useEditor({
       heading: { levels: headingLevels },
       link: { openOnClick: false },
     }),
+    Highlight,
     Markdown,
     MarkdownInputRules,
   ],
@@ -126,7 +129,7 @@ function syncActiveState() {
     italic: instance.isActive('italic'),
     underline: instance.isActive('underline'),
     strikethrough: instance.isActive('strike'),
-    code: instance.isActive('code'),
+    highlight: instance.isActive('highlight'),
     bulletList: instance.isActive('bulletList'),
     orderedList: instance.isActive('orderedList'),
     blockquote: instance.isActive('blockquote'),
@@ -168,6 +171,22 @@ function openLinkEditor() {
   })
 }
 
+// The non-whitespace range around the cursor (the "word"), or null when the
+// cursor sits in whitespace. Lets a link with no selection attach to the word the
+// caret is in instead of inserting a bare URL.
+function wordRangeAt(state: EditorState): { from: number; to: number } | null {
+  const { $from } = state.selection
+  const text = $from.parent.textContent
+  const offset = $from.parentOffset
+  let start = offset
+  let end = offset
+  while (start > 0 && /\S/.test(text[start - 1])) start--
+  while (end < text.length && /\S/.test(text[end])) end++
+  if (start === end) return null
+  const base = $from.pos - offset
+  return { from: base + start, to: base + end }
+}
+
 function applyLink() {
   const instance = editor.value
   /* istanbul ignore else @preserve -- the editor stays mounted while the link bar is open. */
@@ -176,14 +195,20 @@ function applyLink() {
     if (!url) {
       instance.chain().focus().extendMarkRange('link').unsetLink().run()
     } else if (instance.state.selection.empty && !instance.isActive('link')) {
-      // No text is selected and the cursor is not on a link: insert the URL as
-      // the visible, clickable link text. (setLink on an empty selection only
-      // sets a stored mark, so nothing would appear.)
-      instance.chain().focus().insertContent({
-        type: 'text',
-        text: url,
-        marks: [{ type: 'link', attrs: { href: url } }],
-      }).run()
+      const word = wordRangeAt(instance.state)
+      if (word) {
+        // Cursor inside a word: turn that whole word into the link.
+        instance.chain().focus().setTextSelection(word).setLink({ href: url }).run()
+      } else {
+        // Cursor in empty space: insert the URL as the visible, clickable link
+        // text. (setLink on an empty selection only sets a stored mark, so
+        // nothing would appear.)
+        instance.chain().focus().insertContent({
+          type: 'text',
+          text: url,
+          marks: [{ type: 'link', attrs: { href: url } }],
+        }).run()
+      }
     } else {
       // Text is selected, or the cursor is on an existing link: apply/update the
       // link mark over that range.
@@ -243,8 +268,8 @@ function handleCommand(command: MarkdownCommand) {
     case 'blockquote':
       instance.chain().focus().toggleBlockquote().run()
       break
-    case 'code':
-      instance.chain().focus().toggleCode().run()
+    case 'highlight':
+      instance.chain().focus().toggleHighlight().run()
       break
     case 'divider':
       instance.chain().focus().setHorizontalRule().run()

@@ -60,7 +60,7 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
 
   it('applies every formatting command and emits markdown on a document change', async () => {
     const wrapper = await mountEditor({ modelValue: 'Hallo' })
-    const labels = ['Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Code', 'Scheidingslijn']
+    const labels = ['Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Markeren', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Scheidingslijn']
     for (const label of labels) {
       await wrapper.find(`button[aria-label="${label}"]`).trigger('click')
       await flushPromises()
@@ -108,6 +108,24 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     const html = editor.getHTML()
     expect(html).toContain('href="https://example.org"')
     expect(html).toContain('>website</a>')
+    wrapper.unmount()
+  })
+
+  it('links the whole word when the cursor sits inside it (no selection)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Ga naar website nu' })
+    const editor = getEditor(wrapper)
+    // Collapsed cursor a few characters into "website".
+    editor.commands.setTextSelection(editor.state.doc.textContent.indexOf('website') + 1 + 3)
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://example.org"')
+    expect(html).toContain('>website</a>') // the whole word became the link
     wrapper.unmount()
   })
 
