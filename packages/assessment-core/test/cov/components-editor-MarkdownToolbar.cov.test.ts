@@ -18,18 +18,18 @@ function blockButton(wrapper: ReturnType<typeof mount>) {
 }
 
 // block dropdown (index 0) + 11 buttons.
-const BUTTONS_MINUS = Array(11).fill('-1')
+const BUTTONS_MINUS = Array(10).fill('-1')
 
 describe('MarkdownToolbar.vue', () => {
   it('renders a labelled toolbar: block dropdown (tab stop) + grouped buttons with separators', () => {
     const wrapper = mountToolbar()
     const toolbar = wrapper.find('[role="toolbar"]')
     expect(toolbar.attributes('aria-label')).toBe('Tekstopmaak')
-    expect(wrapper.findAll('.markdown-toolbar__button')).toHaveLength(11)
+    expect(wrapper.findAll('.markdown-toolbar__button')).toHaveLength(10)
     expect(wrapper.findAll('.markdown-toolbar__sep')).toHaveLength(3)
     expect(controlTabindexes(wrapper)).toEqual(['0', ...BUTTONS_MINUS]) // dropdown holds the tab stop
     expect(wrapper.findAll('.markdown-toolbar__button').map((b) => b.attributes('aria-label'))).toEqual([
-      'Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Link', 'Scheidingslijn', 'Code', 'Codeblok',
+      'Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Link', 'Scheidingslijn', 'Code',
     ])
   })
 
@@ -162,14 +162,14 @@ describe('MarkdownToolbar.vue', () => {
     const wrapper = mountToolbar()
     expect(wrapper.find('button[aria-label="Vet"]').attributes('title')).toMatch(/^Vet \((⌘|Ctrl\+)B\)$/)
     expect(wrapper.find('button[aria-label="Doorhalen"]').attributes('title')).toMatch(/(⇧|Shift\+)S/)
-    expect(wrapper.find('button[aria-label="Codeblok"]').attributes('title')).toBe('Codeblok')
+    expect(wrapper.find('button[aria-label="Scheidingslijn"]').attributes('title')).toBe('Scheidingslijn')
     expect(wrapper.find('button[aria-label="Link"]').attributes('title')).toBe('Link')
   })
 
   it('emits the matching command and prevents the default mousedown so the editor keeps its selection', async () => {
     const wrapper = mountToolbar()
-    await wrapper.find('button[aria-label="Codeblok"]').trigger('click')
-    expect(wrapper.emitted('command')?.at(-1)).toEqual(['codeBlock'])
+    await wrapper.find('button[aria-label="Code"]').trigger('click')
+    expect(wrapper.emitted('command')?.at(-1)).toEqual(['code'])
     const event = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
     wrapper.find('button[aria-label="Vet"]').element.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
@@ -184,11 +184,11 @@ describe('MarkdownToolbar.vue', () => {
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // Vet(1) -> dropdown(0)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
     await toolbar.trigger('keydown', { key: 'ArrowLeft' }) // dropdown(0) -> last (wrap)
-    expect(controlTabindexes(wrapper)[11]).toBe('0')
+    expect(controlTabindexes(wrapper)[10]).toBe('0')
     await toolbar.trigger('keydown', { key: 'ArrowRight' }) // last -> dropdown(0) (wrap)
     expect(controlTabindexes(wrapper)[0]).toBe('0')
     await toolbar.trigger('keydown', { key: 'End' })
-    expect(controlTabindexes(wrapper)[11]).toBe('0')
+    expect(controlTabindexes(wrapper)[10]).toBe('0')
     await toolbar.trigger('keydown', { key: 'Home' })
     expect(controlTabindexes(wrapper)[0]).toBe('0')
   })

@@ -71,12 +71,14 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     wrapper.unmount()
   })
 
-  it('adds a new link via the inline bar and clears it on an empty submit', async () => {
-    const wrapper = await mountEditor({ modelValue: 'Linktekst' })
+  it('inserts the URL as clickable text when nothing is selected', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Begin ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size) // cursor at end, empty selection
+    await flushPromises()
 
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
     // A new link shows "Toevoegen" and no open/remove actions.
     expect(linkButton(wrapper, 'Toevoegen').exists()).toBe(true)
     expect(wrapper.findAll('.markdown-editor__linkbar button').some((b) => b.text() === 'Openen')).toBe(false)
@@ -84,13 +86,61 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
     await wrapper.find('.markdown-editor__linkform').trigger('submit')
     await flushPromises()
+    // The URL itself is inserted as visible, linked text (not just a stored mark).
+    expect(editor.getHTML()).toContain('href="https://example.org"')
+    expect(editor.getText()).toContain('https://example.org')
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('links the selected text when a range is selected', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Ga naar website nu' })
+    const editor = getEditor(wrapper)
+    const from = editor.state.doc.textContent.indexOf('website') + 1
+    editor.commands.setTextSelection({ from, to: from + 'website'.length })
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://example.org"')
+    expect(html).toContain('>website</a>')
+    wrapper.unmount()
+  })
+
+  it('updates an existing link when a new URL is saved with the cursor inside it', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://old.org">link</a></p>')
+    editor.commands.setTextSelection(2) // inside the link, empty selection
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://new.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(editor.getHTML()).toContain('href="https://new.org"')
+    expect(editor.getHTML()).not.toContain('old.org')
+    wrapper.unmount()
+  })
+
+  it('removes the link on an empty submit', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://x.org">link</a></p>')
+    editor.commands.setTextSelection(2)
+    await flushPromises()
 
     await wrapper.find('button[aria-label="Link"]').trigger('click')
     await flushPromises()
     await wrapper.find('.markdown-editor__linkinput').setValue('') // clear → empty submit removes the link
     await wrapper.find('.markdown-editor__linkform').trigger('submit')
     await flushPromises()
+    expect(editor.getHTML()).not.toContain('href=')
     expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
     wrapper.unmount()
   })
@@ -284,20 +334,6 @@ describe('MarkdownEditor.vue (WYSIWYG)', () => {
     await wrapper.find('button[aria-label="Vet"]').trigger('click')
     await flushPromises()
     expect(wrapper.find('button[aria-label="Vet"]').classes()).toContain('is-active')
-    wrapper.unmount()
-  })
-
-  it('toggles a code block and reflects it as active', async () => {
-    const wrapper = await mountEditor({ modelValue: 'Tekst' })
-    const editor = getEditor(wrapper)
-    editor.commands.setTextSelection(2)
-    await wrapper.find('button[aria-label="Codeblok"]').trigger('click')
-    await flushPromises()
-    expect(wrapper.find('.ProseMirror').html()).toContain('<pre')
-    expect(editor.isActive('codeBlock')).toBe(true)
-    editor.commands.setTextSelection(2) // re-sync the toolbar to the cursor inside the block
-    await flushPromises()
-    expect(wrapper.find('button[aria-label="Codeblok"]').classes()).toContain('is-active')
     wrapper.unmount()
   })
 

@@ -130,7 +130,6 @@ function syncActiveState() {
     bulletList: instance.isActive('bulletList'),
     orderedList: instance.isActive('orderedList'),
     blockquote: instance.isActive('blockquote'),
-    codeBlock: instance.isActive('codeBlock'),
     link: instance.isActive('link'),
   }
 }
@@ -174,11 +173,21 @@ function applyLink() {
   /* istanbul ignore else @preserve -- the editor stays mounted while the link bar is open. */
   if (instance) {
     const url = linkUrl.value.trim()
-    const chain = instance.chain().focus().extendMarkRange('link')
-    if (url) {
-      chain.setLink({ href: url }).run()
+    if (!url) {
+      instance.chain().focus().extendMarkRange('link').unsetLink().run()
+    } else if (instance.state.selection.empty && !instance.isActive('link')) {
+      // No text is selected and the cursor is not on a link: insert the URL as
+      // the visible, clickable link text. (setLink on an empty selection only
+      // sets a stored mark, so nothing would appear.)
+      instance.chain().focus().insertContent({
+        type: 'text',
+        text: url,
+        marks: [{ type: 'link', attrs: { href: url } }],
+      }).run()
     } else {
-      chain.unsetLink().run()
+      // Text is selected, or the cursor is on an existing link: apply/update the
+      // link mark over that range.
+      instance.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
     }
   }
   linkEditorOpen.value = false
@@ -236,9 +245,6 @@ function handleCommand(command: MarkdownCommand) {
       break
     case 'code':
       instance.chain().focus().toggleCode().run()
-      break
-    case 'codeBlock':
-      instance.chain().focus().toggleCodeBlock().run()
       break
     case 'divider':
       instance.chain().focus().setHorizontalRule().run()

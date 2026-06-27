@@ -189,7 +189,9 @@
   border: 1px solid transparent;
   border-radius: 3px;
   background: none;
-  color: var(--rvo-color-hemelblauw);
+  /* Default (dark) text colour to match the block-style dropdown; the blue accent
+     is reserved for the active state, so neutral icons don't read as links. */
+  color: var(--rvo-color-zwart, #000);
   line-height: 1;
   cursor: pointer;
 }
