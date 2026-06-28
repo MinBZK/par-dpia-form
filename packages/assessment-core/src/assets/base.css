@@ -787,6 +787,10 @@
 
 .rvo-theme .nav-header__bar {
   display: flex;
+  /* Wrap on narrow screens: the back button + action buttons (incl. Exporteer)
+     don't fit on one row on a phone, so the actions drop to a second row instead
+     of overflowing off-screen. Desktop keeps the single row. */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--rvo-space-md, 1rem);
@@ -795,6 +799,7 @@
 
 .rvo-theme .nav-header__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--rvo-space-sm, 0.5rem);
 }
