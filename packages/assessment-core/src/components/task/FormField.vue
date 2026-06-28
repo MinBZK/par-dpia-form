@@ -8,9 +8,8 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
-import { renderMarkdownToHtml } from '../../utils/markdown'
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import MarkdownEditor from '../editor/MarkdownEditor.vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   task: FlatTask
@@ -113,52 +112,10 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
-const showPreview = ref(false)
-
-const renderedHtml = computed(() => {
-  if (!showPreview.value) return ''
-  return renderMarkdownToHtml(String(currentValue.value ?? ''))
-})
-
-// Re-trigger auto-grow and restore focus when switching back from preview to edit
-watch(showPreview, (preview) => {
-  if (!preview) {
-    nextTick(() => {
-      /* istanbul ignore else @preserve -- unreachable: when showPreview turns
-         false the textarea (v-if="!showPreview") is always re-rendered before
-         this nextTick callback runs, so textareaRef is guaranteed to be set. */
-      if (textareaRef.value) {
-        autoGrowTextarea(textareaRef.value)
-        textareaRef.value.focus()
-      }
-    })
-  }
-})
-
-onMounted(() => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-watch(currentValue, () => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-// Text input and textarea handler
+// Text input handler (text_input and date fields)
 const handleTextInput = (event: Event) => {
-  const target = event.target as HTMLInputElement | HTMLTextAreaElement
+  const target = event.target as HTMLInputElement
   answerStore.setAnswer(props.instanceId, target.value)
-  if (target instanceof HTMLTextAreaElement) {
-    autoGrowTextarea(target)
-  }
 }
 
 // Select handler
@@ -206,15 +163,6 @@ const handleCheckboxInput = (event: Event) => {
       art. 27 AI-verordening
       <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
     </a>
-    <button v-if="hasType('open_text')" type="button"
-      class="open-text-field__toggle"
-      :aria-pressed="showPreview"
-      :aria-label="showPreview ? 'Bewerken' : 'Lezen'"
-      @click="showPreview = !showPreview">
-      <span class="utrecht-icon rvo-icon rvo-icon--sm"
-        :class="showPreview ? 'rvo-icon-document-met-potlood' : 'rvo-icon-oog'"></span>
-      {{ showPreview ? 'Bewerken' : 'Lezen' }}
-    </button>
     <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
@@ -233,20 +181,12 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Text area with markdown support -->
-  <div v-if="hasType('open_text')" class="open-text-field rvo-margin-block-end--md">
-    <textarea v-if="!showPreview" ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
-      class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
-      :value="currentValue as string | number | readonly string[] | null | undefined"
-      @input="handleTextInput"></textarea>
-
-    <div v-else
-      class="markdown-preview" dir="auto"
-      role="region"
-      :aria-label="'Voorbeeld van de opmaak'"
-      v-html="renderedHtml">
-    </div>
-  </div>
+  <MarkdownEditor v-if="hasType('open_text')"
+    :model-value="String(currentValue ?? '')"
+    :input-id="`field-${task.id}-${instanceId}`"
+    :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
+    :heading-levels="[3]"
+    @update:model-value="(value) => answerStore.setAnswer(instanceId, value)" />
 
   <!-- Select radio -->
   <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">

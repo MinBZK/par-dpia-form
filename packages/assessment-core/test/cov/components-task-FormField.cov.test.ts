@@ -29,9 +29,11 @@ function mountField(props: MountProps) {
   return mount(FormField, {
     props,
     global: {
-      // Stub ImageField to keep the image-upload component out of the mount.
+      // Stub ImageField and MarkdownEditor to keep those components (and the
+      // TipTap editor) out of the FormField mount — they have their own tests.
       stubs: {
         ImageField: { name: 'ImageField', props: ['task', 'instanceId', 'label', 'description'], template: '<div class="image-field-stub" />' },
+        MarkdownEditor: { name: 'MarkdownEditor', props: ['modelValue', 'inputId', 'ariaLabelledby'], emits: ['update:modelValue'], template: '<div class="markdown-editor-stub" />' },
       },
     },
   })
@@ -73,81 +75,27 @@ describe('FormField.vue', () => {
       expect(wrapper.find('input[type="text"]').attributes('aria-labelledby')).toBeUndefined()
     })
 
-    it('renders the open_text read/edit toggle and switches preview on click', async () => {
+    it('renders the MarkdownEditor for open_text with the value and field ids', () => {
+      answerStore.setAnswer('1.1[0]', '**vet** tekst')
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('button.open-text-field__toggle')
-      expect(toggle.exists()).toBe(true)
-      expect(toggle.text()).toContain('Lezen')
-      expect(toggle.attributes('aria-pressed')).toBe('false')
-      expect(toggle.attributes('aria-label')).toBe('Lezen')
-      expect(wrapper.find('textarea').exists()).toBe(true)
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
-
-      await toggle.trigger('click')
-      expect(toggle.text()).toContain('Bewerken')
-      expect(toggle.attributes('aria-pressed')).toBe('true')
-      expect(toggle.attributes('aria-label')).toBe('Bewerken')
-      expect(wrapper.find('textarea').exists()).toBe(false)
-      const preview = wrapper.find('.markdown-preview')
-      expect(preview.exists()).toBe(true)
-      expect(preview.attributes('aria-label')).toBe('Voorbeeld van de opmaak')
+      const editor = wrapper.findComponent({ name: 'MarkdownEditor' })
+      expect(editor.exists()).toBe(true)
+      expect(editor.props('modelValue')).toBe('**vet** tekst')
+      expect(editor.props('inputId')).toBe('field-1.1-1.1[0]')
+      expect(editor.props('ariaLabelledby')).toBe('label-1.1-1.1[0]')
     })
 
-    it('does not render the toggle button when the field is not open_text', () => {
+    it('does not render the MarkdownEditor when the field is not open_text', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['text_input'] }),
         instanceId: '1.1[0]',
         label: 'Naam',
       })
-      expect(wrapper.find('button.open-text-field__toggle').exists()).toBe(false)
-    })
-  })
-
-  describe('renderedHtml and preview watcher', () => {
-    it('renders markdown to HTML in the preview and restores the textarea on switch back', async () => {
-      answerStore.setAnswer('1.1[0]', '**vet** tekst')
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      const toggle = wrapper.find('button.open-text-field__toggle')
-
-      await toggle.trigger('click')
-      const preview = wrapper.find('.markdown-preview')
-      expect(preview.element.innerHTML).toContain('<strong>vet</strong>')
-
-      await toggle.trigger('click')
-      await nextTick()
-      expect(wrapper.find('textarea').exists()).toBe(true)
-    })
-
-    it('renders an empty preview when there is no value', async () => {
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: 'empty[0]',
-        label: 'Toelichting',
-      })
-      await wrapper.find('button.open-text-field__toggle').trigger('click')
-      expect(wrapper.find('.markdown-preview').element.innerHTML.trim()).toBe('')
-    })
-
-    it('renderedHtml yields an empty string while not in preview mode', async () => {
-      answerStore.setAnswer('1.1[0]', '**vet** tekst')
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      expect(wrapper.find('textarea').exists()).toBe(true)
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
-      // Read the computed through the instance: no preview region exists to assert against.
-      const setupState = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
-      expect(setupState.renderedHtml).toBe('')
+      expect(wrapper.findComponent({ name: 'MarkdownEditor' }).exists()).toBe(false)
     })
   })
 
@@ -169,17 +117,16 @@ describe('FormField.vue', () => {
     })
   })
 
-  describe('open_text textarea input', () => {
-    it('writes textarea input back to the store and auto-grows', async () => {
+  describe('open_text editor input', () => {
+    it('writes the editor markdown back to the store on update', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const textarea = wrapper.find('textarea')
-      await textarea.setValue('regel een\nregel twee')
-      await textarea.trigger('input')
-      expect(answerStore.getAnswer('1.1[0]')).toBe('regel een\nregel twee')
+      wrapper.findComponent({ name: 'MarkdownEditor' }).vm.$emit('update:modelValue', '## Kop\n\nregel')
+      await nextTick()
+      expect(answerStore.getAnswer('1.1[0]')).toBe('## Kop\n\nregel')
     })
   })
 
@@ -695,12 +642,15 @@ describe('FormField.vue', () => {
   })
 
   describe('aria-labelledby fallback to undefined without a label', () => {
-    it('open_text textarea has no aria-labelledby when there is no label', () => {
+    it('passes ariaLabelledby undefined to the open_text editor when there is no label', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.find('textarea').attributes('aria-labelledby')).toBeUndefined()
+      const editor = wrapper.findComponent({ name: 'MarkdownEditor' })
+      expect(editor.props('ariaLabelledby')).toBeUndefined()
+      // currentValue is null here, so the editor receives an empty string.
+      expect(editor.props('modelValue')).toBe('')
     })
 
     it('date input has no aria-labelledby when there is no label', () => {
@@ -709,25 +659,6 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
       })
       expect(wrapper.find('input[type="date"]').attributes('aria-labelledby')).toBeUndefined()
-    })
-  })
-
-  describe('onMounted and currentValue watcher auto-grow', () => {
-    it('auto-grows the textarea on mount and when the value changes', async () => {
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      await nextTick()
-      expect(wrapper.find('textarea').exists()).toBe(true)
-
-      answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
-      await nextTick()
-      await nextTick()
-      expect((wrapper.find('textarea').element as HTMLTextAreaElement).value).toBe('nieuwe inhoud')
-
-      wrapper.unmount()
     })
   })
 

@@ -1,6 +1,47 @@
-import { Marked, type Tokens, type Token, type MarkedToken } from 'marked'
+import { Marked, type Tokens, type Token, type MarkedToken, type TokenizerAndRendererExtension } from 'marked'
 import type { Content } from 'pdfmake/interfaces'
 import { escapeHtml } from './escapeHtml'
+
+// `++text++` underline, matching what @tiptap/markdown serialises (marked has no
+// built-in underline). A small inline extension renders it for both the HTML
+// preview and the PDF lexer. The rendered output is a fixed <u> tag whose inner
+// content goes through the safe inline renderers, so no raw HTML can leak in.
+const underlineExtension: TokenizerAndRendererExtension = {
+  name: 'underline',
+  level: 'inline',
+  start(src) { return src.indexOf('++') },
+  tokenizer(src) {
+    const match = /^\+\+([\s\S]+?)\+\+/.exec(src)
+    if (!match) return undefined
+    return { type: 'underline', raw: match[0], text: match[1], tokens: this.lexer.inlineTokens(match[1]) }
+  },
+  renderer(token) {
+    // The tokenizer always sets `tokens`, so it is present here.
+    return `<u>${this.parser.parseInline(token.tokens!)}</u>`
+  },
+}
+
+// Highlight background colour, shared by the PDF renderer here and the `mark`
+// styling in the CSS (keep the two in sync).
+const HIGHLIGHT_COLOR = '#cfe6fb'
+
+// `==text==` highlight, matching what @tiptap/markdown serialises (marked has no
+// built-in highlight). Mirrors the underline extension: renders a fixed <mark>
+// tag whose inner content goes through the safe inline renderers.
+const highlightExtension: TokenizerAndRendererExtension = {
+  name: 'highlight',
+  level: 'inline',
+  start(src) { return src.indexOf('==') },
+  tokenizer(src) {
+    const match = /^==([\s\S]+?)==/.exec(src)
+    if (!match) return undefined
+    return { type: 'highlight', raw: match[0], text: match[1], tokens: this.lexer.inlineTokens(match[1]) }
+  },
+  renderer(token) {
+    // The tokenizer always sets `tokens`, so it is present here.
+    return `<mark>${this.parser.parseInline(token.tokens!)}</mark>`
+  },
+}
 
 // Marked instance with a custom renderer that acts as an allowlist.
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
@@ -27,10 +68,11 @@ const safeMarked = new Marked({
     // All remaining methods use the default renderer (safe tags only)
   },
 })
+safeMarked.use({ extensions: [underlineExtension, highlightExtension] })
 
 /**
  * Parse markdown to sanitized HTML for preview rendering.
- * Uses an allowlist renderer: only safe tags (p, strong, em, ul, ol, li, h1-h3,
+ * Uses an allowlist renderer: only safe tags (p, strong, em, u, ul, ol, li, h1-h6,
  * code, pre, blockquote, hr, br, del, a) are produced. Raw HTML and images
  * are stripped. Links open in a new tab.
  */
@@ -43,7 +85,31 @@ export function renderMarkdownToHtml(markdown: string): string {
 // Markdown → pdfmake Content
 // ---------------------------------------------------------------------------
 
-type PdfText = string | { text: string | PdfText[]; bold?: boolean; italics?: boolean; link?: string; color?: string; decoration?: string; background?: string }
+type PdfText = string | { text: string | PdfText[]; bold?: boolean; italics?: boolean; link?: string; color?: string; decoration?: string | string[]; background?: string }
+
+// pdfmake 0.3 drops styling set on a wrapper whose `text` is an array
+// (flattenTextArray, see TextInlines.js "TODO: Styling in nested text" / issue
+// #1174). So inline marks must live on a string-text leaf, not wrap an array.
+// applyMark pushes a mark onto every leaf produced for the marked span, merging
+// with any mark already there (stacked decorations become an array so e.g.
+// underline + strikethrough both render).
+function applyMark(
+  parts: PdfText[],
+  mark: { bold?: boolean; italics?: boolean; decoration?: string; background?: string },
+): PdfText[] {
+  return parts.map(part => {
+    const leaf = typeof part === 'string' ? { text: part } : { ...part }
+    if (mark.bold) leaf.bold = true
+    if (mark.italics) leaf.italics = true
+    if (mark.background) leaf.background = mark.background
+    if (mark.decoration) {
+      leaf.decoration = leaf.decoration
+        ? ([] as string[]).concat(leaf.decoration, mark.decoration)
+        : mark.decoration
+    }
+    return leaf
+  })
+}
 
 function flattenToString(tokens: Token[]): string {
   return tokens.map(token => {
@@ -58,16 +124,24 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
   const parts: PdfText[] = []
   for (const token of tokens) {
     const t = token as MarkedToken
+    // `underline` is our custom inline token (not part of MarkedToken's union).
+    if ((t as { type: string }).type === 'underline') {
+      parts.push(...applyMark(processInlineTokens((t as unknown as { tokens: Token[] }).tokens), { decoration: 'underline' }))
+      continue
+    }
+    if ((t as { type: string }).type === 'highlight') {
+      parts.push(...applyMark(processInlineTokens((t as unknown as { tokens: Token[] }).tokens), { background: HIGHLIGHT_COLOR }))
+      continue
+    }
     switch (t.type) {
       case 'strong':
-        parts.push({ text: processInlineTokens(t.tokens), bold: true })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { bold: true }))
         break
       case 'em':
-        parts.push({ text: processInlineTokens(t.tokens), italics: true })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { italics: true }))
         break
       case 'del':
-        // Strikethrough has no pdfmake equivalent — render as plain text
-        parts.push({ text: processInlineTokens(t.tokens) })
+        parts.push(...applyMark(processInlineTokens(t.tokens), { decoration: 'lineThrough' }))
         break
       case 'codespan':
         parts.push({ text: t.text, background: '#e8e8e8' } as PdfText)
@@ -110,7 +184,9 @@ function processBlockTokens(tokens: Token[]): Content[] {
         content.push({ text: processInlineTokens(t.tokens) as any, margin: [0, 0, 0, 5] })
         break
       case 'heading': {
-        const fontSize = Math.max(10, 16 - (t.depth - 1) * 2)
+        // Distinct, monotonically shrinking sizes for every level so H2..H6 stay
+        // visually distinguishable in the PDF (floored at 9pt for readability).
+        const fontSize = Math.max(9, 16 - (t.depth - 1) * 1.5)
         content.push({ text: processInlineTokens(t.tokens) as any, bold: true, fontSize, margin: [0, 5, 0, 3] })
         break
       }
@@ -188,7 +264,9 @@ function processBlockTokens(tokens: Token[]): Content[] {
 export function markdownToPdfContent(markdown: string): Content {
   if (!markdown) return { text: '' }
 
-  const tokens = new Marked({ breaks: true }).lexer(markdown)
+  const pdfMarked = new Marked({ breaks: true })
+  pdfMarked.use({ extensions: [underlineExtension, highlightExtension] })
+  const tokens = pdfMarked.lexer(markdown)
   const content = processBlockTokens(tokens)
 
   if (content.length === 0) return { text: '' }

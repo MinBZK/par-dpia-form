@@ -172,56 +172,267 @@
   padding: var(--utrecht-textbox-padding-block-start, 12px) var(--utrecht-textbox-padding-inline-end, 12px) var(--utrecht-textbox-padding-block-end, 12px) var(--utrecht-textbox-padding-inline-start, 12px);
 }
 
-.rvo-theme .rvo-form-field__label.rvo-form-field__label:has(.open-text-field__toggle) {
-  flex-direction: row;
+.rvo-theme .markdown-toolbar {
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: 0.15rem;
 }
 
-.rvo-theme .rvo-form-field__label:has(.open-text-field__toggle) .utrecht-form-field-description {
-  flex-basis: 100%;
-}
-
-.rvo-theme .open-text-field__toggle {
-  margin-inline-start: auto;
+.rvo-theme .markdown-toolbar__button {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--rvo-color-hemelblauw);
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0.25rem;
+  border: 1px solid transparent;
   border-radius: 3px;
   background: none;
-  color: var(--rvo-color-hemelblauw);
-  font-size: 0.8rem;
+  /* Default (dark) text colour to match the block-style dropdown; the blue accent
+     is reserved for the active state, so neutral icons don't read as links. */
+  color: var(--rvo-color-zwart, #000);
   line-height: 1;
   cursor: pointer;
 }
 
-.rvo-theme .markdown-preview {
-  min-height: 8rem;
-  padding: 0.75rem;
+.rvo-theme .markdown-toolbar__button:hover {
   background: var(--rvo-color-grijs-100, #f3f3f3);
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+}
+
+/* An active mark/node is shown with a filled, tinted button so it is clear a
+   second click toggles it off. */
+.rvo-theme .markdown-toolbar__button.is-active {
+  background: var(--rvo-color-lichtblauw, #e5f1fb);
+  border-color: var(--rvo-color-logoblauw, #007bc7);
+  /* Darker blue so the icon keeps a strong contrast on the (fairly saturated)
+     active fill: logoblauw-on-lichtblauw was only ~2.5:1, below the WCAG 1.4.11
+     minimum of 3:1 for icons. #154273 (the RVO dark blue used in the PDF) is
+     ~5.7:1. */
+  color: #154273;
+}
+
+.rvo-theme .markdown-toolbar__button:focus-visible,
+.rvo-theme .markdown-toolbar__block-button:focus-visible {
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: 1px;
+}
+
+.rvo-theme .markdown-toolbar__icon {
+  display: block;
+}
+
+/* Thin vertical separator between button groups. */
+.rvo-theme .markdown-toolbar__sep {
+  align-self: stretch;
+  width: 1px;
+  min-height: 1.4rem;
+  margin-inline: 0.25rem;
+  background: var(--rvo-color-grijs-300, #ccc);
+}
+.rvo-theme .markdown-toolbar__sep:first-child {
+  display: none;
+}
+
+/* Block-style dropdown (paragraph / Kop 1..6), styled like a toolbar button. */
+.rvo-theme .markdown-toolbar__block {
+  position: relative;
+}
+
+.rvo-theme .markdown-toolbar__block-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.75rem;
+  padding: 0 0.4rem 0 0.25rem;
+  border: 1px solid transparent;
   border-radius: 3px;
+  background: none;
+  color: var(--rvo-color-zwart, #000);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.rvo-theme .markdown-toolbar__block-button:hover {
+  background: var(--rvo-color-grijs-100, #f3f3f3);
 }
 
-.rvo-theme .markdown-preview h1,
-.rvo-theme .markdown-preview h2,
-.rvo-theme .markdown-preview h3 {
-  margin-block: 0.5em 0.25em;
+/* The P / Hx marker reads as an icon, so size it like the other toolbar icons. */
+.rvo-theme .markdown-toolbar__block-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--rvo-color-grijs-700, #555);
 }
 
-.rvo-theme .markdown-preview ul,
-.rvo-theme .markdown-preview ol {
+.rvo-theme .markdown-toolbar__block-label {
+  min-width: 3.6rem;
+  text-align: start;
+}
+
+.rvo-theme .markdown-toolbar__caret {
+  display: block;
+  color: var(--rvo-color-grijs-700, #555);
+}
+
+.rvo-theme .markdown-toolbar__menu {
+  position: absolute;
+  bottom: calc(100% + 0.3rem);
+  inset-inline-start: 0;
+  z-index: 20;
+  min-width: 11rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+  background: #fff;
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.rvo-theme .markdown-toolbar__menuitem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 3px;
+  background: none;
+  color: var(--rvo-color-zwart, #000);
+  font-size: 0.9rem;
+  text-align: start;
+  cursor: pointer;
+}
+.rvo-theme .markdown-toolbar__menuitem:hover,
+.rvo-theme .markdown-toolbar__menuitem:focus-visible {
+  background: var(--rvo-color-grijs-100, #f3f3f3);
+  outline: none;
+}
+.rvo-theme .markdown-toolbar__menuitem.is-active {
+  background: var(--rvo-color-lichtblauw, #e5f1fb);
+}
+
+.rvo-theme .markdown-toolbar__menuitem-label {
+  flex: 1;
+}
+
+.rvo-theme .markdown-toolbar__check {
+  display: block;
+  color: var(--rvo-color-logoblauw, #007bc7);
+}
+
+/* WYSIWYG editor surface (Mattermost-style): one bordered shell with the
+   contenteditable area on top and the formatting toolbar as an always-visible
+   footer. Base ProseMirror rules are inlined here (no runtime <style>) so the
+   editor stays within the strict CSP. */
+.rvo-theme .markdown-editor {
+  background: #fff;
+  border: 1px solid var(--rvo-color-grijs-300, #ccc);
+  border-radius: 4px;
+}
+
+.rvo-theme .markdown-editor:focus-within {
+  border-color: var(--rvo-color-hemelblauw);
+  outline: 2px solid var(--rvo-color-hemelblauw);
+  outline-offset: -1px;
+}
+
+.rvo-theme .markdown-editor .ProseMirror {
+  position: relative;
+  min-height: 6rem;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  outline: none;
+}
+
+.rvo-theme .markdown-editor__footer {
+  display: flex;
+  align-items: center;
+  padding: 0.2rem 0.4rem 0.2rem 0.25rem;
+  border-top: 1px solid var(--rvo-color-grijs-200, #e6e6e6);
+  background: var(--rvo-color-grijs-100, #f3f3f3);
+  border-radius: 0 0 4px 4px;
+}
+
+.rvo-theme .markdown-editor__linkbar {
+  padding: 0.4rem;
+  border-top: 1px solid var(--rvo-color-grijs-200, #e6e6e6);
+  background: var(--rvo-color-grijs-100, #f3f3f3);
+}
+
+.rvo-theme .markdown-editor__linkform {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.rvo-theme .markdown-editor__linkinput {
+  flex: 1;
+  min-width: 0;
+}
+
+/* On a narrow (mobile) screen the edit buttons don't fit beside the URL field, so
+   stack: the field takes a full row and the buttons wrap below it instead of
+   overflowing off-screen. Desktop keeps the compact single row. */
+@media (max-width: 552px) {
+  .rvo-theme .markdown-editor__linkform {
+    flex-wrap: wrap;
+  }
+  .rvo-theme .markdown-editor__linkinput {
+    flex-basis: 100%;
+  }
+}
+
+.rvo-theme .markdown-editor .ProseMirror > :first-child {
+  margin-block-start: 0;
+}
+
+.rvo-theme .markdown-editor .ProseMirror h1,
+.rvo-theme .markdown-editor .ProseMirror h2,
+.rvo-theme .markdown-editor .ProseMirror h3,
+.rvo-theme .markdown-editor .ProseMirror h4,
+.rvo-theme .markdown-editor .ProseMirror h5,
+.rvo-theme .markdown-editor .ProseMirror h6 {
+  font-weight: 700;
+  line-height: 1.25;
+  margin-block: 0.7em 0.1em;
+}
+
+/* Sizes are em-based (relative to the body text), so every heading level stays
+   distinct yet never smaller than a paragraph — the deepest level is exactly the
+   body size, set apart by its bold weight. */
+.rvo-theme .markdown-editor .ProseMirror h1 { font-size: 1.5em; }
+.rvo-theme .markdown-editor .ProseMirror h2 { font-size: 1.36em; }
+.rvo-theme .markdown-editor .ProseMirror h3 { font-size: 1.24em; }
+.rvo-theme .markdown-editor .ProseMirror h4 { font-size: 1.14em; }
+.rvo-theme .markdown-editor .ProseMirror h5 { font-size: 1.06em; }
+.rvo-theme .markdown-editor .ProseMirror h6 { font-size: 1em; }
+
+.rvo-theme .markdown-editor .ProseMirror p {
+  margin-block: 0.25rem;
+}
+
+.rvo-theme .markdown-editor .ProseMirror ul,
+.rvo-theme .markdown-editor .ProseMirror ol {
   padding-inline-start: 1.5rem;
   margin-block: 0.25rem;
 }
 
-.rvo-theme .markdown-preview p {
-  margin-block: 0.25rem;
+.rvo-theme .markdown-editor .ProseMirror li > p {
+  margin-block: 0;
 }
 
-.rvo-theme .markdown-preview blockquote {
+.rvo-theme .markdown-editor .ProseMirror a {
+  color: var(--rvo-color-hemelblauw);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rvo-theme .markdown-editor .ProseMirror blockquote {
   border-inline-start: 3px solid var(--rvo-color-hemelblauw);
   padding-inline-start: 0.75rem;
   margin-inline-start: 0;
@@ -229,12 +440,7 @@
   color: var(--rvo-color-grijs-700, #555);
 }
 
-.rvo-theme .markdown-preview .task-list-item {
-  list-style: none;
-  margin-inline-start: -1rem;
-}
-
-.rvo-theme .markdown-preview code {
+.rvo-theme .markdown-editor .ProseMirror code {
   background: #e8e8e8;
   padding: 0.15em 0.35em;
   border-radius: 3px;
@@ -242,11 +448,38 @@
   font-size: 0.9em;
 }
 
-.rvo-theme .markdown-preview pre {
+/* Highlight (Markeren). Colour matches HIGHLIGHT_COLOR in utils/markdown.ts so the
+   editor, the HTML preview and the PDF export all use the same soft-blue tint. */
+.rvo-theme .markdown-editor .ProseMirror mark {
+  background-color: #cfe6fb;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 0.1em;
+}
+
+/* Stop painting the text selection once the editor loses focus. Otherwise a
+   selection — notably the rectangle the browser draws on an empty line — lingers
+   as a stray blue bar after you click away. It reappears on refocus. */
+.rvo-theme .markdown-editor .ProseMirror:not(.ProseMirror-focused)::selection,
+.rvo-theme .markdown-editor .ProseMirror:not(.ProseMirror-focused) *::selection {
+  background: transparent;
+}
+
+.rvo-theme .markdown-editor .ProseMirror pre {
   background: #e8e8e8;
   padding: 0.5rem;
   border-radius: 3px;
   overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* The <code> inside a code block must not inherit the inline-code padding/background:
+   its inline left-padding would indent only the first wrapped line. */
+.rvo-theme .markdown-editor .ProseMirror pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
 }
 
 .rvo-theme .background-grijs-100 {
@@ -554,6 +787,10 @@
 
 .rvo-theme .nav-header__bar {
   display: flex;
+  /* Wrap on narrow screens: the back button + action buttons (incl. Exporteer)
+     don't fit on one row on a phone, so the actions drop to a second row instead
+     of overflowing off-screen. Desktop keeps the single row. */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--rvo-space-md, 1rem);
@@ -562,6 +799,7 @@
 
 .rvo-theme .nav-header__actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--rvo-space-sm, 0.5rem);
 }

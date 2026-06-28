@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, type Project } from '../api'
-import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
+import { UiButton, MarkdownEditor, renderMarkdownToHtml } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -29,6 +29,13 @@ const handleCreate = async () => {
   const project = await projectsApi.create(newProjectName.value, newProjectDescription.value)
   router.push(`/project/${project.id}`)
 }
+
+// The card is itself a link, so the description can only be a plain-text teaser
+// (rendered markdown would nest links inside the card link). Strip the markdown
+// to its text content and let the CSS line-clamp truncate it.
+const descriptionPreview = (markdown: string): string =>
+  // textContent of a parsed <body> element is always a string (never null).
+  new DOMParser().parseFromString(renderMarkdownToHtml(markdown), 'text/html').body.textContent!
 
 </script>
 
@@ -62,7 +69,7 @@ const handleCreate = async () => {
         >
           <div class="rvo-card__content">
             <h2 class="utrecht-heading-2 rvo-margin--none text-clamp-2">{{ project.name }}</h2>
-            <p v-if="project.description" class="text-clamp-3">{{ project.description }}</p>
+            <p v-if="project.description" class="text-clamp-3">{{ descriptionPreview(project.description) }}</p>
           </div>
         </router-link>
       </div>
@@ -80,10 +87,10 @@ const handleCreate = async () => {
           <input id="projectName" v-model="newProjectName" type="text" class="utrecht-textbox utrecht-textbox--html-input" required />
         </div>
         <div class="rvo-form-field rvo-margin-block-end--md">
-          <label class="rvo-form-field__label" for="projectDesc">Beschrijving (optioneel)</label>
-          <textarea id="projectDesc" v-model="newProjectDescription" class="utrecht-textarea utrecht-textarea--html-textarea" rows="2"
-            @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
-          ></textarea>
+          <label class="rvo-form-field__label" id="projectDescLabel" for="projectDesc">Beschrijving (optioneel)</label>
+          <MarkdownEditor :model-value="newProjectDescription"
+            input-id="projectDesc" aria-labelledby="projectDescLabel"
+            @update:model-value="(value) => newProjectDescription = value" />
         </div>
         <div class="rvo-action-group">
           <UiButton variant="primary" type="submit" label="Project toevoegen" />

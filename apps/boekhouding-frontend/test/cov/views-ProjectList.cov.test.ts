@@ -19,7 +19,6 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-const autoGrowTextarea = vi.fn()
 vi.mock('@overheid-assessment/core', () => ({
   UiButton: {
     name: 'UiButton',
@@ -28,7 +27,13 @@ vi.mock('@overheid-assessment/core', () => ({
     template:
       '<button :type="type || \'button\'" class="ui-button" :data-variant="variant" @click="$emit(\'click\', $event)">{{ label }}</button>',
   },
-  autoGrowTextarea: (...args: unknown[]) => autoGrowTextarea(...args),
+  renderMarkdownToHtml: (md: string) => `<p>${md}</p>`,
+  MarkdownEditor: {
+    name: 'MarkdownEditor',
+    props: ['modelValue', 'baseHeadingLevel', 'ariaLabel', 'inputId', 'ariaLabelledby'],
+    emits: ['update:modelValue'],
+    template: '<textarea class="markdown-editor-stub" :id="inputId" :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)"></textarea>',
+  },
 }))
 
 import ProjectList from '../../src/views/ProjectList.vue'
@@ -69,7 +74,6 @@ beforeEach(() => {
   listMock.mockReset()
   createMock.mockReset()
   routerPush.mockReset()
-  autoGrowTextarea.mockReset()
 })
 
 describe('ProjectList', () => {
@@ -171,20 +175,18 @@ describe('ProjectList', () => {
     })
   })
 
-  describe('autoGrowTextarea on description input', () => {
-    it('calls autoGrowTextarea with the textarea element on input', async () => {
-      listMock.mockResolvedValue([])
+  describe('card description preview', () => {
+    it('shows a plain-text preview of the (markdown) description, omitting it when empty', async () => {
+      listMock.mockResolvedValue([
+        makeProject({ id: 'a', name: 'Met desc', description: '## Kop\n\nDetails' }),
+        makeProject({ id: 'b', name: 'Zonder desc', description: '' }),
+      ])
       const wrapper = mountList()
       await flushPromises()
-
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
-
-      const textarea = wrapper.find('#projectDesc')
-      await textarea.setValue('lange beschrijving')
-      await textarea.trigger('input')
-
-      expect(autoGrowTextarea).toHaveBeenCalled()
-      expect(autoGrowTextarea.mock.calls[0][0]).toBe(textarea.element)
+      const previews = wrapper.findAll('.text-clamp-3')
+      expect(previews).toHaveLength(1) // only the project with a description
+      expect(previews[0].text()).toContain('Details')
+      expect(previews[0].find('a').exists()).toBe(false) // stripped to text (no nested links in the card link)
     })
   })
 

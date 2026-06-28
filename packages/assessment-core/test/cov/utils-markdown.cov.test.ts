@@ -15,6 +15,22 @@ describe('renderMarkdownToHtml', () => {
     expect(renderMarkdownToHtml('Hello world')).toContain('<p>Hello world</p>')
   })
 
+  it('renders ++text++ as <u> underline, and leaves an unterminated ++ literal', () => {
+    expect(renderMarkdownToHtml('++onder++ streep')).toContain('<u>onder</u>')
+    // Nested inline marks inside the underline are still parsed.
+    expect(renderMarkdownToHtml('++**vet**++')).toContain('<u><strong>vet</strong></u>')
+    // No closing ++ -> the tokenizer returns undefined and the text stays literal.
+    expect(renderMarkdownToHtml('++incompleet')).toContain('++incompleet')
+  })
+
+  it('renders ==text== as <mark> highlight, and leaves an unterminated == literal', () => {
+    expect(renderMarkdownToHtml('een ==gemarkeerd== woord')).toContain('<mark>gemarkeerd</mark>')
+    // Nested inline marks inside the highlight are still parsed.
+    expect(renderMarkdownToHtml('==**vet**==')).toContain('<mark><strong>vet</strong></mark>')
+    // No closing == -> the tokenizer returns undefined and the text stays literal.
+    expect(renderMarkdownToHtml('==incompleet')).toContain('==incompleet')
+  })
+
   it('strips raw HTML via the html() renderer', () => {
     const html = renderMarkdownToHtml('<script>alert("xss")</script>')
     expect(html).not.toContain('<script>')
@@ -102,12 +118,46 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
     expect(italic).toBeDefined()
   })
 
-  it('handles del (strikethrough) as plain styled text', () => {
+  it('renders del (strikethrough) with a lineThrough decoration', () => {
     const content = markdownToPdfContent('~~struck~~') as any
     const delItem = textArray(content).find(
-      (t: any) => typeof t === 'object' && !t.bold && !t.italics && !t.background && Array.isArray(t.text),
+      (t: any) => typeof t === 'object' && t.decoration === 'lineThrough',
     )
     expect(delItem).toBeDefined()
+  })
+
+  it('renders ++underline++ with an underline decoration', () => {
+    const content = markdownToPdfContent('++onder++') as any
+    const item = textArray(content).find(
+      (t: any) => typeof t === 'object' && t.decoration === 'underline',
+    )
+    expect(item).toBeDefined()
+  })
+
+  it('renders ==highlight== with a background colour', () => {
+    const content = markdownToPdfContent('==gemarkeerd==') as any
+    const item = textArray(content).find(
+      (t: any) => typeof t === 'object' && t.background === '#cfe6fb',
+    )
+    expect(item).toBeDefined()
+    expect(item.text).toBe('gemarkeerd')
+  })
+
+  it('collapses a nested mark onto one string-text leaf (bold + underline)', () => {
+    // pdfmake drops styling on array-text wrappers, so nested marks must end up
+    // on a single string-text leaf carrying every style for it to render.
+    const content = markdownToPdfContent('**++both++**') as any
+    const leaf = textArray(content).find((t: any) => typeof t === 'object' && t.text === 'both')
+    expect(leaf).toBeDefined()
+    expect(leaf.bold).toBe(true)
+    expect(leaf.decoration).toBe('underline')
+  })
+
+  it('combines stacked decorations into an array (strikethrough + underline)', () => {
+    const content = markdownToPdfContent('++~~both~~++') as any
+    const leaf = textArray(content).find((t: any) => typeof t === 'object' && t.text === 'both')
+    expect(leaf).toBeDefined()
+    expect(leaf.decoration).toEqual(['lineThrough', 'underline'])
   })
 
   it('handles codespan with background colour', () => {
@@ -185,9 +235,18 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(content.margin).toEqual([0, 5, 0, 3])
   })
 
-  it('clamps heading font size to a minimum of 10 for deep headings', () => {
+  it('gives each heading level a distinct, shrinking font size', () => {
+    const sizeOf = (md: string) => (markdownToPdfContent(md) as any).fontSize
+    // H2..H4 each step down by 1.5pt; the sequence stays strictly decreasing.
+    expect(sizeOf('## Two')).toBe(14.5)
+    expect(sizeOf('### Three')).toBe(13)
+    expect(sizeOf('#### Four')).toBe(11.5)
+    expect(sizeOf('##### Five')).toBe(10)
+  })
+
+  it('clamps heading font size to a minimum of 9 for the deepest heading', () => {
     const content = markdownToPdfContent('###### Deep') as any
-    expect(content.fontSize).toBe(10)
+    expect(content.fontSize).toBe(9)
   })
 
   it('handles an ordered list (ordered branch)', () => {

@@ -1,0 +1,434 @@
+import { describe, it, expect, beforeAll, vi } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import type { Editor } from '@tiptap/core'
+import { Slice } from '@tiptap/pm/model'
+import MarkdownEditor from '../../src/components/editor/MarkdownEditor.vue'
+import MarkdownToolbar from '../../src/components/editor/MarkdownToolbar.vue'
+
+// jsdom has no layout engine; ProseMirror measures the DOM via Range.getClientRects
+// during selection/link operations. Stub those layout calls so they don't throw.
+beforeAll(() => {
+  const proto = Range.prototype as unknown as Record<string, unknown>
+  if (typeof proto.getClientRects !== 'function') {
+    proto.getClientRects = () => ({ length: 0, item: () => null, [Symbol.iterator]: function* () {} })
+  }
+  if (typeof proto.getBoundingClientRect !== 'function') {
+    proto.getBoundingClientRect = () => ({ x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({}) })
+  }
+})
+
+async function mountEditor(props: Record<string, unknown>) {
+  const wrapper = mount(MarkdownEditor, { props, attachTo: document.body })
+  for (let i = 0; i < 30 && !wrapper.find('.ProseMirror').exists(); i++) {
+    await flushPromises()
+  }
+  return wrapper
+}
+
+// The component exposes the editor; unwrap the ref regardless of how vm surfaces it.
+function getEditor(wrapper: ReturnType<typeof mount>): Editor {
+  const exposed = (wrapper.vm as unknown as { editor: Editor | { value: Editor } }).editor
+  return 'getMarkdown' in exposed ? exposed : exposed.value
+}
+
+function linkButton(wrapper: ReturnType<typeof mount>, label: string) {
+  return wrapper.findAll('.markdown-editor__linkbar button').find((b) => b.text() === label)!
+}
+
+describe('MarkdownEditor.vue (WYSIWYG)', () => {
+  it('renders a contenteditable editor with a footer toolbar and formatted markdown', async () => {
+    const wrapper = await mountEditor({ modelValue: '**vet** tekst', inputId: 'field-1', ariaLabelledby: 'label-1', ariaLabel: 'Mijn veld' })
+    expect(wrapper.find('.markdown-editor__footer [role="toolbar"]').exists()).toBe(true)
+    const pm = wrapper.find('.ProseMirror')
+    expect(pm.attributes('role')).toBe('textbox')
+    expect(pm.attributes('aria-multiline')).toBe('true')
+    expect(pm.attributes('id')).toBe('field-1')
+    expect(pm.attributes('aria-labelledby')).toBe('label-1')
+    expect(pm.attributes('aria-label')).toBe('Mijn veld')
+    expect(pm.html()).toContain('<strong>vet</strong>')
+    wrapper.unmount()
+  })
+
+  it('omits id, aria-labelledby and aria-label when those props are not given', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const pm = wrapper.find('.ProseMirror')
+    expect(pm.attributes('id')).toBeUndefined()
+    expect(pm.attributes('aria-labelledby')).toBeUndefined()
+    expect(pm.attributes('aria-label')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('applies every formatting command and emits markdown on a document change', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Hallo' })
+    const labels = ['Vet', 'Cursief', 'Onderstrepen', 'Doorhalen', 'Markeren', 'Opsommingslijst', 'Genummerde lijst', 'Citaat', 'Scheidingslijn']
+    for (const label of labels) {
+      await wrapper.find(`button[aria-label="${label}"]`).trigger('click')
+      await flushPromises()
+    }
+    const emits = wrapper.emitted('update:modelValue')
+    expect(emits && emits.length).toBeGreaterThan(0)
+    expect(typeof (emits!.at(-1)![0])).toBe('string')
+    wrapper.unmount()
+  })
+
+  it('collapses the selection after all content is deleted (no stray selection bar)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Iets om te wissen' })
+    const editor = getEditor(wrapper)
+    editor.commands.selectAll()
+    expect(editor.state.selection.empty).toBe(false)
+    editor.commands.deleteSelection()
+    await flushPromises()
+    expect(editor.state.doc.textContent).toBe('')
+    // Without the collapse plugin the selection stays non-collapsed over the empty
+    // paragraph (painted as a stray "pipe"); it should be a plain caret instead.
+    expect(editor.state.selection.empty).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('toggles a mark on and off at a collapsed cursor (active state stays in sync)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Hallo' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(3) // collapsed cursor, no selection
+    await flushPromises()
+    const boldBtn = () => wrapper.find('button[aria-label="Vet"]')
+    expect(boldBtn().classes()).not.toContain('is-active')
+    // Turning a mark on at the cursor lights the button (stored-mark change)...
+    await boldBtn().trigger('click')
+    await flushPromises()
+    expect(boldBtn().classes()).toContain('is-active')
+    // ...and clicking again turns it back off.
+    await boldBtn().trigger('click')
+    await flushPromises()
+    expect(boldBtn().classes()).not.toContain('is-active')
+    wrapper.unmount()
+  })
+
+  it('inserts the URL as clickable text when nothing is selected', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Begin ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size) // cursor at end, empty selection
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    // A new link shows "Toevoegen" and no open/remove actions.
+    expect(linkButton(wrapper, 'Toevoegen').exists()).toBe(true)
+    expect(wrapper.findAll('.markdown-editor__linkbar button').some((b) => b.text() === 'Openen')).toBe(false)
+
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    // The URL itself is inserted as visible, linked text (not just a stored mark).
+    expect(editor.getHTML()).toContain('href="https://example.org"')
+    expect(editor.getText()).toContain('https://example.org')
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('normalises a typed bare domain to an https link, keeping the typed text', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Begin ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size) // empty selection in whitespace
+    await flushPromises()
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    // type=text (not url) so a schemeless value isn't blocked by HTML5 validation.
+    expect(wrapper.find('.markdown-editor__linkinput').attributes('type')).toBe('text')
+    await wrapper.find('.markdown-editor__linkinput').setValue('google.com')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://google.com"')
+    expect(html).toContain('>google.com</a>') // visible text stays what was typed
+    wrapper.unmount()
+  })
+
+  it('normalises a typed email address to a mailto link', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Mail ' })
+    const editor = getEditor(wrapper)
+    editor.commands.setTextSelection(editor.state.doc.content.size)
+    await flushPromises()
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('info@example.nl')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(editor.getHTML()).toContain('href="mailto:info@example.nl"')
+    wrapper.unmount()
+  })
+
+  it('links the selected text when a range is selected', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Ga naar website nu' })
+    const editor = getEditor(wrapper)
+    const from = editor.state.doc.textContent.indexOf('website') + 1
+    editor.commands.setTextSelection({ from, to: from + 'website'.length })
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://example.org"')
+    expect(html).toContain('>website</a>')
+    wrapper.unmount()
+  })
+
+  it('links the whole word when the cursor sits inside it (no selection)', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Ga naar website nu' })
+    const editor = getEditor(wrapper)
+    // Collapsed cursor a few characters into "website".
+    editor.commands.setTextSelection(editor.state.doc.textContent.indexOf('website') + 1 + 3)
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://example.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    const html = editor.getHTML()
+    expect(html).toContain('href="https://example.org"')
+    expect(html).toContain('>website</a>') // the whole word became the link
+    wrapper.unmount()
+  })
+
+  it('updates an existing link when a new URL is saved with the cursor inside it', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://old.org">link</a></p>')
+    editor.commands.setTextSelection(2) // inside the link, empty selection
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('https://new.org')
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(editor.getHTML()).toContain('href="https://new.org"')
+    expect(editor.getHTML()).not.toContain('old.org')
+    wrapper.unmount()
+  })
+
+  it('removes the link on an empty submit', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://x.org">link</a></p>')
+    editor.commands.setTextSelection(2)
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.markdown-editor__linkinput').setValue('') // clear → empty submit removes the link
+    await wrapper.find('.markdown-editor__linkform').trigger('submit')
+    await flushPromises()
+    expect(editor.getHTML()).not.toContain('href=')
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('edits an existing link: pre-fills the url, opens it in the foreground, and removes it', async () => {
+    const clicks: { href: string; target: string; rel: string }[] = []
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicks.push({ href: this.href, target: this.target, rel: this.rel })
+    })
+    const openSpy = vi.fn()
+    vi.stubGlobal('open', openSpy)
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    editor.commands.setContent('<p><a href="https://x.org">link</a></p>')
+    editor.commands.setTextSelection(2) // inside the link
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    expect((wrapper.find('.markdown-editor__linkinput').element as HTMLInputElement).value).toBe('https://x.org')
+    expect(linkButton(wrapper, 'Opslaan').exists()).toBe(true)
+
+    // Openen → foreground tab via a synthetic noopener anchor.
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
+
+    // A mailto link opens via window.open with noopener.
+    await wrapper.find('.markdown-editor__linkinput').setValue('mailto:a@b.nl')
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(openSpy).toHaveBeenCalledWith('mailto:a@b.nl', '_blank', 'noopener,noreferrer')
+
+    // A non-openable url (empty) is a no-op.
+    openSpy.mockClear()
+    clicks.length = 0
+    await wrapper.find('.markdown-editor__linkinput').setValue('')
+    await linkButton(wrapper, 'Openen').trigger('click')
+    expect(openSpy).not.toHaveBeenCalled()
+    expect(clicks).toEqual([])
+    clickSpy.mockRestore()
+
+    // Verwijderen removes the link and closes the bar.
+    await linkButton(wrapper, 'Verwijderen').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+
+    vi.unstubAllGlobals()
+    wrapper.unmount()
+  })
+
+  it('cancels the link editor without applying', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    await wrapper.find('button[aria-label="Link"]').trigger('click')
+    await flushPromises()
+    await linkButton(wrapper, 'Annuleren').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('opens the link editor on Cmd/Ctrl+K and ignores other modifier keys', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    const press = (key: string, mods: Record<string, boolean> = {}) =>
+      editor.view.someProp('handleKeyDown', (h: (...a: unknown[]) => boolean) =>
+        h(editor.view, new KeyboardEvent('keydown', { key, cancelable: true, ...mods })))
+    press('k', { metaKey: true })
+    await flushPromises()
+    expect(wrapper.find('.markdown-editor__linkbar').exists()).toBe(true)
+    // The handler runs for another Cmd shortcut but declines it.
+    press('q', { ctrlKey: true })
+    wrapper.unmount()
+  })
+
+  it('links the selected text when a URL is pasted, and otherwise pastes normally', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Mijn site' })
+    const editor = getEditor(wrapper)
+    // someProp also runs other extensions' paste handlers (Link reads the slice,
+    // CodeBlock JSON-parses a clipboard key); pass an empty slice and only return
+    // text for text/plain so those handlers no-op instead of throwing.
+    const paste = (text: string) =>
+      editor.view.someProp('handlePaste', (h: (...a: unknown[]) => boolean) =>
+        h(editor.view, { clipboardData: { getData: (type: string) => (type === 'text/plain' ? text : '') } }, Slice.empty))
+
+    editor.commands.selectAll()
+    paste('https://example.org') // URL over a selection → link the text
+    await flushPromises()
+    expect(wrapper.find('.ProseMirror').html()).toContain('href="https://example.org"')
+
+    expect(paste('gewone tekst')).toBeFalsy() // non-URL → default paste
+    expect(paste('')).toBeFalsy() // empty clipboard → default paste
+    editor.commands.setTextSelection(1) // collapse the selection
+    expect(paste('https://x.org')).toBeFalsy() // URL but nothing selected → default paste
+    wrapper.unmount()
+  })
+
+  it('opens a link on a plain click via the editor handleClick', async () => {
+    const wrapper = await mountEditor({ modelValue: 'tekst' })
+    const editor = getEditor(wrapper)
+    const clicks: { href: string; target: string; rel: string }[] = []
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicks.push({ href: this.href, target: this.target, rel: this.rel })
+    })
+    const anchor = document.createElement('a')
+    anchor.href = 'https://x.org'
+    const event = new MouseEvent('click', { cancelable: true }) // plain click → opens
+    Object.defineProperty(event, 'target', { value: anchor })
+    editor.view.someProp('handleClick', (handler: (...args: unknown[]) => boolean) => handler(editor.view, 1, event))
+    expect(clicks.at(-1)).toEqual({ href: 'https://x.org/', target: '_blank', rel: 'noopener noreferrer' })
+    clickSpy.mockRestore()
+    wrapper.unmount()
+  })
+
+  // Pick a block type by driving the toolbar's `heading` event directly — robust
+  // under parallel load. The dropdown menu UI itself is covered by the toolbar test.
+  async function pickBlock(wrapper: ReturnType<typeof mount>, label: string) {
+    const level = label === 'Paragraaf' ? null : Number(label.replace('Kop ', ''))
+    wrapper.findComponent(MarkdownToolbar).vm.$emit('heading', level)
+    await flushPromises()
+  }
+
+  it('applies and clears heading levels via the toolbar dropdown, and reflects the active block', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Titel' })
+    const blockLabel = () => wrapper.find('.markdown-toolbar__block-button').text()
+    expect(blockLabel()).toContain('Paragraaf') // starts as a paragraph
+
+    await pickBlock(wrapper, 'Kop 1')
+    expect(wrapper.find('.ProseMirror').html()).toContain('<h1')
+    expect(blockLabel()).toContain('Kop 1') // dropdown follows the cursor block
+
+    await pickBlock(wrapper, 'Kop 3')
+    expect(wrapper.find('.ProseMirror').html()).toContain('<h3')
+
+    await pickBlock(wrapper, 'Paragraaf')
+    const html = wrapper.find('.ProseMirror').html()
+    expect(html).not.toContain('<h1')
+    expect(html).not.toContain('<h3')
+    expect(blockLabel()).toContain('Paragraaf')
+    wrapper.unmount()
+  })
+
+  it('maps a #-shortcut to the matching heading level (one hash = H1 .. six = H6)', async () => {
+    const wrapper = await mountEditor({ modelValue: '' })
+    const editor = getEditor(wrapper)
+    // Input rules fire on text input, not on programmatic inserts: put the hashes
+    // in a paragraph, then drive the trailing space through handleTextInput.
+    const headingTagFor = (hashes: string) => {
+      editor.commands.setContent(`<p>${hashes}</p>`)
+      editor.commands.focus('end')
+      const view = editor.view
+      const pos = view.state.selection.from
+      view.someProp('handleTextInput', (handle: (...a: unknown[]) => boolean) => handle(view, pos, pos, ' '))
+      return (view.dom.firstElementChild as HTMLElement).tagName
+    }
+    expect(headingTagFor('#')).toBe('H1')
+    expect(headingTagFor('##')).toBe('H2')
+    expect(headingTagFor('######')).toBe('H6')
+    wrapper.unmount()
+  })
+
+  it('restricts the field to a single heading level and clamps the #-shortcut to it', async () => {
+    const wrapper = await mountEditor({ modelValue: '', headingLevels: [3] })
+    const editor = getEditor(wrapper)
+    // The single level is passed to the toolbar (which renders it as one "Koptekst").
+    expect(wrapper.findComponent(MarkdownToolbar).props('headingLevels')).toEqual([3])
+    // Any number of hashes maps to the single level (H3).
+    editor.commands.setContent('<p>######</p>')
+    editor.commands.focus('end')
+    const view = editor.view
+    const pos = view.state.selection.from
+    view.someProp('handleTextInput', (handle: (...a: unknown[]) => boolean) => handle(view, pos, pos, ' '))
+    expect((view.dom.firstElementChild as HTMLElement).tagName).toBe('H3')
+    wrapper.unmount()
+  })
+
+  it('loads markdown headings at their own level and reflects them in the dropdown', async () => {
+    const wrapper = await mountEditor({ modelValue: '# Titel\n\n## Sub' })
+    const editor = getEditor(wrapper)
+    const html = wrapper.find('.ProseMirror').html()
+    expect(html).toContain('<h1')
+    expect(html).toContain('<h2')
+    expect(editor.getMarkdown()).toContain('# Titel') // lossless round-trip
+    editor.commands.setTextSelection(3) // inside the H1
+    await flushPromises()
+    expect(wrapper.find('.markdown-toolbar__block-button').text()).toContain('Kop 1')
+    wrapper.unmount()
+  })
+
+  it('lights up an active mark on the toolbar', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Tekst' })
+    getEditor(wrapper).commands.selectAll()
+    await wrapper.find('button[aria-label="Vet"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('button[aria-label="Vet"]').classes()).toContain('is-active')
+    wrapper.unmount()
+  })
+
+  it('re-syncs on an external value change and ignores an echo of its own output', async () => {
+    const wrapper = await mountEditor({ modelValue: 'Hallo' })
+    await pickBlock(wrapper, 'Kop 2')
+    const ownMarkdown = wrapper.emitted('update:modelValue')!.at(-1)![0] as string
+
+    await wrapper.setProps({ modelValue: ownMarkdown }) // echo → no re-set
+    await flushPromises()
+    await wrapper.setProps({ modelValue: '## Extern gewijzigd' }) // different → setContent
+    await flushPromises()
+    expect(wrapper.find('.ProseMirror').text()).toContain('Extern gewijzigd')
+    wrapper.unmount()
+  })
+})
