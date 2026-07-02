@@ -70,7 +70,7 @@ jobs:
             exit 1
           fi
 
-      - uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+      - uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -116,7 +116,7 @@ jobs:
       url: https://invulhulpen.rijksapp.nl
     steps:
       - name: Deploy to ZAD
-        uses: RijksICTGilde/zad-actions/deploy@ea7dec7d0df396741cdfb4f393090b170056dd19 # v4.0.5
+        uses: RijksICTGilde/zad-actions/deploy@13434cd415db0cd195a2c5f12bf67645acfcb635 # v4.0.6
         with:
           api-key: ${{ secrets.ZAD_API_KEY }}
           project-id: ${{ env.PROJECT_ID }}
