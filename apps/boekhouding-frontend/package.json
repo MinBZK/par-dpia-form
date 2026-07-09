@@ -14,26 +14,26 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.0.0-alpha.360",
-    "@nl-rvo/component-library-css": "4.20.2",
-    "@nl-rvo/design-tokens": "2.4.1",
+    "@nl-rvo/component-library-css": "4.20.3",
+    "@nl-rvo/design-tokens": "2.4.2",
     "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.44.0",
     "keycloak-js": "^26.2.4",
     "pdfmake": "^0.3.11",
     "pinia": "^3.0.3",
-    "vue": "^3.5.38",
+    "vue": "^3.5.39",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.7",
-    "@vitest/coverage-istanbul": "^4.1.9",
+    "@vitest/coverage-istanbul": "^4.1.10",
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.9.1",
     "jsdom": "^29.1.1",
     "npm-run-all2": "^9.0.2",
     "typescript": "~5.9.3",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.9",
-    "vue-tsc": "^3.3.5"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.7"
   }
 }
