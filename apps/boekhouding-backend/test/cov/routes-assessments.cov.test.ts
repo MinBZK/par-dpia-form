@@ -252,7 +252,7 @@ describe('PUT /assessments/:id', () => {
     expect(edits.length).toBeGreaterThan(0)
   })
 
-  it('creates a new version without edits when changeDescription forces it on an unchanged state', async () => {
+  it('does NOT create a version for a changeDescription alone on an unchanged state (no forced checkpoint)', async () => {
     const owner = await createUser()
     const state = makeState({ '0.1': answer('Inleiding') })
     const { assessment } = await seedFor(owner, 'owner', state)
@@ -262,6 +262,25 @@ describe('PUT /assessments/:id', () => {
       url: `/api/v1/assessments/${assessment.id}`,
       headers: authHeader(await tokenFor(owner)),
       payload: { state, expectedVersion: 1, changeDescription: 'Handmatige versie' },
+    })
+    expect(res.statusCode).toBe(200)
+    // Cheap path: no edits + no forceNewVersion → no version row, no bump.
+    // A changeDescription alone must not mint an (unbounded) empty version.
+    expect(res.json().currentVersion).toBe(1)
+    const versions = await db.select().from(assessmentVersions)
+    expect(versions).toHaveLength(0)
+  })
+
+  it('owner forceNewVersion mints an empty checkpoint on an unchanged state', async () => {
+    const owner = await createUser()
+    const state = makeState({ '0.1': answer('Inleiding') })
+    const { assessment } = await seedFor(owner, 'owner', state)
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(await tokenFor(owner)),
+      payload: { state, expectedVersion: 1, newVersion: true, changeDescription: 'Handmatige versie' },
     })
     expect(res.statusCode).toBe(200)
     expect(res.json().currentVersion).toBe(2)
@@ -397,7 +416,7 @@ describe('PUT /assessments/:id', () => {
     expect(res.json().currentVersion).toBe(2)
   })
 
-  it('consolidation branch runs with edits.length === 0 when changeDescription is set on second save', async () => {
+  it('a labeled save with edits creates a distinct version instead of consolidating', async () => {
     const owner = await createUser()
     const { assessment } = await seedFor(owner, 'owner', makeState({}))
     const token = await tokenFor(owner)
@@ -410,16 +429,21 @@ describe('PUT /assessments/:id', () => {
       payload: { state: state1, expectedVersion: 1 },
     })
 
+    // Second save has real edits AND a changeDescription: within the window and
+    // same user (so it would otherwise consolidate), but changeDescription blocks
+    // consolidation → a distinct new version is created (canConsolidate === false).
+    const state2 = makeState({ '0.1': answer('Eerste'), '0.2': answer('Tweede') })
     const res = await app.inject({
       method: 'PUT',
       url: `/api/v1/assessments/${assessment.id}`,
       headers: authHeader(token),
-      payload: { state: state1, expectedVersion: 2, changeDescription: 'Snapshot' },
+      payload: { state: state2, expectedVersion: 2, changeDescription: 'Snapshot' },
     })
     expect(res.statusCode).toBe(200)
     expect(res.json().currentVersion).toBe(3)
     const versions = await db.select().from(assessmentVersions)
     expect(versions).toHaveLength(2)
+    expect(versions.some(v => v.changeDescription === 'Snapshot')).toBe(true)
   })
 
   it('does NOT consolidate when the latest version was created by another user', async () => {
