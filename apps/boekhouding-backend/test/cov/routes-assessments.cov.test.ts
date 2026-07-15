@@ -714,6 +714,36 @@ describe('GET /assessments/:id/versions/:version', () => {
     expect(body.version).toBe(2)
     expect(body.state).toBeDefined()
   })
+
+  it('serves a repeated old-version rebuild from cache (immutable path)', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+    const token = await tokenFor(owner)
+
+    // Two labeled saves → distinct versions 2 and 3 (changeDescription blocks
+    // consolidation), so version 2 is older than current (3) and thus immutable.
+    await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(token),
+      payload: { state: makeState({ '0.1': answer('X') }), expectedVersion: 1, changeDescription: 'v2' },
+    })
+    await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(token),
+      payload: { state: makeState({ '0.1': answer('Y') }), expectedVersion: 2, changeDescription: 'v3' },
+    })
+
+    const url = `/api/v1/assessments/${assessment.id}/versions/2?includeState=true`
+    const first = await app.inject({ method: 'GET', url, headers: authHeader(token) })
+    const second = await app.inject({ method: 'GET', url, headers: authHeader(token) })
+
+    expect(first.statusCode).toBe(200)
+    expect(second.statusCode).toBe(200)
+    // Cache hit on the second call must return the identical rebuilt state.
+    expect(second.json().state).toEqual(first.json().state)
+  })
 })
 
 describe('GET /assessments/:id/versions/:version/edits', () => {
