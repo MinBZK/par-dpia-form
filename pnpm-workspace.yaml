@@ -1,3 +1,18 @@
 packages:
   - 'packages/*'
   - 'apps/*'
+
+# pnpm >= 10.26 reads build-script config here (not the package.json "pnpm" field).
+# Allowlist of dependencies permitted to run install/build scripts; everything
+# else is blocked by default (supply-chain hardening). esbuild needs its script
+# to place the platform binary.
+allowBuilds:
+  esbuild: true
+
+# Force patched versions of vulnerable transitives. pnpm 11 no longer reads the
+# package.json "pnpm" field, so overrides live here.
+# - fast-uri: host-confusion advisories; ajv, json-schema-resolver and
+#   fast-json-stringify are all on their latest release, so pin per major line.
+overrides:
+  'fast-uri@3': '^3.1.4'
+  'fast-uri@4': '^4.1.1'
