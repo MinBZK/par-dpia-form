@@ -119,6 +119,27 @@ describe('requireAuth account linking', () => {
     expect(row.displayName).toBe('Nieuwe Naam')
   })
 
+  it('claims a lowercase invite placeholder when the JWT email uses different casing', async () => {
+    // members.ts stores invites lowercase; a Keycloak account may present the
+    // email attribute with different casing. requireAuth must still claim the
+    // placeholder (normalising to lowercase) instead of creating a duplicate.
+    const [placeholder] = await db
+      .insert(users)
+      .values({ email: 'jane.doe@voorbeeld.nl', displayName: 'jane.doe@voorbeeld.nl' })
+      .returning()
+    expect(placeholder.oidcSub).toBeNull()
+
+    const token = await jwks.signToken({ sub: 'jane-sub', email: 'Jane.Doe@Voorbeeld.nl', name: 'Jane Doe' })
+    const res = await login(token)
+
+    expect(res.statusCode).toBe(200)
+    // The placeholder is claimed — not a second, orphaned account.
+    const [row] = await db.select().from(users).where(eq(users.id, placeholder.id))
+    expect(row.oidcSub).toBe('jane-sub')
+    const all = await db.select().from(users).where(eq(users.email, 'jane.doe@voorbeeld.nl'))
+    expect(all).toHaveLength(1)
+  })
+
   it('keeps an existing user logged in (no 500/lockout) when their new email collides with another account', async () => {
     const a = await createUser({ email: 'a@example.com', displayName: 'A' })
     await createUser({ email: 'b@example.com', displayName: 'B' })
