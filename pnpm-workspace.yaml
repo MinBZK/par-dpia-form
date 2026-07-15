@@ -1,3 +1,10 @@
 packages:
   - 'packages/*'
   - 'apps/*'
+
+# pnpm >= 10.26 reads build-script config here (not the package.json "pnpm" field).
+# Allowlist of dependencies permitted to run install/build scripts; everything
+# else is blocked by default (supply-chain hardening). esbuild needs its script
+# to place the platform binary.
+allowBuilds:
+  esbuild: true
