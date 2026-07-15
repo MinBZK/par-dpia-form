@@ -124,7 +124,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
     // No content changes: update cachedState only (saves UI-state like
     // navigation position without creating a new version). No version bump,
     // no race risk — cachedState UI-state only, overwrite is acceptable.
-    if (previousState && edits.length === 0 && !changeDescription) {
+    // Gated on !forceNewVersion (not !changeDescription): a changeDescription
+    // alone must NOT mint an empty version row — that is unbounded, so an
+    // explicit empty checkpoint must go through forceNewVersion, which is
+    // owner-gated (isRestore).
+    if (previousState && edits.length === 0 && !forceNewVersion) {
       await db
         .update(assessmentInstances)
         .set({ cachedState: state, updatedAt: new Date() })
