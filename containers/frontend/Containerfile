@@ -13,7 +13,7 @@ COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
 
 # Install all dependencies (inclusief devDependencies voor build)
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 ARG GIT_SHA=dev
 

@@ -10,7 +10,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 
 # Install all dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy source
 COPY apps/boekhouding-backend/ apps/boekhouding-backend/
@@ -31,7 +31,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 
 # Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod || pnpm install --prod
+RUN pnpm install --frozen-lockfile --prod
 
 # Copy compiled output and drizzle migrations
 COPY --from=build /app/apps/boekhouding-backend/dist apps/boekhouding-backend/dist

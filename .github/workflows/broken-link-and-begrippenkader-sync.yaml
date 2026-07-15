@@ -105,7 +105,11 @@ jobs:
           fetch-depth: 0
       - name: Download YAML file
         run: |
-          curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader_dpia.yaml
+          # -f: fail (no file written) on HTTP >= 400 so an error page is never
+          # committed as if it were the begrippenkader. --retry rides out flaky 5xx.
+          curl -fsS --retry 3 --retry-delay 2 \
+            https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml \
+            -o sources/begrippenkader_dpia.yaml
       - name: Check for changes
         id: git-check
         run: |
