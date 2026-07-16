@@ -13,6 +13,11 @@ allowBuilds:
 # package.json "pnpm" field, so overrides live here.
 # - fast-uri: host-confusion advisories; ajv, json-schema-resolver and
 #   fast-json-stringify are all on their latest release, so pin per major line.
+# - undici >=7.28.0 fixes 7 advisories; jsdom allows ^7.25.0, so this stays in range.
+# - the deprecated @esbuild-kit pins esbuild ~0.18.20 (dev-server SSRF advisory);
+#   scope the bump to that chain only so vite/vitest keep their own esbuild.
 overrides:
   'fast-uri@3': '^3.1.4'
   'fast-uri@4': '^4.1.1'
+  undici: '^7.28.0'
+  '@esbuild-kit/core-utils>esbuild': '^0.25.4'
