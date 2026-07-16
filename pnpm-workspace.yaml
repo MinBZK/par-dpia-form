@@ -8,3 +8,11 @@ packages:
 # to place the platform binary.
 allowBuilds:
   esbuild: true
+
+# Force patched versions of dev-only transitives flagged by Dependabot.
+# - undici >=7.28.0 fixes 7 advisories; jsdom allows ^7.25.0, so this stays in range.
+# - the deprecated @esbuild-kit pins esbuild ~0.18.20 (dev-server SSRF advisory);
+#   scope the bump to that chain only so vite/vitest keep their own esbuild.
+overrides:
+  undici: '^7.28.0'
+  '@esbuild-kit/core-utils>esbuild': '^0.25.4'
