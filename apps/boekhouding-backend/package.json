@@ -24,7 +24,7 @@
     "ajv-formats": "^3.0.1",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.10.0",
-    "jose": "^6.2.3",
+    "jose": "^6.2.4",
     "nanoid": "^6.0.0",
     "postgres": "^3.4.9"
   },
