@@ -57,7 +57,7 @@
 | 9.1.1 |     Juridisch en beleidsmatig kader |  | task_group |  |  |
 | 9.1.1.1 |       Juridisch en/of beleidsmatig kader |  | text_input |  |  |
 | 9.1.1.2 |       Wetsartikelen |  | text_input |  |  |
-| 9.2 |   Aanvullende informatie toe over het juridische en beleidsmatig kader | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
+| 9.2 |   Aanvullende informatie over het juridische en beleidsmatig kader | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
 | 10 | Bewaartermijnen | Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de v... | task_group |  |  |
 | 10.1 |   Gegevensverwerking, verwerkingsdoeleinde, categorie betrokkene & persoonsgegevens, bewaartermijn archiveringsperiode & motivatie bewaartermijn |  | task_group |  | Copy from 3.1.1 |
 | 10.1.1 |     Bewaartermijnen |  | task_group |  |  |
