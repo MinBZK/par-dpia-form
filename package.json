@@ -13,6 +13,7 @@
     "db:generate": "pnpm --filter @overheid-assessment/boekhouding-backend db:generate",
     "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate",
     "check:csp": "node --test scripts/check-inline-styles.test.mjs && node scripts/check-inline-styles.mjs",
+    "check:vhtml": "node --test scripts/check-vhtml.test.mjs && node scripts/check-vhtml.mjs",
     "test:e2e": "node tests/e2e/sync.spec.mjs",
     "test:coverage": "pnpm -r --if-present test:coverage"
   },

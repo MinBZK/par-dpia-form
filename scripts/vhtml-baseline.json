@@ -1,0 +1,20 @@
+[
+  "apps/boekhouding-frontend/src/components/ConflictResolutionDialog.vue::field.myFormatted",
+  "apps/boekhouding-frontend/src/components/ConflictResolutionDialog.vue::field.theirFormatted",
+  "apps/boekhouding-frontend/src/views/VersionHistory.vue::field.newValue.replace(/\\n/g, '<br>')",
+  "apps/boekhouding-frontend/src/views/VersionHistory.vue::field.oldValue.replace(/\\n/g, '<br>')",
+  "packages/assessment-core/src/components/FileUploadPage.vue::introText",
+  "packages/assessment-core/src/components/LiveResults.vue::renderAssessmentExplanation(assessment).text.replace(/\\n/g, '<br>')",
+  "packages/assessment-core/src/components/task/FormField.vue::description",
+  "packages/assessment-core/src/components/task/FormField.vue::displayLabel",
+  "packages/assessment-core/src/components/task/FormField.vue::option.label",
+  "packages/assessment-core/src/components/task/FormField.vue::option.value",
+  "packages/assessment-core/src/components/task/FormField.vue::option.value",
+  "packages/assessment-core/src/components/task/FormField.vue::renderedHtml",
+  "packages/assessment-core/src/components/task/TaskGroup.vue::instanceLabel",
+  "packages/assessment-core/src/components/task/TaskGroup.vue::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::taskStore.taskById(childId).description",
+  "packages/assessment-core/src/components/ui/UiButton.vue::`${label ? label : ''}`"
+]
