@@ -1,5 +1,5 @@
 # Stage 1: build
-FROM node:22-alpine@sha256:9385cd9f3001dfc3431e8ead12c43e9e1f87cc1b9b5c6cfd0f73865d405b27c4 AS build
+FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS build
 
 RUN corepack enable && corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
 
@@ -39,7 +39,7 @@ RUN npx vite build
 RUN printf '{"version":"dev","commit":"%s","channel":"acceptatie"}\n' "$(printf '%s' "$GIT_SHA" | cut -c1-7)" > dist/version.json
 
 # Stage 2: unprivileged nginx voor statische bestanden
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:bcb4860e2d7877cf140e4c945f5f9cb304ccb5efbe1dd4fa606a2206142241bf
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:e88d990b349df8cf4aa82f16642d7a23375016638c9ace4e5c6ca25028e62e65
 
 # Hoofd-SPA
 COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
