@@ -310,7 +310,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
     }
 
     if (includeState) {
-      const state = await rebuildState(assessmentId, versionNum)
+      // A version older than the current one is frozen, so its rebuild is cacheable.
+      const immutable = versionNum < result.assessment.currentVersion
+      const state = await rebuildState(assessmentId, versionNum, { immutable })
       return { ...versionData, state }
     }
 

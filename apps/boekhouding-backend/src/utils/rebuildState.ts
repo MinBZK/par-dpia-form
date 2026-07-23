@@ -1,6 +1,7 @@
 import { db } from '../db/connection.js'
 import { assessmentEdits, assessmentInstances, assessmentVersions } from '../db/schema.js'
 import { eq, and, lte, asc } from 'drizzle-orm'
+import { rebuildCacheKey, getCachedRebuild, setCachedRebuild } from './rebuildStateCache.js'
 
 /**
  * Rebuild the full assessment state by replaying edits from version 1 up to `upToVersion`.
@@ -8,11 +9,21 @@ import { eq, and, lte, asc } from 'drizzle-orm'
  *
  * Falls back to cachedState if no edits exist (legacy data created before
  * the initial_state edit was introduced).
+ *
+ * `opts.immutable` marks a rebuild of a frozen (older-than-current) version as
+ * cacheable, so repeated views of the same historical version skip the replay.
  */
 export async function rebuildState(
   assessmentInstanceId: string,
   upToVersion: number,
+  opts: { immutable?: boolean } = {},
 ): Promise<unknown> {
+  const cacheKey = rebuildCacheKey(assessmentInstanceId, upToVersion)
+  if (opts.immutable) {
+    const cached = getCachedRebuild(cacheKey)
+    if (cached !== undefined) return cached
+  }
+
   const rows = await db
     .select({
       fieldId: assessmentEdits.fieldId,
@@ -159,6 +170,10 @@ export async function rebuildState(
         break
     }
   }
+
+  // Only cache the deterministic replay result, never the cachedState fallback
+  // above (that path depends on the mutable instance state).
+  if (opts.immutable) setCachedRebuild(cacheKey, state)
 
   return state
 }
