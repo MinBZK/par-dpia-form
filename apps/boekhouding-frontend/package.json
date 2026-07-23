@@ -17,7 +17,7 @@
     "@nl-rvo/component-library-css": "4.20.3",
     "@nl-rvo/design-tokens": "2.4.2",
     "@overheid-assessment/core": "workspace:*",
-    "@tabler/icons-vue": "^3.44.0",
+    "@tabler/icons-vue": "^3.45.0",
     "keycloak-js": "^26.2.4",
     "pdfmake": "^0.3.11",
     "pinia": "^4.0.2",
@@ -34,6 +34,6 @@
     "typescript": "~5.9.3",
     "vite": "^8.1.5",
     "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }

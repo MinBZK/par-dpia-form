@@ -10,12 +10,12 @@
     "./*": "./src/*"
   },
   "dependencies": {
-    "@pdfme/pdf-lib": "^6.1.11",
+    "@pdfme/pdf-lib": "^6.1.12",
     "dompurify": "^3.4.12",
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
     "jexl": "^2.3.0",
-    "marked": "^18.0.6",
+    "marked": "^18.0.7",
     "nanoid": "^6.0.0",
     "pdfmake": "^0.3.11",
     "pinia": "^4.0.2",
