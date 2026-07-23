@@ -524,7 +524,7 @@ tasks:
               type:
                 - text_input
               repeatable: false
-        - task: Aanvullende informatie toe over het juridische en beleidsmatig kader
+        - task: Aanvullende informatie over het juridische en beleidsmatig kader
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "9.2"
           type:

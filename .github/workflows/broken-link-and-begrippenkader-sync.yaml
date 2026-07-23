@@ -24,7 +24,7 @@ jobs:
 
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         # First attempt is allowed to fail; the retry step below clears the
         # transient rate-limit/timeout failures that a manual re-run usually
         # fixed. A real broken link still fails on the second attempt.
@@ -32,7 +32,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Target specific files and improve the arguments
+          # Target specific files and improve the arguments.
+          # open.overheid.nl serves an incomplete TLS chain (leaf from
+          # DigiCert, intermediates still from certSIGN), so lychee cannot
+          # verify it. Review the exclusions periodically.
           args: &lychee_args >-
             --verbose
             --no-progress
@@ -44,6 +47,7 @@ jobs:
             --exclude "file:///.*/issues.*"
             --exclude "file:///home/runner/work/.*"
             --exclude "https://rijksportaal.overheid-i.nl/.*"
+            --exclude "https://open.overheid.nl/.*"
             --exclude "https://www.npmjs.com/.*"
             --exclude "https://httpproblems.com/.*"
             --exclude "^http://(keycloak|backend|postgres):[0-9]+"
@@ -67,7 +71,7 @@ jobs:
       - name: Link Checker (retry)
         id: lychee_retry
         if: steps.lychee.outcome == 'failure'
-        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411 # v2.8.0
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -167,7 +171,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           python-version: '3.14'
           enable-cache: true
