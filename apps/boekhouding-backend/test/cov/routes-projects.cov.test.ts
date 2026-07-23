@@ -306,6 +306,9 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     expect(body).toHaveLength(1)
     expect(body[0].id).toBe(a.id)
     expect(body[0].name).toBe('A1')
+    // Data minimisation: the list must not leak the full assessment content.
+    expect(body[0].cachedState).toBeUndefined()
+    expect(body[0].state).toBeUndefined()
   })
 })
 
