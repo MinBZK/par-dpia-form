@@ -1,0 +1,37 @@
+# Registry of versioned questionnaire sources. Single source of truth for which
+# versions exist, their channel, and which version is "latest official" per type.
+# The begrippenkader is externally auto-synced and is referenced only as an
+# enrichment input here -- it is never versioned by this manifest.
+#
+# Files currently keep their original sources/<type>.yaml location; the move to
+# sources/<type>/<version>.yaml is a separate, later step.
+schemaVersion: 1
+types:
+  prescan:
+    latestOfficial: "2.0"
+    begrippenkader: begrippenkader_dpia.yaml
+    versions:
+      - version: "2.0"
+        channel: official
+        file: prescan.yaml
+        changelog:
+          - "Eerste gepubliceerde Pre-scan DPIA v2.0."
+  dpia:
+    latestOfficial: "3.0"
+    begrippenkader: begrippenkader_dpia.yaml
+    versions:
+      - version: "3.0"
+        channel: official
+        file: dpia.yaml
+        changelog:
+          - "DPIA Rapportagemodel Rijksdienst v3.0."
+  iama:
+    latestOfficial: "2.0"
+    begrippenkader: begrippenkader_iama.yaml
+    enrichOncePerPage: true
+    versions:
+      - version: "2.0"
+        channel: official
+        file: iama.yaml
+        changelog:
+          - "Impact Assessment Mensenrechten en Algoritmes v2.0."
