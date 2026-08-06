@@ -7,6 +7,11 @@ describe('FormType enum', () => {
     expect(dpia.FormType.DPIA).toBe('dpia')
     expect(dpia.FormType.PRE_SCAN).toBe('prescan')
   })
+
+  it('exposes IAMA and AIIA string values', () => {
+    expect(dpia.FormType.IAMA).toBe('iama')
+    expect(dpia.FormType.AIIA).toBe('aiia')
+  })
 })
 
 describe('codecs decode valid values', () => {

@@ -4,6 +4,7 @@ export enum FormType {
   PRE_SCAN = 'prescan',
   DPIA = 'dpia',
   IAMA = 'iama',
+  AIIA = 'aiia',
 }
 
 export const TaskTypeValue = t.union([

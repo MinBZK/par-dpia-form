@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
+import type { StandaloneFormType } from '../formTypes'
 
 const props = defineProps<{
   navigation: NavigationFunctions
-  cachedTypes: FormType[]
+  cachedTypes: StandaloneFormType[]
 }>()
 
 const emit = defineEmits<{
-  startFresh: [type: FormType]
+  startFresh: [type: StandaloneFormType]
 }>()
 
 // Injected as a <meta> tag at build time (see vite.config.ts injectVersionMeta),
@@ -17,7 +18,7 @@ const emit = defineEmits<{
 const appVersion = document.querySelector('meta[name="app-version"]')?.getAttribute('content') ?? ''
 
 interface AssessmentCard {
-  type: FormType
+  type: StandaloneFormType
   title: string
   description: string
   startLabel: string
@@ -52,21 +53,21 @@ const cards: AssessmentCard[] = [
   },
 ]
 
-function hasCache(type: FormType): boolean {
+function hasCache(type: StandaloneFormType): boolean {
   return props.cachedTypes.includes(type)
 }
 
 // "Start nieuwe X" confirmation
-const freshTarget = ref<FormType | null>(null)
+const freshTarget = ref<StandaloneFormType | null>(null)
 const freshTargetCard = computed(() => cards.find((card) => card.type === freshTarget.value))
-function askFresh(type: FormType) {
+function askFresh(type: StandaloneFormType) {
   freshTarget.value = type
 }
 function cancelFresh() {
   freshTarget.value = null
 }
 function confirmFresh() {
-  emit('startFresh', freshTarget.value as FormType)
+  emit('startFresh', freshTarget.value as StandaloneFormType)
   freshTarget.value = null
 }
 
