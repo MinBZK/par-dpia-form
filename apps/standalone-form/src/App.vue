@@ -11,7 +11,6 @@ import {
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import LandingView from './components/LandingView.vue'
-import type { StandaloneFormType } from './formTypes'
 import { createLocalPersistence } from './LocalPersistence'
 
 import '@nl-rvo/assets/fonts/index.css'
@@ -32,8 +31,8 @@ const currentView = ref<ViewState>(ViewState.Landing)
 
 // Which assessments have saved progress in localStorage. Recomputed whenever
 // the landing page is shown, since localStorage is not reactive.
-const ALL_TYPES: StandaloneFormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]
-const cachedTypes = ref<StandaloneFormType[]>([])
+const ALL_TYPES: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]
+const cachedTypes = ref<FormType[]>([])
 const refreshCachedTypes = () => {
   cachedTypes.value = ALL_TYPES.filter((type) => persistence.hasSavedState(type))
 }
@@ -64,15 +63,22 @@ const navigationFunctions: NavigationFunctions = {
     taskStore.isInitialized[FormType.IAMA] = false
     navigateTo(ViewState.IAMA)
   },
+  goToAIIA: () => {
+    taskStore.setActiveNamespace(FormType.AIIA)
+    answerStore.setActiveNamespace(FormType.AIIA)
+    taskStore.isInitialized[FormType.AIIA] = false
+    navigateTo(ViewState.AIIA)
+  },
 }
 
 // "Nieuwe starten": discard the saved session, then open a fresh form.
-const goByType: Record<StandaloneFormType, () => void> = {
+const goByType: Record<FormType, () => void> = {
   [FormType.PRE_SCAN]: () => navigationFunctions.goToPreScanDPIA(),
   [FormType.DPIA]: () => navigationFunctions.goToDPIA(),
   [FormType.IAMA]: () => navigationFunctions.goToIAMA!(),
+  [FormType.AIIA]: () => navigationFunctions.goToAIIA!(),
 }
-const startFresh = (type: StandaloneFormType) => {
+const startFresh = (type: FormType) => {
   persistence.clearSavedState(type)
   goByType[type]()
 }
@@ -80,7 +86,7 @@ const startFresh = (type: StandaloneFormType) => {
 // Resuming (saved state present) jumps straight into the form; a fresh start
 // shows the intro/upload page. clearSavedState() runs before navigation, so
 // this reflects the right intent at mount time.
-const isResume = (type: StandaloneFormType) => persistence.hasSavedState(type)
+const isResume = (type: FormType) => persistence.hasSavedState(type)
 </script>
 
 <template>
@@ -119,6 +125,16 @@ const isResume = (type: StandaloneFormType) => persistence.hasSavedState(type)
     :namespace="FormType.IAMA"
     :validData="schemaStore.getSchema(FormType.IAMA)"
     :autoStart="isResume(FormType.IAMA)"
+    bannerTitle="Invulhulpen"
+  />
+
+  <!-- AIIA Form -->
+  <Form
+    v-if="currentView === ViewState.AIIA"
+    :navigation="navigationFunctions"
+    :namespace="FormType.AIIA"
+    :validData="schemaStore.getSchema(FormType.AIIA)"
+    :autoStart="isResume(FormType.AIIA)"
     bannerTitle="Invulhulpen"
   />
 </template>

@@ -59,6 +59,7 @@ describe('App.vue', () => {
     expect(typeof nav.goToDPIA).toBe('function')
     expect(typeof nav.goToPreScanDPIA).toBe('function')
     expect(typeof nav.goToIAMA).toBe('function')
+    expect(typeof nav.goToAIIA).toBe('function')
   })
 
   it('navigates to the DPIA form via goToDPIA and configures the stores', async () => {
@@ -120,6 +121,26 @@ describe('App.vue', () => {
     const form = wrapper.findComponent(FormStub)
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(FormType.IAMA)
+    expect(form.props('validData')).toBeNull()
+  })
+
+  it('navigates to the AIIA form via goToAIIA and configures the stores', async () => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+    taskStore.isInitialized[FormType.AIIA] = true
+
+    nav.goToAIIA!()
+    await wrapper.vm.$nextTick()
+
+    expect(taskStore.activeNamespace).toBe(FormType.AIIA)
+    expect(answerStore.activeNamespace).toBe(FormType.AIIA)
+    expect(taskStore.isInitialized[FormType.AIIA]).toBe(false)
+
+    expect(wrapper.findComponent(LandingStub).exists()).toBe(false)
+    const form = wrapper.findComponent(FormStub)
+    expect(form.exists()).toBe(true)
+    expect(form.props('namespace')).toBe(FormType.AIIA)
     expect(form.props('validData')).toBeNull()
   })
 
@@ -186,6 +207,7 @@ describe('App.vue — cached sessions (#322)', () => {
     [FormType.PRE_SCAN],
     [FormType.DPIA],
     [FormType.IAMA],
+    [FormType.AIIA],
   ])('startFresh(%s) clears the saved state and opens a fresh form (no autoStart)', async (type) => {
     seedCache(type)
     const wrapper = mountApp()
@@ -207,6 +229,7 @@ describe('App.vue — cached sessions (#322)', () => {
     [FormType.PRE_SCAN, 'goToPreScanDPIA'],
     [FormType.DPIA, 'goToDPIA'],
     [FormType.IAMA, 'goToIAMA'],
+    [FormType.AIIA, 'goToAIIA'],
   ] as const)('resuming %s (cache present) auto-starts the form', async (type, navFn) => {
     seedCache(type)
     const wrapper = mountApp()
