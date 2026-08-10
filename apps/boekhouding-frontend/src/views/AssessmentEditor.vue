@@ -195,6 +195,7 @@ const assessmentTypeMap: Record<string, FormType> = {
   prescan: FormType.PRE_SCAN,
   dpia: FormType.DPIA,
   iama: FormType.IAMA,
+  aiia: FormType.AIIA,
 }
 
 // Navigation: back goes to project detail
@@ -216,12 +217,18 @@ onMounted(async () => {
     assessment.value = await assessmentsApi.get(props.assessmentId)
 
     if (!schemaStore.isInitialized) {
-      const [preScanModule, dpiaModule, iamaModule] = await Promise.all([
+      const [preScanModule, dpiaModule, iamaModule, aiiaModule] = await Promise.all([
         import('../../../../sources/generated/PreScanDPIA.json'),
         import('../../../../sources/generated/DPIA.json'),
         import('../../../../sources/generated/IAMA.json'),
+        import('../../../../sources/generated/AIIA.json'),
       ])
-      schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
+      schemaStore.init({
+        preScan: preScanModule.default,
+        dpia: dpiaModule.default,
+        iama: iamaModule.default,
+        aiia: aiiaModule.default,
+      })
     }
 
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
@@ -271,6 +278,7 @@ const namespace = computed(() =>
 const assessmentTypeLabel = computed(() =>
   assessment.value?.assessmentType === 'dpia' ? 'DPIA'
     : assessment.value?.assessmentType === 'iama' ? 'IAMA'
+    : assessment.value?.assessmentType === 'aiia' ? 'AIIA'
     : 'Pre-scan DPIA'
 )
 

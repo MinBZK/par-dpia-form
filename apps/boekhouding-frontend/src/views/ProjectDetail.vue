@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
+import { FormType, type AssessmentState, type ImportType, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -23,7 +23,7 @@ const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 // Start-form dialog state
 const startDialogRef = ref<HTMLDialogElement | null>(null)
 const dialogOpen = ref(false)
-const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
+const dialogAssessmentType = ref<DetectedImportType>('dpia')
 const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
@@ -131,7 +131,7 @@ const saveDescription = async () => {
 }
 
 // Dialog handling
-const openStartDialog = (assessmentType: 'dpia' | 'prescan' | 'iama') => {
+const openStartDialog = (assessmentType: DetectedImportType) => {
   dialogAssessmentType.value = assessmentType
   dialogOption.value = 'empty'
   selectedPrescanId.value = null
@@ -151,10 +151,13 @@ const onFileChange = (event: Event) => {
   dialogError.value = null
 }
 
-const typeLabels: Record<'dpia' | 'prescan' | 'iama', string> = {
+type DetectedImportType = Exclude<ImportType, null>
+
+const typeLabels: Record<DetectedImportType, string> = {
   dpia: 'DPIA',
   prescan: 'pre-scan',
   iama: 'IAMA',
+  aiia: 'AIIA',
 }
 
 /** Parse an uploaded file (PDF or JSON) into an AssessmentState.
@@ -170,7 +173,7 @@ const parseUploadedFile = async (file: File): Promise<AssessmentState> => {
  *  (DPIA additionally accepts pre-scan files to take over their answers). */
 const assertImportTypeMatches = (
   state: AssessmentState,
-  allowed: ('dpia' | 'prescan' | 'iama')[],
+  allowed: DetectedImportType[],
 ) => {
   const detected = detectImportType(state as unknown as Record<string, unknown>)
   if (!detected || !allowed.includes(detected)) {
@@ -199,8 +202,8 @@ const submitDialog = async () => {
   try {
     if (dialogAssessmentType.value === 'dpia') {
       await submitDpiaDialog()
-    } else if (dialogAssessmentType.value === 'iama') {
-      await submitIamaDialog()
+    } else if (dialogAssessmentType.value === 'iama' || dialogAssessmentType.value === 'aiia') {
+      await submitSingleTypeDialog(dialogAssessmentType.value)
     } else {
       await submitPrescanDialog()
     }
@@ -264,10 +267,11 @@ const submitDpiaDialog = async () => {
   }
 }
 
-const submitIamaDialog = async () => {
+/** Start flow for the forms that only offer "empty" or "import" (IAMA, AIIA):
+ *  no cross-form prefill, so an import must be a file of that same type. */
+const submitSingleTypeDialog = async (assessmentType: 'iama' | 'aiia') => {
   if (dialogOption.value === 'empty') {
-    // Option 1: Start with empty IAMA
-    const form = await assessmentsApi.create(props.projectId, 'iama')
+    const form = await assessmentsApi.create(props.projectId, assessmentType)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -278,9 +282,9 @@ const submitIamaDialog = async () => {
       return
     }
     const state = await parseUploadedFile(uploadFile.value)
-    assertImportTypeMatches(state, ['iama'])
+    assertImportTypeMatches(state, [assessmentType])
 
-    const form = await assessmentsApi.create(props.projectId, 'iama', undefined, state)
+    const form = await assessmentsApi.create(props.projectId, assessmentType, undefined, state)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -318,7 +322,8 @@ const confirmDeleteProject = async () => {
   router.push('/projecten')
 }
 
-const formTypeLabel = (type: string) => type === 'dpia' ? 'DPIA' : type === 'iama' ? 'IAMA' : 'Pre-scan'
+const formTypeLabel = (type: string) =>
+  type === 'dpia' ? 'DPIA' : type === 'iama' ? 'IAMA' : type === 'aiia' ? 'AIIA' : 'Pre-scan'
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -451,6 +456,17 @@ const formatDate = (dateStr: string) =>
             </div>
           </div>
         </div>
+        <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
+          <div class="rvo-card__content card-content-flex">
+            <h3 class="utrecht-heading-3 rvo-margin--none">AIIA</h3>
+            <p>Breng de impact van een AI-systeem in kaart met de AI Impact Assessment.</p>
+            <div class="card-button">
+              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('aiia')">
+                Start AIIA
+              </button>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </template>
@@ -464,7 +480,7 @@ const formatDate = (dateStr: string) =>
   >
     <div class="start-dialog__content">
       <h2 class="utrecht-heading-2">
-        {{ dialogAssessmentType === 'dpia' ? 'Hoe wil je de DPIA starten?' : dialogAssessmentType === 'iama' ? 'Hoe wil je de IAMA starten?' : 'Hoe wil je de pre-scan starten?' }}
+        Hoe wil je de {{ typeLabels[dialogAssessmentType] }} starten?
       </h2>
 
       <!-- DPIA options -->
@@ -510,20 +526,20 @@ const formatDate = (dateStr: string) =>
         </fieldset>
       </template>
 
-      <!-- IAMA options -->
-      <template v-else-if="dialogAssessmentType === 'iama'">
+      <!-- IAMA / AIIA options -->
+      <template v-else-if="dialogAssessmentType === 'iama' || dialogAssessmentType === 'aiia'">
         <fieldset class="start-dialog__fieldset">
           <legend class="rvo-visually-hidden">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
-            <span class="start-dialog__option-label">Start een nieuwe IAMA</span>
+            <span class="start-dialog__option-label">Start een nieuwe {{ typeLabels[dialogAssessmentType] }}</span>
           </label>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
-              Importeer een bestaande IAMA
+              Importeer een bestaande {{ typeLabels[dialogAssessmentType] }}
               <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder.</span>
             </span>
           </label>
@@ -571,7 +587,7 @@ const formatDate = (dateStr: string) =>
           :disabled="dialogSubmitting"
           @click="submitDialog"
         >
-          {{ dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan') }}
+          {{ dialogSubmitting ? 'Bezig...' : `Start ${typeLabels[dialogAssessmentType]}` }}
         </button>
         <button
           class="rvo-button rvo-button--secondary rvo-button--size-md"
