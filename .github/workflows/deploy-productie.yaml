@@ -35,7 +35,7 @@ jobs:
       frontend-image: ${{ steps.promote.outputs.frontend-image }}
       backend-image: ${{ steps.promote.outputs.backend-image }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
@@ -70,7 +70,7 @@ jobs:
             exit 1
           fi
 
-      - uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -116,7 +116,7 @@ jobs:
       url: https://invulhulpen.rijksapp.nl
     steps:
       - name: Deploy to ZAD
-        uses: RijksICTGilde/zad-actions/deploy@13434cd415db0cd195a2c5f12bf67645acfcb635 # v4.0.6
+        uses: RijksICTGilde/zad-actions/deploy@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
         with:
           api-key: ${{ secrets.ZAD_API_KEY }}
           project-id: ${{ env.PROJECT_ID }}
