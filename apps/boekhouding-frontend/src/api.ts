@@ -4,7 +4,11 @@ export { SessionExpiredError }
 
 const BASE = ''
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+function errorMessage(data: { detail?: string; error?: string }): string {
+  return data.detail || data.error || 'Verzoek mislukt'
+}
+
+async function sendRequest(path: string, options: RequestInit): Promise<Response> {
   const { getToken, sessionExpired } = useAuth()
   const token = await getToken()
 
@@ -21,21 +25,42 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers,
   })
 
-  if (res.status === 204) return undefined as T
-
   if (res.status === 401) {
     sessionExpired.value = true
     throw new SessionExpiredError()
   }
 
+  return res
+}
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await sendRequest(path, options)
+
+  if (res.status === 204) return undefined as T
+
   const data = await res.json()
 
   if (!res.ok) {
-    const message = data.detail || data.error || 'Verzoek mislukt'
-    throw new ApiError(message, res.status)
+    throw new ApiError(errorMessage(data), res.status)
   }
 
   return data as T
+}
+
+// Paged variant of `request`: returns the array plus the total row count read
+// from the X-Total-Count header (falls back to the page length when absent).
+async function requestPaged<T>(path: string, options: RequestInit = {}): Promise<{ items: T[]; total: number }> {
+  const res = await sendRequest(path, options)
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new ApiError(errorMessage(data), res.status)
+  }
+
+  const items = data as T[]
+  const raw = res.headers.get('X-Total-Count')
+  const total = raw !== null && Number.isFinite(Number(raw)) ? Number(raw) : items.length
+  return { items, total }
 }
 
 export class ApiError extends Error {
@@ -157,8 +182,8 @@ export const assessments = {
     }),
   delete: (assessmentId: string) =>
     request<void>(`/api/v1/assessments/${assessmentId}`, { method: 'DELETE' }),
-  versions: (assessmentId: string) =>
-    request<AssessmentVersion[]>(`/api/v1/assessments/${assessmentId}/versions`),
+  versions: (assessmentId: string, page: number, pageSize: number) =>
+    requestPaged<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions?page=${page}&pageSize=${pageSize}`),
   version: (assessmentId: string, version: number, options?: { includeState?: boolean }) =>
     request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}${options?.includeState ? '?includeState=true' : ''}`),
   versionEdits: (assessmentId: string, version: number) =>

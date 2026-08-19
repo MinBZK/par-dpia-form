@@ -22,7 +22,12 @@ onUnmounted(() => {
   answerStore.reset()
 })
 
+const VERSIONS_PAGE_SIZE = 100
 const versions = ref<AssessmentVersion[]>([])
+const totalVersions = ref(0)
+const versionsPage = ref(1)
+const loadingMore = ref(false)
+const hasMoreVersions = computed(() => versions.value.length < totalVersions.value)
 const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
@@ -179,8 +184,11 @@ async function handleFieldRestore() {
     currentState.$schema = currentState.$schema || OUTPUT_SCHEMA_URL
     await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
 
-    // Refresh version list
-    versions.value = await assessmentsApi.versions(props.assessmentId)
+    // Refresh version list (back to the first page)
+    const refreshed = await assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE)
+    versions.value = refreshed.items
+    totalVersions.value = refreshed.total
+    versionsPage.value = 1
 
     fieldRestoreModalOpen.value = false
     fieldRestoreTarget.value = null
@@ -243,13 +251,27 @@ onMounted(async () => {
 
   const [assessment, v] = await Promise.all([
     assessmentsApi.get(props.assessmentId),
-    assessmentsApi.versions(props.assessmentId),
+    assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE),
   ])
   role.value = (assessment as any).role || null
   projectId.value = assessment.projectId
-  versions.value = v
+  versions.value = v.items
+  totalVersions.value = v.total
+  versionsPage.value = 1
   loading.value = false
 })
+
+async function loadMoreVersions() {
+  loadingMore.value = true
+  try {
+    const next = await assessmentsApi.versions(props.assessmentId, versionsPage.value + 1, VERSIONS_PAGE_SIZE)
+    versions.value.push(...next.items)
+    totalVersions.value = next.total
+    versionsPage.value += 1
+  } finally {
+    loadingMore.value = false
+  }
+}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleString('nl-NL', {
@@ -820,6 +842,16 @@ function mapEditsToDiffFields(
             </table>
           </div>
         </template>
+
+        <div v-if="hasMoreVersions" class="version-list__more">
+          <button
+            class="rvo-button rvo-button--secondary rvo-button--size-sm"
+            :disabled="loadingMore"
+            @click="loadMoreVersions"
+          >
+            Meer laden ({{ versions.length }} van {{ totalVersions }})
+          </button>
+        </div>
       </div>
     </template>
 

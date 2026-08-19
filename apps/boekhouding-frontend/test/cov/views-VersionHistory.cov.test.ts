@@ -19,7 +19,10 @@ const apiUpdateVersionDescription = vi.fn()
 vi.mock('../../src/api', () => ({
   assessments: {
     get: (...a: unknown[]) => apiGet(...a),
-    versions: (...a: unknown[]) => apiVersions(...a),
+    versions: async (...a: unknown[]) => {
+      const r = await apiVersions(...a)
+      return Array.isArray(r) ? { items: r, total: r.length } : r
+    },
     version: (...a: unknown[]) => apiVersion(...a),
     versionEdits: (...a: unknown[]) => apiVersionEdits(...a),
     update: (...a: unknown[]) => apiUpdate(...a),
@@ -275,6 +278,42 @@ describe('VersionHistory — version list rendering', () => {
     const wrapper = mountView()
     await flushPromises()
     expect(wrapper.findAll('.toggle-btn').length).toBe(1)
+  })
+})
+
+describe('VersionHistory — load more', () => {
+  it('shows "meer laden" when more exist, then appends the next page and hides the button', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [
+        { id: 'v3', version: 3, createdByName: 'A', updatedAt: '2026-01-03T10:00:00Z', changeDescription: null },
+        { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
+      ], total: 3 })
+      .mockResolvedValueOnce({ items: [
+        { id: 'v1', version: 1, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null },
+      ], total: 3 })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const more = wrapper.find('.version-list__more button')
+    expect(more.exists()).toBe(true)
+
+    await more.trigger('click')
+    await flushPromises()
+
+    expect(apiVersions).toHaveBeenNthCalledWith(2, expect.any(String), 2, 100)
+    // 3 of 3 loaded -> button gone.
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('does not show "meer laden" when everything fits on the first page', async () => {
+    apiVersions.mockResolvedValue([
+      { id: 'v1', version: 1, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null },
+    ])
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
   })
 })
 
