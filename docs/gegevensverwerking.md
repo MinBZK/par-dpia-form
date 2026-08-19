@@ -127,7 +127,7 @@ Het [DUTO-raamwerk][duto] schrijft voor dat overheidsinformatie vindbaar, beschi
 [avg-art6]: https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32016R0679#d1e1883-1-1 "AVG artikel 6 — Rechtmatigheid van de verwerking"
 [avg-art24]: https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32016R0679 "AVG artikel 24 — Verantwoordelijkheid van de verwerkingsverantwoordelijke"
 [avg-art35]: https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32016R0679 "AVG artikel 35 — Gegevensbeschermingseffectbeoordeling"
-[wp248]: https://ec.europa.eu/newsroom/article29/item-detail.cfm?item_id=611236 "WP29 Guidelines on DPIA (WP248 rev.01, 4 oktober 2017)"
+[wp248]: https://ec.europa.eu/newsroom/article29/items/611236 "WP29 Guidelines on DPIA (WP248 rev.01, 4 oktober 2017)"
 [ap-dpia]: https://www.autoriteitpersoonsgegevens.nl/en/themes/basic-gdpr/gdpr-in-practice/data-protection-impact-assessment-dpia "Autoriteit Persoonsgegevens — DPIA"
 [archiefwet-1995]: https://wetten.overheid.nl/BWBR0007376/ "Archiefwet 1995 — wetten.overheid.nl"
 [archiefwet-nieuw]: https://www.eerstekamer.nl/wetsvoorstel/35968_archiefwet_20 "Archiefwet 20.. (35.968) — Eerste Kamer"
