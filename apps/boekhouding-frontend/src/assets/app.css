@@ -655,8 +655,16 @@ a.card-link:hover {
 
 .version-list__more {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  gap: 0.75rem;
   margin-top: 1.5rem;
+}
+
+.version-list__error {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: var(--rvo-color-rood, #d52b1e);
 }
 
 .desc-edit-btn {

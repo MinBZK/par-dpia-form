@@ -315,6 +315,77 @@ describe('VersionHistory — load more', () => {
     await flushPromises()
     expect(wrapper.find('.version-list__more').exists()).toBe(false)
   })
+
+  const V = (n: number) => ({ id: `v${n}`, version: n, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null })
+
+  it('dedupes an overlapping page and stops when nothing new arrives', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
+      // A concurrent insert shifted the window: page 2 only re-returns v2.
+      .mockResolvedValueOnce({ items: [V(2)], total: 3 })
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    // v2 is not duplicated (1 header + 2 data rows) and the button is gone.
+    expect(wrapper.findAll('.version-row').length).toBe(3)
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('surfaces an error and keeps the button when loading more fails', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
+    expect(wrapper.find('.version-list__more').exists()).toBe(true)
+  })
+
+  it('announces progress while more pages remain', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 })
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 })
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(true)
+    expect(wrapper.find('[role="status"]').text()).toContain('4 van 5')
+  })
+
+  it('"laad alle resterende" loads every remaining page', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
+      .mockResolvedValueOnce({ items: [V(1)], total: 3 })
+    const wrapper = mountView()
+    await flushPromises()
+    const buttons = wrapper.findAll('.version-list__more button')
+    expect(buttons.length).toBe(2)
+    await buttons[1].trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+    expect(wrapper.findAll('.version-row').length).toBe(4)
+  })
+
+  it('"laad alle resterende" stops when a page fails', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = mountView()
+    await flushPromises()
+    const buttons = wrapper.findAll('.version-list__more button')
+    await buttons[1].trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
+  })
 })
 
 describe('VersionHistory — canEdit / canRestore (role permissions)', () => {

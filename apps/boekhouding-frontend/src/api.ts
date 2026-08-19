@@ -186,8 +186,16 @@ export const assessments = {
     requestPaged<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions?page=${page}&pageSize=${pageSize}`),
   version: (assessmentId: string, version: number, options?: { includeState?: boolean }) =>
     request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}${options?.includeState ? '?includeState=true' : ''}`),
-  versionEdits: (assessmentId: string, version: number) =>
-    request<VersionEdit[]>(`/api/v1/assessments/${assessmentId}/versions/${version}/edits`),
+  versionEdits: async (assessmentId: string, version: number): Promise<VersionEdit[]> => {
+    // Load the full edit set for the version (paged) so the diff is never truncated.
+    const items: VersionEdit[] = []
+    for (let page = 1; ; page++) {
+      const res = await requestPaged<VersionEdit>(`/api/v1/assessments/${assessmentId}/versions/${version}/edits?page=${page}&pageSize=2000`)
+      items.push(...res.items)
+      if (res.items.length === 0 || items.length >= res.total) break
+    }
+    return items
+  },
   updateVersionDescription: (assessmentId: string, version: number, changeDescription: string) =>
     request<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions/${version}`, {
       method: 'PATCH',

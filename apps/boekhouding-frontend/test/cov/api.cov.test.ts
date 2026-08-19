@@ -351,10 +351,27 @@ describe('assessments endpoints', () => {
     expect(f.mock.calls[0][0]).toBe('/api/v1/assessments/a1/versions/3')
   })
 
-  it('versionEdits -> GET edits', async () => {
-    const f = mockFetchOk([])
-    await api.assessments.versionEdits('a1', 2)
-    expect(f.mock.calls[0][0]).toBe('/api/v1/assessments/a1/versions/2/edits')
+  it('versionEdits -> GET edits (single page returns the full set)', async () => {
+    const f = mockFetchOk([{ id: 'e1' }, { id: 'e2' }])
+    const edits = await api.assessments.versionEdits('a1', 2)
+    expect(f.mock.calls[0][0]).toBe('/api/v1/assessments/a1/versions/2/edits?page=1&pageSize=2000')
+    expect(edits).toEqual([{ id: 'e1' }, { id: 'e2' }])
+  })
+
+  it('versionEdits -> loops pages until the full edit set is loaded', async () => {
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(fetchResponse({ ok: true, status: 200, json: () => Promise.resolve([{ id: 'e1' }, { id: 'e2' }]), headers: { 'X-Total-Count': '3' } }))
+      .mockResolvedValueOnce(fetchResponse({ ok: true, status: 200, json: () => Promise.resolve([{ id: 'e3' }]), headers: { 'X-Total-Count': '3' } }))
+    const edits = await api.assessments.versionEdits('a1', 2)
+    expect((edits as Array<{ id: string }>).map(e => e.id)).toEqual(['e1', 'e2', 'e3'])
+  })
+
+  it('versionEdits -> stops when a page returns no rows even if total is larger', async () => {
+    globalThis.fetch = vi.fn()
+      .mockResolvedValueOnce(fetchResponse({ ok: true, status: 200, json: () => Promise.resolve([{ id: 'e1' }]), headers: { 'X-Total-Count': '9' } }))
+      .mockResolvedValueOnce(fetchResponse({ ok: true, status: 200, json: () => Promise.resolve([]), headers: { 'X-Total-Count': '9' } }))
+    const edits = await api.assessments.versionEdits('a1', 2)
+    expect((edits as Array<{ id: string }>).map(e => e.id)).toEqual(['e1'])
   })
 
   it('updateVersionDescription -> PATCH', async () => {
