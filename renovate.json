@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Scoped Renovate: it manages ONLY the package-manager tooling (pnpm + corepack). Dependabot (.github/dependabot.yml) still owns every other ecosystem, so the two do not overlap. Runs self-hosted via .github/workflows/renovate.yaml.",
+  "enabledManagers": ["npm", "custom.regex"],
+  "schedule": ["before 6am on monday"],
+  "timezone": "Europe/Amsterdam",
+  "labels": ["dependencies", "package-manager"],
+  "dependencyDashboard": true,
+  "packageRules": [
+    {
+      "description": "Dependabot owns all regular npm dependencies. Disable them here so Renovate only touches the packageManager field below.",
+      "matchManagers": ["npm"],
+      "enabled": false
+    },
+    {
+      "description": "pnpm lives in the packageManager field (single source of truth). Renovate's native handling can drop the +sha512 integrity hash (renovatebot/renovate#29184), which makes corepack fail closed, so a postUpgradeTask regenerates the hash via `corepack use` and commits it into the same PR.",
+      "matchManagers": ["npm"],
+      "matchDepNames": ["pnpm"],
+      "enabled": true,
+      "postUpgradeTasks": {
+        "commands": ["bash scripts/refresh-pnpm-hash.sh"],
+        "fileFilters": ["package.json"],
+        "executionMode": "update"
+      }
+    },
+    {
+      "description": "corepack bootstraps pnpm in the container builds (node:26 no longer ships it). Plain version bump, no companion hash.",
+      "matchManagers": ["custom.regex"],
+      "matchDepNames": ["corepack"],
+      "enabled": true
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "The pinned corepack version in the Containerfile install lines (`npm install --global corepack@X.Y.Z`).",
+      "customType": "regex",
+      "managerFilePatterns": ["/containers/.+/Containerfile[^/]*$/"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "corepack",
+      "matchStrings": ["corepack@(?<currentValue>\\d+\\.\\d+\\.\\d+)"]
+    }
+  ]
+}

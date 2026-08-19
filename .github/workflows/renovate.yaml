@@ -1,0 +1,39 @@
+name: Renovate (pnpm/corepack)
+
+# Scoped, self-hosted Renovate that manages ONLY the package-manager tooling:
+# the pnpm version in package.json's `packageManager` field and the pinned
+# corepack in the Containerfiles. Every other ecosystem stays with Dependabot
+# (.github/dependabot.yml), so the two bots never overlap. Config: renovate.json.
+#
+# Requires a repo or org secret RENOVATE_TOKEN: a fine-grained or classic PAT
+# with `repo` scope. Renovate opens its branches/PRs with this token; the
+# built-in GITHUB_TOKEN cannot (and cannot trigger the opened PRs' own CI).
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # Monday 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read  # Renovate writes via RENOVATE_TOKEN, not GITHUB_TOKEN.
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@e09d604f8f803bb527bd8321ed5be06c460b8682 # v46.2.2
+        env:
+          RENOVATE_REPOSITORIES: '["${{ github.repository }}"]'
+          # postUpgradeTasks are self-hosted-only and must be allow-listed here;
+          # repo config cannot self-authorize command execution. Empty = no tasks run.
+          RENOVATE_ALLOWED_COMMANDS: '["^bash scripts/refresh-pnpm-hash\\.sh$"]'
+          LOG_LEVEL: info
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+          configurationFile: renovate.json
