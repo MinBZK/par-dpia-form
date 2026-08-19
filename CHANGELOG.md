@@ -15,6 +15,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* De verwijzingen naar het Model DPIA Rijksdienst wezen naar een verlopen
+  KCBR-URL die een foutpagina toonde; ze verwijzen nu naar de actuele
+  locatie van het model.
 * Het standalone formulier op `/zonder-account/` toonde in productie
   "ontwikkel" met een commit in plaats van de release-versie; het laat nu
   dezelfde versie zien als de statuspagina.
