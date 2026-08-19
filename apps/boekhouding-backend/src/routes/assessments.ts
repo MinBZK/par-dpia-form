@@ -8,7 +8,7 @@ import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
-import { parsePagination, type PageQuery } from '../utils/pagination.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
 
 // Generous page-size caps: normal histories fit in one page, but the result set
 // can never grow unbounded. Edits are the largest (one row per changed field).
@@ -257,7 +257,13 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.get<{
     Params: { assessmentId: string }
     Querystring: PageQuery
-  }>('/:assessmentId/versions', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Versiegeschiedenis van een assessment (gepagineerd). Het totale aantal versies staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(VERSIONS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
@@ -341,7 +347,13 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.get<{
     Params: { assessmentId: string; version: string }
     Querystring: PageQuery
-  }>('/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/versions/:version/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Veldwijzigingen van één versie (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const versionNum = parseInt(version, 10)
 
@@ -388,7 +400,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
       .from(assessmentEdits)
       .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
-      .orderBy(asc(assessmentEdits.editedAt))
+      .orderBy(asc(assessmentEdits.editedAt), asc(assessmentEdits.id))
       .limit(limit)
       .offset(offset)
 
@@ -435,7 +447,13 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.get<{
     Params: { assessmentId: string }
     Querystring: PageQuery
-  }>('/:assessmentId/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Volledig wijzigingslogboek van een assessment (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
