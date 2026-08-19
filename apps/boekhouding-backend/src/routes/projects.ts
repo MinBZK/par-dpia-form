@@ -129,8 +129,19 @@ export async function projectRoutes(app: FastifyInstance) {
   }, async (request) => {
     const { projectId } = request.params
 
+    // The list needs only metadata; cachedState (all answers + embedded images)
+    // is excluded here. Full state comes from GET /:assessmentId?includeState.
     const assessments = await db
-      .select()
+      .select({
+        id: assessmentInstances.id,
+        projectId: assessmentInstances.projectId,
+        assessmentType: assessmentInstances.assessmentType,
+        name: assessmentInstances.name,
+        createdBy: assessmentInstances.createdBy,
+        currentVersion: assessmentInstances.currentVersion,
+        createdAt: assessmentInstances.createdAt,
+        updatedAt: assessmentInstances.updatedAt,
+      })
       .from(assessmentInstances)
       .where(eq(assessmentInstances.projectId, projectId))
 
