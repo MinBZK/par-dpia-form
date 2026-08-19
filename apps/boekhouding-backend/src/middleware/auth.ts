@@ -71,7 +71,13 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     })
   }
 
-  const displayName = payload.name || payload.preferred_username || payload.email
+  // Normalise to lowercase so lookups/claims match invite placeholders, which
+  // members.ts also stores lowercase. The users.email column is a plain,
+  // case-sensitive text column, so a casing mismatch here would fail to claim
+  // an invite and create a duplicate account.
+  const normalizedEmail = payload.email.toLowerCase()
+
+  const displayName = payload.name || payload.preferred_username || normalizedEmail
 
   // Find or create user by OIDC subject
   let [user] = await db
@@ -85,8 +91,8 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     // email is only synced when no other account already uses it: a collision
     // would violate the unique(email) constraint and lock this user out, so the
     // existing email is kept in that case (and logged). The name always syncs.
-    if (user.email !== payload.email || user.displayName !== displayName) {
-      let email = payload.email
+    if (user.email !== normalizedEmail || user.displayName !== displayName) {
+      let email = normalizedEmail
       if (email !== user.email) {
         const [clash] = await db
           .select({ id: users.id })
@@ -114,7 +120,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     const [claimed] = await db
       .update(users)
       .set({ oidcSub: payload.sub, displayName })
-      .where(and(eq(users.email, payload.email), isNull(users.oidcSub)))
+      .where(and(eq(users.email, normalizedEmail), isNull(users.oidcSub)))
       .returning({ id: users.id, email: users.email, displayName: users.displayName })
 
     if (claimed) {
@@ -128,7 +134,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
       const [created] = await db
         .insert(users)
         .values({
-          email: payload.email,
+          email: normalizedEmail,
           displayName,
           oidcSub: payload.sub,
         })

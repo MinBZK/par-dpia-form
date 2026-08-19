@@ -111,6 +111,14 @@ describe('validateState', () => {
     expect(result.valid).toBe(false)
   })
 
+  it('rejects a grouped element with a __proto__ child key', () => {
+    // JSON.parse makes __proto__ a real own property (unlike an object literal,
+    // where __proto__: sets the prototype). This is how it arrives over HTTP.
+    const groups = JSON.parse('[{"_index":0,"__proto__":{"value":"x","lastEditedAt":"2026-01-01T00:00:00.000Z"}}]')
+    const result = validateState(validState({ '2.1': groups }))
+    expect(result.valid).toBe(false)
+  })
+
   it('rejects an image value whose data is not a data:image URI', () => {
     const result = validateState(validState({ '0.1': answer({ data: 'javascript:alert(1)' }) }))
     expect(result.valid).toBe(false)
