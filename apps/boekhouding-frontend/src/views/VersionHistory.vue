@@ -28,6 +28,7 @@ const totalVersions = ref(0)
 const versionsPage = ref(1)
 const loadingMore = ref(false)
 const hasMoreVersions = computed(() => versions.value.length < totalVersions.value)
+const nextBatchSize = computed(() => Math.min(VERSIONS_PAGE_SIZE, totalVersions.value - versions.value.length))
 const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
@@ -849,7 +850,7 @@ function mapEditsToDiffFields(
             :disabled="loadingMore"
             @click="loadMoreVersions"
           >
-            Meer laden ({{ versions.length }} van {{ totalVersions }})
+            Laad de volgende {{ nextBatchSize }} versies
           </button>
         </div>
       </div>

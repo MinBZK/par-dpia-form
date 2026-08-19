@@ -653,6 +653,12 @@ a.card-link:hover {
   min-width: fit-content;
 }
 
+.version-list__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
 .desc-edit-btn {
   background: none;
   border: none;
