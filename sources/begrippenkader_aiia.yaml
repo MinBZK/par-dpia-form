@@ -1,0 +1,284 @@
+definitions:
+- term: acceptatiecriteria
+  definition: Op het beoogde doel en data afgestemde voorwaarden, waaraan het AI-systeem
+    moet voldoen. Dit kan bijvoorbeeld de hoeveelheid data zijn, een accuratessemaatstaf
+    voor de output(data) of het inrichten van een onafhankelijke controle van output.
+    Acceptatiecriteria moeten waar mogelijk meetbaar gemaakt worden zodat deze gemonitord
+    kunnen worden met een geschikt meetsysteem. Goede acceptatiecriteria zijn SMART
+    en voldoende verschillend zodat alle relevante aspecten van het AI-systeem goed
+    gemonitord worden.
+- term: accuraatheid
+  definition: Zeer nauwgezet, precies of zorgvuldig; als een systeem in staat is om
+    juiste en accurate beoordelingen te maken. In een formule (TP+TN)/(TP+TN+FP+FN),
+    waarbij TP staat voor werkelijk positief, TN voor werkelijk negatief, FP voor verkeerd
+    positief en FN voor verkeerd negatief. Hoe meer werkelijke resultaten ten opzichte
+    van verkeerde resultaten, hoe hoger de accuraatheid.
+- term: AI met beperkt risico
+  definition: De AI-verordening stelt vast wat beperkt risico AI is. AI ingericht op
+    interactie met mensen, emoties herkennen, of gemanipuleerde beelden produceren.
+    Denk aan spamfilters, het samenvatten van teksten, het classificeren van onderwerpen
+    van luchtvaartvoorvallen, of AI-systemen die kantoorverlichting regelen.
+- term: AI met hoog risico
+  definition: De AI-verordening stelt vast wat hoog-risico-AI is. Dit zijn vaak producten
+    die nauw te maken hebben met fundamentele rechten en/of productveiligheid. Denk
+    hierbij bijvoorbeeld aan AI in vliegtuigen, vaartuigen, voertuigen, rails, wegverkeer,
+    vliegnavigatie en drinkwatertoevoer. Altijd hoog risico is een AI-systeem dat individuen
+    profileert door middel van het verwerken van persoonlijke data. Daarnaast alle
+    AI-systemen op het gebied van niet-verboden biometrische gegevens; kritieke infrastructuur;
+    onderwijs en beroepsopleiding; werkgelegenheid; toegang tot en gebruik van essentiële
+    openbare en particuliere diensten; rechtshandhaving; migratie, asiel en grenscontroles;
+    rechtsbedeling en democratische processen.
+- term: AI met minimaal risico
+  definition: Alle AI-systemen die niet verboden zijn of onder AI met hoog risico of
+    AI met beperkt risico vallen.
+- term: AI-act
+  definition: Zie AI-verordening.
+- term: AI-systeem
+  definition: Een op een machine gebaseerd systeem dat is ontworpen om met verschillende
+    niveaus van autonomie te werken en dat na het inzetten ervan aanpassingsvermogen
+    kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen
+    input afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen
+    of beslissingen die van invloed kunnen zijn op fysieke of virtuele omgevingen.
+- term: AI-verordening
+  definition: Een Europese wet die regels stelt aan de ontwikkeling en het gebruik
+    van AI-systemen.
+- term: algoritme
+  definition: Een set van regels en instructies die een computer geautomatiseerd volgt
+    bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.
+- term: artificial intelligence
+  definition: >-
+    AI kent geen eenduidige definitie. Wij hanteren de omschrijving van AI
+    door de Algemene Rekenkamer: 'het vermogen [..] om externe gegevens correct te
+    interpreteren, om te leren van deze gegevens en om deze lessen te gebruiken om
+    specifieke doelen en taken te verwezenlijken via flexibele aanpassing'. Ook belichten
+    wij graag die van de Europese Commissie, alhoewel deze nog niet gehanteerd wordt
+    in dit document: AI omvat systemen die intelligent gedrag vertonen door hun omgeving
+    te analyseren en – met een zekere mate van zelfstandigheid – actie ondernemen om
+    specifieke doelen te bereiken.
+- term: AVG
+  definition: Algemene verordening gegevensbescherming. Deze privacywet regelt dat
+    bedrijven en organisaties persoonsgegevens zorgvuldig beschermen.
+- term: beheerorganisatie
+  definition: Een organisatie die applicatiebeheer van het AI-systeem inricht en optimaliseert.
+- term: belangengroep
+  definition: Samenstelling van stakeholders om diversiteit te meten. Dit kan zowel
+    een groep van eindgebruikers zijn als een groep van mensen die impact ervaren door
+    het systeem.
+- term: betrokkene
+  definition: Natuurlijk persoon of organisatie die bij het gebruik of de uitkomsten
+    van het systeem belang heeft, of belang denkt te hebben. Hier wordt bewust niet
+    het woord 'belanghebbende' gebruikt, omdat het meer omvat dan het in het bestuursrecht
+    gedefinieerde 'belanghebbende'. Denk aan burgers, een onder toezicht staande, maar
+    ook de eindgebruiker zelf.
+- term: betrouwbaar
+  definition: De eigenschap beschikken van consistent gedrag en consistente resultaten.
+- term: bias
+  definition: Vooringenomenheid. Het doen van aannames over dingen, mensen of groepen
+    die vaak niet gebaseerd zijn op werkelijke metingen.
+- term: bias in de input
+  definition: Kwaliteit, consistentie en integriteit van data is een belangrijke voorwaarde
+    voor een unbiased analyse.
+- term: bias in de output
+  definition: De manier waarop de output(data) wordt gebruikt kan invloed hebben op
+    de levens van mensen. Het is belangrijk dat hierbij geen onterechte correlatie
+    gaat leiden tot causaliteit.
+- term: bias in het model
+  definition: Hoe correct zijn de modellen; in hoeverre corrigeren ze voor bekende
+    gebreken in representativiteit van de data? Dit kan bijvoorbeeld ook gaan over
+    wat het AI-systeem leert en wat ongewenste leereffecten zijn.
+- term: BIO
+  definition: Baseline Informatiebeveiliging Overheid, het basisnormenkader voor informatiebeveiliging
+    binnen alle overheidslagen.
+- term: by design
+  definition: Bij het ontwerp al rekening houden met de geldende AI-, privacy- of security-wetgeving.
+    Denk aan AI, privacy en security by design.
+- term: CIO
+  definition: Chief Information Officer.
+- term: CISO
+  definition: Chief Information Security Officer.
+- term: corruptie
+  definition: Het misbruiken of uitbuiten van fouten van het systeem, of het uitbuiten
+    van ogenschijnlijk neutrale eigenschappen van het systeem. We maken onderscheid
+    met onbedoelde corruptie.
+- term: data bias
+  definition: Wanneer de steekproef niet representatief is voor de gehele populatie.
+- term: data pipeline
+  definition: Hoe de data vanuit het veld naar het model komt; het proces dat de data
+    doorloopt.
+- term: design bias
+  definition: Problemen in het technisch ontwerp, inclusief beperkingen van computerhulpmiddelen
+    zoals hardware en software.
+- term: diversiteit
+  definition: Hieronder verstaan we het herkennen van verschillende typen 'subjecten'
+    in onze analyses. Wij proberen hierbij te voorkomen dat groepen van relevante subjecten
+    onterecht niet worden meegenomen in het ontwikkelen van een AI-systeem, waardoor
+    het systeem niet op hen aansluit.
+- term: domeinexpert
+  definition: Iemand die veel kennis heeft over het probleemgebied waarin het AI-systeem
+    gebouwd wordt.
+- term: DPIA
+  definition: Data Protection Impact Assessment. Met deze tool breng je de privacyrisico's
+    van een gegevensverwerking in kaart.
+- term: eerlijkheid
+  definition: Als niet elk subject een gelijke behandeling krijgt, moet dat verklaard
+    kunnen worden. Hierbij is het van belang dat we zoveel mogelijk onderscheidende
+    subjectkenmerken in beeld hebben. Zowel om aan te kunnen tonen welke kenmerken
+    daadwerkelijk een rol spelen (en partij A een lager risico toebedelen dan partij
+    B) en welke kenmerken dit juist niet zijn (waardoor partij A en B een onderbouwd
+    gelijkwaardig risico hebben).
+- term: eindgebruiker
+  definition: Eindgebruikers zijn de personen die het AI-systeem in de praktijk toepassen
+    binnen de organisatie. Het gaat hierbij om een natuurlijk persoon. Wie zitten er
+    met de handen aan de knoppen? Wie vergaart binnen de organisatie informatie uit
+    het AI-systeem? Denk aan een inspecteur of een wegverkeersleider.
+- term: eindverantwoordelijke
+  definition: Een rol binnen de organisatie die de verantwoordelijkheid over het AI-systeem
+    draagt. Dat betekent bijvoorbeeld de verantwoordelijkheid over dat de juiste resultaten
+    van het AI-systeem bereikt worden. Dit is meestal de proceseigenaar.
+- term: entiteit
+  definition: Een functie binnen een afdeling van een organisatie.
+- term: gebruiker
+  definition: Volgens de AI-verordening "een (…) overheidsinstantie, agentschap of
+    ander orgaan die/dat een AI-systeem onder eigen verantwoordelijkheid gebruikt (…)".
+    De gebruiker zet het systeem in. Dit is nooit een natuurlijk persoon. Bijvoorbeeld
+    de ILT of RWS.
+- term: geen positieve impact
+  definition: Betrokkenen die niet per definitie negatieve impact ondervinden van de
+    inzet van het AI-systeem, maar bijvoorbeeld in dezelfde situatie blijven als daarvoor.
+    Daarbij kan een gevaar zijn dat deze betrokkenen niet dezelfde 'positieve impact'
+    van het AI-systeem ervaren die andere betrokkenen wel krijgen.
+- term: geen risico AI-systeem
+  definition: Alle AI die niet in de andere categorieën valt. Deze systemen zijn niet
+    gereguleerd door de AI-verordening.
+- term: gelijkheid
+  definition: Hieronder verstaan we de gedachte dat elk gelijksoortig subject een gelijke
+    behandeling krijgt.
+- term: generatieve AI
+  definition: Een specifieke vorm van AI waarbij algoritmes worden ingezet om content
+    te genereren. Met een eenvoudige opdracht, een 'prompt', kunnen gebruikers in een
+    handomdraai tekst, beeld, geluid of computercode genereren. Het bekendste voorbeeld
+    hiervan is ChatGPT.
+- term: governance
+  definition: De handeling of de wijze van besturen, de gedragscode en het toezicht
+    op organisaties. Het betreft beslissingen die verwachtingen bepalen, macht verlenen
+    of prestaties verifiëren. Het bestaat ofwel uit een afzonderlijk proces ofwel uit
+    een specifiek deel van management- of leiderschapsprocessen.
+- term: hackaanval
+  definition: Inbreken in het AI-systeem, met als gevolg bijvoorbeeld vervuiling van
+    data, het ongewenst uitlekken van (de werking van) een AI-systeem, of aantasting
+    van software of hardware.
+- term: in gebruik nemen
+  definition: Het moment dat een AI-systeem 'in gebruik wordt genomen' betekent het
+    moment waarop deze voor het eerst wordt ingezet in een proces. Hier gaat een externe
+    test of pilot aan vooraf. Op het moment van ingebruikname moet het AIIA af zijn.
+- term: input(data)
+  definition: Die gegevens welke worden verwerkt met een vooropgesteld doel. In de
+    context van een AI-systeem kunnen dit ruwe data zijn, bijvoorbeeld de waarnemingen
+    uit de werkelijkheid. In de context van het model zijn dit normaal gesproken voorbewerkte
+    data.
+- term: laag risico AI-systeem
+  definition: AI-systemen met een risico op manipulatie of bedrog. Deze AI-systemen
+    moeten transparant zijn en gebruikers moeten worden geïnformeerd over hun interactie
+    met de AI.
+- term: large language model
+  definition: Een LLM is een generatieve AI die tekst kan genereren. Het is getraind
+    op zeer grote datasets en bevat veel parameters.
+- term: metadata
+  definition: Gegevens die de eigenschappen van andere gegevens beschrijven. Bijvoorbeeld
+    van wie de gegevens zijn, of wie ze verstuurd heeft, of wanneer ze voor het laatst
+    gewijzigd zijn.
+- term: model
+  definition: Een (versimpelde) wiskundige vertegenwoordiging van de werkelijkheid,
+    welke wordt gebruikt om informatie te verwerken. In een AI-systeem wordt de wiskundige
+    vertegenwoordiging vaak deels of in zijn geheel volgens een algoritme 'geleerd',
+    waardoor zelfs door de ontwikkelaars niet volledig uit te leggen is hoe het model
+    aan diens uitkomsten komt.
+- term: moreel beraad
+  definition: Overlegorgaan Fysieke Leefomgeving (mei 2021), Moreel Beraad.
+- term: negatieve impact
+  definition: Betrokkenen die nadelige gevolgen ondervinden door de toepassing van
+    het AI-systeem, bijvoorbeeld omdat ze gediscrimineerd worden op basis van een bias
+    in het AI-systeem.
+- term: onaanvaardbaar risico AI-systeem
+  definition: AI-systemen die onderbewuste, manipulatieve of bedrieglijke technieken
+    hanteren; misbruik maken van kwetsbaarheden; biometrisch categoriseren; social
+    scoring hanteren; criminaliteitspotentie van individuen voorspellen; databases
+    voor gezichtsherkenning samenstellen; emoties afleiden; of live op afstand emoties
+    herkennen.
+- term: onbedoelde corruptie
+  definition: Zonder kwaadwillende bedoelingen de werking van het AI-systeem beïnvloeden
+    door bijvoorbeeld verkeerde input te voeden, of de verkeerde knoppen in te drukken.
+    Onbedoelde corruptie valt onder betrouwbaarheid. We maken onderscheid met (bedoelde)
+    corruptie.
+- term: ontwikkelaar
+  definition: Een organisatie of een persoon die een AI-systeem ontwerpt, ontwikkelt
+    en/of traint.
+- term: opdrachtgever
+  definition: Een persoon of organisatieonderdeel die een opdracht verstrekt aan een
+    opdrachtnemer. Deze is ook (samen met de projectleider) eindverantwoordelijk voor
+    het maken van een AIIA.
+- term: output(data)
+  definition: De gegevens die een AI-systeem oplevert. Dit zijn de resultaten van het
+    model.
+- term: parameter
+  definition: Een variabele binnen het model. Wanneer deze variabele gewijzigd wordt,
+    wordt ook de resulterende grootheid van het model of van de berekening gewijzigd.
+- term: positieve impact
+  definition: Betrokkenen die gunstige gevolgen ervaren van de inzet van het AI-systeem.
+    Denk aan een minderheidsgroep die wordt bevoordeeld. Daarbij kan het gevaar zijn
+    dat deze positieve bias te optimistisch is, en dus niet waarheidsgetrouw. Ook kan
+    de keerzijde hiervan een 'negatieve impact' voor andere betrokkenen zijn.
+- term: projectleider
+  definition: De eindverantwoordelijke voor het project waarbinnen het AI-systeem valt.
+    Deze is ook (samen met de opdrachtgever) eindverantwoordelijk voor het maken van
+    een AIIA.
+- term: proportioneel
+  definition: Proportionaliteit gaat over een redelijke verhouding tussen het doel
+    en de ingezette oplossing. Staat het gebruik van AI in verhouding tot het probleem
+    dat er met het algoritme opgelost gaat worden? Het verwachte voordeel moet groter
+    zijn dan het risico dat AI met zich meebrengt.
+- term: reproduceerbaar
+  definition: Het steeds opnieuw kunnen bereiken van een vergelijkbaar resultaat wanneer
+    een beschreven procedure wordt uitgevoerd.
+- term: robuustheid
+  definition: Met een preventieve benadering ontwikkeld zijn; zich gedragen zoals voorzien
+    en van tevoren beschreven. Onaanvaardbare schade vermijden.
+- term: seed
+  definition: Een 'seed' is het uitgangspunt van een willekeurigegetallengenerator.
+    Deze generator maakt altijd vanuit dit uitgangspunt volgens dezelfde 'route' nieuwe
+    (pseudo)willekeurige getallen. Door de 'seed' te documenteren kan de 'route' van
+    (pseudo)willekeurige getallen worden herhaald. Dit betekent dat deze seed nodig
+    is om reconstructie van een model te controleren wanneer het model ergens gebruik
+    maakt van willekeurige getallen. De seed zelf is ook een getal; er zijn geen specifieke
+    eisen aan dit getal, dus vaak wordt er voor iets 'herkenbaars' gekozen (bijvoorbeeld
+    '123456', '0', '42', '1234' of de geboortedatum van een ontwikkelaar).
+- term: selectielijst
+  definition: Een lijst die beschrijft hoe lang archiefstukken bewaard moeten worden,
+    bijvoorbeeld op basis van de Archiefwet.
+- term: stakeholder
+  definition: Persoon of organisatie die een beslissing of activiteit kan beïnvloeden,
+    erdoor kan worden beïnvloed, of zichzelf als beïnvloed beschouwt. Een stakeholder
+    kan bijvoorbeeld ook de eigenaar van gebruikte data zijn.
+- term: subsidiair
+  definition: Subsidiariteit gaat over het inzetten van het minst ingrijpende middel
+    dat het probleem oplost. Kan het probleem ook met minder vergaande middelen opgelost
+    worden?
+- term: toepassingsgebied
+  definition: Term uit de AI-wetgeving die gebruikt wordt om de context waarin een
+    AI-systeem gebruikt wordt aan te duiden. Denk bijvoorbeeld aan infrastructuur.
+- term: traceerbaarheid
+  definition: Wanneer processen en resultaten te controleren zijn.
+- term: transparant
+  definition: Wanneer de werking en doelen van het AI-systeem duidelijk worden gecommuniceerd
+    en resultaten van het AI-systeem uitlegbaar zijn.
+- term: type algoritmes
+  definition: Verschillende technieken kunnen gebruikt worden om AI te maken, zoals
+    neurale netwerken, random forests of andere vormen van machine learning. Maar ook
+    minder complexe algoritmes zoals business rules of beslisbomen kunnen gebruikt
+    worden.
+- term: uitlegbaar
+  definition: Een verklaring van hoe inputvariabelen bijdragen aan een output van het
+    algoritme die uitgelegd moet worden.
+- term: verantwoordelijk
+  definition: Handelingen van een entiteit kunnen op unieke wijze worden herleid tot
+    die entiteit, en deze entiteit is voor deze handelingen aansprakelijk.

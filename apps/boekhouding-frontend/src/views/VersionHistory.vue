@@ -63,6 +63,20 @@ const fieldRestoreDialogRef = ref<HTMLDialogElement | null>(null)
 const fieldRestoreModalOpen = ref(false)
 const fieldRestoreTarget = ref<{ fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number } | null>(null)
 
+// Namespace prefix of a field id (or a urn's namespace) to the form it belongs to.
+// Unknown values fall back to the pre-scan namespace, as the oldest exports carry
+// no namespace at all.
+const FORM_TYPE_BY_NAMESPACE: Record<string, FormType> = {
+  dpia: FormType.DPIA,
+  iama: FormType.IAMA,
+  aiia: FormType.AIIA,
+  prescan: FormType.PRE_SCAN,
+}
+
+function formTypeForNamespace(namespace: string | undefined): FormType {
+  return (namespace && FORM_TYPE_BY_NAMESPACE[namespace]) || FormType.PRE_SCAN
+}
+
 function openFieldRestoreModal(field: { fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number }) {
   openMenuField.value = null
   fieldRestoreTarget.value = field
@@ -138,9 +152,7 @@ async function handleFieldRestore() {
         // Repeatable field: find parent group and update element in grouped array
         const taskId = indexMatch[1]
         const index = parseInt(indexMatch[2])
-        const formType = parsed.namespace === 'dpia' ? FormType.DPIA
-          : parsed.namespace === 'iama' ? FormType.IAMA
-          : FormType.PRE_SCAN
+        const formType = formTypeForNamespace(parsed.namespace)
         const flatTasks = taskStore.getTasksFromNamespace(formType)
         const task = flatTasks?.[taskId]
         const parentId = task?.parentId
@@ -241,14 +253,20 @@ watch(fieldRestoreModalOpen, (open) => {
 onMounted(async () => {
   // Load schemas so task labels can be resolved in diffs
   if (!schemaStore.isInitialized) {
-    const [dpiaModule, preScanModule, iamaModule] = await Promise.all([
+    const [dpiaModule, preScanModule, iamaModule, aiiaModule] = await Promise.all([
       import('../../../../sources/generated/DPIA.json'),
       import('../../../../sources/generated/PreScanDPIA.json'),
       import('../../../../sources/generated/IAMA.json'),
+      import('../../../../sources/generated/AIIA.json'),
     ])
-    schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
+    schemaStore.init({
+      preScan: preScanModule.default,
+      dpia: dpiaModule.default,
+      iama: iamaModule.default,
+      aiia: aiiaModule.default,
+    })
   }
-  for (const ns of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+  for (const ns of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]) {
     if (!taskStore.isInitialized[ns]) {
       const schema = schemaStore.getSchema(ns)
       if (schema) {
@@ -392,6 +410,7 @@ const namespaceLabels: Record<string, string> = {
   dpia: 'DPIA',
   prescan: 'Pre-scan DPIA',
   iama: 'IAMA',
+  aiia: 'AIIA',
 }
 
 function stripInstanceSuffix(taskId: string): string {
@@ -407,9 +426,7 @@ function getFieldLabel(fieldId: string): { label: string; groupLabel?: string } 
   const taskId = stripInstanceSuffix(raw)
   const indexMatch = raw.match(/\[(\d+)\]$/)
 
-  const formType = ns === 'dpia' ? FormType.DPIA
-    : ns === 'iama' ? FormType.IAMA
-    : FormType.PRE_SCAN
+  const formType = formTypeForNamespace(ns)
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.task) {
@@ -465,9 +482,7 @@ function getFieldOptions(fieldId: string): Record<string, string> | null {
   const ns = fieldId.substring(0, dotIndex)
   const taskId = stripInstanceSuffix(fieldId.substring(dotIndex + 1))
 
-  const formType = ns === 'dpia' ? FormType.DPIA
-    : ns === 'iama' ? FormType.IAMA
-    : FormType.PRE_SCAN
+  const formType = formTypeForNamespace(ns)
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.options && task.options.length > 0) {
@@ -672,9 +687,7 @@ function mapEditsToDiffFields(
     if (edit.editType === 'instance_added' || edit.editType === 'instance_removed') {
       const parsed = parseFieldId(edit.fieldId)
       const taskId = parsed?.key.replace(/\[\d+\]$/, '') ?? dotId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
-        : parsed?.namespace === 'iama' ? FormType.IAMA
-        : FormType.PRE_SCAN
+      const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
       const indexMatch = parsed?.key.match(/\[(\d+)\]$/)
@@ -704,9 +717,7 @@ function mapEditsToDiffFields(
     if (edit.editType === 'section_complete') {
       const parsed = parseFieldId(edit.fieldId)
       const taskId = parsed ? (parsed.key.startsWith('completed.') ? parsed.key.substring('completed.'.length) : parsed.key) : edit.fieldId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
-        : parsed?.namespace === 'iama' ? FormType.IAMA
-        : FormType.PRE_SCAN
+      const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
       result.push({

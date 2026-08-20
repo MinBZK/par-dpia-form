@@ -31,11 +31,10 @@ const currentView = ref<ViewState>(ViewState.Landing)
 
 // Which assessments have saved progress in localStorage. Recomputed whenever
 // the landing page is shown, since localStorage is not reactive.
+const ALL_TYPES: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]
 const cachedTypes = ref<FormType[]>([])
 const refreshCachedTypes = () => {
-  cachedTypes.value = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].filter((type) =>
-    persistence.hasSavedState(type),
-  )
+  cachedTypes.value = ALL_TYPES.filter((type) => persistence.hasSavedState(type))
 }
 refreshCachedTypes()
 
@@ -64,6 +63,12 @@ const navigationFunctions: NavigationFunctions = {
     taskStore.isInitialized[FormType.IAMA] = false
     navigateTo(ViewState.IAMA)
   },
+  goToAIIA: () => {
+    taskStore.setActiveNamespace(FormType.AIIA)
+    answerStore.setActiveNamespace(FormType.AIIA)
+    taskStore.isInitialized[FormType.AIIA] = false
+    navigateTo(ViewState.AIIA)
+  },
 }
 
 // "Nieuwe starten": discard the saved session, then open a fresh form.
@@ -71,6 +76,7 @@ const goByType: Record<FormType, () => void> = {
   [FormType.PRE_SCAN]: () => navigationFunctions.goToPreScanDPIA(),
   [FormType.DPIA]: () => navigationFunctions.goToDPIA(),
   [FormType.IAMA]: () => navigationFunctions.goToIAMA!(),
+  [FormType.AIIA]: () => navigationFunctions.goToAIIA!(),
 }
 const startFresh = (type: FormType) => {
   persistence.clearSavedState(type)
@@ -119,6 +125,16 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
     :namespace="FormType.IAMA"
     :validData="schemaStore.getSchema(FormType.IAMA)"
     :autoStart="isResume(FormType.IAMA)"
+    bannerTitle="Invulhulpen"
+  />
+
+  <!-- AIIA Form -->
+  <Form
+    v-if="currentView === ViewState.AIIA"
+    :navigation="navigationFunctions"
+    :namespace="FormType.AIIA"
+    :validData="schemaStore.getSchema(FormType.AIIA)"
+    :autoStart="isResume(FormType.AIIA)"
     bannerTitle="Invulhulpen"
   />
 </template>

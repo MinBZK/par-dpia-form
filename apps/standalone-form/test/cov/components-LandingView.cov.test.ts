@@ -9,6 +9,7 @@ function makeNavigation(): NavigationFunctions {
     goToDPIA: vi.fn(),
     goToPreScanDPIA: vi.fn(),
     goToIAMA: vi.fn(),
+    goToAIIA: vi.fn(),
   }
 }
 
@@ -32,7 +33,7 @@ describe('LandingView rendering', () => {
     const wrapper = mountLanding()
 
     expect(wrapper.find('h1.utrecht-heading-1').text()).toBe(
-      'Invulhulpen voor pre-scan, DPIA en IAMA',
+      'Invulhulpen voor pre-scan, DPIA, IAMA en AIIA',
     )
     expect(wrapper.findComponent({ name: 'AppBanner' }).exists()).toBe(true)
   })
@@ -49,23 +50,24 @@ describe('LandingView rendering', () => {
     expect(headings).toContain('Pre-scan')
     expect(headings).toContain('DPIA')
     expect(headings).toContain('IAMA')
+    expect(headings).toContain('AIIA')
 
     expect(wrapper.text()).toContain('Toets of een DPIA, DTIA, IAMA of KIA nodig is.')
     expect(wrapper.text()).toContain('Vul stap voor stap het rijksmodel DPIA in.')
   })
 
-  it('renders all three start buttons with the correct Dutch labels when no cache exists', () => {
+  it('renders all four start buttons with the correct Dutch labels when no cache exists', () => {
     const wrapper = mountLanding()
 
     const buttonLabels = wrapper.findAll('button.card-button').map((b) => b.text())
-    expect(buttonLabels).toEqual(['Start pre-scan', 'Start DPIA', 'Start IAMA'])
+    expect(buttonLabels).toEqual(['Start pre-scan', 'Start DPIA', 'Start IAMA', 'Start AIIA'])
   })
 
   it('renders the "Over deze tools" informational section', () => {
     const wrapper = mountLanding()
 
     expect(wrapper.text()).toContain('Over deze tools')
-    expect(wrapper.text()).toContain('pre-scan, DPIA en het IAMA')
+    expect(wrapper.text()).toContain('pre-scan, DPIA, het IAMA en de AIIA')
   })
 
   it('shows the build version from the app-version meta tag', () => {
@@ -116,6 +118,26 @@ describe('LandingView navigation interaction (no cache)', () => {
     await clickButtonByText(wrapper, 'Start IAMA')
 
     expect(navigation.goToIAMA).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls navigation.goToAIIA when the AIIA button is clicked', async () => {
+    const navigation = makeNavigation()
+    const wrapper = mountLanding({ navigation })
+
+    await clickButtonByText(wrapper, 'Start AIIA')
+
+    expect(navigation.goToAIIA).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not throw when the AIIA button is clicked without a goToAIIA handler', async () => {
+    const navigation: NavigationFunctions = {
+      goToLanding: vi.fn(),
+      goToDPIA: vi.fn(),
+      goToPreScanDPIA: vi.fn(),
+    }
+    const wrapper = mountLanding({ navigation })
+
+    await expect(clickButtonByText(wrapper, 'Start AIIA')).resolves.not.toThrow()
   })
 
   it('does not throw when the IAMA button is clicked without a goToIAMA handler', async () => {

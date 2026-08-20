@@ -23,7 +23,7 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
 
   const detectedType = detectImportType(json)
   if (!detectedType) {
-    throw new Error('Bestand bevat geen DPIA-, pre-scan- of IAMA-antwoorden')
+    throw new Error('Bestand bevat geen DPIA-, pre-scan-, IAMA- of AIIA-antwoorden')
   }
 
   // Migrate v1 nanoid keys if needed (uses old taskInstances for ID mapping)
@@ -33,7 +33,7 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
   return normalizeToState(migrated as any, detectedType)
 }
 
-export type ImportType = 'dpia' | 'prescan' | 'iama' | null
+export type ImportType = 'dpia' | 'prescan' | 'iama' | 'aiia' | null
 
 export const detectImportType = (json: Record<string, unknown>): ImportType => {
   const urn = (json.metadata as Record<string, unknown>)?.urn as string | undefined
@@ -41,12 +41,14 @@ export const detectImportType = (json: Record<string, unknown>): ImportType => {
     if (urn.startsWith('urn:nl:dpia')) return 'dpia'
     if (urn.startsWith('urn:nl:prescan')) return 'prescan'
     if (urn.startsWith('urn:nl:iama')) return 'iama'
+    if (urn.startsWith('urn:nl:aiia')) return 'aiia'
   }
 
   const answers = json.answers as Record<string, unknown> | undefined
   if (answers?.[FormType.DPIA] && Object.keys(answers[FormType.DPIA] as object).length > 0) return 'dpia'
   if (answers?.[FormType.PRE_SCAN] && Object.keys(answers[FormType.PRE_SCAN] as object).length > 0) return 'prescan'
   if (answers?.[FormType.IAMA] && Object.keys(answers[FormType.IAMA] as object).length > 0) return 'iama'
+  if (answers?.[FormType.AIIA] && Object.keys(answers[FormType.AIIA] as object).length > 0) return 'aiia'
 
   if (answers && Object.keys(answers).length > 0) {
     return 'dpia'
@@ -61,20 +63,27 @@ export const namespaceFromUrn = (urn: string | undefined): FormType | null => {
   if (urn.startsWith('urn:nl:dpia')) return FormType.DPIA
   if (urn.startsWith('urn:nl:prescan')) return FormType.PRE_SCAN
   if (urn.startsWith('urn:nl:iama')) return FormType.IAMA
+  if (urn.startsWith('urn:nl:aiia')) return FormType.AIIA
   return null
 }
 
+// What a mismatching import is told it should have contained, per active form.
+const MISMATCH_LABEL: Record<FormType, string> = {
+  [FormType.IAMA]: 'IAMA-',
+  [FormType.AIIA]: 'AIIA-',
+  [FormType.DPIA]: 'DPIA- of pre-scan-',
+  [FormType.PRE_SCAN]: 'pre-scan- of DPIA-',
+}
+
 // Reject an import that belongs to another form: DPIA and pre-scan accept each
-// other's file (cross-form prefill), IAMA only its own. Legacy files without
-// urn cannot be classified reliably and are accepted as-is.
+// other's file (cross-form prefill), IAMA and AIIA only their own. Legacy files
+// without urn cannot be classified reliably and are accepted as-is.
 export const assertImportMatchesNamespace = (state: AssessmentState, active: FormType): void => {
   const detected = namespaceFromUrn(state.metadata.urn)
   if (!detected || detected === active) return
   const dpiaFamily = [FormType.DPIA, FormType.PRE_SCAN]
   if (dpiaFamily.includes(detected) && dpiaFamily.includes(active)) return
-  const expected =
-    active === FormType.IAMA ? 'IAMA-' : active === FormType.DPIA ? 'DPIA- of pre-scan-' : 'pre-scan- of DPIA-'
-  throw new Error(`Dit bestand bevat geen ${expected}gegevens.`)
+  throw new Error(`Dit bestand bevat geen ${MISMATCH_LABEL[active]}gegevens.`)
 }
 
 export const deriveCompletedRootTaskIds = (answerKeys: string[]): string[] => {
@@ -91,17 +100,21 @@ export const deriveCompletedRootTaskIds = (answerKeys: string[]): string[] => {
  * Handles old namespace-wrapped and new flat formats.
  * Flattens grouped arrays; puts completedTasks in metadata.
  */
-export const normalizeToState = (json: Record<string, unknown>, detectedType: 'dpia' | 'prescan' | 'iama'): AssessmentState => {
+const NAMESPACE_BY_IMPORT_TYPE: Record<Exclude<ImportType, null>, FormType> = {
+  dpia: FormType.DPIA,
+  prescan: FormType.PRE_SCAN,
+  iama: FormType.IAMA,
+  aiia: FormType.AIIA,
+}
+
+export const normalizeToState = (json: Record<string, unknown>, detectedType: Exclude<ImportType, null>): AssessmentState => {
   const answers = json.answers as Record<string, unknown> | undefined
   const metadata = json.metadata as Record<string, unknown> | undefined
-  const namespace = detectedType === 'dpia'
-    ? FormType.DPIA
-    : detectedType === 'iama'
-      ? FormType.IAMA
-      : FormType.PRE_SCAN
+  const namespace = NAMESPACE_BY_IMPORT_TYPE[detectedType]
 
   // Detect old namespace-wrapped format and unwrap.
-  const isNamespaced = answers?.[FormType.PRE_SCAN] || answers?.[FormType.DPIA] || answers?.[FormType.IAMA]
+  const isNamespaced =
+    answers?.[FormType.PRE_SCAN] || answers?.[FormType.DPIA] || answers?.[FormType.IAMA] || answers?.[FormType.AIIA]
   const unwrapped = (isNamespaced
     ? ((answers?.[namespace] || {}) as Record<string, unknown>)
     : (answers || {})) as Record<string, unknown>

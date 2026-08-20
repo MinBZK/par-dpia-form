@@ -29,7 +29,7 @@ const {
   fieldClickHolder,
 } = vi.hoisted(() => {
   const { reactive, ref } = require('vue')
-  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama' } as const
+  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama', AIIA: 'aiia' } as const
 
   const schemaStore = reactive({
     isInitialized: false,
@@ -419,6 +419,15 @@ describe('AssessmentEditor — onMounted initialization', () => {
     const wrapper = await mountEditor()
     expect(wrapper.text()).toContain('IAMA')
     expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('iama')
+    wrapper.unmount()
+  })
+
+  it('labels an AIIA assessment as "AIIA" and uses the aiia namespace', async () => {
+    schemaStore.isInitialized = true
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'aiia' }))
+    const wrapper = await mountEditor()
+    expect(wrapper.text()).toContain('AIIA')
+    expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('aiia')
     wrapper.unmount()
   })
 

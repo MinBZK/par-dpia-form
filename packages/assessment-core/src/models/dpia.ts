@@ -4,6 +4,7 @@ export enum FormType {
   PRE_SCAN = 'prescan',
   DPIA = 'dpia',
   IAMA = 'iama',
+  AIIA = 'aiia',
 }
 
 export const TaskTypeValue = t.union([
@@ -110,6 +111,7 @@ export const TaskReferences = t.partial({
   prescanModelId: t.string,
   DPIA: t.array(TaskReference),
   IAMA: t.array(TaskReference),
+  AIIA: t.array(TaskReference),
 })
 
 export type TaskReferences = t.TypeOf<typeof TaskReferences>

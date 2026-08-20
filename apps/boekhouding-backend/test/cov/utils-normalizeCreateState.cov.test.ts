@@ -27,6 +27,7 @@ describe('normalizeCreateState', () => {
   it('derives the URN from the assessment type', () => {
     expect((normalizeCreateState({}, 'prescan').metadata as Record<string, unknown>).urn).toBe('urn:nl:prescan:2.0')
     expect((normalizeCreateState({}, 'iama').metadata as Record<string, unknown>).urn).toBe('urn:nl:iama:2.0')
+    expect((normalizeCreateState({}, 'aiia').metadata as Record<string, unknown>).urn).toBe('urn:nl:aiia:2.0')
   })
 
   it('preserves values the client did provide and never overwrites them', () => {

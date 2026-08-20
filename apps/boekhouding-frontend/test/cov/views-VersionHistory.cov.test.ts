@@ -35,6 +35,7 @@ enum FormType {
   DPIA = 'dpia',
   PRE_SCAN = 'prescan',
   IAMA = 'iama',
+  AIIA = 'aiia',
 }
 
 const flatTaskMap: Record<string, Record<string, any>> = {
@@ -47,6 +48,7 @@ const taskInitialized = {
   [FormType.DPIA]: false,
   [FormType.PRE_SCAN]: false,
   [FormType.IAMA]: false,
+  [FormType.AIIA]: false,
 }
 
 const schemaInit = vi.fn(() => {
@@ -70,6 +72,7 @@ vi.mock('@overheid-assessment/core', () => ({
     DPIA: 'dpia',
     PRE_SCAN: 'prescan',
     IAMA: 'iama',
+    AIIA: 'aiia',
   },
   OUTPUT_SCHEMA_URL: 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json',
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
@@ -117,6 +120,7 @@ function setTasks(tasks: Partial<Record<FormType, Record<string, any>>>) {
   flatTaskMap[FormType.DPIA] = tasks[FormType.DPIA] ?? {}
   flatTaskMap[FormType.PRE_SCAN] = tasks[FormType.PRE_SCAN] ?? {}
   flatTaskMap[FormType.IAMA] = tasks[FormType.IAMA] ?? {}
+  flatTaskMap[FormType.AIIA] = tasks[FormType.AIIA] ?? {}
 }
 
 function mountView() {
@@ -154,9 +158,11 @@ beforeEach(() => {
   taskInitialized[FormType.DPIA] = true
   taskInitialized[FormType.PRE_SCAN] = true
   taskInitialized[FormType.IAMA] = true
+  taskInitialized[FormType.AIIA] = true
   flatTaskMap[FormType.DPIA] = {}
   flatTaskMap[FormType.PRE_SCAN] = {}
   flatTaskMap[FormType.IAMA] = {}
+  flatTaskMap[FormType.AIIA] = {}
 
   // jsdom <dialog> lacks showModal/close; stub them so the watchers don't throw.
   if (!(HTMLDialogElement.prototype as any).showModal) {
@@ -188,16 +194,18 @@ describe('VersionHistory — mount & onMounted', () => {
     taskInitialized[FormType.DPIA] = false
     taskInitialized[FormType.PRE_SCAN] = false
     taskInitialized[FormType.IAMA] = false
+    taskInitialized[FormType.AIIA] = false
     apiVersions.mockResolvedValue([])
     const wrapper = mountView()
     expect(wrapper.text()).toContain('Laden...')
     await flush()
 
     expect(schemaInit).toHaveBeenCalled()
-    expect(taskInit).toHaveBeenCalledTimes(3)
+    expect(taskInit).toHaveBeenCalledTimes(4)
     expect(setActiveNamespace).toHaveBeenCalledWith(FormType.DPIA)
     expect(setActiveNamespace).toHaveBeenCalledWith(FormType.PRE_SCAN)
     expect(setActiveNamespace).toHaveBeenCalledWith(FormType.IAMA)
+    expect(setActiveNamespace).toHaveBeenCalledWith(FormType.AIIA)
 
     expect(wrapper.text()).toContain('Geen versies gevonden.')
   })
@@ -2266,6 +2274,46 @@ describe('VersionHistory — remaining branch coverage', () => {
       expect(wrapper.find('.diff-field').text()).toContain('2.1. Betrokkenen #1')
       expect(wrapper.text()).toContain('Naam')
       expect(wrapper.text()).toContain('inhoud')
+    })
+
+    it('labels an aiia answer_change via the AIIA namespace', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'aiia.1.1',
+          editType: 'answer_change',
+          oldValue: { value: 'oud' },
+          newValue: { value: 'nieuw' },
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {
+          [FormType.AIIA]: {
+            '1.1': { id: '1.1', task: '<p>Doel van het AI-systeem</p>', is_official_id: true },
+          },
+        },
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('1.1. Doel van het AI-systeem')
+      expect(wrapper.find('.diff-old').text()).toContain('oud')
+      expect(wrapper.find('.diff-new').text()).toContain('nieuw')
+    })
+
+    it('renders an aiia section_complete edit', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:aiia:2.0?=task_id=completed.2',
+          editType: 'section_complete',
+          oldValue: false,
+          newValue: true,
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        { [FormType.AIIA]: { '2': { id: '2', task: '<p>Data</p>' } } },
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('Status sectie 2 "Data"')
     })
 
     it('restores a repeatable iama answer_change (handleFieldRestore IAMA branch)', async () => {

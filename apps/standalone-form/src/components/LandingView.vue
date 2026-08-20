@@ -50,6 +50,14 @@ const cards: AssessmentCard[] = [
     freshLabel: 'Start nieuwe IAMA',
     start: () => props.navigation.goToIAMA?.(),
   },
+  {
+    type: FormType.AIIA,
+    title: 'AIIA',
+    description: 'Vul stap voor stap de AI Impact Assessment in.',
+    startLabel: 'Start AIIA',
+    freshLabel: 'Start nieuwe AIIA',
+    start: () => props.navigation.goToAIIA?.(),
+  },
 ]
 
 function hasCache(type: FormType): boolean {
@@ -105,7 +113,7 @@ async function downloadOfflineApp() {
   <AppBanner title="Invulhulpen" />
   <div class="rvo-layout-column rvo-layout-gap--3xl rvo-margin-block-start--xl">
     <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-      <h1 class="utrecht-heading-1">Invulhulpen voor pre-scan, DPIA en IAMA</h1>
+      <h1 class="utrecht-heading-1">Invulhulpen voor pre-scan, DPIA, IAMA en AIIA</h1>
       <div class="rvo-layout-grid-container rvo-margin-inline-end--md">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
           <div
@@ -198,7 +206,7 @@ async function downloadOfflineApp() {
       <div class="rvo-margin-block-end--xl">
         <h2 class="utrecht-heading-2">Over deze tools</h2>
         <p>
-          De tools op deze pagina helpen je bij het initieel invullen van de pre-scan, DPIA en het IAMA. Ze sluiten aan op rijksbrede kaders. Het product van deze tools kan je exporteren en omvat alle relevante blokken die in het rapportagemodel moeten staan.
+          De tools op deze pagina helpen je bij het initieel invullen van de pre-scan, DPIA, het IAMA en de AIIA. Ze sluiten aan op rijksbrede kaders. Het product van deze tools kan je exporteren en omvat alle relevante blokken die in het rapportagemodel moeten staan.
         </p>
         <p>
           Zie ook: <a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a>
