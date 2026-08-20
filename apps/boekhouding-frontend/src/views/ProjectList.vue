@@ -2,12 +2,16 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, type Project } from '../api'
+import { usePaginatedList } from '../composables/usePaginatedList'
 import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
 const router = useRouter()
-const projectList = ref<Project[]>([])
+const {
+  items: projectList, loadingMore, loadError, loadStatus, statusRef,
+  hasMore, nextBatchSize, loadFirst, loadMore,
+} = usePaginatedList<Project>((page, pageSize) => projectsApi.list(page, pageSize), (p) => p.id)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const showCreateForm = ref(false)
@@ -16,7 +20,7 @@ const newProjectDescription = ref('')
 
 onMounted(async () => {
   try {
-    projectList.value = await projectsApi.list()
+    await loadFirst()
   } catch {
     error.value = 'Kan projecten niet laden. Probeer het later opnieuw.'
   } finally {
@@ -66,6 +70,18 @@ const handleCreate = async () => {
           </div>
         </router-link>
       </div>
+
+      <div v-if="hasMore" class="version-list__more">
+        <button
+          class="rvo-button rvo-button--secondary rvo-button--size-sm"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          Laad de volgende {{ nextBatchSize }} projecten
+        </button>
+      </div>
+      <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
+      <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
       <div v-if="!showCreateForm">
         <button class="rvo-button rvo-button--primary rvo-button--size-md rvo-button--icon-before" @click="showCreateForm = true">

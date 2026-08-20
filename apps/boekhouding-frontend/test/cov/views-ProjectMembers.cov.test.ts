@@ -17,7 +17,10 @@ const membersUpdate = vi.fn()
 const membersRemove = vi.fn()
 vi.mock('../../src/api', () => ({
   members: {
-    list: (...args: unknown[]) => membersList(...args),
+    list: async (...args: unknown[]) => {
+      const r = await membersList(...args)
+      return Array.isArray(r) ? { items: r, total: r.length } : r
+    },
     add: (...args: unknown[]) => membersAdd(...args),
     update: (...args: unknown[]) => membersUpdate(...args),
     remove: (...args: unknown[]) => membersRemove(...args),
@@ -88,7 +91,7 @@ describe('ProjectMembers', () => {
 
       expect(wrapper.text()).not.toContain('Laden...')
       expect(wrapper.find('.member-list').exists()).toBe(true)
-      expect(membersList).toHaveBeenCalledWith('p1')
+      expect(membersList).toHaveBeenCalledWith('p1', 1, 100)
     })
 
     it('loads members and renders one row per member', async () => {
@@ -181,7 +184,7 @@ describe('ProjectMembers', () => {
       await flushPromises()
 
       expect(membersAdd).toHaveBeenCalledWith('p1', 'new@example.com', 'editor')
-      expect(membersList).toHaveBeenCalledWith('p1')
+      expect(membersList).toHaveBeenCalledWith('p1', 1, 100)
       expect((emailInput.element as HTMLInputElement).value).toBe('')
     })
 
@@ -226,7 +229,7 @@ describe('ProjectMembers', () => {
       await selects[1].setValue('viewer')
       await flushPromises()
       expect(membersUpdate).toHaveBeenCalledWith('p1', 'ed1', 'viewer')
-      expect(membersList).toHaveBeenCalledWith('p1')
+      expect(membersList).toHaveBeenCalledWith('p1', 1, 100)
     })
 
     it('shows the error message when update() rejects (catch branch)', async () => {
@@ -273,6 +276,8 @@ describe('ProjectMembers', () => {
 
     it('removes the member from the list on confirm (success branch)', async () => {
       const wrapper = await mountPage()
+      // After the remove the list is re-fetched; the server now returns only the owner.
+      membersList.mockResolvedValueOnce([owner])
       const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
       vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
       vi.spyOn(dialog, 'close').mockImplementation(() => {})
@@ -334,5 +339,30 @@ describe('ProjectMembers', () => {
 
       expect(membersRemove).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('ProjectMembers — load more', () => {
+  it('shows a load-more button and appends the next page', async () => {
+    membersList
+      .mockResolvedValueOnce({ items: [owner, editor], total: 3 })
+      .mockResolvedValueOnce({ items: [owner2], total: 3 })
+    const wrapper = await mountPage()
+    const more = wrapper.find('.version-list__more button')
+    expect(more.exists()).toBe(true)
+    expect(more.text()).toContain('leden')
+    await more.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('shows an error when loading more fails', async () => {
+    membersList
+      .mockResolvedValueOnce({ items: [owner, editor], total: 3 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = await mountPage()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })
 })

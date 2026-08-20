@@ -2,12 +2,16 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { members as membersApi, type Member } from '../api'
+import { usePaginatedList } from '../composables/usePaginatedList'
 import AppHeader from '../components/AppHeader.vue'
 
 const props = defineProps<{ projectId: string }>()
 const router = useRouter()
 
-const memberList = ref<Member[]>([])
+const {
+  items: memberList, loadingMore, loadError, loadStatus, statusRef,
+  hasMore, nextBatchSize, loadFirst, loadMore,
+} = usePaginatedList<Member>((page, pageSize) => membersApi.list(props.projectId, page, pageSize), (m) => m.userId)
 const loading = ref(true)
 const inviteEmail = ref('')
 const inviteRole = ref<'owner' | 'editor' | 'commenter' | 'viewer'>('editor')
@@ -19,7 +23,7 @@ const isOnlyOwner = (member: Member) => member.role === 'owner' && ownerCount.va
 
 onMounted(async () => {
   try {
-    memberList.value = await membersApi.list(props.projectId)
+    await loadFirst()
   } catch {
     error.value = 'Kan leden niet laden. Probeer het later opnieuw.'
   } finally {
@@ -33,7 +37,7 @@ const handleInvite = async () => {
 
   try {
     await membersApi.add(props.projectId, inviteEmail.value, inviteRole.value)
-    memberList.value = await membersApi.list(props.projectId)
+    await loadFirst()
     inviteEmail.value = ''
   } catch (e: any) {
     error.value = e.message
@@ -44,7 +48,7 @@ const handleRoleChange = async (member: Member, newRole: string) => {
   error.value = null
   try {
     await membersApi.update(props.projectId, member.userId, newRole)
-    memberList.value = await membersApi.list(props.projectId)
+    await loadFirst()
   } catch (e: any) {
     error.value = e.message
   }
@@ -79,7 +83,7 @@ const confirmRemove = async () => {
   error.value = null
   try {
     await membersApi.remove(props.projectId, memberToDelete.value.userId)
-    memberList.value = memberList.value.filter(m => m.userId !== memberToDelete.value!.userId)
+    await loadFirst()
   } catch (e: any) {
     error.value = e.message
   } finally {
@@ -141,6 +145,18 @@ const whoLabel = (member: Member) => {
           </span>
         </div>
       </div>
+
+      <div v-if="hasMore" class="version-list__more">
+        <button
+          class="rvo-button rvo-button--secondary rvo-button--size-sm"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          Laad de volgende {{ nextBatchSize }} leden
+        </button>
+      </div>
+      <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
+      <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
       <h2 class="utrecht-heading-2">Lid toevoegen</h2>
 
