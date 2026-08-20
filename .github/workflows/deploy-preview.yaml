@@ -9,6 +9,15 @@ on:
       - reopened
       - synchronize
       - closed
+    # Skip previews for PRs that touch only CI, tooling or docs: those do not
+    # change the deployed images. A preview isn't a required check, so a skipped
+    # run leaves nothing pending. (`scripts/` is dev tooling; the build uses
+    # `script/` for source generation, which is intentionally not ignored.)
+    paths-ignore:
+      - '.github/**'
+      - 'scripts/**'
+      - 'docs/**'
+      - '**.md'
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
