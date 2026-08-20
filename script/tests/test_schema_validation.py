@@ -72,3 +72,42 @@ def test_validator_rejects_urn_violating_pattern(tmp_path):
 
     assert is_valid is False
     assert errors
+
+
+def _validate_with_version(tmp_path: Path, version: str):
+    source = dict(VALID_SOURCE)
+    source["version"] = version
+    yaml_path = _write_yaml(tmp_path, source)
+    validator = SchemaValidator(REPO_ROOT)
+    return validator.validate_yaml(yaml_path, SCHEMA_PATH)
+
+
+def test_validator_accepts_concept_prerelease_version(tmp_path):
+    # The continuous concept file declares 'X.Y.Z-concept'; the build stamps the
+    # iteration. Both forms must validate or run_all aborts before generation.
+    is_valid, errors, _ = _validate_with_version(tmp_path, "3.1.0-concept")
+    assert is_valid is True, errors
+
+
+def test_validator_accepts_concept_iteration_version(tmp_path):
+    is_valid, errors, _ = _validate_with_version(tmp_path, "3.1.0-concept.4")
+    assert is_valid is True, errors
+
+
+def test_validator_still_accepts_release_versions(tmp_path):
+    for version in ("2", "3.0", "3.1.0"):
+        is_valid, errors, _ = _validate_with_version(tmp_path, version)
+        assert is_valid is True, f"{version}: {errors}"
+
+
+def test_validator_rejects_garbage_version(tmp_path):
+    is_valid, errors, _ = _validate_with_version(tmp_path, "v3-bogus!")
+    assert is_valid is False
+    assert errors
+
+
+def test_validator_rejects_non_concept_prerelease(tmp_path):
+    # -concept is the only authoring-allowed prerelease channel; -alpha/-rc must fail.
+    for version in ("3.1.0-alpha", "3.1.0-rc.1", "3.1.0-beta.2"):
+        is_valid, _, _ = _validate_with_version(tmp_path, version)
+        assert is_valid is False, f"{version} should be rejected"

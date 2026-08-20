@@ -203,6 +203,18 @@ describe('useSchemaStore', () => {
       expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:2.0')
     })
 
+    it('coarsens the version to MAJOR.MINOR so metadata.urn stays output-schema valid', () => {
+      const store = useSchemaStore()
+      store.init({
+        dpia: buildSchema({ urn: 'urn:nl:dpia', version: '3.1.0' }),
+        preScan: buildSchema({ urn: 'urn:nl:prescan', version: '3.1.0-concept.2' }),
+        iama: buildSchema({ urn: 'urn:nl:iama', version: '2.0' }),
+      })
+
+      expect(store.getUrn(FormType.DPIA)).toBe('urn:nl:dpia:3.1')
+      expect(store.getUrn(FormType.PRE_SCAN)).toBe('urn:nl:prescan:3.1')
+    })
+
     it('throws when the schema for the namespace is not loaded', () => {
       const store = useSchemaStore()
       expect(() => store.getUrn(FormType.DPIA)).toThrow(

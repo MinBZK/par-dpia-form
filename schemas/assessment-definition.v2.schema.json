@@ -381,8 +381,8 @@
         },
         "version": {
             "type": "string",
-            "description": "The version of the DPIA model, supporting different formats (major, major.minor, or major.minor.patch)",
-            "pattern": "^\\d+(\\.\\d+)?(\\.\\d+)?$"
+            "description": "The version of the DPIA model: major, major.minor or major.minor.patch, optionally with a '-concept[.N]' prerelease suffix for in-development concept versions.",
+            "pattern": "^\\d+(\\.\\d+){0,2}(-concept(\\.\\d+)?)?$"
         },
         "urn": {
             "type": "string",
