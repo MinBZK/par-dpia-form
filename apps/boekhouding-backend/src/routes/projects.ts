@@ -1,20 +1,38 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
 import { projects, projectMembers, assessmentInstances, assessmentVersions, assessmentEdits } from '../db/schema.js'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, asc, desc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
 import { normalizeCreateState } from '../utils/normalizeCreateState.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+
+const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
 export async function projectRoutes(app: FastifyInstance) {
   // All project routes require auth
   app.addHook('preHandler', requireAuth)
 
   // List projects for the current user
-  app.get('/', { schema: { tags: ['projects'] } }, async (request) => {
+  app.get<{
+    Querystring: PageQuery
+  }>('/', {
+    schema: {
+      tags: ['projects'],
+      description: 'Projecten van de huidige gebruiker (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(LIST_PAGE),
+    },
+  }, async (request, reply) => {
     const userId = request.user!.id
+
+    const { limit, offset } = parsePagination(request.query, LIST_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(projectMembers)
+      .where(eq(projectMembers.userId, userId))
+    reply.header('X-Total-Count', total)
 
     const result = await db
       .select({
@@ -28,6 +46,9 @@ export async function projectRoutes(app: FastifyInstance) {
       .from(projectMembers)
       .innerJoin(projects, eq(projectMembers.projectId, projects.id))
       .where(eq(projectMembers.userId, userId))
+      .orderBy(desc(projects.updatedAt), asc(projects.id))
+      .limit(limit)
+      .offset(offset)
 
     return result
   })
@@ -123,14 +144,26 @@ export async function projectRoutes(app: FastifyInstance) {
 
   app.get<{
     Params: { projectId: string }
+    Querystring: PageQuery
   }>('/:projectId/assessments', {
-    schema: { tags: ['assessments'] },
+    schema: {
+      tags: ['assessments'],
+      description: 'Assessments in een project (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(LIST_PAGE),
+    },
     preHandler: [requireProjectAccess('viewer')],
-  }, async (request) => {
+  }, async (request, reply) => {
     const { projectId } = request.params
 
     // The list needs only metadata; cachedState (all answers + embedded images)
     // is excluded here. Full state comes from GET /:assessmentId?includeState.
+    const { limit, offset } = parsePagination(request.query, LIST_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.projectId, projectId))
+    reply.header('X-Total-Count', total)
+
     const assessments = await db
       .select({
         id: assessmentInstances.id,
@@ -144,6 +177,9 @@ export async function projectRoutes(app: FastifyInstance) {
       })
       .from(assessmentInstances)
       .where(eq(assessmentInstances.projectId, projectId))
+      .orderBy(desc(assessmentInstances.updatedAt), asc(assessmentInstances.id))
+      .limit(limit)
+      .offset(offset)
 
     return assessments
   })
