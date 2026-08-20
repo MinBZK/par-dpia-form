@@ -6,6 +6,7 @@ import { truncateAll } from '../helpers/testDb.js'
 import { config } from '../../src/config.js'
 import { db } from '../../src/db/connection.js'
 import { users } from '../../src/db/schema.js'
+import { userIdCache } from '../../src/utils/userIdCache.js'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { TokenClaims } from '../helpers/testJwks.js'
@@ -149,6 +150,10 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
     expect((await getProjects(authHeader(t))).statusCode).toBe(200)
     const [before] = await db.select().from(users).where(eq(users.oidcSub, sub))
 
+    // Clear the identity cache so the second request re-reads the existing user
+    // from the DB (exercising the "found, unchanged" branch) rather than hitting
+    // the cache and short-circuiting.
+    userIdCache.clear()
     expect((await getProjects(authHeader(t))).statusCode).toBe(200)
     const [after] = await db.select().from(users).where(eq(users.oidcSub, sub))
 
@@ -164,11 +169,31 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
 
     expect((await getProjects(authHeader(await token({ sub, email: firstEmail, name: 'Oude Naam' })))).statusCode).toBe(200)
 
+    // A fresh (uncached) login must sync the changed claims; clear the cache to
+    // simulate TTL expiry between the two logins.
+    userIdCache.clear()
     expect((await getProjects(authHeader(await token({ sub, email: secondEmail, name: 'Nieuwe Naam' })))).statusCode).toBe(200)
 
     const [row] = await db.select().from(users).where(eq(users.oidcSub, sub))
     expect(row.email).toBe(secondEmail)
     expect(row.displayName).toBe('Nieuwe Naam')
+  })
+
+  it('cache hit: a second request with the same sub skips the DB sync (changes lag until TTL)', async () => {
+    const sub = randomUUID()
+    const firstEmail = `${sub}-old@example.com`
+    const secondEmail = `${sub}-new@example.com`
+
+    // First login populates the cache.
+    expect((await getProjects(authHeader(await token({ sub, email: firstEmail, name: 'Oude Naam' })))).statusCode).toBe(200)
+
+    // Second login with changed claims but WITHOUT clearing the cache: the cache
+    // hit serves the id and skips the users-lookup + sync, so the DB is unchanged.
+    expect((await getProjects(authHeader(await token({ sub, email: secondEmail, name: 'Nieuwe Naam' })))).statusCode).toBe(200)
+
+    const [row] = await db.select().from(users).where(eq(users.oidcSub, sub))
+    expect(row.email).toBe(firstEmail)
+    expect(row.displayName).toBe('Oude Naam')
   })
 
   it('first login does NOT take over an email already claimed by another subject (409)', async () => {

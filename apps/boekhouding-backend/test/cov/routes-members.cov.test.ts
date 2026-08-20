@@ -8,6 +8,7 @@ import { createUser, createProject, addMember, type SeededUser } from '../helper
 import { db } from '../../src/db/connection.js'
 import { projectMembers, users } from '../../src/db/schema.js'
 import { eq, and } from 'drizzle-orm'
+import { userIdCache } from '../../src/utils/userIdCache.js'
 
 let app: FastifyInstance
 const jwks = getJwks()
@@ -366,5 +367,33 @@ describe('DELETE /:projectId/members/:userId', () => {
       headers: authHeader(await tokenFor(owner)),
     })
     expect(res.statusCode).toBe(204)
+  })
+})
+
+describe('POST /:projectId/members — invite placeholder invalidates the identity cache', () => {
+  it('clears the sub→id cache so a changed Keycloak email still claims the placeholder', async () => {
+    const owner = await createUser()
+    const project = await projectOwnedBy(owner)
+    const token = await tokenFor(owner)
+
+    // A first authenticated request populates the cache for this subject.
+    await app.inject({
+      method: 'GET',
+      url: `/api/v1/projects/${project.id}/members`,
+      headers: authHeader(token),
+    })
+    expect(userIdCache.get(owner.oidcSub, Date.now())).toBe(owner.id)
+
+    // Inviting an unknown address creates a placeholder row. Without the
+    // invalidation, a cached subject would skip the email sync in requireAuth
+    // and never claim it, orphaning the placeholder.
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/members`,
+      headers: authHeader(token),
+      payload: { email: `invite-${randomUUID()}@example.com`, role: 'editor' },
+    })
+    expect(res.statusCode).toBe(201)
+    expect(userIdCache.get(owner.oidcSub, Date.now())).toBeUndefined()
   })
 })
