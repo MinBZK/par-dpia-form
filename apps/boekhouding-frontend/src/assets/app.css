@@ -653,6 +653,18 @@ a.card-link:hover {
   min-width: fit-content;
 }
 
+.version-list__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.version-list__error {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: var(--rvo-color-rood, #d52b1e);
+}
+
 .desc-edit-btn {
   background: none;
   border: none;

@@ -19,6 +19,11 @@ const commentSelect = {
   updatedAt: comments.updatedAt,
 }
 
+// Generous hard cap so a comment list (or a wide ?since delta) can never be
+// pulled unbounded in a single query. Well above any realistic per-assessment
+// thread count; the sync endpoint's commentCount lets clients detect a cap hit.
+const COMMENTS_MAX = 1000
+
 export async function commentRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
 
@@ -52,6 +57,7 @@ export async function commentRoutes(app: FastifyInstance) {
       .innerJoin(users, eq(comments.authorId, users.id))
       .where(and(...rootConditions))
       .orderBy(asc(comments.createdAt))
+      .limit(COMMENTS_MAX)
 
     const resolvedByIds = [...new Set(rootComments.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
     const resolvedByNames: Record<string, string> = {}
@@ -79,6 +85,7 @@ export async function commentRoutes(app: FastifyInstance) {
             ),
           )
           .orderBy(asc(comments.createdAt))
+          .limit(COMMENTS_MAX)
 
         // Build resolvedByNames from the actual response data
         const pollResolvedByIds = [...new Set(recentReplies.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
@@ -112,6 +119,7 @@ export async function commentRoutes(app: FastifyInstance) {
         .innerJoin(users, eq(comments.authorId, users.id))
         .where(inArray(comments.parentId, rootIds))
         .orderBy(asc(comments.createdAt))
+        .limit(COMMENTS_MAX)
     }
 
     // Group replies by parentId

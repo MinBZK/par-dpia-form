@@ -1,13 +1,19 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
 import { assessmentInstances, assessmentVersions, assessmentEdits, users } from '../db/schema.js'
-import { eq, and, desc, asc } from 'drizzle-orm'
+import { eq, and, desc, asc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+
+// Generous page-size caps: normal histories fit in one page, but the result set
+// can never grow unbounded. Edits are the largest (one row per changed field).
+const VERSIONS_PAGE = { defaultSize: 100, maxSize: 500 }
+const EDITS_PAGE = { defaultSize: 500, maxSize: 2000 }
 
 // Sentinel to trigger transaction rollback when a concurrent write wins the
 // optimistic-lock race (conditional UPDATE affected 0 rows).
@@ -250,10 +256,24 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get version history
   app.get<{
     Params: { assessmentId: string }
-  }>('/:assessmentId/versions', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    Querystring: PageQuery
+  }>('/:assessmentId/versions', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Versiegeschiedenis van een assessment (gepagineerd). Het totale aantal versies staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(VERSIONS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
+
+    const { limit, offset } = parsePagination(request.query, VERSIONS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentVersions)
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
+    reply.header('X-Total-Count', total)
 
     const versions = await db
       .select({
@@ -269,6 +289,8 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .innerJoin(users, eq(assessmentVersions.createdBy, users.id))
       .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentVersions.version))
+      .limit(limit)
+      .offset(offset)
 
     return versions
   })
@@ -324,7 +346,14 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get edits for a specific version
   app.get<{
     Params: { assessmentId: string; version: string }
-  }>('/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    Querystring: PageQuery
+  }>('/:assessmentId/versions/:version/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Veldwijzigingen van één versie (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId, version } = request.params
     const versionNum = parseInt(version, 10)
 
@@ -352,6 +381,13 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
     }
 
+    const { limit, offset } = parsePagination(request.query, EDITS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentEdits)
+      .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
+    reply.header('X-Total-Count', total)
+
     const edits = await db
       .select({
         id: assessmentEdits.id,
@@ -364,7 +400,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
       .from(assessmentEdits)
       .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
-      .orderBy(asc(assessmentEdits.editedAt))
+      .orderBy(asc(assessmentEdits.editedAt), asc(assessmentEdits.id))
+      .limit(limit)
+      .offset(offset)
 
     return edits.map(edit => ({ ...edit, version: versionNum }))
   })
@@ -408,10 +446,25 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get edit audit log
   app.get<{
     Params: { assessmentId: string }
-  }>('/:assessmentId/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    Querystring: PageQuery
+  }>('/:assessmentId/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Volledig wijzigingslogboek van een assessment (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
+
+    const { limit, offset } = parsePagination(request.query, EDITS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentEdits)
+      .innerJoin(assessmentVersions, eq(assessmentEdits.assessmentVersionId, assessmentVersions.id))
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
+    reply.header('X-Total-Count', total)
 
     const edits = await db
       .select()
@@ -419,6 +472,8 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .innerJoin(assessmentVersions, eq(assessmentEdits.assessmentVersionId, assessmentVersions.id))
       .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentEdits.editedAt))
+      .limit(limit)
+      .offset(offset)
 
     return edits
   })

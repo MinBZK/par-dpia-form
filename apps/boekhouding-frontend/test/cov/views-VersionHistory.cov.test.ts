@@ -19,7 +19,10 @@ const apiUpdateVersionDescription = vi.fn()
 vi.mock('../../src/api', () => ({
   assessments: {
     get: (...a: unknown[]) => apiGet(...a),
-    versions: (...a: unknown[]) => apiVersions(...a),
+    versions: async (...a: unknown[]) => {
+      const r = await apiVersions(...a)
+      return Array.isArray(r) ? { items: r, total: r.length } : r
+    },
     version: (...a: unknown[]) => apiVersion(...a),
     versionEdits: (...a: unknown[]) => apiVersionEdits(...a),
     update: (...a: unknown[]) => apiUpdate(...a),
@@ -275,6 +278,98 @@ describe('VersionHistory — version list rendering', () => {
     const wrapper = mountView()
     await flushPromises()
     expect(wrapper.findAll('.toggle-btn').length).toBe(1)
+  })
+})
+
+describe('VersionHistory — load more', () => {
+  it('shows "meer laden" when more exist, then appends the next page and hides the button', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [
+        { id: 'v3', version: 3, createdByName: 'A', updatedAt: '2026-01-03T10:00:00Z', changeDescription: null },
+        { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
+      ], total: 3 })
+      .mockResolvedValueOnce({ items: [
+        { id: 'v1', version: 1, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null },
+      ], total: 3 })
+
+    const wrapper = mountView()
+    await flushPromises()
+
+    const more = wrapper.find('.version-list__more button')
+    expect(more.exists()).toBe(true)
+
+    await more.trigger('click')
+    await flushPromises()
+
+    expect(apiVersions).toHaveBeenNthCalledWith(2, expect.any(String), 2, 100)
+    // 3 of 3 loaded -> button gone.
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('does not show "meer laden" when everything fits on the first page', async () => {
+    apiVersions.mockResolvedValue([
+      { id: 'v1', version: 1, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null },
+    ])
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  const V = (n: number) => ({ id: `v${n}`, version: n, createdByName: 'A', updatedAt: '2026-01-01T10:00:00Z', changeDescription: null })
+
+  it('dedupes an overlapping page and stops when nothing new arrives', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
+      // A concurrent insert shifted the window: page 2 only re-returns v2.
+      .mockResolvedValueOnce({ items: [V(2)], total: 3 })
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    // v2 is not duplicated (1 header + 2 data rows) and the button is gone.
+    expect(wrapper.findAll('.version-row').length).toBe(3)
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('surfaces an error and keeps the button when loading more fails', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
+    expect(wrapper.find('.version-list__more').exists()).toBe(true)
+  })
+
+  it('announces progress while more pages remain', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 })
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 })
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(true)
+    expect(wrapper.find('[role="status"]').text()).toContain('4 van 5')
+  })
+
+  it('labels the button by remaining count, and "laatste versie" for the final one', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 }) // 3 remaining -> plural
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 }) // 1 remaining -> "laatste"
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de volgende 3 versies')
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de laatste versie')
   })
 })
 

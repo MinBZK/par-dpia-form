@@ -44,17 +44,17 @@ pnpm dev
 podman compose -f containers/compose.dev.yaml -f containers/compose.override.yaml up -d
 ```
 
-Let op: compose voegt lijsten **samen** in plaats van te vervangen. Alleen een override met `ports: - "5433:5432"` levert zowel `5432:5432` als `5433:5432` op (en faalt als 5432 bezet is). Gebruik de YAML-tag `!reset` om de lijst eerst leeg te maken:
+Let op: compose voegt lijsten **samen** in plaats van te vervangen. Alleen een override met `ports: - "5433:5432"` levert zowel `5432:5432` als `5433:5432` op (en faalt als 5432 bezet is). Gebruik de YAML-tag `!override` om de lijst te **vervangen** (en `!reset []` om 'm leeg te maken). Let op: `!reset` gevolgd door lijst-items doet niet wat je zou denken: de docker-compose-provider wist de lijst én negeert de opgegeven items. Gebruik daar dus `!override`:
 
 ```yaml
 services:
   postgres:
-    ports: !reset
+    ports: !override
       - "5433:5432"
   keycloak:
     ports: !reset []     # niet rechtstreeks exposen; via reverse proxy
   backend:
-    ports: !reset
+    ports: !override
       - "3001:3000"
 ```
 

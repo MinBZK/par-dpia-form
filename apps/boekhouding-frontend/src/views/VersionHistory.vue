@@ -22,7 +22,20 @@ onUnmounted(() => {
   answerStore.reset()
 })
 
+const VERSIONS_PAGE_SIZE = 100
 const versions = ref<AssessmentVersion[]>([])
+const totalVersions = ref(0)
+const versionsPage = ref(1)
+const loadingMore = ref(false)
+const reachedEnd = ref(false)
+const loadError = ref('')
+const loadStatus = ref('')
+const loadStatusRef = ref<HTMLElement | null>(null)
+const hasMoreVersions = computed(() => !reachedEnd.value && versions.value.length < totalVersions.value)
+const nextBatchSize = computed(() => Math.min(VERSIONS_PAGE_SIZE, totalVersions.value - versions.value.length))
+// nextBatchSize is only 1 when exactly one version remains, i.e. the last one.
+const loadMoreLabel = computed(() =>
+  nextBatchSize.value === 1 ? 'Laad de laatste versie' : `Laad de volgende ${nextBatchSize.value} versies`)
 const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
@@ -179,8 +192,12 @@ async function handleFieldRestore() {
     currentState.$schema = currentState.$schema || OUTPUT_SCHEMA_URL
     await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
 
-    // Refresh version list
-    versions.value = await assessmentsApi.versions(props.assessmentId)
+    // Refresh version list (back to the first page)
+    const refreshed = await assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE)
+    versions.value = refreshed.items
+    totalVersions.value = refreshed.total
+    versionsPage.value = 1
+    reachedEnd.value = false
 
     fieldRestoreModalOpen.value = false
     fieldRestoreTarget.value = null
@@ -243,13 +260,52 @@ onMounted(async () => {
 
   const [assessment, v] = await Promise.all([
     assessmentsApi.get(props.assessmentId),
-    assessmentsApi.versions(props.assessmentId),
+    assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE),
   ])
   role.value = (assessment as any).role || null
   projectId.value = assessment.projectId
-  versions.value = v
+  versions.value = v.items
+  totalVersions.value = v.total
+  versionsPage.value = 1
+  reachedEnd.value = false
   loading.value = false
 })
+
+async function loadMoreVersions() {
+  loadingMore.value = true
+  loadError.value = ''
+  try {
+    const next = await assessmentsApi.versions(props.assessmentId, versionsPage.value + 1, VERSIONS_PAGE_SIZE)
+    versionsPage.value += 1
+    totalVersions.value = next.total
+    // Offset paging can overlap when a version is created concurrently; dedupe by
+    // id and stop once a page adds nothing new so the button cannot get stuck.
+    const seen = new Set(versions.value.map((v) => v.id))
+    const fresh = next.items.filter((v) => !seen.has(v.id))
+    if (fresh.length === 0) {
+      reachedEnd.value = true
+    } else {
+      versions.value.push(...fresh)
+    }
+    await announceLoaded()
+  } catch {
+    loadError.value = 'Meer versies laden is mislukt. Probeer het opnieuw.'
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+// Announce the load to assistive tech, and when the last page has loaded (button
+// gone) move focus to the status node so keyboard users are not dumped to the top.
+async function announceLoaded() {
+  loadStatus.value = hasMoreVersions.value
+    ? `${versions.value.length} van ${totalVersions.value} versies geladen`
+    : `Alle ${versions.value.length} versies geladen`
+  if (!hasMoreVersions.value) {
+    await nextTick()
+    loadStatusRef.value!.focus()
+  }
+}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleString('nl-NL', {
@@ -696,7 +752,7 @@ function mapEditsToDiffFields(
         <p>Geen versies gevonden.</p>
       </div>
 
-      <div v-else class="version-list rvo-margin-block-end--lg">
+      <div v-else class="version-list rvo-margin-block-end--lg" :aria-busy="loadingMore">
         <div class="version-row version-row--header">
           <span class="version-col--toggle"></span>
           <span class="version-col--nr">Versie</span>
@@ -820,6 +876,19 @@ function mapEditsToDiffFields(
             </table>
           </div>
         </template>
+
+        <div v-if="hasMoreVersions" class="version-list__more">
+          <button
+            class="rvo-button rvo-button--secondary rvo-button--size-sm"
+            :disabled="loadingMore"
+            @click="loadMoreVersions"
+          >
+            {{ loadMoreLabel }}
+          </button>
+        </div>
+
+        <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
+        <p ref="loadStatusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
       </div>
     </template>
 
