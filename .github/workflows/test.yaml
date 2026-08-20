@@ -51,6 +51,9 @@ jobs:
       - name: CSP inline-style guard (#326)
         run: pnpm check:csp
 
+      - name: v-html sink guard
+        run: pnpm check:vhtml
+
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
