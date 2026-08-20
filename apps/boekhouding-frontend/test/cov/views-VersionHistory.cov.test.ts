@@ -386,6 +386,19 @@ describe('VersionHistory — load more', () => {
     await flushPromises()
     expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })
+
+  it('labels the button by remaining count, and "laatste versie" for the final one', async () => {
+    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
+    apiVersions
+      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 }) // 3 remaining -> plural
+      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 }) // 1 remaining -> "laatste"
+    const wrapper = mountView()
+    await flushPromises()
+    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de volgende 3 versies')
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de laatste versie')
+  })
 })
 
 describe('VersionHistory — canEdit / canRestore (role permissions)', () => {

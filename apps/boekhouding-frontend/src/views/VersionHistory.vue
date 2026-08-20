@@ -34,6 +34,9 @@ const loadStatus = ref('')
 const loadStatusRef = ref<HTMLElement | null>(null)
 const hasMoreVersions = computed(() => !reachedEnd.value && versions.value.length < totalVersions.value)
 const nextBatchSize = computed(() => Math.min(VERSIONS_PAGE_SIZE, totalVersions.value - versions.value.length))
+// nextBatchSize is only 1 when exactly one version remains, i.e. the last one.
+const loadMoreLabel = computed(() =>
+  nextBatchSize.value === 1 ? 'Laad de laatste versie' : `Laad de volgende ${nextBatchSize.value} versies`)
 const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
@@ -893,7 +896,7 @@ function mapEditsToDiffFields(
             :disabled="loadingMore || loadingAll"
             @click="loadMoreVersions"
           >
-            Laad de volgende {{ nextBatchSize }} versies
+            {{ loadMoreLabel }}
           </button>
           <button
             class="rvo-button rvo-button--tertiary rvo-button--size-sm"
