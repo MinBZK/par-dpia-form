@@ -27,7 +27,6 @@ const versions = ref<AssessmentVersion[]>([])
 const totalVersions = ref(0)
 const versionsPage = ref(1)
 const loadingMore = ref(false)
-const loadingAll = ref(false)
 const reachedEnd = ref(false)
 const loadError = ref('')
 const loadStatus = ref('')
@@ -293,18 +292,6 @@ async function loadMoreVersions() {
     loadError.value = 'Meer versies laden is mislukt. Probeer het opnieuw.'
   } finally {
     loadingMore.value = false
-  }
-}
-
-async function loadAllVersions() {
-  loadingAll.value = true
-  try {
-    while (hasMoreVersions.value) {
-      await loadMoreVersions()
-      if (loadError.value) break
-    }
-  } finally {
-    loadingAll.value = false
   }
 }
 
@@ -893,17 +880,10 @@ function mapEditsToDiffFields(
         <div v-if="hasMoreVersions" class="version-list__more">
           <button
             class="rvo-button rvo-button--secondary rvo-button--size-sm"
-            :disabled="loadingMore || loadingAll"
+            :disabled="loadingMore"
             @click="loadMoreVersions"
           >
             {{ loadMoreLabel }}
-          </button>
-          <button
-            class="rvo-button rvo-button--tertiary rvo-button--size-sm"
-            :disabled="loadingMore || loadingAll"
-            @click="loadAllVersions"
-          >
-            Laad alle resterende versies
           </button>
         </div>
 

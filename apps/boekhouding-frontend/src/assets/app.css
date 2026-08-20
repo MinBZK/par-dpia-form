@@ -655,9 +655,7 @@ a.card-link:hover {
 
 .version-list__more {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 0.75rem;
   margin-top: 1.5rem;
 }
 

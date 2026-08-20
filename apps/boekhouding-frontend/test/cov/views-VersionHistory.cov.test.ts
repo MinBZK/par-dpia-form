@@ -359,34 +359,6 @@ describe('VersionHistory — load more', () => {
     expect(wrapper.find('[role="status"]').text()).toContain('4 van 5')
   })
 
-  it('"laad alle resterende" loads every remaining page', async () => {
-    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 3, state: {} })
-    apiVersions
-      .mockResolvedValueOnce({ items: [V(3), V(2)], total: 3 })
-      .mockResolvedValueOnce({ items: [V(1)], total: 3 })
-    const wrapper = mountView()
-    await flushPromises()
-    const buttons = wrapper.findAll('.version-list__more button')
-    expect(buttons.length).toBe(2)
-    await buttons[1].trigger('click')
-    await flushPromises()
-    expect(wrapper.find('.version-list__more').exists()).toBe(false)
-    expect(wrapper.findAll('.version-row').length).toBe(4)
-  })
-
-  it('"laad alle resterende" stops when a page fails', async () => {
-    apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
-    apiVersions
-      .mockResolvedValueOnce({ items: [V(5), V(4)], total: 5 })
-      .mockRejectedValueOnce(new Error('netwerk'))
-    const wrapper = mountView()
-    await flushPromises()
-    const buttons = wrapper.findAll('.version-list__more button')
-    await buttons[1].trigger('click')
-    await flushPromises()
-    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
-  })
-
   it('labels the button by remaining count, and "laatste versie" for the final one', async () => {
     apiGet.mockResolvedValue({ role: 'viewer', projectId: 'p', currentVersion: 5, state: {} })
     apiVersions
