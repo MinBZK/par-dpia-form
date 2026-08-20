@@ -71,6 +71,23 @@ jobs:
       - name: Link Checker (retry)
         id: lychee_retry
         if: steps.lychee.outcome == 'failure'
+        continue-on-error: true
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: *lychee_args
+          output: ./lychee/out.md
+          fail: true
+
+      # Longer cool-down before the final attempt: bot-block windows (403 from
+      # e.g. wetten.overheid.nl) outlast the 30 s pause above.
+      - name: Wait before final link-check attempt
+        if: steps.lychee_retry.outcome == 'failure'
+        run: sleep 300
+
+      - name: Link Checker (final attempt)
+        if: steps.lychee_retry.outcome == 'failure'
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
