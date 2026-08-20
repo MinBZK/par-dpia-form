@@ -61,6 +61,27 @@ describe('buildApp — options handling', () => {
       await defaultApp.close()
     }
   })
+
+})
+
+describe('/api/health — readiness during shutdown', () => {
+  it('reports 503 once beginShutdown() is called, so Kubernetes withdraws the pod', async () => {
+    const app = await buildApp({ logger: false })
+    await app.ready()
+    try {
+      const before = await app.inject({ method: 'GET', url: '/api/health' })
+      expect(before.statusCode).toBe(200)
+      expect(before.json().status).toBe('ok')
+
+      app.beginShutdown()
+
+      const after = await app.inject({ method: 'GET', url: '/api/health' })
+      expect(after.statusCode).toBe(503)
+      expect(after.json().status).toBe('shutting_down')
+    } finally {
+      await app.close()
+    }
+  })
 })
 
 describe('API_VERSION constant', () => {
