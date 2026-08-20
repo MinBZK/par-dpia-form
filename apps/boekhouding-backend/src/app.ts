@@ -13,6 +13,13 @@ import { syncRoutes } from './routes/sync.js'
 
 export const API_VERSION = '1.0.0'
 
+declare module 'fastify' {
+  interface FastifyInstance {
+    /** Flip the readiness probe to 503 ahead of a graceful shutdown. */
+    beginShutdown: () => void
+  }
+}
+
 export interface BuildAppOptions {
   logger?: boolean
   /** Expose Swagger UI + /api/openapi.json. Defaults to config.exposeApiDocs. */
@@ -44,7 +51,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
-  await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
+  await app.register(rateLimit, { max: config.rateLimit.max, timeWindow: '1 minute' })
 
   if (exposeApiDocs) await app.register(swagger, {
     openapi: {
@@ -169,12 +176,22 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
 
-  app.get('/api/health', { schema: { hide: true } }, async () => ({
-    status: 'ok',
-    apiVersion: API_VERSION,
-    version: process.env.APP_VERSION || 'dev',
-    commit: (process.env.APP_COMMIT || 'dev').slice(0, 7),
-  }))
+  // Readiness: reports 503 once beginShutdown() has been called, so Kubernetes
+  // stops routing new traffic here before the server actually closes.
+  let shuttingDown = false
+  app.decorate('beginShutdown', () => {
+    shuttingDown = true
+  })
+
+  app.get('/api/health', { schema: { hide: true } }, async (_request, reply) => {
+    if (shuttingDown) reply.status(503)
+    return {
+      status: shuttingDown ? 'shutting_down' : 'ok',
+      apiVersion: API_VERSION,
+      version: process.env.APP_VERSION || 'dev',
+      commit: (process.env.APP_COMMIT || 'dev').slice(0, 7),
+    }
+  })
 
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
     return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)
