@@ -32,8 +32,8 @@ Tests draaien tegen een echte Postgres. Zet `TEST_DATABASE_URL`, of laat de defa
 | `DB_IDLE_TIMEOUT` | `30` | Seconden voordat een idle DB-verbinding wordt gesloten |
 | `DB_STATEMENT_TIMEOUT` | `15` | Max queryduur (seconden) voordat Postgres afbreekt |
 | `DB_IDLE_IN_TX_TIMEOUT` | `15` | Max idle-in-transaction (seconden) voordat de sessie wordt afgebroken |
-| `RATE_LIMIT_MAX` | `100` | Verzoeken per minuut per IP, per pod - alleen voor verkeer zonder geldig token |
-| `RATE_LIMIT_USER_MAX` | `200` | Verzoeken per minuut per ingelogde gebruiker, per pod |
+| `RATE_LIMIT_MAX` | `300` | Verzoeken per minuut per IP, per pod - alleen voor verkeer zonder geldig token |
+| `RATE_LIMIT_USER_MAX` | `1000` | Verzoeken per minuut per ingelogde gebruiker, per pod |
 | `SHUTDOWN_DELAY` | `5` | Seconden wachten na SIGTERM voordat de server sluit (zie onder) |
 
 Ongeldige/ontbrekende waarden vallen veilig terug op de default.
@@ -87,8 +87,24 @@ Waarom dit uitmaakt: `TRUST_PROXY=1` maakt `req.ip` het echte client-IP uit
 Een open assessment-tabblad pollt elke 10 seconden en doet daarbij twee requests
 (sync + comments), dus **12 requests per minuut per tabblad**; bij de oude default van
 300 per IP was de emmer leeg rond 25 gelijktijdige gebruikers op één adres. Nu heeft
-elke ingelogde gebruiker zijn eigen 200, ongeacht met hoeveel collega's hij het adres
-deelt.
+elke ingelogde gebruiker zijn eigen budget, ongeacht met hoeveel collega's hij het
+adres deelt.
+
+Over de hoogte van beide getallen:
+
+- **Per gebruiker (1000)** staat bewust ruim boven elk legitiem patroon. Pollen is
+  12/min per tabblad, maar opslaan gaat via een debounce van 500 ms, dus doorwerken in
+  een lang tekstveld levert bursts op; drie tabbladen plus typen piekt rond 150-200.
+  De reden voor de marge is dat een 429 in de frontend stil faalt: het pollen slikt
+  hem (`stores/collaboration.ts`) en de autosave logt alleen naar de console
+  (`ApiPersistence.ts`). Zolang dat zo is, is een limiet die een echte gebruiker raakt
+  vrijwel niet te herleiden. Wordt die terugkoppeling zichtbaar, dan kan dit getal
+  omlaag - het is een env-variabele, dus zonder deploy.
+- **Per IP (300)** blijft staan omdat die emmer weinig beschermt: inloggen gebeurt bij
+  Keycloak, niet hier, dus er komen geen inlogpogingen langs. Wat overblijft zijn
+  health-probes en verzoeken met een ongeldig of verlopen token, en die kosten één
+  handtekeningcontrole. Krapper zetten levert dus niets op, terwijl het bij een
+  Keycloak-storing een golf verlopen tokens omzet in 429's waar 401's horen.
 
 ## Graceful shutdown in Kubernetes
 

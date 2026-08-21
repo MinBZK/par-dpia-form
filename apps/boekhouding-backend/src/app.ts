@@ -118,7 +118,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
               },
               'X-RateLimit-Limit': {
                 description: 'Maximum aantal requests per tijdvenster',
-                schema: { type: 'integer', example: 200 },
+                schema: { type: 'integer', example: 1000 },
               },
               'X-RateLimit-Remaining': {
                 description: 'Resterend aantal requests in huidig tijdvenster',

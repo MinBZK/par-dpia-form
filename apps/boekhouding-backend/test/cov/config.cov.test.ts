@@ -298,10 +298,10 @@ describe('config - shutdownDelay (parseNonNegativeInt)', () => {
 })
 
 describe('config - rateLimit', () => {
-  it('defaults the per-IP max to 100 and the per-user max to 200', async () => {
+  it('defaults the per-IP max to 300 and the per-user max to 1000', async () => {
     const config = await loadConfig()
-    expect(config.rateLimit.max).toBe(100)
-    expect(config.rateLimit.userMax).toBe(200)
+    expect(config.rateLimit.max).toBe(300)
+    expect(config.rateLimit.userMax).toBe(1000)
   })
 
   it('honours a RATE_LIMIT_MAX override', async () => {
