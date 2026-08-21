@@ -45,7 +45,7 @@ Bij elke authenticatie worden het e-mailadres en de weergavenaam uit Keycloak ge
 
 ## Rate limiting
 
-De API hanteert een limiet van 300 verzoeken per minuut per IP-adres (via `@fastify/rate-limit`). Hiervoor worden IP-adressen tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
+De API hanteert een limiet van 1000 verzoeken per minuut per ingelogde gebruiker (via `@fastify/rate-limit`). Verzoeken zonder geldig token tellen mee in een limiet van 100 verzoeken per minuut per IP-adres. Hiervoor worden de gebruikersidentificatie uit het token respectievelijk het IP-adres tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
 
 ## Serverlogs
 
@@ -74,7 +74,7 @@ Persoonsgegevens worden niet gedeeld met derden en niet doorgegeven aan landen b
 - Rolgebaseerde toegangscontrole (eigenaar, bewerker, commentator, lezer)
 - Veld-niveau auditlogging (bewerkingsgeschiedenis)
 - Security headers via `@fastify/helmet` (CSP, X-Frame-Options, etc.)
-- Rate limiting (300 verzoeken per minuut per IP)
+- Rate limiting (1000 verzoeken per minuut per ingelogde gebruiker, 100 per IP voor overig verkeer)
 
 ## Geautomatiseerde besluitvorming
 

@@ -2,6 +2,8 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { FastifyInstance } from 'fastify'
 import { buildApp, API_VERSION } from '../../src/app.js'
 import { config } from '../../src/config.js'
+import { getJwks } from '../helpers/testContext.js'
+import { randomUUID } from 'node:crypto'
 
 let app: FastifyInstance
 
@@ -130,9 +132,9 @@ describe('static utility routes', () => {
     expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
   })
 
-  it('GET /.well-known/security.txt redirects 301 to NCSC', async () => {
+  it('GET /.well-known/security.txt redirects 302 to NCSC', async () => {
     const res = await app.inject({ method: 'GET', url: '/.well-known/security.txt' })
-    expect(res.statusCode).toBe(301)
+    expect(res.statusCode).toBe(302)
     expect(res.headers.location).toBe('https://www.ncsc.nl/.well-known/security.txt')
   })
 
@@ -213,5 +215,90 @@ describe('error handler — RFC 9457 problem+json', () => {
       detail: 'Maximaal aantal verzoeken overschreden. Probeer het later opnieuw.',
       instance: '/__cov/throw-429',
     })
+  })
+})
+
+describe('rate limit — emmer per ingelogde gebruiker, anders per IP', () => {
+  const jwks = getJwks()
+
+  // Each test needs a pristine bucket store, so it builds its own app instead of
+  // sharing the module-level one.
+  async function limitedApp() {
+    const instance = await buildApp({ logger: false })
+    await instance.ready()
+    return instance
+  }
+
+  function bearer(token: string) {
+    return { authorization: `Bearer ${token}` }
+  }
+
+  function signedToken() {
+    const sub = randomUUID()
+    return jwks.signToken({ sub, email: `${sub}@example.com` })
+  }
+
+  it('keys an unauthenticated request on the IP bucket', async () => {
+    const app = await limitedApp()
+    try {
+      const res = await app.inject({ method: 'GET', url: '/api/health' })
+      expect(res.headers['x-ratelimit-limit']).toBe(String(config.rateLimit.max))
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('keys a request with a verified token on the per-user bucket', async () => {
+    const app = await limitedApp()
+    try {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/projects', headers: bearer(await signedToken()) })
+      expect(res.statusCode).toBe(200)
+      expect(res.headers['x-ratelimit-limit']).toBe(String(config.rateLimit.userMax))
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('gives two users on the same IP separate buckets', async () => {
+    const app = await limitedApp()
+    try {
+      const one = await app.inject({ method: 'GET', url: '/api/v1/projects', headers: bearer(await signedToken()) })
+      const two = await app.inject({ method: 'GET', url: '/api/v1/projects', headers: bearer(await signedToken()) })
+      const remaining = String(config.rateLimit.userMax - 1)
+      expect(one.headers['x-ratelimit-remaining']).toBe(remaining)
+      expect(two.headers['x-ratelimit-remaining']).toBe(remaining)
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('falls back to the IP bucket for an unverifiable token, so buckets cannot be minted', async () => {
+    const app = await limitedApp()
+    try {
+      // Unsigned "alg: none" token with an invented sub, assembled here so no
+      // JWT-shaped literal ends up in the source (gitleaks).
+      const forged = ['{"alg":"none"}', '{"sub":"attacker"}']
+        .map((part) => Buffer.from(part).toString('base64url'))
+        .join('.') + '.'
+      const res = await app.inject({ method: 'GET', url: '/api/v1/projects', headers: bearer(forged) })
+      expect(res.statusCode).toBe(401)
+      expect(res.headers['x-ratelimit-limit']).toBe(String(config.rateLimit.max))
+    } finally {
+      await app.close()
+    }
+  })
+
+  it('answers with the 429 problem document once the IP bucket is empty', async () => {
+    const app = await limitedApp()
+    try {
+      for (let i = 0; i < config.rateLimit.max; i++) {
+        await app.inject({ method: 'GET', url: '/api/health' })
+      }
+      const res = await app.inject({ method: 'GET', url: '/api/health' })
+      expect(res.statusCode).toBe(429)
+      expect(res.json()).toMatchObject({ status: 429, title: 'Te veel verzoeken' })
+    } finally {
+      await app.close()
+    }
   })
 })

@@ -22,57 +22,79 @@ declare module 'fastify' {
 
 const jwks = createRemoteJWKSet(new URL(config.keycloak.jwksUri))
 
-export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
+interface TokenPayload {
+  sub?: string
+  email?: string
+  name?: string
+  preferred_username?: string
+  azp?: string
+  exp?: number
+}
+
+type VerifiedToken = TokenPayload & { sub: string; email: string }
+
+export type BearerResult =
+  | { ok: true; payload: VerifiedToken }
+  | { ok: false; detail: 'Niet ingelogd' | 'Ongeldig token' | 'Token is niet bedoeld voor deze applicatie' }
+
+// Verified payloads keyed by request object: the rate-limit keyGenerator runs on
+// onRequest and requireAuth on preHandler, and both need the verified `sub`.
+// Without this the signature check would run twice per request.
+const verifiedTokens = new WeakMap<FastifyRequest, BearerResult>()
+
+async function verifyToken(request: FastifyRequest): Promise<BearerResult> {
   const authHeader = request.headers.authorization
-  if (!authHeader?.startsWith('Bearer ')) {
-    return reply.status(401).type('application/problem+json').send({
-      type: 'https://httpproblems.com/http-status/401',
-      title: 'Niet geauthenticeerd',
-      status: 401,
-      detail: 'Niet ingelogd',
-      instance: request.url,
-    })
-  }
+  if (!authHeader?.startsWith('Bearer ')) return { ok: false, detail: 'Niet ingelogd' }
 
-  const token = authHeader.slice(7)
-
-  let payload: { sub?: string; email?: string; name?: string; preferred_username?: string; azp?: string; exp?: number }
+  let payload: TokenPayload
   try {
-    const result = await jwtVerify(token, jwks, {
+    const result = await jwtVerify(authHeader.slice(7), jwks, {
       issuer: config.keycloak.issuer,
     })
-    payload = result.payload as typeof payload
+    payload = result.payload as TokenPayload
+  } catch {
+    return { ok: false, detail: 'Ongeldig token' }
+  }
 
-    // Keycloak sets the client ID in the `azp` (authorized party) claim, not `aud`.
-    // Validate azp to prevent token confusion between Keycloak clients.
-    if (config.keycloak.audience && payload.azp !== config.keycloak.audience) {
-      return reply.status(401).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/401',
-        title: 'Niet geauthenticeerd',
-        status: 401,
-        detail: 'Token is niet bedoeld voor deze applicatie',
-        instance: request.url,
-      })
-    }
-  } catch (err: any) {
+  // Keycloak sets the client ID in the `azp` (authorized party) claim, not `aud`.
+  // Validate azp to prevent token confusion between Keycloak clients.
+  if (config.keycloak.audience && payload.azp !== config.keycloak.audience) {
+    return { ok: false, detail: 'Token is niet bedoeld voor deze applicatie' }
+  }
+
+  if (!payload.sub || !payload.email) return { ok: false, detail: 'Ongeldig token' }
+
+  return { ok: true, payload: payload as VerifiedToken }
+}
+
+/**
+ * Verify the bearer token (signature, issuer, azp, exp) without touching the
+ * database, memoised per request. Used both by requireAuth and by the rate-limit
+ * key generator; the latter must never trust an unverified `sub`, or an attacker
+ * could mint an unlimited number of buckets.
+ */
+export async function verifyBearer(request: FastifyRequest): Promise<BearerResult> {
+  const cached = verifiedTokens.get(request)
+  if (cached) return cached
+
+  const result = await verifyToken(request)
+  verifiedTokens.set(request, result)
+  return result
+}
+
+export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
+  const verified = await verifyBearer(request)
+  if (!verified.ok) {
     return reply.status(401).type('application/problem+json').send({
       type: 'https://httpproblems.com/http-status/401',
       title: 'Niet geauthenticeerd',
       status: 401,
-      detail: 'Ongeldig token',
+      detail: verified.detail,
       instance: request.url,
     })
   }
 
-  if (!payload.sub || !payload.email) {
-    return reply.status(401).type('application/problem+json').send({
-      type: 'https://httpproblems.com/http-status/401',
-      title: 'Niet geauthenticeerd',
-      status: 401,
-      detail: 'Ongeldig token',
-      instance: request.url,
-    })
-  }
+  const payload = verified.payload
 
   // Normalise to lowercase so lookups/claims match invite placeholders, which
   // members.ts also stores lowercase. The users.email column is a plain,

@@ -32,7 +32,8 @@ Tests draaien tegen een echte Postgres. Zet `TEST_DATABASE_URL`, of laat de defa
 | `DB_IDLE_TIMEOUT` | `30` | Seconden voordat een idle DB-verbinding wordt gesloten |
 | `DB_STATEMENT_TIMEOUT` | `15` | Max queryduur (seconden) voordat Postgres afbreekt |
 | `DB_IDLE_IN_TX_TIMEOUT` | `15` | Max idle-in-transaction (seconden) voordat de sessie wordt afgebroken |
-| `RATE_LIMIT_MAX` | `300` | Verzoeken per IP per minuut, per pod. Zie de kanttekening over gedeelde IP's |
+| `RATE_LIMIT_MAX` | `100` | Verzoeken per minuut per IP, per pod - alleen voor verkeer zonder geldig token |
+| `RATE_LIMIT_USER_MAX` | `1000` | Verzoeken per minuut per ingelogde gebruiker, per pod |
 | `SHUTDOWN_DELAY` | `5` | Seconden wachten na SIGTERM voordat de server sluit (zie onder) |
 
 Ongeldige/ontbrekende waarden vallen veilig terug op de default.
@@ -65,23 +66,46 @@ schaalwijziging. Wil je echt naar veel gelijktijdige gebruikers schalen, dan is 
 i.p.v. een grotere pool per pod.
 
 De in-memory rate-limit is per pod: bij meerdere replica's is de effectieve limiet een
-veelvoud van `RATE_LIMIT_MAX`.
+veelvoud van `RATE_LIMIT_MAX` respectievelijk `RATE_LIMIT_USER_MAX`.
 
-## Rate limit en gedeelde IP's
+## Rate limit: per gebruiker, anders per IP
 
-De limiet geldt **per IP**, en `TRUST_PROXY=1` maakt `req.ip` het echte client-IP
-uit `X-Forwarded-For`. Collega's die vanaf hetzelfde kantoor werken zitten achter
-één NAT-adres en delen dus één emmer.
+De sleutel bepaalt zowel de emmer als het budget. Verifieert het bearer-token
+(handtekening, issuer, `azp`, `exp`), dan telt het verzoek in een emmer van die ene
+gebruiker, met `RATE_LIMIT_USER_MAX` als budget. Lukt dat niet - health-probes, docs,
+een verlopen of ongeldig token - dan valt het terug op een emmer per IP-adres met
+`RATE_LIMIT_MAX`.
 
-Reken mee: een open assessment-tabblad pollt elke 10 seconden en doet daarbij twee
-requests (sync + comments), dus **12 requests per minuut per tabblad**. Bij de
-default van 300 is de emmer leeg bij ongeveer 25 gelijktijdige gebruikers op één
-IP - en dan is opslaan, laden en reageren nog niet meegerekend.
+Dat verifiëren gebeurt in de `keyGenerator`, dus op `onRequest`, ruim voordat
+`requireAuth` als `preHandler` draait. Die volgorde is geen detail: een `sub` die
+ongeverifieerd uit het token wordt gelezen laat een aanvaller willekeurig veel emmers
+claimen, waarmee de bescherming juist verdwijnt. Het geverifieerde resultaat wordt per
+request gecachet, zodat `requireAuth` de handtekening niet nog eens controleert.
 
-Verhoog `RATE_LIMIT_MAX` dus zodra een noemenswaardig deel van de gebruikers vanaf
-één locatie werkt: reken op `12 x aantal gebruikers op het drukste IP` plus marge.
-De structurele oplossing is niet een hoger getal maar een andere sleutel: limiteren
-per ingelogde gebruiker in plaats van per IP.
+Waarom dit uitmaakt: `TRUST_PROXY=1` maakt `req.ip` het echte client-IP uit
+`X-Forwarded-For`, dus collega's achter één kantoor-NAT deelden voorheen één emmer.
+Een open assessment-tabblad pollt elke 10 seconden en doet daarbij twee requests
+(sync + comments), dus **12 requests per minuut per tabblad**; bij de oude default van
+300 per IP was de emmer leeg rond 25 gelijktijdige gebruikers op één adres. Nu heeft
+elke ingelogde gebruiker zijn eigen budget, ongeacht met hoeveel collega's hij het
+adres deelt.
+
+Over de hoogte van beide getallen:
+
+- **Per gebruiker (1000)** staat bewust ruim boven elk legitiem patroon. Pollen is
+  12/min per tabblad, maar opslaan gaat via een debounce van 500 ms, dus doorwerken in
+  een lang tekstveld levert bursts op; drie tabbladen plus typen piekt rond 150-200.
+  De reden voor de marge is dat een 429 in de frontend stil faalt: het pollen slikt
+  hem (`stores/collaboration.ts`) en de autosave logt alleen naar de console
+  (`ApiPersistence.ts`). Zolang dat zo is, is een limiet die een echte gebruiker raakt
+  vrijwel niet te herleiden. Wordt die terugkoppeling zichtbaar, dan kan dit getal
+  omlaag - het is een env-variabele, dus zonder deploy.
+- **Per IP (100)** is krap gehouden, want er hoort weinig legitiem verkeer in: alleen
+  health-probes (~6/min), `security.txt`, de docs (uit in productie) en verzoeken met
+  een ongeldig of verlopen token. Inlogpogingen komen hier niet langs - die gaan naar
+  Keycloak, dat zijn eigen brute-force-detectie heeft. Eén symptoom om te herkennen:
+  bij een Keycloak-storing kan een heel kantoor achter één NAT deze emmer leegtrekken
+  met verlopen tokens, en dan zie je 429's waar 401's horen.
 
 ## Graceful shutdown in Kubernetes
 
