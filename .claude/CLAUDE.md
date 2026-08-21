@@ -23,6 +23,12 @@ pnpm monorepo met workspaces:
 - Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan als Vite ze niet resolved via de workspace-link. In de container-omgeving worden ze automatisch mee-geïnstalleerd via `pnpm install`.
 - Geen eenregelige wrapper-functies — roep de oorspronkelijke functie direct aan
 
+## Pull requests
+
+Weeg bij elke PR af of `CHANGELOG.md` bijgewerkt moet worden. Meestal wel. Voeg toe onder `## [Unreleased]`, in de bestaande secties (`Toegevoegd` / `Gewijzigd` / `Opgelost` / `Beveiliging` / `Onder de motorkap`). Schrijf voor gebruikers van de invulhulp: wat merken zij ervan, niet welke functie is aangepast. Puur technische wijzigingen gaan kort onder "Onder de motorkap".
+
+Overslaan mag bij uitzondering, en dan bewust: een wijziging die niemand buiten de repo merkt (losse dependency-bump zonder gedragsverandering, typo in een comment, testonderhoud). Bij twijfel: wel opnemen.
+
 ## Ontwikkelen
 
 ```bash
@@ -74,6 +80,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - API-routes onder `/api/v1/` (NL GOV API Design Rules: major versie in URI-pad)
 - Foutresponses: `application/problem+json` (RFC 9457)
 - Security: `@fastify/helmet` (security headers), `@fastify/rate-limit`, `API-Version` response header
+- Env-variabelen, de schaalgrenzen en het DB-connectiebudget staan in `apps/boekhouding-backend/README.md`
 
 ## Frontend
 
