@@ -50,6 +50,11 @@ build) staan kort onder "Onder de motorkap".
   vingerafdruk toegelaten.
 * Aanvullende beveiligingsheaders op de webserver, en de toegangscontrole
   op projecten en assessments is aangescherpt.
+* Een geïmporteerd bestand kan geen antwoorden meer binnensmokkelen die je
+  niet zelf hebt ingevuld. Bestanden met veldnamen die geen vraagnummer zijn
+  worden voortaan geweigerd in plaats van gedeeltelijk ingelezen.
+* Een afbeelding uit een geïmporteerd bestand wordt strenger gecontroleerd:
+  alleen echte foto-formaten worden nog als afbeelding herkend.
 
 ### Onder de motorkap
 
