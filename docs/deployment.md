@@ -41,7 +41,7 @@ podman run --rm frontend sh -c \
 
 ## Database migraties
 
-ZAD ondersteunt geen init containers of jobs. De backend container draait migraties automatisch bij het starten (`node dist/db/migrate.js && node dist/index.js`). Drizzle migraties zijn idempotent.
+ZAD ondersteunt geen init containers of jobs. De backend container draait migraties automatisch bij het starten (`node dist/db/migrate.js && exec node dist/index.js`). Drizzle migraties zijn idempotent. De `exec` is nodig zodat node PID 1 wordt en SIGTERM ontvangt; zonder dat slikt de shell het signaal en werkt de graceful shutdown niet.
 
 ## Domein en authenticatie: door ZAD beheerd
 
