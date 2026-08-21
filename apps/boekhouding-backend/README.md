@@ -39,11 +39,15 @@ Ongeldige/ontbrekende waarden vallen veilig terug op de default.
 
 ## Schalen en de connectie-limiet
 
-De gedeelde RIG-Postgres (`rig-db`) staat op `max_connections: 250` met
-`reserved_connections: 10`, en - bindend voor ons - **elke project-DB-user is
-gecapt op 20 connecties** (`CONNECTION LIMIT 20`, ingesteld na een incident waarbij
-één project alle slots opslokte en Keycloak brak). Dat aantal van **20 is dus het
-totale budget over álle pods en replica's samen**.
+De gedeelde RIG-Postgres (`rig-db`) staat op `max_connections: 200` met
+`reserved_connections: 10`, en - bindend voor ons - **elke DB-user is gecapt op 20
+connecties** (`CONNECTION LIMIT 20`, ingesteld na een incident waarbij één project
+alle slots opslokte en Keycloak brak).
+
+De user is **per deployment** (rolnaam `<project>_<cluster>_<deployment>`), dus
+acceptatie, productie en elke preview hebben elk hun eigen budget van 20 en zitten
+elkaar niet in de weg. Binnen één deployment is die 20 wél het **totale budget over
+alle pods en replica's samen**.
 
 Let op: een **rolling deploy** draait kort twee pods naast elkaar (de oude + de
 surge-pod), die allebei onder dezelfde DB-user connecties houden. Het budget is dus:
