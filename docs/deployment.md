@@ -124,9 +124,21 @@ Bij een rolling deploy stuurt de kubelet SIGTERM op hetzelfde moment dat de endp
 
 | Omgeving   | ZAD-deployment | Bijgewerkt door                                                     |
 |------------|----------------|---------------------------------------------------------------------|
-| Preview    | `pr-<nummer>`  | Elke PR naar `main` (kloon van `acceptatie`); opgeruimd bij sluiten |
+| Preview    | `pr-<nummer>`  | PR met het label `preview` (kloon van `acceptatie`); opgeruimd zodra het label eraf gaat of de PR sluit |
 | Acceptatie | `acceptatie`   | Elke push naar `main`                                               |
 | Productie  | `productie`    | CalVer-tag (`vYYYY.M.D[.MICRO]`), via image-promotie                |
+
+#### Een preview aanzetten
+
+Een preview is opt-in: zet het label **`preview`** op de PR en de omgeving wordt
+gebouwd en uitgerold; zolang het label staat, volgt elke nieuwe commit. Haal het
+label eraf (of sluit de PR) en de deployment, de PR-comment en de preview-images
+worden opgeruimd. Zonder label draait er niets, ook niet voor een PR die maanden
+openstaat.
+
+Merk op: een PR met een merge-conflict heeft geen merge-commit, en GitHub draait
+`pull_request`-workflows vanaf die merge-commit. Het label doet dan niets tot het
+conflict is opgelost.
 
 ### Workflows
 
@@ -134,7 +146,7 @@ Bij een rolling deploy stuurt de kubelet SIGTERM op hetzelfde moment dat de endp
 |----------------------------|----------------------------------------|-------------------------------------------------------------------|
 | `test.yaml`                | Push naar `main`, elke PR              | Type-checks, tests en coverage (100%-drempel)                     |
 | `pre-commit.yaml`          | Push naar `main`, elke PR              | Linting via pre-commit                                            |
-| `deploy-preview.yaml`      | PR naar `main`                         | Preview-deployment op ZAD, kloon van `acceptatie`                 |
+| `deploy-preview.yaml`      | Label `preview` op een PR naar `main`  | Preview-deployment op ZAD, kloon van `acceptatie`                 |
 | `deploy-acceptatie.yaml`   | Push naar `main`                       | Bouwt images → GHCR en werkt ZAD-deployment `acceptatie` bij      |
 | `release.yaml`             | CalVer-tag                             | Valideert tag, maakt GitHub-release met changelog-notes, **start daarna `deploy-productie`**, en hangt het standalone formulier (offline single-file) als release-asset aan |
 | `deploy-productie.yaml`    | Gestart door `release.yaml` (of handmatig) | Promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij |

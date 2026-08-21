@@ -60,6 +60,9 @@ build) staan kort onder "Onder de motorkap".
 * Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release.
   Let op: de limiet geldt per IP-adres, dus collega's op één kantoornetwerk
   delen die.
+* Een preview-omgeving wordt niet meer voor elke pull request opgezet, maar
+  alleen wanneer er een `preview`-label op staat. Dat scheelt geheugen,
+  processorkracht en databaseverbindingen op het gedeelde platform.
 * De identiteit van een ingelogde gebruiker wordt kortstondig onthouden,
   zodat pollende clients niet elke keer dezelfde opzoeking doen.
   Autorisatie wordt onveranderd per verzoek getoetst.

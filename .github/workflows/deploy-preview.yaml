@@ -5,19 +5,10 @@ on:
     branches:
       - main
     types:
-      - opened
-      - reopened
+      - labeled
+      - unlabeled
       - synchronize
       - closed
-    # Skip previews for PRs that touch only CI, tooling or docs: those do not
-    # change the deployed images. A preview isn't a required check, so a skipped
-    # run leaves nothing pending. (`scripts/` is dev tooling; the build uses
-    # `script/` for source generation, which is intentionally not ignored.)
-    paths-ignore:
-      - '.github/**'
-      - 'scripts/**'
-      - 'docs/**'
-      - '**.md'
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
@@ -35,13 +26,21 @@ env:
 
 # Previews only run for PRs from this repo: fork PRs have no access to
 # ZAD_API_KEY or GHCR push and would only produce failing runs.
+#
+# A preview is opt-in per PR: it appears when the `preview` label is added and
+# disappears when the label is removed or the PR closes. Adding the label is the
+# only way in, so an unattended PR never holds pods and database connections.
 
 jobs:
   build:
     if: >-
-      github.event.action != 'closed' &&
       github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'labeled' && github.event.label.name == 'preview') ||
+        (github.event.action == 'synchronize' &&
+         contains(github.event.pull_request.labels.*.name, 'preview'))
+      )
     permissions:
       contents: read
       packages: write
@@ -53,11 +52,9 @@ jobs:
       tag-prefix: pr-${{ github.event.pull_request.number }}-
 
   deploy-preview:
+    # No `if` of its own: a skipped `build` skips this job too, so the label
+    # gate lives in one place.
     needs: build
-    if: >-
-      github.event.action != 'closed' &&
-      github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -87,9 +84,13 @@ jobs:
 
   cleanup-preview:
     if: >-
-      github.event.action == 'closed' &&
       github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'unlabeled' && github.event.label.name == 'preview') ||
+        (github.event.action == 'closed' &&
+         contains(github.event.pull_request.labels.*.name, 'preview'))
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: RijksICTGilde/zad-actions/cleanup@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
