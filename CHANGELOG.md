@@ -13,6 +13,16 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Gewijzigd
+
+* De IAMA-tekst benoemt samenwerking nadrukkelijker.
+* Overzichten van assessments en opmerkingen worden nu in delen opgehaald
+  in plaats van in één keer. Bij veel assessments of lange discussies
+  blijft het laden daardoor snel.
+* Het terugkijken van een eerdere versie gaat merkbaar sneller: een al
+  eerder opgebouwde versie wordt hergebruikt in plaats van opnieuw
+  samengesteld.
+
 ### Opgelost
 
 * De verwijzingen naar het Model DPIA Rijksdienst wezen naar een verlopen
@@ -21,6 +31,45 @@ build) staan kort onder "Onder de motorkap".
 * Het standalone formulier op `/zonder-account/` toonde in productie
   "ontwikkel" met een commit in plaats van de release-versie; het laat nu
   dezelfde versie zien als de statuspagina.
+* Een uitnodiging kwam niet aan wanneer het e-mailadres in Keycloak anders
+  geschreven stond dan in de uitnodiging (hoofdletters); daardoor ontstond
+  een tweede, leeg account. Adressen worden nu eenduidig vergeleken.
+* Een tekstlabel in de DPIA bevatte een schrijffout.
+* Een lege versiebeschrijving kon een nieuwe versie aanmaken zonder
+  wijziging; dat kan niet meer.
+
+### Beveiliging
+
+* De weergave van opgemaakte tekst is verder dichtgezet met Trusted Types
+  en een centrale opschoonstap, zodat er geen onveilige HTML in de pagina
+  terecht kan komen.
+* Het standalone formulier draait nu zonder `unsafe-inline` in de
+  Content-Security-Policy; scripts en stijlen worden per build op hun
+  vingerafdruk toegelaten.
+* Aanvullende beveiligingsheaders op de webserver, en de toegangscontrole
+  op projecten en assessments is aangescherpt.
+
+### Onder de motorkap
+
+* De databaseverbindingen van de API zijn expliciet begrensd en krijgen
+  time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
+  nieuwe versie van de applicatie worden lopende verzoeken netjes
+  afgerond in plaats van afgebroken.
+* Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release.
+  Let op: de limiet geldt per IP-adres, dus collega's op één kantoornetwerk
+  delen die.
+* De identiteit van een ingelogde gebruiker wordt kortstondig onthouden,
+  zodat pollende clients niet elke keer dezelfde opzoeking doen.
+  Autorisatie wordt onveranderd per verzoek getoetst.
+* Preview-omgevingen per pull request werkten niet meer doordat het
+  platform de standaard hostnaam-indeling wijzigde; die is nu expliciet
+  vastgelegd.
+* De nginx-configuratie van de frontend is gebundeld in
+  `containers/frontend/nginx/`.
+* CI aangescherpt: minimale rechten voor tokens, controle op de integriteit
+  van de lockfile, een bewaking tegen nieuwe ongecontroleerde `v-html` en
+  robuustere linkcontrole.
+* Diverse dependency- en container-updates.
 
 ## [2026.6.20] - 2026-06-20
 
