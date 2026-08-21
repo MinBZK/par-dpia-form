@@ -47,4 +47,7 @@ ENV APP_COMMIT=$GIT_SHA
 
 USER 1000
 
-CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]
+# `exec` replaces the shell with node after migrations, so node becomes PID 1
+# and receives SIGTERM on a rolling deploy/scale-down for graceful shutdown
+# (drain in-flight requests + release the DB pool); otherwise sh swallows it.
+CMD ["sh", "-c", "node dist/db/migrate.js && exec node dist/index.js"]

@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import postgres from 'postgres'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+import { userIdCache } from '../../src/utils/userIdCache.js'
 
 const migrationsFolder = resolve(dirname(fileURLToPath(import.meta.url)), '../../drizzle')
 
@@ -32,6 +33,9 @@ const TABLES = [
 ] as const
 
 export async function truncateAll(databaseUrl: string): Promise<void> {
+  // Reset the in-memory identity cache too, so a cached id from a previous test
+  // can't survive the DB truncate and shadow a freshly created user.
+  userIdCache.clear()
   const client = postgres(databaseUrl, { max: 1 })
   try {
     await client.unsafe(`TRUNCATE TABLE ${TABLES.join(', ')} RESTART IDENTITY CASCADE`)

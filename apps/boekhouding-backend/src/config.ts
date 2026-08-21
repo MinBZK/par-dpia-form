@@ -20,12 +20,59 @@ function parseTrustProxy(): number | string {
   return /^\d+$/.test(v) ? Number(v) : v
 }
 
+// Parse a positive-integer env var, clamped to [1, max]. Falls back to the
+// default when unset, non-numeric, or below 1 - so a misconfigured value can
+// never produce an unsafe state (e.g. a pool of 0 or an absurdly large value).
+function parsePositiveInt(value: string | undefined, fallback: number, max: number): number {
+  if (!value) return fallback
+  const n = parseInt(value, 10)
+  if (!Number.isFinite(n) || n < 1) return fallback
+  return Math.min(n, max)
+}
+
+// Same, but 0 is a valid value (used by the shutdown delay, where 0 means
+// "close immediately" - useful locally, never in Kubernetes).
+function parseNonNegativeInt(value: string | undefined, fallback: number, max: number): number {
+  if (!value) return fallback
+  const n = parseInt(value, 10)
+  if (!Number.isFinite(n) || n < 0) return fallback
+  return Math.min(n, max)
+}
+
 export const config = {
   port: parseInt(process.env.PORT || '3000', 10),
   host: process.env.HOST || '0.0.0.0',
   exposeApiDocs: process.env.EXPOSE_API_DOCS === 'true',
   trustProxy: parseTrustProxy(),
   databaseUrl: process.env.DATABASE_SERVER_FULL || 'postgresql://parassessment:parassessment@localhost:5432/parassessment',
+  // Postgres connection pool. The RIG shared Postgres caps each project DB user
+  // at 20 connections total (see README), and a rolling deploy briefly runs two
+  // pods (old + surge), so the budget is:
+  //   pods × DB_POOL_MAX  ≤  20.
+  // Default 9 → 2 pods × 9 = 18, a tight margin under 20. Raise the pool or the
+  // replica count only within that budget, or put a connection pooler
+  // (PgBouncer) in front.
+  // statementTimeout/idleInTransactionTimeout are in SECONDS (like the timeouts
+  // above) and converted to ms at the postgres-js boundary. They make a query
+  // fail fast instead of holding a pooled connection indefinitely - without a
+  // statement timeout, one stuck query under pool exhaustion blocks the pool
+  // with no backpressure (availability risk under the 20-connection cap).
+  db: {
+    max: parsePositiveInt(process.env.DB_POOL_MAX, 9, 20),
+    connectTimeout: parsePositiveInt(process.env.DB_CONNECT_TIMEOUT, 10, 300),
+    idleTimeout: parsePositiveInt(process.env.DB_IDLE_TIMEOUT, 30, 86400),
+    statementTimeout: parsePositiveInt(process.env.DB_STATEMENT_TIMEOUT, 15, 300),
+    idleInTransactionTimeout: parsePositiveInt(process.env.DB_IDLE_IN_TX_TIMEOUT, 15, 300),
+  },
+  // Global request limit per IP per minute.
+  rateLimit: {
+    max: parsePositiveInt(process.env.RATE_LIMIT_MAX, 300, 100000),
+  },
+  // Seconds to keep serving after SIGTERM before closing the server, so a
+  // Kubernetes rolling deploy has time to withdraw this pod from the service
+  // endpoints while the readiness probe already reports 503. Must stay well
+  // under terminationGracePeriodSeconds (30s by default).
+  shutdownDelay: parseNonNegativeInt(process.env.SHUTDOWN_DELAY, 5, 60),
   cors: {
     origin: corsOrigin,
     credentials: true,
