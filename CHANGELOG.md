@@ -87,6 +87,15 @@ build) staan kort onder "Onder de motorkap".
   van de lockfile, een bewaking tegen nieuwe ongecontroleerde `v-html` en
   robuustere linkcontrole.
 * Diverse dependency- en container-updates.
+* De bewaking tegen nieuwe ongecontroleerde `v-html` is verder aangescherpt:
+  ze scant nu het hele bestand in plaats van regel voor regel (dus ook een
+  binding die over meerdere regels loopt, of via `v-bind="{ innerHTML: ... }"`
+  of zonder aanhalingstekens), controleert ook raw `innerHTML`/`outerHTML`/
+  `insertAdjacentHTML` in `.ts`-bestanden, en neemt het standalone formulier
+  mee (dat draait allang niet meer met `unsafe-inline`). Ook wordt voortaan
+  de body van de onderliggende `computed` meegehasht, zodat het onopgemerkt
+  verwijderen van de opschoonstap uit een al goedgekeurde binding CI alsnog
+  laat falen.
 
 ## [2026.6.20] - 2026-06-20
 

@@ -46,7 +46,7 @@ defineEmits<{
     @click="$emit('click', $event)"
   >
   <template v-if="showIconAfter">
-    <span v-html="`${label ? label : ''}`"> </span>
+    <span>{{ label }}</span>
     <span
       v-if="icon"
       :class="[
