@@ -75,6 +75,12 @@ build) staan kort onder "Onder de motorkap".
 * Een e-mailadres dat de inlogdienst niet heeft bevestigd kan zich niet meer
   aan een account koppelen. Zo kan een openstaande uitnodiging niet bij
   iemand anders terechtkomen dan de bedoelde ontvanger.
+* Een geïmporteerd bestand kan geen antwoorden meer binnensmokkelen die je
+  niet zelf hebt ingevuld. Bestanden met veldnamen die geen vraagnummer zijn
+  worden voortaan geweigerd in plaats van gedeeltelijk ingelezen.
+* Afbeeldingen in een geïmporteerd bestand worden strenger gecontroleerd. Staat
+  er een beeldformaat in dat de invulhulp niet opslaat, dan wordt het bestand
+  geweigerd met een melding, in plaats van de afbeelding stil weg te laten.
 
 ### Onder de motorkap
 

@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { FormType } from '../models/dpia'
 
+// Same formats, order and case-sensitivity as ALLOWED_IMAGE_DATA in the backend
+// validator: anything this accepts must survive the server-side check on save.
+const RASTER_DATA_URI = /^data:image\/(webp|png|jpe?g|gif);base64,/
+
 export type ImageValue = {
   data: string
   title?: string
@@ -17,8 +21,11 @@ export function isImageValue(value: unknown): value is ImageValue {
     typeof (value as Record<string, unknown>).data !== 'string'
   ) return false
   const data = (value as Record<string, unknown>).data as string
-  // Accept raster image data URIs only — reject SVG to prevent XSS via imported JSON
-  return data.startsWith('data:image/') && !data.startsWith('data:image/svg')
+  // Raster data URIs only, as a positive allowlist. The old negative check
+  // (`!startsWith('data:image/svg')`) was case-sensitive while media types are
+  // not, so `data:image/SVG+xml` passed it. Uploads are rasterised to WebP, but
+  // a JSON import skips that path entirely.
+  return RASTER_DATA_URI.test(data)
 }
 
 export type AnswerValue = string | string[] | ImageValue | null

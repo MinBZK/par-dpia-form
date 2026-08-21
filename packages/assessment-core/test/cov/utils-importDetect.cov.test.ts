@@ -359,3 +359,46 @@ describe('assertImportMatchesNamespace', () => {
     )
   })
 })
+
+describe('parseAndValidateImport - key sanitizing', () => {
+  // Refuse rather than silently drop: a file that quietly loses answers looks
+  // complete but is not, and __proto__ is how a crafted file injects text into
+  // every field the user has not answered.
+  it('refuses a file carrying a __proto__ answer key', () => {
+    const raw = JSON.stringify({
+      metadata: { urn: 'urn:nl:dpia:3.0' },
+      answers: JSON.parse('{"__proto__":{"3.2":{"value":"injected"}},"0.1":{"value":"ok"}}'),
+    })
+
+    expect(() => parseAndValidateImport(raw)).toThrow('ongeldige veldnamen')
+  })
+
+  it('refuses a grouped file carrying a __proto__ answer key', () => {
+    const raw = JSON.stringify({
+      metadata: { urn: 'urn:nl:dpia:3.0' },
+      answers: JSON.parse(
+        '{"2.1":[{"_index":0,"2.1.1":{"value":"ok"}}],"__proto__":{"3.2":{"value":"injected"}}}',
+      ),
+    })
+
+    expect(() => parseAndValidateImport(raw)).toThrow('ongeldige veldnamen')
+  })
+
+  it('refuses a file carrying an image the app cannot store', () => {
+    const raw = JSON.stringify({
+      metadata: { urn: 'urn:nl:dpia:3.0' },
+      answers: { '3.1': { data: 'data:image/svg+xml;base64,PHN2Zz48L3N2Zz4=' } },
+    })
+
+    expect(() => parseAndValidateImport(raw)).toThrow('niet-ondersteund formaat')
+  })
+
+  it('accepts a file whose answer keys are all task ids', () => {
+    const raw = JSON.stringify({
+      metadata: { urn: 'urn:nl:dpia:3.0' },
+      answers: { '0.1': { value: 'Inleiding' } },
+    })
+
+    expect(parseAndValidateImport(raw).answers).toEqual({ '0.1': { value: 'Inleiding' } })
+  })
+})
