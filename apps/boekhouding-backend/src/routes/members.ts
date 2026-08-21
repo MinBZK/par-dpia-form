@@ -1,9 +1,12 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
 import { projectMembers, users } from '../db/schema.js'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, asc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess, type ProjectRole } from '../middleware/projectAccess.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+
+const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
 export async function memberRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
@@ -11,11 +14,23 @@ export async function memberRoutes(app: FastifyInstance) {
   // List members of a project
   app.get<{
     Params: { projectId: string }
+    Querystring: PageQuery
   }>('/:projectId/members', {
-    schema: { tags: ['projects'] },
+    schema: {
+      tags: ['projects'],
+      description: 'Leden van een project (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(LIST_PAGE),
+    },
     preHandler: [requireProjectAccess('viewer')],
-  }, async (request) => {
+  }, async (request, reply) => {
     const { projectId } = request.params
+
+    const { limit, offset } = parsePagination(request.query, LIST_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(projectMembers)
+      .where(eq(projectMembers.projectId, projectId))
+    reply.header('X-Total-Count', total)
 
     const members = await db
       .select({
@@ -29,6 +44,9 @@ export async function memberRoutes(app: FastifyInstance) {
       .from(projectMembers)
       .innerJoin(users, eq(projectMembers.userId, users.id))
       .where(eq(projectMembers.projectId, projectId))
+      .orderBy(asc(projectMembers.role), asc(users.displayName), asc(users.id))
+      .limit(limit)
+      .offset(offset)
 
     return members
   })

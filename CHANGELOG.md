@@ -16,9 +16,11 @@ build) staan kort onder "Onder de motorkap".
 ### Gewijzigd
 
 * De IAMA-tekst benoemt samenwerking nadrukkelijker.
-* Overzichten van assessments en opmerkingen worden nu in delen opgehaald
-  in plaats van in één keer. Bij veel assessments of lange discussies
-  blijft het laden daardoor snel.
+* Lange lijsten en overzichten laden nu in delen in plaats van in één
+  keer, met een "Meer laden"-knop waar dat helpt. Zo blijven de
+  projecten-, leden-, assessment- en versiegeschiedenislijst en lange
+  opmerkingdiscussies ook bij honderden of duizenden regels vlot en
+  volledig laden.
 * Het terugkijken van een eerdere versie gaat merkbaar sneller: een al
   eerder opgebouwde versie wordt hergebruikt in plaats van opnieuw
   samengesteld.

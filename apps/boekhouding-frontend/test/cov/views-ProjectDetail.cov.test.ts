@@ -23,7 +23,10 @@ vi.mock('../../src/api', () => ({
     delete: (...a: unknown[]) => projectsDelete(...a),
   },
   assessments: {
-    list: (...a: unknown[]) => assessmentsList(...a),
+    list: async (...a: unknown[]) => {
+      const r = await assessmentsList(...a)
+      return Array.isArray(r) ? { items: r, total: r.length } : r
+    },
     get: (...a: unknown[]) => assessmentsGet(...a),
     create: (...a: unknown[]) => assessmentsCreate(...a),
   },
@@ -1048,5 +1051,49 @@ describe('ProjectDetail', () => {
       expect(assessmentsCreate).not.toHaveBeenCalled()
       expect(wrapper.text()).toContain('Het bestand bevat een onbekend-assessment, maar er werd een IAMA-bestand verwacht.')
     })
+  })
+})
+
+describe('ProjectDetail — load more', () => {
+  const mountRaw = async () => {
+    const wrapper = mount(ProjectDetail, {
+      props: { projectId: 'p1' },
+      global: {
+        stubs: {
+          AppHeader: { template: '<header class="app-header-stub" />' },
+          RouterLink: { template: '<a class="router-link-stub"><slot /></a>' },
+          IconUsers: { template: '<span class="icon-users" />' },
+          IconDotsVertical: { template: '<span class="icon-dots" />' },
+        },
+      },
+      attachTo: document.body,
+    })
+    await flushPromises()
+    return wrapper
+  }
+
+  it('shows a load-more button and appends the next page of assessments', async () => {
+    projectsGet.mockResolvedValue(makeProject())
+    assessmentsList
+      .mockResolvedValueOnce({ items: [makeAssessment({ id: 'a1' }), makeAssessment({ id: 'a2' })], total: 3 })
+      .mockResolvedValueOnce({ items: [makeAssessment({ id: 'a3' })], total: 3 })
+    const wrapper = await mountRaw()
+    const more = wrapper.find('.version-list__more button')
+    expect(more.exists()).toBe(true)
+    expect(more.text()).toContain('assessments')
+    await more.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('shows an error when loading more assessments fails', async () => {
+    projectsGet.mockResolvedValue(makeProject())
+    assessmentsList
+      .mockResolvedValueOnce({ items: [makeAssessment({ id: 'a1' }), makeAssessment({ id: 'a2' })], total: 3 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = await mountRaw()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })
 })

@@ -81,8 +81,8 @@ export interface Project {
 }
 
 export const projects = {
-  list: () =>
-    request<Project[]>('/api/v1/projects'),
+  list: (page: number, pageSize: number) =>
+    requestPaged<Project>(`/api/v1/projects?page=${page}&pageSize=${pageSize}`),
   get: (id: string) =>
     request<Project>(`/api/v1/projects/${id}`),
   create: (name: string, description?: string) =>
@@ -110,8 +110,8 @@ export interface Member {
 }
 
 export const members = {
-  list: (projectId: string) =>
-    request<Member[]>(`/api/v1/projects/${projectId}/members`),
+  list: (projectId: string, page: number, pageSize: number) =>
+    requestPaged<Member>(`/api/v1/projects/${projectId}/members?page=${page}&pageSize=${pageSize}`),
   add: (projectId: string, email: string, role?: string) =>
     request<{ userId: string; role: string }>(`/api/v1/projects/${projectId}/members`, {
       method: 'POST',
@@ -161,8 +161,8 @@ export interface VersionEdit {
 }
 
 export const assessments = {
-  list: (projectId: string) =>
-    request<AssessmentInstance[]>(`/api/v1/projects/${projectId}/assessments`),
+  list: (projectId: string, page: number, pageSize: number) =>
+    requestPaged<AssessmentInstance>(`/api/v1/projects/${projectId}/assessments?page=${page}&pageSize=${pageSize}`),
   get: (assessmentId: string) =>
     request<AssessmentInstance>(`/api/v1/assessments/${assessmentId}`),
   create: (projectId: string, assessmentType: 'dpia' | 'prescan' | 'iama', name?: string, state?: unknown) =>

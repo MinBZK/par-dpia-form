@@ -51,10 +51,10 @@ describe('API request()', () => {
     globalThis.fetch = mockFetch
 
     const { projects } = await import('../src/api')
-    await projects.list()
+    await projects.get('p1')
 
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/v1/projects',
+      '/api/v1/projects/p1',
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer mock-token',

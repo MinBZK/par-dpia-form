@@ -9,7 +9,10 @@ const listMock = vi.fn()
 const createMock = vi.fn()
 vi.mock('../../src/api', () => ({
   projects: {
-    list: (...args: unknown[]) => listMock(...args),
+    list: async (...args: unknown[]) => {
+      const r = await listMock(...args)
+      return Array.isArray(r) ? { items: r, total: r.length } : r
+    },
     create: (...args: unknown[]) => createMock(...args),
   },
 }))
@@ -236,5 +239,32 @@ describe('ProjectList', () => {
       expect(createMock).toHaveBeenCalledWith('Alleen naam', '')
       expect(routerPush).toHaveBeenCalledWith('/project/x')
     })
+  })
+})
+
+describe('ProjectList — load more', () => {
+  it('shows a load-more button and appends the next page', async () => {
+    listMock
+      .mockResolvedValueOnce({ items: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }], total: 3 })
+      .mockResolvedValueOnce({ items: [{ id: 'p3', name: 'C' }], total: 3 })
+    const wrapper = mountList()
+    await flushPromises()
+    const more = wrapper.find('.version-list__more button')
+    expect(more.exists()).toBe(true)
+    expect(more.text()).toContain('projecten')
+    await more.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+  })
+
+  it('shows an error when loading more fails', async () => {
+    listMock
+      .mockResolvedValueOnce({ items: [{ id: 'p1', name: 'A' }, { id: 'p2', name: 'B' }], total: 3 })
+      .mockRejectedValueOnce(new Error('netwerk'))
+    const wrapper = mountList()
+    await flushPromises()
+    await wrapper.find('.version-list__more button').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })
 })
