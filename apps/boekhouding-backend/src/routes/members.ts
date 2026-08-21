@@ -4,7 +4,6 @@ import { projectMembers, users } from '../db/schema.js'
 import { eq, and } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess, type ProjectRole } from '../middleware/projectAccess.js'
-import { userIdCache } from '../utils/userIdCache.js'
 
 export async function memberRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth)
@@ -74,11 +73,6 @@ export async function memberRoutes(app: FastifyInstance) {
         })
         .returning({ id: users.id })
       user = newUser
-      // A cached sub→id entry skips the email sync in requireAuth, so an invited
-      // user who just changed their address in Keycloak would not claim this
-      // placeholder until their entry expired — leaving it orphaned. Invites are
-      // rare, so drop the whole cache and let the next request re-resolve.
-      userIdCache.clear()
     }
 
     // Check if already a member
