@@ -83,13 +83,13 @@ const handleCreate = async () => {
       <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
       <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
-      <div v-if="!showCreateForm">
+      <div v-if="!showCreateForm" class="rvo-margin-block-end--2xl">
         <button class="rvo-button rvo-button--primary rvo-button--size-md rvo-button--icon-before" @click="showCreateForm = true">
           <IconPlus :size="20" /> Nieuw project
         </button>
       </div>
 
-      <form v-else @submit.prevent="handleCreate" class="rvo-margin-block-start--md">
+      <form v-else @submit.prevent="handleCreate" class="rvo-margin-block-start--md rvo-margin-block-end--2xl">
         <h2 class="utrecht-heading-2">Nieuw project</h2>
         <div class="rvo-form-field rvo-margin-block-end--md">
           <label class="rvo-form-field__label" for="projectName">Naam</label>
