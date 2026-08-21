@@ -92,7 +92,8 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `DB_IDLE_TIMEOUT`      | `30` (s)                     | Default is correct. |
 | `DB_STATEMENT_TIMEOUT` | `15` (s)                     | Max queryduur voordat Postgres de query afbreekt - fail-fast i.p.v. een pooled connectie onbeperkt vasthouden. |
 | `DB_IDLE_IN_TX_TIMEOUT`| `15` (s)                     | Max idle-in-transaction voordat de sessie wordt afgebroken (geeft een blokkerende connectie terug aan de pool). |
-| `RATE_LIMIT_MAX`       | `300`                        | Verzoeken per IP per minuut. De store is in-memory per pod, dus bij meerdere replica's is de effectieve limiet een veelvoud hiervan. |
+| `RATE_LIMIT_MAX`       | `100`                        | Verzoeken per minuut per IP, alleen voor verkeer zonder geldig token (health-probes, docs, verlopen tokens). De store is in-memory per pod, dus bij meerdere replica's is de effectieve limiet een veelvoud hiervan. |
+| `RATE_LIMIT_USER_MAX`  | `200`                        | Verzoeken per minuut per ingelogde gebruiker (sleutel is de geverifieerde `sub`), zodat collega's achter één kantoor-IP elkaars budget niet opeten. Ook per pod. |
 | `SHUTDOWN_DELAY`       | `5` (s)                      | Wachttijd na SIGTERM voordat de server sluit, zodat Kubernetes de pod uit de service-endpoints haalt terwijl `/api/health` al 503 geeft. Moet ruim onder `terminationGracePeriodSeconds` (default 30s) blijven. |
 
 ### Connectiebudget (RIG-Postgres 20-cap)

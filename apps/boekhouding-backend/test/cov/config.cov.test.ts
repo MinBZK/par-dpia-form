@@ -22,6 +22,7 @@ const ENV_KEYS = [
   'DB_IDLE_IN_TX_TIMEOUT',
   'SHUTDOWN_DELAY',
   'RATE_LIMIT_MAX',
+  'RATE_LIMIT_USER_MAX',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -297,14 +298,21 @@ describe('config - shutdownDelay (parseNonNegativeInt)', () => {
 })
 
 describe('config - rateLimit', () => {
-  it('defaults the rate-limit max to 300', async () => {
+  it('defaults the per-IP max to 100 and the per-user max to 200', async () => {
     const config = await loadConfig()
-    expect(config.rateLimit.max).toBe(300)
+    expect(config.rateLimit.max).toBe(100)
+    expect(config.rateLimit.userMax).toBe(200)
   })
 
   it('honours a RATE_LIMIT_MAX override', async () => {
     process.env.RATE_LIMIT_MAX = '500'
     const config = await loadConfig()
     expect(config.rateLimit.max).toBe(500)
+  })
+
+  it('honours a RATE_LIMIT_USER_MAX override', async () => {
+    process.env.RATE_LIMIT_USER_MAX = '750'
+    const config = await loadConfig()
+    expect(config.rateLimit.userMax).toBe(750)
   })
 })

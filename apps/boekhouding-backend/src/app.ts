@@ -5,6 +5,7 @@ import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { config } from './config.js'
+import { verifyBearer } from './middleware/auth.js'
 import { projectRoutes } from './routes/projects.js'
 import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
@@ -51,7 +52,18 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
-  await app.register(rateLimit, { max: config.rateLimit.max, timeWindow: '1 minute' })
+  // The key decides the bucket and the budget: a request whose token verifies gets
+  // its own per-user bucket, anything else shares a per-IP one. Verifying here (on
+  // onRequest, before requireAuth exists) is what makes that safe: the payload is
+  // memoised, so requireAuth does not verify a second time.
+  await app.register(rateLimit, {
+    timeWindow: '1 minute',
+    keyGenerator: async (request) => {
+      const verified = await verifyBearer(request)
+      return verified.ok ? `user:${verified.payload.sub}` : `ip:${request.ip}`
+    },
+    max: (_request, key) => (key.startsWith('user:') ? config.rateLimit.userMax : config.rateLimit.max),
+  })
 
   if (exposeApiDocs) await app.register(swagger, {
     openapi: {
@@ -81,7 +93,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         },
         responses: {
           TooManyRequests: {
-            description: 'Rate limit overschreden (max 300 requests per minuut)',
+            description: 'Rate limit overschreden. Geauthenticeerde verzoeken tellen per ingelogde gebruiker, overige per IP-adres.',
             content: {
               'application/problem+json': {
                 schema: {
@@ -106,7 +118,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
               },
               'X-RateLimit-Limit': {
                 description: 'Maximum aantal requests per tijdvenster',
-                schema: { type: 'integer', example: 300 },
+                schema: { type: 'integer', example: 200 },
               },
               'X-RateLimit-Remaining': {
                 description: 'Resterend aantal requests in huidig tijdvenster',

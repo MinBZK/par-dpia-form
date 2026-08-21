@@ -64,9 +64,13 @@ export const config = {
     statementTimeout: parsePositiveInt(process.env.DB_STATEMENT_TIMEOUT, 15, 300),
     idleInTransactionTimeout: parsePositiveInt(process.env.DB_IDLE_IN_TX_TIMEOUT, 15, 300),
   },
-  // Global request limit per IP per minute.
+  // Request limits per minute. A request whose bearer token verifies is bucketed
+  // per user (userMax); everything else - health probes, docs, expired or invalid
+  // tokens - falls back to a per-IP bucket (max), so colleagues behind one office
+  // NAT no longer share one budget.
   rateLimit: {
-    max: parsePositiveInt(process.env.RATE_LIMIT_MAX, 300, 100000),
+    max: parsePositiveInt(process.env.RATE_LIMIT_MAX, 100, 100000),
+    userMax: parsePositiveInt(process.env.RATE_LIMIT_USER_MAX, 200, 100000),
   },
   // Seconds to keep serving after SIGTERM before closing the server, so a
   // Kubernetes rolling deploy has time to withdraw this pod from the service
