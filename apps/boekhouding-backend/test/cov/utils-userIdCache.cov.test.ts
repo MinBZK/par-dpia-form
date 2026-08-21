@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createUserIdCache, userIdCache } from '../../src/utils/userIdCache.js'
 
-describe('userIdCache — get', () => {
+describe('userIdCache - get', () => {
   it('returns undefined on a miss (no entry)', () => {
     const cache = createUserIdCache(2, 1000)
     expect(cache.get('absent', 0)).toBeUndefined()
@@ -22,7 +22,7 @@ describe('userIdCache — get', () => {
   })
 })
 
-describe('userIdCache — set TTL handling', () => {
+describe('userIdCache - set TTL handling', () => {
   it('uses the max TTL when the token has no exp', () => {
     const cache = createUserIdCache(2, 1000)
     cache.set('sub', 'id-1', undefined, 0)
@@ -54,7 +54,7 @@ describe('userIdCache — set TTL handling', () => {
   })
 })
 
-describe('userIdCache — bounded size', () => {
+describe('userIdCache - bounded size', () => {
   it('evicts the oldest entry when a new key exceeds maxEntries', () => {
     const cache = createUserIdCache(2, 1000)
     cache.set('a', 'id-a', undefined, 0)
@@ -77,7 +77,7 @@ describe('userIdCache — bounded size', () => {
   })
 })
 
-describe('userIdCache — clear + default instance', () => {
+describe('userIdCache - clear + default instance', () => {
   it('clear() empties the cache', () => {
     const cache = createUserIdCache(2, 1000)
     cache.set('a', 'id-a', undefined, 0)

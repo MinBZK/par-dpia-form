@@ -83,7 +83,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   const displayName = payload.name || payload.preferred_username || normalizedEmail
 
   // Identity cache: the token is already fully validated above (signature,
-  // issuer, azp, exp), so a hit only skips the users-lookup — never validation.
+  // issuer, azp, exp), so a hit only skips the users-lookup - never validation.
   // Authorization is still checked live downstream, so a cache hit cannot leak
   // access. The cache stores nothing but the internal id.
   const now = Date.now()

@@ -2,7 +2,7 @@
 // that authenticated polling clients don't trigger a users-lookup on every
 // request. Security/privacy properties (see the PR scaling audit):
 //
-// - Stores ONLY the internal id — never email/displayName. The per-request
+// - Stores ONLY the internal id - never email/displayName. The per-request
 //   token carries those, so no personal data lingers in process memory
 //   (AVG dataminimalisatie).
 // - Caches nothing about authorization. Project/assessment access is always
@@ -12,7 +12,7 @@
 // - Bounded size with oldest-first eviction, so a flood of distinct subjects
 //   cannot exhaust memory (availability / DoS).
 // - The cache only ever maps to an already-resolved id; on any uncertainty the
-//   caller falls back to the database lookup — it never grants access on its own.
+//   caller falls back to the database lookup - it never grants access on its own.
 export interface UserIdCache {
   /** Returns the cached id for `oidcSub`, or undefined on a miss/expired entry. */
   get(oidcSub: string, now: number): string | undefined

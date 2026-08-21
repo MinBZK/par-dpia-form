@@ -64,7 +64,7 @@ describe('buildApp — options handling', () => {
 
 })
 
-describe('/api/health — readiness during shutdown', () => {
+describe('/api/health - readiness during shutdown', () => {
   it('reports 503 once beginShutdown() is called, so Kubernetes withdraws the pod', async () => {
     const app = await buildApp({ logger: false })
     await app.ready()

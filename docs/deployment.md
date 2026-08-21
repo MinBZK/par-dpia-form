@@ -90,7 +90,7 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `DB_POOL_MAX`          | `9`                          | Postgres-poolgrootte **per pod**. Geclampt op `[1, 20]` (de per-user cap). Zie connectiebudget. |
 | `DB_CONNECT_TIMEOUT`   | `10` (s)                     | Default is correct. |
 | `DB_IDLE_TIMEOUT`      | `30` (s)                     | Default is correct. |
-| `DB_STATEMENT_TIMEOUT` | `15` (s)                     | Max queryduur voordat Postgres de query afbreekt — fail-fast i.p.v. een pooled connectie onbeperkt vasthouden. |
+| `DB_STATEMENT_TIMEOUT` | `15` (s)                     | Max queryduur voordat Postgres de query afbreekt - fail-fast i.p.v. een pooled connectie onbeperkt vasthouden. |
 | `DB_IDLE_IN_TX_TIMEOUT`| `15` (s)                     | Max idle-in-transaction voordat de sessie wordt afgebroken (geeft een blokkerende connectie terug aan de pool). |
 | `RATE_LIMIT_MAX`       | `300`                        | Verzoeken per IP per minuut. De store is in-memory per pod, dus bij meerdere replica's is de effectieve limiet een veelvoud hiervan. |
 | `SHUTDOWN_DELAY`       | `5` (s)                      | Wachttijd na SIGTERM voordat de server sluit, zodat Kubernetes de pod uit de service-endpoints haalt terwijl `/api/health` al 503 geeft. Moet ruim onder `terminationGracePeriodSeconds` (default 30s) blijven. |
@@ -103,7 +103,7 @@ De gedeelde RIG-Postgres capt **elke project-DB-user op 20 connecties totaal** (
 pods × DB_POOL_MAX  ≤  20
 ```
 
-Een **rolling deploy** draait kort 2 pods (oude + surge), dus de default `2 × 9 = 18` zit krap onder 20. **Verhoog `replicas` of `maxSurge` nooit zonder `DB_POOL_MAX` navenant te verlagen** — anders worden nieuwe DB-connecties geweigerd (HTTP 500). Het aantal pods staat in de ZAD Operations Manager en is buiten deze repo niet zichtbaar, dus deze rekensom is handwerk bij elke schaalwijziging. Voor echte schaal hoort een **connection pooler (PgBouncer)** vóór de DB, niet een grotere pool per pod.
+Een **rolling deploy** draait kort 2 pods (oude + surge), dus de default `2 × 9 = 18` zit krap onder 20. **Verhoog `replicas` of `maxSurge` nooit zonder `DB_POOL_MAX` navenant te verlagen** - anders worden nieuwe DB-connecties geweigerd (HTTP 500). Het aantal pods staat in de ZAD Operations Manager en is buiten deze repo niet zichtbaar, dus deze rekensom is handwerk bij elke schaalwijziging. Voor echte schaal hoort een **connection pooler (PgBouncer)** vóór de DB, niet een grotere pool per pod.
 
 ### Graceful shutdown
 

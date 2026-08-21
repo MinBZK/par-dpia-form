@@ -21,7 +21,7 @@ function parseTrustProxy(): number | string {
 }
 
 // Parse a positive-integer env var, clamped to [1, max]. Falls back to the
-// default when unset, non-numeric, or below 1 — so a misconfigured value can
+// default when unset, non-numeric, or below 1 - so a misconfigured value can
 // never produce an unsafe state (e.g. a pool of 0 or an absurdly large value).
 function parsePositiveInt(value: string | undefined, fallback: number, max: number): number {
   if (!value) return fallback
@@ -31,7 +31,7 @@ function parsePositiveInt(value: string | undefined, fallback: number, max: numb
 }
 
 // Same, but 0 is a valid value (used by the shutdown delay, where 0 means
-// "close immediately" — useful locally, never in Kubernetes).
+// "close immediately" - useful locally, never in Kubernetes).
 function parseNonNegativeInt(value: string | undefined, fallback: number, max: number): number {
   if (!value) return fallback
   const n = parseInt(value, 10)
@@ -54,7 +54,7 @@ export const config = {
   // (PgBouncer) in front.
   // statementTimeout/idleInTransactionTimeout are in SECONDS (like the timeouts
   // above) and converted to ms at the postgres-js boundary. They make a query
-  // fail fast instead of holding a pooled connection indefinitely — without a
+  // fail fast instead of holding a pooled connection indefinitely - without a
   // statement timeout, one stuck query under pool exhaustion blocks the pool
   // with no backpressure (availability risk under the 20-connection cap).
   db: {

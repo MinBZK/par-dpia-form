@@ -186,7 +186,7 @@ describe('config — parseTrustProxy', () => {
   })
 })
 
-describe('config — db pool (parsePositiveInt with clamping)', () => {
+describe('config - db pool (parsePositiveInt with clamping)', () => {
   it('uses safe defaults when the pool env vars are unset', async () => {
     const config = await loadConfig()
     expect(config.db).toEqual({
@@ -231,7 +231,7 @@ describe('config — db pool (parsePositiveInt with clamping)', () => {
   })
 })
 
-describe('config — db statement/idle-in-transaction timeouts (M2 fast-fail)', () => {
+describe('config - db statement/idle-in-transaction timeouts (M2 fast-fail)', () => {
   it('defaults statementTimeout and idleInTransactionTimeout to 15 seconds', async () => {
     const config = await loadConfig()
     expect(config.db.statementTimeout).toBe(15)
@@ -259,7 +259,7 @@ describe('config — db statement/idle-in-transaction timeouts (M2 fast-fail)', 
   })
 })
 
-describe('config — shutdownDelay (parseNonNegativeInt)', () => {
+describe('config - shutdownDelay (parseNonNegativeInt)', () => {
   it('defaults the shutdown delay to 5 seconds when SHUTDOWN_DELAY is unset', async () => {
     const config = await loadConfig()
     expect(config.shutdownDelay).toBe(5)
@@ -271,7 +271,7 @@ describe('config — shutdownDelay (parseNonNegativeInt)', () => {
     expect(config.shutdownDelay).toBe(12)
   })
 
-  it('accepts 0 (close immediately — for local use, never in Kubernetes)', async () => {
+  it('accepts 0 (close immediately - for local use, never in Kubernetes)', async () => {
     process.env.SHUTDOWN_DELAY = '0'
     const config = await loadConfig()
     expect(config.shutdownDelay).toBe(0)
@@ -296,7 +296,7 @@ describe('config — shutdownDelay (parseNonNegativeInt)', () => {
   })
 })
 
-describe('config — rateLimit', () => {
+describe('config - rateLimit', () => {
   it('defaults the rate-limit max to 300', async () => {
     const config = await loadConfig()
     expect(config.rateLimit.max).toBe(300)
