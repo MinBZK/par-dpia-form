@@ -132,9 +132,9 @@ describe('static utility routes', () => {
     expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
   })
 
-  it('GET /.well-known/security.txt redirects 301 to NCSC', async () => {
+  it('GET /.well-known/security.txt redirects 302 to NCSC', async () => {
     const res = await app.inject({ method: 'GET', url: '/.well-known/security.txt' })
-    expect(res.statusCode).toBe(301)
+    expect(res.statusCode).toBe(302)
     expect(res.headers.location).toBe('https://www.ncsc.nl/.well-known/security.txt')
   })
 

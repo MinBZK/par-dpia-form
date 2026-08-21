@@ -206,7 +206,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
-    return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)
+    // 302, matching the frontend nginx rule that serves this path in production:
+    // a 301 is cached indefinitely, which would bite if the NCSC location moves or
+    // we start hosting our own security.txt.
+    return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 302)
   })
 
   if (exposeApiDocs) {
