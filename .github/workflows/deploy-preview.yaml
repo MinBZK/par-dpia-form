@@ -74,6 +74,8 @@ jobs:
           project-id: ${{ env.PROJECT_ID }}
           deployment-name: pr-${{ github.event.pull_request.number }}
           clone-from: ${{ env.DEPLOYMENT_CLONE_FROM }}
+          # clone-from does not copy this, and the platform default moves.
+          domain-format: deployment-project
           comment-on-pr: 'true'
           wait-for-ready: 'true'
           health-endpoint: /api/health
