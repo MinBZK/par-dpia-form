@@ -18,7 +18,8 @@ build) staan kort onder "Onder de motorkap".
 * `/.well-known/security.txt` verwijst niet langer met een redirect naar het
   bestand van het NCSC, maar wordt nu zelf gehost, met een eigen
   beleidsverwijzing naar `SECURITY.md`. Het NCSC blijft het meldpunt voor
-  kwetsbaarheden.
+  kwetsbaarheden; wie liever via GitHub meldt kan dat nu ook rechtstreeks bij
+  dit team, via private vulnerability reporting.
 
 ### Gewijzigd
 

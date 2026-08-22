@@ -1,10 +1,10 @@
-# NCSC-NL is het centrale meldpunt voor kwetsbaarheden en incidenten voor de
-# Rijksoverheid. Meldingen komen bij het NCSC binnen; Policy hieronder wijst
-# daarnaast naar ons eigen SECURITY.md.
+# NCSC-NL blijft het centrale CVD-meldpunt voor kwetsbaarheden en incidenten
+# voor de Rijksoverheid. De GitHub-advisory hieronder is de directe lijn naar
+# het team van deze repository.
 #
-# NCSC-NL is the central point of contact for vulnerabilities and incidents
-# for the Dutch central government. Reports go to NCSC-NL; Policy below also
-# points to our own SECURITY.md.
+# NCSC-NL remains the central CVD reporting point for vulnerabilities and
+# incidents for the Dutch central government. The GitHub advisory below is
+# the direct line to this repository's team.
 
 Expires: ${SECURITY_TXT_EXPIRES}
 Canonical: ${SECURITY_TXT_CANONICAL_HOST}/.well-known/security.txt
@@ -13,6 +13,7 @@ Policy: https://github.com/MinBZK/par-dpia-form/blob/main/SECURITY.md
 Policy: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
 Policy: https://www.ncsc.nl/en/cvd-report-form
 
+Contact: https://github.com/MinBZK/par-dpia-form/security/advisories/new
 Contact: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
 Contact: https://www.ncsc.nl/en/cvd-report-form
 Contact: mailto:security@ncsc.nl
