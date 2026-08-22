@@ -3,6 +3,7 @@ import { db } from '../db/connection.js'
 import { assessmentInstances, assessmentVersions, comments, projectMembers } from '../db/schema.js'
 import { eq, and, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
+import { assessmentParams, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 /**
  * Sync endpoint — exposes collaboration signals for polling clients. Separate from /comments to keep concerns isolated.
@@ -16,6 +17,8 @@ import { requireAuth } from '../middleware/auth.js'
  * assessment_versions), and runs in parallel with the comment count. One round-trip per poll instead of three.
  */
 export async function syncRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   app.addHook('preHandler', requireAuth)
 
   // GET /assessments/:assessmentId/sync — lightweight sync signal for polling
@@ -24,6 +27,7 @@ export async function syncRoutes(app: FastifyInstance) {
   }>('/:assessmentId/sync', {
     schema: {
       tags: ['sync'],
+      params: assessmentParams,
       description: 'Lightweight collaboration sync signal. Returns the current assessment version, last update timestamp, and whether the last change was made by the requesting user. Used by clients to decide whether to fetch updated state.',
       response: {
         200: {

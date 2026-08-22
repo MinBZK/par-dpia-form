@@ -506,7 +506,7 @@ describe('PATCH /assessments/:id/comments/:commentId — resolve/reopen', () => 
     expect(res.json().detail).toBe('Commentaar niet gevonden of is een reactie')
   })
 
-  it('resolves a root comment, setting resolvedAt and resolvedBy', async () => {
+  it('resolves a root comment with a server-derived resolvedAt and resolvedBy', async () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'editor')
     const comment = await seedComment({
@@ -514,16 +514,20 @@ describe('PATCH /assessments/:id/comments/:commentId — resolve/reopen', () => 
       authorId: owner.id,
     })
 
-    const resolvedAt = new Date('2026-03-20T10:00:00Z').toISOString()
+    // The client-sent timestamp is ignored: the audit trail must not be datable
+    // by the caller.
+    const clientClaim = new Date('2020-01-01T10:00:00Z').toISOString()
+    const before = Date.now()
     const res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/assessments/${assessment.id}/comments/${comment.id}`,
       headers: authHeader(await tokenFor(owner)),
-      payload: { resolvedAt },
+      payload: { resolvedAt: clientClaim },
     })
     expect(res.statusCode).toBe(200)
     const body = res.json()
-    expect(body.resolvedAt).toBe(resolvedAt)
+    expect(body.resolvedAt).not.toBe(clientClaim)
+    expect(new Date(body.resolvedAt).getTime()).toBeGreaterThanOrEqual(before)
     expect(body.resolvedBy).toBe(owner.id)
   })
 

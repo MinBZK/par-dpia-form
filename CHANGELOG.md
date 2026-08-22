@@ -52,6 +52,15 @@ build) staan kort onder "Onder de motorkap".
 
 ### Beveiliging
 
+* De API controleert nu elk verzoek voordat het wordt uitgevoerd: onbekende
+  of te lange invoer, een ongeldig project- of assessment-adres en een
+  onleesbare datum leveren een nette foutmelding in het Nederlands op in
+  plaats van een serverfout. Ook gelden bij het wijzigen van een project
+  dezelfde lengtegrenzen voor naam en omschrijving als bij het aanmaken.
+* Alleen een eigenaar kan nog een nieuwe versie afdwingen; een bewerker kon
+  dat eerder ook zonder omschrijving, en zo ongelimiteerd versies aanmaken.
+* Het tijdstip waarop een opmerking is afgehandeld, wordt door de server
+  bepaald en niet meer door de browser meegestuurd.
 * De weergave van opgemaakte tekst is verder dichtgezet met Trusted Types
   en een centrale opschoonstap, zodat er geen onveilige HTML in de pagina
   terecht kan komen.
@@ -79,6 +88,10 @@ build) staan kort onder "Onder de motorkap".
   vastgelegd.
 * De nginx-configuratie van de frontend is gebundeld in
   `containers/frontend/nginx/`.
+* Het uitwisselformaat van assessmentgegevens ligt strakker vast: alleen de
+  beschreven velden worden nog opgeslagen. Velden uit een oudere versie van
+  het formaat worden daarbij weggelaten in plaats van geweigerd, zodat een
+  bestaand assessment gewoon te bewerken blijft.
 * CI aangescherpt: minimale rechten voor tokens, controle op de integriteit
   van de lockfile, een bewaking tegen nieuwe ongecontroleerde `v-html` en
   robuustere linkcontrole.

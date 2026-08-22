@@ -209,6 +209,27 @@ describe('requireAssessmentAccess — restore requires owner', () => {
     expect(res.statusCode).toBe(403)
     expect(res.json().detail).toBe('De rol eigenaar is vereist')
   })
+
+  it('returns 403 when an editor forces a new version without a description', async () => {
+    const owner = await createUser()
+    const editor = await createUser()
+    const { project, assessment } = await seedAssessmentFor(owner, 'owner')
+    await addMember(project.id, editor.id, 'editor')
+
+    const token = await tokenFor(editor)
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(token),
+      payload: {
+        state: { answers: {} },
+        newVersion: true,
+        expectedVersion: 1,
+      },
+    })
+    expect(res.statusCode).toBe(403)
+    expect(res.json().detail).toBe('De rol eigenaar is vereist')
+  })
 })
 
 describe('requireAssessmentAccess — DELETE /assessments/:id (owner minimum)', () => {

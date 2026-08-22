@@ -44,13 +44,35 @@ describe('validateState', () => {
   })
 
   it('accepts the extra top-level _prescanAnswers field the DPIA client sends', () => {
-    // buildApiState() adds _prescanAnswers for DPIA saves; the schema has no
-    // additionalProperties:false at the root, so this must keep validating.
+    // buildApiState() adds _prescanAnswers for DPIA saves, so the root is closed
+    // around it rather than against it.
     const result = validateState({
       ...validState({ '0.1': answer('x') }),
       _prescanAnswers: { '0.1': answer('leftover') },
     })
     expect(result.valid).toBe(true)
+  })
+
+  it('accepts grouped repeatable answers inside _prescanAnswers', () => {
+    const result = validateState({
+      ...validState(),
+      _prescanAnswers: { '2.1': [{ _index: 0, '2.1.1': answer('Email') }] },
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it('rejects an unknown top-level key so it cannot be persisted verbatim', () => {
+    const result = validateState({ ...validState(), taskState: { dpia: {} } })
+    expect(result.valid).toBe(false)
+    expect(result.errors).not.toBe('')
+  })
+
+  it('rejects an unknown metadata key', () => {
+    const result = validateState({
+      ...validState(),
+      metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00.000Z', activeNamespace: 'dpia' },
+    })
+    expect(result.valid).toBe(false)
   })
 
   it('accepts a realistic full client payload (drift guard for buildApiState)', () => {
