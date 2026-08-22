@@ -4,3 +4,8 @@ node_modules
 .vscode
 .playwright-mcp
 docs
+.claude
+.env
+.env.*
+artifacts
+coverage

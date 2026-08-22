@@ -24,19 +24,31 @@ RUN npx tsc
 RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); process.stdout.write(d.toISOString())" \
     > /app/security-txt-expires
 
+# Production dependencies as a self-contained tree the runtime stage can copy.
+# hoisted, because pnpm's default layout leaves symlinks into a store that is
+# not copied along.
+WORKDIR /app
+RUN pnpm --filter @overheid-assessment/boekhouding-backend deploy --prod --legacy --node-linker=hoisted /prod
+
 # Stage 2: production image with only runtime dependencies
 FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019
 
-RUN npm install --global corepack@0.35.0 && corepack enable && corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
+# No package manager here: dependencies arrive prebuilt from the build stage.
+# npm ships with the base image and carries its own vendored tar, undici,
+# ip-address and brace-expansion, which every image scan reports.
+#
+# `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
+# the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
+RUN apk upgrade --no-cache \
+    && rm -rf /var/cache/apk/* \
+       /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 WORKDIR /app
 
-# Copy workspace config and package manifests
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
-COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
-
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+# package.json comes along because Node needs its "type": "module" to resolve
+# the compiled output as ESM.
+COPY --from=build /prod/node_modules apps/boekhouding-backend/node_modules
+COPY --from=build /app/apps/boekhouding-backend/package.json apps/boekhouding-backend/package.json
 
 # Copy compiled output and drizzle migrations
 COPY --from=build /app/apps/boekhouding-backend/dist apps/boekhouding-backend/dist

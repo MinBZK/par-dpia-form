@@ -67,6 +67,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De API-container bevat geen pakketbeheerders meer. Die waren alleen nodig om
+  de container te bouwen en bleven daarna achter, inclusief hun eigen bekende
+  kwetsbaarheden die bij elke scan opnieuw werden gemeld.
 * De databaseverbindingen van de API zijn expliciet begrensd en krijgen
   time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
   nieuwe versie van de applicatie worden lopende verzoeken netjes

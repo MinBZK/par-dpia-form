@@ -44,8 +44,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
         frameAncestors: ["'none'"],
