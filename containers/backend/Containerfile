@@ -19,6 +19,11 @@ COPY apps/boekhouding-backend/ apps/boekhouding-backend/
 WORKDIR /app/apps/boekhouding-backend
 RUN npx tsc
 
+# security.txt Expires, fixed at build time; same mechanism as
+# containers/frontend/Containerfile.
+RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); process.stdout.write(d.toISOString())" \
+    > /app/security-txt-expires
+
 # Stage 2: production image with only runtime dependencies
 FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019
 
@@ -39,6 +44,11 @@ COPY --from=build /app/apps/boekhouding-backend/drizzle apps/boekhouding-backend
 
 # Canonical output schema — read at startup by validateState.ts (resolved at /app/schemas).
 COPY schemas/assessment-output.v2.schema.json schemas/assessment-output.v2.schema.json
+
+# Shared security.txt template (also used by containers/frontend/Containerfile);
+# read at startup by securityTxt.ts.
+COPY containers/security.txt.template containers/security.txt.template
+COPY --from=build /app/security-txt-expires containers/security-txt-expires
 
 WORKDIR /app/apps/boekhouding-backend
 
