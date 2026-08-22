@@ -63,3 +63,6 @@ containers/compose.override.yaml
 containers/compose-dev-keycloak.local.json
 containers/Caddyfile.local
 containers/certs/
+
+# Reports written for review, not for a public repo
+artifacts/
