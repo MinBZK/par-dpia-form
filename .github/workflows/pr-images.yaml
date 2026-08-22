@@ -1,4 +1,9 @@
-name: Deploy preview
+name: PR images
+
+# Every pull request builds and scans both images, including bot and fork ones.
+# Publishing to GHCR and deploying a preview happen on top of that same build
+# and only when the `preview` label is present, so anything that reaches the
+# registry has passed the scan.
 
 on:
   pull_request:
@@ -8,40 +13,30 @@ on:
       - opened
       - reopened
       - synchronize
+      - labeled
+      - unlabeled
       - closed
-    # Skip previews for PRs that touch only CI, tooling or docs: those do not
-    # change the deployed images. A preview isn't a required check, so a skipped
-    # run leaves nothing pending. (`scripts/` is dev tooling; the build uses
-    # `script/` for source generation, which is intentionally not ignored.)
-    paths-ignore:
-      - '.github/**'
-      - 'scripts/**'
-      - 'docs/**'
-      - '**.md'
 
 concurrency:
   group: preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  packages: write
-  pull-requests: write
-  deployments: write
-
 env:
   PROJECT_ID: asses-k2n
   DEPLOYMENT_CLONE_FROM: acceptatie
 
-# Previews only run for PRs from this repo: fork PRs have no access to
-# ZAD_API_KEY or GHCR push and would only produce failing runs.
-
 jobs:
-  build:
+  # A preview is opt-in per PR: it appears when the `preview` label is added and
+  # disappears when the label is removed or the PR closes. Adding the label is
+  # the only way in, so an unattended PR never holds pods and database
+  # connections. Fork and bot PRs are scanned but never published: they have no
+  # access to ZAD_API_KEY or GHCR push.
+  images:
     if: >-
-      github.event.action != 'closed' &&
-      github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'synchronize' ||
+      (github.event.action == 'labeled' && github.event.label.name == 'preview')
     permissions:
       contents: read
       packages: write
@@ -51,13 +46,13 @@ jobs:
       frontend-image: ghcr.io/minbzk/par-dpia-form/preview/frontend
       backend-image: ghcr.io/minbzk/par-dpia-form/preview/backend
       tag-prefix: pr-${{ github.event.pull_request.number }}-
+      publish: ${{ github.event.pull_request.user.type != 'Bot' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview') }}
 
   deploy-preview:
-    needs: build
-    if: >-
-      github.event.action != 'closed' &&
-      github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+    # The image refs are empty unless the images were published, which makes
+    # this the same gate as the `publish` input without restating it.
+    needs: images
+    if: needs.images.outputs.frontend-image != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -81,16 +76,25 @@ jobs:
           health-endpoint: /api/health
           components: >-
             [
-              {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
-              {"name": "api", "image": "${{ needs.build.outputs.backend-image }}"}
+              {"name": "frontend", "image": "${{ needs.images.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.images.outputs.backend-image }}"}
             ]
 
   cleanup-preview:
     if: >-
-      github.event.action == 'closed' &&
       github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'unlabeled' && github.event.label.name == 'preview') ||
+        (github.event.action == 'closed' &&
+         contains(github.event.pull_request.labels.*.name, 'preview'))
+      )
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+      deployments: write
     steps:
       - uses: RijksICTGilde/zad-actions/cleanup@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
         with:
