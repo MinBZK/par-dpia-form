@@ -27,6 +27,9 @@ export interface TokenClaims {
   azp?: string
   iss?: string
   expiresIn?: string // e.g. '1h'
+  /** Keycloak stamps 'Bearer' on access tokens and 'ID' on ID tokens. */
+  typ?: string
+  email_verified?: boolean
 }
 
 export async function startTestJwks(opts: { realm?: string; audience?: string } = {}): Promise<TestJwks> {
@@ -64,6 +67,9 @@ export async function startTestJwks(opts: { realm?: string; audience?: string } 
         name: claims.name,
         preferred_username: claims.preferred_username,
         azp: claims.azp ?? audience,
+        // Defaults mirror a Keycloak access token, which the middleware requires.
+        typ: claims.typ ?? 'Bearer',
+        email_verified: claims.email_verified ?? true,
       })
         .setProtectedHeader({ alg: 'RS256', kid: 'test-key-1' })
         .setIssuedAt()
