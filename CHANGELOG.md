@@ -24,6 +24,8 @@ build) staan kort onder "Onder de motorkap".
 * Het terugkijken van een eerdere versie gaat merkbaar sneller: een al
   eerder opgebouwde versie wordt hergebruikt in plaats van opnieuw
   samengesteld.
+* De invulhulp laadt sneller op een trage verbinding: pagina's, scripts en
+  antwoorden gaan nu gecomprimeerd over de lijn.
 
 ### Opgelost
 
@@ -57,9 +59,10 @@ build) staan kort onder "Onder de motorkap".
   time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
   nieuwe versie van de applicatie worden lopende verzoeken netjes
   afgerond in plaats van afgebroken.
-* Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release.
-  Let op: de limiet geldt per IP-adres, dus collega's op één kantoornetwerk
-  delen die.
+* Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release en
+  telt per ingelogde gebruiker. Collega's op één kantoornetwerk delen dus
+  geen limiet meer; alleen verzoeken zonder geldig toegangsbewijs tellen
+  nog per IP-adres.
 * De identiteit van een ingelogde gebruiker wordt kortstondig onthouden,
   zodat pollende clients niet elke keer dezelfde opzoeking doen.
   Autorisatie wordt onveranderd per verzoek getoetst.
