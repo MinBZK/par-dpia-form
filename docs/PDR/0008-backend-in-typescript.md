@@ -8,73 +8,78 @@ Geaccepteerd
 
 ## Besluit
 
-De backend (`apps/boekhouding-backend`) blijft in TypeScript op Fastify. We stappen niet over op Python of Rust, ondanks dat verwante rijksprojecten dat wel doen: RegelRecht is in Rust, AMT in Python/FastAPI.
+De backend (`apps/boekhouding-backend`) is geschreven in TypeScript op Fastify, met Drizzle ORM op PostgreSQL en JWT-verificatie via `jose` tegen Keycloak.
 
-Python blijft beperkt tot de build-time pipeline in `script/` (YAML-bronnen valideren, verrijken en naar JSON exporteren). Die pipeline raakt de backend-runtime niet.
+Python is in dit project een build-time taal: de pipeline in `script/` valideert de YAML-bronnen, verrijkt ze met begrippen en exporteert JSON voor de frontend en de standalone invulhulp. Die pipeline raakt de backend-runtime niet.
+
+Dit PDR legt die situatie terugwerkend vast. De keuze viel in maart 2026, toen de backend aan de monorepo werd toegevoegd, en is destijds niet opgeschreven.
 
 ## Achtergrond
 
-Er was geen enkel technisch beslisdocument in deze repo. De `docs/PDR/`-reeks gaat uitsluitend over de inhoud van de formulieren, en het waarom van de stack stond nergens vast. Voor een EUPL-project dat op hergebruik mikt is dat een gat: een hergebruiker kan niet zien waarom dit Node is en onder welke voorwaarden dat zou veranderen.
+Tot dat moment bestond de invulhulp alleen als browserapplicatie: de assessment-engine in `packages/assessment-core` en een standalone single-file build zonder server. Python zat er al in, voor de bronbestanden-pipeline, inclusief uv, ruff en pytest in CI. Toen de samenwerkomgeving een echte API nodig had, was de vraag dus niet "welke taal past bij een REST-API", maar "voegen we een tweede runtime toe of niet". Python was daarbij de vanzelfsprekende tegenkandidaat, omdat het al in de repo en in de pipelines stond.
 
-De aanleiding is de constatering dat de invulhulpen qua taalkeuze afwijken van de omliggende projecten binnen BZK.
+Het is toen TypeScript geworden, zonder dat het waarom ergens is vastgelegd. De `docs/PDR/`-reeks ging tot nu toe uitsluitend over de inhoud van de formulieren, en er was geen technisch beslisdocument in de repo. Voor een EUPL-project dat op hergebruik mikt is dat een gat: een hergebruiker kan niet zien waarom dit Node is en onder welke voorwaarden dat zou veranderen.
+
+De directe aanleiding om het alsnog op te schrijven is de constatering dat de invulhulpen qua taalkeuze afwijken van omliggende projecten binnen BZK, waar AMT op Python/FastAPI draait en RegelRecht op Rust.
 
 ## Overweging
 
-Feiten uit de codebase die de afweging bepalen:
+Wat destijds de doorslag gaf, hier onderbouwd met de cijfers zoals de code er nu bij staat:
 
-- **De backend is nauwelijks gekoppeld aan de rest van de monorepo.** Geen `workspace:*`-dependency en geen type-imports naar `packages/assessment-core`. Het enige gedeelde artefact is `schemas/assessment-output.v2.schema.json`, ingelezen in `apps/boekhouding-backend/src/utils/validateState.ts`. Het externe contract is OpenAPI, gegenereerd uit de route-schema's. Beide zijn taalneutraal, dus een herschrijving wordt technisch nergens door geblokkeerd.
-- **Er is weinig domeinlogica.** Van de circa 3.000 regels in `src/` is ongeveer 85 procent CRUD, HTTP, auth en autorisatie. De echte logica is `diffStates.ts` plus `rebuildState.ts`, samen ongeveer 390 regels: het encode/replay-paar rond de edit-log.
-- **Er draait geen rekenwerk op de server.** PDF-export (pdfmake) en het verkleinen van afbeeldingen gebeuren client-side; de standalone invulhulp heeft helemaal geen backend. Er is geen streaming en geen websocket-verkeer; sync is polling.
-- **De schaalgrens is de database, niet de runtime.** `pods x DB_POOL_MAX <= 20`, zie `docs/deployment.md`. Sneller rekenen levert geen extra capaciteit op; een connection pooler wel.
-- **De frontend moet TypeScript blijven.** De standalone invulhulp is een offline single-file build, dus de assessment-engine bestaat sowieso in TypeScript. De vraag is niet welke taal, maar of we er een tweede bij nemen.
-- **Herschrijfkosten.** Circa 3.000 regels broncode plus 8.200 regels integratietests, onder een coveragedrempel van 100 procent die hard faalt in CI. Voor de gebruiker verandert er niets.
+- **De frontend kan geen andere taal zijn.** De standalone invulhulp is een offline single-file build zonder server, dus de assessment-engine bestaat sowieso in TypeScript. Een Python-backend betekent onvermijdelijk twee talen; TypeScript betekent één.
+- **Er is weinig backend-logica om ergens anders onder te brengen.** Van de circa 3.000 regels in `src/` is ongeveer 85 procent CRUD, HTTP, auth en autorisatie. De enige echte domeinlogica is `diffStates.ts` plus `rebuildState.ts`, samen ongeveer 390 regels rond de edit-log.
+- **Er draait geen rekenwerk op de server.** PDF-export (pdfmake) en het verkleinen van afbeeldingen gebeuren client-side. Geen streaming, geen websockets; sync is polling. Het profiel is dun en I/O-gebonden, precies waar de taalkeuze het minst uitmaakt.
+- **De schaalgrens is de database, niet de runtime.** `pods x DB_POOL_MAX <= 20`, zie `docs/deployment.md`. Een snellere runtime levert geen extra capaciteit op; een connection pooler wel.
+- **De bezetting is klein.** Feitelijk één actieve maintainer op de backend. Eén taal voor de hele applicatie weegt dan zwaarder dan aansluiting bij het ecosysteem van naburige projecten.
 
 ## Details
 
-Wat blijft zoals het is:
+Wat de keuze concreet inhoudt:
 
 - Fastify 5 op Node, TypeScript, ESM.
 - Drizzle ORM op PostgreSQL 17, migraties via drizzle-kit.
 - JWT-verificatie met `jose` tegen Keycloak.
-- JSON Schema (`schemas/`) en de gegenereerde OpenAPI als contract naar andere talen. Dit blijft de naad waarlangs een toekomstige herimplementatie zou lopen.
+- JSON Schema (`schemas/`) en de uit de route-schema's gegenereerde OpenAPI als contract naar buiten.
 - De Python-pipeline in `script/`, inclusief uv, ruff en pytest in CI.
 
-Wanneer we dit besluit opnieuw wegen:
+Belangrijk voor de houdbaarheid: de backend heeft geen enkele compile-time koppeling met de rest van de monorepo. Geen `workspace:*`-dependency, geen type-imports naar `packages/assessment-core`. Het enige gedeelde artefact is `schemas/assessment-output.v2.schema.json`, ingelezen in `apps/boekhouding-backend/src/utils/validateState.ts`. Die naad plus de OpenAPI zijn taalneutraal, dus een herimplementatie in een andere taal is technisch nergens door geblokkeerd. Wie dat ooit doet, herschrijft de 390 regels edit-log-logica en zet er contracttests tegen de OpenAPI onder.
 
-1. Het beheer verhuist naar een team dat primair Python schrijft (bijvoorbeeld het AMT-team). De taalkeuze volgt de onderhouder, niet andersom.
+Wanneer we deze keuze opnieuw wegen:
+
+1. Het beheer verhuist naar een team dat primair Python schrijft, bijvoorbeeld het AMT-team. De taalkeuze volgt de onderhouder, niet andersom.
 2. Er komt server-side rekenwerk van betekenis, bijvoorbeeld PDF-generatie op de server, batchverwerking of analyse over meerdere assessments.
-3. De assessment-engine moet gedeeld worden tussen browser en server. Dan wordt WebAssembly relevant en verschuift het voordeel richting Rust.
+3. De assessment-engine moet gedeeld worden tussen browser en server. Dan wordt WebAssembly relevant en verschuift het voordeel richting een taal die daar goed naar compileert.
 
-Zolang geen van deze drie speelt, is een taalwissel kosten zonder opbrengst.
+Zolang geen van deze drie speelt, is een taalwissel kosten zonder opbrengst: circa 3.000 regels broncode plus 8.200 regels integratietests opnieuw schrijven, onder een coveragedrempel van 100 procent die hard faalt in CI, terwijl er voor de gebruiker niets verandert.
 
 ## Impact
 
 ### Gebruikers
 
-Geen. Dit is een intern besluit zonder zichtbaar effect, en daarom ook geen CHANGELOG-vermelding.
+Geen. Dit is een intern beslisdocument zonder zichtbaar effect, en daarom ook geen CHANGELOG-vermelding.
 
 ### Ontwikkelteam
 
-Eén taal voor de hele applicatie blijft de doorslaggevende reden. Bij de huidige bezetting van feitelijk één actieve maintainer weegt dat zwaarder dan aansluiting bij het ecosysteem van naburige projecten.
+Eén taal en één toolchain voor de applicatie, plus Python voor de bronbestanden. Wie aan de backend werkt, heeft geen tweede runtime nodig.
 
 ### Andere componenten
 
 Geen wijziging. De risico's die in deze discussie meeliften staan er los van en blijven open:
 
 - Bus factor van 1 op de backend.
-- De omvang van de npm-dependencyboom (circa 449 productiepakketten), het reële nadeel van Node ten opzichte van Python en Rust.
+- De omvang van de npm-dependencyboom (circa 449 productiepakketten), het reële nadeel van Node ten opzichte van Python.
 - De in-memory caches (`rebuildStateCache`, `userIdCache`) en per-pod rate limiting die horizontaal schalen in de weg zitten, plus de handmatige rekensom rond `DB_POOL_MAX`.
 
 ## Alternatieven
 
 ### Python met FastAPI
 
-Het serieuze alternatief, en het sterkste argument ervoor is organisatorisch: AMT draait op FastAPI en een deel van de bijdragers aan deze repo komt uit die hoek. Python zit bovendien al in de repo en in de CI, dus het voegt geen nieuwe toolchain toe.
+De reële tegenkandidaat, en het sterkste argument ervoor is organisatorisch: AMT draait op FastAPI en een deel van de bijdragers aan deze repo komt uit die hoek. Python stond bovendien al in de repo en in de CI, dus het had geen nieuwe toolchain toegevoegd, alleen een nieuwe rol voor een bestaande.
 
-Niet gekozen omdat de winst technisch bijna nul is: FastAPI met Pydantic levert ongeveer wat Fastify met JSON-schema's al levert, inclusief OpenAPI uit de routes. Alembic vervangt Drizzle, `jsonschema` vervangt Ajv. Daar staat een herschrijving van ruim 11.000 regels tegenover, plus een tweede runtime om te onderhouden en te patchen.
+Niet gekozen omdat de technische winst bijna nul is: FastAPI met Pydantic levert ongeveer wat Fastify met JSON-schema's levert, inclusief OpenAPI uit de routes. Alembic vervangt Drizzle, `jsonschema` vervangt Ajv. Wat overblijft is de prijs: een tweede runtime om te onderhouden, te patchen en in elke container en pipeline mee te nemen, terwijl de frontend hoe dan ook TypeScript blijft.
+
+Deze afweging kantelt zodra scenario 1 hierboven optreedt.
 
 ### Rust
 
-Niet gekozen. De vier argumenten die Rust elders terecht winnen, gelden hier geen van alle: performance is niet de bottleneck (de databaseconnecties zijn dat), er is geen onveilig geheugenoppervlak (JWT, JSON Schema en SQL zijn overal library-werk), WebAssembly is nu niet aan de orde, en een steile leercurve is een slecht idee bij bus factor 1. Het enige voordeel is een kleinere container met een lager geheugenbeslag, wat niets oplost naast een limiet van 20 databaseconnecties.
-
-Rust komt terug in beeld als scenario 3 hierboven werkelijkheid wordt.
+Niet aan de orde geweest bij de oorspronkelijke keuze, en achteraf ook geen gemiste kans. De argumenten die Rust elders terecht winnen, gelden hier geen van alle: performance is niet de bottleneck (de databaseconnecties zijn dat), er is geen onveilig geheugenoppervlak (JWT, JSON Schema en SQL zijn overal library-werk), WebAssembly is nu niet aan de orde, en een steile leercurve is een slecht idee bij één maintainer. Het enige voordeel is een kleinere container met lager geheugenbeslag, wat niets oplost naast een limiet van 20 databaseconnecties.
