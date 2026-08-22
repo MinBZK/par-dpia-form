@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { projects as projectsApi, type Project } from '../api'
+import { ApiError, projects as projectsApi, type Project } from '../api'
 import { usePaginatedList } from '../composables/usePaginatedList'
 import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
@@ -21,8 +21,13 @@ const newProjectDescription = ref('')
 onMounted(async () => {
   try {
     await loadFirst()
-  } catch {
-    error.value = 'Kan projecten niet laden. Probeer het later opnieuw.'
+  } catch (e) {
+    // This list only contains your own projects, so a 403 here is about the
+    // account rather than one project. Retrying will not fix that, so show what
+    // the server says instead of advising a retry.
+    error.value = e instanceof ApiError && e.status === 403
+      ? e.message
+      : 'Kan projecten niet laden. Probeer het later opnieuw.'
   } finally {
     loading.value = false
   }

@@ -7,7 +7,17 @@ import type { Project } from '../../src/api'
 
 const listMock = vi.fn()
 const createMock = vi.fn()
+const { ApiError } = vi.hoisted(() => ({
+  ApiError: class ApiError extends Error {
+    status: number
+    constructor(message: string, status: number) {
+      super(message)
+      this.status = status
+    }
+  },
+}))
 vi.mock('../../src/api', () => ({
+  ApiError,
   projects: {
     list: async (...args: unknown[]) => {
       const r = await listMock(...args)
@@ -102,6 +112,24 @@ describe('ProjectList', () => {
       expect(alert.exists()).toBe(true)
       expect(alert.text()).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
       expect(wrapper.text()).not.toContain('Je hebt nog geen projecten')
+    })
+
+    it('shows the server message on a 403 instead of advising a retry', async () => {
+      listMock.mockRejectedValue(new ApiError('Je e-mailadres is niet geverifieerd.', 403))
+      const wrapper = mountList()
+      await flushPromises()
+
+      const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
+      expect(alert.text()).toBe('Je e-mailadres is niet geverifieerd.')
+    })
+
+    it('keeps the generic message for a non-403 ApiError', async () => {
+      listMock.mockRejectedValue(new ApiError('Serverfout', 500))
+      const wrapper = mountList()
+      await flushPromises()
+
+      const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
+      expect(alert.text()).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
     })
   })
 

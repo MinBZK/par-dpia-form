@@ -102,3 +102,24 @@ export const config = {
     audience: process.env.OIDC_PUBLIC_CLIENT_ID || 'boekhouding-frontend',
   },
 }
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
+
+/**
+ * JWKS keys are the root of trust for every token: over plain HTTP, anyone who
+ * can intercept or spoof that host can mint tokens for any user. Plain HTTP
+ * stays allowed for loopback and via OIDC_ALLOW_INSECURE_JWKS.
+ */
+export function assertSecureJwksUri(
+  jwksUri: string = config.keycloak.jwksUri,
+  allowInsecure: boolean = process.env.OIDC_ALLOW_INSECURE_JWKS === 'true',
+): void {
+  const url = new URL(jwksUri)
+  if (url.protocol === 'https:') return
+  if (allowInsecure) return
+  if (LOOPBACK_HOSTS.has(url.hostname)) return
+  throw new Error(
+    `Refusing to start: JWKS URI ${jwksUri} is not https. Point OIDC_INTERNAL_URL at an https URL, ` +
+      'or set OIDC_ALLOW_INSECURE_JWKS=true when Keycloak is reached over a trusted private network.',
+  )
+}

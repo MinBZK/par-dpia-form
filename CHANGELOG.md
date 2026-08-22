@@ -69,6 +69,12 @@ build) staan kort onder "Onder de motorkap".
   bekeken sectie van assessments uit de browser gewist. Op een gedeelde of
   publieke computer kan de volgende gebruiker die gegevens dus niet meer
   terugzien.
+* Inloggen is strenger gecontroleerd: alleen een echt toegangsbewijs met een
+  geldige vervaltijd wordt geaccepteerd, en de sleutels van de inlogdienst
+  worden uitsluitend over een beveiligde verbinding opgehaald.
+* Een e-mailadres dat de inlogdienst niet heeft bevestigd kan zich niet meer
+  aan een account koppelen. Zo kan een openstaande uitnodiging niet bij
+  iemand anders terechtkomen dan de bedoelde ontvanger.
 
 ### Onder de motorkap
 
