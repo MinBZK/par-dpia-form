@@ -70,6 +70,9 @@ build) staan kort onder "Onder de motorkap".
 * De API-container bevat geen pakketbeheerders meer. Die waren alleen nodig om
   de container te bouwen en bleven daarna achter, inclusief hun eigen bekende
   kwetsbaarheden die bij elke scan opnieuw werden gemeld.
+* Containerimages worden nu bij elke pull request gescand, en een kwetsbaarheid
+  waarvoor een oplossing bestaat blokkeert de merge. Wat toch blijft staan komt
+  wekelijks in een issue te staan in plaats van alleen in een tabblad.
 * De databaseverbindingen van de API zijn expliciet begrensd en krijgen
   time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
   nieuwe versie van de applicatie worden lopende verzoeken netjes
