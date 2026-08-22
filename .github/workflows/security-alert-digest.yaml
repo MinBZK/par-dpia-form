@@ -1,0 +1,77 @@
+name: Security alert digest
+
+# The image scan reports into the Security tab, where findings accumulate
+# without anyone being told. This keeps a single issue in sync with what is
+# open there, so the backlog shows up on the board instead of only in a tab.
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      security-events: read
+    steps:
+      - name: Collect open code scanning alerts
+        id: collect
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/code-scanning/alerts?state=open&per_page=100" \
+            --jq '[.[] | {
+                    number: .number,
+                    severity: (.rule.security_severity_level // "unknown"),
+                    desc: .rule.description,
+                    path: .most_recent_instance.location.path,
+                    since: .created_at
+                  }]' > alerts.json
+          echo "count=$(jq 'length' alerts.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Render the issue body
+        if: steps.collect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          {
+            echo "Open meldingen in de Security-tab, wekelijks bijgewerkt door \`security-alert-digest.yaml\`."
+            echo
+            echo "| Ernst | Sinds | Melding | Pad |"
+            echo "| --- | --- | --- | --- |"
+            jq -r 'sort_by(.severity) | .[] |
+                   "| \(.severity) | \(.since[0:10]) | \(.desc) | `\(.path)` |"' alerts.json
+            echo
+            echo "Alles opgelost? Dan sluit deze issue zichzelf bij de volgende run."
+          } > body.md
+
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COUNT: ${{ steps.collect.outputs.count }}
+          TITLE: "Openstaande beveiligingsmeldingen in de Security-tab"
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ "$COUNT" = "0" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" \
+                --comment "Geen openstaande meldingen meer."
+            fi
+            exit 0
+          fi
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$REPO" --title "$TITLE ($COUNT)" --body-file body.md
+          else
+            gh issue create --repo "$REPO" --title "$TITLE ($COUNT)" --body-file body.md
+          fi
