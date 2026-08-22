@@ -143,7 +143,7 @@ Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`)
 - CI: GitHub Actions workflows in `.github/workflows/` (main is leidend; zie `docs/deployment.md`):
   - `deploy-acceptatie.yaml` — bouwt frontend + backend containers → GHCR en werkt ZAD-deployment `acceptatie` bij (push naar main)
   - `deploy-productie.yaml` — promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij; `workflow_dispatch`-only, gestart door `release.yaml` (of handmatig)
-  - `deploy-preview.yaml` — preview-omgeving per PR naar main (kloon van `acceptatie`)
+  - `pr-images.yaml` — bouwt en scant beide images op elke PR naar main; publiceert naar GHCR en zet een preview-omgeving op (kloon van `acceptatie`) alleen bij het label `preview`
   - `release.yaml` — bij een CalVer-tag: maakt de GitHub-release (changelog-notes), start daarna `deploy-productie`, en hangt het standalone formulier (offline single-file) als release-asset aan
   - `build-standalone.yaml` — bouwt standalone formulier als artifact (main branch)
   - `test.yaml` — type-check, tests én coverage (100%-drempel over alle workspaces; Postgres-service voor backend-integratietests)
