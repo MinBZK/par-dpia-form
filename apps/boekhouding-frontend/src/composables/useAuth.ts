@@ -1,6 +1,12 @@
 import { ref, computed } from 'vue'
 import Keycloak from 'keycloak-js'
 import { getConfig } from '../config'
+import {
+  KEYCLOAK_CALLBACK_PREFIX,
+  PENDING_STORAGE_PREFIX,
+  RELOGIN_STORAGE_KEY,
+  UI_STORAGE_PREFIX,
+} from '../storageKeys'
 
 let keycloak: Keycloak
 
@@ -37,6 +43,8 @@ export function useAuth() {
       onLoad: 'check-sso',
       checkLoginIframe: false,
       silentCheckSsoRedirectUri: undefined,
+      // Keeps id_token_hint, a JWT with sub/email/name, out of the URL and logs.
+      logoutMethod: 'POST',
     })
 
     if (authenticated) {
@@ -84,7 +92,7 @@ export function useAuth() {
   }
 
   async function relogin(): Promise<void> {
-    sessionStorage.setItem('auth:relogin', JSON.stringify({
+    sessionStorage.setItem(RELOGIN_STORAGE_KEY, JSON.stringify({
       userId: keycloak.subject,
     }))
     await keycloak.login({ redirectUri: window.location.href })
@@ -95,7 +103,32 @@ export function useAuth() {
       clearInterval(refreshInterval)
       refreshInterval = null
     }
+    clearAssessmentStorage()
+    // Responds with Clear-Site-Data, which also wipes keys this code misses.
+    // Bounded: a stalled request must not leave the user on a page that looks
+    // like it is logging out while the session stays alive.
+    try {
+      await fetch('/clear-site-data', { cache: 'no-store', signal: AbortSignal.timeout(2000) })
+    } catch { /* logging out must not depend on this succeeding */ }
     await keycloak.logout({ redirectUri: window.location.origin })
+  }
+
+  // Collect first, then remove: removing while iterating by index shifts the
+  // remaining indices.
+  function removeMatchingKeys(storage: Storage, matches: (key: string) => boolean) {
+    const doomed: string[] = []
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i)
+      if (key && matches(key)) doomed.push(key)
+    }
+    doomed.forEach(key => storage.removeItem(key))
+  }
+
+  function clearAssessmentStorage() {
+    removeMatchingKeys(localStorage, key =>
+      key.startsWith(UI_STORAGE_PREFIX) || key.startsWith(KEYCLOAK_CALLBACK_PREFIX))
+    removeMatchingKeys(sessionStorage, key =>
+      key.startsWith(PENDING_STORAGE_PREFIX) || key === RELOGIN_STORAGE_KEY)
   }
 
   return {
