@@ -13,7 +13,7 @@ URL: https://invulhulpen.rijksapp.nl
 ├── /                              → ZAD ingress → frontend (nginx:8080)
 │   ├── /                          → Vue SPA
 │   ├── /zonder-account/           → standalone form
-│   └── /.well-known/security.txt  → 302 → ncsc.nl
+│   └── /.well-known/security.txt  → eigen bestand, gerenderd bij container-start
 │
 └── /api                           → ZAD ingress → api (node:3000)
                                      Fastify REST API
@@ -65,7 +65,7 @@ er hoeven nergens URL's met de hand gezet te worden:
 
 ### Frontend (runtime via `config.json`)
 
-De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container start gegenereerd via `envsubst` uit env vars. In development (Vite dev server) wordt teruggevallen op `VITE_*` env vars.
+De frontend fetcht `/config.json` bij het laden. Dit bestand en `/.well-known/security.txt` worden bij container start gegenereerd via `envsubst` uit env vars. In development (Vite dev server) wordt teruggevallen op `VITE_*` env vars.
 
 | Variabele               | Default                  | ZAD                           |
 |-------------------------|--------------------------|-------------------------------|
@@ -73,6 +73,7 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `OIDC_REALM`            | `invulhulpen` | Auto-inject door ZAD Keycloak |
 | `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend`   | Auto-inject door ZAD Keycloak |
 | `STANDALONE_URL`        | `/zonder-account/`          | Default is correct            |
+| `PUBLIC_HOST`           | (geen)                   | Auto-inject volgt webadres; bepaalt de `Canonical` in `/.well-known/security.txt`. Onbekend/leeg (lokale build, of ZAD-injectie die uitvalt) laat de `Canonical`-regel gewoon weg in plaats van er een gok op te wagen: de container start altijd. |
 
 ### Backend (runtime)
 

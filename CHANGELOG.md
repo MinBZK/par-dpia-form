@@ -13,6 +13,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Beveiliging
+
+* `/.well-known/security.txt` verwijst niet langer met een redirect naar het
+  bestand van het NCSC, maar wordt nu zelf gehost, met een eigen
+  beleidsverwijzing naar `SECURITY.md`. Het NCSC blijft het meldpunt voor
+  kwetsbaarheden.
+
 ### Gewijzigd
 
 * De IAMA-tekst benoemt samenwerking nadrukkelijker.
