@@ -26,6 +26,7 @@ PDRs helpen ons om:
 | [0005](0005-PreScan-verwijderen-vragen-gebruikersgroepen.md) | Pre-scan | Verwijderen vragen gebruikersgroepen | Geaccepteerd | 2025-05-13 |
 | [0006](0006-rechttrekken-rechtsgronden.md) | DPIA & Pre-scan | Rechttrekken van rechtsgronden terminologie datamodel | Voorgesteld | 2025-05-21 |
 | [0007](0007-bewaartermijnen-opties-toevoegen.md) | DPIA | Bewaartermijn opties toevoegen (zoals in pre-scan) | Voorgesteld | 2025-05-21 |
+| [0008](0008-backend-in-typescript.md) | Architectuur | Backend in TypeScript | Geaccepteerd | 2026-08-22 |
 
 ## Template
 
