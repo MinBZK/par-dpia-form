@@ -1,0 +1,3 @@
+# The `main` ruleset requires a code owner review. Without this file nothing has
+# an owner, so that requirement never applies to any change.
+* @MinBZK/dpia
