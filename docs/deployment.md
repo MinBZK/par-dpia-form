@@ -83,6 +83,8 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand en `/.well-known/se
 | `OIDC_URL`             | `http://localhost:8080`      | Auto-inject door ZAD Keycloak             |
 | `OIDC_REALM`           | `invulhulpen`     | Auto-inject door ZAD Keycloak             |
 | `OIDC_CLIENT_ID`       | `boekhouding-frontend`       | Auto-inject door ZAD Keycloak             |
+| `OIDC_INTERNAL_URL`    | waarde van `OIDC_URL`        | Interne Keycloak-URL waarvan de JWKS wordt gehaald. **Moet https zijn**: de backend weigert te starten op plain HTTP, behalve op loopback of met de opt-in hieronder. |
+| `OIDC_ALLOW_INSECURE_JWKS` | — (uit)                  | Alleen voor de container-dev-stack, waar Keycloak via servicenaam bereikbaar is. **Nooit zetten in een uitgerolde omgeving.** |
 | `PUBLIC_HOST`          | —                            | Auto-inject (volgt webadres → CORS + OpenAPI `contact.url`) |
 | `PORT`                 | `3000`                       | Default is correct                        |
 | `HOST`                 | `0.0.0.0`                    | Default is correct                        |
