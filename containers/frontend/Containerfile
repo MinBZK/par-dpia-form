@@ -70,4 +70,11 @@ ENV OIDC_PUBLIC_CLIENT_ID=boekhouding-frontend
 ENV STANDALONE_URL=/zonder-account/
 
 EXPOSE 8080
+
+# 127.0.0.1, not localhost: this image's own entrypoint (not the base
+# image's) never runs the ipv6-listen-by-default patch, so nginx only binds
+# IPv4 and an ::1 resolution would refuse the connection.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/config.json || exit 1
+
 ENTRYPOINT ["/entrypoint.sh"]
