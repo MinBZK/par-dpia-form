@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from 'fastify'
+import compress from '@fastify/compress'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -52,6 +53,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
+  // Responses only. The plugin's request-decompression hook is on by default and
+  // would let a few kB of gzip inflate to the full 25 MB bodyLimit, turning the
+  // expensive save/export routes into a cheap amplification target.
+  await app.register(compress, { global: true, globalDecompression: false })
   // The key decides the bucket and the budget: a request whose token verifies gets
   // its own per-user bucket, anything else shares a per-IP one. Verifying here (on
   // onRequest, before requireAuth exists) is what makes that safe: the payload is
