@@ -7,11 +7,15 @@ import { requireProjectAccess } from '../middleware/projectAccess.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
 import { normalizeCreateState } from '../utils/normalizeCreateState.js'
+import { stripUnknownStateKeys } from '../utils/sanitizeState.js'
 import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+import { projectParams, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
 export async function projectRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   // All project routes require auth
   app.addHook('preHandler', requireAuth)
 
@@ -90,7 +94,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.get<{
     Params: { projectId: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: { tags: ['projects'], params: projectParams },
     preHandler: [requireProjectAccess('viewer')],
   }, async (request) => {
     const { projectId } = request.params
@@ -109,7 +113,18 @@ export async function projectRoutes(app: FastifyInstance) {
     Params: { projectId: string }
     Body: { name?: string; description?: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: {
+      tags: ['projects'],
+      params: projectParams,
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 200 },
+          description: { type: 'string', maxLength: 2000 },
+        },
+        additionalProperties: false,
+      },
+    },
     preHandler: [requireProjectAccess('owner')],
   }, async (request) => {
     const { projectId } = request.params
@@ -132,7 +147,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.delete<{
     Params: { projectId: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: { tags: ['projects'], params: projectParams },
     preHandler: [requireProjectAccess('owner')],
   }, async (request, reply) => {
     const { projectId } = request.params
@@ -149,6 +164,7 @@ export async function projectRoutes(app: FastifyInstance) {
     schema: {
       tags: ['assessments'],
       description: 'Assessments in een project (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      params: projectParams,
       querystring: pageQuerySchema(LIST_PAGE),
     },
     preHandler: [requireProjectAccess('viewer')],
@@ -190,6 +206,7 @@ export async function projectRoutes(app: FastifyInstance) {
   }>('/:projectId/assessments', {
     schema: {
       tags: ['assessments'],
+      params: projectParams,
       body: {
         type: 'object',
         required: ['assessmentType'],
@@ -223,7 +240,9 @@ export async function projectRoutes(app: FastifyInstance) {
     // state must not be persisted and later replayed verbatim by rebuildState.
     let initialState: Record<string, unknown> = {}
     if (state !== undefined) {
-      initialState = normalizeCreateState(state as Record<string, unknown>, assessmentType)
+      initialState = stripUnknownStateKeys(
+        normalizeCreateState(state as Record<string, unknown>, assessmentType),
+      ) as Record<string, unknown>
       const stateValidation = validateState(initialState)
       if (!stateValidation.valid) {
         request.log.warn({ errors: stateValidation.errors }, 'Initial assessment state rejected: schema validation failed')

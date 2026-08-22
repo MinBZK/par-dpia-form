@@ -5,10 +5,15 @@ import { eq, and, asc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess, type ProjectRole } from '../middleware/projectAccess.js'
 import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+import { projectParams, memberParams, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
+const ROLES: ProjectRole[] = ['owner', 'editor', 'commenter', 'viewer']
+
 export async function memberRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   app.addHook('preHandler', requireAuth)
 
   // List members of a project
@@ -19,6 +24,7 @@ export async function memberRoutes(app: FastifyInstance) {
     schema: {
       tags: ['projects'],
       description: 'Leden van een project (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      params: projectParams,
       querystring: pageQuerySchema(LIST_PAGE),
     },
     preHandler: [requireProjectAccess('viewer')],
@@ -56,21 +62,24 @@ export async function memberRoutes(app: FastifyInstance) {
     Params: { projectId: string }
     Body: { email: string; role?: ProjectRole }
   }>('/:projectId/members', {
-    schema: { tags: ['projects'] },
+    schema: {
+      tags: ['projects'],
+      params: projectParams,
+      body: {
+        type: 'object',
+        required: ['email'],
+        properties: {
+          // 254 is the maximum length of an e-mail address per RFC 5321.
+          email: { type: 'string', format: 'email', minLength: 3, maxLength: 254 },
+          role: { type: 'string', enum: ROLES },
+        },
+        additionalProperties: false,
+      },
+    },
     preHandler: [requireProjectAccess('owner')],
   }, async (request, reply) => {
     const { projectId } = request.params
     const { email, role } = request.body
-
-    if (!email) {
-      return reply.status(400).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/400',
-        title: 'Ongeldig verzoek',
-        status: 400,
-        detail: 'E-mailadres is verplicht',
-        instance: request.url,
-      })
-    }
 
     const normalizedEmail = email.toLowerCase()
 
@@ -115,17 +124,7 @@ export async function memberRoutes(app: FastifyInstance) {
       })
     }
 
-    const validRoles: ProjectRole[] = ['owner', 'editor', 'commenter', 'viewer']
     const memberRole = role || 'editor'
-    if (!validRoles.includes(memberRole)) {
-      return reply.status(400).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/400',
-        title: 'Ongeldig verzoek',
-        status: 400,
-        detail: `Ongeldige rol: ${role}. Geldige rollen: ${validRoles.join(', ')}`,
-        instance: request.url,
-      })
-    }
     await db
       .insert(projectMembers)
       .values({
@@ -142,21 +141,20 @@ export async function memberRoutes(app: FastifyInstance) {
     Params: { projectId: string; userId: string }
     Body: { role: ProjectRole }
   }>('/:projectId/members/:userId', {
-    schema: { tags: ['projects'] },
+    schema: {
+      tags: ['projects'],
+      params: memberParams,
+      body: {
+        type: 'object',
+        required: ['role'],
+        properties: { role: { type: 'string', enum: ROLES } },
+        additionalProperties: false,
+      },
+    },
     preHandler: [requireProjectAccess('owner')],
   }, async (request, reply) => {
     const { projectId, userId } = request.params
     const { role } = request.body
-
-    if (!role) {
-      return reply.status(400).type('application/problem+json').send({
-        type: 'https://httpproblems.com/http-status/400',
-        title: 'Ongeldig verzoek',
-        status: 400,
-        detail: 'Rol is verplicht',
-        instance: request.url,
-      })
-    }
 
     // If changing away from owner, ensure at least one owner remains
     const [currentMembership] = await db
@@ -220,7 +218,7 @@ export async function memberRoutes(app: FastifyInstance) {
   app.delete<{
     Params: { projectId: string; userId: string }
   }>('/:projectId/members/:userId', {
-    schema: { tags: ['projects'] },
+    schema: { tags: ['projects'], params: memberParams },
     preHandler: [requireProjectAccess('owner')],
   }, async (request, reply) => {
     const { projectId, userId } = request.params
