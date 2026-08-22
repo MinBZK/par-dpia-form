@@ -60,6 +60,10 @@ build) staan kort onder "Onder de motorkap".
   vingerafdruk toegelaten.
 * Aanvullende beveiligingsheaders op de webserver, en de toegangscontrole
   op projecten en assessments is aangescherpt.
+* Bij uitloggen worden nu ook de niet-opgeslagen antwoorden en de laatst
+  bekeken sectie van assessments uit de browser gewist. Op een gedeelde of
+  publieke computer kan de volgende gebruiker die gegevens dus niet meer
+  terugzien.
 
 ### Onder de motorkap
 

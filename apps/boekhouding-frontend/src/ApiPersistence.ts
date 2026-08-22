@@ -18,10 +18,10 @@ import {
 import { assessments, ApiError, SessionExpiredError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
 import { escapeHtml, stripHtml } from './utils/html'
+import { PENDING_STORAGE_PREFIX, UI_STORAGE_PREFIX } from './storageKeys'
 import type { ConflictField } from './components/ConflictResolutionDialog.vue'
 
 const DEBOUNCE_MS = 500
-const UI_STORAGE_PREFIX = 'ui:'
 
 export interface ConflictState {
   active: boolean
@@ -811,15 +811,15 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       updatePendingChanges()
       if (pendingChanges.size === 0) return
       const entries = Array.from(pendingChanges.entries())
-      sessionStorage.setItem(`pending:${assessmentId}`, JSON.stringify(entries))
+      sessionStorage.setItem(PENDING_STORAGE_PREFIX + assessmentId, JSON.stringify(entries))
     } catch { /* sessionStorage may be unavailable */ }
   }
 
   function restorePendingFromSession() {
     try {
-      const raw = sessionStorage.getItem(`pending:${assessmentId}`)
+      const raw = sessionStorage.getItem(PENDING_STORAGE_PREFIX + assessmentId)
       if (!raw) return
-      sessionStorage.removeItem(`pending:${assessmentId}`)
+      sessionStorage.removeItem(PENDING_STORAGE_PREFIX + assessmentId)
       const entries: [string, { key: string; value: unknown }][] = JSON.parse(raw)
       for (const [, change] of entries) {
         applyFieldChange(change.key, change.value)

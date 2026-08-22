@@ -61,6 +61,7 @@ beforeEach(async () => {
 afterEach(() => {
   vi.useRealTimers()
   sessionStorage.clear()
+  localStorage.clear()
 })
 
 describe('SessionExpiredError', () => {
@@ -143,6 +144,15 @@ describe('init()', () => {
     mockKeycloak.updateToken.mockClear()
     vi.advanceTimersByTime(240_000)
     expect(mockKeycloak.updateToken).toHaveBeenCalledWith(70)
+  })
+
+  it('initialises Keycloak with POST as the logout method', async () => {
+    const { init } = useAuth()
+    await init()
+
+    expect(mockKeycloak.init).toHaveBeenCalledWith(
+      expect.objectContaining({ logoutMethod: 'POST' }),
+    )
   })
 
   it('does not set up callbacks when keycloak.init resolves false (unauthenticated)', async () => {
@@ -264,6 +274,36 @@ describe('relogin()', () => {
 })
 
 describe('logout()', () => {
+  // The browser applies Clear-Site-Data but does not expose the header to
+  // script, so only the request itself is observable here. That the header
+  // actually clears storage was verified against a real browser.
+  it('asks the server to clear site data before redirecting to Keycloak', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const { init, logout } = useAuth()
+    await init()
+    await logout()
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      '/clear-site-data',
+      expect.objectContaining({ cache: 'no-store', signal: expect.any(AbortSignal) }),
+    )
+    expect(mockKeycloak.logout).toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
+  it('still logs out when that request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
+
+    const { init, logout } = useAuth()
+    await init()
+    await logout()
+
+    expect(mockKeycloak.logout).toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
   it('clears the refresh interval when one is active, then logs out', async () => {
     const { init, logout } = useAuth()
     await init()
@@ -295,5 +335,38 @@ describe('logout()', () => {
     expect(mockKeycloak.logout).toHaveBeenCalledWith({
       redirectUri: window.location.origin,
     })
+  })
+
+  it('removes every key a session leaves behind, and nothing else', async () => {
+    localStorage.setItem('ui:assessment-1', '{"currentRootTaskId":"1"}')
+    localStorage.setItem('ui:assessment-2', '{"currentRootTaskId":"2"}')
+    // Written by keycloak-js: OAuth callback state including the PKCE verifier.
+    localStorage.setItem('kc-callback-abc123', '{"pkceCodeVerifier":"secret"}')
+    localStorage.setItem('unrelated', 'keep-me')
+    sessionStorage.setItem('pending:assessment-1', '[]')
+    sessionStorage.setItem('pending:assessment-2', '[]')
+    sessionStorage.setItem('auth:relogin', '{"userId":"user-123"}')
+    sessionStorage.setItem('unrelated', 'keep-me-too')
+
+    const { init, logout } = useAuth()
+    await init()
+    await logout()
+
+    expect(localStorage.getItem('ui:assessment-1')).toBeNull()
+    expect(localStorage.getItem('ui:assessment-2')).toBeNull()
+    expect(localStorage.getItem('kc-callback-abc123')).toBeNull()
+    expect(sessionStorage.getItem('pending:assessment-1')).toBeNull()
+    expect(sessionStorage.getItem('pending:assessment-2')).toBeNull()
+    expect(sessionStorage.getItem('auth:relogin')).toBeNull()
+
+    expect(localStorage.getItem('unrelated')).toBe('keep-me')
+    expect(sessionStorage.getItem('unrelated')).toBe('keep-me-too')
+  })
+
+  it('is a no-op on storage when there is nothing to clear', async () => {
+    const { init, logout } = useAuth()
+    await init()
+
+    await expect(logout()).resolves.toBeUndefined()
   })
 })
