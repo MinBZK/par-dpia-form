@@ -5,6 +5,7 @@ import { eq, and, isNull, gt, asc, inArray } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { computeLastModifiedAt } from '../utils/comments.js'
+import { assessmentParams, commentParams, sinceQuerySchema, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 const commentSelect = {
   id: comments.id,
@@ -25,6 +26,8 @@ const commentSelect = {
 const COMMENTS_MAX = 1000
 
 export async function commentRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   app.addHook('preHandler', requireAuth)
 
   // GET /assessments/:assessmentId/comments — bulk load, optional ?since=ISO8601
@@ -32,7 +35,7 @@ export async function commentRoutes(app: FastifyInstance) {
     Params: { assessmentId: string }
     Querystring: { since?: string }
   }>('/:assessmentId/comments', {
-    schema: { tags: ['comments'] },
+    schema: { tags: ['comments'], params: assessmentParams, querystring: sinceQuerySchema },
   }, async (request, reply) => {
     const { assessmentId } = request.params
     const { since } = request.query
@@ -164,11 +167,14 @@ export async function commentRoutes(app: FastifyInstance) {
   }>('/:assessmentId/comments', {
     schema: {
       tags: ['comments'],
+      params: assessmentParams,
       body: {
         type: 'object',
         required: ['fieldId', 'body'],
         properties: {
-          fieldId: { type: 'string', minLength: 1 },
+          // A URN field id ('urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0') stays
+          // well under this; the cap keeps a text column from being used as storage.
+          fieldId: { type: 'string', minLength: 1, maxLength: 255 },
           body: { type: 'string', minLength: 1, maxLength: 2000 },
           parentId: { type: 'string', format: 'uuid' },
         },
@@ -244,14 +250,16 @@ export async function commentRoutes(app: FastifyInstance) {
   // PATCH /assessments/:assessmentId/comments/:commentId — edit body or toggle resolved state
   // Accepts exactly one of `body` or `resolvedAt`:
   //   - `body`: author-only, edits the comment text
-  //   - `resolvedAt`: editor+, null reopens the thread, ISO timestamp resolves it
-  //     (server always derives `resolvedBy` from the caller; clients cannot set it)
+  //   - `resolvedAt`: editor+, null reopens the thread, any timestamp resolves it
+  //     (server derives both `resolvedBy` and the stored timestamp from the request;
+  //     a value sent by the client is accepted for compatibility but ignored)
   app.patch<{
     Params: { assessmentId: string; commentId: string }
     Body: { body?: string; resolvedAt?: string | null }
   }>('/:assessmentId/comments/:commentId', {
     schema: {
       tags: ['comments'],
+      params: commentParams,
       body: {
         type: 'object',
         properties: {
@@ -311,7 +319,7 @@ export async function commentRoutes(app: FastifyInstance) {
       const [updated] = await db
         .update(comments)
         .set({
-          resolvedAt: resolving ? new Date(resolvedAt as string) : null,
+          resolvedAt: resolving ? new Date() : null,
           resolvedBy: resolving ? userId : null,
           updatedAt: new Date(),
         })
@@ -344,7 +352,7 @@ export async function commentRoutes(app: FastifyInstance) {
   app.delete<{
     Params: { assessmentId: string; commentId: string }
   }>('/:assessmentId/comments/:commentId', {
-    schema: { tags: ['comments'] },
+    schema: { tags: ['comments'], params: commentParams },
   }, async (request, reply) => {
     const { assessmentId, commentId } = request.params
     const userId = request.user!.id

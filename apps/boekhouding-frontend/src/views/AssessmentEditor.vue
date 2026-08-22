@@ -12,6 +12,7 @@ import {
   exportToMarkdown,
   exportToPdf,
   PERSISTENCE_KEY,
+  sanitizeAnswers,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
@@ -250,7 +251,9 @@ onMounted(async () => {
           taskStore.setActiveNamespace(FormType.PRE_SCAN)
           answerStore.setActiveNamespace(FormType.PRE_SCAN)
           taskStore.init(preScanSchema.tasks)
-          answerStore.answers[FormType.PRE_SCAN] = prescanAnswers as any
+          // These bypass applyStateToStores, so they need the same key and
+          // image check every other loaded answer gets.
+          answerStore.answers[FormType.PRE_SCAN] = sanitizeAnswers(prescanAnswers).answers as any
           taskStore.setActiveNamespace(prevNamespace)
           answerStore.setActiveNamespace(prevNamespace)
         }

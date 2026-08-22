@@ -131,6 +131,14 @@ const {
   }
 })
 
+const { sanitizeAnswers } = vi.hoisted(() => ({
+  sanitizeAnswers: vi.fn((answers: Record<string, unknown>) => ({
+    answers,
+    dropped: [] as string[],
+    invalidImages: [] as string[],
+  })),
+}))
+
 vi.mock('@overheid-assessment/core', () => ({
   Form: {
     name: 'Form',
@@ -146,6 +154,7 @@ vi.mock('@overheid-assessment/core', () => ({
   exportToMarkdown,
   exportToPdf,
   PERSISTENCE_KEY: Symbol('persistence'),
+  sanitizeAnswers,
 }))
 
 vi.mock('../../src/api', () => ({
@@ -355,6 +364,29 @@ describe('AssessmentEditor — onMounted initialization', () => {
     const wrapper = await mountEditor()
     expect(schemaStore.getSchema).toHaveBeenCalledWith(FormTypeMock.PRE_SCAN)
     expect(taskStore.init).toHaveBeenCalledWith([{ id: 'p' }])
+    expect(answerStore.answers[FormTypeMock.PRE_SCAN]).toEqual({ '1.1': { value: 'x' } })
+    wrapper.unmount()
+  })
+
+  it('sanitizes _prescanAnswers before they reach the store', async () => {
+    schemaStore.isInitialized = true
+    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'p' }] })
+    taskStore.isInitialized = { dpia: false, prescan: false }
+    sanitizeAnswers.mockReturnValueOnce({
+      answers: { '1.1': { value: 'x' } },
+      dropped: ['__proto__'],
+      invalidImages: [],
+    })
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
+      assessmentType: 'dpia',
+      state: { _prescanAnswers: { '1.1': { value: 'x' }, gesmokkeld: { value: 'nee' } } },
+    }))
+    const wrapper = await mountEditor()
+
+    expect(sanitizeAnswers).toHaveBeenCalledWith({
+      '1.1': { value: 'x' },
+      gesmokkeld: { value: 'nee' },
+    })
     expect(answerStore.answers[FormTypeMock.PRE_SCAN]).toEqual({ '1.1': { value: 'x' } })
     wrapper.unmount()
   })

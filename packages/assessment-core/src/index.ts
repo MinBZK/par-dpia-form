@@ -42,6 +42,7 @@ export { createConclusionTask, renderInstanceLabel } from './utils/taskUtils'
 export { getPlainTextWithoutDefinitions } from './utils/stripHtml'
 export { hasInstanceMapping, shouldShowTask } from './utils/dependency'
 export { groupAnswers, flattenGroupedAnswers } from './utils/groupedAnswers'
+export { sanitizeAnswers } from './utils/sanitizeState'
 
 // Components
 export { default as Form } from './components/Form.vue'

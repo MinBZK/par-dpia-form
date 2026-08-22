@@ -68,6 +68,22 @@
                     }
                 ]
             }
+        },
+        "_prescanAnswers": {
+            "type": "object",
+            "description": "Pre-scan answers carried alongside a DPIA so the DPIA can cross-reference them after reload. Written by the client (buildApiState); not part of the assessment answers themselves.",
+            "propertyNames": {
+                "$ref": "#/$defs/answerKey"
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    { "$ref": "#/$defs/answer" },
+                    {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/indexedGroupElement" }
+                    }
+                ]
+            }
         }
     },
     "required": ["$schema", "metadata", "answers"],
