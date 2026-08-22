@@ -1,0 +1,20 @@
+# NCSC-NL is het centrale meldpunt voor kwetsbaarheden en incidenten voor de
+# Rijksoverheid. Meldingen komen bij het NCSC binnen; Policy hieronder wijst
+# daarnaast naar ons eigen SECURITY.md.
+#
+# NCSC-NL is the central point of contact for vulnerabilities and incidents
+# for the Dutch central government. Reports go to NCSC-NL; Policy below also
+# points to our own SECURITY.md.
+
+Expires: ${SECURITY_TXT_EXPIRES}
+Canonical: ${SECURITY_TXT_CANONICAL_HOST}/.well-known/security.txt
+
+Policy: https://github.com/MinBZK/par-dpia-form/blob/main/SECURITY.md
+Policy: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
+Policy: https://www.ncsc.nl/en/cvd-report-form
+
+Contact: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
+Contact: https://www.ncsc.nl/en/cvd-report-form
+Contact: mailto:security@ncsc.nl
+Encryption: https://www.ncsc.nl/pgp.txt
+Preferred-Languages: nl, en

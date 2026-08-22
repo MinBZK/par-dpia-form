@@ -22,6 +22,7 @@ them.
 | `/api/health` | Liveness endpoint for the deployment platform. |
 | `/zonder-account/` | The standalone invulhulp runs entirely client-side and is meant to be usable without an account. |
 | Keycloak realm and client id | Public parameters of the OIDC protocol, see `/config.json` above. |
+| `/.well-known/security.txt` flagged `not_signed` by a validator | Deliberate: a PGP signature would require managing and publishing our own key, and would conflict with computing `Expires` at build time (a signature covers the exact bytes of the file). Its core claim, that NCSC is the reporting point, is independently verifiable in NCSC's own signed file at [https://www.ncsc.nl/.well-known/security.txt](https://www.ncsc.nl/.well-known/security.txt), which states exactly that; a signature on our own file just is not that trust anchor. |
 
 Findings that *are* in scope include anything that lets one user reach another
 user's projects, assessments or comments, bypasses authentication, injects
