@@ -97,3 +97,30 @@ export const config = {
     audience: process.env.OIDC_PUBLIC_CLIENT_ID || 'boekhouding-frontend',
   },
 }
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
+
+/**
+ * Refuse to start when the JWKS is fetched over plain HTTP. Those keys are the
+ * root of trust for every token: whoever can intercept or spoof that host serves
+ * their own key set and can then mint a token for any user, project owners
+ * included. Called from the entry point, so a misconfigured deployment fails
+ * loudly instead of running unauthenticated-by-accident.
+ *
+ * Plain HTTP stays allowed for loopback (the test JWKS server) and behind an
+ * explicit OIDC_ALLOW_INSECURE_JWKS opt-in, which the container dev stack sets
+ * because Keycloak is reached there by service name over a private network.
+ */
+export function assertSecureJwksUri(
+  jwksUri: string = config.keycloak.jwksUri,
+  allowInsecure: boolean = process.env.OIDC_ALLOW_INSECURE_JWKS === 'true',
+): void {
+  const url = new URL(jwksUri)
+  if (url.protocol === 'https:') return
+  if (allowInsecure) return
+  if (LOOPBACK_HOSTS.has(url.hostname)) return
+  throw new Error(
+    `Refusing to start: JWKS URI ${jwksUri} is not https. Point OIDC_INTERNAL_URL at an https URL, ` +
+      'or set OIDC_ALLOW_INSECURE_JWKS=true when Keycloak is reached over a trusted private network.',
+  )
+}

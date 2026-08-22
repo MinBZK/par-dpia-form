@@ -1,9 +1,14 @@
 import { setTimeout as delay } from 'node:timers/promises'
 import { buildApp } from './app.js'
-import { config } from './config.js'
+import { assertSecureJwksUri, config } from './config.js'
 import { queryClient } from './db/connection.js'
+import { warmUpJwks } from './middleware/auth.js'
+
+assertSecureJwksUri()
 
 const app = await buildApp()
+
+await warmUpJwks()
 
 // Graceful shutdown for a Kubernetes rolling deploy. The kubelet sends SIGTERM
 // at the same moment the endpoint controller starts withdrawing this pod, and
