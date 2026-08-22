@@ -3,6 +3,7 @@ import type { TaskStoreType } from '../stores/tasks'
 import type { AnswerStoreType } from '../stores/answers'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
+import { sanitizeAnswers } from './sanitizeState'
 
 /**
  * Apply an AssessmentState to the task and answer stores.
@@ -28,8 +29,13 @@ export function applyStateToStores(
       ? flattenGroupedAnswers(answers as Record<string, GroupedAnswerValue>)
       : answers
 
+    // Sanitize here as well as on import: this is the single point every state
+    // passes through (import, server load, browser storage), and the copy below
+    // assigns rather than defines, so an unchecked key reaches the prototype.
+    const { answers: safe } = sanitizeAnswers(flat as Record<string, unknown>)
+
     answerStore.answers[ns] = {}
-    Object.assign(answerStore.answers[ns], flat)
+    Object.assign(answerStore.answers[ns], safe)
   }
 }
 
