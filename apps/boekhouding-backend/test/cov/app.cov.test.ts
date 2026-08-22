@@ -132,10 +132,18 @@ describe('static utility routes', () => {
     expect(res.json()).toEqual({ status: 'ok', apiVersion: API_VERSION, version: 'dev', commit: 'dev' })
   })
 
-  it('GET /.well-known/security.txt redirects 302 to NCSC', async () => {
+  it('GET /.well-known/security.txt serves our own file, not a redirect', async () => {
     const res = await app.inject({ method: 'GET', url: '/.well-known/security.txt' })
-    expect(res.statusCode).toBe(302)
-    expect(res.headers.location).toBe('https://www.ncsc.nl/.well-known/security.txt')
+    expect(res.statusCode).toBe(200)
+    expect(res.headers['content-type']).toBe('text/plain; charset=utf-8')
+    // Cache-Control is stamped no-store by the onSend hook above, for every
+    // response including this one: suboptimal for a cacheable file, but a
+    // deliberate trade-off (see the comment on the route) rather than a bug.
+    expect(res.headers['cache-control']).toBe('no-store')
+    expect(res.body).toContain('Policy: https://github.com/MinBZK/par-dpia-form/blob/main/SECURITY.md')
+    expect(res.body).toContain('Contact: mailto:security@ncsc.nl')
+    expect(res.body).toContain(`Canonical: ${config.publicUrl}/.well-known/security.txt`)
+    expect(res.body).not.toContain('${')
   })
 
   it('GET /api/openapi.json returns the generated OpenAPI document', async () => {

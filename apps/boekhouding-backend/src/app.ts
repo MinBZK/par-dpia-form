@@ -12,6 +12,7 @@ import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
 import { commentRoutes } from './routes/comments.js'
 import { syncRoutes } from './routes/sync.js'
+import { securityTxt } from './utils/securityTxt.js'
 
 export const API_VERSION = '1.0.0'
 
@@ -210,11 +211,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     }
   })
 
+  // Rendered once at import time from the shared template (see securityTxt.ts).
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
-    // 302, matching the frontend nginx rule that serves this path in production:
-    // a 301 is cached indefinitely, which would bite if the NCSC location moves or
-    // we start hosting our own security.txt.
-    return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 302)
+    return reply.type('text/plain; charset=utf-8').send(securityTxt)
   })
 
   if (exposeApiDocs) {
