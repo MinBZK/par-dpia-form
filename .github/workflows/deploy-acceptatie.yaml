@@ -34,6 +34,7 @@ jobs:
       frontend-image: ghcr.io/minbzk/par-dpia-form/dev/frontend
       backend-image: ghcr.io/minbzk/par-dpia-form/dev/backend
       tag-latest: true
+      publish: true
 
   deploy:
     needs: build
