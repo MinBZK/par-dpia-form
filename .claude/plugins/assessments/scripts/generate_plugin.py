@@ -5,8 +5,9 @@ The .plugin/plugin.json is the single source of truth. This script generates
 platform-specific variants for Claude Code and Cursor (and future platforms).
 
 Usage:
-    python scripts/generate_plugin.py          # generate all platform files
-    python scripts/generate_plugin.py --check  # verify files are in sync
+    python scripts/generate_plugin.py                      # generate all platform files
+    python scripts/generate_plugin.py --check              # verify files are in sync
+    python scripts/generate_plugin.py --set-version 2026.6.20  # bump, then generate
 """
 
 import copy
@@ -86,12 +87,27 @@ def check_sync(source_data: dict) -> bool:
     return all_synced
 
 
+def set_version(source_data: dict, version: str) -> dict:
+    """Write the release version into the source manifest and return it."""
+    source_data["version"] = version
+    write_json(SOURCE_PATH, source_data)
+    print(f"Versie gezet op {version}: {SOURCE_PATH.relative_to(ROOT_DIR)}")
+    return source_data
+
+
 def main() -> None:
     if not SOURCE_PATH.exists():
         print(f"FOUT: {SOURCE_PATH} niet gevonden")
         sys.exit(1)
 
     source_data = load_source()
+
+    if "--set-version" in sys.argv:
+        index = sys.argv.index("--set-version") + 1
+        if index >= len(sys.argv):
+            print("FOUT: --set-version verwacht een versie, bijv. --set-version 2026.6.20")
+            sys.exit(1)
+        source_data = set_version(source_data, sys.argv[index])
 
     if "--check" in sys.argv:
         if check_sync(source_data):

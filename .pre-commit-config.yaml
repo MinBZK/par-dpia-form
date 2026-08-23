@@ -23,6 +23,14 @@ repos:
     rev: v0.11.0.1
     hooks:
         - id: shellcheck
+-   repo: local
+    hooks:
+        - id: assessments-plugin-manifests
+          name: assessments plugin-manifests in sync
+          entry: python .claude/plugins/assessments/scripts/generate_plugin.py --check
+          language: python
+          pass_filenames: false
+          files: ^\.claude/plugins/assessments/\.(plugin|claude-plugin|cursor-plugin)/plugin\.json$
 
 ci:
   autofix_prs: false

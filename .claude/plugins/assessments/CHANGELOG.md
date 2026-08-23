@@ -1,5 +1,15 @@
 # Changelog
 
+De plugin volgt de CalVer van de applicatie (`YYYY.M.D`): bij elke release
+krijgt de plugin het versienummer van de release-tag, ook als er niets aan de
+skills veranderde. Zo lopen plugin en applicatie nooit uit elkaar. Wat er
+inhoudelijk wijzigde staat hieronder per versie.
+
+## 2026.6.20
+
+Overgestapt van een eigen SemVer op de CalVer van de applicatie. Inhoudelijk
+gelijk aan 0.1.0.
+
 ## 0.1.0 — Initiële versie
 
 ### Skills

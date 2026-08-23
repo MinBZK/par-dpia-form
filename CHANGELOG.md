@@ -94,6 +94,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De assessments-plugin voor ontwikkelaars volgt nu dezelfde CalVer als de
+  applicatie zelf, in plaats van een eigen versienummer dat sinds de eerste
+  versie was blijven staan. Het versienummer staat nog op één plek en wordt bij
+  het uitbrengen van een release meegezet; de release stopt als plugin en tag
+  niet overeenkomen.
 * De API-container bevat geen pakketbeheerders meer. Die waren alleen nodig om
   de container te bouwen en bleven daarna achter, inclusief hun eigen bekende
   kwetsbaarheden die bij elke scan opnieuw werden gemeld.

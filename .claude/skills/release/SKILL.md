@@ -21,7 +21,18 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
    ```
 
    (versie zonder de `v`-prefix en zonder voorloopnullen). Laat een lege
-   `## [Unreleased]` achter. Breng dit via een PR naar `main`.
+   `## [Unreleased]` achter.
+
+   **Zet in dezelfde PR de assessments-plugin op dezelfde versie.** De plugin
+   wordt rechtstreeks uit de working tree geladen, dus het nummer moet
+   gecommit zijn vóór de tag:
+
+   ```bash
+   python3 .claude/plugins/assessments/scripts/generate_plugin.py --set-version 2026.6.14
+   ```
+
+   Dat schrijft `.plugin/plugin.json` en genereert de Claude Code- en
+   Cursor-manifests. Breng het geheel via een PR naar `main`.
 
 2. **Zorg dat acceptatie groen is.** De tag promoot het image dat voor de
    main-commit is gebouwd; de `Deploy acceptatie`-run voor die commit moet
@@ -53,14 +64,16 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
 |-------|-----|
 | CalVer-formaat | `vYYYY.M.D[.MICRO]`, geen voorloopnullen |
 | Changelog | Een niet-lege `## [versie]`-sectie moet bestaan |
+| Plugin-versie | De assessments-plugin moet op dezelfde CalVer staan als de tag |
 | Downgrade | De tag moet de hoogste CalVer-tag zijn — fix forward, deploy nooit een oudere tag |
 | Tag op main | De getagde commit moet op `main` staan |
 | Image bestaat | De `Deploy acceptatie`-run voor die commit moet geslaagd zijn |
 | Dispatchbaar | `deploy-productie.yaml` moet op de default branch (`main`) staan, anders kan `release.yaml` het niet starten — zet de eerste CalVer-tag pas na de merge naar `main` |
 
 De gedeelde checks staan in `script/ci/` (`validate-calver-tag.sh`,
-`changelog-section.sh`, `assert-newest-calver-tag.sh`) en worden door zowel
-`release.yaml` als `deploy-productie.yaml` gebruikt; ze zijn gedekt door
+`changelog-section.sh`, `assert-newest-calver-tag.sh`,
+`assert-plugin-version.sh`) en worden door `release.yaml` en
+`deploy-productie.yaml` gebruikt; ze zijn gedekt door
 `script/tests/test_ci_release.py`.
 
 ## Hotfix
