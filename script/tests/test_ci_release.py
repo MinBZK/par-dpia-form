@@ -18,6 +18,7 @@ CHANGELOG = CI_DIR / "changelog-section.sh"
 ASSERT_NEWEST = CI_DIR / "assert-newest-calver-tag.sh"
 ASSERT_PLUGIN = CI_DIR / "assert-plugin-version.sh"
 ASSERT_ABSENT = CI_DIR / "assert-tag-absent.sh"
+NEWEST = CI_DIR / "newest-calver-tag.sh"
 
 
 def run(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -180,3 +181,46 @@ def test_existing_tag_blocked(tagged_repo):
 def test_absent_tag_is_not_fooled_by_a_prefix(tagged_repo):
     # v2026.6.6.1 exists, v2026.6.6.11 does not: no substring matching.
     assert run(ASSERT_ABSENT, "v2026.6.6.11", cwd=tagged_repo).returncode == 0
+
+
+# --- newest-calver-tag.sh --------------------------------------------------
+
+
+def test_newest_prints_highest_calver(tagged_repo):
+    result = run(NEWEST, cwd=tagged_repo)
+    assert result.returncode == 0
+    assert result.stdout.strip() == "v2026.6.10"
+
+
+def test_newest_ignores_semver_tags(tmp_path: Path):
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "Test")
+    git("commit", "--allow-empty", "-m", "init")
+    git("tag", "v0.1.3")
+    git("tag", "v2026.6.6")
+    assert run(NEWEST, cwd=tmp_path).stdout.strip() == "v2026.6.6"
+
+
+def test_newest_sorts_micro_above_base(tagged_repo):
+    # v2026.6.6.1 must outrank v2026.6.6, and both stay below v2026.6.10.
+    subprocess.run(
+        ["git", "tag", "-d", "v2026.6.10"], cwd=tagged_repo, check=True, capture_output=True
+    )
+    assert run(NEWEST, cwd=tagged_repo).stdout.strip() == "v2026.6.6.1"
+
+
+def test_newest_is_empty_without_calver_tags(tmp_path: Path):
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "Test")
+    git("commit", "--allow-empty", "-m", "init")
+    result = run(NEWEST, cwd=tmp_path)
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""

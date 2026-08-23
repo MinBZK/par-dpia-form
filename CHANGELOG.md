@@ -108,6 +108,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De wekelijkse beveiligingsscan keek alleen naar de acceptatie-omgeving en niet
+  naar productie, terwijl juist die maandenlang stil kan staan en zo nieuwe
+  meldingen verzamelt. Beide omgevingen worden nu gescand en apart gerapporteerd.
 * De containerimages staan niet langer onder een pad met `dev` in de naam. Dat
   suggereerde een ontwikkelomgeving, terwijl er juist productie uit werd
   gedraaid.

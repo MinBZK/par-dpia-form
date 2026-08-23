@@ -12,9 +12,8 @@
 set -euo pipefail
 
 tag="${1:?usage: assert-newest-calver-tag.sh <tag>}"
-regex='^v[0-9]{4}\.(1[0-2]|[1-9])\.(3[01]|[12][0-9]|[1-9])(\.[0-9]+)?$'
 
-newest="$(git tag | grep -E "$regex" | sort -V | tail -n1 || true)"
+newest="$(bash "$(dirname "$0")/newest-calver-tag.sh")"
 
 # No existing CalVer tags (first release) or this tag is the newest: allow.
 if [ -z "$newest" ] || [ "$tag" = "$newest" ]; then
