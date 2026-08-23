@@ -88,6 +88,7 @@ describe('API request()', () => {
       ok: false,
       status: 403,
       json: () => Promise.resolve({ detail: 'Geen toegang' }),
+      headers: new Headers(),
     })
 
     const { projects, ApiError } = await import('../src/api')

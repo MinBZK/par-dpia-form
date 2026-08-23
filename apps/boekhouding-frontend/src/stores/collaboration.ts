@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { commentsApi, syncApi, SessionExpiredError, type CommentThread, type CommentReply } from '../api'
+import { commentsApi, syncApi, ApiError, SessionExpiredError, type CommentThread, type CommentReply } from '../api'
 
 const POLL_INTERVAL_MS = 10_000
+// Consecutive failed polls before the user is told the document may be stale. A
+// single miss heals itself on the next tick and is not worth a message.
+const SYNC_FAILURE_THRESHOLD = 3
 
 export const useCollaborationStore = defineStore('collaboration', () => {
   const assessmentId = ref<string | null>(null)
@@ -17,10 +20,13 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const syncFailing = ref(false)
 
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let visibilityHandler: (() => void) | null = null
   let isPolling = false
+  let consecutiveFailures = 0
+  let pollBlockedUntil = 0
 
   // — Computed getters —
 
@@ -81,6 +87,9 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 
   async function pollForUpdates() {
     if (isPolling || !assessmentId.value) return
+    // Respect a 429's Retry-After instead of knocking every POLL_INTERVAL_MS,
+    // which would keep the bucket empty for the whole window.
+    if (Date.now() < pollBlockedUntil) return
     isPolling = true
 
     try {
@@ -127,12 +136,20 @@ export const useCollaborationStore = defineStore('collaboration', () => {
       assessmentVersion.value = syncResponse.version
       assessmentUpdatedAt.value = syncResponse.updatedAt
       lastModifiedBySelf.value = syncResponse.lastModifiedBySelf
+      consecutiveFailures = 0
+      syncFailing.value = false
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         stopPolling()
         return
       }
-      // Silently ignore other poll errors — next poll will retry
+      // A single failed poll heals itself on the next tick; only a run of them is
+      // reported, so the user knows they may be looking at a stale document.
+      consecutiveFailures++
+      syncFailing.value = consecutiveFailures >= SYNC_FAILURE_THRESHOLD
+      if (error instanceof ApiError && error.retryAfterSeconds !== undefined) {
+        pollBlockedUntil = Date.now() + error.retryAfterSeconds * 1000
+      }
     } finally {
       isPolling = false
     }
@@ -286,6 +303,7 @@ export const useCollaborationStore = defineStore('collaboration', () => {
     currentUserId,
     loading,
     error,
+    syncFailing,
     // Computed
     threadsByField,
     unresolvedCountByField,

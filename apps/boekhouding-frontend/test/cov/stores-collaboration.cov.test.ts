@@ -19,6 +19,17 @@ class FakeSessionExpiredError extends Error {
   }
 }
 
+class FakeApiError extends Error {
+  status: number
+  retryAfterSeconds?: number
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+}
+
 vi.mock('../../src/api', () => ({
   commentsApi: {
     list: (...args: unknown[]) => mockCommentsList(...args),
@@ -30,6 +41,7 @@ vi.mock('../../src/api', () => ({
   },
   syncApi: { get: (...args: unknown[]) => mockSyncGet(...args) },
   SessionExpiredError: FakeSessionExpiredError,
+  ApiError: FakeApiError,
 }))
 
 function makeThread(overrides: Record<string, unknown> = {}): any {
@@ -703,5 +715,77 @@ describe('reset()', () => {
     expect(store.currentUserId).toBeNull()
     expect(store.loading).toBe(false)
     expect(store.error).toBeNull()
+  })
+})
+
+describe('syncFailing — reporting a sync that stays stuck', () => {
+  function setVisibility(state: 'visible' | 'hidden') {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => state,
+    })
+  }
+
+  afterEach(() => {
+    setVisibility('visible')
+    vi.useRealTimers()
+  })
+
+  async function pollingStore() {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    vi.useFakeTimers()
+    setVisibility('visible')
+    store.startPolling()
+    return store
+  }
+
+  it('stays quiet while a single poll fails, since the next one heals it', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    expect(store.syncFailing).toBe(false)
+    store.stopPolling()
+  })
+
+  it('reports failing after three consecutive failed polls', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    expect(store.syncFailing).toBe(true)
+    store.stopPolling()
+  })
+
+  it('clears the failure state as soon as a poll succeeds', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(store.syncFailing).toBe(true)
+
+    mockSyncGet.mockResolvedValue(syncResponse({ commentCount: 0 }))
+    mockCommentsList.mockResolvedValue(commentsResponse())
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    expect(store.syncFailing).toBe(false)
+    store.stopPolling()
+  })
+
+  it('honours Retry-After on a 429 instead of hammering every 10 seconds', async () => {
+    mockSyncGet.mockRejectedValue(new FakeApiError('Te veel verzoeken', 429, 30))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(20_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(2)
+    store.stopPolling()
   })
 })

@@ -42,6 +42,16 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Een mislukte poging om je werk op te slaan of om de wijzigingen van
+  collega's op te halen verdween stilletjes: je zag niets, terwijl je
+  laatste tekst niet opgeslagen was of je naar een verouderde versie zat
+  te kijken. Allebei melden nu, maar pas als het langer duurt dan een
+  enkele hapering. Opslaan probeert het bovendien vanzelf opnieuw, met een
+  knop om er niet op te hoeven wachten, en het sluiten van het tabblad
+  levert een waarschuwing op zolang er nog iets niet is opgeslagen.
+* Meldingen onderaan het scherm braken hun tekst af terwijl er ruimte naast
+  stond, en waren op een telefoon onnodig smal. Ze gebruiken nu de
+  beschikbare breedte.
 * De verwijzingen naar het Model DPIA Rijksdienst wezen naar een verlopen
   KCBR-URL die een foutpagina toonde; ze verwijzen nu naar de actuele
   locatie van het model.

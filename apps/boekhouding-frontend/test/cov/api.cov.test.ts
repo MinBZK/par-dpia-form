@@ -149,6 +149,37 @@ describe('ApiError', () => {
     expect(err.name).toBe('ApiError')
     expect(err).toBeInstanceOf(Error)
   })
+
+  it('carries Retry-After from the response so callers can back off', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      fetchResponse({
+        ok: false,
+        status: 429,
+        json: () => Promise.resolve({ detail: 'Te veel verzoeken' }),
+        headers: { 'Retry-After': '42' },
+      }),
+    )
+    await expect(api.projects.list()).rejects.toMatchObject({ status: 429, retryAfterSeconds: 42 })
+  })
+
+  it('leaves retryAfterSeconds undefined when the header is absent', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      fetchResponse({ ok: false, status: 500, json: () => Promise.resolve({ detail: 'Kapot' }) }),
+    )
+    await expect(api.projects.list()).rejects.toMatchObject({ retryAfterSeconds: undefined })
+  })
+
+  it('ignores a Retry-After in HTTP-date form rather than backing off for NaN seconds', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      fetchResponse({
+        ok: false,
+        status: 429,
+        json: () => Promise.resolve({ detail: 'Te veel verzoeken' }),
+        headers: { 'Retry-After': 'Wed, 21 Oct 2026 07:28:00 GMT' },
+      }),
+    )
+    await expect(api.projects.list()).rejects.toMatchObject({ retryAfterSeconds: undefined })
+  })
 })
 
 describe('projects endpoints', () => {
