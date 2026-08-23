@@ -56,7 +56,7 @@ jobs:
   # Read-only token: the third-party scanner never runs beside a credential that
   # can write to GHCR. Deliberately no layer cache, because a cached
   # `apk upgrade` would scan older packages than a real build produces.
-  build-scan:
+  build-and-scan:
     needs: generate-sources
     runs-on: ubuntu-latest
     permissions:
@@ -65,7 +65,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [backend, frontend]
+        include:
+          - component: backend
+            image: ${{ inputs.backend-image }}
+          - component: frontend
+            image: ${{ inputs.frontend-image }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -77,7 +81,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ matrix.component == 'backend' && inputs.backend-image || inputs.frontend-image }}
+          images: ${{ matrix.image }}
       - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           context: .
@@ -89,9 +93,15 @@ jobs:
           tags: localhost/${{ matrix.component }}:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      # ignore-unfixed keeps this actionable: it only fails when a patched
-      # version exists, so a red run always has something someone can do.
+      # One scan either way, in the format that fits the reader. A pull request
+      # gets a table in the log; main feeds the Security tab, which is where the
+      # weekly digest reads from. Both fail on a fixable CRITICAL or HIGH.
+      #
+      # ignore-unfixed keeps that actionable: it only fails when the distro has
+      # published a patched version, so a red run always has something someone
+      # can do.
       - name: Trivy image scan
+        if: github.event_name != 'push'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
           image-ref: localhost/${{ matrix.component }}:${{ github.sha }}
@@ -101,9 +111,7 @@ jobs:
           exit-code: '1'
           format: table
 
-      # Only from main, so the Security tab reflects what is deployed rather
-      # than every proposal. The weekly digest reads from there.
-      - name: Trivy report for the Security tab
+      - name: Trivy image scan (SARIF)
         if: github.event_name == 'push'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
@@ -111,11 +119,11 @@ jobs:
           scan-type: image
           severity: CRITICAL,HIGH
           ignore-unfixed: true
-          exit-code: '0'
+          exit-code: '1'
           format: sarif
           output: trivy-${{ matrix.component }}.sarif
       - name: Upload Trivy results to Security tab
-        if: github.event_name == 'push'
+        if: always() && github.event_name == 'push'
         uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
           sarif_file: trivy-${{ matrix.component }}.sarif
@@ -132,7 +140,7 @@ jobs:
           retention-days: 1
 
   publish:
-    needs: build-scan
+    needs: build-and-scan
     if: inputs.publish
     runs-on: ubuntu-latest
     permissions:
@@ -141,7 +149,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [backend, frontend]
+        include:
+          - component: backend
+            image: ${{ inputs.backend-image }}
+          - component: frontend
+            image: ${{ inputs.frontend-image }}
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -156,7 +168,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ matrix.component == 'backend' && inputs.backend-image || inputs.frontend-image }}
+          images: ${{ matrix.image }}
           tags: |
             type=sha,prefix=${{ inputs.tag-prefix }}
             type=raw,value=latest,enable=${{ inputs.tag-latest }}
