@@ -5,6 +5,12 @@ name: Security alert digest
 # actually running, on every severity and including findings with no fix, and
 # feeds the Security tab with that full picture.
 #
+# Both environments are scanned, because they are different images. `latest` is
+# pushed by deploy-acceptatie on every merge to main; productie runs the CalVer
+# tag, which deploy-productie promotes and never retags. Productie is the image
+# that sits still for weeks collecting newly disclosed CVEs, so leaving it out
+# would miss exactly what this job exists to catch.
+#
 # The issue it keeps is deliberately narrower than the tab. This repository is
 # public and the issue is too, while security alerts are visible only to people
 # with write access. Publishing a weekly list of unpatchable vulnerabilities in
@@ -21,7 +27,42 @@ env:
   REGISTRY_PATH: ghcr.io/minbzk/par-dpia-form
 
 jobs:
+  targets:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.build.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: Bepaal welke images gescand worden
+        id: build
+        run: |
+          set -euo pipefail
+          prod="$(bash script/ci/newest-calver-tag.sh)"
+          entries='[]'
+          for component in backend frontend; do
+            entries="$(jq -c --arg c "$component" \
+              '. + [{component: $c, environment: "acceptatie", ref: "latest"}]' <<<"$entries")"
+            if [ -n "$prod" ]; then
+              entries="$(jq -c --arg c "$component" --arg t "$prod" \
+                '. + [{component: $c, environment: "productie", ref: $t}]' <<<"$entries")"
+            fi
+          done
+          echo "matrix=${entries}" >> "$GITHUB_OUTPUT"
+          # Before the first CalVer release there is nothing in production to
+          # scan; report that rather than failing the weekly run.
+          if [ -z "$prod" ]; then
+            echo "::warning::Geen CalVer-tag gevonden; alleen acceptatie is gescand."
+          fi
+
   scan:
+    needs: targets
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -30,7 +71,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [backend, frontend]
+        include: ${{ fromJSON(needs.targets.outputs.matrix) }}
     steps:
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -41,54 +82,58 @@ jobs:
       - name: Trivy scan of the running image (everything)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
-          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:latest
+          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:${{ matrix.ref }}
           scan-type: image
           severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
           ignore-unfixed: false
           exit-code: '0'
           format: sarif
-          output: trivy-${{ matrix.component }}.sarif
+          output: trivy-${{ matrix.component }}-${{ matrix.environment }}.sarif
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      # The category names the environment too: two uploads sharing one category
+      # replace each other, which would leave only one environment in the tab.
       - uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
         with:
-          sarif_file: trivy-${{ matrix.component }}.sarif
-          category: trivy-${{ matrix.component }}
+          sarif_file: trivy-${{ matrix.component }}-${{ matrix.environment }}.sarif
+          category: trivy-${{ matrix.component }}-${{ matrix.environment }}
 
       # Second render rather than a second gate: the issue is public, so it
       # lists only what the gate would also fail on.
       - name: Trivy scan for the issue (fixable, high and up)
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
-          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:latest
+          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:${{ matrix.ref }}
           scan-type: image
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: '0'
           format: json
-          output: trivy-${{ matrix.component }}.json
+          output: trivy-${{ matrix.component }}-${{ matrix.environment }}.json
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - name: Reduce to the fields the issue shows
         env:
           COMPONENT: ${{ matrix.component }}
+          ENVIRONMENT: ${{ matrix.environment }}
         run: |
           set -euo pipefail
-          jq --arg component "$COMPONENT" '
+          jq --arg component "$COMPONENT" --arg environment "$ENVIRONMENT" '
             [ .Results[]?.Vulnerabilities[]? | {
                 component: $component,
+                environment: $environment,
                 id: .VulnerabilityID,
                 severity: .Severity,
                 pkg: .PkgName,
                 installed: .InstalledVersion,
                 fixed: .FixedVersion
-              } ]' "trivy-${COMPONENT}.json" > "findings-${COMPONENT}.json"
+              } ]' "trivy-${COMPONENT}-${ENVIRONMENT}.json" > "findings-${COMPONENT}-${ENVIRONMENT}.json"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: findings-${{ matrix.component }}
-          path: findings-${{ matrix.component }}.json
+          name: findings-${{ matrix.component }}-${{ matrix.environment }}
+          path: findings-${{ matrix.component }}-${{ matrix.environment }}.json
           retention-days: 1
 
   digest:
@@ -106,7 +151,7 @@ jobs:
       - id: collect
         run: |
           set -euo pipefail
-          jq -s 'add | unique_by(.component + .id + .pkg)' findings/*.json > findings.json
+          jq -s 'add | unique_by(.environment + .component + .id + .pkg)' findings/*.json > findings.json
           echo "count=$(jq 'length' findings.json)" >> "$GITHUB_OUTPUT"
 
       - name: Render the issue body
@@ -116,10 +161,12 @@ jobs:
           {
             echo "Kwetsbaarheden met een beschikbare oplossing in de draaiende images, wekelijks bijgewerkt door \`security-alert-digest.yaml\`."
             echo
-            echo "| Image | Ernst | Pakket | Nu | Opgelost in | Melding |"
-            echo "| --- | --- | --- | --- | --- | --- |"
-            jq -r 'sort_by(.severity, .component, .pkg) | .[] |
-                   "| \(.component) | \(.severity) | `\(.pkg)` | \(.installed) | \(.fixed) | \(.id) |"' findings.json
+            echo "Productie draait de CalVer-tag en acceptatie draait \`latest\`; dat zijn verschillende images, dus ze staan hier apart."
+            echo
+            echo "| Omgeving | Image | Ernst | Pakket | Nu | Opgelost in | Melding |"
+            echo "| --- | --- | --- | --- | --- | --- | --- |"
+            jq -r 'sort_by(if .environment == "productie" then 0 else 1 end, .severity, .component, .pkg) | .[] |
+                   "| \(.environment) | \(.component) | \(.severity) | `\(.pkg)` | \(.installed) | \(.fixed) | \(.id) |"' findings.json
             echo
             echo "Het volledige beeld, inclusief meldingen zonder oplossing, staat in de Security-tab."
             echo "Alles opgelost? Dan sluit deze issue zichzelf bij de volgende run."
