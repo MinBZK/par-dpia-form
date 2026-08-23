@@ -10,7 +10,7 @@ import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
 import { stripUnknownStateKeys } from '../utils/sanitizeState.js'
 import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
-import { assessmentParams, assessmentVersionParams, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
+import { assessmentParams, assessmentVersionParams, dutchSchemaErrorFormatter, STATE_BODY_LIMIT } from '../utils/routeSchemas.js'
 
 // Generous page-size caps: normal histories fit in one page, but the result set
 // can never grow unbounded. Edits are the largest (one row per changed field).
@@ -47,6 +47,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     Params: { assessmentId: string }
     Body: { state?: unknown; changeDescription?: string; name?: string; expectedVersion?: number; newVersion?: boolean }
   }>('/:assessmentId', {
+    bodyLimit: STATE_BODY_LIMIT,
     schema: {
       tags: ['assessments'],
       params: assessmentParams,

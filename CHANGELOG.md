@@ -17,6 +17,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Beveiliging
 
+* Verzoeken naar routes die alleen een paar velden verwachten worden niet
+  langer tot 25 MB ingelezen. Alleen het opslaan van een assessment, waar
+  afbeeldingen in kunnen zitten, houdt die ruimte, en die is verruimd naar
+  50 MB.
+* Wordt een assessment toch te groot om op te slaan, dan zegt de melding nu
+  waar het meestal aan ligt en wat je eraan kunt doen, in plaats van een
+  technische foutcode.
 * `/.well-known/security.txt` verwijst niet langer met een redirect naar het
   bestand van het NCSC, maar wordt nu zelf gehost, met een eigen
   beleidsverwijzing naar `SECURITY.md`. Het NCSC blijft het meldpunt voor

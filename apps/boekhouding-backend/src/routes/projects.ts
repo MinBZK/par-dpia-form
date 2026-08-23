@@ -9,7 +9,7 @@ import { validateState } from '../utils/validateState.js'
 import { normalizeCreateState } from '../utils/normalizeCreateState.js'
 import { stripUnknownStateKeys } from '../utils/sanitizeState.js'
 import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
-import { projectParams, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
+import { projectParams, dutchSchemaErrorFormatter, STATE_BODY_LIMIT } from '../utils/routeSchemas.js'
 
 const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
@@ -204,6 +204,7 @@ export async function projectRoutes(app: FastifyInstance) {
     Params: { projectId: string }
     Body: { name?: string; assessmentType: 'prescan' | 'dpia' | 'iama'; state?: unknown }
   }>('/:projectId/assessments', {
+    bodyLimit: STATE_BODY_LIMIT,
     schema: {
       tags: ['assessments'],
       params: projectParams,
