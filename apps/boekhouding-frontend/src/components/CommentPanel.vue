@@ -39,8 +39,10 @@ const canResolve = computed(() =>
 
 const fieldPositions = ref(new Map<string, number>())
 const fieldLabels = ref(new Map<string, string>())
+const groupHeights = ref(new Map<string, number>())
 let formObserver: MutationObserver | null = null
 let resizeObserver: ResizeObserver | null = null
+const groupObserver = new ResizeObserver(() => measureGroups())
 let updateTimer: ReturnType<typeof setTimeout> | null = null
 
 function updateFieldPositions() {
@@ -109,8 +111,56 @@ const positionedEntries = computed(() => {
   return entries
 })
 
+// Groups are absolutely positioned at their field's offset, so a group taller than the gap to
+// the next field would cover it — hiding text and action buttons. Walking top to bottom and
+// keeping each group below the previous one trades exact field alignment for readability, the
+// way Google Docs does. Heights are measured, so this only settles once the groups are laid
+// out; moving a group does not change its height, so measuring cannot loop.
+const GROUP_GAP_PX = 8
+
+const stackedEntries = computed(() => {
+  let previousBottom = Number.NEGATIVE_INFINITY
+
+  return positionedEntries.value.map((entry) => {
+    const top = Math.max(entry.top, previousBottom)
+    previousBottom = top + (groupHeights.value.get(entry.fieldId) ?? 0) + GROUP_GAP_PX
+    return { ...entry, top }
+  })
+})
+
+// A queued resize notification can still arrive after the panel is gone, hence the guard here
+// but not in observeGroups, which only ever runs while mounted.
+function measureGroups() {
+  const bodyEl = panelBodyRef.value
+  if (!bodyEl) return
+
+  const heights = new Map<string, number>()
+  for (const el of bodyEl.querySelectorAll<HTMLElement>('[data-field-group]')) {
+    heights.set(el.dataset.fieldGroup!, el.offsetHeight)
+  }
+  groupHeights.value = heights
+}
+
+function observeGroups() {
+  groupObserver.disconnect()
+  for (const el of panelBodyRef.value!.querySelectorAll<HTMLElement>('[data-field-group]')) {
+    groupObserver.observe(el)
+  }
+}
+
+// A group's height changes when its text reflows or an edit/reply form opens, which shifts
+// everything below it.
+watch(positionedEntries, async () => {
+  await nextTick()
+  observeGroups()
+  measureGroups()
+})
+
 onMounted(() => {
   requestAnimationFrame(() => updateFieldPositions())
+
+  observeGroups()
+  measureGroups()
 
   if (props.formContainerRef) {
     formObserver = new MutationObserver(schedulePositionUpdate)
@@ -124,6 +174,7 @@ onMounted(() => {
 onUnmounted(() => {
   formObserver?.disconnect()
   resizeObserver?.disconnect()
+  groupObserver.disconnect()
   if (updateTimer) clearTimeout(updateTimer)
 })
 
@@ -256,13 +307,13 @@ async function handleReopen(commentId: string) {
     <div class="comment-panel__body" ref="panelBodyRef">
       <!-- Empty state -->
       <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <p v-else-if="positionedEntries.length === 0" class="comment-panel__empty">
+      <p v-else-if="stackedEntries.length === 0" class="comment-panel__empty">
         Er zijn nog geen opmerkingen bij deze stap. Klik op "Opmerking" bij een vraag om er een te plaatsen.
       </p>
 
       <!-- Positioned comment groups (Google Docs style) -->
       <div
-        v-for="entry in positionedEntries"
+        v-for="entry in stackedEntries"
         :key="entry.fieldId"
         :data-field-group="entry.fieldId"
         class="comment-field-group"
