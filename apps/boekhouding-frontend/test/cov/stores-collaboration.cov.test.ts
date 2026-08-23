@@ -407,6 +407,111 @@ describe('pollForUpdates() via visibility handler', () => {
   })
 })
 
+describe('resolve while a poll is in flight (issue #440)', () => {
+  it('keeps a locally resolved thread resolved when a pre-resolve snapshot lands', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    mockCommentsResolve.mockResolvedValueOnce({
+      resolvedAt: '2026-04-12T14:00:00.000Z',
+      resolvedBy: 'user-1',
+    })
+    await store.resolveThread('t1')
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 't1', replies: undefined })],
+      lastModifiedAt: '2026-04-12T12:00:00.000Z',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+
+  it('keeps the resolve when the poll starts while the resolve is still in flight', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    // The resolve goes out first and is still awaiting its response.
+    let releaseResolve: (v: any) => void = () => {}
+    const resolveGate = new Promise<any>((r) => { releaseResolve = r })
+    mockCommentsResolve.mockReturnValueOnce(resolveGate)
+    const resolving = store.resolveThread('t1')
+
+    // A poll starts during that window and reads the server before the PATCH commits.
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    releaseResolve({ resolvedAt: '2026-04-12T14:00:00.000Z', resolvedBy: 'user-1' })
+    await resolving
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 't1', replies: undefined })],
+      lastModifiedAt: '2026-04-12T12:00:00.000Z',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+    store.stopPolling()
+  })
+
+  it('drops a poll response when a mutation failed while it was in flight', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    let rejectResolve: (e: unknown) => void = () => {}
+    const resolveGate = new Promise<any>((_r, reject) => { rejectResolve = reject })
+    mockCommentsResolve.mockReturnValueOnce(resolveGate)
+    const resolving = store.resolveThread('t1')
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    rejectResolve(new Error('netwerkfout'))
+    await expect(resolving).rejects.toThrow('netwerkfout')
+
+    releaseList(commentsResponse({ comments: [makeThread({ id: 't1' })], lastModifiedAt: 'NEW' }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    // The watermark is untouched, so the next poll re-requests the same delta.
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+})
+
 describe('schedulePoll() timer loop', () => {
   function setVisibility(state: 'visible' | 'hidden') {
     Object.defineProperty(document, 'visibilityState', {

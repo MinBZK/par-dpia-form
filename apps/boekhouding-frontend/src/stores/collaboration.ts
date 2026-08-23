@@ -28,6 +28,22 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   let consecutiveFailures = 0
   let pollBlockedUntil = 0
 
+  // Bumped when a local mutation starts and again when it settles, so any change across a
+  // poll means a mutation overlapped it. A poll response reflects the server as it was when
+  // the request went out, which may predate an overlapping mutation; applying it would revert
+  // that mutation. Such a response is dropped without moving the watermark, so the next poll
+  // fetches the same delta again.
+  let mutationSeq = 0
+
+  async function mutate<T>(action: () => Promise<T>): Promise<T> {
+    mutationSeq++
+    try {
+      return await action()
+    } finally {
+      mutationSeq++
+    }
+  }
+
   // — Computed getters —
 
   const threadsByField = computed(() => {
@@ -86,22 +102,28 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   }
 
   async function pollForUpdates() {
-    if (isPolling || !assessmentId.value) return
+    const id = assessmentId.value
+    if (isPolling || !id) return
     // Respect a 429's Retry-After instead of knocking every POLL_INTERVAL_MS,
     // which would keep the bucket empty for the whole window.
     if (Date.now() < pollBlockedUntil) return
     isPolling = true
+    const seenMutationSeq = mutationSeq
 
     try {
-      const syncResponse = await syncApi.get(assessmentId.value)
+      const syncResponse = await syncApi.get(id)
 
       // Detect deletions: when a comment is removed, the /comments?since=... query can't report it
       // (the row is gone). A count mismatch is our signal to do a full refresh instead of incremental.
       const needsFullRefresh = syncResponse.commentCount !== localCommentCount()
 
       const commentsResponse = needsFullRefresh
-        ? await commentsApi.list(assessmentId.value)
-        : await commentsApi.list(assessmentId.value, lastModifiedAt.value ?? undefined)
+        ? await commentsApi.list(id)
+        : await commentsApi.list(id, lastModifiedAt.value ?? undefined)
+
+      // Drop the response when a mutation overlapped the poll, or when the store moved to
+      // another assessment while the requests were in flight.
+      if (mutationSeq !== seenMutationSeq || assessmentId.value !== id) return
 
       if (needsFullRefresh) {
         threads.value = commentsResponse.comments
@@ -190,93 +212,111 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   }
 
   async function createComment(fieldId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const created = await commentsApi.create(assessmentId.value, fieldId, body)
-    threads.value.push({ ...created, replies: created.replies || [] })
-    return created
+    return mutate(async () => {
+      const created = await commentsApi.create(id, fieldId, body)
+      threads.value.push({ ...created, replies: created.replies || [] })
+      return created
+    })
   }
 
   async function createReply(parentId: string, fieldId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const created = await commentsApi.create(assessmentId.value, fieldId, body, parentId)
-    const thread = threads.value.find(t => t.id === parentId)
-    if (thread) {
-      thread.replies.push({
-        id: created.id,
-        parentId,
-        authorId: created.authorId,
-        authorName: created.authorName,
-        body: created.body,
-        createdAt: created.createdAt,
-        updatedAt: created.updatedAt,
-      })
-    }
-    return created
+    return mutate(async () => {
+      const created = await commentsApi.create(id, fieldId, body, parentId)
+      const thread = threads.value.find(t => t.id === parentId)
+      if (thread) {
+        thread.replies.push({
+          id: created.id,
+          parentId,
+          authorId: created.authorId,
+          authorName: created.authorName,
+          body: created.body,
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        })
+      }
+      return created
+    })
   }
 
   async function updateComment(commentId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.update(assessmentId.value, commentId, body)
+    return mutate(async () => {
+      await commentsApi.update(id, commentId, body)
 
-    for (const thread of threads.value) {
-      if (thread.id === commentId) {
-        thread.body = body
-        thread.updatedAt = new Date().toISOString()
-        return
-      }
-      for (const reply of thread.replies) {
-        if (reply.id === commentId) {
-          reply.body = body
-          reply.updatedAt = new Date().toISOString()
+      for (const thread of threads.value) {
+        if (thread.id === commentId) {
+          thread.body = body
+          thread.updatedAt = new Date().toISOString()
           return
         }
+        for (const reply of thread.replies) {
+          if (reply.id === commentId) {
+            reply.body = body
+            reply.updatedAt = new Date().toISOString()
+            return
+          }
+        }
       }
-    }
+    })
   }
 
   async function deleteComment(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.delete(assessmentId.value, commentId)
+    return mutate(async () => {
+      await commentsApi.delete(id, commentId)
 
-    const threadIdx = threads.value.findIndex(t => t.id === commentId)
-    if (threadIdx >= 0) {
-      threads.value.splice(threadIdx, 1)
-      return
-    }
-
-    for (const thread of threads.value) {
-      const replyIdx = thread.replies.findIndex(r => r.id === commentId)
-      if (replyIdx >= 0) {
-        thread.replies.splice(replyIdx, 1)
+      const threadIdx = threads.value.findIndex(t => t.id === commentId)
+      if (threadIdx >= 0) {
+        threads.value.splice(threadIdx, 1)
         return
       }
-    }
+
+      for (const thread of threads.value) {
+        const replyIdx = thread.replies.findIndex(r => r.id === commentId)
+        if (replyIdx >= 0) {
+          thread.replies.splice(replyIdx, 1)
+          return
+        }
+      }
+    })
   }
 
   async function resolveThread(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const updated = await commentsApi.resolve(assessmentId.value, commentId)
-    const thread = threads.value.find(t => t.id === commentId)
-    if (thread) {
-      thread.resolvedAt = updated.resolvedAt
-      thread.resolvedBy = updated.resolvedBy
-    }
+    return mutate(async () => {
+      const updated = await commentsApi.resolve(id, commentId)
+      const thread = threads.value.find(t => t.id === commentId)
+      if (thread) {
+        thread.resolvedAt = updated.resolvedAt
+        thread.resolvedBy = updated.resolvedBy
+      }
+    })
   }
 
   async function reopenThread(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.reopen(assessmentId.value, commentId)
-    const thread = threads.value.find(t => t.id === commentId)
-    if (thread) {
-      thread.resolvedAt = null
-      thread.resolvedBy = null
-    }
+    return mutate(async () => {
+      await commentsApi.reopen(id, commentId)
+      const thread = threads.value.find(t => t.id === commentId)
+      if (thread) {
+        thread.resolvedAt = null
+        thread.resolvedBy = null
+      }
+    })
   }
 
   function reset() {

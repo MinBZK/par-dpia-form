@@ -25,6 +25,46 @@ const commentSelect = {
 // thread count; the sync endpoint's commentCount lets clients detect a cap hit.
 const COMMENTS_MAX = 1000
 
+type CommentRow = {
+  id: string
+  parentId: string | null
+  authorId: string
+  authorName: string
+  body: string
+  resolvedBy: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+async function resolvedByNames(rows: CommentRow[]): Promise<Record<string, string>> {
+  const ids = [...new Set(rows.filter(r => r.resolvedBy).map(r => r.resolvedBy!))]
+  if (ids.length === 0) return {}
+
+  const rowsByUser = await db
+    .select({ id: users.id, displayName: users.displayName })
+    .from(users)
+    .where(inArray(users.id, ids))
+  return Object.fromEntries(rowsByUser.map(u => [u.id, u.displayName]))
+}
+
+function groupRepliesByParent(replies: CommentRow[]) {
+  const byParent = new Map<string, Array<Omit<CommentRow, 'resolvedBy'>>>()
+  for (const r of replies) {
+    const list = byParent.get(r.parentId!) || []
+    list.push({
+      id: r.id,
+      parentId: r.parentId,
+      authorId: r.authorId,
+      authorName: r.authorName,
+      body: r.body,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })
+    byParent.set(r.parentId!, list)
+  }
+  return byParent
+}
+
 export async function commentRoutes(app: FastifyInstance) {
   app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
 
@@ -45,107 +85,84 @@ export async function commentRoutes(app: FastifyInstance) {
 
     const sinceDate = since ? new Date(since) : null
 
-    // Fetch root comments (no parentId)
-    const rootConditions = [
-      eq(comments.assessmentInstanceId, assessmentId),
-      isNull(comments.parentId),
-    ]
+    // Incremental poll: every comment touched since the watermark, flat — roots and replies
+    // alike, so a changed reply reaches the client even when its root did not move.
     if (sinceDate) {
-      rootConditions.push(gt(comments.updatedAt, sinceDate))
+      const changed = await db
+        .select(commentSelect)
+        .from(comments)
+        .innerJoin(users, eq(comments.authorId, users.id))
+        .where(
+          and(
+            eq(comments.assessmentInstanceId, assessmentId),
+            gt(comments.updatedAt, sinceDate),
+          ),
+        )
+        .orderBy(asc(comments.createdAt))
+        .limit(COMMENTS_MAX)
+
+      // A root the client has not seen before must arrive with its full reply list, or the
+      // client stores the thread empty and its comment count drifts from the server's.
+      const changedRootIds = changed.filter(c => c.parentId === null).map(c => c.id)
+      const rootReplies = changedRootIds.length > 0
+        ? await db
+          .select(commentSelect)
+          .from(comments)
+          .innerJoin(users, eq(comments.authorId, users.id))
+          .where(inArray(comments.parentId, changedRootIds))
+          .orderBy(asc(comments.createdAt))
+          .limit(COMMENTS_MAX)
+        : []
+
+      const repliesByParent = groupRepliesByParent(rootReplies)
+      const names = await resolvedByNames(changed)
+
+      return {
+        comments: changed.map((c) => {
+          const entry = { ...c, resolvedByName: c.resolvedBy ? names[c.resolvedBy] : null }
+          if (c.parentId !== null) return entry
+          return { ...entry, replies: repliesByParent.get(c.id) || [] }
+        }),
+        // Echo the watermark when nothing changed — dropping it sends the client back to a
+        // full list on its next poll.
+        lastModifiedAt: computeLastModifiedAt(changed.map(c => c.updatedAt))?.toISOString()
+          ?? sinceDate.toISOString(),
+        currentUserId: request.user!.id,
+      }
     }
 
     const rootComments = await db
       .select(commentSelect)
       .from(comments)
       .innerJoin(users, eq(comments.authorId, users.id))
-      .where(and(...rootConditions))
+      .where(
+        and(
+          eq(comments.assessmentInstanceId, assessmentId),
+          isNull(comments.parentId),
+        ),
+      )
       .orderBy(asc(comments.createdAt))
       .limit(COMMENTS_MAX)
 
-    const resolvedByIds = [...new Set(rootComments.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
-    const resolvedByNames: Record<string, string> = {}
-    if (resolvedByIds.length > 0) {
-      const resolvedUsers = await db
-        .select({ id: users.id, displayName: users.displayName })
-        .from(users)
-        .where(inArray(users.id, resolvedByIds))
-      for (const u of resolvedUsers) resolvedByNames[u.id] = u.displayName
-    }
-
+    const names = await resolvedByNames(rootComments)
     const rootIds = rootComments.map(c => c.id)
-    let allReplies: typeof rootComments = []
 
-    if (rootIds.length > 0) {
-      if (sinceDate) {
-        const recentReplies = await db
-          .select(commentSelect)
-          .from(comments)
-          .innerJoin(users, eq(comments.authorId, users.id))
-          .where(
-            and(
-              eq(comments.assessmentInstanceId, assessmentId),
-              gt(comments.updatedAt, sinceDate),
-            ),
-          )
-          .orderBy(asc(comments.createdAt))
-          .limit(COMMENTS_MAX)
-
-        // Build resolvedByNames from the actual response data
-        const pollResolvedByIds = [...new Set(recentReplies.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
-        const pollResolvedByNames: Record<string, string> = {}
-        if (pollResolvedByIds.length > 0) {
-          const resolvedUsers = await db
-            .select({ id: users.id, displayName: users.displayName })
-            .from(users)
-            .where(inArray(users.id, pollResolvedByIds))
-          for (const u of resolvedUsers) pollResolvedByNames[u.id] = u.displayName
-        }
-
-        const lastModified = recentReplies.reduce(
-          (max, c) => c.updatedAt > max ? c.updatedAt : max,
-          recentReplies[0].updatedAt,
-        )
-
-        return {
-          comments: recentReplies.map(c => ({
-            ...c,
-            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] : null,
-          })),
-          lastModifiedAt: lastModified.toISOString(),
-          currentUserId: request.user!.id,
-        }
-      }
-
-      allReplies = await db
+    const allReplies = rootIds.length > 0
+      ? await db
         .select(commentSelect)
         .from(comments)
         .innerJoin(users, eq(comments.authorId, users.id))
         .where(inArray(comments.parentId, rootIds))
         .orderBy(asc(comments.createdAt))
         .limit(COMMENTS_MAX)
-    }
+      : []
 
-    // Group replies by parentId
-    const repliesByParent = new Map<string, typeof allReplies>()
-    for (const reply of allReplies) {
-      const list = repliesByParent.get(reply.parentId!) || []
-      list.push(reply)
-      repliesByParent.set(reply.parentId!, list)
-    }
+    const repliesByParent = groupRepliesByParent(allReplies)
 
-    // Build nested response
     const threaded = rootComments.map(root => ({
       ...root,
-      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] : null,
-      replies: (repliesByParent.get(root.id) || []).map(r => ({
-        id: r.id,
-        parentId: r.parentId,
-        authorId: r.authorId,
-        authorName: r.authorName,
-        body: r.body,
-        createdAt: r.createdAt,
-        updatedAt: r.updatedAt,
-      })),
+      resolvedByName: root.resolvedBy ? names[root.resolvedBy] : null,
+      replies: repliesByParent.get(root.id) || [],
     }))
 
     const lastModifiedAt = computeLastModifiedAt([
