@@ -20,6 +20,11 @@ build) staan kort onder "Onder de motorkap".
   beleidsverwijzing naar `SECURITY.md`. Het NCSC blijft het meldpunt voor
   kwetsbaarheden; wie liever via GitHub meldt kan dat nu ook rechtstreeks bij
   dit team, via private vulnerability reporting.
+* De server bepaalt nu aan het adres van de directe verbinding of die van de
+  eigen proxy komt, in plaats van af te gaan op het aantal tussenstations. Een
+  bezoeker kan zich daarmee niet meer voordoen als iemand anders door zelf
+  door-stuur-informatie mee te sturen, en de limiet op het aantal verzoeken
+  blijft tellen per echte bezoeker.
 
 ### Gewijzigd
 

@@ -27,8 +27,8 @@ export interface BuildAppOptions {
   logger?: boolean
   /** Expose Swagger UI + /api/openapi.json. Defaults to config.exposeApiDocs. */
   exposeApiDocs?: boolean
-  /** Fastify trustProxy value (proxy CIDR / hop count). Defaults to config.trustProxy. */
-  trustProxy?: string | boolean | number
+  /** Fastify trustProxy value (proxy CIDR or named range). Defaults to config.trustProxy. */
+  trustProxy?: string | boolean
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
