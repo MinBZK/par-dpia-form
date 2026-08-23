@@ -73,8 +73,9 @@ build) staan kort onder "Onder de motorkap".
 * Containerimages worden nu bij elke pull request gescand, en een kwetsbaarheid
   waarvoor een oplossing bestaat blokkeert de merge. Het image dat gescand is,
   is ook het image dat wordt gepubliceerd en uitgerold: er wordt niet opnieuw
-  gebouwd na de scan. Wat toch blijft staan komt wekelijks in een issue te staan
-  in plaats van alleen in een tabblad.
+  gebouwd na de scan. Wekelijks worden de draaiende images bovendien volledig
+  doorgelicht, en wat een oplossing heeft komt in een issue te staan in plaats
+  van alleen in een tabblad.
 * Een preview-omgeving wordt niet meer voor elke pull request opgezet, maar
   alleen wanneer er een `preview`-label op staat. Dat scheelt geheugen,
   processorkracht en databaseverbindingen op het gedeelde platform.
