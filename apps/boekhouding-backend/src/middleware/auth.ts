@@ -5,6 +5,7 @@ import { users } from '../db/schema.js'
 import { eq, and, isNull } from 'drizzle-orm'
 import { config } from '../config.js'
 import { userIdCache } from '../utils/userIdCache.js'
+import { mergeInvitePlaceholder } from '../utils/mergePlaceholder.js'
 
 export interface AuthUser {
   // Only the internal id. email/displayName are intentionally NOT exposed on the
@@ -179,14 +180,19 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
       let email = user.email
       if (syncEmail) {
         const [clash] = await db
-          .select({ id: users.id })
+          .select({ id: users.id, oidcSub: users.oidcSub })
           .from(users)
           .where(eq(users.email, normalizedEmail))
           .limit(1)
-        if (clash) {
-          request.log.warn('Skipping email sync: address already linked to another account')
-        } else {
+        if (!clash) {
           email = normalizedEmail
+        } else if (clash.oidcSub === null && await mergeInvitePlaceholder(clash.id, user.id)) {
+          // An unclaimed placeholder on this address is this same person, waiting
+          // for an invite that would otherwise never arrive.
+          request.log.info('Merged an unclaimed invite placeholder into this account')
+          email = normalizedEmail
+        } else {
+          request.log.warn('Skipping email sync: address already linked to another account')
         }
       }
       const [updated] = await db
