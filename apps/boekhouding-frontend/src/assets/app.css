@@ -1395,6 +1395,15 @@ a.card-link:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* The comment panel is a bottom-sheet on phones, so a toast pinned to the bottom
+   would sit on top of it; move it out of the way instead of stacking above it. */
+@media (max-width: 768px) {
+  .sync-toast--raised {
+    top: 1rem;
+    bottom: auto;
+  }
+}
+
 .sync-toast__action {
   white-space: nowrap;
   background-color: #fff;

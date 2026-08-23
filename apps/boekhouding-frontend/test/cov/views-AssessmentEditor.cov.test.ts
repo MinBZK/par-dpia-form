@@ -69,6 +69,9 @@ const {
     applyDeferredChanges: vi.fn(),
     applyDeferredOnNavigate: vi.fn(),
     hasDeferredChanges: vi.fn(),
+    saveFailing: ref(false),
+    hasUnsavedChanges: ref(false),
+    retrySaveNow: vi.fn().mockResolvedValue(undefined),
   }
   const persistenceResolve = vi.fn()
   conflictState.resolve = persistenceResolve
@@ -89,6 +92,7 @@ const {
     assessmentVersion: null as number | null,
     assessmentUpdatedAt: null as string | null,
     lastModifiedBySelf: true,
+    syncFailing: false,
     load: vi.fn().mockResolvedValue(undefined),
     startPolling: vi.fn(),
     reset: vi.fn(),
@@ -265,6 +269,11 @@ beforeEach(async () => {
   sync.applyDeferredChanges.mockReset()
   sync.applyDeferredOnNavigate.mockReset()
   sync.hasDeferredChanges.mockReset()
+  sync.saveFailing.value = false
+  sync.hasUnsavedChanges.value = false
+  sync.retrySaveNow.mockReset()
+  sync.retrySaveNow.mockResolvedValue(undefined)
+  collaborationStore.syncFailing = false
   collaborationStore.assessmentVersion = null
   collaborationStore.assessmentUpdatedAt = null
   collaborationStore.lastModifiedBySelf = true
@@ -1217,5 +1226,143 @@ describe('AssessmentEditor — delete modal dialog watcher', () => {
     await nextTick()
     expect(close).toHaveBeenCalledTimes(1)
     wrapper.unmount()
+  })
+})
+
+describe('AssessmentEditor — reporting a stuck save or sync', () => {
+  it('shows a toast with a retry action once saving keeps failing', async () => {
+    const wrapper = await mountEditor()
+
+    sync.saveFailing.value = true
+    await nextTick()
+
+    const toast = wrapper.find('.sync-toast')
+    expect(toast.exists()).toBe(true)
+    expect(toast.text()).toContain('Opslaan lukt even niet')
+    expect(toast.find('.sync-toast__action').text()).toBe('Opnieuw proberen')
+    wrapper.unmount()
+  })
+
+  it('keeps the save toast up instead of hiding it after three seconds', async () => {
+    vi.useFakeTimers()
+    const wrapper = await mountEditor()
+
+    sync.saveFailing.value = true
+    await nextTick()
+    vi.advanceTimersByTime(3000)
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').exists()).toBe(true)
+    wrapper.unmount()
+    vi.useRealTimers()
+  })
+
+  it('retries the save when the toast action is used', async () => {
+    const wrapper = await mountEditor()
+
+    sync.saveFailing.value = true
+    await nextTick()
+    await wrapper.find('.sync-toast__action').trigger('click')
+
+    expect(sync.retrySaveNow).toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('drops the save toast as soon as saving recovers', async () => {
+    const wrapper = await mountEditor()
+
+    sync.saveFailing.value = true
+    await nextTick()
+    sync.saveFailing.value = false
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('warns that colleagues\' changes may be missing when the sync keeps failing', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.syncFailing = true
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').text()).toContain('laatste wijzigingen van anderen')
+    wrapper.unmount()
+  })
+
+  it('leaves a colleague-change toast alone when the sync recovers', async () => {
+    const wrapper = await mountEditor()
+    collaborationStore.syncFailing = true
+    await nextTick()
+
+    const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
+    vm.showSyncToast('Een collega heeft een wijziging gemaakt', () => {})
+    await nextTick()
+
+    collaborationStore.syncFailing = false
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast span').text()).toBe('Een collega heeft een wijziging gemaakt')
+    wrapper.unmount()
+  })
+
+  it('marks the toast as raised while the comment sheet occupies the bottom of the screen', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    sync.saveFailing.value = true
+    await nextTick()
+    expect(wrapper.find('.sync-toast').classes()).not.toContain('sync-toast--raised')
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').classes()).toContain('sync-toast--raised')
+    wrapper.unmount()
+  })
+
+  it('prefers the save message over the sync message when both are failing', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.syncFailing = true
+    sync.saveFailing.value = true
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').text()).toContain('Opslaan lukt even niet')
+    wrapper.unmount()
+  })
+})
+
+describe('AssessmentEditor — unload guard', () => {
+  function unloadEvent() {
+    const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent
+    window.dispatchEvent(event)
+    return event
+  }
+
+  it('blocks unloading while changes are still unsaved', async () => {
+    const wrapper = await mountEditor()
+
+    sync.hasUnsavedChanges.value = true
+    await nextTick()
+
+    expect(unloadEvent().defaultPrevented).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('lets the page unload when everything is saved', async () => {
+    const wrapper = await mountEditor()
+
+    expect(unloadEvent().defaultPrevented).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('stops guarding once the editor is unmounted', async () => {
+    const wrapper = await mountEditor()
+    sync.hasUnsavedChanges.value = true
+    await nextTick()
+
+    wrapper.unmount()
+
+    expect(unloadEvent().defaultPrevented).toBe(false)
   })
 })

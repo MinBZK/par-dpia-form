@@ -8,6 +8,15 @@ function errorMessage(data: { detail?: string; error?: string }): string {
   return data.detail || data.error || 'Verzoek mislukt'
 }
 
+// RFC 9110 also allows Retry-After as an HTTP-date; callers only use the delta
+// form, so anything non-numeric is treated as absent.
+function retryAfterSeconds(res: Response): number | undefined {
+  const raw = res.headers.get('Retry-After')
+  if (raw === null) return undefined
+  const seconds = Number(raw)
+  return Number.isFinite(seconds) ? seconds : undefined
+}
+
 async function sendRequest(path: string, options: RequestInit): Promise<Response> {
   const { getToken, sessionExpired } = useAuth()
   const token = await getToken()
@@ -41,7 +50,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const data = await res.json()
 
   if (!res.ok) {
-    throw new ApiError(errorMessage(data), res.status)
+    throw new ApiError(errorMessage(data), res.status, retryAfterSeconds(res))
   }
 
   return data as T
@@ -54,7 +63,7 @@ async function requestPaged<T>(path: string, options: RequestInit = {}): Promise
   const data = await res.json()
 
   if (!res.ok) {
-    throw new ApiError(errorMessage(data), res.status)
+    throw new ApiError(errorMessage(data), res.status, retryAfterSeconds(res))
   }
 
   const items = data as T[]
@@ -64,7 +73,7 @@ async function requestPaged<T>(path: string, options: RequestInit = {}): Promise
 }
 
 export class ApiError extends Error {
-  constructor(message: string, public status: number) {
+  constructor(message: string, public status: number, public retryAfterSeconds?: number) {
     super(message)
     this.name = 'ApiError'
   }
