@@ -169,15 +169,27 @@ describe('config — parseCorsOrigin', () => {
 })
 
 describe('config — parseTrustProxy', () => {
-  it('defaults to 1 hop when TRUST_PROXY is unset', async () => {
+  it('defaults to the private address ranges when TRUST_PROXY is unset', async () => {
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(1)
+    expect(config.trustProxy).toBe('uniquelocal')
   })
 
-  it('coerces a numeric TRUST_PROXY to a number (hop count)', async () => {
+  it('falls back to the default for a leftover hop count', async () => {
     process.env.TRUST_PROXY = '2'
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(2)
+    expect(config.trustProxy).toBe('uniquelocal')
+  })
+
+  it('turns proxy trust off for 0', async () => {
+    process.env.TRUST_PROXY = '0'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
+  })
+
+  it('turns proxy trust off for false', async () => {
+    process.env.TRUST_PROXY = 'false'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
   })
 
   it('passes a non-numeric TRUST_PROXY through as a CIDR/IP string', async () => {

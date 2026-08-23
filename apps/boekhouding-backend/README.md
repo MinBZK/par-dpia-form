@@ -25,7 +25,7 @@ Tests draaien tegen een echte Postgres. Zet `TEST_DATABASE_URL`, of laat de defa
 | `OIDC_REALM` | `invulhulpen` | Keycloak-realm |
 | `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend` | Verwachte `azp`-claim |
 | `CORS_ORIGIN` / `PUBLIC_HOST` | `http://localhost:5174` | Toegestane origin(s), comma-gescheiden lijst mogelijk |
-| `TRUST_PROXY` | `1` | Aantal proxy-hops (voor `req.ip` / rate-limit) |
+| `TRUST_PROXY` | `uniquelocal` | Welke directe peer een proxy is (voor `req.ip` / rate-limit): benoemd bereik of CIDR, `0` om uit te zetten |
 | `EXPOSE_API_DOCS` | `false` | Swagger UI + `/api/openapi.json` |
 | `DB_POOL_MAX` | `9` | Postgres-poolgrootte **per pod**. Geclampt op `[1, 20]` (de per-user cap) |
 | `DB_CONNECT_TIMEOUT` | `10` | Seconden voordat een nieuwe DB-verbinding faalt |
@@ -82,7 +82,7 @@ ongeverifieerd uit het token wordt gelezen laat een aanvaller willekeurig veel e
 claimen, waarmee de bescherming juist verdwijnt. Het geverifieerde resultaat wordt per
 request gecachet, zodat `requireAuth` de handtekening niet nog eens controleert.
 
-Waarom dit uitmaakt: `TRUST_PROXY=1` maakt `req.ip` het echte client-IP uit
+Waarom dit uitmaakt: `TRUST_PROXY` maakt `req.ip` het echte client-IP uit
 `X-Forwarded-For`, dus collega's achter één kantoor-NAT deelden voorheen één emmer.
 Een open assessment-tabblad pollt elke 10 seconden en doet daarbij twee requests
 (sync + comments), dus **12 requests per minuut per tabblad**; bij de oude default van

@@ -14,10 +14,16 @@ function parseCorsOrigin(): string | string[] {
 
 const corsOrigin = parseCorsOrigin()
 
-function parseTrustProxy(): number | string {
+// A hop count trusts whoever connects first, which cannot be verified, so
+// Fastify 5.12.1 ignores it. `uniquelocal` trusts the peer only when its
+// address is private - something a client from outside cannot arrange.
+const DEFAULT_TRUST_PROXY = 'uniquelocal'
+
+function parseTrustProxy(): string | boolean {
   const v = process.env.TRUST_PROXY
-  if (!v) return 1
-  return /^\d+$/.test(v) ? Number(v) : v
+  if (!v) return DEFAULT_TRUST_PROXY
+  if (v === '0' || v === 'false') return false
+  return /^\d+$/.test(v) ? DEFAULT_TRUST_PROXY : v
 }
 
 // Parse a positive-integer env var, clamped to [1, max]. Falls back to the
