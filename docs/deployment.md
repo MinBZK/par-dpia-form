@@ -211,12 +211,25 @@ dus ook de `Deploy productie`-run in het Actions-tabblad.
 
 ### GHCR images
 
-Images staan onder `ghcr.io/minbzk/par-dpia-form/dev/`:
+Images staan onder `ghcr.io/minbzk/par-dpia-form/`:
 
 | Image      | Tags                                                          |
 |------------|---------------------------------------------------------------|
 | `frontend` | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
 | `backend`  | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
+
+Previews staan apart onder `preview/`; die worden per pull request gebouwd en
+opgeruimd.
+
+Tot augustus 2026 stonden de mainline-images onder `dev/`. Dat pad suggereerde
+een ontwikkelomgeving, terwijl er juist productie uit werd gedraaid. De oude
+packages blijven staan: daar zitten de historische CalVer-tags in, en die zijn
+nodig om een oudere release terug te kunnen zetten.
+
+> **Eenmalig bij de overstap:** GHCR maakt een nieuw package standaard privé.
+> Zet `frontend` en `backend` op **public** zodra de eerste `Deploy
+> acceptatie`-run ze heeft aangemaakt; ZAD haalt de images zonder inloggegevens
+> op en kan ze anders niet pullen.
 
 ## ZAD configuratie
 
@@ -226,8 +239,8 @@ productie: `vYYYY.M.D[.MICRO]`):
 
 | Component  | Image                                       | Poort | Pad    | Domein (productie)        | Services                          |
 |------------|---------------------------------------------|-------|--------|---------------------------|-----------------------------------|
-| `frontend` | `ghcr.io/minbzk/par-dpia-form/dev/frontend` | 8080  | `/`    | `invulhulpen.rijksapp.nl` | `publish-on-web`                  |
-| `api`      | `ghcr.io/minbzk/par-dpia-form/dev/backend`  | 3000  | `/api` | `invulhulpen.rijksapp.nl` | `publish-on-web`, `postgresql-database`, `keycloak` |
+| `frontend` | `ghcr.io/minbzk/par-dpia-form/frontend` | 8080  | `/`    | `invulhulpen.rijksapp.nl` | `publish-on-web`                  |
+| `api`      | `ghcr.io/minbzk/par-dpia-form/backend`  | 3000  | `/api` | `invulhulpen.rijksapp.nl` | `publish-on-web`, `postgresql-database`, `keycloak` |
 
 Configuratie via de ZAD Operations Manager UI.
 

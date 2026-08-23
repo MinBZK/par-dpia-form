@@ -147,7 +147,7 @@ Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`)
   - `release.yaml` — bij een CalVer-tag: maakt de GitHub-release (changelog-notes), start daarna `deploy-productie`, en hangt het standalone formulier (offline single-file) als release-asset aan
   - `build-standalone.yaml` — bouwt standalone formulier als artifact (main branch)
   - `test.yaml` — type-check, tests én coverage (100%-drempel over alle workspaces; Postgres-service voor backend-integratietests)
-- GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
+- GHCR images: `ghcr.io/minbzk/par-dpia-form/frontend` en `/backend` (publiek leesbaar); previews onder `preview/`
 
 ## Assessment state format
 

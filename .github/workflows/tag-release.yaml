@@ -30,8 +30,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
-  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/backend
 
 jobs:
   tag:
