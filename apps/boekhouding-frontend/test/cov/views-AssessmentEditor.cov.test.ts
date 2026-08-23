@@ -1238,6 +1238,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
 
     const toast = wrapper.find('.sync-toast')
     expect(toast.exists()).toBe(true)
+    expect(toast.text()).toContain('Geen verbinding met de server')
     expect(toast.text()).toContain('Opslaan lukt even niet')
     expect(toast.find('.sync-toast__action').text()).toBe('Opnieuw proberen')
     wrapper.unmount()
@@ -1286,7 +1287,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     collaborationStore.syncFailing = true
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').text()).toContain('laatste wijzigingen van anderen')
+    expect(wrapper.find('.sync-toast').text()).toContain('Geen verbinding met de server. Je ziet mogelijk niet de laatste wijzigingen van anderen')
     wrapper.unmount()
   })
 

@@ -277,12 +277,16 @@ watch(
   ([saveFailing, syncFailing]) => {
     if (saveFailing) {
       showSyncToast(
-        'Opslaan lukt even niet, we proberen het opnieuw',
+        'Geen verbinding met de server. Opslaan lukt even niet, we proberen het opnieuw.',
         () => { sync.retrySaveNow() },
         { actionLabel: 'Opnieuw proberen', kind: 'failure' },
       )
     } else if (syncFailing) {
-      showSyncToast('Je ziet mogelijk niet de laatste wijzigingen van anderen', undefined, { kind: 'failure' })
+      showSyncToast(
+        'Geen verbinding met de server. Je ziet mogelijk niet de laatste wijzigingen van anderen.',
+        undefined,
+        { kind: 'failure' },
+      )
     } else if (syncToast.value?.kind === 'failure') {
       dismissSyncToast()
     }

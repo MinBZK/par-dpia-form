@@ -1382,9 +1382,14 @@ a.card-link:hover {
 .sync-toast {
   position: fixed;
   bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 48rem;
+  /* Centred by auto margins, not by left:50% + translateX: with only `left` set,
+     the shrink-to-fit width is capped at viewport minus that offset, so the box
+     could never exceed half the screen and wrapped its text with room to spare. */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: min(48rem, calc(100vw - 2rem));
   z-index: 100;
   display: flex;
   align-items: center;
