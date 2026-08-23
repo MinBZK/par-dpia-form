@@ -98,7 +98,7 @@ jobs:
       # patched version, so a red run always has a next step. The full picture,
       # every severity and unfixed included, is the weekly job's work.
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: localhost/${{ matrix.component }}:${{ github.sha }}
           scan-type: image
