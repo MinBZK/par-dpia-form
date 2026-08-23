@@ -97,7 +97,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trivy scan of the running image (everything)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:${{ matrix.ref }}
           scan-type: image
@@ -119,7 +119,7 @@ jobs:
       # Second render rather than a second gate: the issue is public, so it
       # lists only what the gate would also fail on.
       - name: Trivy scan for the issue (fixable, high and up)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:${{ matrix.ref }}
           scan-type: image
