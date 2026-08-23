@@ -22,6 +22,11 @@ interface TrustedTypesFactory {
  *
  * No-op where Trusted Types is unsupported, so it is safe to call unconditionally
  * at bootstrap. Idempotent: a second call (e.g. HMR) does not re-register.
+ *
+ * Deliberately registers `createHTML` only, not `createScriptURL`: the app has
+ * no script-URL sink, so omitting that rule fails closed (a `TrustedScriptURL`
+ * sink throws instead of being silently allowed) rather than adding a rule
+ * whose behavior nobody has reviewed.
  */
 export function installTrustedTypesPolicy(): void {
   const tt = (globalThis as { trustedTypes?: TrustedTypesFactory }).trustedTypes

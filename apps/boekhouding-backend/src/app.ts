@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance } from 'fastify'
+import compress from '@fastify/compress'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -11,6 +12,7 @@ import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
 import { commentRoutes } from './routes/comments.js'
 import { syncRoutes } from './routes/sync.js'
+import { securityTxt } from './utils/securityTxt.js'
 
 export const API_VERSION = '1.0.0'
 
@@ -25,8 +27,8 @@ export interface BuildAppOptions {
   logger?: boolean
   /** Expose Swagger UI + /api/openapi.json. Defaults to config.exposeApiDocs. */
   exposeApiDocs?: boolean
-  /** Fastify trustProxy value (proxy CIDR / hop count). Defaults to config.trustProxy. */
-  trustProxy?: string | boolean | number
+  /** Fastify trustProxy value (proxy CIDR or named range). Defaults to config.trustProxy. */
+  trustProxy?: string | boolean
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
@@ -42,8 +44,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
         frameAncestors: ["'none'"],
@@ -52,6 +54,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
+  // Responses only. The plugin's request-decompression hook is on by default and
+  // would let a few kB of gzip inflate to the full 25 MB bodyLimit, turning the
+  // expensive save/export routes into a cheap amplification target.
+  await app.register(compress, { global: true, globalDecompression: false })
   // The key decides the bucket and the budget: a request whose token verifies gets
   // its own per-user bucket, anything else shares a per-IP one. Verifying here (on
   // onRequest, before requireAuth exists) is what makes that safe: the payload is
@@ -205,11 +211,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     }
   })
 
+  // Rendered once at import time from the shared template (see securityTxt.ts).
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
-    // 302, matching the frontend nginx rule that serves this path in production:
-    // a 301 is cached indefinitely, which would bite if the NCSC location moves or
-    // we start hosting our own security.txt.
-    return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 302)
+    return reply.type('text/plain; charset=utf-8').send(securityTxt)
   })
 
   if (exposeApiDocs) {

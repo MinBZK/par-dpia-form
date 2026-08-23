@@ -23,6 +23,7 @@ const ENV_KEYS = [
   'SHUTDOWN_DELAY',
   'RATE_LIMIT_MAX',
   'RATE_LIMIT_USER_MAX',
+  'OIDC_ALLOW_INSECURE_JWKS',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -169,15 +170,27 @@ describe('config — parseCorsOrigin', () => {
 })
 
 describe('config — parseTrustProxy', () => {
-  it('defaults to 1 hop when TRUST_PROXY is unset', async () => {
+  it('defaults to the private address ranges when TRUST_PROXY is unset', async () => {
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(1)
+    expect(config.trustProxy).toBe('uniquelocal')
   })
 
-  it('coerces a numeric TRUST_PROXY to a number (hop count)', async () => {
+  it('falls back to the default for a leftover hop count', async () => {
     process.env.TRUST_PROXY = '2'
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(2)
+    expect(config.trustProxy).toBe('uniquelocal')
+  })
+
+  it('turns proxy trust off for 0', async () => {
+    process.env.TRUST_PROXY = '0'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
+  })
+
+  it('turns proxy trust off for false', async () => {
+    process.env.TRUST_PROXY = 'false'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
   })
 
   it('passes a non-numeric TRUST_PROXY through as a CIDR/IP string', async () => {
@@ -314,5 +327,47 @@ describe('config - rateLimit', () => {
     process.env.RATE_LIMIT_USER_MAX = '750'
     const config = await loadConfig()
     expect(config.rateLimit.userMax).toBe(750)
+  })
+})
+
+describe('assertSecureJwksUri', () => {
+  async function loadAssert() {
+    vi.resetModules()
+    const mod = await import('../../src/config.js')
+    return mod.assertSecureJwksUri
+  }
+
+  it('accepts an https JWKS URI', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('https://keycloak.example.nl/realms/x/protocol/openid-connect/certs', false)).not.toThrow()
+  })
+
+  it('accepts plain HTTP on loopback (the test JWKS server)', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://127.0.0.1:8080/certs', false)).not.toThrow()
+    expect(() => assertSecureJwksUri('http://localhost:8080/certs', false)).not.toThrow()
+  })
+
+  it('accepts plain HTTP behind the explicit opt-in (container dev stack)', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak:8080/certs', true)).not.toThrow()
+  })
+
+  it('refuses plain HTTP to a remote host', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak.example.nl/certs', false)).toThrow(/not https/)
+  })
+
+  it('reads the opt-in from OIDC_ALLOW_INSECURE_JWKS by default', async () => {
+    process.env.OIDC_ALLOW_INSECURE_JWKS = 'true'
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak:8080/certs')).not.toThrow()
+    delete process.env.OIDC_ALLOW_INSECURE_JWKS
+  })
+
+  it('defaults to the configured JWKS URI', async () => {
+    process.env.OIDC_INTERNAL_URL = 'https://keycloak.example.nl'
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri()).not.toThrow()
   })
 })

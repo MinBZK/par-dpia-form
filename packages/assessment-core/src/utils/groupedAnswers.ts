@@ -113,7 +113,10 @@ export function groupAnswers(
 export function flattenGroupedAnswers(
   grouped: Record<string, GroupedAnswerValue>,
 ): Record<string, Answer> {
-  const result: Record<string, Answer> = {}
+  // No prototype, so a `__proto__` key lands as an ordinary property rather than
+  // replacing this object's prototype. Every caller sanitizes the result today;
+  // this keeps the function safe for one that does not.
+  const result: Record<string, Answer> = Object.create(null)
 
   for (const [key, value] of Object.entries(grouped)) {
     if (Array.isArray(value)) {

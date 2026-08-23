@@ -13,6 +13,19 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Beveiliging
+
+* `/.well-known/security.txt` verwijst niet langer met een redirect naar het
+  bestand van het NCSC, maar wordt nu zelf gehost, met een eigen
+  beleidsverwijzing naar `SECURITY.md`. Het NCSC blijft het meldpunt voor
+  kwetsbaarheden; wie liever via GitHub meldt kan dat nu ook rechtstreeks bij
+  dit team, via private vulnerability reporting.
+* De server bepaalt nu aan het adres van de directe verbinding of die van de
+  eigen proxy komt, in plaats van af te gaan op het aantal tussenstations. Een
+  bezoeker kan zich daarmee niet meer voordoen als iemand anders door zelf
+  door-stuur-informatie mee te sturen, en de limiet op het aantal verzoeken
+  blijft tellen per echte bezoeker.
+
 ### Gewijzigd
 
 * De IAMA-tekst benoemt samenwerking nadrukkelijker.
@@ -24,9 +37,21 @@ build) staan kort onder "Onder de motorkap".
 * Het terugkijken van een eerdere versie gaat merkbaar sneller: een al
   eerder opgebouwde versie wordt hergebruikt in plaats van opnieuw
   samengesteld.
+* De invulhulp laadt sneller op een trage verbinding: pagina's, scripts en
+  antwoorden gaan nu gecomprimeerd over de lijn.
 
 ### Opgelost
 
+* Een mislukte poging om je werk op te slaan of om de wijzigingen van
+  collega's op te halen verdween stilletjes: je zag niets, terwijl je
+  laatste tekst niet opgeslagen was of je naar een verouderde versie zat
+  te kijken. Allebei melden nu, maar pas als het langer duurt dan een
+  enkele hapering. Opslaan probeert het bovendien vanzelf opnieuw, met een
+  knop om er niet op te hoeven wachten, en het sluiten van het tabblad
+  levert een waarschuwing op zolang er nog iets niet is opgeslagen.
+* Meldingen onderaan het scherm braken hun tekst af terwijl er ruimte naast
+  stond, en waren op een telefoon onnodig smal. Ze gebruiken nu de
+  beschikbare breedte.
 * De verwijzingen naar het Model DPIA Rijksdienst wezen naar een verlopen
   KCBR-URL die een foutpagina toonde; ze verwijzen nu naar de actuele
   locatie van het model.
@@ -50,28 +75,75 @@ build) staan kort onder "Onder de motorkap".
   vingerafdruk toegelaten.
 * Aanvullende beveiligingsheaders op de webserver, en de toegangscontrole
   op projecten en assessments is aangescherpt.
+* Bij uitloggen worden nu ook de niet-opgeslagen antwoorden en de laatst
+  bekeken sectie van assessments uit de browser gewist. Op een gedeelde of
+  publieke computer kan de volgende gebruiker die gegevens dus niet meer
+  terugzien.
+* Inloggen is strenger gecontroleerd: alleen een echt toegangsbewijs met een
+  geldige vervaltijd wordt geaccepteerd, en de sleutels van de inlogdienst
+  worden uitsluitend over een beveiligde verbinding opgehaald.
+* Een e-mailadres dat de inlogdienst niet heeft bevestigd kan zich niet meer
+  aan een account koppelen. Zo kan een openstaande uitnodiging niet bij
+  iemand anders terechtkomen dan de bedoelde ontvanger.
+* Een geïmporteerd bestand kan geen antwoorden meer binnensmokkelen die je
+  niet zelf hebt ingevuld. Bestanden met veldnamen die geen vraagnummer zijn
+  worden voortaan geweigerd in plaats van gedeeltelijk ingelezen.
+* Afbeeldingen in een geïmporteerd bestand worden strenger gecontroleerd. Staat
+  er een beeldformaat in dat de invulhulp niet opslaat, dan wordt het bestand
+  geweigerd met een melding, in plaats van de afbeelding stil weg te laten.
 
 ### Onder de motorkap
 
+* De API-container bevat geen pakketbeheerders meer. Die waren alleen nodig om
+  de container te bouwen en bleven daarna achter, inclusief hun eigen bekende
+  kwetsbaarheden die bij elke scan opnieuw werden gemeld.
+* Containerimages worden nu bij elke pull request gescand, en een kwetsbaarheid
+  waarvoor een oplossing bestaat blokkeert de merge. Het image dat gescand is,
+  is ook het image dat wordt gepubliceerd en uitgerold: er wordt niet opnieuw
+  gebouwd na de scan. Wekelijks worden de draaiende images bovendien volledig
+  doorgelicht, en wat een oplossing heeft komt in een issue te staan in plaats
+  van alleen in een tabblad.
+* Een preview-omgeving wordt niet meer voor elke pull request opgezet, maar
+  alleen wanneer er een `preview`-label op staat. Dat scheelt geheugen,
+  processorkracht en databaseverbindingen op het gedeelde platform.
+* Bij het uitbrengen van een release wordt het image dat naar productie gaat
+  nog een keer gescand. Promotie bouwt niets opnieuw, dus dit houdt de release
+  niet tegen; het laat zien wat er op dat moment bekend is.
 * De databaseverbindingen van de API zijn expliciet begrensd en krijgen
   time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
   nieuwe versie van de applicatie worden lopende verzoeken netjes
   afgerond in plaats van afgebroken.
-* Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release.
-  Let op: de limiet geldt per IP-adres, dus collega's op één kantoornetwerk
-  delen die.
+* Het aantal verzoeken per minuut is nu instelbaar zonder nieuwe release en
+  telt per ingelogde gebruiker. Collega's op één kantoornetwerk delen dus
+  geen limiet meer; alleen verzoeken zonder geldig toegangsbewijs tellen
+  nog per IP-adres.
 * De identiteit van een ingelogde gebruiker wordt kortstondig onthouden,
   zodat pollende clients niet elke keer dezelfde opzoeking doen.
   Autorisatie wordt onveranderd per verzoek getoetst.
 * Preview-omgevingen per pull request werkten niet meer doordat het
   platform de standaard hostnaam-indeling wijzigde; die is nu expliciet
   vastgelegd.
+* Preview-omgevingen en de acceptatie-omgeving gaan na vier uur zonder
+  nieuwe uitrol in slaapstand. Wie de link daarna opent, krijgt eerst een
+  pagina met een startknop en wacht op een koude start; daarna blijft de
+  omgeving weer vier uur wakker. Productie doet hier niet aan mee. Zo
+  houden we geen rekenkracht bezet voor omgevingen die niemand gebruikt.
+  Vastgelegd in `docs/deployment.md`.
 * De nginx-configuratie van de frontend is gebundeld in
   `containers/frontend/nginx/`.
 * CI aangescherpt: minimale rechten voor tokens, controle op de integriteit
   van de lockfile, een bewaking tegen nieuwe ongecontroleerde `v-html` en
   robuustere linkcontrole.
 * Diverse dependency- en container-updates.
+* De bewaking tegen nieuwe ongecontroleerde `v-html` is verder aangescherpt:
+  ze scant nu het hele bestand in plaats van regel voor regel (dus ook een
+  binding die over meerdere regels loopt, of via `v-bind="{ innerHTML: ... }"`
+  of zonder aanhalingstekens), controleert ook raw `innerHTML`/`outerHTML`/
+  `insertAdjacentHTML` in `.ts`-bestanden, en neemt het standalone formulier
+  mee (dat draait allang niet meer met `unsafe-inline`). Ook wordt voortaan
+  de body van de onderliggende `computed` meegehasht, zodat het onopgemerkt
+  verwijderen van de opschoonstap uit een al goedgekeurde binding CI alsnog
+  laat falen.
 
 ## [2026.6.20] - 2026-06-20
 

@@ -2,6 +2,7 @@ import { FormType } from '../models/dpia'
 import type { AssessmentState, GroupedAnswerValue } from '../models/assessmentState'
 import { migrateStateV1toV2 } from './stateMigration'
 import { flattenGroupedAnswers } from './groupedAnswers'
+import { sanitizeAnswers } from './sanitizeState'
 
 // Validate and parse a raw string as an importable assessment.
 // Returns the normalized AssessmentState (unified format) or throws a descriptive error.
@@ -30,7 +31,27 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
   const migrated = migrateStateV1toV2(json as any, {})
 
   // Normalize to unified format
-  return normalizeToState(migrated as any, detectedType)
+  const state = normalizeToState(migrated as any, detectedType)
+
+  // Refuse a file that carries keys which are not task ids. Dropping them
+  // silently would hand back a form that looks complete but lost answers, and
+  // one of those keys (`__proto__`) is how a crafted file injects text into
+  // every unanswered field.
+  const { answers, dropped, invalidImages } = sanitizeAnswers(state.answers as Record<string, unknown>)
+  if (dropped.length > 0) {
+    throw new Error(
+      `Bestand bevat ongeldige veldnamen en is niet ingelezen: ${dropped.slice(0, 3).join(', ')}`,
+    )
+  }
+  if (invalidImages.length > 0) {
+    throw new Error(
+      'Bestand bevat een afbeelding in een niet-ondersteund formaat en is niet ingelezen: '
+      + `${invalidImages.slice(0, 3).join(', ')}. Voeg de afbeelding opnieuw toe via de uploadknop.`,
+    )
+  }
+  state.answers = answers as AssessmentState['answers']
+
+  return state
 }
 
 export type ImportType = 'dpia' | 'prescan' | 'iama' | null

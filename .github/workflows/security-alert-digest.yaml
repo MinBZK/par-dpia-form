@@ -1,0 +1,151 @@
+name: Security alert digest
+
+# The per-build gate is narrow on purpose: it only fails on what someone can
+# patch today. This job carries the other half. It scans the images that are
+# actually running, on every severity and including findings with no fix, and
+# feeds the Security tab with that full picture.
+#
+# The issue it keeps is deliberately narrower than the tab. This repository is
+# public and the issue is too, while security alerts are visible only to people
+# with write access. Publishing a weekly list of unpatchable vulnerabilities in
+# a running service is not something to do by accident.
+on:
+  schedule:
+    - cron: "0 7 * * 1" # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY_PATH: ghcr.io/minbzk/par-dpia-form/dev
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [backend, frontend]
+    steps:
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trivy scan of the running image (everything)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:latest
+          scan-type: image
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: false
+          exit-code: '0'
+          format: sarif
+          output: trivy-${{ matrix.component }}.sarif
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
+        with:
+          sarif_file: trivy-${{ matrix.component }}.sarif
+          category: trivy-${{ matrix.component }}
+
+      # Second render rather than a second gate: the issue is public, so it
+      # lists only what the gate would also fail on.
+      - name: Trivy scan for the issue (fixable, high and up)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ env.REGISTRY_PATH }}/${{ matrix.component }}:latest
+          scan-type: image
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+          format: json
+          output: trivy-${{ matrix.component }}.json
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Reduce to the fields the issue shows
+        env:
+          COMPONENT: ${{ matrix.component }}
+        run: |
+          set -euo pipefail
+          jq --arg component "$COMPONENT" '
+            [ .Results[]?.Vulnerabilities[]? | {
+                component: $component,
+                id: .VulnerabilityID,
+                severity: .Severity,
+                pkg: .PkgName,
+                installed: .InstalledVersion,
+                fixed: .FixedVersion
+              } ]' "trivy-${COMPONENT}.json" > "findings-${COMPONENT}.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: findings-${{ matrix.component }}
+          path: findings-${{ matrix.component }}.json
+          retention-days: 1
+
+  digest:
+    needs: scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: findings-*
+          merge-multiple: true
+          path: findings
+      - id: collect
+        run: |
+          set -euo pipefail
+          jq -s 'add | unique_by(.component + .id + .pkg)' findings/*.json > findings.json
+          echo "count=$(jq 'length' findings.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Render the issue body
+        if: steps.collect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          {
+            echo "Kwetsbaarheden met een beschikbare oplossing in de draaiende images, wekelijks bijgewerkt door \`security-alert-digest.yaml\`."
+            echo
+            echo "| Image | Ernst | Pakket | Nu | Opgelost in | Melding |"
+            echo "| --- | --- | --- | --- | --- | --- |"
+            jq -r 'sort_by(.severity, .component, .pkg) | .[] |
+                   "| \(.component) | \(.severity) | `\(.pkg)` | \(.installed) | \(.fixed) | \(.id) |"' findings.json
+            echo
+            echo "Het volledige beeld, inclusief meldingen zonder oplossing, staat in de Security-tab."
+            echo "Alles opgelost? Dan sluit deze issue zichzelf bij de volgende run."
+          } > body.md
+
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          COUNT: ${{ steps.collect.outputs.count }}
+          TITLE: "Openstaande beveiligingsmeldingen in de containerimages"
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ "$COUNT" = "0" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --repo "$REPO" \
+                --comment "Geen openstaande meldingen meer."
+            fi
+            exit 0
+          fi
+
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$REPO" --title "$TITLE ($COUNT)" --body-file body.md
+          else
+            gh issue create --repo "$REPO" --title "$TITLE ($COUNT)" --body-file body.md
+          fi

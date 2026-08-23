@@ -13,7 +13,7 @@ URL: https://invulhulpen.rijksapp.nl
 ├── /                              → ZAD ingress → frontend (nginx:8080)
 │   ├── /                          → Vue SPA
 │   ├── /zonder-account/           → standalone form
-│   └── /.well-known/security.txt  → 302 → ncsc.nl
+│   └── /.well-known/security.txt  → eigen bestand, gerenderd bij container-start
 │
 └── /api                           → ZAD ingress → api (node:3000)
                                      Fastify REST API
@@ -65,7 +65,7 @@ er hoeven nergens URL's met de hand gezet te worden:
 
 ### Frontend (runtime via `config.json`)
 
-De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container start gegenereerd via `envsubst` uit env vars. In development (Vite dev server) wordt teruggevallen op `VITE_*` env vars.
+De frontend fetcht `/config.json` bij het laden. Dit bestand en `/.well-known/security.txt` worden bij container start gegenereerd via `envsubst` uit env vars. In development (Vite dev server) wordt teruggevallen op `VITE_*` env vars.
 
 | Variabele               | Default                  | ZAD                           |
 |-------------------------|--------------------------|-------------------------------|
@@ -73,6 +73,7 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `OIDC_REALM`            | `invulhulpen` | Auto-inject door ZAD Keycloak |
 | `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend`   | Auto-inject door ZAD Keycloak |
 | `STANDALONE_URL`        | `/zonder-account/`          | Default is correct            |
+| `PUBLIC_HOST`           | (geen)                   | Auto-inject volgt webadres; bepaalt de `Canonical` in `/.well-known/security.txt`. Onbekend/leeg (lokale build, of ZAD-injectie die uitvalt) laat de `Canonical`-regel gewoon weg in plaats van er een gok op te wagen: de container start altijd. |
 
 ### Backend (runtime)
 
@@ -82,10 +83,12 @@ De frontend fetcht `/config.json` bij het laden. Dit bestand wordt bij container
 | `OIDC_URL`             | `http://localhost:8080`      | Auto-inject door ZAD Keycloak             |
 | `OIDC_REALM`           | `invulhulpen`     | Auto-inject door ZAD Keycloak             |
 | `OIDC_CLIENT_ID`       | `boekhouding-frontend`       | Auto-inject door ZAD Keycloak             |
+| `OIDC_INTERNAL_URL`    | waarde van `OIDC_URL`        | Interne Keycloak-URL waarvan de JWKS wordt gehaald. **Moet https zijn**: de backend weigert te starten op plain HTTP, behalve op loopback of met de opt-in hieronder. |
+| `OIDC_ALLOW_INSECURE_JWKS` | — (uit)                  | Alleen voor de container-dev-stack, waar Keycloak via servicenaam bereikbaar is. **Nooit zetten in een uitgerolde omgeving.** |
 | `PUBLIC_HOST`          | —                            | Auto-inject (volgt webadres → CORS + OpenAPI `contact.url`) |
 | `PORT`                 | `3000`                       | Default is correct                        |
 | `HOST`                 | `0.0.0.0`                    | Default is correct                        |
-| `TRUST_PROXY`          | `1` (één hop)                | Default klopt voor ZAD (één OpenShift-router-hop) → `req.ip` is het echte client-IP voor per-IP rate-limiting. Alleen overschrijven voor andere topologie (CIDR) of `0` om uit te zetten. Nooit `true`. |
+| `TRUST_PROXY`          | `uniquelocal`                | Vertrouwt een directe peer alleen als die een privaat adres heeft (10/8, 172.16/12, 192.168/16, fc00::/7) → op ZAD is dat de OpenShift-router en nooit een buitenstaander, dus `req.ip` is het echte client-IP voor per-IP rate-limiting. Alleen overschrijven voor andere topologie (CIDR) of `0` om uit te zetten. Nooit `true`: dan vertrouwt de app elke peer, ook eentje die rechtstreeks verbindt. Een hop-count werkt sinds Fastify 5.12.1 niet meer en valt terug op de default. |
 | `EXPOSE_API_DOCS`      | — (uit)                      | Laat uit in productie (Swagger UI + `/api/openapi.json` zijn dan niet bereikbaar). Zet op `true` voor dev/staging. |
 | `DB_POOL_MAX`          | `9`                          | Postgres-poolgrootte **per pod**. Geclampt op `[1, 20]` (de per-user cap). Zie connectiebudget. |
 | `DB_CONNECT_TIMEOUT`   | `10` (s)                     | Default is correct. |
@@ -124,9 +127,25 @@ Bij een rolling deploy stuurt de kubelet SIGTERM op hetzelfde moment dat de endp
 
 | Omgeving   | ZAD-deployment | Bijgewerkt door                                                     |
 |------------|----------------|---------------------------------------------------------------------|
-| Preview    | `pr-<nummer>`  | Elke PR naar `main` (kloon van `acceptatie`); opgeruimd bij sluiten |
+| Preview    | `pr-<nummer>`  | PR met het label `preview` (kloon van `acceptatie`); opgeruimd zodra het label eraf gaat of de PR sluit |
 | Acceptatie | `acceptatie`   | Elke push naar `main`                                               |
 | Productie  | `productie`    | CalVer-tag (`vYYYY.M.D[.MICRO]`), via image-promotie                |
+
+#### Een preview aanzetten
+
+Een preview is opt-in: zet het label **`preview`** op de PR en de omgeving wordt
+gebouwd en uitgerold; zolang het label staat, volgt elke nieuwe commit. Haal het
+label eraf (of sluit de PR) en de deployment, de PR-comment en de preview-images
+worden opgeruimd. Zonder label draait er niets, ook niet voor een PR die maanden
+openstaat.
+
+Het bouwen en scannen van de images gebeurt hoe dan ook, met of zonder label.
+Het label bepaalt alleen of het gescande image ook naar GHCR gaat en wordt
+uitgerold.
+
+Merk op: een PR met een merge-conflict heeft geen merge-commit, en GitHub draait
+`pull_request`-workflows vanaf die merge-commit. Het label doet dan niets tot het
+conflict is opgelost.
 
 ### Workflows
 
@@ -134,7 +153,7 @@ Bij een rolling deploy stuurt de kubelet SIGTERM op hetzelfde moment dat de endp
 |----------------------------|----------------------------------------|-------------------------------------------------------------------|
 | `test.yaml`                | Push naar `main`, elke PR              | Type-checks, tests en coverage (100%-drempel)                     |
 | `pre-commit.yaml`          | Push naar `main`, elke PR              | Linting via pre-commit                                            |
-| `deploy-preview.yaml`      | PR naar `main`                         | Preview-deployment op ZAD, kloon van `acceptatie`                 |
+| `pr-images.yaml`           | Elke PR naar `main`                    | Bouwt en scant beide images; publiceert naar GHCR en zet een preview op ZAD (kloon van `acceptatie`) alleen bij het label `preview` |
 | `deploy-acceptatie.yaml`   | Push naar `main`                       | Bouwt images → GHCR en werkt ZAD-deployment `acceptatie` bij      |
 | `release.yaml`             | CalVer-tag                             | Valideert tag, maakt GitHub-release met changelog-notes, **start daarna `deploy-productie`**, en hangt het standalone formulier (offline single-file) als release-asset aan |
 | `deploy-productie.yaml`    | Gestart door `release.yaml` (of handmatig) | Promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij |
@@ -208,6 +227,80 @@ De 301-redirect van het oude domein `assessments.rijksapp.nl` is **optioneel** e
 **geen onderdeel van de productie-deployment**: het is een losse, eigen
 ZAD-deployment met één `haproxy-redirect`-component die los van productie beheerd
 en verwijderd kan worden.
+
+### Slaapstand (sleep-mode) voor previews en acceptatie
+
+Previews en `acceptatie` gaan na een deadline in **slaapstand**: ZAD schaalt ze
+terug naar nul pods en zet er een wekkerpod voor in de plaats, die een
+"applicatie wordt gestart"-pagina toont. Wie op de knop drukt, wekt de hele
+deployment. Productie en de redirect vallen er buiten.
+
+De slaapstand werkt samen met het `preview`-label: het label zorgt dat een
+omgeving alleen ontstaat als iemand hem nodig heeft, de slaapstand zorgt dat hij
+daarna alleen draait als iemand hem gebruikt. Samen houden ze het beslag op het
+gedeelde cluster in verhouding tot wat we er werkelijk mee doen - rekenkracht en
+energie die niemand gebruikt, hoort een dienst op gedeelde
+overheidsinfrastructuur niet vast te houden.
+
+De configuratie staat in ZAD (project `asses-k2n`), niet in deze repo:
+
+```yaml
+enabled: true
+match: ["pr-*", "acceptatie"]   # productie en redirect vallen er buiten
+sleep-after-deploy: 4h          # deadline na aanmaak en na elke rollout
+sleep-after-wake: 4h            # nieuwe deadline na een wek-call
+wake-mode: confirm              # pagina met knop; auto zou een crawler laten wekken
+waker-component: frontend       # de wekker hoort op de URL die mensen openen
+```
+
+De deadlines staan bewust op een waarde die de wizard ook aanbiedt (`4h` t/m
+`168h`). Een waarde daarbuiten - de API accepteert elke compacte duur, `90m`
+bijvoorbeeld - kan die keuzelijst niet weergeven, en opslaan vanuit die stap
+overschrijft hem dan met wat er wél in de lijst staat.
+
+Uitlezen en wijzigen met de ZAD-CLI:
+
+```bash
+zadctl service config get sleep-mode -o yaml
+zadctl service sleep-mode status pr-<nummer>   # awake | sleeping | waking | disabled
+zadctl service sleep-mode wake pr-<nummer>
+```
+
+Laten slapen kan alleen in het portaal, met de knop *Deployment slapen* bij de
+deployment: de CLI kent die overgang niet.
+
+> **`config set` schrijft het hele document.** Sleutels die je niet noemt,
+> verdwijnen en vallen terug op hun default - `enabled` dus op `false`, waarmee de
+> slaapstand ongemerkt uit staat. De CLI waarschuwt, maar voert de opdracht
+> daarna gewoon uit en meldt `success`. Lees eerst uit, geef daarna **alle**
+> sleutels in één aanroep mee, en lees terug:
+>
+> ```bash
+> zadctl service config set sleep-mode --set enabled=true \
+>   --set 'match[0]=pr-*' --set 'match[1]=acceptatie' \
+>   --set sleep-after-deploy=4h --set sleep-after-wake=4h \
+>   --set wake-mode=confirm --set waker-component=frontend
+> ```
+
+Wat je moet weten voordat je hierop bouwt:
+
+- **Het is slaapstand, geen sluimerstand.** De applicatie start koud op; sessies,
+  caches en geheugen zijn weg. De backend draait bij die start eerst de
+  migraties, dus wekken duurt langer dan een gewone podstart.
+- **Er is geen inactiviteitsdetectie**, en die kan er ook niet komen: de
+  tenant-Prometheus ziet het routerverkeer niet. Het is dus een deadline en geen
+  idle-timer - een omgeving die de hele dag gebruikt wordt, valt na
+  `sleep-after-deploy` alsnog in slaapstand. Na het wekken telt `sleep-after-wake`
+  opnieuw, ongeacht wat je aan het doen bent; die staat daarom op vier uur, zodat
+  één klik een dagdeel dekt. Een rollout (nieuwe image of upsert) wekt de
+  deployment en zet een verse `sleep-after-deploy`-deadline.
+- **`/api` geeft een 503 zolang de deployment slaapt.** Er is één wekker per
+  deployment en die staat voor `frontend`. De frontend kan bovendien al ready zijn
+  terwijl de api nog opstart; dan helpt één keer verversen.
+- **De database slaapt niet mee, maar kost hier ook niets extra's.** Previews
+  gebruiken de gedeelde databaseserver van het platform (scope `shared`), geen
+  eigen Postgres-pod. Een slapende deployment geeft zijn connecties wel terug,
+  wat ruimte scheelt binnen de 20-cap hierboven.
 
 ## Container-hardening: readOnlyRootFilesystem
 

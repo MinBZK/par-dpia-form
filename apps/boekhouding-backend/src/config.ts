@@ -14,10 +14,16 @@ function parseCorsOrigin(): string | string[] {
 
 const corsOrigin = parseCorsOrigin()
 
-function parseTrustProxy(): number | string {
+// A hop count trusts whoever connects first, which cannot be verified, so
+// Fastify 5.12.1 ignores it. `uniquelocal` trusts the peer only when its
+// address is private - something a client from outside cannot arrange.
+const DEFAULT_TRUST_PROXY = 'uniquelocal'
+
+function parseTrustProxy(): string | boolean {
   const v = process.env.TRUST_PROXY
-  if (!v) return 1
-  return /^\d+$/.test(v) ? Number(v) : v
+  if (!v) return DEFAULT_TRUST_PROXY
+  if (v === '0' || v === 'false') return false
+  return /^\d+$/.test(v) ? DEFAULT_TRUST_PROXY : v
 }
 
 // Parse a positive-integer env var, clamped to [1, max]. Falls back to the
@@ -87,13 +93,33 @@ export const config = {
     origin: corsOrigin,
     credentials: true,
   },
-  // Public-facing base URL of this deployment. ZAD injects PUBLIC_HOST per
-  // deployment (including per review branch), so this stays correct everywhere
-  // instead of hardcoding one environment. Used for OpenAPI metadata.
+  // First entry wins when several origins are configured: OpenAPI metadata
+  // needs a single URL.
   publicUrl: Array.isArray(corsOrigin) ? corsOrigin[0] : corsOrigin,
   keycloak: {
     issuer: `${oidcUrl}/realms/${oidcRealm}`,
     jwksUri: `${oidcInternalUrl}/realms/${oidcRealm}/protocol/openid-connect/certs`,
     audience: process.env.OIDC_PUBLIC_CLIENT_ID || 'boekhouding-frontend',
   },
+}
+
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]'])
+
+/**
+ * JWKS keys are the root of trust for every token: over plain HTTP, anyone who
+ * can intercept or spoof that host can mint tokens for any user. Plain HTTP
+ * stays allowed for loopback and via OIDC_ALLOW_INSECURE_JWKS.
+ */
+export function assertSecureJwksUri(
+  jwksUri: string = config.keycloak.jwksUri,
+  allowInsecure: boolean = process.env.OIDC_ALLOW_INSECURE_JWKS === 'true',
+): void {
+  const url = new URL(jwksUri)
+  if (url.protocol === 'https:') return
+  if (allowInsecure) return
+  if (LOOPBACK_HOSTS.has(url.hostname)) return
+  throw new Error(
+    `Refusing to start: JWKS URI ${jwksUri} is not https. Point OIDC_INTERNAL_URL at an https URL, ` +
+      'or set OIDC_ALLOW_INSECURE_JWKS=true when Keycloak is reached over a trusted private network.',
+  )
 }

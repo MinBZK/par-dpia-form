@@ -4,6 +4,7 @@ import App from './App.vue'
 import { useSchemaStore, installTrustedTypesPolicy } from '@overheid-assessment/core'
 import { loadConfig } from './config'
 import { useAuth } from './composables/useAuth'
+import { PENDING_STORAGE_PREFIX, RELOGIN_STORAGE_KEY } from './storageKeys'
 
 import '@nl-rvo/assets/fonts/index.css'
 import '@nl-rvo/assets/icons/index.css'
@@ -27,15 +28,15 @@ if (window.location.hash.includes('state=')) {
   window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search)
 }
 
-const reloginRaw = sessionStorage.getItem('auth:relogin')
+const reloginRaw = sessionStorage.getItem(RELOGIN_STORAGE_KEY)
 if (reloginRaw) {
-  sessionStorage.removeItem('auth:relogin')
+  sessionStorage.removeItem(RELOGIN_STORAGE_KEY)
   try {
     const { userId: previousUserId } = JSON.parse(reloginRaw)
     if (user.value && previousUserId && user.value.id !== previousUserId) {
       for (let i = sessionStorage.length - 1; i >= 0; i--) {
         const key = sessionStorage.key(i)
-        if (key?.startsWith('pending:')) sessionStorage.removeItem(key)
+        if (key?.startsWith(PENDING_STORAGE_PREFIX)) sessionStorage.removeItem(key)
       }
       window.location.href = '/projecten'
     }

@@ -20,14 +20,38 @@ declare module 'fastify' {
   }
 }
 
-const jwks = createRemoteJWKSet(new URL(config.keycloak.jwksUri))
+// 2500ms, tighter than jose's 5000ms default, to fail fast on a cold Keycloak.
+// Cooldown left at the jose default.
+const jwks = createRemoteJWKSet(new URL(config.keycloak.jwksUri), {
+  timeoutDuration: 2500,
+  cooldownDuration: 30000,
+})
+
+async function defaultWarm() {
+  await jwks.reload()
+}
+
+/**
+ * Pre-fetch the JWKS so the first authenticated request does not pay the cold
+ * fetch. Best-effort: Keycloak may not be up yet, and the first real request
+ * fetches anyway.
+ */
+export async function warmUpJwks(warm: () => Promise<void> = defaultWarm): Promise<void> {
+  try {
+    await warm()
+  } catch {
+    // Expected when Keycloak lags behind the backend at startup.
+  }
+}
 
 interface TokenPayload {
   sub?: string
   email?: string
+  email_verified?: boolean
   name?: string
   preferred_username?: string
   azp?: string
+  typ?: string
   exp?: number
 }
 
@@ -35,7 +59,14 @@ type VerifiedToken = TokenPayload & { sub: string; email: string }
 
 export type BearerResult =
   | { ok: true; payload: VerifiedToken }
-  | { ok: false; detail: 'Niet ingelogd' | 'Ongeldig token' | 'Token is niet bedoeld voor deze applicatie' }
+  | {
+      ok: false
+      detail:
+        | 'Niet ingelogd'
+        | 'Ongeldig token'
+        | 'Ongeldig tokentype'
+        | 'Token is niet bedoeld voor deze applicatie'
+    }
 
 // Verified payloads keyed by request object: the rate-limit keyGenerator runs on
 // onRequest and requireAuth on preHandler, and both need the verified `sub`.
@@ -48,12 +79,23 @@ async function verifyToken(request: FastifyRequest): Promise<BearerResult> {
 
   let payload: TokenPayload
   try {
+    // exp is required explicitly: jose only enforces expiry when the claim is
+    // present, so a realm that omits it would hand out non-expiring tokens.
     const result = await jwtVerify(authHeader.slice(7), jwks, {
       issuer: config.keycloak.issuer,
+      algorithms: ['RS256'],
+      requiredClaims: ['exp'],
     })
     payload = result.payload as TokenPayload
   } catch {
     return { ok: false, detail: 'Ongeldig token' }
+  }
+
+  // Keycloak stamps access tokens with typ 'Bearer' and ID tokens with 'ID'. An
+  // ID token carries the same issuer and azp, so without this check it would
+  // pass here as an access token.
+  if (payload.typ !== 'Bearer') {
+    return { ok: false, detail: 'Ongeldig tokentype' }
   }
 
   // Keycloak sets the client ID in the `azp` (authorized party) claim, not `aud`.
@@ -104,6 +146,11 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
 
   const displayName = payload.name || payload.preferred_username || normalizedEmail
 
+  // Invites bind by email address, so an unverified address must not bind to an
+  // account: anyone who later registers it would inherit the memberships waiting
+  // for it. Gates both binding paths below.
+  const emailVerified = payload.email_verified === true
+
   // Identity cache: the token is already fully validated above (signature,
   // issuer, azp, exp), so a hit only skips the users-lookup - never validation.
   // Authorization is still checked live downstream, so a cache hit cannot leak
@@ -127,17 +174,19 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     // email is only synced when no other account already uses it: a collision
     // would violate the unique(email) constraint and lock this user out, so the
     // existing email is kept in that case (and logged). The name always syncs.
-    if (user.email !== normalizedEmail || user.displayName !== displayName) {
-      let email = normalizedEmail
-      if (email !== user.email) {
+    const syncEmail = emailVerified && user.email !== normalizedEmail
+    if (syncEmail || user.displayName !== displayName) {
+      let email = user.email
+      if (syncEmail) {
         const [clash] = await db
           .select({ id: users.id })
           .from(users)
-          .where(eq(users.email, email))
+          .where(eq(users.email, normalizedEmail))
           .limit(1)
         if (clash) {
           request.log.warn('Skipping email sync: address already linked to another account')
-          email = user.email
+        } else {
+          email = normalizedEmail
         }
       }
       const [updated] = await db
@@ -148,7 +197,18 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
       user = updated
     }
   } else {
-    // First login for this subject.
+    // First login for this subject: both branches below bind this email address
+    // to this account, so an unverified address stops here.
+    if (!emailVerified) {
+      return reply.status(403).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/403',
+        title: 'Geen toegang',
+        status: 403,
+        detail: 'Je e-mailadres is niet geverifieerd. Verifieer het bij je account en log opnieuw in.',
+        instance: request.url,
+      })
+    }
+
     // Claim an invite placeholder — a row created by an invite that is still
     // without an oidcSub — but ONLY while it is unclaimed (guarded by the
     // isNull condition, which is atomic with the update). A row that is already
