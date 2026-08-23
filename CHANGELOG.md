@@ -44,6 +44,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Opmerkingen die bij vragen vlak onder elkaar horen, schoven over elkaar
+  heen zodra er een wat langere opmerking tussen zat. Daardoor viel een deel
+  van de tekst weg en waren "Reageren", "Verwijderen" en "Oplossen" niet meer
+  aan te klikken. Opmerkingen schuiven nu netjes onder elkaar door; ze staan
+  dan iets lager dan hun vraag, maar blijven volledig leesbaar en bruikbaar.
 * Een mislukte poging om je werk op te slaan of om de wijzigingen van
   collega's op te halen verdween stilletjes: je zag niets, terwijl je
   laatste tekst niet opgeslagen was of je naar een verouderde versie zat
