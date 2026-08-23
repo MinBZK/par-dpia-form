@@ -61,7 +61,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write
     strategy:
       fail-fast: false
       matrix:
@@ -94,15 +93,11 @@ jobs:
           tags: localhost/${{ matrix.component }}:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
 
-      # One scan either way, in the format that fits the reader. A pull request
-      # gets a table in the log; main feeds the Security tab, which is where the
-      # weekly digest reads from. Both fail on a fixable CRITICAL or HIGH.
-      #
-      # ignore-unfixed keeps that actionable: it only fails when the distro has
-      # published a patched version, so a red run always has something someone
-      # can do.
-      - name: Trivy image scan (table, on a pull request)
-        if: github.event_name != 'push'
+      # The gate, deliberately narrow: only what someone can act on today.
+      # ignore-unfixed drops findings for which the distro has published no
+      # patched version, so a red run always has a next step. The full picture,
+      # every severity and unfixed included, is the weekly job's work.
+      - name: Trivy image scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
           image-ref: localhost/${{ matrix.component }}:${{ github.sha }}
@@ -111,24 +106,6 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           format: table
-
-      - name: Trivy image scan (SARIF, on main)
-        if: github.event_name == 'push'
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
-        with:
-          image-ref: localhost/${{ matrix.component }}:${{ github.sha }}
-          scan-type: image
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '1'
-          format: sarif
-          output: trivy-${{ matrix.component }}.sarif
-      - name: Upload Trivy results to Security tab
-        if: always() && github.event_name == 'push'
-        uses: github/codeql-action/upload-sarif@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
-        with:
-          sarif_file: trivy-${{ matrix.component }}.sarif
-          category: trivy-${{ matrix.component }}
 
       - name: Export the scanned image
         if: inputs.publish
