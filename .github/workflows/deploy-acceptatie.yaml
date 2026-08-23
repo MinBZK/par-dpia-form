@@ -30,8 +30,8 @@ jobs:
       packages: write
     uses: ./.github/workflows/_build-images.yaml
     with:
-      frontend-image: ghcr.io/minbzk/par-dpia-form/dev/frontend
-      backend-image: ghcr.io/minbzk/par-dpia-form/dev/backend
+      frontend-image: ghcr.io/minbzk/par-dpia-form/frontend
+      backend-image: ghcr.io/minbzk/par-dpia-form/backend
       tag-latest: true
       publish: true
 

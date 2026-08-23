@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 env:
-  REGISTRY_PATH: ghcr.io/minbzk/par-dpia-form/dev
+  REGISTRY_PATH: ghcr.io/minbzk/par-dpia-form
 
 jobs:
   scan:

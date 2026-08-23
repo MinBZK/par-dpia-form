@@ -96,6 +96,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De containerimages staan niet langer onder een pad met `dev` in de naam. Dat
+  suggereerde een ontwikkelomgeving, terwijl er juist productie uit werd
+  gedraaid.
 * Een release wordt nu uitgebracht via een workflow die eerst alle controles
   draait en de versietag pas zet als die slagen. Eerder viel een misser pas op
   nadat de tag er stond, en moest die weer worden weggehaald en opnieuw gezet.

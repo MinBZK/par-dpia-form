@@ -25,8 +25,8 @@ concurrency:
 env:
   PROJECT_ID: asses-k2n
   DEPLOYMENT_NAME: productie
-  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
-  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/backend
 
 jobs:
   promote:
