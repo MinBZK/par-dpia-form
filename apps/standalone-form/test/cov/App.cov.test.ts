@@ -12,7 +12,7 @@ import App from '../../src/App.vue'
 const LandingStub = {
   name: 'LandingView',
   props: ['navigation', 'cachedTypes'],
-  emits: ['startFresh'],
+  emits: ['startFresh', 'clearAll'],
   template: '<div class="landing-stub" />',
 }
 
@@ -180,6 +180,24 @@ describe('App.vue — cached sessions (#322)', () => {
 
     const cached = wrapper.findComponent(LandingStub).props('cachedTypes') as FormType[]
     expect(cached).toEqual([FormType.DPIA])
+  })
+
+  it('clearAll wipes every namespace and stays on the landing page', async () => {
+    seedCache(FormType.DPIA)
+    seedCache(FormType.PRE_SCAN)
+    seedCache(FormType.IAMA)
+    const wrapper = mountApp()
+    expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(3)
+
+    wrapper.findComponent(LandingStub).vm.$emit('clearAll')
+    await wrapper.vm.$nextTick()
+
+    for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+      expect(localStorage.getItem(storageKey(type))).toBeNull()
+    }
+    // The button disappears together with the data it was there to wipe.
+    expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(0)
+    expect(wrapper.findComponent(LandingStub).exists()).toBe(true)
   })
 
   it.each([
