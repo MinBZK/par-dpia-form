@@ -70,6 +70,10 @@ build) staan kort onder "Onder de motorkap".
 * De vervolgvraag "Specificatie van het wetsartikel" in hoofdstuk 13 verscheen
   nooit, ook niet na het kiezen van "Toelaatbaar op grond van Unie- of
   lidstaatrechtelijk recht". Die vraag komt nu wel op.
+* Ben je aan een project toegevoegd op een e-mailadres dat je daarna bij de
+  inlogdienst hebt gewijzigd, dan zag je dat project na het inloggen niet staan.
+  Er bestonden dan twee accounts voor één persoon. Die worden nu samengevoegd
+  zodra je inlogt; rollen die je al had veranderen niet.
 * Een mislukte poging om je werk op te slaan of om de wijzigingen van
   collega's op te halen verdween stilletjes: je zag niets, terwijl je
   laatste tekst niet opgeslagen was of je naar een verouderde versie zat
@@ -86,9 +90,10 @@ build) staan kort onder "Onder de motorkap".
 * Het standalone formulier op `/zonder-account/` toonde in productie
   "ontwikkel" met een commit in plaats van de release-versie; het laat nu
   dezelfde versie zien als de statuspagina.
-* Een uitnodiging kwam niet aan wanneer het e-mailadres in Keycloak anders
-  geschreven stond dan in de uitnodiging (hoofdletters); daardoor ontstond
-  een tweede, leeg account. Adressen worden nu eenduidig vergeleken.
+* Was je aan een project toegevoegd met een e-mailadres dat bij de inlogdienst
+  anders geschreven stond (hoofdletters), dan zag je dat project na het inloggen
+  niet staan en kreeg je een tweede, leeg account. Adressen worden nu eenduidig
+  vergeleken.
 * Een tekstlabel in de DPIA bevatte een schrijffout.
 * Een lege versiebeschrijving kon een nieuwe versie aanmaken zonder
   wijziging; dat kan niet meer.
@@ -130,8 +135,8 @@ build) staan kort onder "Onder de motorkap".
   geldige vervaltijd wordt geaccepteerd, en de sleutels van de inlogdienst
   worden uitsluitend over een beveiligde verbinding opgehaald.
 * Een e-mailadres dat de inlogdienst niet heeft bevestigd kan zich niet meer
-  aan een account koppelen. Zo kan een openstaande uitnodiging niet bij
-  iemand anders terechtkomen dan de bedoelde ontvanger.
+  aan een account koppelen. Zo kan iemand die zich op jouw adres registreert
+  niet het project overnemen waaraan jij was toegevoegd.
 * Ook de pre-scan-antwoorden die bij een DPIA worden meegeladen gaan nu langs
   dezelfde controle als de gewone antwoorden.
 * Een geïmporteerd bestand kan geen antwoorden meer binnensmokkelen die je
