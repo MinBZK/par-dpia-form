@@ -155,6 +155,7 @@ conflict is opgelost.
 | `pre-commit.yaml`          | Push naar `main`, elke PR              | Linting via pre-commit                                            |
 | `pr-images.yaml`           | Elke PR naar `main`                    | Bouwt en scant beide images; publiceert naar GHCR en zet een preview op ZAD (kloon van `acceptatie`) alleen bij het label `preview` |
 | `deploy-acceptatie.yaml`   | Push naar `main`                       | Bouwt images → GHCR en werkt ZAD-deployment `acceptatie` bij      |
+| `tag-release.yaml`         | Handmatig (Run workflow, versie als invoer) | Draait álle release-guards en zet de tag **pas** als ze slagen; pusht de tag en start `release.yaml` |
 | `release.yaml`             | CalVer-tag                             | Valideert tag, maakt GitHub-release met changelog-notes, **start daarna `deploy-productie`**, en hangt het standalone formulier (offline single-file) als release-asset aan |
 | `deploy-productie.yaml`    | Gestart door `release.yaml` (of handmatig) | Promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij |
 | `build-standalone.yaml`    | Push/PR naar `main`                    | Bouwt standalone formulier (artifact)                             |
@@ -166,14 +167,21 @@ worden in de ZAD Operations Manager beheerd, niet in de workflow.
 ### Een release uitbrengen
 
 1. Verplaats in `CHANGELOG.md` de inhoud van `## [Unreleased]` naar een nieuwe
-   sectie `## [YYYY.M.D] - YYYY-MM-DD` (versie zonder voorloopnullen) en breng
-   die wijziging via een PR naar `main`.
-2. Zet een tag op de gewenste main-commit en push die:
+   sectie `## [YYYY.M.D]` (versie zonder voorloopnullen en zonder datum: de
+   versie ís de datum), zet de
+   assessments-plugin op dezelfde versie
+   (`python3 .claude/plugins/assessments/scripts/generate_plugin.py --set-version 2026.6.14`)
+   en breng dat via een PR naar `main`.
+2. Start `tag-release` met de versie als invoer:
 
    ```bash
-   git tag v2026.6.14
-   git push origin v2026.6.14
+   gh workflow run tag-release.yaml -f version=2026.6.14
    ```
+
+   Die workflow draait eerst alle guards en zet de tag pas als ze allemaal
+   slagen. Faalt er een, dan bestaat de tag niet en is er niets op te ruimen:
+   los op wat de melding aanwijst, breng dat naar `main` en start opnieuw. Zet
+   de tag dus niet met de hand.
 
 3. De rest gaat vanzelf: `release.yaml` maakt eerst de GitHub-release met de
    changelog-sectie als notes; **pas daarna** start het `deploy-productie`, dat

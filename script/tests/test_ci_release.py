@@ -17,6 +17,7 @@ VALIDATE = CI_DIR / "validate-calver-tag.sh"
 CHANGELOG = CI_DIR / "changelog-section.sh"
 ASSERT_NEWEST = CI_DIR / "assert-newest-calver-tag.sh"
 ASSERT_PLUGIN = CI_DIR / "assert-plugin-version.sh"
+ASSERT_ABSENT = CI_DIR / "assert-tag-absent.sh"
 
 
 def run(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -161,3 +162,21 @@ def test_plugin_version_missing_field_fails(tmp_path: Path):
 
 def test_plugin_manifest_missing_fails(tmp_path: Path):
     assert run(ASSERT_PLUGIN, "v2026.6.20", str(tmp_path / "weg.json")).returncode != 0
+
+
+# --- assert-tag-absent.sh --------------------------------------------------
+
+
+def test_absent_tag_allowed(tagged_repo):
+    assert run(ASSERT_ABSENT, "v2026.7.1", cwd=tagged_repo).returncode == 0
+
+
+def test_existing_tag_blocked(tagged_repo):
+    result = run(ASSERT_ABSENT, "v2026.6.10", cwd=tagged_repo)
+    assert result.returncode != 0
+    assert "bestaat al" in result.stderr
+
+
+def test_absent_tag_is_not_fooled_by_a_prefix(tagged_repo):
+    # v2026.6.6.1 exists, v2026.6.6.11 does not: no substring matching.
+    assert run(ASSERT_ABSENT, "v2026.6.6.11", cwd=tagged_repo).returncode == 0

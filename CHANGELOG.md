@@ -6,6 +6,8 @@ bestand. Het formaat is gebaseerd op
 [Calendar Versioning](https://calver.org/) in de vorm `YYYY.M.D`
 (bijvoorbeeld `2026.6.6`). Releases tot en met [0.1.3] (4 juni 2026) volgden
 Semantic Versioning; daarna is het project overgestapt op Calendar Versioning.
+De versie is sindsdien de datum, dus staat er geen datum meer naast; de oudere
+SemVer-secties houden die wel.
 
 Per release staan eerst de wijzigingen die voor gebruikers van de invulhulp
 merkbaar zijn. Meer technische wijzigingen (zoals dependency-updates, CI en
@@ -94,6 +96,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* Een release wordt nu uitgebracht via een workflow die eerst alle controles
+  draait en de versietag pas zet als die slagen. Eerder viel een misser pas op
+  nadat de tag er stond, en moest die weer worden weggehaald en opnieuw gezet.
 * De assessments-plugin voor ontwikkelaars volgt nu dezelfde CalVer als de
   applicatie zelf, in plaats van een eigen versienummer dat sinds de eerste
   versie was blijven staan. Het versienummer staat nog op één plek en wordt bij
@@ -150,7 +155,7 @@ build) staan kort onder "Onder de motorkap".
   verwijderen van de opschoonstap uit een al goedgekeurde binding CI alsnog
   laat falen.
 
-## [2026.6.20] - 2026-06-20
+## [2026.6.20]
 
 ### Toegevoegd
 
