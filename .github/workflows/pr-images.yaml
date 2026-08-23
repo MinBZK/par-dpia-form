@@ -17,8 +17,12 @@ on:
       - unlabeled
       - closed
 
+# A label event that is not about previews does no work. Giving those runs a
+# group of their own keeps them from cancelling a run that does: Dependabot
+# labels its pull requests the moment it opens them, which cancelled the very
+# build-and-scan run the label event then skipped.
 concurrency:
-  group: preview-${{ github.event.pull_request.number }}
+  group: pr-images-${{ github.event.pull_request.number }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'preview' && github.run_id || 'shared' }}
   cancel-in-progress: true
 
 env:
