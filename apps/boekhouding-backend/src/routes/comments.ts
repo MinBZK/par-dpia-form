@@ -98,7 +98,10 @@ export async function commentRoutes(app: FastifyInstance) {
             gt(comments.updatedAt, sinceDate),
           ),
         )
-        .orderBy(asc(comments.createdAt))
+        // Ordered by updatedAt so the cap truncates the tail: the watermark below is the
+        // largest updatedAt delivered, and everything cut off sits above it and arrives on
+        // the next poll. Ordering by createdAt would strand those changes for good.
+        .orderBy(asc(comments.updatedAt), asc(comments.id))
         .limit(COMMENTS_MAX)
 
       // A root the client has not seen before must arrive with its full reply list, or the

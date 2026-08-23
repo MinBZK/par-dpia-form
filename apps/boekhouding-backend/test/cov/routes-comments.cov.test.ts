@@ -279,6 +279,18 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
     expect(body.lastModifiedAt).toBe(since.toISOString())
   })
 
+  it('rejects an unparseable since with 400 instead of failing on the query', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedAssessmentFor(owner, 'owner')
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/comments?since=abc`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
   it('returns a changed reply even when its root did not move', async () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')

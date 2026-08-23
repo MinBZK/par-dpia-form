@@ -457,7 +457,7 @@ describe('resolve while a poll is in flight (issue #440)', () => {
     // A poll starts during that window and reads the server before the PATCH commits.
     let releaseList: (v: any) => void = () => {}
     const listGate = new Promise<any>((r) => { releaseList = r })
-    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1, version: 9 }))
     mockCommentsList.mockReturnValueOnce(listGate)
 
     store.startPolling()
@@ -476,6 +476,39 @@ describe('resolve while a poll is in flight (issue #440)', () => {
     await new Promise((r) => setTimeout(r, 0))
 
     expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+    // The document signals are unaffected by a comment mutation and still land.
+    expect(store.assessmentVersion).toBe(9)
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+
+  it('drops the whole response when the store moved to another assessment mid-poll', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = []
+    store.lastModifiedAt = null
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 0, version: 42 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    store.assessmentId = 'assessment-2'
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 'van-assessment-1' })],
+      lastModifiedAt: 'OUD',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads).toHaveLength(0)
+    expect(store.lastModifiedAt).toBeNull()
+    expect(store.assessmentVersion).toBeNull()
     store.stopPolling()
   })
 

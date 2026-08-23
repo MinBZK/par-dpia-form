@@ -121,9 +121,21 @@ export const useCollaborationStore = defineStore('collaboration', () => {
         ? await commentsApi.list(id)
         : await commentsApi.list(id, lastModifiedAt.value ?? undefined)
 
-      // Drop the response when a mutation overlapped the poll, or when the store moved to
-      // another assessment while the requests were in flight.
-      if (mutationSeq !== seenMutationSeq || assessmentId.value !== id) return
+      // Nothing from this poll applies once the store moved to another assessment.
+      if (assessmentId.value !== id) return
+
+      // The sync signals describe the document, which a comment mutation cannot touch, so
+      // they land even when the comment data below is dropped. Both round trips succeeded,
+      // so the failure state clears either way.
+      assessmentVersion.value = syncResponse.version
+      assessmentUpdatedAt.value = syncResponse.updatedAt
+      lastModifiedBySelf.value = syncResponse.lastModifiedBySelf
+      consecutiveFailures = 0
+      syncFailing.value = false
+
+      // Drop the comment data when a mutation overlapped the poll: this response predates it
+      // and would revert it. The watermark stays put, so the next poll refetches the delta.
+      if (mutationSeq !== seenMutationSeq) return
 
       if (needsFullRefresh) {
         threads.value = commentsResponse.comments
@@ -155,11 +167,6 @@ export const useCollaborationStore = defineStore('collaboration', () => {
       }
 
       lastModifiedAt.value = commentsResponse.lastModifiedAt
-      assessmentVersion.value = syncResponse.version
-      assessmentUpdatedAt.value = syncResponse.updatedAt
-      lastModifiedBySelf.value = syncResponse.lastModifiedBySelf
-      consecutiveFailures = 0
-      syncFailing.value = false
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         stopPolling()
