@@ -68,3 +68,12 @@ export function dutchSchemaErrorFormatter(errors: FastifySchemaValidationError[]
     ? `Ongeldige ${label}: veld '${field}' is ongeldig`
     : `Ongeldige ${label}`)
 }
+
+// Only the two routes that carry a full assessment state need room for embedded
+// images. Every other route accepts a few fields capped at 2000 characters, so
+// the server default stays small and these opt in explicitly.
+//
+// The image group is repeatable, so the number of images is unbounded and no
+// limit can be the right one. This is headroom, not a guarantee: hitting it is
+// answered with an error that says which knob the user has.
+export const STATE_BODY_LIMIT = 50 * 1024 * 1024

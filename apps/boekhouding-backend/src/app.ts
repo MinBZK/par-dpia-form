@@ -35,7 +35,10 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   const exposeApiDocs = options.exposeApiDocs ?? config.exposeApiDocs
   const app = Fastify({
     logger: options.logger ?? true,
-    bodyLimit: 25 * 1024 * 1024, // 25 MB — assessments with embedded images can be large
+    // Small by default so a new route cannot inherit a 25 MB parse budget by
+    // accident. The two routes that carry an assessment state raise it
+    // themselves (STATE_BODY_LIMIT); everything else sends a handful of fields.
+    bodyLimit: 64 * 1024,
     // Trust the proxy hop so req.ip is the real client (rate limiting); see config.ts.
     trustProxy: options.trustProxy ?? config.trustProxy,
   })
@@ -55,7 +58,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
 
   await app.register(cors, config.cors)
   // Responses only. The plugin's request-decompression hook is on by default and
-  // would let a few kB of gzip inflate to the full 25 MB bodyLimit, turning the
+  // would let a few kB of gzip inflate to the full route bodyLimit, turning the
   // expensive save/export routes into a cheap amplification target.
   await app.register(compress, { global: true, globalDecompression: false })
   // The key decides the bucket and the budget: a request whose token verifies gets
@@ -174,6 +177,18 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         title: 'Te veel verzoeken',
         status: 429,
         detail: 'Maximaal aantal verzoeken overschreden. Probeer het later opnieuw.',
+        instance: request.url,
+      })
+    }
+
+    // Fastify's own message is English and says nothing about the cause. The
+    // only unbounded thing a client can send is images, so name them.
+    if (status === 413) {
+      return reply.status(413).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/413',
+        title: 'Verzoek te groot',
+        status: 413,
+        detail: 'Het verzoek is te groot om te verwerken. Dit komt meestal door afbeeldingen: verwijder er een of gebruik een kleiner bestand.',
         instance: request.url,
       })
     }

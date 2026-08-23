@@ -297,6 +297,47 @@ describe('legacy state keys are stripped, not rejected', () => {
     expect(cached.answers).toEqual({ '0.1': { value: 'Projectnaam', lastEditedAt: '2026-01-01T00:00:00.000Z' } })
   })
 
+  // A 25 MB parse budget on every route turns a members POST into a cheap way to
+  // make the server chew through megabytes. Only the two state-carrying routes
+  // raise it; the rest inherit the small server default.
+  it('refuses a body over the server default on a route that only takes fields', async () => {
+    const { project, headers } = await seedOwner()
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/projects/${project.id}`,
+      headers,
+      payload: { name: 'Naam', description: 'x'.repeat(70 * 1024) },
+    })
+    expect(res.statusCode).toBe(413)
+    expect(res.headers['content-type']).toContain('application/problem+json')
+    expect(res.json().detail).toContain('afbeeldingen')
+  })
+
+  it('accepts a state larger than the server default on the save route', async () => {
+    const { assessment, headers } = await seedOwner()
+
+    const big = {
+      $schema: SCHEMA_URL,
+      metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00.000Z' },
+      answers: Object.fromEntries(
+        Array.from({ length: 400 }, (_, i) => [
+          `1.${i + 1}`,
+          { value: 'x'.repeat(300), lastEditedAt: '2026-01-01T00:00:00.000Z' },
+        ]),
+      ),
+    }
+    expect(JSON.stringify(big).length).toBeGreaterThan(64 * 1024)
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers,
+      payload: { state: big, expectedVersion: 1 },
+    })
+    expect(res.statusCode).toBe(200)
+  })
+
   it('creates an assessment from a state carrying legacy keys and stores it without them', async () => {
     const { project, headers } = await seedOwner()
 
