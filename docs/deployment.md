@@ -226,6 +226,80 @@ De 301-redirect van het oude domein `assessments.rijksapp.nl` is **optioneel** e
 ZAD-deployment met één `haproxy-redirect`-component die los van productie beheerd
 en verwijderd kan worden.
 
+### Slaapstand (sleep-mode) voor previews en acceptatie
+
+Previews en `acceptatie` gaan na een deadline in **slaapstand**: ZAD schaalt ze
+terug naar nul pods en zet er een wekkerpod voor in de plaats, die een
+"applicatie wordt gestart"-pagina toont. Wie op de knop drukt, wekt de hele
+deployment. Productie en de redirect vallen er buiten.
+
+De slaapstand werkt samen met het `preview`-label: het label zorgt dat een
+omgeving alleen ontstaat als iemand hem nodig heeft, de slaapstand zorgt dat hij
+daarna alleen draait als iemand hem gebruikt. Samen houden ze het beslag op het
+gedeelde cluster in verhouding tot wat we er werkelijk mee doen - rekenkracht en
+energie die niemand gebruikt, hoort een dienst op gedeelde
+overheidsinfrastructuur niet vast te houden.
+
+De configuratie staat in ZAD (project `asses-k2n`), niet in deze repo:
+
+```yaml
+enabled: true
+match: ["pr-*", "acceptatie"]   # productie en redirect vallen er buiten
+sleep-after-deploy: 4h          # deadline na aanmaak en na elke rollout
+sleep-after-wake: 4h            # nieuwe deadline na een wek-call
+wake-mode: confirm              # pagina met knop; auto zou een crawler laten wekken
+waker-component: frontend       # de wekker hoort op de URL die mensen openen
+```
+
+De deadlines staan bewust op een waarde die de wizard ook aanbiedt (`4h` t/m
+`168h`). Een waarde daarbuiten - de API accepteert elke compacte duur, `90m`
+bijvoorbeeld - kan die keuzelijst niet weergeven, en opslaan vanuit die stap
+overschrijft hem dan met wat er wél in de lijst staat.
+
+Uitlezen en wijzigen met de ZAD-CLI:
+
+```bash
+zadctl service config get sleep-mode -o yaml
+zadctl service sleep-mode status pr-<nummer>   # awake | sleeping | waking | disabled
+zadctl service sleep-mode wake pr-<nummer>
+```
+
+Laten slapen kan alleen in het portaal, met de knop *Deployment slapen* bij de
+deployment: de CLI kent die overgang niet.
+
+> **`config set` schrijft het hele document.** Sleutels die je niet noemt,
+> verdwijnen en vallen terug op hun default - `enabled` dus op `false`, waarmee de
+> slaapstand ongemerkt uit staat. De CLI waarschuwt, maar voert de opdracht
+> daarna gewoon uit en meldt `success`. Lees eerst uit, geef daarna **alle**
+> sleutels in één aanroep mee, en lees terug:
+>
+> ```bash
+> zadctl service config set sleep-mode --set enabled=true \
+>   --set 'match[0]=pr-*' --set 'match[1]=acceptatie' \
+>   --set sleep-after-deploy=4h --set sleep-after-wake=4h \
+>   --set wake-mode=confirm --set waker-component=frontend
+> ```
+
+Wat je moet weten voordat je hierop bouwt:
+
+- **Het is slaapstand, geen sluimerstand.** De applicatie start koud op; sessies,
+  caches en geheugen zijn weg. De backend draait bij die start eerst de
+  migraties, dus wekken duurt langer dan een gewone podstart.
+- **Er is geen inactiviteitsdetectie**, en die kan er ook niet komen: de
+  tenant-Prometheus ziet het routerverkeer niet. Het is dus een deadline en geen
+  idle-timer - een omgeving die de hele dag gebruikt wordt, valt na
+  `sleep-after-deploy` alsnog in slaapstand. Na het wekken telt `sleep-after-wake`
+  opnieuw, ongeacht wat je aan het doen bent; die staat daarom op vier uur, zodat
+  één klik een dagdeel dekt. Een rollout (nieuwe image of upsert) wekt de
+  deployment en zet een verse `sleep-after-deploy`-deadline.
+- **`/api` geeft een 503 zolang de deployment slaapt.** Er is één wekker per
+  deployment en die staat voor `frontend`. De frontend kan bovendien al ready zijn
+  terwijl de api nog opstart; dan helpt één keer verversen.
+- **De database slaapt niet mee, maar kost hier ook niets extra's.** Previews
+  gebruiken de gedeelde databaseserver van het platform (scope `shared`), geen
+  eigen Postgres-pod. Een slapende deployment geeft zijn connecties wel terug,
+  wat ruimte scheelt binnen de 20-cap hierboven.
+
 ## Container-hardening: readOnlyRootFilesystem
 
 De `api`-deployment draait non-root (`USER 1000`, zie

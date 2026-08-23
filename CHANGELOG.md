@@ -93,6 +93,12 @@ build) staan kort onder "Onder de motorkap".
 * Preview-omgevingen per pull request werkten niet meer doordat het
   platform de standaard hostnaam-indeling wijzigde; die is nu expliciet
   vastgelegd.
+* Preview-omgevingen en de acceptatie-omgeving gaan na vier uur zonder
+  nieuwe uitrol in slaapstand. Wie de link daarna opent, krijgt eerst een
+  pagina met een startknop en wacht op een koude start; daarna blijft de
+  omgeving weer vier uur wakker. Productie doet hier niet aan mee. Zo
+  houden we geen rekenkracht bezet voor omgevingen die niemand gebruikt.
+  Vastgelegd in `docs/deployment.md`.
 * De nginx-configuratie van de frontend is gebundeld in
   `containers/frontend/nginx/`.
 * CI aangescherpt: minimale rechten voor tokens, controle op de integriteit
