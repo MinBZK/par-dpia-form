@@ -76,8 +76,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promoot acceptatie-images naar CalVer-tag
-        id: promote
+      - name: Bepaal het acceptatie-image voor deze tag
+        id: image
         env:
           TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
@@ -90,15 +90,92 @@ jobs:
               exit 1
             fi
           done
+          echo "short=${short}" >> "$GITHUB_OUTPUT"
+
+      # Report-only, and that has to hold for the reporting itself too: a
+      # registry hiccup or a failed database download must not stop a release
+      # over information it was only ever going to print. Promotion does not
+      # rebuild, so nothing found here has a fix available in this run anyway.
+      - name: Trivy scan van het frontend-image
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ env.FRONTEND_IMAGE }}:${{ steps.image.outputs.short }}
+          scan-type: image
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+          format: json
+          output: trivy-frontend.json
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy scan van het backend-image
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
+        with:
+          image-ref: ${{ env.BACKEND_IMAGE }}:${{ steps.image.outputs.short }}
+          scan-type: image
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+          format: json
+          output: trivy-backend.json
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rapporteer de bevindingen bij deze release
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          for c in frontend backend; do
+            jq --arg component "$c" '
+              [ .Results[]?.Vulnerabilities[]? | {
+                  component: $component,
+                  id: .VulnerabilityID,
+                  severity: .Severity,
+                  pkg: .PkgName,
+                  installed: .InstalledVersion,
+                  fixed: .FixedVersion
+                } ]' "trivy-${c}.json" > "findings-${c}.json"
+          done
+          jq -s 'add' findings-*.json > findings.json
+          count=$(jq 'length' findings.json)
+          {
+            echo "## Beveiligingsscan bij promotie"
+            echo
+            if [ "$count" = "0" ]; then
+              echo "Geen oplosbare CRITICAL- of HIGH-meldingen in de images die naar productie gaan."
+            else
+              echo "| Image | Ernst | Pakket | Nu | Opgelost in | Melding |"
+              echo "| --- | --- | --- | --- | --- | --- |"
+              jq -r 'sort_by(.severity, .component, .pkg) | .[] |
+                     "| \(.component) | \(.severity) | `\(.pkg)` | \(.installed) | \(.fixed) | \(.id) |"' findings.json
+              echo
+              echo "Promotie bouwt niet opnieuw, dus dit blokkeert de release niet. Wil je het meenemen: los het op main op en breng een nieuwe tag uit."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$count" != "0" ]; then
+            echo "::warning::${count} oplosbare CRITICAL/HIGH-meldingen in de images van deze release; zie de samenvatting van deze run."
+          fi
+
+      - name: Promoot acceptatie-images naar CalVer-tag
+        id: promote
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+          SHORT: ${{ steps.image.outputs.short }}
+        run: |
+          set -euo pipefail
           docker build --pull \
-            --build-arg "BASE=${FRONTEND_IMAGE}:${short}" \
+            --build-arg "BASE=${FRONTEND_IMAGE}:${SHORT}" \
             --build-arg "TAG=${TAG_NAME}" \
-            --build-arg "COMMIT=${short}" \
+            --build-arg "COMMIT=${SHORT}" \
             -f containers/frontend/overlay.Dockerfile \
             -t "${FRONTEND_IMAGE}:${TAG_NAME}" .
           docker push "${FRONTEND_IMAGE}:${TAG_NAME}"
           docker build --pull \
-            --build-arg "BASE=${BACKEND_IMAGE}:${short}" \
+            --build-arg "BASE=${BACKEND_IMAGE}:${SHORT}" \
             --build-arg "TAG=${TAG_NAME}" \
             -f containers/backend/overlay.Dockerfile \
             -t "${BACKEND_IMAGE}:${TAG_NAME}" .

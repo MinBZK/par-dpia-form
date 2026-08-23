@@ -84,6 +84,9 @@ build) staan kort onder "Onder de motorkap".
 * Een preview-omgeving wordt niet meer voor elke pull request opgezet, maar
   alleen wanneer er een `preview`-label op staat. Dat scheelt geheugen,
   processorkracht en databaseverbindingen op het gedeelde platform.
+* Bij het uitbrengen van een release wordt het image dat naar productie gaat
+  nog een keer gescand. Promotie bouwt niets opnieuw, dus dit houdt de release
+  niet tegen; het laat zien wat er op dat moment bekend is.
 * De databaseverbindingen van de API zijn expliciet begrensd en krijgen
   time-outs, zodat een vastgelopen query de rest niet blokkeert. Bij een
   nieuwe versie van de applicatie worden lopende verzoeken netjes
