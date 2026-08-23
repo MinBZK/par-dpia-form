@@ -93,9 +93,8 @@ export const config = {
     origin: corsOrigin,
     credentials: true,
   },
-  // Public-facing base URL of this deployment. ZAD injects PUBLIC_HOST per
-  // deployment (including per review branch), so this stays correct everywhere
-  // instead of hardcoding one environment. Used for OpenAPI metadata.
+  // First entry wins when several origins are configured: OpenAPI metadata
+  // needs a single URL.
   publicUrl: Array.isArray(corsOrigin) ? corsOrigin[0] : corsOrigin,
   keycloak: {
     issuer: `${oidcUrl}/realms/${oidcRealm}`,
