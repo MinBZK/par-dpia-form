@@ -16,6 +16,7 @@ CI_DIR = Path(__file__).resolve().parents[2] / "script" / "ci"
 VALIDATE = CI_DIR / "validate-calver-tag.sh"
 CHANGELOG = CI_DIR / "changelog-section.sh"
 ASSERT_NEWEST = CI_DIR / "assert-newest-calver-tag.sh"
+ASSERT_PLUGIN = CI_DIR / "assert-plugin-version.sh"
 
 
 def run(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -124,3 +125,39 @@ def test_first_release_allowed(tmp_path: Path):
     git("commit", "--allow-empty", "-m", "init")
     # No tags at all: the first release is always allowed.
     assert run(ASSERT_NEWEST, "v2026.6.6", cwd=tmp_path).returncode == 0
+
+
+# --- assert-plugin-version.sh ----------------------------------------------
+
+
+@pytest.fixture
+def plugin_manifest(tmp_path: Path) -> Path:
+    path = tmp_path / "plugin.json"
+    path.write_text('{\n  "name": "assessments",\n  "version": "2026.6.20"\n}\n')
+    return path
+
+
+def test_plugin_version_matches_tag(plugin_manifest):
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(plugin_manifest)).returncode == 0
+
+
+def test_plugin_version_mismatch_fails(plugin_manifest):
+    result = run(ASSERT_PLUGIN, "v2026.7.1", str(plugin_manifest))
+    assert result.returncode != 0
+    assert "2026.6.20" in result.stderr
+
+
+def test_plugin_version_micro_tag(tmp_path: Path):
+    path = tmp_path / "plugin.json"
+    path.write_text('{"name": "assessments", "version": "2026.6.20.1"}\n')
+    assert run(ASSERT_PLUGIN, "v2026.6.20.1", str(path)).returncode == 0
+
+
+def test_plugin_version_missing_field_fails(tmp_path: Path):
+    path = tmp_path / "plugin.json"
+    path.write_text('{"name": "assessments"}\n')
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(path)).returncode != 0
+
+
+def test_plugin_manifest_missing_fails(tmp_path: Path):
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(tmp_path / "weg.json")).returncode != 0
