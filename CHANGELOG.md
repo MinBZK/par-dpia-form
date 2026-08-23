@@ -17,6 +17,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Beveiliging
 
+* Op de startpagina van het standalone formulier staat nu "Wis alle opgeslagen
+  gegevens", die verschijnt zodra er iets in je browser is opgeslagen en zegt om
+  welke invulhulpen het gaat. Handig op een gedeelde of openbare computer.
+* De knop "Begin nieuwe..." in een invulhulp vraagt eerst om bevestiging, en
+  noemt daarbij hoeveel antwoorden je kwijtraakt. Die knop wiste eerder alles in
+  één klik. Dit geldt voor de pre-scan, de DPIA en de IAMA.
 * Verzoeken naar routes die alleen een paar velden verwachten worden niet
   langer tot 25 MB ingelezen. Alleen het opslaan van een assessment, waar
   afbeeldingen in kunnen zitten, houdt die ruimte, en die is verruimd naar

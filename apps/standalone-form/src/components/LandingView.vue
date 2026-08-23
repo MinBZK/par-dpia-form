@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
+import { AppBanner, UiButton, ConfirmDialog, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
 
 const props = defineProps<{
   navigation: NavigationFunctions
@@ -9,7 +9,26 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   startFresh: [type: FormType]
+  clearAll: []
 }>()
+
+const clearAllOpen = ref(false)
+
+// Names the assessments that actually have something saved, so the warning says
+// what is at stake instead of "alle gegevens".
+const cachedTitles = computed(() =>
+  cards.filter((card) => props.cachedTypes.includes(card.type)).map((card) => card.title))
+
+const cachedSummary = computed(() => {
+  const titles = cachedTitles.value
+  if (titles.length <= 1) return titles.join('')
+  return `${titles.slice(0, -1).join(', ')} en ${titles[titles.length - 1]}`
+})
+
+function confirmClearAll() {
+  clearAllOpen.value = false
+  emit('clearAll')
+}
 
 // Injected as a <meta> tag at build time (see vite.config.ts injectVersionMeta),
 // so the production overlay can sed-patch the version without touching the
@@ -223,8 +242,28 @@ async function downloadOfflineApp() {
         </p>
       </div>
 
+      <!-- Only when there is something to wipe: on an empty browser the button
+           would just raise a question it cannot answer. -->
+      <div v-if="cachedTitles.length > 0" class="rvo-layout-margin-vertical--md">
+        <h2 class="utrecht-heading-2">Opgeslagen gegevens wissen</h2>
+        <p>
+          In deze browser staan antwoorden van je {{ cachedSummary }} opgeslagen. Werk je op een
+          gedeelde of openbare computer, wis ze dan voordat je weggaat.
+        </p>
+        <UiButton variant="secondary" label="Wis alle opgeslagen gegevens" icon="verwijderen"
+          @click="clearAllOpen = true" />
+      </div>
+
     </div>
   </div>
+
+  <ConfirmDialog v-if="clearAllOpen" :open="clearAllOpen" title="Alle opgeslagen gegevens wissen?"
+    confirm-label="Ja, wis alles" @cancel="clearAllOpen = false" @confirm="confirmClearAll">
+    <p class="utrecht-paragraph">
+      Dit wist de opgeslagen antwoorden van je {{ cachedSummary }} uit deze browser. Dit kan niet
+      ongedaan worden gemaakt. Exporteer eerst als je ze wilt bewaren.
+    </p>
+  </ConfirmDialog>
 
   <!-- "Start nieuwe X" confirmation -->
   <div v-if="freshTarget" class="fresh-confirm-overlay" @click.self="cancelFresh">
