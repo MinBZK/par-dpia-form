@@ -166,22 +166,19 @@ worden in de ZAD Operations Manager beheerd, niet in de workflow.
 
 ### Een release uitbrengen
 
-1. Verplaats in `CHANGELOG.md` de inhoud van `## [Unreleased]` naar een nieuwe
-   sectie `## [YYYY.M.D]` (versie zonder voorloopnullen en zonder datum: de
-   versie ís de datum), zet de
-   assessments-plugin op dezelfde versie
-   (`python3 .claude/plugins/assessments/scripts/generate_plugin.py --set-version 2026.6.14`)
-   en breng dat via een PR naar `main`.
+1. Breng via een PR naar `main`:
+   - in `CHANGELOG.md` de inhoud van `## [Unreleased]` naar een nieuwe sectie
+     `## [YYYY.M.D]` (zonder voorloopnullen, zonder datum);
+   - de assessments-plugin op dezelfde versie, met
+     `python3 .claude/plugins/assessments/scripts/generate_plugin.py --set-version 2026.6.14`.
 2. Start `tag-release` met de versie als invoer:
 
    ```bash
    gh workflow run tag-release.yaml -f version=2026.6.14
    ```
 
-   Die workflow draait eerst alle guards en zet de tag pas als ze allemaal
-   slagen. Faalt er een, dan bestaat de tag niet en is er niets op te ruimen:
-   los op wat de melding aanwijst, breng dat naar `main` en start opnieuw. Zet
-   de tag dus niet met de hand.
+   Zet de tag niet met de hand. Faalt een guard, dan is de tag niet gezet: los
+   de melding op, breng dat naar `main` en start opnieuw.
 
 3. De rest gaat vanzelf: `release.yaml` maakt eerst de GitHub-release met de
    changelog-sectie als notes; **pas daarna** start het `deploy-productie`, dat
@@ -218,18 +215,14 @@ Images staan onder `ghcr.io/minbzk/par-dpia-form/`:
 | `frontend` | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
 | `backend`  | `<sha>`, `latest`, `vYYYY.M.D[.MICRO]` (gepromote releases)   |
 
-Previews staan apart onder `preview/`; die worden per pull request gebouwd en
-opgeruimd.
+Previews staan onder `preview/`.
 
-Tot augustus 2026 stonden de mainline-images onder `dev/`. Dat pad suggereerde
-een ontwikkelomgeving, terwijl er juist productie uit werd gedraaid. De oude
-packages blijven staan: daar zitten de historische CalVer-tags in, en die zijn
-nodig om een oudere release terug te kunnen zetten.
+De packages moeten **public** zijn: ZAD haalt de images zonder inloggegevens op.
+Een package dat vanuit deze publieke repository wordt gepusht erft die
+zichtbaarheid; controleer het bij een nieuw image.
 
-> **Eenmalig bij de overstap:** GHCR maakt een nieuw package standaard privé.
-> Zet `frontend` en `backend` op **public** zodra de eerste `Deploy
-> acceptatie`-run ze heeft aangemaakt; ZAD haalt de images zonder inloggegevens
-> op en kan ze anders niet pullen.
+Releases van vóór augustus 2026 staan onder `dev/`. Die packages blijven
+bestaan voor een terugrol naar zo'n tag.
 
 ## ZAD configuratie
 
