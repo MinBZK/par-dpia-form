@@ -58,6 +58,9 @@ jobs:
   # `apk upgrade` would scan older packages than a real build produces.
   build-and-scan:
     needs: generate-sources
+    # Without this the image name lands in the job name too, and the required
+    # status check would carry a registry path in its title.
+    name: build-and-scan (${{ matrix.component }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -142,6 +145,7 @@ jobs:
   publish:
     needs: build-and-scan
     if: inputs.publish
+    name: publish (${{ matrix.component }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
