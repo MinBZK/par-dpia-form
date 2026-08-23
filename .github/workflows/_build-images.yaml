@@ -101,7 +101,7 @@ jobs:
       # ignore-unfixed keeps that actionable: it only fails when the distro has
       # published a patched version, so a red run always has something someone
       # can do.
-      - name: Trivy image scan
+      - name: Trivy image scan (table, on a pull request)
         if: github.event_name != 'push'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
@@ -112,7 +112,7 @@ jobs:
           exit-code: '1'
           format: table
 
-      - name: Trivy image scan (SARIF)
+      - name: Trivy image scan (SARIF, on main)
         if: github.event_name == 'push'
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.33.1
         with:
