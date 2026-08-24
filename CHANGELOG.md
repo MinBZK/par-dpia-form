@@ -15,6 +15,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Gewijzigd
+
+* De invulhulp laadt sneller bij een tweede bezoek. Afbeeldingen, pictogrammen
+  en lettertypen worden nu net zo lang bewaard als scripts en stijlen, in plaats
+  van bij elk bezoek opnieuw te worden gecontroleerd. Een nieuwe versie komt nog
+  steeds meteen door.
+
 ### Opgelost
 
 * Een IAMA bewaart weer alle antwoorden. Vanaf stap 2 gingen antwoorden
