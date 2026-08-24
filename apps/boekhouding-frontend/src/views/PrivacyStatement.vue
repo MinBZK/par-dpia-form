@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import '@nldd/design-system/container'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/rich-text'
 import '@nldd/design-system/title'
 import { useBackLink } from '../composables/useBackLink'
+import { previousPage } from '../router'
 
-const hasHistory = !!window.history.state?.back
-useBackLink().set(hasHistory ? { text: 'Terug' } : { text: 'Ga naar home', to: '/' })
+// Name where the reader goes back to, rather than a bare "Terug".
+useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 </script>
 
 <template>
-  <div class="page-container">
+  <nldd-simple-section width="45rem">
+    <nldd-container gap="16">
     <nldd-title size="3"><h1>Privacyverklaring</h1></nldd-title>
 
-    <nldd-container max-width="44rem">
     <nldd-rich-text>
     <p>
       Invulhulpen is een applicatie van het Ministerie van Binnenlandse Zaken en
@@ -118,5 +120,5 @@ useBackLink().set(hasHistory ? { text: 'Terug' } : { text: 'Ga naar home', to: '
     </p>
     </nldd-rich-text>
     </nldd-container>
-  </div>
+  </nldd-simple-section>
 </template>

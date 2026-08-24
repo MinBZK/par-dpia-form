@@ -5,6 +5,7 @@ import { ApiError, projects as projectsApi, type Project } from '../api'
 import { useAnchorNav } from '../composables/useAnchorNav'
 import { usePaginatedList } from '../composables/usePaginatedList'
 import '@nldd/design-system/banner'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/button'
 import '@nldd/design-system/button-group'
 import '@nldd/design-system/card'
@@ -56,7 +57,7 @@ const handleCreate = async () => {
 </script>
 
 <template>
-  <div class="page-container">
+  <nldd-simple-section>
     <nldd-title size="3"><h1>Projecten</h1></nldd-title>
 
     <div v-if="loading">
@@ -137,5 +138,5 @@ const handleCreate = async () => {
         </nldd-button-group>
       </form>
     </template>
-  </div>
+  </nldd-simple-section>
 </template>

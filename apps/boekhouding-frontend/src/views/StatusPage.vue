@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useBackLink } from '../composables/useBackLink'
+import { previousPage } from '../router'
 import { getConfig } from '../config'
 import { loadVersion, type VersionInfo } from '../version'
 import { probe, TimeoutError } from '../probe'
@@ -9,8 +10,9 @@ import '@nldd/design-system/button'
 import '@nldd/design-system/card'
 import '@nldd/design-system/collection'
 import '@nldd/design-system/container'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/icon'
-import '@nldd/design-system/tag'
+import '@nldd/design-system/banner'
 import '@nldd/design-system/text'
 import '@nldd/design-system/title'
 
@@ -19,12 +21,11 @@ const REPO = 'https://github.com/MinBZK/par-dpia-form'
 type ProbeState = 'loading' | 'ok' | 'error' | 'timeout'
 interface StatusMeta {
   label: string
-  color: string
-  icon: string
+  variant: 'neutral' | 'success' | 'warning' | 'critical'
 }
 
-const hasHistory = !!window.history.state?.back
-useBackLink().set(hasHistory ? { text: 'Terug' } : { text: 'Ga naar home', to: '/' })
+// Name where the reader goes back to, rather than a bare "Terug".
+useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 
 const frontend = ref<VersionInfo>({ version: 'dev', commit: 'dev', channel: 'dev' })
 
@@ -58,10 +59,12 @@ const copyIcon = computed(() =>
 )
 
 function statusMeta(state: ProbeState): StatusMeta {
-  if (state === 'ok') return { label: 'Alles werkt', color: 'success', icon: 'check-mark-circle' }
-  if (state === 'timeout') return { label: 'Reageert traag', color: 'warning', icon: 'exclamation-triangle' }
-  if (state === 'error') return { label: 'Er werkt iets niet', color: 'critical', icon: 'close-circle' }
-  return { label: 'Controleren', color: 'neutral', icon: '' }
+  // The banner picks its own icon per variant; only the checking state needs
+  // one of its own (an activity indicator in the icon slot).
+  if (state === 'ok') return { label: 'Alles werkt', variant: 'success' }
+  if (state === 'timeout') return { label: 'Reageert traag', variant: 'warning' }
+  if (state === 'error') return { label: 'Er werkt iets niet', variant: 'critical' }
+  return { label: 'Controleren', variant: 'neutral' }
 }
 
 function buildVersionText(): string {
@@ -114,7 +117,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="page-container">
+  <nldd-simple-section>
+    <nldd-container gap="16">
     <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
     <p>
       Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
@@ -128,7 +132,7 @@ onMounted(async () => {
         <nldd-card>
           <nldd-container padding="16" gap="8">
             <h3 class="status-card__title">
-              <nldd-icon name="globe-rack-server" size="20"></nldd-icon>
+              <nldd-icon name="rack-server" size="20"></nldd-icon>
               De achterkant
             </h3>
             <nldd-text size="xs">
@@ -136,27 +140,23 @@ onMounted(async () => {
               bereikbaar, dan kun je tijdelijk niets openen of opslaan.
             </nldd-text>
           </nldd-container>
-          <nldd-container slot="footer" padding="16" padding-top="0" horizontal-alignment="center">
-            <p role="status" aria-live="polite">
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <!-- The state is what this card is for, so it fills the footer as a
+                 banner instead of hiding in a small tag. -->
+            <div role="status" aria-live="polite">
               <span class="sr-only">Status van de achterkant: </span>
-              <nldd-tag
-                :color="statusMeta(backendState).color"
+              <nldd-banner
+                :variant="statusMeta(backendState).variant"
                 :text="statusMeta(backendState).label"
                 data-test="backend-state"
               >
                 <nldd-activity-indicator
                   v-if="backendState === 'loading'"
                   slot="icon"
-                  size="16"
+                  size="20"
                 ></nldd-activity-indicator>
-                <nldd-icon
-                  v-else
-                  slot="icon"
-                  :name="statusMeta(backendState).icon"
-                  size="16"
-                ></nldd-icon>
-              </nldd-tag>
-            </p>
+              </nldd-banner>
+            </div>
           </nldd-container>
         </nldd-card>
 
@@ -171,27 +171,23 @@ onMounted(async () => {
               in te loggen of ingelogd te blijven.
             </nldd-text>
           </nldd-container>
-          <nldd-container slot="footer" padding="16" padding-top="0" horizontal-alignment="center">
-            <p role="status" aria-live="polite">
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <!-- The state is what this card is for, so it fills the footer as a
+                 banner instead of hiding in a small tag. -->
+            <div role="status" aria-live="polite">
               <span class="sr-only">Status van de aanmeldvoorziening: </span>
-              <nldd-tag
-                :color="statusMeta(keycloakState).color"
+              <nldd-banner
+                :variant="statusMeta(keycloakState).variant"
                 :text="statusMeta(keycloakState).label"
                 data-test="keycloak-state"
               >
                 <nldd-activity-indicator
                   v-if="keycloakState === 'loading'"
                   slot="icon"
-                  size="16"
+                  size="20"
                 ></nldd-activity-indicator>
-                <nldd-icon
-                  v-else
-                  slot="icon"
-                  :name="statusMeta(keycloakState).icon"
-                  size="16"
-                ></nldd-icon>
-              </nldd-tag>
-            </p>
+              </nldd-banner>
+            </div>
           </nldd-container>
         </nldd-card>
 
@@ -230,5 +226,6 @@ onMounted(async () => {
         </nldd-container>
       </nldd-card>
     </section>
-  </div>
+    </nldd-container>
+  </nldd-simple-section>
 </template>

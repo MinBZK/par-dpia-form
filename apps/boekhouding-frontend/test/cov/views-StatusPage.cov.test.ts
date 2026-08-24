@@ -18,6 +18,7 @@ vi.mock('../../src/probe', () => ({
 
 import StatusPage from '../../src/views/StatusPage.vue'
 import { useBackLink } from '../../src/composables/useBackLink'
+import { previousPage } from '../../src/router'
 
 const REPO = 'https://github.com/MinBZK/par-dpia-form'
 
@@ -51,41 +52,40 @@ afterEach(() => {
 })
 
 describe('StatusPage', () => {
-  describe('back link (window.history.state?.back)', () => {
-    it('sets "Ga naar home" towards / when history.state is null', () => {
-      window.history.replaceState(null, '', window.location.href)
+  describe('back link', () => {
+    it('names the page the reader came from', () => {
+      previousPage.value = { text: 'Assessment', to: '/assessment/abc' }
+
       mountStatus()
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
+
+      expect(backLink.value).toEqual({ text: 'Assessment', to: '/assessment/abc' })
+      previousPage.value = null
     })
 
-    it('sets "Ga naar home" when history.state has no back entry', () => {
-      window.history.replaceState({ other: 1 }, '', window.location.href)
-      mountStatus()
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
-    })
+    it('falls back to the start page when there is no previous page', () => {
+      previousPage.value = null
 
-    it('sets "Terug" without a target route when history.state.back is set', () => {
-      window.history.replaceState({ back: '/projecten' }, '', window.location.href)
       mountStatus()
-      expect(backLink.value).toEqual({ text: 'Terug' })
+
+      expect(backLink.value).toEqual({ text: 'Startpagina', to: '/' })
     })
   })
 
-  it('shows the loading state (neutral tag with activity indicator) before the probes resolve', () => {
+  it('shows the loading state (neutral banner with activity indicator) before the probes resolve', () => {
     probe.mockReturnValue(new Promise(() => {})) // never resolves
     const wrapper = mountStatus()
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Controleren')
-    expect(backend.attributes('color')).toBe('neutral')
+    expect(backend.attributes('variant')).toBe('neutral')
     expect(backend.find('nldd-activity-indicator').exists()).toBe(true)
     expect(backend.find('nldd-icon').exists()).toBe(false)
     const keycloak = wrapper.get('[data-test="keycloak-state"]')
     expect(keycloak.attributes('text')).toBe('Controleren')
-    expect(keycloak.attributes('color')).toBe('neutral')
+    expect(keycloak.attributes('variant')).toBe('neutral')
     expect(keycloak.find('nldd-activity-indicator').exists()).toBe(true)
   })
 
-  it('renders the status cards with small description text and a centred tag in the footer', () => {
+  it('renders the status cards with small description text and the state as a banner in the footer', () => {
     probe.mockReturnValue(new Promise(() => {}))
     const wrapper = mountStatus()
     const cards = wrapper.findAll('nldd-card').slice(0, 2)
@@ -93,8 +93,7 @@ describe('StatusPage', () => {
     for (const card of cards) {
       expect(card.get('nldd-text').attributes('size')).toBe('xs')
       const footer = card.get('nldd-container[slot="footer"]')
-      expect(footer.attributes('horizontal-alignment')).toBe('center')
-      expect(footer.get('[role="status"]').find('nldd-tag').exists()).toBe(true)
+      expect(footer.get('[role="status"]').find('nldd-banner').exists()).toBe(true)
     }
   })
 
@@ -106,9 +105,8 @@ describe('StatusPage', () => {
 
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Alles werkt')
-    expect(backend.attributes('color')).toBe('success')
+    expect(backend.attributes('variant')).toBe('success')
     expect(backend.find('nldd-activity-indicator').exists()).toBe(false)
-    expect(backend.get('nldd-icon').attributes('name')).toBe('check-mark-circle')
     expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
     // The git tag carries the v; the reading version does not.
     expect(wrapper.get('[data-test="version"]').text()).toBe('2026.6.14')
@@ -169,8 +167,7 @@ describe('StatusPage', () => {
 
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Er werkt iets niet')
-    expect(backend.attributes('color')).toBe('critical')
-    expect(backend.get('nldd-icon').attributes('name')).toBe('close-circle')
+    expect(backend.attributes('variant')).toBe('critical')
     expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
   })
 
@@ -185,8 +182,7 @@ describe('StatusPage', () => {
 
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Reageert traag')
-    expect(backend.attributes('color')).toBe('warning')
-    expect(backend.get('nldd-icon').attributes('name')).toBe('exclamation-triangle')
+    expect(backend.attributes('variant')).toBe('warning')
   })
 
   it('reports de aanmeldvoorziening not reachable when the Keycloak probe fails', async () => {
@@ -200,7 +196,7 @@ describe('StatusPage', () => {
 
     const keycloak = wrapper.get('[data-test="keycloak-state"]')
     expect(keycloak.attributes('text')).toBe('Er werkt iets niet')
-    expect(keycloak.attributes('color')).toBe('critical')
+    expect(keycloak.attributes('variant')).toBe('critical')
   })
 
   describe('kopieer versie-informatie', () => {

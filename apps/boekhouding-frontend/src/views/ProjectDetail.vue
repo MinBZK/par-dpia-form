@@ -8,6 +8,7 @@ import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, 
 import KebabMenu from '../components/KebabMenu.vue'
 import { useBackLink } from '../composables/useBackLink'
 import '@nldd/design-system/button'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/menu'
 import '@nldd/design-system/banner'
 import '@nldd/design-system/card'
@@ -340,7 +341,7 @@ const formatDate = (dateStr: string) =>
 
 <template>
   <div>
-  <div class="page-container">
+  <nldd-simple-section>
     <div v-if="loading"><p>Laden...</p></div>
 
     <nldd-banner v-else-if="loadError" variant="warning" :text="loadError"></nldd-banner>
@@ -463,7 +464,7 @@ const formatDate = (dateStr: string) =>
         </nldd-collection>
       </div>
     </template>
-  </div>
+  </nldd-simple-section>
 
   <!-- Start form dialog -->
   <nldd-modal-dialog

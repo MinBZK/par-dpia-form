@@ -5,6 +5,7 @@ import { members as membersApi, type Member } from '../api'
 import { usePaginatedList } from '../composables/usePaginatedList'
 import { useBackLink } from '../composables/useBackLink'
 import '@nldd/design-system/banner'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/button'
 import '@nldd/design-system/cell'
 import '@nldd/design-system/container'
@@ -148,7 +149,7 @@ const whoLabel = (member: Member) =>
 
 <template>
   <div>
-  <div class="page-container">
+  <nldd-simple-section width="52rem">
     <nldd-title size="3"><h1>Leden beheren</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>
@@ -249,7 +250,7 @@ const whoLabel = (member: Member) =>
       </nldd-form>
       </nldd-container>
     </template>
-  </div>
+  </nldd-simple-section>
 
   <!-- Delete member confirmation modal -->
   <nldd-modal-dialog

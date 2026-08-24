@@ -29,14 +29,6 @@
   white-space: pre-line;
 }
 
-/* Page container and base typography for the views. */
-.page-container {
-  max-width: 60rem;
-  margin-inline: auto;
-  padding-inline: var(--primitives-space-16, 1rem);
-  padding-block: var(--primitives-space-16, 1rem);
-}
-
 .app-main h1 {
   font-size: var(--primitives-font-size-500, 2rem);
   line-height: 1.25;
@@ -73,13 +65,14 @@ nldd-card p {
   margin-block-end: var(--primitives-space-16, 1rem);
 }
 
-/* SPA-internal content link (router-link). */
+/* SPA-internal content link (router-link): the same roles the design system
+   gives a real link. */
 .content-link {
-  color: var(--primitives-color-accent-700, #01689b);
+  color: var(--semantics-links-color);
 }
 
 .content-link:hover {
-  color: var(--primitives-color-accent-800, #014f76);
+  color: var(--semantics-links-is-hovered-color);
 }
 
 .version-list {
@@ -97,11 +90,7 @@ nldd-card p {
   --editor-col: 76rem;
 }
 
-.assessment-editor .page-container {
-  max-width: var(--editor-col);
-}
-
-.page-container nldd-collection {
+.app-main nldd-collection {
   margin-block-end: var(--primitives-space-24, 1.5rem);
 }
 
@@ -116,12 +105,12 @@ nldd-card p {
 }
 
 .editable-field:hover {
-  background-color: var(--primitives-color-neutral-50, #f3f3f3);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .editable-field:focus-visible {
-  outline: 2px solid var(--primitives-color-reference-hemelblauw, #007bc7);
-  outline-offset: 2px;
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
 .description-add {
@@ -140,12 +129,12 @@ nldd-card p {
 .description-add:hover .description-add__label,
 .description-add:focus-visible .description-add__label {
   visibility: visible;
-  color: var(--primitives-color-reference-hemelblauw, #007bc7);
+  color: var(--semantics-content-accent-color);
 }
 
 .description-add:focus-visible {
-  outline: 2px solid var(--primitives-color-reference-hemelblauw, #007bc7);
-  outline-offset: 2px;
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
 .editable-field-group {
@@ -190,7 +179,7 @@ nldd-card p {
 .start-dialog__sub-options {
   margin-left: 1.5rem;
   padding: 0.5rem 0;
-  border-left: 2px solid var(--primitives-color-neutral-100, #e0e0e0);
+  border-left: 2px solid var(--semantics-dividers-color);
   padding-left: 1rem;
 }
 
@@ -250,12 +239,12 @@ nldd-card p {
 }
 
 .form-name--editable:hover {
-  background-color: var(--primitives-color-neutral-50, #f3f3f3);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .form-name--editable:focus-visible {
-  outline: 2px solid var(--primitives-color-reference-hemelblauw, #007bc7);
-  outline-offset: 2px;
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
 .form-name-edit {
@@ -356,7 +345,7 @@ nldd-card p {
 
 .desc-edit-btn:hover,
 .desc-edit-btn:focus-visible {
-  color: var(--primitives-color-reference-hemelblauw, #007bc7);
+  color: var(--semantics-content-accent-color);
   text-decoration: underline;
 }
 
@@ -373,25 +362,25 @@ nldd-card p {
 }
 
 .diff-panel {
-  background-color: var(--primitives-color-neutral-50, #f8f8f8);
-  border-bottom: 1px solid var(--primitives-color-neutral-100, #e0e0e0);
+  background-color: var(--semantics-surfaces-tinted-background-color);
+  border-bottom: 1px solid var(--semantics-dividers-color);
   padding: 0.25rem 0.5rem 0.5rem;
 }
 
 .diff-description {
   margin: 0 0 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--primitives-font-size-80, 0.875rem);
 }
 
 .diff-description p {
   white-space: pre-line;
   margin: 0.25rem 0 0;
-  color: var(--primitives-color-neutral-700, #444);
+  color: var(--semantics-content-color);
 }
 
 .diff-loading,
 .diff-empty {
-  color: var(--primitives-color-neutral-600, #666);
+  color: var(--semantics-content-secondary-color);
   font-style: italic;
 }
 
@@ -401,7 +390,7 @@ nldd-card p {
   display: flex;
   flex-direction: column;
   gap: var(--primitives-space-16, 1rem);
-  font-size: 0.875rem;
+  font-size: var(--primitives-font-size-80, 0.875rem);
 }
 
 .diff-field {
@@ -412,7 +401,7 @@ nldd-card p {
 .diff-field__group {
   display: block;
   font-weight: 400;
-  font-size: 0.8125rem;
+  font-size: var(--primitives-font-size-70, 0.8rem);
   color: var(--semantics-content-secondary-color);
 }
 
@@ -442,7 +431,7 @@ nldd-card p {
 }
 
 .diff-value__label {
-  font-size: 0.75rem;
+  font-size: var(--primitives-font-size-70, 0.8rem);
   font-weight: 600;
   color: var(--semantics-content-secondary-color);
 }
@@ -456,7 +445,7 @@ nldd-card p {
 
 .diff-timestamp {
   color: var(--semantics-content-secondary-color);
-  font-size: 0.8125rem;
+  font-size: var(--primitives-font-size-70, 0.8rem);
 }
 
 .diff-kebab {
@@ -587,7 +576,7 @@ nldd-card p {
 }
 
 .comment-panel__empty {
-  color: var(--primitives-color-neutral-500, #666);
+  color: var(--semantics-content-secondary-color);
   font-style: italic;
   font-size: var(--primitives-font-size-80, 0.875rem);
   padding: 1rem;
@@ -613,7 +602,7 @@ nldd-card p {
   padding: 0 0 0.25rem 0.75rem;
   font: inherit;
   font-size: var(--primitives-font-size-80, 0.875rem);
-  color: var(--primitives-color-reference-hemelblauw, #007bc7);
+  color: var(--semantics-content-accent-color);
   cursor: pointer;
   text-align: left;
 }
@@ -640,7 +629,7 @@ nldd-card p {
 .comment-item--reply {
   margin-left: 0.75rem;
   padding-left: 0.5rem;
-  border-left: 1px solid var(--primitives-color-neutral-100, #e0e0e0);
+  border-left: 1px solid var(--semantics-dividers-color);
 }
 
 .comment-item__header {
@@ -655,8 +644,8 @@ nldd-card p {
 }
 
 .comment-item__time {
-  font-size: 0.75rem;
-  color: var(--primitives-color-neutral-600, #666);
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  color: var(--semantics-content-secondary-color);
   white-space: nowrap;
 }
 
@@ -675,7 +664,7 @@ nldd-card p {
 }
 
 .comment-item__body--editable:hover {
-  background-color: var(--primitives-color-neutral-50, #f3f3f3);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .comment-item__footer {
@@ -720,7 +709,7 @@ nldd-card p {
 .comment-inline-form {
   padding: 0.5rem 0.75rem;
   border-radius: var(--semantics-surfaces-corner-radius);
-  border: 2px solid var(--primitives-color-reference-hemelblauw, #007bc7);
+  border: 2px solid var(--semantics-content-accent-color);
   background: var(--semantics-surfaces-base-background-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -765,7 +754,7 @@ nldd-card p {
     overflow-y: auto;
     z-index: 90;
     transform: none;
-    border-top: 1px solid var(--primitives-color-neutral-100, #e0e0e0);
+    border-top: 1px solid var(--semantics-dividers-color);
     border-radius: 12px 12px 0 0;
     /* sheet elevation + dim scrim over the rest of the screen */
     box-shadow:
@@ -857,8 +846,8 @@ nldd-card p {
   .version-col--date,
   .version-col--who {
     width: auto;
-    font-size: 0.875rem;
-    color: var(--primitives-color-neutral-600, #666);
+    font-size: var(--primitives-font-size-80, 0.875rem);
+    color: var(--semantics-content-secondary-color);
   }
 
   .version-col--who::before {

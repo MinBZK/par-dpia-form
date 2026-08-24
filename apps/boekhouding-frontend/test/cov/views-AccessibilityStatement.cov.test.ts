@@ -6,38 +6,32 @@ import { mount } from '@vue/test-utils'
 
 import AccessibilityStatement from '../../src/views/AccessibilityStatement.vue'
 import { useBackLink } from '../../src/composables/useBackLink'
+import { previousPage } from '../../src/router'
 
 const { backLink, set } = useBackLink()
 
 afterEach(() => {
   set(null)
+  previousPage.value = null
   window.history.replaceState(null, '', window.location.href)
 })
 
 describe('AccessibilityStatement', () => {
-  describe('back link (window.history.state?.back)', () => {
-    it('sets "Terug" without a target route when history.state.back is set (truthy branch)', () => {
-      window.history.replaceState({ back: '/projecten' }, '', window.location.href)
+  describe('back link', () => {
+    it('names the page the reader came from', () => {
+      previousPage.value = { text: 'Projecten', to: '/projecten' }
 
       mount(AccessibilityStatement)
 
-      expect(backLink.value).toEqual({ text: 'Terug' })
+      expect(backLink.value).toEqual({ text: 'Projecten', to: '/projecten' })
     })
 
-    it('sets "Ga naar home" towards / when history.state has no back entry (state present, back falsy)', () => {
-      window.history.replaceState({ forward: '/projecten' }, '', window.location.href)
+    it('falls back to the start page when there is no previous page', () => {
+      previousPage.value = null
 
       mount(AccessibilityStatement)
 
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
-    })
-
-    it('sets "Ga naar home" when history.state is null (optional-chaining short-circuit)', () => {
-      window.history.replaceState(null, '', window.location.href)
-
-      mount(AccessibilityStatement)
-
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
+      expect(backLink.value).toEqual({ text: 'Startpagina', to: '/' })
     })
   })
 

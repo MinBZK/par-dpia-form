@@ -6,38 +6,32 @@ import { mount } from '@vue/test-utils'
 
 import PrivacyStatement from '../../src/views/PrivacyStatement.vue'
 import { useBackLink } from '../../src/composables/useBackLink'
+import { previousPage } from '../../src/router'
 
 const { backLink, set } = useBackLink()
 
 afterEach(() => {
   set(null)
+  previousPage.value = null
   window.history.replaceState(null, '', window.location.href)
 })
 
 describe('PrivacyStatement', () => {
-  describe('back link (window.history.state?.back)', () => {
-    it('sets "Ga naar home" towards / when history.state is null (optional chaining short-circuits)', () => {
-      window.history.replaceState(null, '', window.location.href)
+  describe('back link', () => {
+    it('names the page the reader came from', () => {
+      previousPage.value = { text: 'Projecten', to: '/projecten' }
 
       mount(PrivacyStatement)
 
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
+      expect(backLink.value).toEqual({ text: 'Projecten', to: '/projecten' })
     })
 
-    it('sets "Ga naar home" when history.state exists but has no back entry', () => {
-      window.history.replaceState({ other: 'value' }, '', window.location.href)
+    it('falls back to the start page when there is no previous page', () => {
+      previousPage.value = null
 
       mount(PrivacyStatement)
 
-      expect(backLink.value).toEqual({ text: 'Ga naar home', to: '/' })
-    })
-
-    it('sets "Terug" without a target route when history.state.back is set', () => {
-      window.history.replaceState({ back: '/projecten' }, '', window.location.href)
-
-      mount(PrivacyStatement)
-
-      expect(backLink.value).toEqual({ text: 'Terug' })
+      expect(backLink.value).toEqual({ text: 'Startpagina', to: '/' })
     })
   })
 

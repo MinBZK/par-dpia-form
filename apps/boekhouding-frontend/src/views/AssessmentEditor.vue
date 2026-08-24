@@ -18,6 +18,7 @@ import {
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import '@nldd/design-system/button'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/text-field'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/banner'
@@ -442,11 +443,11 @@ const confirmDelete = async () => {
 
 <template>
   <div class="assessment-editor">
-  <div v-if="loading" class="page-container">
+  <nldd-simple-section v-if="loading">
     <p>Assessment laden...</p>
-  </div>
+  </nldd-simple-section>
 
-  <div v-else-if="error" class="page-container" role="alert">
+  <nldd-simple-section v-else-if="error"  role="alert">
     <h2>Foutmelding</h2>
     <p>{{ error }}</p>
     <nldd-button
@@ -456,7 +457,7 @@ const confirmDelete = async () => {
       text="Terug naar project"
       @click="assessment ? router.push(`/project/${assessment.projectId}`) : router.push('/projecten')"
     ></nldd-button>
-  </div>
+  </nldd-simple-section>
 
   <template v-else-if="assessment">
     <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">

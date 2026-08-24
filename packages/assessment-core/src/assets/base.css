@@ -91,7 +91,7 @@ body {
      line-height the choices are set in. */
   font-size: inherit;
   margin: max(0px, calc((1em * var(--form-choice-line-height) - 1.25rem) / 2)) 0 0;
-  accent-color: var(--primitives-color-accent-600, #007bc7);
+  accent-color: var(--semantics-controls-is-highlighted-indicator-color);
 }
 
 /* Shared accordion: native details/summary with NLDD chevron icons. */
@@ -341,7 +341,7 @@ nldd-sidebar-section {
 
 /* Image field */
 .image-dropzone {
-  border: 2px dashed var(--primitives-color-neutral-200, #ddd);
+  border: 2px dashed var(--semantics-surfaces-tinted-border-color);
   border-radius: 12px;
   padding: var(--primitives-space-8, 0.5rem) var(--primitives-space-24, 1.5rem);
   text-align: center;
@@ -351,13 +351,13 @@ nldd-sidebar-section {
 
 .image-dropzone:hover,
 .image-dropzone:focus-visible {
-  border-color: var(--primitives-color-accent-600, #007bc7);
-  background-color: var(--primitives-color-neutral-50, #f3f3f3);
+  border-color: var(--semantics-content-accent-color);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .image-dropzone--active {
-  border-color: var(--primitives-color-accent-600, #007bc7);
-  background-color: var(--primitives-color-neutral-50, #f3f3f3);
+  border-color: var(--semantics-content-accent-color);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .image-preview {
@@ -379,10 +379,10 @@ nldd-sidebar-section {
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.5);
-  color: var(--primitives-color-neutral-0, #fff);
+  color: var(--semantics-content-contrast-color);
   font-weight: bold;
   pointer-events: none;
-  outline: 3px solid var(--primitives-color-accent-600, #007bc7);
+  outline: 3px solid var(--semantics-content-accent-color);
   outline-offset: -3px;
 }
 
@@ -397,8 +397,8 @@ nldd-sidebar-section {
 .multiselect-scrollable {
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid var(--primitives-color-neutral-300, #b3b3b3);
-  border-radius: 4px;
+  border: 1px solid var(--semantics-surfaces-base-border-color);
+  border-radius: var(--semantics-surfaces-corner-radius);
   padding: 0.25rem 0;
 }
 
@@ -488,20 +488,6 @@ nldd-sidebar-section {
   border: 0;
 }
 
-/* Standalone landing page (LandingView): page width, base typography and the
-   card/dialog spacing. */
-.page-container {
-  /* width so the container also fills a flex column (nldd-page with a
-     footer), where margin-inline auto would otherwise shrink-wrap it.
-     border-box because there is no global box-sizing reset: 100% plus the
-     inline padding would push 2rem past a narrow viewport. */
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 60rem;
-  margin-inline: auto;
-  padding-inline: var(--primitives-space-16, 1rem);
-  padding-block: var(--primitives-space-16, 1rem);
-}
 
 .landing-view h1 {
   font-size: var(--primitives-font-size-500, 2rem);

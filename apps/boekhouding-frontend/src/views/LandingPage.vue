@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { getConfig } from '../config'
 import '@nldd/design-system/button'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/card'
 import '@nldd/design-system/collection'
 import '@nldd/design-system/container'
@@ -65,7 +66,7 @@ const assessments = [
 </script>
 
 <template>
-  <div class="page-container">
+  <nldd-simple-section>
     <section class="landing-hero" aria-labelledby="landing-hero-title">
       <h1 id="landing-hero-title">
         Krijg grip op pre-scans, DPIA's en IAMA's
@@ -159,5 +160,5 @@ const assessments = [
         <router-link to="/over" class="content-link">Lees meer over de invulhulpen</router-link>
       </p>
     </section>
-  </div>
+  </nldd-simple-section>
 </template>

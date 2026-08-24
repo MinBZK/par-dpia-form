@@ -54,6 +54,28 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   afgestemd. Gevraagd: in de documentatie benoemen welke tokens buiten hun
   component bruikbaar zijn.
 
+## Bespreekpunten met het team
+
+Geen issues voor NLDD, maar keuzes die we met het team (en de inhoudelijke
+eigenaren) moeten maken voordat we mergen.
+
+- **Hoofdstuknummers in de inhoudsopgave: DPIA wel, IAMA niet.** In
+  `sources/iama.yaml` staat op elk hoofdstuk `is_official_id: false`, wat
+  betekent "dit nummer komt niet uit het officiële rapportagemodel"; de
+  inhoudsopgave laat het nummer dan weg. De IAMA-hoofdstukken heten bovendien
+  "Deel 1 - Waarom?" tot "Deel 5 - Afsluiting", dus het nummer zit al in de
+  titel. Drie richtingen:
+  1. laten zoals het is - eerlijk, maar de IAMA-tijdlijn bestaat dan uit
+     identieke stippen zonder oriëntatiepunt;
+  2. in de inhoudsopgave altijd 1..n nummeren als pure navigatie, en de
+     officiële nummering in de vraaglabels laten (waar `prefixQuestionIds` hem
+     al zet) - bij het IAMA staat het deelnummer dan twee keer;
+  3. de bron aanpassen: is "Deel 1..5" de officiële indeling van IAMA v2.0, zet
+     dan `is_official_id: true` en haal "Deel N -" uit de titel.
+
+  Voorkeur van dit team: 3, met 2 als terugval. Vraag uitstaand bij de
+  inhoudelijke eigenaren van het IAMA.
+
 ## Opgelost of vervallen
 
 (nog leeg)

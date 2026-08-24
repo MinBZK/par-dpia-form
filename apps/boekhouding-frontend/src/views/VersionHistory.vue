@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
 import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
 import '@nldd/design-system/box'
+import '@nldd/design-system/simple-section'
 import '@nldd/design-system/button'
 import '@nldd/design-system/container'
 import '@nldd/design-system/form-field'
@@ -727,7 +728,7 @@ function mapEditsToDiffFields(
 </script>
 
 <template>
-  <div class="page-container">
+  <nldd-simple-section>
     <nldd-title size="3"><h1>Versiegeschiedenis</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>
@@ -912,5 +913,5 @@ function mapEditsToDiffFields(
       <nldd-button slot="actions" variant="primary" text="Herstellen" @click="handleFieldRestore"></nldd-button>
       <nldd-button slot="actions" variant="secondary" text="Annuleren" @click="fieldRestoreModalOpen = false"></nldd-button>
     </nldd-modal-dialog>
-  </div>
+  </nldd-simple-section>
 </template>
