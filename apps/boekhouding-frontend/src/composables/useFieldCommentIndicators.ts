@@ -1,31 +1,6 @@
 import { onUnmounted, watch, type Ref } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
-
-const SVG_NS = 'http://www.w3.org/2000/svg'
-
-/** Creates an SVG icon matching tabler IconMessage (same as header badge). */
-function createMessageIcon(): SVGSVGElement {
-  const svg = document.createElementNS(SVG_NS, 'svg')
-  svg.setAttribute('width', '16')
-  svg.setAttribute('height', '16')
-  svg.setAttribute('viewBox', '0 0 24 24')
-  svg.setAttribute('fill', 'none')
-  svg.setAttribute('stroke', 'currentColor')
-  svg.setAttribute('stroke-width', '2')
-  svg.setAttribute('stroke-linecap', 'round')
-  svg.setAttribute('stroke-linejoin', 'round')
-  svg.setAttribute('aria-hidden', 'true')
-
-  const path1 = document.createElementNS(SVG_NS, 'path')
-  path1.setAttribute('d', 'M8 9h8')
-  const path2 = document.createElementNS(SVG_NS, 'path')
-  path2.setAttribute('d', 'M8 13h6')
-  const path3 = document.createElementNS(SVG_NS, 'path')
-  path3.setAttribute('d', 'M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z')
-
-  svg.append(path1, path2, path3)
-  return svg
-}
+import '@nldd/design-system/button'
 
 /**
  * Observes the DOM for field labels and injects comment buttons.
@@ -42,13 +17,15 @@ export function useFieldCommentIndicators(
   canComment: Ref<boolean>,
 ) {
   const commentStore = useCollaborationStore()
-  const injectedElements = new Map<string, HTMLButtonElement>()
+  const injectedElements = new Map<string, HTMLElement>()
   let observer: MutationObserver | null = null
   let isInjecting = false
 
-  function createButton(fieldId: string, count: number): HTMLButtonElement {
-    const btn = document.createElement('button')
-    btn.type = 'button'
+  function createButton(fieldId: string, count: number): HTMLElement {
+    const btn = document.createElement('nldd-button')
+    btn.setAttribute('size', 'xs')
+    btn.setAttribute('variant', 'accent-transparent')
+    btn.setAttribute('start-icon', 'comment')
     btn.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -58,26 +35,14 @@ export function useFieldCommentIndicators(
     return btn
   }
 
-  function updateButton(btn: HTMLButtonElement, count: number) {
-    // Preserve layout classes that are added separately by scanAndInject
-    const wasInLabelRow = btn.classList.contains('comment-field-btn--in-label-row')
-
-    btn.textContent = ''
-    btn.appendChild(createMessageIcon())
-
-    const label = document.createElement('span')
+  function updateButton(btn: HTMLElement, count: number) {
     if (count > 0) {
-      btn.className = 'comment-field-btn comment-field-btn--has-comments'
-      label.textContent = `Opmerking (${count})`
-      btn.setAttribute('aria-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
+      btn.setAttribute('text', `Opmerking (${count})`)
+      btn.setAttribute('accessible-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
     } else {
-      btn.className = 'comment-field-btn'
-      label.textContent = 'Opmerking'
-      btn.setAttribute('aria-label', 'Opmerking toevoegen bij deze vraag')
+      btn.setAttribute('text', 'Opmerking')
+      btn.setAttribute('accessible-label', 'Opmerking toevoegen bij deze vraag')
     }
-    btn.appendChild(label)
-
-    if (wasInLabelRow) btn.classList.add('comment-field-btn--in-label-row')
   }
 
   function scanAndInject() {
@@ -123,8 +88,8 @@ export function useFieldCommentIndicators(
       // Create new button
       btn = createButton(fieldId, count)
 
-      // Find the label container (parent div.rvo-form-field__label)
-      const labelContainer = label.closest('.rvo-form-field__label')
+      // Find the label container (parent div.form-field__label)
+      const labelContainer = label.closest('.form-field__label')
       if (!labelContainer) {
         // Fallback: insert after the label element
         label.parentElement?.insertBefore(btn, label.nextSibling)
@@ -138,15 +103,15 @@ export function useFieldCommentIndicators(
       if (toggle) {
         // Insert BEFORE the toggle — then move margin-auto to our button
         // so both buttons group on the right
-        btn.classList.add('comment-field-btn--in-label-row')
+        btn.classList.add('comment-field-label__btn')
         labelContainer.insertBefore(btn, toggle)
       } else {
         // Non-open_text: make the label container flex and add the button
         labelContainer.classList.add('comment-field-label--flex')
-        btn.classList.add('comment-field-btn--in-label-row')
+        btn.classList.add('comment-field-label__btn')
 
         // Insert before the description (if any) or at the end
-        const description = labelContainer.querySelector('.utrecht-form-field-description')
+        const description = labelContainer.querySelector('.form-field__description')
         if (description) {
           labelContainer.insertBefore(btn, description)
         } else {

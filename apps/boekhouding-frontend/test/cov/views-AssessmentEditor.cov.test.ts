@@ -10,6 +10,11 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
+const backLinkSet = vi.fn()
+vi.mock('../../src/composables/useBackLink', () => ({
+  useBackLink: () => ({ set: backLinkSet }),
+}))
+
 const {
   FormTypeMock,
   schemaStore,
@@ -94,6 +99,7 @@ const {
     lastModifiedBySelf: true,
     syncFailing: false,
     commentActionError: null as { message: string; retryable: boolean } | null,
+    unresolvedCountByField: new Map<string, number>(),
     load: vi.fn().mockResolvedValue(undefined),
     startPolling: vi.fn(),
     reset: vi.fn(),
@@ -144,7 +150,7 @@ const { sanitizeAnswers } = vi.hoisted(() => ({
 vi.mock('@overheid-assessment/core', () => ({
   Form: {
     name: 'Form',
-    props: ['navigation', 'namespace', 'validData', 'showBanner', 'showNavHeader', 'showFileActions', 'autoStart'],
+    props: ['navigation', 'namespace', 'validData', 'showBanner', 'showNavHeader', 'showFileActions', 'autoStart', 'commentedRootTaskIds'],
     template: '<div class="form-stub" :data-namespace="namespace" />',
   },
   FormType: FormTypeMock,
@@ -185,16 +191,7 @@ vi.mock('../../../../sources/generated/PreScanDPIA.json', () => ({
 
 import AssessmentEditor from '../../src/views/AssessmentEditor.vue'
 
-// jsdom lacks the native <dialog> API; stand-ins let the deleteModalOpen watcher (showModal/close) run.
-if (!HTMLDialogElement.prototype.showModal) {
-  HTMLDialogElement.prototype.showModal = function () { this.open = true }
-}
-if (!HTMLDialogElement.prototype.close) {
-  HTMLDialogElement.prototype.close = function () { this.open = false }
-}
-
 const stubs = {
-  AppHeader: { name: 'AppHeader', props: ['backLabel', 'backRoute'], template: '<header class="app-header-stub" />' },
   ConflictResolutionDialog: {
     name: 'ConflictResolutionDialog',
     props: ['active', 'fields'],
@@ -290,6 +287,7 @@ beforeEach(async () => {
   collaborationStore.assessmentVersion = null
   collaborationStore.assessmentUpdatedAt = null
   collaborationStore.lastModifiedBySelf = true
+  collaborationStore.unresolvedCountByField = new Map()
   collaborationStore.load.mockResolvedValue(undefined)
 
   assessmentsApi.get.mockResolvedValue(makeAssessment())
@@ -322,7 +320,9 @@ describe('AssessmentEditor — loading and error states', () => {
     expect(wrapper.text()).toContain('Foutmelding')
     expect(wrapper.text()).toContain('Kapot')
 
-    await wrapper.find('[role="alert"] button').trigger('click')
+    const backBtn = wrapper.find('[role="alert"] nldd-button')
+    expect(backBtn.attributes('text')).toBe('Terug naar project')
+    await backBtn.trigger('click')
     expect(routerPush).toHaveBeenCalledWith('/projecten')
     wrapper.unmount()
   })
@@ -332,7 +332,7 @@ describe('AssessmentEditor — loading and error states', () => {
     collaborationStore.load.mockRejectedValueOnce(new Error('Sync stuk'))
     const wrapper = await mountEditor()
     expect(wrapper.text()).toContain('Sync stuk')
-    await wrapper.find('[role="alert"] button').trigger('click')
+    await wrapper.find('[role="alert"] nldd-button').trigger('click')
     expect(routerPush).toHaveBeenCalledWith('/project/p1')
     wrapper.unmount()
   })
@@ -354,6 +354,20 @@ describe('AssessmentEditor — onMounted initialization', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     expect(schemaStore.init).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('declares the back link to the project once the assessment loads', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    expect(backLinkSet).toHaveBeenCalledWith({ text: 'Project', to: '/project/p1' })
+    wrapper.unmount()
+  })
+
+  it('does not declare a back link when loading the assessment fails', async () => {
+    assessmentsApi.get.mockRejectedValueOnce(new Error('Kapot'))
+    const wrapper = await mountEditor()
+    expect(backLinkSet).not.toHaveBeenCalled()
     wrapper.unmount()
   })
 
@@ -529,23 +543,34 @@ describe('AssessmentEditor — role-based access', () => {
     wrapper.unmount()
   })
 
-  it('marks the form readonly and shows the viewer alert for a viewer', async () => {
+  it('marks the form readonly and shows the viewer banner for a viewer', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'viewer' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     expect(wrapper.find('.assessment-editor__form').classes()).toContain('form-readonly')
-    expect(wrapper.text()).toContain('Je hebt alleen leesrechten op deze assessment.')
+    const banner = wrapper.find('nldd-banner')
+    expect(banner.attributes('text')).toBe('Je hebt alleen leesrechten op deze assessment.')
+    expect(banner.attributes('variant')).toBe('accent')
     const h1 = wrapper.find('h1.form-name')
     expect(h1.classes()).not.toContain('form-name--editable')
     expect(h1.attributes('role')).toBeUndefined()
     wrapper.unmount()
   })
 
-  it('shows the commenter alert for a commenter', async () => {
+  it('shows the commenter banner for a commenter', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'commenter' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    expect(wrapper.text()).toContain('Je kunt opmerkingen plaatsen maar niet het formulier bewerken.')
+    expect(wrapper.find('nldd-banner').attributes('text'))
+      .toBe('Je kunt opmerkingen plaatsen maar niet het formulier bewerken.')
+    wrapper.unmount()
+  })
+
+  it('shows no role banner for an owner', async () => {
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    expect(wrapper.find('nldd-banner').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -627,15 +652,24 @@ describe('AssessmentEditor — comment panel', () => {
 })
 
 describe('AssessmentEditor — inline name editing', () => {
-  it('enters edit mode on owner heading click and focuses the input', async () => {
+  function nameField(wrapper: Awaited<ReturnType<typeof mountEditor>>) {
+    return wrapper.find('nldd-text-field.form-name-input')
+  }
+
+  function setNameFieldValue(wrapper: Awaited<ReturnType<typeof mountEditor>>, value: string) {
+    nameField(wrapper).element.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+  }
+
+  it('enters edit mode on owner heading click and shows the current custom part', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Oud' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    const input = wrapper.find('input.form-name-input')
+    const input = nameField(wrapper)
     expect(input.exists()).toBe(true)
-    expect((input.element as HTMLInputElement).value).toBe('Oud')
+    expect(input.attributes('value')).toBe('Oud')
+    expect(input.attributes('accessible-label')).toBe('Naam')
     wrapper.unmount()
   })
 
@@ -645,7 +679,30 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('keydown.enter')
     await nextTick()
-    expect((wrapper.find('input.form-name-input').element as HTMLInputElement).value).toBe('Zonder prefix')
+    expect(nameField(wrapper).attributes('value')).toBe('Zonder prefix')
+    wrapper.unmount()
+  })
+
+  it('pre-selects the name via the shadow input when the element is upgraded', async () => {
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Oud' }))
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    // Enter and leave edit mode once so the exposed ref exists, then stub a
+    // shadow root on the vm ref before re-entering (jsdom never upgrades the
+    // element, so this is the only way to reach the select() call).
+    const select = vi.fn()
+    const fakeHost = {
+      focus: vi.fn(),
+      shadowRoot: { querySelector: vi.fn(() => ({ select })) },
+    }
+    const vm = wrapper.vm as unknown as { nameInput: unknown; startEditName: () => Promise<void> }
+    await wrapper.find('h1.form-name').trigger('click')
+    await nextTick()
+    vm.nameInput = fakeHost
+    await vm.startEditName()
+    expect(fakeHost.focus).toHaveBeenCalled()
+    expect(fakeHost.shadowRoot.querySelector).toHaveBeenCalledWith('input')
+    expect(select).toHaveBeenCalled()
     wrapper.unmount()
   })
 
@@ -655,7 +712,7 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    expect(wrapper.find('input.form-name-input').exists()).toBe(false)
+    expect(nameField(wrapper).exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -665,9 +722,9 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    await wrapper.find('input.form-name-input').trigger('keydown.escape')
+    await nameField(wrapper).trigger('keydown.escape')
     await nextTick()
-    expect(wrapper.find('input.form-name-input').exists()).toBe(false)
+    expect(nameField(wrapper).exists()).toBe(false)
     expect(assessmentsApi.rename).not.toHaveBeenCalled()
     wrapper.unmount()
   })
@@ -678,26 +735,45 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    const cancelBtn = wrapper.findAll('button').find((b) => b.text() === 'Annuleer')!
+    const cancelBtn = wrapper
+      .findAll('.form-name-edit nldd-button')
+      .find((b) => b.attributes('text') === 'Annuleer')!
     await cancelBtn.trigger('click')
     await nextTick()
-    expect(wrapper.find('input.form-name-input').exists()).toBe(false)
+    expect(nameField(wrapper).exists()).toBe(false)
     wrapper.unmount()
   })
 
-  it('saves a new name with a custom part', async () => {
+  it('saves a new name with a custom part (value from event.detail)', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Oud' }))
     assessmentsApi.rename.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Nieuw' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    const input = wrapper.find('input.form-name-input')
-    await input.setValue('Nieuw')
-    await input.trigger('keydown.enter')
+    setNameFieldValue(wrapper, 'Nieuw')
+    await nextTick()
+    await nameField(wrapper).trigger('keydown.enter')
     await flushPromises()
     expect(assessmentsApi.rename).toHaveBeenCalledWith('a1', 'DPIA: Nieuw')
     expect(wrapper.find('h1.form-name').text()).toBe('DPIA: Nieuw')
+    wrapper.unmount()
+  })
+
+  it('falls back to target.value when the input event carries no detail', async () => {
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Oud' }))
+    assessmentsApi.rename.mockResolvedValueOnce(makeAssessment({ role: 'owner', name: 'DPIA: Fallback' }))
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    await wrapper.find('h1.form-name').trigger('click')
+    await nextTick()
+    const host = nameField(wrapper).element as HTMLElement & { value?: string }
+    host.value = 'Fallback'
+    host.dispatchEvent(new Event('input'))
+    await nextTick()
+    await nameField(wrapper).trigger('keydown.enter')
+    await flushPromises()
+    expect(assessmentsApi.rename).toHaveBeenCalledWith('a1', 'DPIA: Fallback')
     wrapper.unmount()
   })
 
@@ -708,9 +784,11 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    const input = wrapper.find('input.form-name-input')
-    await input.setValue('   ')
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!
+    setNameFieldValue(wrapper, '   ')
+    await nextTick()
+    const saveBtn = wrapper
+      .findAll('.form-name-edit nldd-button')
+      .find((b) => b.attributes('text') === 'Opslaan')!
     await saveBtn.trigger('click')
     await flushPromises()
     expect(assessmentsApi.rename).toHaveBeenCalledWith('a1', 'DPIA')
@@ -723,83 +801,65 @@ describe('AssessmentEditor — inline name editing', () => {
     const wrapper = await mountEditor()
     await wrapper.find('h1.form-name').trigger('click')
     await nextTick()
-    const saveBtn = wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!
+    const saveBtn = wrapper
+      .findAll('.form-name-edit nldd-button')
+      .find((b) => b.attributes('text') === 'Opslaan')!
     await saveBtn.trigger('click')
     await flushPromises()
     expect(assessmentsApi.rename).not.toHaveBeenCalled()
-    expect(wrapper.find('input.form-name-input').exists()).toBe(false)
+    expect(nameField(wrapper).exists()).toBe(false)
     wrapper.unmount()
   })
 })
 
 describe('AssessmentEditor — kebab menu', () => {
-  async function openMenu(wrapper: Awaited<ReturnType<typeof mountEditor>>) {
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    await nextTick()
+  // The shared KebabMenu renders its slotted items in the light DOM; jsdom does
+  // not enforce popover visibility, so the items are directly interactable.
+  function menuItem(wrapper: Awaited<ReturnType<typeof mountEditor>>, text: string) {
+    return wrapper.findAll('nldd-menu-item').find((i) => i.attributes('text') === text)
   }
 
-  it('opens and closes the menu via the trigger', async () => {
+  it('renders the shared kebab menu with the assessment-actions label', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
-    await openMenu(wrapper)
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
-    expect(wrapper.find('.kebab-menu__trigger').attributes('aria-expanded')).toBe('true')
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    await nextTick()
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
-    wrapper.unmount()
-  })
-
-  it('closes the menu on focusout', async () => {
-    schemaStore.isInitialized = true
-    const wrapper = await mountEditor()
-    await openMenu(wrapper)
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
-    await wrapper.find('.kebab-menu').trigger('focusout')
-    await nextTick()
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
+    expect(wrapper.find('nldd-icon-button').attributes('text')).toBe('Assessmentacties')
+    expect(wrapper.find('nldd-menu').attributes('accessible-label')).toBe('Assessmentacties')
     wrapper.unmount()
   })
 
   it('navigates to version history', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await openMenu(wrapper)
-    const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Versiegeschiedenis')!
-    await item.trigger('mousedown')
+    await menuItem(wrapper, 'Versiegeschiedenis')!.trigger('click')
     expect(routerPush).toHaveBeenCalledWith('/assessment/a1/versies')
     wrapper.unmount()
   })
 
-  it('triggers the PDF, JSON and Markdown exports and closes the menu each time', async () => {
+  it('triggers the PDF, JSON and Markdown exports', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
 
-    await openMenu(wrapper)
-    await wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Download als PDF')!.trigger('mousedown')
+    await menuItem(wrapper, 'Download als PDF')!.trigger('click')
     await flushPromises()
     expect(exportToPdf).toHaveBeenCalledWith(taskStore, answerStore, calculationStore)
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
 
-    await openMenu(wrapper)
-    await wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Download als JSON')!.trigger('mousedown')
+    await menuItem(wrapper, 'Download als JSON')!.trigger('click')
     await flushPromises()
     expect(exportToJson).toHaveBeenCalledWith(taskStore, answerStore)
 
-    await openMenu(wrapper)
-    await wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Download als Markdown')!.trigger('mousedown')
+    await menuItem(wrapper, 'Download als Markdown')!.trigger('click')
     await flushPromises()
     expect(exportToMarkdown).toHaveBeenCalledWith(taskStore, answerStore)
     wrapper.unmount()
   })
 
-  it('shows the delete item for an owner', async () => {
+  it('shows the delete item as destructive for an owner', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await openMenu(wrapper)
-    expect(wrapper.find('.kebab-menu__item--danger').exists()).toBe(true)
+    const item = menuItem(wrapper, 'Assessment verwijderen')
+    expect(item).toBeDefined()
+    expect(item!.attributes('destructive')).toBeDefined()
     wrapper.unmount()
   })
 
@@ -807,37 +867,72 @@ describe('AssessmentEditor — kebab menu', () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'editor' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await openMenu(wrapper)
-    expect(wrapper.find('.kebab-menu__item--danger').exists()).toBe(false)
+    expect(menuItem(wrapper, 'Assessment verwijderen')).toBeUndefined()
     wrapper.unmount()
   })
 })
 
 describe('AssessmentEditor — delete flow', () => {
+  async function openDeleteModal(wrapper: Awaited<ReturnType<typeof mountEditor>>) {
+    await wrapper
+      .findAll('nldd-menu-item')
+      .find((i) => i.attributes('text') === 'Assessment verwijderen')!
+      .trigger('click')
+    await nextTick()
+  }
+
+  function dialogButton(wrapper: Awaited<ReturnType<typeof mountEditor>>, text: string) {
+    return wrapper
+      .findAll('nldd-modal-dialog nldd-button')
+      .find((b) => b.attributes('text') === text)!
+  }
+
+  function setConfirmValue(wrapper: Awaited<ReturnType<typeof mountEditor>>, value: string) {
+    wrapper
+      .find('nldd-modal-dialog nldd-text-field')
+      .element.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+  }
+
   it('opens the delete modal, enables the button on VERWIJDEREN and deletes', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
 
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    await nextTick()
-    await wrapper.find('.kebab-menu__item--danger').trigger('mousedown')
-    await nextTick()
+    await openDeleteModal(wrapper)
 
-    const deleteBtn = wrapper.find('.confirm-dialog__delete')
-    expect((deleteBtn.element as HTMLButtonElement).disabled).toBe(true)
-    expect(deleteBtn.classes()).toContain('confirm-dialog__delete--disabled')
+    const deleteBtn = dialogButton(wrapper, 'Assessment verwijderen')
+    expect(deleteBtn.attributes('variant')).toBe('destructive')
+    expect(deleteBtn.attributes('disabled')).toBeDefined()
 
-    const input = wrapper.find('.confirm-dialog__input')
-    await input.setValue('VERWIJDEREN')
+    setConfirmValue(wrapper, 'VERWIJDEREN')
     await nextTick()
-    expect((deleteBtn.element as HTMLButtonElement).disabled).toBe(false)
-    expect(deleteBtn.classes()).toContain('rvo-button--primary')
+    expect(dialogButton(wrapper, 'Assessment verwijderen').attributes('disabled')).toBeUndefined()
 
     await deleteBtn.trigger('click')
     await flushPromises()
     expect(assessmentsApi.delete).toHaveBeenCalledWith('a1')
     expect(routerPush).toHaveBeenCalledWith('/project/p1')
+    wrapper.unmount()
+  })
+
+  it('mirrors the open state to show()/hide() on the upgraded modal element', async () => {
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await openDeleteModal(wrapper)
+    expect(host.show).toHaveBeenCalledTimes(1)
+    expect(host.hide).not.toHaveBeenCalled()
+
+    await dialogButton(wrapper, 'Annuleer').trigger('click')
+    await nextTick()
+    expect(host.hide).toHaveBeenCalledTimes(1)
     wrapper.unmount()
   })
 
@@ -851,19 +946,31 @@ describe('AssessmentEditor — delete flow', () => {
     wrapper.unmount()
   })
 
-  it('closes the delete dialog via the dialog close event', async () => {
+  it('closes the delete dialog via the dialog close event and resets the typed input', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
+    await openDeleteModal(wrapper)
+    setConfirmValue(wrapper, 'VERWIJDEREN')
     await nextTick()
-    await wrapper.find('.kebab-menu__item--danger').trigger('mousedown')
+    await wrapper.find('nldd-modal-dialog').trigger('close')
     await nextTick()
-    const input = wrapper.find('.confirm-dialog__input')
-    await input.setValue('VERWIJDEREN')
-    await wrapper.find('dialog.confirm-dialog').trigger('close')
+    expect(wrapper.find('nldd-modal-dialog nldd-text-field').attributes('value')).toBe('')
+    wrapper.unmount()
+  })
+
+  it('falls back to target.value for a confirm input event without detail', async () => {
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    await openDeleteModal(wrapper)
+    const host = wrapper.find('nldd-modal-dialog nldd-text-field').element as HTMLElement & {
+      value?: string
+    }
+    host.value = 'VERWIJDEREN'
+    host.dispatchEvent(new Event('input'))
     await nextTick()
-    expect((wrapper.find('.confirm-dialog__input').element as HTMLInputElement).value).toBe('')
+    expect(dialogButton(wrapper, 'Assessment verwijderen').attributes('disabled')).toBeUndefined()
     wrapper.unmount()
   })
 
@@ -871,12 +978,8 @@ describe('AssessmentEditor — delete flow', () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    await nextTick()
-    await wrapper.find('.kebab-menu__item--danger').trigger('mousedown')
-    await nextTick()
-    const cancelBtn = wrapper.findAll('.confirm-dialog__actions button').find((b) => b.text() === 'Annuleer')!
-    await cancelBtn.trigger('click')
+    await openDeleteModal(wrapper)
+    await dialogButton(wrapper, 'Annuleer').trigger('click')
     await nextTick()
     expect(assessmentsApi.delete).not.toHaveBeenCalled()
     wrapper.unmount()
@@ -904,11 +1007,11 @@ describe('AssessmentEditor — conflict dialog', () => {
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Bericht', () => {})
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(true)
+    expect(wrapper.find('nldd-notification').exists()).toBe(true)
 
     conflictState.active = true
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -924,42 +1027,37 @@ describe('AssessmentEditor — conflict dialog', () => {
     await nextTick()
     conflictState.active = false
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(true)
+    expect(wrapper.find('nldd-notification').exists()).toBe(true)
     wrapper.unmount()
   })
 })
 
 describe('AssessmentEditor — sync toast helpers', () => {
-  it('auto-dismisses an action-less toast after 3 seconds', async () => {
-    vi.useFakeTimers()
+  it('leaves an action-less toast to the notification clock and drops it on dismiss', async () => {
     schemaStore.isInitialized = true
-    const wrapper = mount(AssessmentEditor, { props: { assessmentId: 'a1' }, global: { stubs } })
-    await vi.runOnlyPendingTimersAsync()
-    await flushPromises()
+    const wrapper = await mountEditor()
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Bijgewerkt')
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(true)
-    vi.advanceTimersByTime(3000)
+    const toast = wrapper.find('nldd-notification')
+    expect(toast.attributes('duration')).toBe('3000')
+    expect(wrapper.find('nldd-notification nldd-button').exists()).toBe(false)
+
+    await toast.trigger('dismiss')
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
-    vi.useRealTimers()
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 
-  it('clears an existing timer when a new toast is shown', async () => {
-    vi.useFakeTimers()
+  it('replaces the message when a new toast is shown', async () => {
     schemaStore.isInitialized = true
-    const wrapper = mount(AssessmentEditor, { props: { assessmentId: 'a1' }, global: { stubs } })
-    await vi.runOnlyPendingTimersAsync()
-    await flushPromises()
+    const wrapper = await mountEditor()
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Eerste')
     await nextTick()
     vm.showSyncToast('Tweede')
     await nextTick()
-    expect(wrapper.find('.sync-toast span').text()).toBe('Tweede')
-    vi.useRealTimers()
+    expect(wrapper.find('nldd-notification').attributes('text')).toBe('Tweede')
     wrapper.unmount()
   })
 
@@ -970,20 +1068,33 @@ describe('AssessmentEditor — sync toast helpers', () => {
     const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
     vm.showSyncToast('Met actie', action)
     await nextTick()
-    const actionBtn = wrapper.find('.sync-toast__action')
+    const toast = wrapper.find('nldd-notification')
+    expect(toast.attributes('variant')).toBe('accent')
+    expect(toast.attributes('duration')).toBe('0')
+    const actionBtn = wrapper.find('nldd-notification nldd-button')
     expect(actionBtn.exists()).toBe(true)
-    expect(actionBtn.text()).toBe('Bijwerken')
+    expect(actionBtn.attributes('text')).toBe('Bijwerken')
+    expect(actionBtn.attributes('slot')).toBe('actions')
     await actionBtn.trigger('click')
     expect(action).toHaveBeenCalledTimes(1)
     wrapper.unmount()
   })
 
-  it('dismissSyncToast clears a running timer', async () => {
-    vi.useFakeTimers()
+  it('clears the toast when the notification dismisses itself', async () => {
     schemaStore.isInitialized = true
-    const wrapper = mount(AssessmentEditor, { props: { assessmentId: 'a1' }, global: { stubs } })
-    await vi.runOnlyPendingTimersAsync()
-    await flushPromises()
+    const wrapper = await mountEditor()
+    const vm = wrapper.vm as unknown as { showSyncToast: (m: string, a?: () => void) => void }
+    vm.showSyncToast('Met actie', () => {})
+    await nextTick()
+    await wrapper.find('nldd-notification').trigger('dismiss')
+    await nextTick()
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('dismissSyncToast clears the toast', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
     const vm = wrapper.vm as unknown as {
       showSyncToast: (m: string, a?: () => void) => void
       dismissSyncToast: () => void
@@ -992,8 +1103,7 @@ describe('AssessmentEditor — sync toast helpers', () => {
     await nextTick()
     vm.dismissSyncToast()
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
-    vi.useRealTimers()
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 })
@@ -1051,6 +1161,22 @@ describe('AssessmentEditor — navigation functions', () => {
     const vm = wrapper.vm as unknown as { namespace: string; customNamePart: string }
     expect(vm.namespace).toBe(FormTypeMock.DPIA)
     expect(vm.customNamePart).toBe('')
+    wrapper.unmount()
+  })
+
+  it('passes the root sections with unresolved comments to Form', async () => {
+    schemaStore.isInitialized = true
+    // Regular field, section-completion, repeatable instance, and a resolved
+    // (count 0) entry that must be ignored.
+    collaborationStore.unresolvedCountByField = new Map<string, number>([
+      ['2.1.3', 1],
+      ['completed.5', 2],
+      ['0.1[0]', 3],
+      ['9.9', 0],
+    ])
+    const wrapper = await mountEditor()
+    const commented = wrapper.findComponent({ name: 'Form' }).props('commentedRootTaskIds') as string[]
+    expect([...commented].sort()).toEqual(['0', '2', '5'])
     wrapper.unmount()
   })
 })
@@ -1145,15 +1271,15 @@ describe('AssessmentEditor — remote change watcher', () => {
     await flushPromises()
     await nextTick()
 
-    const toast = wrapper.find('.sync-toast')
+    const toast = wrapper.find('nldd-notification')
     expect(toast.exists()).toBe(true)
-    expect(toast.find('span').text()).toBe("Een collega heeft een wijziging gemaakt in 'Veld A'")
+    expect(toast.attributes('text')).toBe("Een collega heeft een wijziging gemaakt in 'Veld A'")
 
-    await wrapper.find('.sync-toast__action').trigger('click')
+    await wrapper.find('nldd-notification nldd-button').trigger('click')
     await flushPromises()
     await nextTick()
     expect(sync.applyDeferredChanges).toHaveBeenCalledWith(42)
-    expect(wrapper.find('.sync-toast span').text()).toBe('Informatie bijgewerkt')
+    expect(wrapper.find('nldd-notification').attributes('text')).toBe('Informatie bijgewerkt')
     wrapper.unmount()
   })
 
@@ -1172,13 +1298,13 @@ describe('AssessmentEditor — remote change watcher', () => {
     collaborationStore.assessmentUpdatedAt = '2026-04-05T00:00:00Z'
     await flushPromises()
     await nextTick()
-    const toast = wrapper.find('.sync-toast')
-    expect(toast.find('span').text()).toBe('Een collega heeft 2 wijzigingen gemaakt in deze sectie')
+    const toast = wrapper.find('nldd-notification')
+    expect(toast.attributes('text')).toBe('Een collega heeft 2 wijzigingen gemaakt in deze sectie')
 
-    await wrapper.find('.sync-toast__action').trigger('click')
+    await wrapper.find('nldd-notification nldd-button').trigger('click')
     await flushPromises()
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -1196,7 +1322,7 @@ describe('AssessmentEditor — remote change watcher', () => {
     collaborationStore.assessmentUpdatedAt = '2026-04-06T00:00:00Z'
     await flushPromises()
     await nextTick()
-    expect(wrapper.find('.sync-toast span').text()).toBe("Secties 'Sectie 1' en 'Sectie 2' bijgewerkt door een collega")
+    expect(wrapper.find('nldd-notification').attributes('text')).toBe("Secties 'Sectie 1' en 'Sectie 2' bijgewerkt door een collega")
     wrapper.unmount()
   })
 
@@ -1214,7 +1340,7 @@ describe('AssessmentEditor — remote change watcher', () => {
     collaborationStore.assessmentUpdatedAt = '2026-04-07T00:00:00Z'
     await flushPromises()
     await nextTick()
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     expect(sync.handleRemoteChange).toHaveBeenCalledWith(taskStore.currentRootTaskId[taskStore.activeNamespace])
     wrapper.unmount()
   })
@@ -1243,24 +1369,23 @@ describe('AssessmentEditor — navigate watcher (deferred changes)', () => {
 })
 
 describe('AssessmentEditor — delete modal dialog watcher', () => {
-  it('calls showModal/close on the dialog ref when the modal opens and closes', async () => {
+  it('tolerates a modal element that is not upgraded (no show/hide methods)', async () => {
     assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'owner' }))
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-    const showModal = vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
-    const close = vi.spyOn(dialog, 'close').mockImplementation(() => {})
 
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
+    // Open and close without stubbing show/hide: the optional calls no-op.
+    await wrapper
+      .findAll('nldd-menu-item')
+      .find((i) => i.attributes('text') === 'Assessment verwijderen')!
+      .trigger('click')
     await nextTick()
-    await wrapper.find('.kebab-menu__item--danger').trigger('mousedown')
+    await wrapper
+      .findAll('nldd-modal-dialog nldd-button')
+      .find((b) => b.attributes('text') === 'Annuleer')!
+      .trigger('click')
     await nextTick()
-    expect(showModal).toHaveBeenCalledTimes(1)
-
-    const cancelBtn = wrapper.findAll('.confirm-dialog__actions button').find((b) => b.text() === 'Annuleer')!
-    await cancelBtn.trigger('click')
-    await nextTick()
-    expect(close).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('nldd-modal-dialog').exists()).toBe(true)
     wrapper.unmount()
   })
 })

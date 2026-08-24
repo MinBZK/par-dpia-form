@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import { FormType, type NavigationFunctions } from '@overheid-assessment/core'
 import LandingView from '@/components/LandingView.vue'
 
@@ -35,30 +36,55 @@ function mountLanding(
 }
 
 function clickButtonByText(wrapper: VueWrapper, text: string) {
-  const button = wrapper.findAll('button').find((b) => b.text() === text)
+  const button = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === text)
   if (!button) throw new Error(`Button not found: ${text}`)
   return button.trigger('click')
+}
+
+function findModal(wrapper: VueWrapper) {
+  return wrapper.find('nldd-modal-dialog')
+}
+
+// The page holds two modals: the per-assessment "start fresh" one first, the
+// wipe-everything one after it.
+function findClearAllModal(wrapper: VueWrapper) {
+  return wrapper.findAll('nldd-modal-dialog')[1]
+}
+
+// The nldd-modal-dialog custom element is not registered in jsdom; its
+// imperative API is stubbed per test on the host element.
+function stubModal(wrapper: VueWrapper) {
+  const host = findModal(wrapper).element as HTMLElement & {
+    show?: () => void
+    hide?: () => void
+  }
+  host.show = vi.fn()
+  host.hide = vi.fn()
+  return host
 }
 
 describe('LandingView rendering', () => {
   it('renders the page heading and the AppBanner', () => {
     const wrapper = mountLanding()
 
-    expect(wrapper.find('h1.utrecht-heading-1').text()).toBe(
+    expect(wrapper.find('h1').text()).toBe(
       'Invulhulpen voor pre-scan, DPIA en IAMA',
     )
     expect(wrapper.findComponent({ name: 'AppBanner' }).exists()).toBe(true)
   })
 
-  it('shows the "Invulhulpen" title next to the logo', () => {
+  it('shows the "Invulhulpen" wordmark on the top navigation bar', () => {
     const wrapper = mountLanding()
-    expect(wrapper.find('.rvo-logo__title').text()).toBe('Invulhulpen')
+    expect(wrapper.find('nldd-top-navigation-bar').attributes('logo-title')).toBe('Invulhulpen')
   })
 
   it('renders the assessment cards with their Dutch descriptions', () => {
     const wrapper = mountLanding()
 
-    const headings = wrapper.findAll('h2.utrecht-heading-2').map((h) => h.text())
+    const cards = wrapper.findAll('nldd-collection nldd-card')
+    expect(cards).toHaveLength(3)
+
+    const headings = wrapper.findAll('h2').map((h) => h.text())
     expect(headings).toContain('Pre-scan')
     expect(headings).toContain('DPIA')
     expect(headings).toContain('IAMA')
@@ -70,7 +96,7 @@ describe('LandingView rendering', () => {
   it('renders all three start buttons with the correct Dutch labels when no cache exists', () => {
     const wrapper = mountLanding()
 
-    const buttonLabels = wrapper.findAll('button.card-button').map((b) => b.text())
+    const buttonLabels = wrapper.findAll('nldd-button.card-button').map((b) => b.attributes('text'))
     expect(buttonLabels).toEqual(['Start pre-scan', 'Start DPIA', 'Start IAMA'])
   })
 
@@ -147,7 +173,7 @@ describe('LandingView cached-session choice (#322)', () => {
   it('shows "Verder gaan" and a per-type "Start nieuwe ..." instead of "Start" for a cached assessment', () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
 
-    const labels = wrapper.findAll('button').map((b) => b.text())
+    const labels = wrapper.findAll('nldd-button').map((b) => b.attributes('text'))
     expect(labels).toContain('Verder gaan')
     expect(labels).toContain('Start nieuwe DPIA')
     // The cached card no longer shows its plain start button.
@@ -167,42 +193,88 @@ describe('LandingView cached-session choice (#322)', () => {
 
   it('"Start nieuwe DPIA" opens a type-specific confirmation and emits startFresh on confirm', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+    const host = stubModal(wrapper)
 
-    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(findModal(wrapper).attributes('text')).toBe('')
 
     await clickButtonByText(wrapper, 'Start nieuwe DPIA')
-    const dialog = wrapper.find('dialog')
-    expect(dialog.exists()).toBe(true)
-    expect(dialog.text()).toContain('Nieuwe DPIA starten?')
+
+    expect(host.show).toHaveBeenCalledTimes(1)
+    const modal = findModal(wrapper)
+    expect(modal.attributes('variant')).toBe('alert')
+    expect(modal.attributes('text')).toBe('Nieuwe DPIA starten?')
+    expect(modal.attributes('supporting-text')).toContain('Je hebt een opgeslagen versie van de DPIA')
 
     await clickButtonByText(wrapper, 'Ja, start nieuwe DPIA')
 
     expect(wrapper.emitted('startFresh')).toEqual([[FormType.DPIA]])
-    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(host.hide).toHaveBeenCalledTimes(1)
+    expect(findModal(wrapper).attributes('text')).toBe('')
   })
 
   it('closes the confirmation without emitting when cancelled', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.PRE_SCAN] })
 
+    // No show/hide stubs here: the optional calls must no-op while the custom
+    // element is not upgraded (jsdom).
     await clickButtonByText(wrapper, 'Start nieuwe pre-scan')
-    expect(wrapper.find('dialog').exists()).toBe(true)
+    expect(findModal(wrapper).attributes('text')).toBe('Nieuwe Pre-scan starten?')
 
     await clickButtonByText(wrapper, 'Annuleren')
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(findModal(wrapper).attributes('text')).toBe('')
   })
 
-  it('closes the confirmation when the backdrop is clicked', async () => {
+  it('cancels when the platform closes the modal (Esc / backdrop)', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.IAMA] })
 
     await clickButtonByText(wrapper, 'Start nieuwe IAMA')
-    expect(wrapper.find('dialog').exists()).toBe(true)
+    expect(findModal(wrapper).attributes('text')).toBe('Nieuwe IAMA starten?')
 
-    await wrapper.find('dialog').trigger('click')
+    findModal(wrapper).element.dispatchEvent(new CustomEvent('close'))
+    await nextTick()
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(findModal(wrapper).attributes('text')).toBe('')
+  })
+
+  it('ignores a close event while no confirmation is active', async () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.IAMA] })
+    const host = stubModal(wrapper)
+
+    findModal(wrapper).element.dispatchEvent(new CustomEvent('close'))
+    await nextTick()
+
+    expect(host.hide).not.toHaveBeenCalled()
+    expect(wrapper.emitted('startFresh')).toBeUndefined()
+  })
+
+  it('returns early in the dialog sync when the ref is missing (defensive guard)', async () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+    ;(wrapper.vm as unknown as { freshDialog: HTMLElement | null }).freshDialog = null
+
+    await clickButtonByText(wrapper, 'Start nieuwe DPIA')
+
+    expect(findModal(wrapper).attributes('text')).toBe('Nieuwe DPIA starten?')
+  })
+
+  it('hides the modal on unmount', () => {
+    const wrapper = mountLanding()
+    const host = stubModal(wrapper)
+
+    wrapper.unmount()
+
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
+
+  it('unmounts without crashing when the element is not upgraded or the ref is gone', () => {
+    const plain = mountLanding()
+    plain.unmount()
+
+    const nulled = mountLanding()
+    ;(nulled.vm as unknown as { freshDialog: HTMLElement | null }).freshDialog = null
+    nulled.unmount()
   })
 })
 
@@ -327,7 +399,9 @@ describe('LandingView wis alle opgeslagen gegevens', () => {
 
     await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
     expect(wrapper.emitted('clearAll')).toBeUndefined()
-    expect(wrapper.text()).toContain('Alle opgeslagen gegevens wissen?')
+    const modal = findClearAllModal(wrapper)
+    expect(modal.attributes('text')).toBe('Alle opgeslagen gegevens wissen?')
+    expect(modal.attributes('supporting-text')).toContain('antwoorden van je DPIA uit deze browser')
 
     await clickButtonByText(wrapper, 'Ja, wis alles')
     expect(wrapper.emitted('clearAll')).toHaveLength(1)
@@ -336,10 +410,16 @@ describe('LandingView wis alle opgeslagen gegevens', () => {
   it('cancels without emitting', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
 
+    const host = findClearAllModal(wrapper).element as HTMLElement & { show?: () => void; hide?: () => void }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
     await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
+    expect(host.show).toHaveBeenCalledTimes(1)
+
     await clickButtonByText(wrapper, 'Annuleren')
 
     expect(wrapper.emitted('clearAll')).toBeUndefined()
-    expect(wrapper.text()).not.toContain('Alle opgeslagen gegevens wissen?')
+    expect(host.hide).toHaveBeenCalledTimes(1)
   })
 })

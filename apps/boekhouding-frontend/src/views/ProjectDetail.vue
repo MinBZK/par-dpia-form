@@ -2,30 +2,49 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
-import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
-import AppHeader from '../components/AppHeader.vue'
+import { useAnchorNav } from '../composables/useAnchorNav'
 import { usePaginatedList } from '../composables/usePaginatedList'
+import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType } from '@overheid-assessment/core'
+import KebabMenu from '../components/KebabMenu.vue'
+import { useBackLink } from '../composables/useBackLink'
+import '@nldd/design-system/button'
+import '@nldd/design-system/menu'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/card'
+import '@nldd/design-system/collection'
+import '@nldd/design-system/container'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/text'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/file-field'
 
 const props = defineProps<{ projectId: string }>()
 const router = useRouter()
+const onCardNav = useAnchorNav()
+
+useBackLink().set({ text: 'Projecten', to: '/projecten' })
 
 const project = ref<Project | null>(null)
 const {
-  items: assessmentList, loadingMore, loadError: moreLoadError, loadStatus, statusRef,
+  items: assessmentList, total, loadingMore, loadError: moreLoadError, loadStatus, statusRef,
   hasMore, nextBatchSize, loadFirst, loadMore,
 } = usePaginatedList<AssessmentInstance>((page, pageSize) => assessmentsApi.list(props.projectId, page, pageSize), (a) => a.id)
 const loading = ref(true)
+
+// show/hide and the shadow input only exist once the custom elements are
+// upgraded (not in jsdom unit tests).
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
 
 const editingName = ref(false)
 const editingDescription = ref(false)
 const editName = ref('')
 const editDescription = ref('')
-const nameInput = ref<HTMLInputElement | null>(null)
-const descriptionInput = ref<HTMLTextAreaElement | null>(null)
+const nameInput = ref<HTMLElement | null>(null)
+const descriptionInput = ref<HTMLElement | null>(null)
 
 // Start-form dialog state
-const startDialogRef = ref<HTMLDialogElement | null>(null)
+const startDialogRef = ref<ModalDialogElement | null>(null)
 const dialogOpen = ref(false)
 const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
 const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
@@ -33,29 +52,25 @@ const selectedPrescanId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
 const dialogError = ref<string | null>(null)
 const dialogSubmitting = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
 
-// Project kebab menu
-const projectMenuOpen = ref(false)
-const deleteProjectDialogRef = ref<HTMLDialogElement | null>(null)
+// Delete-project dialog state
+const deleteProjectDialogRef = ref<ModalDialogElement | null>(null)
 const deleteProjectModalOpen = ref(false)
 const deleteConfirmInput = ref('')
 
-watch(dialogOpen, (open) => {
-  if (open) {
-    startDialogRef.value?.showModal()
-  } else {
-    startDialogRef.value?.close()
-  }
-})
+const syncDialog = (dialog: ModalDialogElement | null, open: boolean) => {
+  if (!dialog) return
+  if (open) dialog.show?.()
+  else dialog.hide?.()
+}
 
-watch(deleteProjectModalOpen, (open) => {
-  if (open) {
-    deleteProjectDialogRef.value?.showModal()
-  } else {
-    deleteProjectDialogRef.value?.close()
-  }
-})
+watch(dialogOpen, (open) => syncDialog(startDialogRef.value, open))
+watch(deleteProjectModalOpen, (open) => syncDialog(deleteProjectDialogRef.value, open))
+
+// NLDD fields deliver the value in event.detail; fall back to target.value
+// for native inputs.
+const eventValue = (event: Event): string =>
+  (event as CustomEvent<{ value?: string }>).detail?.value ?? (event.target as HTMLInputElement).value
 
 const isOwner = computed(() => project.value?.role === 'owner')
 
@@ -87,7 +102,7 @@ const startEditName = async () => {
   editingName.value = true
   await nextTick()
   nameInput.value?.focus()
-  nameInput.value?.select()
+  nameInput.value?.shadowRoot?.querySelector('input')?.select()
 }
 
 const cancelName = () => {
@@ -105,16 +120,11 @@ const saveName = async () => {
   editingName.value = false
 }
 
-const autosizeTextarea = () => {
-  if (descriptionInput.value) autoGrowTextarea(descriptionInput.value)
-}
-
 const startEditDescription = async () => {
   if (!isEditable()) return
   editDescription.value = project.value!.description || ''
   editingDescription.value = true
   await nextTick()
-  autosizeTextarea()
   descriptionInput.value?.focus()
 }
 
@@ -149,8 +159,8 @@ const closeDialog = () => {
 }
 
 const onFileChange = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  uploadFile.value = input.files?.[0] ?? null
+  const files = (event as CustomEvent<{ files?: File[] }>).detail?.files ?? []
+  uploadFile.value = files[0] ?? null
   dialogError.value = null
 }
 
@@ -330,162 +340,142 @@ const formatDate = (dateStr: string) =>
 
 <template>
   <div>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
+  <div class="page-container">
     <div v-if="loading"><p>Laden...</p></div>
 
-    <div v-else-if="loadError" class="rvo-alert rvo-alert--warning rvo-margin-block-end--lg">
-      <p>{{ loadError }}</p>
-    </div>
+    <nldd-banner v-else-if="loadError" variant="warning" :text="loadError"></nldd-banner>
 
     <template v-else-if="project">
-      <AppHeader backLabel="Terug naar projecten" backRoute="/projecten" />
-
-      <div class="rvo-layout-row rvo-layout-gap--md rvo-margin-block-end--lg project-detail-header">
-        <h1 v-if="!editingName" class="utrecht-heading-1 rvo-heading--no-margins" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om projectnaam te bewerken' : undefined" @click="startEditName" @keydown.enter="startEditName">{{ project.name }}</h1>
+      <div class="project-detail-header">
+        <h1 v-if="!editingName" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om projectnaam te bewerken' : undefined" @click="startEditName" @keydown.enter="startEditName">{{ project.name }}</h1>
         <div v-else class="editable-field-group">
-          <input
+          <nldd-text-field
             ref="nameInput"
-            v-model="editName"
-            class="utrecht-textbox utrecht-textbox--html-input editable-field-input editable-field-input--title"
-            aria-label="Projectnaam"
+            class="editable-field-input editable-field-input--title"
+            :value="editName"
+            accessible-label="Projectnaam"
+            @input="editName = eventValue($event)"
             @keydown.enter="saveName"
             @keydown.escape="cancelName"
-          />
-          <div class="editable-field-actions">
-            <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveName">Opslaan</button>
-            <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelName">Annuleer</button>
-          </div>
+          ></nldd-text-field>
+          <nldd-container layout="row" gap="8" padding-top="8">
+            <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
+            <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
+          </nldd-container>
         </div>
         <div class="project-actions">
-          <button
-            v-if="isOwner"
-            class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
-            @click="router.push(`/project/${projectId}/leden`)"
-          >
-            <IconUsers :size="16" /> Leden beheren
-          </button>
-          <div v-if="isOwner" class="kebab-menu" @focusout="projectMenuOpen = false">
-            <button
-              class="kebab-menu__trigger"
-              aria-haspopup="true"
-              :aria-expanded="projectMenuOpen"
-              aria-label="Projectacties"
-              @click="projectMenuOpen = !projectMenuOpen"
-            >
-              <IconDotsVertical :size="20" />
-            </button>
-            <div v-if="projectMenuOpen" class="kebab-menu__dropdown" role="menu">
-              <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="projectMenuOpen = false; deleteProjectModalOpen = true">Project verwijderen</button>
-            </div>
-          </div>
+          <KebabMenu v-if="isOwner" label="Projectacties">
+            <nldd-menu-item
+              text="Leden beheren"
+              icon="users"
+              @click="router.push(`/project/${projectId}/leden`)"
+            ></nldd-menu-item>
+            <nldd-menu-item text="Project verwijderen" icon="trash" destructive @click="deleteProjectModalOpen = true"></nldd-menu-item>
+          </KebabMenu>
         </div>
       </div>
 
-      <p v-if="!editingDescription && project.description" class="rvo-margin-block-end--md preserve-whitespace project-detail-description" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
-      <div v-if="!editingDescription && !project.description && isEditable()" class="description-add rvo-margin-block-end--md" role="button" tabindex="0" aria-label="Klik om een beschrijving toe te voegen" @click="startEditDescription" @keydown.enter="startEditDescription">
+      <p v-if="!editingDescription && project.description" class="preserve-whitespace project-detail-description" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
+      <div v-if="!editingDescription && !project.description && isEditable()" class="description-add" role="button" tabindex="0" aria-label="Klik om een beschrijving toe te voegen" @click="startEditDescription" @keydown.enter="startEditDescription">
         <span class="description-add__label">Beschrijving toevoegen</span>
       </div>
-      <div v-if="editingDescription" class="editable-field-group rvo-margin-block-end--md">
-        <textarea
+      <div v-if="editingDescription" class="editable-field-group">
+        <nldd-multi-line-text-field
           ref="descriptionInput"
-          v-model="editDescription"
-          class="utrecht-textarea utrecht-textarea--html-textarea editable-field-input editable-field-input--autosize"
+          class="editable-field-input"
+          :value="editDescription"
           rows="1"
-          aria-label="Projectbeschrijving"
-          @input="autosizeTextarea"
+          resize="auto"
+          accessible-label="Projectbeschrijving"
+          @input="editDescription = eventValue($event)"
           @keydown.escape="cancelDescription"
-        />
-        <div class="editable-field-actions">
-          <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveDescription">Opslaan</button>
-          <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelDescription">Annuleer</button>
-        </div>
+        ></nldd-multi-line-text-field>
+        <nldd-container layout="row" gap="8" padding-top="8">
+          <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveDescription"></nldd-button>
+          <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelDescription"></nldd-button>
+        </nldd-container>
       </div>
 
       <div v-if="assessmentList.length > 0">
-        <h2 class="utrecht-heading-2">Ga verder met een bestaande assessment</h2>
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two rvo-margin-block-end--lg">
-          <router-link
+        <h2>Ga verder met een bestaande assessment</h2>
+        <!-- max-items: the collection hides items past its own cap (24) even
+             without a load-more button. The server pages the list, so the cap
+             is the server total and nothing loaded is ever hidden. -->
+        <nldd-collection layout="grid" item-width="320px" gap="16px" :max-items="total"
+          @click="onCardNav">
+          <nldd-card
             v-for="item in assessmentList"
             :key="item.id"
-            :to="`/assessment/${item.id}`"
-            class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100 card-link"
+            :href="`/assessment/${item.id}`"
+            :accessible-label="`Open assessment ${item.name}`"
           >
-            <div class="rvo-card__content">
-              <h3 class="utrecht-heading-3 rvo-margin--none text-clamp-2">{{ item.name }}</h3>
-              <p class="rvo-text--sm rvo-text--subtle">Laatst bewerkt: {{ formatDate(item.updatedAt) }}</p>
-            </div>
-          </router-link>
-        </div>
+            <nldd-container padding="16">
+              <h3 class="text-clamp-2">{{ item.name }}</h3>
+              <nldd-text size="xs" color="secondary">Laatst bewerkt: {{ formatDate(item.updatedAt) }}</nldd-text>
+            </nldd-container>
+          </nldd-card>
+
+          <nldd-button
+            v-if="hasMore"
+            slot="footer"
+            variant="neutral-tinted"
+            width="full"
+            :disabled="loadingMore || undefined"
+            :text="`Laad de volgende ${nextBatchSize} assessments`"
+            @click="loadMore"
+          ></nldd-button>
+        </nldd-collection>
       </div>
 
-      <div v-if="hasMore" class="version-list__more">
-        <button
-          class="rvo-button rvo-button--secondary rvo-button--size-sm"
-          :disabled="loadingMore"
-          @click="loadMore"
-        >
-          Laad de volgende {{ nextBatchSize }} assessments
-        </button>
-      </div>
       <p v-if="moreLoadError" class="version-list__error" role="alert">{{ moreLoadError }}</p>
       <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
       <div v-if="project.role === 'owner' || project.role === 'editor'">
-        <h2 class="utrecht-heading-2">Start een nieuwe assessment</h2>
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two rvo-margin-block-end--lg">
-        <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
-          <div class="rvo-card__content card-content-flex">
-            <h3 class="utrecht-heading-3 rvo-margin--none">Pre-scan</h3>
-            <p>Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
-            <div class="card-button">
-              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('prescan')">
-                Start pre-scan
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
-          <div class="rvo-card__content card-content-flex">
-            <h3 class="utrecht-heading-3 rvo-margin--none">DPIA</h3>
-            <p>Vul stap voor stap het rijksmodel DPIA in.</p>
-            <div class="card-button">
-              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('dpia')">
-                Start DPIA
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
-          <div class="rvo-card__content card-content-flex">
-            <h3 class="utrecht-heading-3 rvo-margin--none">IAMA</h3>
-            <p>Breng de impact op mensenrechten van een algoritme in kaart.</p>
-            <div class="card-button">
-              <button class="rvo-button rvo-button--primary rvo-button--size-md" @click="openStartDialog('iama')">
-                Start IAMA
-              </button>
-            </div>
-          </div>
-        </div>
-        </div>
+        <h2>Start een nieuwe assessment</h2>
+        <nldd-collection layout="grid" item-width="320px" gap="16px">
+          <nldd-card>
+            <nldd-container padding="16" gap="8">
+              <h3>Pre-scan</h3>
+              <p>Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
+            </nldd-container>
+            <nldd-container slot="footer" padding="16" padding-top="0">
+              <nldd-button variant="primary" size="md" text="Start pre-scan" @click="openStartDialog('prescan')"></nldd-button>
+            </nldd-container>
+          </nldd-card>
+          <nldd-card>
+            <nldd-container padding="16" gap="8">
+              <h3>DPIA</h3>
+              <p>Vul stap voor stap het rijksmodel DPIA in.</p>
+            </nldd-container>
+            <nldd-container slot="footer" padding="16" padding-top="0">
+              <nldd-button variant="primary" size="md" text="Start DPIA" @click="openStartDialog('dpia')"></nldd-button>
+            </nldd-container>
+          </nldd-card>
+          <nldd-card>
+            <nldd-container padding="16" gap="8">
+              <h3>IAMA</h3>
+              <p>Breng de impact op mensenrechten van een algoritme in kaart.</p>
+            </nldd-container>
+            <nldd-container slot="footer" padding="16" padding-top="0">
+              <nldd-button variant="primary" size="md" text="Start IAMA" @click="openStartDialog('iama')"></nldd-button>
+            </nldd-container>
+          </nldd-card>
+        </nldd-collection>
       </div>
     </template>
   </div>
 
   <!-- Start form dialog -->
-  <dialog
+  <nldd-modal-dialog
     ref="startDialogRef"
-    class="start-dialog"
+    data-test="start-dialog"
+    :text="dialogAssessmentType === 'dpia' ? 'Hoe wil je de DPIA starten?' : dialogAssessmentType === 'iama' ? 'Hoe wil je de IAMA starten?' : 'Hoe wil je de pre-scan starten?'"
     @close="closeDialog"
   >
-    <div class="start-dialog__content">
-      <h2 class="utrecht-heading-2">
-        {{ dialogAssessmentType === 'dpia' ? 'Hoe wil je de DPIA starten?' : dialogAssessmentType === 'iama' ? 'Hoe wil je de IAMA starten?' : 'Hoe wil je de pre-scan starten?' }}
-      </h2>
-
       <!-- DPIA options -->
       <template v-if="dialogAssessmentType === 'dpia'">
         <fieldset class="start-dialog__fieldset">
-          <legend class="rvo-visually-hidden">Kies een startoptie</legend>
+          <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
@@ -504,7 +494,7 @@ const formatDate = (dateStr: string) =>
               class="start-dialog__option"
             >
               <input type="radio" v-model="selectedPrescanId" :value="ps.id" name="prescanChoice" />
-              <span class="start-dialog__option-label">{{ ps.name }} <span class="rvo-text--sm rvo-text--subtle">({{ formatDate(ps.updatedAt) }})</span></span>
+              <span class="start-dialog__option-label">{{ ps.name }} <span>({{ formatDate(ps.updatedAt) }})</span></span>
             </label>
           </div>
 
@@ -517,10 +507,9 @@ const formatDate = (dateStr: string) =>
           </label>
 
           <div v-if="dialogOption === 'import'" class="start-dialog__sub-options">
-            <label>
-              <span class="rvo-visually-hidden">Selecteer een JSON- of PDF-bestand</span>
-              <input ref="fileInput" type="file" accept=".json,.pdf" @change="onFileChange" />
-            </label>
+            <nldd-file-field accept=".json,.pdf"
+              accessible-label="Selecteer een JSON- of PDF-bestand"
+              @change="onFileChange"></nldd-file-field>
           </div>
         </fieldset>
       </template>
@@ -528,7 +517,7 @@ const formatDate = (dateStr: string) =>
       <!-- IAMA options -->
       <template v-else-if="dialogAssessmentType === 'iama'">
         <fieldset class="start-dialog__fieldset">
-          <legend class="rvo-visually-hidden">Kies een startoptie</legend>
+          <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
@@ -544,10 +533,9 @@ const formatDate = (dateStr: string) =>
           </label>
 
           <div v-if="dialogOption === 'import'" class="start-dialog__sub-options">
-            <label>
-              <span class="rvo-visually-hidden">Selecteer een JSON- of PDF-bestand</span>
-              <input ref="fileInput" type="file" accept=".json,.pdf" @change="onFileChange" />
-            </label>
+            <nldd-file-field accept=".json,.pdf"
+              accessible-label="Selecteer een JSON- of PDF-bestand"
+              @change="onFileChange"></nldd-file-field>
           </div>
         </fieldset>
       </template>
@@ -555,7 +543,7 @@ const formatDate = (dateStr: string) =>
       <!-- Pre-scan options -->
       <template v-else>
         <fieldset class="start-dialog__fieldset">
-          <legend class="rvo-visually-hidden">Kies een startoptie</legend>
+          <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
@@ -568,63 +556,67 @@ const formatDate = (dateStr: string) =>
           </label>
 
           <div v-if="dialogOption === 'prescan-json-upload'" class="start-dialog__sub-options">
-            <label>
-              <span class="rvo-visually-hidden">Selecteer een JSON- of PDF-bestand</span>
-              <input ref="fileInput" type="file" accept=".json,.pdf" @change="onFileChange" />
-            </label>
+            <nldd-file-field accept=".json,.pdf"
+              accessible-label="Selecteer een JSON- of PDF-bestand"
+              @change="onFileChange"></nldd-file-field>
           </div>
         </fieldset>
       </template>
 
-      <div v-if="dialogError" class="rvo-alert rvo-alert--error rvo-alert--padding-sm rvo-margin-block-end--md" role="alert">
-        {{ dialogError }}
-      </div>
+      <nldd-banner v-if="dialogError" variant="critical" :text="dialogError"></nldd-banner>
 
-      <div class="start-dialog__actions">
-        <button
-          class="rvo-button rvo-button--primary rvo-button--size-md"
-          :disabled="dialogSubmitting"
-          @click="submitDialog"
-        >
-          {{ dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan') }}
-        </button>
-        <button
-          class="rvo-button rvo-button--secondary rvo-button--size-md"
-          :disabled="dialogSubmitting"
-          @click="closeDialog"
-        >
-          Annuleer
-        </button>
-      </div>
-    </div>
-  </dialog>
+      <nldd-button
+        slot="actions"
+        variant="primary"
+        size="md"
+        :disabled="dialogSubmitting || undefined"
+        :text="dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan')"
+        @click="submitDialog"
+      ></nldd-button>
+      <nldd-button
+        slot="actions"
+        variant="secondary"
+        size="md"
+        :disabled="dialogSubmitting || undefined"
+        text="Annuleer"
+        @click="closeDialog"
+      ></nldd-button>
+  </nldd-modal-dialog>
 
   <!-- Delete project confirmation modal -->
-  <dialog ref="deleteProjectDialogRef" class="confirm-dialog" @close="deleteProjectModalOpen = false; deleteConfirmInput = ''">
-    <div class="confirm-dialog__content">
-      <h2 class="utrecht-heading-2">Weet je zeker dat je dit project wilt verwijderen?</h2>
+  <nldd-modal-dialog
+    ref="deleteProjectDialogRef"
+    data-test="delete-project-dialog"
+    variant="alert"
+    text="Weet je zeker dat je dit project wilt verwijderen?"
+    @close="deleteProjectModalOpen = false; deleteConfirmInput = ''"
+  >
       <p>Het project <strong>{{ project?.name }}</strong> wordt permanent verwijderd. Alle assessments, antwoorden en versiegeschiedenis gaan verloren. Deze actie kan niet ongedaan worden gemaakt.</p>
-      <label class="confirm-dialog__label">
-        Typ <strong>VERWIJDEREN</strong> om te bevestigen
-        <input
-          v-model="deleteConfirmInput"
-          class="utrecht-textbox utrecht-textbox--html-input confirm-dialog__input"
-        />
-      </label>
-      <div class="confirm-dialog__actions">
-        <button
-          class="rvo-button rvo-button--size-md confirm-dialog__delete"
-          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
-          :disabled="deleteConfirmInput !== 'VERWIJDEREN'"
-          @click="confirmDeleteProject"
-        >
-          Project verwijderen
-        </button>
-        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="deleteProjectModalOpen = false; deleteConfirmInput = ''">
-          Annuleer
-        </button>
-      </div>
-    </div>
-  </dialog>
+      <p class="confirm-dialog__label">Typ <strong>VERWIJDEREN</strong> om te bevestigen</p>
+      <nldd-text-field
+        class="confirm-dialog__input"
+        :value="deleteConfirmInput"
+        accessible-label="Typ VERWIJDEREN om te bevestigen"
+        @input="deleteConfirmInput = eventValue($event)"
+      ></nldd-text-field>
+
+      <!-- The safe way out is the primary action; the destructive action is the
+           secondary one (NLDD design guideline). -->
+      <nldd-button
+        slot="actions"
+        variant="primary"
+        size="md"
+        text="Annuleer"
+        @click="deleteProjectModalOpen = false; deleteConfirmInput = ''"
+      ></nldd-button>
+      <nldd-button
+        slot="actions"
+        variant="destructive"
+        size="md"
+        :disabled="deleteConfirmInput !== 'VERWIJDEREN' || undefined"
+        text="Project verwijderen"
+        @click="confirmDeleteProject"
+      ></nldd-button>
+  </nldd-modal-dialog>
   </div>
 </template>

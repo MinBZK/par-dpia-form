@@ -13,11 +13,9 @@ import {
 import LandingView from './components/LandingView.vue'
 import { createLocalPersistence } from './LocalPersistence'
 
-import '@nl-rvo/assets/fonts/index.css'
-import '@nl-rvo/assets/icons/index.css'
-import '@nl-rvo/assets/images/index.css'
-import '@nl-rvo/component-library-css/dist/index.css'
-import '@nl-rvo/design-tokens/dist/index.css'
+import '@nldd/design-system/styles'
+import '@nldd/design-system/app-view'
+import '@nldd/design-system/page'
 
 // Provide persistence (localStorage) to Form.vue
 const persistence = createLocalPersistence()
@@ -90,42 +88,46 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
 </script>
 
 <template>
-  <!-- Landing page -->
-  <LandingView
-    v-if="currentView === ViewState.Landing"
-    :navigation="navigationFunctions"
-    :cached-types="cachedTypes"
-    @start-fresh="startFresh"
-    @clear-all="clearAll"
-  />
+  <nldd-app-view>
+    <nldd-page>
+      <!-- Landing page -->
+      <LandingView
+        v-if="currentView === ViewState.Landing"
+        :navigation="navigationFunctions"
+        :cached-types="cachedTypes"
+        @start-fresh="startFresh"
+        @clear-all="clearAll"
+      />
 
-  <!-- DPIA Form -->
-  <Form
-    v-if="currentView === ViewState.DPIA"
-    :navigation="navigationFunctions"
-    :namespace="FormType.DPIA"
-    :validData="schemaStore.getSchema(FormType.DPIA)"
-    :autoStart="isResume(FormType.DPIA)"
-    bannerTitle="Invulhulpen"
-  />
+      <!-- DPIA Form -->
+      <Form
+        v-if="currentView === ViewState.DPIA"
+        :navigation="navigationFunctions"
+        :namespace="FormType.DPIA"
+        :validData="schemaStore.getSchema(FormType.DPIA)"
+        :autoStart="isResume(FormType.DPIA)"
+        bannerTitle="Invulhulpen"
+      />
 
-  <!-- Pre Scan DPIA Form -->
-  <Form
-    v-if="currentView === ViewState.PreScanDPIA"
-    :navigation="navigationFunctions"
-    :namespace="FormType.PRE_SCAN"
-    :validData="schemaStore.getSchema(FormType.PRE_SCAN)"
-    :autoStart="isResume(FormType.PRE_SCAN)"
-    bannerTitle="Invulhulpen"
-  />
+      <!-- Pre Scan DPIA Form -->
+      <Form
+        v-if="currentView === ViewState.PreScanDPIA"
+        :navigation="navigationFunctions"
+        :namespace="FormType.PRE_SCAN"
+        :validData="schemaStore.getSchema(FormType.PRE_SCAN)"
+        :autoStart="isResume(FormType.PRE_SCAN)"
+        bannerTitle="Invulhulpen"
+      />
 
-  <!-- IAMA Form -->
-  <Form
-    v-if="currentView === ViewState.IAMA"
-    :navigation="navigationFunctions"
-    :namespace="FormType.IAMA"
-    :validData="schemaStore.getSchema(FormType.IAMA)"
-    :autoStart="isResume(FormType.IAMA)"
-    bannerTitle="Invulhulpen"
-  />
+      <!-- IAMA Form -->
+      <Form
+        v-if="currentView === ViewState.IAMA"
+        :navigation="navigationFunctions"
+        :namespace="FormType.IAMA"
+        :validData="schemaStore.getSchema(FormType.IAMA)"
+        :autoStart="isResume(FormType.IAMA)"
+        bannerTitle="Invulhulpen"
+      />
+    </nldd-page>
+  </nldd-app-view>
 </template>

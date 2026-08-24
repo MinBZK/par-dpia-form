@@ -48,6 +48,8 @@ export { sanitizeAnswers } from './utils/sanitizeState'
 // Components
 export { default as Form } from './components/Form.vue'
 export { default as AppBanner } from './components/AppBanner.vue'
+export { default as ThemeMenuItems } from './components/ThemeMenuItems.vue'
+export { useTheme } from './composables/useTheme'
 export { default as NavHeader } from './components/NavHeader.vue'
 export { default as ProgressTracker } from './components/ProgressTracker.vue'
 export { default as FileUploadPage } from './components/FileUploadPage.vue'
@@ -55,8 +57,6 @@ export { default as LiveResults } from './components/LiveResults.vue'
 export { default as Results } from './components/Results.vue'
 export { default as AssessmentCard } from './components/AssessmentCard.vue'
 export { default as PreScanPreview } from './components/PreScanPreview.vue'
-export { default as UiButton } from './components/ui/UiButton.vue'
-export { default as ConfirmDialog } from './components/ui/ConfirmDialog.vue'
 export { default as TaskSection } from './components/task/TaskSection.vue'
 export { default as TaskGroup } from './components/task/TaskGroup.vue'
 export { default as TaskItem } from './components/task/TaskItem.vue'
@@ -73,9 +73,6 @@ export type { ImageResizeOptions } from './utils/imageResize'
 
 // Markdown
 export { renderMarkdownToHtml, markdownToPdfContent } from './utils/markdown'
-
-// DOM utils
-export { autoGrowTextarea } from './utils/autoGrowTextarea'
 
 // Security
 export { installTrustedTypesPolicy } from './security/trustedTypes'

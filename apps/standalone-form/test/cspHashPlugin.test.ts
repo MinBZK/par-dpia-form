@@ -16,7 +16,7 @@ describe('buildStandaloneCsp', () => {
   it('includes the Trusted Types directives in the policy', () => {
     const { metaCsp } = buildStandaloneCsp(`<head><style>x</style></head><script>y</script>`)
     expect(metaCsp).toContain("require-trusted-types-for 'script'")
-    expect(metaCsp).toContain('trusted-types default vue dompurify')
+    expect(metaCsp).toContain('trusted-types default vue dompurify lit-html')
   })
 
   it('omits frame-ancestors from the meta CSP but keeps it in the header CSP', () => {

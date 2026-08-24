@@ -79,6 +79,8 @@ services:
       - ../apps/standalone-form/src:/app/apps/standalone-form/src
       - ../apps/standalone-form/index.html:/app/apps/standalone-form/index.html
       - ../apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
+      # vite.config.ts imports the CSP hash plugin from build/; without this
+      # mount the dev server fails on an unresolved import.
       - ../apps/standalone-form/build:/app/apps/standalone-form/build
       - ../sources:/app/sources
 

@@ -4,7 +4,7 @@ Verantwoording voor de in deze repo meegeleverde Claude-/Cursor-marketplace `ass
 
 ## 1. Doel en toepassingsgebied
 
-De `assessments`-plugin biedt domeinkennis en tooling voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan deze repo werken: het bewerken en valideren van de pre-scan-, DPIA- en IAMA-definities (`sources/*.yaml`), de begrippenkaders, het assessment-schema en de RVO-styling. Het is **geen invul-assistent voor eindgebruikers** die een assessment uitvoeren.
+De `assessments`-plugin biedt domeinkennis en tooling voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan deze repo werken: het bewerken en valideren van de pre-scan-, DPIA- en IAMA-definities (`sources/*.yaml`), de begrippenkaders, het assessment-schema en de NLDD-styling. Het is **geen invul-assistent voor eindgebruikers** die een assessment uitvoeren.
 
 ## 2. Eigenaarschap
 

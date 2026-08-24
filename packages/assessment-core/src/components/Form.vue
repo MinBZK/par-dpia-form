@@ -4,8 +4,6 @@ import ProgressTracker from './ProgressTracker.vue'
 import ExportPdfInfo from './ExportPdfInfo.vue'
 import ExportMenu from './ExportMenu.vue'
 import TaskSection from './task/TaskSection.vue'
-import UiButton from './ui/UiButton.vue'
-import ConfirmDialog from './ui/ConfirmDialog.vue'
 import NavHeader from './NavHeader.vue'
 import FileUploadPage from './FileUploadPage.vue'
 import LiveResults from './LiveResults.vue'
@@ -23,8 +21,14 @@ import { exportToMarkdown } from '../utils/markdownExport'
 import { exportToPdf } from '../utils/pdfExport'
 import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
+import { CONTENT_READONLY_KEY } from '../injectionKeys'
 import * as t from 'io-ts'
-import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, onMounted, onBeforeUnmount, provide, ref, toRef, watch } from 'vue'
+import '@nldd/design-system/button'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/sidebar-section'
+import '@nldd/design-system/inline-dialog'
+import '@nldd/design-system/spacer'
 
 const props = withDefaults(defineProps<{
   navigation: NavigationFunctions
@@ -35,13 +39,23 @@ const props = withDefaults(defineProps<{
   showFileActions?: boolean
   autoStart?: boolean
   bannerTitle?: string
+  commentedRootTaskIds?: string[]
+  // Read-only role: the questions accept no input, the rest of the page does.
+  contentInert?: boolean
 }>(), {
+  contentInert: false,
   showBanner: true,
   showNavHeader: true,
   showFileActions: true,
   autoStart: false,
   bannerTitle: '',
+  commentedRootTaskIds: () => [],
 })
+
+// Inert on the whole question block would take the term tooltips with it:
+// an inert subtree is not hit-tested, so :hover never fires. The flag travels
+// down to the individual inputs instead.
+provide(CONTENT_READONLY_KEY, toRef(props, 'contentInert'))
 
 // State
 const error = ref<string | null>(null)
@@ -218,6 +232,30 @@ const handleReset = () => {
   formStarted.value = false
 }
 
+// nldd-modal-dialog exposes show()/hide(); they only exist once the custom
+// element is upgraded (not in jsdom unit tests), hence the optional calls.
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+
+const resetDialog = ref<ModalDialogElement | null>(null)
+
+const resetSupportingText = computed(() => {
+  const lost = filledAnswerCount.value > 0
+    ? `Je ${resetLabel.value} met ${filledAnswerCount.value} ingevuld${filledAnswerCount.value === 1 ? '' : 'e'} antwoord${filledAnswerCount.value === 1 ? '' : 'en'} wordt definitief gewist.`
+    : `De opgeslagen ${resetLabel.value} wordt definitief gewist.`
+  return `${lost} Dit kan niet ongedaan worden gemaakt. Exporteer eerst als je de antwoorden wilt bewaren.`
+})
+
+watch(resetOpen, (open) => {
+  if (open) resetDialog.value?.show?.()
+  else resetDialog.value?.hide?.()
+})
+
+// The modal closes itself on Esc; route that back through the state so the
+// watch performs the single hide() instead of a hide loop.
+const onResetClose = () => {
+  resetOpen.value = false
+}
+
 const isSigningTask = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'signing')
@@ -230,87 +268,88 @@ const isInformationalStep = computed(() => {
 </script>
 
 <template>
-  <Banner v-if="showBanner" :title="bannerTitle" />
-  <div v-if="isLoading" class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md">
-    <p>Ophalen van taken...</p>
-  </div>
+  <Banner v-if="showBanner" :title="bannerTitle"
+    back-text="Overzicht" @back="navigation.goToLanding" />
+  <nldd-inline-dialog v-if="isLoading" variant="loading" text="Ophalen van taken..."></nldd-inline-dialog>
 
   <!-- Show decoding error if decoding has failed. -->
   <div v-else-if="error" role="alert" aria-live="assertive">
-    <h2 class="utrecht-heading-2">Foutmelding</h2>
+    <h2>Foutmelding</h2>
     <p>Er is iets mis gegaan bij het inlezen van de vragen.</p>
     <pre>{{ error }}</pre>
   </div>
 
-  <!-- If all is well, render the tasks. -->
+  <!-- If all is well, render the tasks. The sidebar section collapses the
+       table of contents into a sheet on narrow screens. -->
   <template v-else>
-    <NavHeader v-if="showNavHeader" :navigation="navigation">
-      <template v-if="formStarted && showFileActions">
-        <UiButton variant="tertiary" :label="`Begin nieuwe ${resetLabel}`" icon="refresh" size="xs"
-          @click="resetOpen = true" />
+    <!-- Both sticky insets far off-screen: nldd-sidebar-section pins its
+         sidebar and caps it at the viewport height, which hides the tail of a
+         long table of contents behind a scroll area of its own. The component
+         has no attribute to opt out of sticky, so the insets are the only way
+         in through its public API; with these the panel simply scrolls along
+         with the page. -->
+    <nldd-sidebar-section sidebar-label="Stappen navigatie"
+      sticky-top="-200dvh" sticky-bottom="-200dvh">
+      <NavHeader v-if="showNavHeader && formStarted && showFileActions" slot="header">
+        <nldd-button variant="accent-transparent" :text="`Begin nieuwe ${resetLabel}`"
+          start-icon="arrow-clockwise" size="xs" @click="resetOpen = true"></nldd-button>
         <ExportMenu @export="handleExport" />
-      </template>
-    </NavHeader>
+      </NavHeader>
 
-    <div class="rvo-sidebar-layout rvo-max-width-layout rvo-max-width-layout--lg"
-      :class="{ 'rvo-max-width-layout-inline-padding--md': showNavHeader }">
-      <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
+      <nav slot="sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN || namespace === FormType.IAMA" />
-
+          FormType.PRE_SCAN || namespace === FormType.IAMA" :commentedTaskIds="props.commentedRootTaskIds" />
       </nav>
 
-      <div class="rvo-sidebar-layout__content" role="form" aria-labelledby="current-section-heading">
+      <div role="form" aria-labelledby="current-section-heading">
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>
           <TaskSection :taskId="currentRootTaskId" />
 
-          <div class="rvo-layout-margin-vertical--xl rvo-margin-block-start--xl">
-            <!-- Navigation buttons -->
-            <div class="button-group-container" role="group" aria-label="Formulier navigatie">
-              <UiButton v-if="!isFirstTask" variant="secondary" icon="terug" label="Vorige stap" @click="goToPrevious" />
-              <div v-if="!isLastTask && !isInformationalStep" class="button-group-container__completed">
-                <label class="rvo-checkbox rvo-checkbox--not-checked" :for="`${currentRootTaskId}-completed`">
-                  <input :id="`${currentRootTaskId}-completed`" name="step_completed" class="rvo-checkbox__input"
-                    type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
-                    @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
-                  Markeer als voltooid
-                </label>
-              </div>
-              <div class="button-group-container__end">
-                <div v-if="!isLastTask">
-                  <UiButton variant="primary" icon="pijl-naar-rechts" :showIconAfter="true"
-                    label="Volgende stap" @click="goToNext" />
-                </div>
-                <ExportMenu v-if="isLastTask" split @export="handleExport" />
-              </div>
+          <nldd-spacer size="32"></nldd-spacer>
+          <!-- Navigation buttons -->
+          <div class="button-group-container" role="group" aria-label="Formulier navigatie">
+            <nldd-button v-if="!isFirstTask" variant="secondary" start-icon="arrow-left" text="Vorige stap" @click="goToPrevious"></nldd-button>
+            <div v-if="!isLastTask && !isInformationalStep" class="button-group-container__completed">
+              <label class="form-field__choice" :for="`${currentRootTaskId}-completed`"
+                :inert="contentInert || undefined">
+                <input :id="`${currentRootTaskId}-completed`" name="step_completed"
+                  type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
+                  @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
+                Markeer als voltooid
+              </label>
             </div>
-            <div v-if="isLastTask" class="rvo-layout-margin-vertical--xl">
-              <ExportPdfInfo />
+            <div class="button-group-container__end">
+              <div v-if="!isLastTask">
+                <nldd-button variant="primary" end-icon="arrow-right"
+                  text="Volgende stap" @click="goToNext"></nldd-button>
+              </div>
+              <ExportMenu v-if="isLastTask" split @export="handleExport" />
             </div>
           </div>
+          <template v-if="isLastTask">
+            <nldd-spacer size="32"></nldd-spacer>
+            <ExportPdfInfo />
+          </template>
         </template>
 
-        <div v-if="formStarted && namespace === FormType.PRE_SCAN && !isSigningTask"
-          class="rvo-layout-margin-vertical--xl">
+        <template v-if="formStarted && namespace === FormType.PRE_SCAN && !isSigningTask">
+          <nldd-spacer size="32"></nldd-spacer>
           <LiveResults />
-        </div>
+        </template>
       </div>
-    </div>
+    </nldd-sidebar-section>
   </template>
 
-  <ConfirmDialog v-if="resetOpen" :open="resetOpen" :title="`Nieuwe ${resetLabel} beginnen?`"
-    :confirm-label="`Ja, begin nieuwe ${resetLabel}`" @cancel="resetOpen = false" @confirm="handleReset">
-    <p class="utrecht-paragraph">
-      <template v-if="filledAnswerCount > 0">
-        Je {{ resetLabel }} met {{ filledAnswerCount }} ingevuld{{ filledAnswerCount === 1 ? '' : 'e' }}
-        antwoord{{ filledAnswerCount === 1 ? '' : 'en' }} wordt definitief gewist.
-      </template>
-      <template v-else>
-        De opgeslagen {{ resetLabel }} wordt definitief gewist.
-      </template>
-      Dit kan niet ongedaan worden gemaakt. Exporteer eerst als je de antwoorden wilt bewaren.
-    </p>
-  </ConfirmDialog>
+  <!-- "Begin nieuwe X" confirmation. The safe way out is the primary action,
+       the destructive one the destructive variant (NLDD design guideline). -->
+  <nldd-modal-dialog ref="resetDialog" variant="alert"
+    :text="`Nieuwe ${resetLabel} beginnen?`" :supporting-text="resetSupportingText"
+    @close="onResetClose">
+    <nldd-button slot="actions" variant="primary" text="Annuleren"
+      @click="resetOpen = false"></nldd-button>
+    <nldd-button slot="actions" variant="destructive" :text="`Ja, begin nieuwe ${resetLabel}`"
+      @click="handleReset"></nldd-button>
+  </nldd-modal-dialog>
 </template>

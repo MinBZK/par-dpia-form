@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
-import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
+import { ref, computed, inject } from 'vue'
+import { CONTENT_READONLY_KEY } from '../../injectionKeys'
 import { useAnswerStore, isImageValue, type ImageValue } from '../../stores/answers'
 import { type FlatTask } from '../../stores/tasks'
 import { resizeImageToDataUri } from '../../utils/imageResize'
-import UiButton from '../ui/UiButton.vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/button'
+import '@nldd/design-system/container'
+import '@nldd/design-system/form-field'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/multi-line-text-field'
 
 const props = defineProps<{
   task: FlatTask
@@ -14,6 +19,9 @@ const props = defineProps<{
 }>()
 
 const answerStore = useAnswerStore()
+// Read-only role: the upload controls go inert, the preview stays visible.
+const readonly = inject(CONTENT_READONLY_KEY, ref(false))
+
 const fileInput = ref<HTMLInputElement | null>(null)
 const isProcessing = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -51,6 +59,13 @@ function saveImageValue(updates: Partial<ImageValue>) {
     ...(updates.source ?? current?.source ? { source: updates.source } : {}),
   }
   answerStore.setAnswer(props.instanceId, merged)
+}
+
+// NLDD fields deliver the committed value in event.detail; fall back to
+// target.value for native inputs.
+function fieldValue(event: Event): string {
+  const detail = (event as CustomEvent<{ value?: string }>).detail
+  return detail?.value ?? (event.target as HTMLInputElement).value
 }
 
 function updateMetadata(field: 'title' | 'description' | 'source', value: string) {
@@ -111,20 +126,10 @@ function handleDragLeave() {
 function triggerFileSelect() {
   fileInput.value?.click()
 }
-
-const descriptionRef = ref<HTMLTextAreaElement | null>(null)
-
-watch(() => imageData.value?.description, () => {
-  nextTick(() => {
-    if (descriptionRef.value) {
-      autoGrowTextarea(descriptionRef.value)
-    }
-  })
-})
 </script>
 
 <template>
-  <div class="field-group rvo-margin-block-end--md">
+  <div class="field-group" :inert="readonly || undefined">
     <input
       ref="fileInput"
       type="file"
@@ -136,26 +141,22 @@ watch(() => imageData.value?.description, () => {
     />
 
     <!-- Legacy string/URL reference -->
-    <div v-if="legacyValue" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm rvo-margin-block-end--md">
+    <nldd-banner v-if="legacyValue" variant="warning" class="image-field__block">
       <p>Bestaande referentie:
         <a v-if="legacyIsUrl" :href="legacyValue" target="_blank" rel="noopener noreferrer">{{ legacyValue }}</a>
         <span v-else>{{ legacyValue }}</span>
       </p>
       <p>Upload een afbeelding om deze referentie te vervangen.</p>
-    </div>
+    </nldd-banner>
 
     <!-- Processing indicator -->
     <p v-if="isProcessing" role="status" aria-live="polite">Bezig met verwerken...</p>
 
     <!-- Error message -->
-    <div v-if="errorMessage" class="rvo-alert rvo-alert--warning rvo-alert--inline rvo-margin-block-end--md" role="alert">
-      <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
-        role="img" aria-hidden="true"></span>
-      {{ errorMessage }}
-    </div>
+    <nldd-banner v-if="errorMessage" variant="critical" :text="errorMessage" class="image-field__block"></nldd-banner>
 
     <!-- Image preview (also accepts drag & drop to replace) -->
-    <div v-if="hasImage" class="rvo-margin-block-end--md"
+    <div v-if="hasImage" class="image-field__block"
       @dragover.prevent="handleDragOver"
       @dragleave.prevent="handleDragLeave"
       @drop.prevent="handleDrop"
@@ -169,51 +170,42 @@ watch(() => imageData.value?.description, () => {
         <div v-if="isDragging" class="image-replace-overlay">Sleep een afbeelding hierheen om de huidige afbeelding te vervangen</div>
       </div>
 
-      <UiButton variant="secondary" label="Vervang afbeelding" class="rvo-margin-block-end--md" @click="triggerFileSelect" />
+      <nldd-button variant="secondary" text="Vervang afbeelding" class="image-field__block" @click="triggerFileSelect"></nldd-button>
 
       <!-- Metadata fields (only shown when an image is uploaded) -->
-      <div class="rvo-layout-column rvo-layout-gap--xs">
-        <div class="rvo-form-field__label">
-          <label class="rvo-label" :for="`image-title-${instanceId}`">Titel (optioneel)</label>
-        </div>
-        <input
-          :id="`image-title-${instanceId}`"
-          type="text"
-          class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg"
-          dir="auto"
-          placeholder="Bijv. Architectuurdiagram gegevensverwerking"
-          :value="imageData!.title || ''"
-          @change="updateMetadata('title', ($event.target as HTMLInputElement).value)"
-        />
+      <nldd-container gap="8">
+        <nldd-form-field label="Titel" optional>
+          <nldd-text-field
+            :input-id="`image-title-${instanceId}`"
+            dir="auto"
+            placeholder="Bijv. Architectuurdiagram gegevensverwerking"
+            :value="imageData!.title || ''"
+            @change="updateMetadata('title', fieldValue($event))"
+          ></nldd-text-field>
+        </nldd-form-field>
 
-        <div class="rvo-form-field__label">
-          <label class="rvo-label" :for="`image-description-${instanceId}`">Omschrijving (optioneel)</label>
-        </div>
-        <textarea
-          ref="descriptionRef"
-          :id="`image-description-${instanceId}`"
-          class="utrecht-textarea utrecht-textarea--html-textarea"
-          dir="auto"
-          rows="2"
-          placeholder="Bijv. Overzicht van datastromen tussen systemen"
-          :value="imageData!.description || ''"
-          @change="updateMetadata('description', ($event.target as HTMLTextAreaElement).value)"
-          @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
-        ></textarea>
+        <nldd-form-field label="Omschrijving" optional>
+          <nldd-multi-line-text-field
+            :input-id="`image-description-${instanceId}`"
+            dir="auto"
+            rows="2"
+            resize="auto"
+            placeholder="Bijv. Overzicht van datastromen tussen systemen"
+            :value="imageData!.description || ''"
+            @change="updateMetadata('description', fieldValue($event))"
+          ></nldd-multi-line-text-field>
+        </nldd-form-field>
 
-        <div class="rvo-form-field__label">
-          <label class="rvo-label" :for="`image-source-${instanceId}`">Bron (optioneel)</label>
-        </div>
-        <input
-          :id="`image-source-${instanceId}`"
-          type="text"
-          class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg"
-          dir="auto"
-          placeholder="Bijv. Projectplan v3, SharePoint"
-          :value="imageData!.source || ''"
-          @change="updateMetadata('source', ($event.target as HTMLInputElement).value)"
-        />
-      </div>
+        <nldd-form-field label="Bron" optional>
+          <nldd-text-field
+            :input-id="`image-source-${instanceId}`"
+            dir="auto"
+            placeholder="Bijv. Projectplan v3, SharePoint"
+            :value="imageData!.source || ''"
+            @change="updateMetadata('source', fieldValue($event))"
+          ></nldd-text-field>
+        </nldd-form-field>
+      </nldd-container>
     </div>
 
     <!-- Upload dropzone (shown when no image) -->

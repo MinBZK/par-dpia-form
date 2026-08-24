@@ -57,7 +57,7 @@ function mountHarness(opts: {
 }
 
 // Builds a `label-<prefix>-<fieldId>` element in a container, optionally inside
-// a `.rvo-form-field__label` structure with a toggle and/or description.
+// a `.form-field__label` structure with a toggle and/or description.
 function makeLabel(opts: {
   id: string
   withLabelContainer?: boolean
@@ -75,7 +75,7 @@ function makeLabel(opts: {
 
   if (opts.withLabelContainer) {
     const labelContainer = document.createElement('div')
-    labelContainer.className = 'rvo-form-field__label'
+    labelContainer.className = 'form-field__label'
     labelContainer.appendChild(label)
     if (opts.withToggle) {
       const toggle = document.createElement('button')
@@ -84,7 +84,7 @@ function makeLabel(opts: {
     }
     if (opts.withDescription) {
       const desc = document.createElement('div')
-      desc.className = 'utrecht-form-field-description'
+      desc.className = 'form-field__description'
       labelContainer.appendChild(desc)
     }
     container.appendChild(labelContainer)
@@ -127,7 +127,7 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
 
     it('joins multi-segment field ids back together', async () => {
@@ -138,7 +138,7 @@ describe('useFieldCommentIndicators', () => {
       await nextTick()
 
       const { onFieldClick } = mountHarness({ container })
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn).not.toBeNull()
       btn.click()
       expect(onFieldClick).toHaveBeenCalledWith('2-1-3')
@@ -153,15 +153,17 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container, canComment: true })
 
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn).not.toBeNull()
-      expect(btn.className).toBe('comment-field-btn comment-field-btn--in-label-row')
-      expect(btn.querySelector('span')!.textContent).toBe('Opmerking')
-      expect(btn.getAttribute('aria-label')).toBe('Opmerking toevoegen bij deze vraag')
-      expect(btn.querySelector('svg')).not.toBeNull()
+      expect(btn.className).toBe('comment-field-label__btn')
+      expect(btn.getAttribute('size')).toBe('xs')
+      expect(btn.getAttribute('variant')).toBe('accent-transparent')
+      expect(btn.getAttribute('start-icon')).toBe('comment')
+      expect(btn.getAttribute('text')).toBe('Opmerking')
+      expect(btn.getAttribute('accessible-label')).toBe('Opmerking toevoegen bij deze vraag')
     })
 
-    it('renders singular aria-label for exactly one comment', async () => {
+    it('renders a singular accessible label for exactly one comment', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -170,13 +172,12 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      expect(btn.classList.contains('comment-field-btn--has-comments')).toBe(true)
-      expect(btn.querySelector('span')!.textContent).toBe('Opmerking (1)')
-      expect(btn.getAttribute('aria-label')).toBe('1 opmerking bij deze vraag')
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
+      expect(btn.getAttribute('accessible-label')).toBe('1 opmerking bij deze vraag')
     })
 
-    it('renders plural aria-label for more than one comment', async () => {
+    it('renders a plural accessible label for more than one comment', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -188,9 +189,9 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      expect(btn.querySelector('span')!.textContent).toBe('Opmerking (2)')
-      expect(btn.getAttribute('aria-label')).toBe('2 opmerkingen bij deze vraag')
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(btn.getAttribute('text')).toBe('Opmerking (2)')
+      expect(btn.getAttribute('accessible-label')).toBe('2 opmerkingen bij deze vraag')
     })
   })
 
@@ -200,7 +201,7 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(container)
 
       const { onFieldClick } = mountHarness({ container })
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
 
       const event = new MouseEvent('click', { bubbles: true, cancelable: true })
       const preventSpy = vi.spyOn(event, 'preventDefault')
@@ -220,7 +221,7 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container, canComment: false })
 
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
 
     it('removes an existing button when user can no longer comment and count drops to 0', async () => {
@@ -231,13 +232,13 @@ describe('useFieldCommentIndicators', () => {
       await nextTick()
 
       const { canComment, api } = mountHarness({ container, canComment: true })
-      expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(container.querySelector('nldd-button')).not.toBeNull()
 
       store.threads = [thread({ fieldId: '1.1', id: 't1', resolvedAt: '2026-01-02T00:00:00Z' })]
       canComment.value = false
       api.scanAndInject()
 
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
 
     it('takes the no-existing-button branch when user cannot comment and field never had a button', () => {
@@ -246,12 +247,12 @@ describe('useFieldCommentIndicators', () => {
 
       const { api } = mountHarness({ container, canComment: false })
       api.scanAndInject()
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
   })
 
   describe('updating an existing button', () => {
-    it('updates the same button in place on re-scan and preserves the in-label-row class', async () => {
+    it('updates the same button in place on re-scan and preserves the label-row class', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -259,8 +260,8 @@ describe('useFieldCommentIndicators', () => {
       await nextTick()
 
       const { api } = mountHarness({ container })
-      const firstBtn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      expect(firstBtn.classList.contains('comment-field-btn--in-label-row')).toBe(true)
+      const firstBtn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(firstBtn.classList.contains('comment-field-label__btn')).toBe(true)
 
       store.threads = [
         thread({ fieldId: '1.1', id: 't1' }),
@@ -268,11 +269,11 @@ describe('useFieldCommentIndicators', () => {
       ]
       api.scanAndInject()
 
-      const buttons = container.querySelectorAll('.comment-field-btn')
+      const buttons = container.querySelectorAll('nldd-button')
       expect(buttons.length).toBe(1)
       expect(buttons[0]).toBe(firstBtn)
-      expect(firstBtn.querySelector('span')!.textContent).toBe('Opmerking (2)')
-      expect(firstBtn.classList.contains('comment-field-btn--in-label-row')).toBe(true)
+      expect(firstBtn.getAttribute('text')).toBe('Opmerking (2)')
+      expect(firstBtn.classList.contains('comment-field-label__btn')).toBe(true)
     })
   })
 
@@ -287,8 +288,8 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const labelContainer = container.querySelector('.rvo-form-field__label')!
-      const btn = labelContainer.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const labelContainer = container.querySelector('.form-field__label')!
+      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
       const toggle = labelContainer.querySelector('.open-text-field__toggle')!
       expect(btn.nextElementSibling).toBe(toggle)
       expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(false)
@@ -304,9 +305,9 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const labelContainer = container.querySelector('.rvo-form-field__label')!
-      const btn = labelContainer.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      const desc = labelContainer.querySelector('.utrecht-form-field-description')!
+      const labelContainer = container.querySelector('.form-field__label')!
+      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
+      const desc = labelContainer.querySelector('.form-field__description')!
       expect(btn.nextElementSibling).toBe(desc)
       expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
     })
@@ -317,8 +318,8 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const labelContainer = container.querySelector('.rvo-form-field__label')!
-      const btn = labelContainer.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const labelContainer = container.querySelector('.form-field__label')!
+      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
       expect(labelContainer.lastElementChild).toBe(btn)
       expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
     })
@@ -329,7 +330,7 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
-      const btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn).not.toBeNull()
       expect(label.nextElementSibling).toBe(btn)
     })
@@ -349,7 +350,7 @@ describe('useFieldCommentIndicators', () => {
     it('removes indicators for fields that disappear from the DOM on re-scan', () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       const lc2 = document.createElement('div')
-      lc2.className = 'rvo-form-field__label'
+      lc2.className = 'form-field__label'
       const label2 = document.createElement('label')
       label2.id = 'label-x-2.2'
       lc2.appendChild(label2)
@@ -357,12 +358,12 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(container)
 
       const { api } = mountHarness({ container })
-      expect(container.querySelectorAll('.comment-field-btn').length).toBe(2)
+      expect(container.querySelectorAll('nldd-button').length).toBe(2)
 
       lc2.remove()
       api.scanAndInject()
 
-      const remaining = container.querySelectorAll('.comment-field-btn')
+      const remaining = container.querySelectorAll('nldd-button')
       expect(remaining.length).toBe(1)
     })
   })
@@ -380,7 +381,7 @@ describe('useFieldCommentIndicators', () => {
 
       api.scanAndInject()
       api.scanAndInject()
-      expect(container.querySelectorAll('.comment-field-btn').length).toBe(1)
+      expect(container.querySelectorAll('nldd-button').length).toBe(1)
       expect(reentered).toBe(false)
     })
   })
@@ -391,17 +392,17 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(container)
 
       mountHarness({ container })
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
 
       const lc = document.createElement('div')
-      lc.className = 'rvo-form-field__label'
+      lc.className = 'form-field__label'
       const label = document.createElement('label')
       label.id = 'label-x-3.3'
       lc.appendChild(label)
       container.appendChild(lc)
 
       await vi.waitFor(() => {
-        expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+        expect(container.querySelector('nldd-button')).not.toBeNull()
       })
     })
   })
@@ -413,14 +414,14 @@ describe('useFieldCommentIndicators', () => {
       const store = useCollaborationStore()
 
       mountHarness({ container })
-      let btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      expect(btn.querySelector('span')!.textContent).toBe('Opmerking')
+      let btn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(btn.getAttribute('text')).toBe('Opmerking')
 
       store.threads = [thread({ fieldId: '1.1', id: 't1' })]
       await nextTick()
 
-      btn = container.querySelector<HTMLButtonElement>('.comment-field-btn')!
-      expect(btn.querySelector('span')!.textContent).toBe('Opmerking (1)')
+      btn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
     })
   })
 
@@ -436,7 +437,7 @@ describe('useFieldCommentIndicators', () => {
       containerRef.value = container
       api.scanAndInject()
 
-      expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(container.querySelector('nldd-button')).not.toBeNull()
     })
   })
 
@@ -446,7 +447,7 @@ describe('useFieldCommentIndicators', () => {
 
       const container = document.createElement('div')
       const lc = document.createElement('div')
-      lc.className = 'rvo-form-field__label'
+      lc.className = 'form-field__label'
       const label = document.createElement('label')
       label.id = 'label-x-4.4'
       lc.appendChild(label)
@@ -456,7 +457,7 @@ describe('useFieldCommentIndicators', () => {
       containerRef.value = container
       await nextTick()
 
-      expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(container.querySelector('nldd-button')).not.toBeNull()
     })
 
     it('short-circuits startObserving when an observer already exists (ref swaps element)', async () => {
@@ -464,7 +465,7 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(containerA)
 
       const { containerRef } = mountHarness({ container: containerA })
-      expect(containerA.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(containerA.querySelector('nldd-button')).not.toBeNull()
 
       // Swap to a different element with no null in between, so the existing
       // observer short-circuits startObserving and B is never scanned.
@@ -473,7 +474,7 @@ describe('useFieldCommentIndicators', () => {
       containerRef.value = containerB
       await nextTick()
 
-      expect(containerB.querySelector('.comment-field-btn')).toBeNull()
+      expect(containerB.querySelector('nldd-button')).toBeNull()
     })
 
     it('stops observing and removes buttons when the container ref becomes null', async () => {
@@ -481,12 +482,12 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(container)
 
       const { containerRef } = mountHarness({ container })
-      expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(container.querySelector('nldd-button')).not.toBeNull()
 
       containerRef.value = null
       await nextTick()
 
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
   })
 
@@ -496,12 +497,12 @@ describe('useFieldCommentIndicators', () => {
       document.body.appendChild(container)
 
       const { wrapper } = mountHarness({ container })
-      expect(container.querySelector('.comment-field-btn')).not.toBeNull()
+      expect(container.querySelector('nldd-button')).not.toBeNull()
 
       wrapper.unmount()
       await nextTick()
 
-      expect(container.querySelector('.comment-field-btn')).toBeNull()
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
   })
 })

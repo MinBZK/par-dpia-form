@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/button'
+import '@nldd/design-system/form-section'
 
 export interface ConflictField {
   fieldId: string
@@ -19,78 +22,87 @@ const emit = defineEmits<{
   resolve: [resolutions: Map<string, 'mine' | 'theirs'>]
 }>()
 
-const dialogRef = ref<HTMLDialogElement | null>(null)
+// show/hide are optional: they only exist once the custom element is upgraded
+// (not in jsdom unit tests).
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+const dialogRef = ref<ModalDialogElement | null>(null)
 const selections = reactive<Record<string, 'mine' | 'theirs'>>({})
 
 watch(() => props.active, (open) => {
   if (open) {
     for (const key of Object.keys(selections)) delete selections[key]
     for (const f of props.fields) selections[f.fieldId] = 'mine'
-    dialogRef.value?.showModal()
+    dialogRef.value?.show?.()
   } else {
-    dialogRef.value?.close()
+    dialogRef.value?.hide?.()
   }
 })
 
+// Non-dismissable: a resolution must be chosen, so reopen if dismissed while
+// the conflict is still active.
+function onClose() {
+  if (props.active) dialogRef.value?.show?.()
+}
+
 function handleResolve() {
-  dialogRef.value?.close()
   emit('resolve', new Map(Object.entries(selections) as [string, 'mine' | 'theirs'][]))
 }
 </script>
 
 <template>
-  <dialog ref="dialogRef" class="confirm-dialog" @cancel.prevent>
-    <div class="confirm-dialog__content confirm-dialog__content--wide">
-      <h2 class="utrecht-heading-2">Bewerkingsconflict</h2>
+  <nldd-modal-dialog
+    ref="dialogRef"
+    accessible-label="Bewerkingsconflict"
+    text="Bewerkingsconflict"
+    @close="onClose"
+  >
+    <div>
       <p>
         Een andere gebruiker heeft dezelfde velden gewijzigd.
         Kies per veld welke waarde je wilt behouden.
       </p>
 
-      <table class="conflict-table">
-        <thead>
-          <tr>
-            <th>Vraag</th>
-            <th>Mijn waarde</th>
-            <th>Andere waarde</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="field in fields" :key="field.fieldId">
-            <td class="conflict-field">{{ field.label }}</td>
-            <td class="conflict-value conflict-value--mine" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'mine' }">
-              <label class="conflict-radio">
-                <input
-                  type="radio"
-                  :name="`conflict-${field.fieldId}`"
-                  :checked="selections[field.fieldId] === 'mine'"
-                  @change="selections[field.fieldId] = 'mine'"
-                />
-                <span v-html="field.myFormatted"></span>
-              </label>
-            </td>
-            <td class="conflict-value conflict-value--theirs" :class="{ 'conflict-value--selected': selections[field.fieldId] === 'theirs' }">
-              <label class="conflict-radio">
-                <input
-                  type="radio"
-                  :name="`conflict-${field.fieldId}`"
-                  :checked="selections[field.fieldId] === 'theirs'"
-                  @change="selections[field.fieldId] = 'theirs'"
-                />
-                <span v-html="field.theirFormatted"></span>
-              </label>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="confirm-dialog__actions">
-        <button
-          type="button"
-          class="rvo-button rvo-button--primary rvo-button--size-md"
-          @click="handleResolve"
-        >Toepassen</button>
-      </div>
+      <nldd-form-section
+        v-for="field in fields"
+        :key="field.fieldId"
+        :text="field.label"
+      >
+        <!-- One wrapper per section: form-section migrates every direct child
+             into its fieldset, so Vue keeps patching inside a node it owns. -->
+        <div class="conflict-choices">
+          <label
+            class="conflict-option"
+            :class="{ 'conflict-option--selected': selections[field.fieldId] === 'mine' }"
+          >
+            <input
+              type="radio"
+              :name="`conflict-${field.fieldId}`"
+              :checked="selections[field.fieldId] === 'mine'"
+              @change="selections[field.fieldId] = 'mine'"
+            />
+            <span>
+              <span class="conflict-option__label">Jouw waarde</span>
+              <span v-html="field.myFormatted"></span>
+            </span>
+          </label>
+          <label
+            class="conflict-option"
+            :class="{ 'conflict-option--selected': selections[field.fieldId] === 'theirs' }"
+          >
+            <input
+              type="radio"
+              :name="`conflict-${field.fieldId}`"
+              :checked="selections[field.fieldId] === 'theirs'"
+              @change="selections[field.fieldId] = 'theirs'"
+            />
+            <span>
+              <span class="conflict-option__label">Andere waarde</span>
+              <span v-html="field.theirFormatted"></span>
+            </span>
+          </label>
+        </div>
+      </nldd-form-section>
     </div>
-  </dialog>
+    <nldd-button slot="actions" variant="primary" text="Toepassen" @click="handleResolve"></nldd-button>
+  </nldd-modal-dialog>
 </template>

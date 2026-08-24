@@ -3,7 +3,7 @@
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
 
-Webapplicatie voor het uitvoeren van Pre-scan-, DPIA- en IAMA-assessments, volgens het Rijksmodel DPIA en het IAMA (Impact Assessment Mensenrechten en Algoritmes) van de Nederlandse overheid. Gebouwd met het [RVO component library](https://nl-design-system.github.io/rvo/).
+Webapplicatie voor het uitvoeren van Pre-scan-, DPIA- en IAMA-assessments, volgens het Rijksmodel DPIA en het IAMA (Impact Assessment Mensenrechten en Algoritmes) van de Nederlandse overheid. Gebouwd met het [NLDD Design System](https://minbzk.github.io/storybook/) van de Nederlandse Digitale Dienst.
 
 ## Kenmerken
 
@@ -31,7 +31,7 @@ pnpm monorepo:
 - **Frontend**: Vue 3 (Composition API), TypeScript, Vite, Pinia
 - **Backend**: Fastify 5, Drizzle ORM, PostgreSQL 17
 - **Auth**: Keycloak (OIDC), JWT-verificatie via `jose`
-- **Styling**: RVO Design System
+- **Styling**: NLDD Design System (`@nldd/design-system`, Lit web components)
 - **Standalone**: Vite single-file build — alles (HTML, CSS, JS) in één bestand
 - **PDF**: pdfmake
 
@@ -120,7 +120,7 @@ uv run script/run_all.py \
 
 ### Domeinkennis-plugin (AI-assistent)
 
-Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, RVO-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
+Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, NLDD-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
 
 Installeren:
 

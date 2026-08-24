@@ -1,111 +1,278 @@
-.rvo-theme {
-  background-color: var(--utrecht-document-background-color);
-  color: var(--utrecht-document-color);
-  font-family: var(--utrecht-document-font-family);
-  font-size: var(--utrecht-document-font-size);
-  font-weight: var(--utrecht-document-font-weight);
-  line-height: var(--utrecht-document-line-height);
+/* The Vue mount point sits between body and nldd-app-view; without an explicit
+   height the NLDD app shell collapses to 0 and nothing renders. */
+html:has(nldd-app-view) #app {
+  height: 100%;
+}
+
+/* Base styling for light-DOM anchors (content links, footer, embedded schema/
+   markdown HTML). NLDD only styles nldd-link, so bare <a> would otherwise fall
+   back to the browser's default blue. */
+a {
+  color: var(--semantics-links-color);
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--semantics-links-is-hovered-color);
+}
+
+a:active {
+  color: var(--semantics-links-is-active-color);
+}
+
+/* Typography and content colour come from NLDD's document-reset (@layer reset);
+   redeclaring them here would win over the layer and pin the DS defaults.
+   Only the surface stays ours: nldd-app-view paints it on body itself. */
+body {
+  background-color: var(--semantics-surfaces-base-background-color);
 }
 
 .form-input-container {
   position: relative;
 }
 
-@media (min-width: 1080px) {
-  .rvo-theme .rvo-sidebar-layout {
-    grid-template-columns: 320px 1fr;
-  }
+/* Form field building blocks (light DOM around the NLDD inputs). The label
+   row and description keep stable class names: the boekhouding-frontend
+   comment system locates fields through .form-field__label,
+   .form-field__description and the label-* id convention. */
+.form-field__label {
+  display: flex;
+  flex-direction: column;
+  margin-block-end: var(--primitives-space-8, 0.5rem);
 }
 
-.rvo-theme .utrecht-textbox--lg {
-  width: 100%;
+.form-field__label > label {
+  font-weight: 700;
 }
 
-.rvo-theme .small-text {
-  font-size: var(--rvo-font-size-xs);
+.form-field__description {
+  color: var(--semantics-content-secondary-color, #556273);
 }
 
-.rvo-theme .preserve-whitespace {
+.form-field__error {
+  color: var(--semantics-content-critical-color, #b62c20);
+}
+
+.field-group {
+  margin-block-end: var(--primitives-space-16, 1rem);
+}
+
+.form-field__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--primitives-space-4, 0.25rem);
+}
+
+.form-field__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--primitives-space-8, 0.5rem);
+  padding-block: var(--primitives-space-2, 0.125rem);
+  cursor: default;
+}
+
+.form-field__choice input[type='radio'],
+.form-field__choice input[type='checkbox'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--primitives-color-accent-600, #007bc7);
+}
+
+/* Shared accordion: native details/summary with NLDD chevron icons. */
+.ui-accordion {
+  border-block-end: 1px solid var(--primitives-color-neutral-200, #ddd);
+}
+
+.ui-accordion:first-of-type {
+  border-block-start: 1px solid var(--primitives-color-neutral-200, #ddd);
+}
+
+.ui-accordion__summary {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--primitives-space-8, 0.5rem);
+  padding-block: var(--primitives-space-12, 0.75rem);
+  list-style: none;
+}
+
+.ui-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-accordion__icon {
+  display: inline-flex;
+  block-size: 1.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ui-accordion:not([open]) .ui-accordion__icon--open {
+  display: none;
+}
+
+.ui-accordion[open] .ui-accordion__icon--closed {
+  display: none;
+}
+
+.ui-accordion__title {
+  flex: 1;
+}
+
+.ui-accordion__content {
+  padding-block-end: var(--primitives-space-16, 1rem);
+  padding-inline-start: calc(20px + var(--primitives-space-8, 0.5rem));
+}
+
+/* Image field: internal spacing. */
+.image-field__block {
+  display: block;
+  margin-block-end: var(--primitives-space-16, 1rem);
+}
+
+/* Fieldset/legend wrapper around task groups and single fields. */
+.task-fieldset__fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+legend.task-fieldset__legend {
+  padding: 0;
+  font-weight: 700;
+  font-size: var(--primitives-font-size-200, 1.25rem);
+  margin-block-end: var(--primitives-space-8, 0.5rem);
+}
+
+legend.task-fieldset__legend--sub {
+  padding: 0;
+  font-weight: 700;
+  margin-block-end: var(--primitives-space-4, 0.25rem);
+}
+
+.task-fieldset__description {
+  margin-block-end: var(--primitives-space-12, 0.75rem);
+}
+
+.task-fieldset__repeatable {
+  margin-block-end: var(--primitives-space-16, 1rem);
+}
+
+.preserve-whitespace {
   white-space: pre-line;
 }
 
-.rvo-theme .button-group-container {
+/* One root section page: heading + vertically stacked blocks. */
+.task-section {
+  margin-block: var(--primitives-space-8, 0.5rem);
+}
+
+.task-section h1 {
+  font-size: var(--primitives-font-size-500, 2rem);
+  line-height: 1.25;
+  margin-block: 0 var(--primitives-space-16, 1rem);
+}
+
+.task-section__description p {
+  margin-block: 0;
+}
+
+.task-section__dependency-list {
+  margin-block: var(--primitives-space-4, 0.25rem) 0;
+  padding-inline-start: 1.25rem;
+}
+
+.button-group-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: var(--rvo-space-md);
+  gap: var(--primitives-space-16, 1rem);
   width: 100%;
 }
 
-.rvo-theme .button-group-container__completed {
+.button-group-container__completed {
   margin-inline-start: auto;
 }
 
-.rvo-theme .button-group-container__completed + .button-group-container__end {
+.button-group-container__completed + .button-group-container__end {
   margin-inline-start: 0;
 }
 
-.rvo-theme .button-group-container__end {
+.button-group-container__end {
   display: flex;
   align-items: center;
-  gap: var(--rvo-space-md);
+  gap: var(--primitives-space-16, 1rem);
   margin-inline-start: auto;
 }
 
 @media (max-width: 480px) {
-  .rvo-theme .button-group-container__completed {
+  .button-group-container__completed {
     margin-inline-start: 0;
     order: -1;
     flex-basis: 100%;
   }
-  .rvo-theme .button-group-container__end,
-  .rvo-theme .button-group-container__completed + .button-group-container__end {
+  .button-group-container__end,
+  .button-group-container__completed + .button-group-container__end {
     margin-inline-start: auto;
   }
 }
 
-.rvo-theme .rvo-accordion__item-summary {
-  align-items: flex-start;
+/* Table of contents (progress tracker): a vertical step list built on the NLDD
+   timeline-track-cell (variant="step"). The marker carries the chapter number,
+   a check mark once completed, or a small core once started; status colours,
+   the connecting line and the halo around the marker all come from the
+   component and are theme-aware. */
+
+/* The table of contents sits open in the sidebar column; drop the
+   sidebar-section's boxed surface and border so it reads as a clean timeline. */
+nldd-sidebar-section {
+  --components-sidebar-section-sidebar-box-background-color: transparent;
+  --components-sidebar-section-sidebar-box-highlight-border-color: transparent;
 }
 
-.rvo-theme .rvo-accordion__item-summary .rvo-accordion__item-icon {
-  margin-block-start: 0.4em;
+/* nldd-list-item reaches outward by this inset so its highlight frames the
+   row; without matching padding here it would push the sidebar into a
+   horizontal scroll. */
+.progress-tracker {
+  padding-inline: var(--components-list-item-indicator-inline-inset);
 }
 
-.rvo-theme .modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.progress-tracker__title {
+  font-weight: 700;
+  margin-block-end: var(--primitives-space-8, 0.5rem);
+  color: var(--semantics-content-color);
 }
 
-.rvo-theme .save-modal {
-  background-color: white;
-  border-radius: 4px;
-  padding: 1.5rem;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  max-height: 90vh;
+/* nldd-list draws the rows; what stays is the marker column, the "partly
+   filled" core slotted into it, and the comment marker at the row end. */
+.toc-track-cell {
+  flex-shrink: 0;
 }
 
-.rvo-theme .rvo-icon--with-spacing-right {
-  margin-right: 0.5rem;
+/* Started ("deels ingevuld"): a small filled core slotted into the marker. */
+.toc-progress-core {
+  width: var(--primitives-space-8, 0.5rem);
+  height: var(--primitives-space-8, 0.5rem);
+  border-radius: 50%;
+  background: var(--semantics-content-secondary-color);
 }
+
+.toc-comment,
+.toc-done {
+  flex-shrink: 0;
+}
+
 
 .aiv-definition {
   position: relative;
   display: inline-block;
-  border-bottom: 2px dotted black;
+  /* NLDD has no defined-term component/token; currentColor stays legible in
+     both color schemes. */
+  border-bottom: 2px dotted currentColor;
   cursor: help;
 }
 
@@ -113,13 +280,18 @@
   display: none;
   min-width: 500px;
   max-width: 1000px;
-  background-color: var(--rvo-color-wit);
-  color: var(--rvo-color-zwart);
-  filter: drop-shadow(0 4px 4px rgba(115, 142, 171, 0.5));
+  /* The tinted surface the cards use, so the panel reads as raised against the
+     page. Not the raw neutrals it used before (neutral-0 turns near-black in
+     dark mode), and not the DS tooltip tokens either: those only pair correctly
+     inside nldd-tooltip's own shadow scope, and read as white on light grey
+     out here. */
+  background-color: var(--semantics-surfaces-tinted-background-color);
+  color: var(--semantics-content-color);
+  box-shadow: var(--primitives-box-shadows-level-2);
   text-align: left;
-  border-radius: var(--rvo-border-radius-xl);
-  border: 1px solid var(--rvo-color-grijs-200);
-  padding: var(--rvo-alert-padding-sm-padding-block-end);
+  border-radius: var(--semantics-surfaces-corner-radius);
+  border: 1px solid var(--semantics-surfaces-tinted-border-color);
+  padding: 12px;
   position: absolute;
   z-index: 1;
 
@@ -129,13 +301,12 @@
   margin-top: 5px;
 
   /* Text styling */
-  color: var(--rvo-color-zwart);
-  font-family: var(--utrecht-document-font-family);
-  font-size: var(--utrecht-document-font-size);
-  font-weight: var(--utrecht-document-font-weight);
+  font-family: var(--primitives-font-family-body, RijksSans, system-ui, sans-serif);
+  font-size: var(--primitives-font-size-90, 1rem);
+  font-weight: 400;
   font-style: normal;
   text-align: left;
-  line-height: var(--utrecht-document-line-height);
+  line-height: 1.5;
 
   /* Fix for Safari */
   backdrop-filter: blur(0);
@@ -160,449 +331,234 @@
   }
 }
 
-.rvo-theme .rvo-icon--with-spacing-left {
-  margin-left: 0.5rem;
-}
-
-.rvo-theme .utrecht-textarea,
-.rvo-theme .utrecht-textarea--html-textarea {
-  resize: vertical;
-  width: 100%;
-  box-sizing: border-box;
-  padding: var(--utrecht-textbox-padding-block-start, 12px) var(--utrecht-textbox-padding-inline-end, 12px) var(--utrecht-textbox-padding-block-end, 12px) var(--utrecht-textbox-padding-inline-start, 12px);
-}
-
-.rvo-theme .rvo-form-field__label.rvo-form-field__label:has(.open-text-field__toggle) {
+.form-field__label:has(.open-text-field__toggle) {
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
 }
 
-.rvo-theme .rvo-form-field__label:has(.open-text-field__toggle) .utrecht-form-field-description {
+.form-field__label:has(.open-text-field__toggle) .form-field__description {
   flex-basis: 100%;
 }
 
-.rvo-theme .open-text-field__toggle {
+.open-text-field__toggle {
   margin-inline-start: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--rvo-color-hemelblauw);
-  border-radius: 3px;
-  background: none;
-  color: var(--rvo-color-hemelblauw);
-  font-size: 0.8rem;
-  line-height: 1;
-  cursor: pointer;
 }
 
-.rvo-theme .markdown-preview {
+/* Frame around the markdown read mode; the content itself is styled by
+   nldd-rich-text (rich-text.css), which the host carries. */
+.markdown-preview {
   min-height: 8rem;
-  padding: 0.75rem;
-  background: var(--rvo-color-grijs-100, #f3f3f3);
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
-  border-radius: 3px;
+  padding: var(--primitives-space-12, 0.75rem);
+  background: var(--semantics-surfaces-tinted-background-color);
+  border: var(--semantics-surfaces-border-width, 1px) solid var(--semantics-surfaces-tinted-border-color);
+  border-radius: var(--semantics-surfaces-corner-radius, 8px);
 }
 
-.rvo-theme .markdown-preview h1,
-.rvo-theme .markdown-preview h2,
-.rvo-theme .markdown-preview h3 {
-  margin-block: 0.5em 0.25em;
-}
-
-.rvo-theme .markdown-preview ul,
-.rvo-theme .markdown-preview ol {
-  padding-inline-start: 1.5rem;
-  margin-block: 0.25rem;
-}
-
-.rvo-theme .markdown-preview p {
-  margin-block: 0.25rem;
-}
-
-.rvo-theme .markdown-preview blockquote {
-  border-inline-start: 3px solid var(--rvo-color-hemelblauw);
-  padding-inline-start: 0.75rem;
-  margin-inline-start: 0;
-  margin-block: 0.5rem;
-  color: var(--rvo-color-grijs-700, #555);
-}
-
-.rvo-theme .markdown-preview .task-list-item {
+/* GFM task list items: rich-text has no rule for the marker-less variant. */
+.markdown-preview .task-list-item {
   list-style: none;
   margin-inline-start: -1rem;
 }
 
-.rvo-theme .markdown-preview code {
-  background: #e8e8e8;
-  padding: 0.15em 0.35em;
-  border-radius: 3px;
-  font-family: monospace;
-  font-size: 0.9em;
-}
-
-.rvo-theme .markdown-preview pre {
-  background: #e8e8e8;
-  padding: 0.5rem;
-  border-radius: 3px;
-  overflow-x: auto;
-}
-
-.rvo-theme .background-grijs-100 {
-  background-color: var(--rvo-color-grijs-100) !important;
-}
-
-.rvo-theme .background-grijs-200 {
-  background-color: var(--rvo-color-grijs-200) !important;
-}
-
-.rvo-theme .card-content-flex {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.rvo-theme .card-button {
-  margin-top: auto;
-}
-
-.rvo-theme .font-hemelblauw {
- color: var(--rvo-color-hemelblauw);
-}
-
-.rvo-theme .font-white {
- color: var(--rvo-color-wit);
-}
-
-/* Override RVO's :invalid styling on required empty fields — red border should only
-   appear after user interaction (:user-invalid), not on page load. We reset the
-   invalid border to match the normal border (lintblauw). This includes the
-   :focus:invalid compound selector that RVO uses (lines 3544-3550 of RVO's index.css). */
-.rvo-theme .utrecht-textbox--html-input:invalid,
-.rvo-theme .utrecht-textbox:invalid,
-.rvo-theme .utrecht-textbox:focus.utrecht-textbox:invalid,
-.rvo-theme .utrecht-textbox:focus.utrecht-textbox--html-input:invalid,
-.rvo-theme .utrecht-textbox--focus.utrecht-textbox:invalid {
-  --utrecht-textbox-invalid-border-color: var(--rvo-color-lintblauw, #154273);
-  --utrecht-textbox-invalid-border-width: var(--utrecht-form-control-border-width, 1px);
-  --rvo-textbox-invalid-focus-border-color: var(--rvo-color-lintblauw, #154273);
-  --rvo-textbox-invalid-focus-outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw));
-  border-color: var(--rvo-color-lintblauw, #154273) !important;
-  border-width: 1px;
-  outline-color: var(--utrecht-focus-outline-color, var(--rvo-color-hemelblauw)) !important;
-}
-
-.rvo-theme .utrecht-textbox:user-invalid,
-.rvo-theme .utrecht-select:user-invalid,
-.rvo-theme .utrecht-textbox:focus:user-invalid {
-  border-color: #d52b1e !important;
-  outline-color: var(--rvo-color-rood) !important;
-}
-
-.rvo-theme .rvo-button--icon-before,
-.rvo-theme .rvo-button--icon-after {
-  gap: 0.25rem;
-}
-
-/* RVO 4.20 spaces the button icon twice: a flex `gap` (tamed above) plus an
-   extra margin on the icon itself (--rvo-space-sm ≈ 12px). Drop that margin so
-   the 0.25rem gap is the only spacing, matching the pre-4.20 button look. */
-.rvo-theme .rvo-button--icon-before .utrecht-icon {
-  margin-inline-end: 0;
-}
-.rvo-theme .rvo-button--icon-after .utrecht-icon {
-  margin-inline-start: 0;
-}
-
-/* RVO 4.20 stripte de standaard onder-marge van koppen (utrecht-heading-*),
-   waardoor koppen tegen de tekst eronder kleven. Herstel de 4.8-spacing, maar
-   respecteer expliciete margin-utilities (rvo-margin*, rvo-heading--no-margins)
-   die de marge bewust op 0 zetten — bv. op card-titels die hun ruimte van de
-   card-layout krijgen. */
-.rvo-theme .utrecht-heading-1:not([class*="rvo-margin"]),
-.rvo-theme .utrecht-heading-2:not([class*="rvo-margin"]) {
-  margin-block-end: 1rem;
-}
-.rvo-theme .utrecht-heading-3:not([class*="rvo-margin"]):not(.rvo-heading--no-margins) {
-  margin-block-end: 0.75rem;
-}
-.rvo-theme .rvo-heading--no-margins {
-  margin-block: 0;
-}
-
-/* RVO 4.20 zet de accordion-chevron ~5px te laag t.o.v. de titel. Lijn de
-   chevron weer uit met de eerste tekstregel (line-height h3 = 30px). */
-.rvo-theme .rvo-accordion__item-summary .rvo-accordion__item-icon {
-  block-size: 1.5rem;
-  align-items: center;
-  margin-block-start: 0;
-}
-
-/* Fix: progress tracker connecting line should stretch to full step height
-   when step text wraps to multiple lines. RVO draws the line as a 40px SVG
-   in a ::before with top:20px, height:40px — this overshoots the default
-   36px step by 24px to connect to the next circle. For taller steps, we
-   keep the same start (top) and overshoot (bottom:-24px) but let height
-   auto-stretch between them, and repeat the SVG to fill the gap. */
-.rvo-theme .rvo-progress-tracker__step--straight.rvo-image-bg-progress-tracker-line-straight--before::before {
-  height: auto;
-  bottom: -24px;
-  background-repeat: repeat-y;
-}
-
-/* Align the small end-dot center (10.5px) with the large circle center (14px).
-   Default RVO positions the sm dot at 9px, putting its center at 19.5px.
-   Correct position: 14 - 10.5 = 3.5px */
-.rvo-theme .rvo-progress-tracker__step--sm.rvo-progress-tracker__step--end::after {
-  background-position: 3.5px calc(50% + 1px);
-}
-
-/* Compact alert: reduce list indent so bullets align with start of text */
-.rvo-alert .utrecht-unordered-list {
-  margin-block: 0.25rem 0;
-  padding-inline-start: 1.25rem;
-}
-
 /* Image field */
-.rvo-theme .image-dropzone {
-  border: 2px dashed var(--rvo-color-grijs-200);
-  border-radius: var(--rvo-border-radius-xl);
-  padding: var(--rvo-space-sm) var(--rvo-space-lg);
+.image-dropzone {
+  border: 2px dashed var(--primitives-color-neutral-200, #ddd);
+  border-radius: 12px;
+  padding: var(--primitives-space-8, 0.5rem) var(--primitives-space-24, 1.5rem);
   text-align: center;
   cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s;
 }
 
-.rvo-theme .image-dropzone:hover,
-.rvo-theme .image-dropzone:focus-visible {
-  border-color: var(--rvo-color-hemelblauw);
-  background-color: var(--rvo-color-grijs-100);
+.image-dropzone:hover,
+.image-dropzone:focus-visible {
+  border-color: var(--primitives-color-accent-600, #007bc7);
+  background-color: var(--primitives-color-neutral-50, #f3f3f3);
 }
 
-.rvo-theme .image-dropzone--active {
-  border-color: var(--rvo-color-hemelblauw);
-  background-color: var(--rvo-color-grijs-100);
+.image-dropzone--active {
+  border-color: var(--primitives-color-accent-600, #007bc7);
+  background-color: var(--primitives-color-neutral-50, #f3f3f3);
 }
 
-.rvo-theme .image-preview {
+.image-preview {
   max-width: 100%;
   max-height: 400px;
   display: block;
 }
 
-.rvo-theme .image-replace-target {
+.image-replace-target {
   position: relative;
   display: inline-block;
-  margin-block-end: var(--rvo-space-sm);
+  margin-block-end: var(--primitives-space-8, 0.5rem);
 }
 
-.rvo-theme .image-replace-overlay {
+.image-replace-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: rgba(0, 0, 0, 0.5);
-  color: var(--rvo-color-wit);
+  color: var(--primitives-color-neutral-0, #fff);
   font-weight: bold;
   pointer-events: none;
-  outline: 3px solid var(--rvo-color-hemelblauw);
+  outline: 3px solid var(--primitives-color-accent-600, #007bc7);
   outline-offset: -3px;
 }
 
-.rvo-theme .rvo-alert--inline {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: nowrap;
-}
 
-.rvo-theme .rvo-alert--inline > .rvo-icon {
-  flex-shrink: 0;
-}
-
-/* Confirm dialogs (native showModal() for focus trap and ::backdrop) */
-.rvo-theme .confirm-delete-dialog,
-.rvo-theme .confirm-dialog {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: auto;
-  max-width: 100%;
-  max-height: 100%;
-}
-
-.rvo-theme .confirm-delete-dialog::backdrop,
-.rvo-theme .confirm-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.rvo-theme .confirm-delete-dialog__content,
-.rvo-theme .confirm-dialog__content {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  max-width: 40rem;
-  width: 90vw;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-/* Export disclosure menu (accessible: real buttons, keyboard works for free) */
-.rvo-theme .export-menu {
-  position: relative;
-  display: inline-block;
-}
-
-.rvo-theme .export-menu__item {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--rvo-font-size-md, 1rem);
-  color: var(--rvo-color-zwart, #000);
-  white-space: nowrap;
-}
-
-.rvo-theme .export-menu__item:hover {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
-}
-
-.rvo-theme .export-menu__item:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
-  outline-offset: -2px;
-}
-
-.rvo-theme .export-menu__panel {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 10;
-  background: var(--rvo-color-wit, #fff);
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  min-width: 14rem;
-  padding: 0.25rem 0;
-}
-
-/* Split export button: a main "Exporteer als PDF" action joined to a chevron
-   toggle that opens the full options panel. */
-.rvo-theme .export-menu__split {
-  display: inline-flex;
-  align-items: stretch;
-}
-
-.rvo-theme .export-menu__split-main {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.rvo-theme .export-menu__split-toggle {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  margin-left: -1px;
-  padding-inline: 0.5rem;
-  min-width: 0;
-}
-
-.rvo-theme .confirm-delete-dialog__actions,
-.rvo-theme .confirm-dialog__actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
+/* Impact list inside the delete-confirmation modal. */
+.confirm-delete-dialog__list {
+  margin-block: var(--primitives-space-4, 0.25rem) 0;
+  padding-inline-start: 1.25rem;
 }
 
 /* Scrollable container for a multiselect_scrollable field (long static option lists). */
-.rvo-theme .multiselect-scrollable {
+.multiselect-scrollable {
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid var(--rvo-color-grijs-300, #b3b3b3);
+  border: 1px solid var(--primitives-color-neutral-300, #b3b3b3);
   border-radius: 4px;
   padding: 0.25rem 0;
 }
 
-.rvo-theme .multiselect-scrollable__option {
-  padding: 0.25rem 0.75rem;
+.multiselect-scrollable__option {
+  padding-inline: 0.75rem;
 }
 
-/* The RVO checkmark (.rvo-checkbox__input::after) is position:absolute; anchoring
-   it to its own input keeps it scrolling and clipping with the row inside the
-   scroll container instead of detaching to a non-scrolling ancestor. */
-.rvo-theme .multiselect-scrollable .rvo-checkbox__input {
-  position: relative;
+.nav-header {
+  border-block-end: 1px solid var(--primitives-color-neutral-200, #ddd);
 }
 
-.rvo-theme .app-banner__alert {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: nowrap;
-}
-
-.rvo-theme .app-banner__alert-icon {
-  flex-shrink: 0;
-}
-
-.rvo-theme .app-banner__alert-text {
-  text-align: center;
-}
-
-.rvo-theme .nav-header__bar {
+.nav-header__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--rvo-space-md, 1rem);
-  padding-block: var(--rvo-space-2xs, 0.5rem);
+  gap: var(--primitives-space-16, 1rem);
+  padding-block: var(--primitives-space-4, 0.25rem);
 }
 
-.rvo-theme .nav-header__actions {
+.nav-header__actions {
   display: flex;
   align-items: center;
-  gap: var(--rvo-space-sm, 0.5rem);
+  gap: var(--primitives-space-8, 0.5rem);
 }
 
-.rvo-theme .export-pdf-info__heading-row {
-  align-items: center;
-}
-
-.rvo-theme .reference-suggestions__alert {
+.export-pdf-info__heading-row {
   display: flex;
+  align-items: center;
+  gap: var(--primitives-space-8, 0.5rem);
 }
 
-.rvo-theme .form-field__fria-tag {
+/* Pill-shaped link next to a field label pointing at art. 27 AI-verordening. */
+.form-field__fria-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   margin-inline-start: 0.4em;
   vertical-align: middle;
+  padding: 0.1em 0.6em;
+  border: 1px solid var(--primitives-color-accent-300, #b3d9ef);
+  border-radius: 999px;
+  background: var(--primitives-color-accent-50, #eef7fb);
+  color: var(--primitives-color-accent-700, #01689b);
+  font-size: var(--primitives-font-size-80, 0.8rem);
+  font-weight: 400;
   text-decoration: none;
-  gap: 0.25em;
 }
 
-.rvo-theme .task-section__source-image {
+.task-section__source-image {
   max-width: 100%;
   height: auto;
 }
 
-/* element+class-selector i.p.v. losse class: wint qua specificiteit van RVO. */
-.rvo-theme textarea.autogrow-textarea {
-  overflow: hidden;
-  height: var(--autogrow-height, auto);
-}
-
-.rvo-theme .content-alert--flex {
+/* Styling hooks for HTML embedded in the YAML sources (rendered via v-html,
+   so these must stay global light-DOM rules). */
+.content-alert {
   display: flex;
+  gap: var(--primitives-space-8, 0.5rem);
+  padding: var(--primitives-space-12, 0.75rem) var(--primitives-space-16, 1rem);
+  border-radius: 8px;
+  margin-block: var(--primitives-space-8, 0.5rem);
 }
 
-.rvo-theme .content-tag-link {
+.content-alert--info {
+  background: var(--primitives-color-accent-50, #eef7fb);
+  border: 1px solid var(--primitives-color-accent-200, #b3d9ef);
+}
+
+.content-alert__label {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.content-tag-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
   margin-inline-start: 0.2em;
   vertical-align: middle;
+  padding: 0.1em 0.6em;
+  border: 1px solid var(--primitives-color-accent-300, #b3d9ef);
+  border-radius: 999px;
+  background: var(--primitives-color-accent-50, #eef7fb);
+  color: var(--primitives-color-accent-700, #01689b);
+  font-size: var(--primitives-font-size-80, 0.8rem);
   text-decoration: none;
-  gap: 0.25em;
+}
+
+.content-tag-link::after {
+  content: '\2197';
+  font-size: 0.9em;
+}
+
+/* Visually hidden helper for screenreader-only text in shared/YAML content. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Standalone landing page (LandingView): page width, base typography and the
+   card/dialog spacing. */
+.page-container {
+  /* width so the container also fills a flex column (nldd-page with a
+     footer), where margin-inline auto would otherwise shrink-wrap it.
+     border-box because there is no global box-sizing reset: 100% plus the
+     inline padding would push 2rem past a narrow viewport. */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 60rem;
+  margin-inline: auto;
+  padding-inline: var(--primitives-space-16, 1rem);
+  padding-block: var(--primitives-space-16, 1rem);
+}
+
+.landing-view h1 {
+  font-size: var(--primitives-font-size-500, 2rem);
+  line-height: 1.25;
+}
+
+.landing-view nldd-card,
+.landing-view nldd-card nldd-container {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Card text gets its spacing from the nldd-container gap; drop the UA margin. */
+.landing-view nldd-card p {
+  margin-block: 0;
+}
+
+/* NLDD has no vertical ellipsis; the shared kebab turns the horizontal one. */
+.kebab-menu__icon {
+  transform: rotate(90deg);
 }

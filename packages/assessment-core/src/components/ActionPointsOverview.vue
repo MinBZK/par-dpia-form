@@ -50,29 +50,24 @@ const hasAnyActionPoints = computed(() =>
 </script>
 
 <template>
-  <div class="utrecht-form-fieldset rvo-form-fieldset">
-    <fieldset
-      class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
-    >
-      <legend
-        class="utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend"
-      >
+  <div class="task-fieldset">
+    <fieldset class="task-fieldset__fieldset">
+      <legend class="task-fieldset__legend">
         Overzicht actiepunten
       </legend>
 
-      <p v-if="!hasAnyActionPoints" class="utrecht-paragraph">
+      <p v-if="!hasAnyActionPoints">
         Er zijn nog geen actiepunten ingevuld in de voorgaande delen.
       </p>
 
       <template v-else>
         <div v-for="group in actionPointGroups" :key="group.deelLabel">
           <template v-if="group.items.length > 0">
-            <h3 class="utrecht-heading-3">{{ group.deelLabel }}</h3>
-            <ul class="utrecht-unordered-list">
+            <h3>{{ group.deelLabel }}</h3>
+            <ul>
               <li
                 v-for="(item, index) in group.items"
                 :key="index"
-                class="utrecht-unordered-list__item"
               >
                 {{ item }}
               </li>

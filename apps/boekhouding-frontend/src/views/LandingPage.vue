@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
 import { useRouter } from 'vue-router'
-import { IconBuildingBank, IconLayoutGrid, IconCopyCheck, IconListNumbers } from '@tabler/icons-vue'
 import { useAuth } from '../composables/useAuth'
 import { getConfig } from '../config'
-import AppHeader from '../components/AppHeader.vue'
+import '@nldd/design-system/button'
+import '@nldd/design-system/card'
+import '@nldd/design-system/collection'
+import '@nldd/design-system/container'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/text'
+import '@nldd/design-system/title'
 
 const { isAuthenticated, login } = useAuth()
 const router = useRouter()
@@ -18,24 +22,24 @@ async function goToProjects() {
   }
 }
 
-const pillars: { icon: Component; title: string; body: string }[] = [
+const pillars: { icon: string; title: string; body: string }[] = [
   {
-    icon: IconBuildingBank,
+    icon: 'book',
     title: 'Gebaseerd op rijksbrede kaders',
     body: 'De pre-scan en DPIA volgen het Rapportagemodel DPIA Rijksdienst (versie 3.0) en de Informatiemodellen voor de DPIA en pre-scan DPIA. Het IAMA is gebaseerd op het instrument van de Universiteit Utrecht (versie 2.0).',
   },
   {
-    icon: IconLayoutGrid,
+    icon: 'square-grid-2x2',
     title: 'Alles op één plek',
     body: 'Organiseer je assessments in projecten en houd verschillende versies van een DPIA of IAMA door de jaren heen bij elkaar. Zo vind je alles terug op één plek.',
   },
   {
-    icon: IconCopyCheck,
+    icon: 'seal-check-mark',
     title: 'Standaardisatie',
     body: 'De pre-scan, DPIA en IAMA volgen een gestandaardiseerd model. Dat maakt samenwerken, beoordelen en hergebruiken eenvoudiger.',
   },
   {
-    icon: IconListNumbers,
+    icon: 'numbered-list',
     title: 'Stapsgewijs',
     body: 'Gerichte vragen met uitleg en bronnen leiden je door het assessment, zodat je weet wat er nodig is en niets vergeet.',
   },
@@ -61,102 +65,98 @@ const assessments = [
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader />
-
+  <div class="page-container">
     <section class="landing-hero" aria-labelledby="landing-hero-title">
-      <h1 id="landing-hero-title" class="utrecht-heading-1 rvo-margin--none">
+      <h1 id="landing-hero-title">
         Krijg grip op pre-scans, DPIA's en IAMA's
       </h1>
-      <p class="landing-hero__lead">
-        Begin met de pre-scan en vul daarna, afhankelijk van de uitkomst, een DPIA en/of IAMA in.
-        Werk zonder account in je browser, ook offline, of log in om samen te werken.
-      </p>
+      <nldd-container max-width="42rem">
+        <nldd-text color="secondary">
+          Begin met de pre-scan en vul daarna, afhankelijk van de uitkomst, een DPIA en/of IAMA in.
+          Werk zonder account in je browser, ook offline, of log in om samen te werken.
+        </nldd-text>
+      </nldd-container>
     </section>
 
     <section class="landing-section" aria-labelledby="landing-paths-title">
-      <h2 id="landing-paths-title" class="utrecht-heading-2">Kies hoe je werkt</h2>
-      <div class="rvo-layout-grid-container">
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
-            <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3 rvo-margin--none">Zelfstandig invullen</h3>
-              <p>
-                Vul een pre-scan, DPIA of IAMA in zonder account of inloggen. Je antwoorden blijven
-                lokaal in je browser. Je slaat je werk op als bestand, laadt het later weer in, of
-                downloadt de invulhulp om offline te gebruiken.
-              </p>
-              <a
-                :href="standaloneUrl"
-                class="rvo-button rvo-button--primary rvo-button--size-md"
-              >
-                Start zonder account
-              </a>
-            </div>
-          </div>
+      <h2 id="landing-paths-title">Kies hoe je werkt</h2>
+      <nldd-collection layout="grid" item-width="380px" gap="16px">
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <h3>Zelfstandig invullen</h3>
+            <p>
+              Vul een pre-scan, DPIA of IAMA in zonder account of inloggen. Je antwoorden blijven
+              lokaal in je browser. Je slaat je werk op als bestand, laadt het later weer in, of
+              downloadt de invulhulp om offline te gebruiken.
+            </p>
+          </nldd-container>
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <nldd-button
+              variant="primary"
+              size="md"
+              :href="standaloneUrl"
+              text="Start zonder account"
+            ></nldd-button>
+          </nldd-container>
+        </nldd-card>
 
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100">
-            <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3 rvo-margin--none">Samenwerken</h3>
-              <p v-if="isAuthenticated">
-                Ga naar je projecten om samen met collega's en adviseurs te werken. Groepeer je
-                pre-scans, DPIA's en IAMA's in projecten en nodig anderen uit. Inclusief
-                versiebeheer en de mogelijkheid om opmerkingen te plaatsen.
-              </p>
-              <p v-else>
-                Log in om samen met collega's en adviseurs te werken. Groepeer je pre-scans, DPIA's
-                en IAMA's in projecten en nodig anderen uit. Inclusief versiebeheer en de
-                mogelijkheid om opmerkingen te plaatsen.
-              </p>
-              <button
-                class="rvo-button rvo-button--primary rvo-button--size-md"
-                @click="goToProjects"
-              >
-                {{ isAuthenticated ? 'Naar projecten' : 'Inloggen' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <h3>Samenwerken</h3>
+            <p v-if="isAuthenticated">
+              Ga naar je projecten om samen met collega's en adviseurs te werken. Groepeer je
+              pre-scans, DPIA's en IAMA's in projecten en nodig anderen uit. Inclusief
+              versiebeheer en de mogelijkheid om opmerkingen te plaatsen.
+            </p>
+            <p v-else>
+              Log in om samen met collega's en adviseurs te werken. Groepeer je pre-scans, DPIA's
+              en IAMA's in projecten en nodig anderen uit. Inclusief versiebeheer en de
+              mogelijkheid om opmerkingen te plaatsen.
+            </p>
+          </nldd-container>
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <nldd-button
+              variant="primary"
+              size="md"
+              :text="isAuthenticated ? 'Naar projecten' : 'Inloggen'"
+              @click="goToProjects"
+            ></nldd-button>
+          </nldd-container>
+        </nldd-card>
+      </nldd-collection>
     </section>
 
     <section class="landing-section" aria-labelledby="landing-pillars-title">
-      <h2 id="landing-pillars-title" class="utrecht-heading-2">Voor de overheid, door de overheid</h2>
-      <ul class="landing-pillars" role="list">
-        <li v-for="pillar in pillars" :key="pillar.title" class="landing-pillar">
-          <component
-            :is="pillar.icon"
-            class="landing-pillar__icon"
-            :size="32"
-            aria-hidden="true"
-            focusable="false"
-          />
-          <div>
-            <h3 class="utrecht-heading-3 rvo-margin--none">{{ pillar.title }}</h3>
-            <p class="rvo-margin--none">{{ pillar.body }}</p>
-          </div>
-        </li>
-      </ul>
+      <h2 id="landing-pillars-title">Voor de overheid, door de overheid</h2>
+      <nldd-collection layout="grid" item-width="20rem" gap="24px">
+        <nldd-container
+          v-for="pillar in pillars"
+          :key="pillar.title"
+          layout="row"
+          gap="16"
+          vertical-alignment="top"
+        >
+          <nldd-icon :name="pillar.icon" size="24" color="donkerblauw"></nldd-icon>
+          <nldd-container gap="8">
+            <nldd-title size="5"><h3>{{ pillar.title }}</h3></nldd-title>
+            <nldd-text>{{ pillar.body }}</nldd-text>
+          </nldd-container>
+        </nldd-container>
+      </nldd-collection>
     </section>
 
     <section id="assessments" class="landing-section" aria-labelledby="landing-assessments-title">
-      <h2 id="landing-assessments-title" class="utrecht-heading-2">De drie assessments</h2>
-      <div class="rvo-layout-grid-container">
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--three">
-          <div
-            v-for="assessment in assessments"
-            :key="assessment.title"
-            class="rvo-card rvo-card--outline rvo-card--padding-md"
-          >
-            <div class="rvo-card__content">
-              <h3 class="utrecht-heading-3 rvo-margin--none">{{ assessment.title }}</h3>
-              <p class="rvo-margin--none">{{ assessment.oneLiner }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <p class="rvo-margin-block-start--md">
-        <router-link to="/over" class="rvo-link">Lees meer over de invulhulpen</router-link>
+      <h2 id="landing-assessments-title">De drie assessments</h2>
+      <nldd-collection layout="grid" item-width="290px" gap="16px">
+        <nldd-card v-for="assessment in assessments" :key="assessment.title">
+          <nldd-container padding="16" gap="8">
+            <h3>{{ assessment.title }}</h3>
+            <p>{{ assessment.oneLiner }}</p>
+          </nldd-container>
+        </nldd-card>
+      </nldd-collection>
+      <p>
+        <router-link to="/over" class="content-link">Lees meer over de invulhulpen</router-link>
       </p>
     </section>
   </div>

@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import TaskGroup from '../../src/components/task/TaskGroup.vue'
+import { CONTENT_READONLY_KEY } from '../../src/injectionKeys'
 import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
 import { FormType, type Task } from '../../src/models/dpia'
@@ -30,10 +31,11 @@ const ConfirmDeleteDialogStub = {
 
 const mounted: ReturnType<typeof mount>[] = []
 
-function mountGroup(taskId: string, instanceId: string) {
+function mountGroup(taskId: string, instanceId: string, nestedInBox = false, readonly = false) {
   const w = mount(TaskGroup, {
-    props: { taskId, instanceId },
+    props: { taskId, instanceId, nestedInBox },
     global: {
+      provide: { [CONTENT_READONLY_KEY as symbol]: ref(readonly) },
       stubs: {
         FormField: FormFieldStub,
         ConfirmDeleteDialog: ConfirmDeleteDialogStub,
@@ -53,7 +55,7 @@ afterEach(async () => {
 })
 
 function buttonByLabel(wrapper: ReturnType<typeof mountGroup>, text: string) {
-  return wrapper.findAll('button').find((b) => b.text().includes(text))
+  return wrapper.findAll('nldd-button').find((b) => b.attributes('text')?.includes(text))
 }
 
 let taskStore: ReturnType<typeof useTaskStore>
@@ -126,6 +128,11 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
     expect(buttonByLabel(w, 'Voeg extra categorie toe')).toBeTruthy()
   })
 
+  it('makes the add button inert for a read-only viewer', () => {
+    const w = mountGroup('2', '2[0]', false, true)
+    expect(buttonByLabel(w, 'Voeg extra categorie toe')!.attributes('inert')).toBeDefined()
+  })
+
   it('renders a nested TaskGroup for the complex non-repeatable child', () => {
     const w = mountGroup('2', '2[0]')
     const nestedField = w
@@ -141,6 +148,22 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
       .find((f) => f.attributes('data-task') === '2.4.1')
     expect(nestedField).toBeTruthy()
     expect(buttonByLabel(w, 'Voeg extra ontvanger toe')).toBeTruthy()
+  })
+
+  it('draws the repeatable instance and the add card as tinted boxes on a plain page', () => {
+    const w = mountGroup('2', '2[0]')
+    const boxes = w.findAll('nldd-box')
+    expect(boxes.length).toBe(2)
+    expect(boxes.every((box) => box.attributes('background') === 'tinted')).toBe(true)
+    // The box has no inset of its own; the container carries it.
+    expect(boxes[0].find('nldd-container').attributes('padding')).toBe('16')
+  })
+
+  it('steps the boxes up to the base surface when the group itself sits in a box', () => {
+    const w = mountGroup('2', '2[0]', true)
+    const boxes = w.findAll('nldd-box')
+    expect(boxes.length).toBe(2)
+    expect(boxes.every((box) => box.attributes('background') === 'base')).toBe(true)
   })
 })
 
@@ -246,7 +269,7 @@ describe('TaskGroup missingSourceMessage', () => {
   it('returns null when there is no instance_mapping dependency (no warning, body shown)', () => {
     taskStore.init(mappingTree, true)
     const w = mountGroup('3', '3[0]')
-    expect(w.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(w.find('nldd-banner[variant="warning"]').exists()).toBe(false)
     expect(w.findAll('.form-field-stub').length).toBeGreaterThan(0)
   })
 
@@ -255,9 +278,9 @@ describe('TaskGroup missingSourceMessage', () => {
     taskStore.setInstanceMappingSource('6[0]', '3.1[0]')
     const w = mountGroup('6', '6[0]')
     await nextTick()
-    const alert = w.find('.rvo-alert--warning')
+    const alert = w.find('nldd-banner[variant="warning"]')
     expect(alert.exists()).toBe(true)
-    expect(alert.find('.rvo-alert-text').text()).toContain(
+    expect(alert.attributes('text')).toContain(
       'Vul eerst "Verwerkingsnaam" in bij sectie "3. Verwerkingen".',
     )
     expect(w.find('.form-field-stub').exists()).toBe(false)
@@ -269,7 +292,7 @@ describe('TaskGroup missingSourceMessage', () => {
     answerStore.setAnswer('3.1[0]', 'Salarisadministratie')
     const w = mountGroup('6', '6[0]')
     await nextTick()
-    expect(w.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(w.find('nldd-banner[variant="warning"]').exists()).toBe(false)
     expect(w.findAll('.form-field-stub').length).toBeGreaterThan(0)
   })
 
@@ -286,13 +309,13 @@ describe('TaskGroup missingSourceMessage', () => {
     ]
     taskStore.init(tree, true)
     const w = mountGroup('6', '6[0]')
-    expect(w.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(w.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 
   it('returns null when the instance is not mapped to a source (no mappedFromInstanceId)', () => {
     taskStore.init(mappingTree, true)
     const w = mountGroup('6', '6[0]')
-    expect(w.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(w.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 })
 
@@ -318,7 +341,7 @@ describe('TaskGroup repeatable simple field: delete button visibility', () => {
     taskStore.addRepeatableTaskInstance('2.1', '2')
     const w = mountGroup('2', '2')
     await nextTick()
-    const deleteButtons = w.findAll('button').filter((b) => b.text().includes('Verwijder veld'))
+    const deleteButtons = w.findAll('nldd-button').filter((b) => b.attributes('text')?.includes('Verwijder veld'))
     expect(deleteButtons.length).toBe(2)
   })
 })
@@ -340,7 +363,7 @@ describe('TaskGroup delete flow without impacted answers (runDelete direct path)
 
     const w = mountGroup('2', '2')
     await nextTick()
-    const deleteButton = w.findAll('button').filter((b) => b.text().includes('Verwijder veld'))[1]
+    const deleteButton = w.findAll('nldd-button').filter((b) => b.attributes('text')?.includes('Verwijder veld'))[1]
     await deleteButton.trigger('click')
     await nextTick()
 
@@ -818,7 +841,7 @@ describe('TaskGroup instanceLabel: prefixQuestionIds', () => {
     const w = mountGroup('6.1', '6.1[0]')
     // isNestedGroup && prefixQuestionIds -> label-sized legend class.
     const legend = w.find('legend')
-    expect(legend.classes()).toContain('rvo-label')
+    expect(legend.classes()).toContain('task-fieldset__legend--sub')
     // Group description rendered (task.description && prefixQuestionIds).
     expect(w.html()).toContain('Groepsuitleg')
   })

@@ -89,7 +89,7 @@ describe('ActionPointsOverview.vue', () => {
     const heading = wrapper.find('h3')
     expect(heading.text()).toBe('Eerste deel')
 
-    const items = wrapper.findAll('.utrecht-unordered-list__item')
+    const items = wrapper.findAll('ul > li')
     expect(items).toHaveLength(2)
     // Values are trimmed.
     expect(items[0].text()).toBe('Eerste actiepunt')
@@ -123,7 +123,7 @@ describe('ActionPointsOverview.vue', () => {
     answerStore.setAnswer('1.actiepunten.3', ['x', 'y']) // non-string -> skipped
 
     const wrapper = mountOverview()
-    const items = wrapper.findAll('.utrecht-unordered-list__item')
+    const items = wrapper.findAll('ul > li')
     expect(items).toHaveLength(1)
     expect(items[0].text()).toBe('Bewaar mij')
   })

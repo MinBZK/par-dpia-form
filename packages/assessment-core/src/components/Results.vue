@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useCalculationStore } from '../stores/calculations'
 import { computed, onMounted } from 'vue'
+import '@nldd/design-system/collection'
 import AssessmentCard from './AssessmentCard.vue'
 
 const calculationStore = useCalculationStore()
@@ -56,18 +57,16 @@ const getAssessmentResult = (id: string) => {
 </script>
 
 <template>
-  <div class="rvo-layout-grid-container">
-    <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
-      <!-- Dynamically render all assessment cards -->
-      <AssessmentCard
-        v-for="config in assessmentConfigs"
-        :key="config.id"
-        :id="config.id"
-        :title="config.title"
-        :definition="config.definition"
-        :result="getAssessmentResult(config.id)"
-        :isCalculating="calculationStore.isCalculating"
-      />
-    </div>
-  </div>
+  <nldd-collection layout="grid" item-width="320px" gap="16px">
+    <!-- Dynamically render all assessment cards -->
+    <AssessmentCard
+      v-for="config in assessmentConfigs"
+      :key="config.id"
+      :id="config.id"
+      :title="config.title"
+      :definition="config.definition"
+      :result="getAssessmentResult(config.id)"
+      :isCalculating="calculationStore.isCalculating"
+    />
+  </nldd-collection>
 </template>

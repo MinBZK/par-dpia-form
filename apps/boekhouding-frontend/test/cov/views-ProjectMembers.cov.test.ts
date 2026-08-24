@@ -11,6 +11,11 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
+const backLinkSet = vi.fn()
+vi.mock('../../src/composables/useBackLink', () => ({
+  useBackLink: () => ({ set: backLinkSet }),
+}))
+
 const membersList = vi.fn()
 const membersAdd = vi.fn()
 const membersUpdate = vi.fn()
@@ -46,23 +51,41 @@ const editor = makeMember({ userId: 'ed1', email: 'ed@example.com', displayName:
 const mountPage = async (projectId = 'p1') => {
   const wrapper = mount(ProjectMembers, {
     props: { projectId },
-    global: {
-      stubs: { AppHeader: { template: '<header class="app-header-stub" />' } },
-    },
   })
   await flushPromises()
   return wrapper
 }
 
-// jsdom does not implement HTMLDialogElement.showModal()/close(); add no-op prototype impls so the component's calls run and per-test spies have a property to wrap.
+type MountedPage = Awaited<ReturnType<typeof mountPage>>
+
+// The nldd-modal-dialog custom element is not registered in jsdom; its
+// imperative show()/hide() API is stubbed per test on the host element.
+function stubModal(wrapper: MountedPage) {
+  const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+    show?: () => void
+    hide?: () => void
+  }
+  host.show = vi.fn()
+  host.hide = vi.fn()
+  return host
+}
+
+// The who column is an nldd-text-cell: name on top, email underneath. Its
+// content lives in attributes, so it never shows up in wrapper.text().
+const whoCells = (wrapper: MountedPage) =>
+  wrapper.findAll('.member-col--who').map((c) => [c.attributes('text'), c.attributes('supporting-text')])
+
+// Every row carries a delete button; it is disabled, not hidden, when the
+// member is the last owner.
+const deleteAction = (wrapper: MountedPage, row = 0) =>
+  wrapper.findAll('nldd-button.member-delete')[row]
+
+const modalButton = (wrapper: MountedPage, text: string) =>
+  wrapper.find(`nldd-modal-dialog nldd-button[text="${text}"]`)
+
 beforeEach(() => {
-  if (!(HTMLDialogElement.prototype as { showModal?: unknown }).showModal) {
-    HTMLDialogElement.prototype.showModal = function () {}
-  }
-  if (!(HTMLDialogElement.prototype as { close?: unknown }).close) {
-    HTMLDialogElement.prototype.close = function () {}
-  }
   routerPush.mockReset()
+  backLinkSet.mockReset()
   membersList.mockReset()
   membersAdd.mockReset()
   membersUpdate.mockReset()
@@ -81,7 +104,6 @@ describe('ProjectMembers', () => {
 
       const wrapper = mount(ProjectMembers, {
         props: { projectId: 'p1' },
-        global: { stubs: { AppHeader: { template: '<header class="app-header-stub" />' } } },
       })
       expect(wrapper.text()).toContain('Laden...')
       expect(wrapper.find('.member-list').exists()).toBe(false)
@@ -96,17 +118,23 @@ describe('ProjectMembers', () => {
 
     it('loads members and renders one row per member', async () => {
       const wrapper = await mountPage()
-      expect(wrapper.findAll('.member-row')).toHaveLength(3)
-      expect(wrapper.text()).toContain('Owner One (owner@example.com)')
+      expect(wrapper.findAll('.member-row')).toHaveLength(2)
+      expect(whoCells(wrapper)).toContainEqual(['Owner One', 'owner@example.com'])
     })
 
-    it('sets the error message when list() rejects (catch branch)', async () => {
+    it('declares the back link to the project in the top bar', async () => {
+      await mountPage('p42')
+      expect(backLinkSet).toHaveBeenCalledWith({ text: 'Project', to: '/project/p42' })
+    })
+
+    it('shows a critical banner when list() rejects (catch branch)', async () => {
       membersList.mockRejectedValueOnce(new Error('boom'))
       const wrapper = await mountPage()
-      const alert = wrapper.find('.rvo-alert--error')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Kan leden niet laden. Probeer het later opnieuw.')
-      expect(wrapper.findAll('.member-row')).toHaveLength(1)
+      const banner = wrapper.find('nldd-banner')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('variant')).toBe('critical')
+      expect(banner.attributes('text')).toBe('Kan leden niet laden. Probeer het later opnieuw.')
+      expect(wrapper.findAll('.member-row')).toHaveLength(0)
     })
   })
 
@@ -120,16 +148,18 @@ describe('ProjectMembers', () => {
       })
       membersList.mockResolvedValue([owner, placeholder])
       const wrapper = await mountPage()
-      const whoCells = wrapper.findAll('.member-col--who')
-      const text = wrapper.text()
-      expect(text).toContain('pending@example.com')
-      expect(text).not.toContain('pending@example.com (pending@example.com)')
-      expect(whoCells.length).toBeGreaterThan(0)
+      // No display name yet, so the email carries the row and there is no
+      // supporting line repeating it.
+      expect(whoCells(wrapper)).toContainEqual(['pending@example.com', undefined])
+      const roleSelect = wrapper.findAll('select.member-select')[1]
+      expect(roleSelect.attributes('aria-label')).toBe('Rol van pending@example.com')
     })
 
     it('returns "name (email)" when displayName differs from email', async () => {
       const wrapper = await mountPage()
-      expect(wrapper.text()).toContain('Editor One (ed@example.com)')
+      expect(whoCells(wrapper)).toContainEqual(['Editor One', 'ed@example.com'])
+      const roleSelect = wrapper.findAll('select.member-select')[1]
+      expect(roleSelect.attributes('aria-label')).toBe('Rol van Editor One (ed@example.com)')
     })
   })
 
@@ -142,8 +172,18 @@ describe('ProjectMembers', () => {
       expect((selects[0].element as HTMLSelectElement).disabled).toBe(true)
       expect((selects[1].element as HTMLSelectElement).disabled).toBe(false)
 
-      const deleteButtons = wrapper.findAll('button.member-delete')
-      expect(deleteButtons).toHaveLength(1)
+      const dropdowns = wrapper.findAll('.member-col--role nldd-dropdown')
+      expect(dropdowns[0].attributes('disabled')).toBeDefined()
+      expect(dropdowns[1].attributes('disabled')).toBeUndefined()
+
+      const deleteButtons = wrapper.findAll('nldd-button.member-delete')
+      expect(deleteButtons).toHaveLength(2)
+      expect(deleteButtons[0].attributes('variant')).toBe('destructive')
+      expect(deleteButtons[0].attributes('text')).toBe('Verwijderen')
+      // The sole owner keeps the button but cannot use it.
+      expect(deleteButtons[0].attributes('disabled')).toBeDefined()
+      expect(deleteButtons[0].attributes('accessible-label')).toContain('enige eigenaar')
+      expect(deleteButtons[1].attributes('disabled')).toBeUndefined()
     })
 
     it('enables owner controls when there is more than one owner', async () => {
@@ -154,7 +194,9 @@ describe('ProjectMembers', () => {
       expect((selects[0].element as HTMLSelectElement).disabled).toBe(false)
       expect((selects[1].element as HTMLSelectElement).disabled).toBe(false)
 
-      expect(wrapper.findAll('button.member-delete')).toHaveLength(2)
+      const buttons = wrapper.findAll('nldd-button.member-delete')
+      expect(buttons).toHaveLength(2)
+      expect(buttons.every((b) => b.attributes('disabled') === undefined)).toBe(true)
     })
 
     it('treats a non-owner with a single owner present as not the only owner', async () => {
@@ -171,6 +213,42 @@ describe('ProjectMembers', () => {
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
       expect(membersAdd).not.toHaveBeenCalled()
+      const field = wrapper.find('[input-id="inviteEmail"]')
+      expect(field.attributes('invalid')).toBe('true')
+      expect(wrapper.find('nldd-form-field-error-text').text()).toBe('Vul een e-mailadres in.')
+    })
+
+    it('rejects an address that is not shaped like an email', async () => {
+      const wrapper = await mountPage()
+      wrapper.find('[input-id="inviteEmail"]').element
+        .dispatchEvent(new CustomEvent('input', { detail: { value: 'geen-adres' } }))
+      await wrapper.find('form').trigger('submit.prevent')
+      await flushPromises()
+      expect(membersAdd).not.toHaveBeenCalled()
+      expect(wrapper.find('nldd-form-field-error-text').text())
+        .toBe('Vul een geldig e-mailadres in, bijvoorbeeld naam@organisatie.nl.')
+    })
+
+    it('clears the error as soon as the field is edited again', async () => {
+      const wrapper = await mountPage()
+      await wrapper.find('form').trigger('submit.prevent')
+      await flushPromises()
+      expect(wrapper.find('nldd-form-field-error-text').text()).not.toBe('')
+
+      wrapper.find('[input-id="inviteEmail"]').element
+        .dispatchEvent(new CustomEvent('input', { detail: { value: 'a@b.nl' } }))
+      await flushPromises()
+      expect(wrapper.find('nldd-form-field-error-text').text()).toBe('')
+      expect(wrapper.find('[input-id="inviteEmail"]').attributes('invalid')).toBeUndefined()
+    })
+
+    it('trims surrounding whitespace before validating and sending', async () => {
+      const wrapper = await mountPage()
+      wrapper.find('[input-id="inviteEmail"]').element
+        .dispatchEvent(new CustomEvent('input', { detail: { value: '  ruimte@example.com  ' } }))
+      await wrapper.find('form').trigger('submit.prevent')
+      await flushPromises()
+      expect(membersAdd).toHaveBeenCalledWith('p1', 'ruimte@example.com', 'editor')
     })
 
     it('adds the member, refreshes the list and clears the email on success', async () => {
@@ -178,19 +256,31 @@ describe('ProjectMembers', () => {
       membersList.mockClear()
       membersList.mockResolvedValue([owner, editor, makeMember({ userId: 'inv', email: 'new@example.com', displayName: 'New', role: 'editor' })])
 
-      const emailInput = wrapper.find('#inviteEmail')
-      await emailInput.setValue('new@example.com')
+      const emailField = wrapper.find('[input-id="inviteEmail"]')
+      emailField.element.dispatchEvent(new CustomEvent('input', { detail: { value: 'new@example.com' } }))
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
 
       expect(membersAdd).toHaveBeenCalledWith('p1', 'new@example.com', 'editor')
       expect(membersList).toHaveBeenCalledWith('p1', 1, 100)
-      expect((emailInput.element as HTMLInputElement).value).toBe('')
+      expect(emailField.attributes('value')).toBe('')
+    })
+
+    it('falls back to target.value when the input event carries no detail', async () => {
+      const wrapper = await mountPage()
+      const host = wrapper.find('[input-id="inviteEmail"]').element as HTMLElement & { value?: string }
+      host.value = 'fallback@example.com'
+      host.dispatchEvent(new CustomEvent('input'))
+      await wrapper.find('form').trigger('submit.prevent')
+      await flushPromises()
+      expect(membersAdd).toHaveBeenCalledWith('p1', 'fallback@example.com', 'editor')
     })
 
     it('uses the selected role when inviting', async () => {
       const wrapper = await mountPage()
-      await wrapper.find('#inviteEmail').setValue('viewer@example.com')
+      wrapper.find('[input-id="inviteEmail"]').element.dispatchEvent(
+        new CustomEvent('input', { detail: { value: 'viewer@example.com' } }),
+      )
       await wrapper.find('#inviteRole').setValue('viewer')
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
@@ -200,24 +290,30 @@ describe('ProjectMembers', () => {
     it('shows the error message from the thrown error (catch branch)', async () => {
       const wrapper = await mountPage()
       membersAdd.mockRejectedValueOnce(new Error('E-mailadres al uitgenodigd'))
-      await wrapper.find('#inviteEmail').setValue('dup@example.com')
+      wrapper.find('[input-id="inviteEmail"]').element.dispatchEvent(
+        new CustomEvent('input', { detail: { value: 'dup@example.com' } }),
+      )
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
-      expect(wrapper.find('.rvo-alert--error').text()).toContain('E-mailadres al uitgenodigd')
+      expect(wrapper.find('nldd-banner').attributes('text')).toBe('E-mailadres al uitgenodigd')
     })
 
     it('clears a previous error on a subsequent successful invite', async () => {
       const wrapper = await mountPage()
       membersAdd.mockRejectedValueOnce(new Error('Eerdere fout'))
-      await wrapper.find('#inviteEmail').setValue('a@example.com')
+      wrapper.find('[input-id="inviteEmail"]').element.dispatchEvent(
+        new CustomEvent('input', { detail: { value: 'a@example.com' } }),
+      )
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
-      expect(wrapper.find('.rvo-alert--error').exists()).toBe(true)
+      expect(wrapper.find('nldd-banner').exists()).toBe(true)
 
-      await wrapper.find('#inviteEmail').setValue('b@example.com')
+      wrapper.find('[input-id="inviteEmail"]').element.dispatchEvent(
+        new CustomEvent('input', { detail: { value: 'b@example.com' } }),
+      )
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
-      expect(wrapper.find('.rvo-alert--error').exists()).toBe(false)
+      expect(wrapper.find('nldd-banner').exists()).toBe(false)
     })
   })
 
@@ -238,106 +334,147 @@ describe('ProjectMembers', () => {
       const selects = wrapper.findAll('select.member-select')
       await selects[1].setValue('commenter')
       await flushPromises()
-      expect(wrapper.find('.rvo-alert--error').text()).toContain('Rol kan niet gewijzigd')
+      expect(wrapper.find('nldd-banner').attributes('text')).toBe('Rol kan niet gewijzigd')
     })
   })
 
   describe('delete modal (watch + open/close + confirmRemove)', () => {
-    it('opens the dialog via showModal() when the delete button is clicked', async () => {
+    it('opens the dialog via show() when the delete button is clicked', async () => {
       const wrapper = await mountPage()
-      const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-      const showModalSpy = vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
+      const host = stubModal(wrapper)
 
-      await wrapper.find('button.member-delete').trigger('click')
+      await deleteAction(wrapper, 1).trigger('click')
       await flushPromises()
 
-      expect(showModalSpy).toHaveBeenCalledTimes(1)
-      expect(wrapper.find('dialog.confirm-dialog').text()).toContain('Editor One (ed@example.com)')
+      expect(host.show).toHaveBeenCalledTimes(1)
+      expect(host.hide).not.toHaveBeenCalled()
+      expect(wrapper.find('nldd-modal-dialog').attributes('text')).toBe('Lid verwijderen')
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('Editor One (ed@example.com)')
     })
 
-    it('closes the dialog via close() and clears memberToDelete on cancel', async () => {
+    it('opens and closes without crashing while the element is not upgraded (no show/hide)', async () => {
       const wrapper = await mountPage()
-      const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-      vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
-      const closeSpy = vi.spyOn(dialog, 'close').mockImplementation(() => {})
 
-      await wrapper.find('button.member-delete').trigger('click')
+      await deleteAction(wrapper, 1).trigger('click')
+      await flushPromises()
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('Editor One (ed@example.com)')
+
+      await modalButton(wrapper, 'Annuleer').trigger('click')
+      await flushPromises()
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('')
+    })
+
+    it('returns early in the open-state watch when the dialog ref is null (defensive guard)', async () => {
+      const wrapper = await mountPage()
+      ;(wrapper.vm as unknown as { deleteDialogRef: HTMLElement | null }).deleteDialogRef = null
+
+      await deleteAction(wrapper, 1).trigger('click')
+      await flushPromises()
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('Editor One (ed@example.com)')
+    })
+
+    it('closes the dialog via hide() and clears memberToDelete on cancel', async () => {
+      const wrapper = await mountPage()
+      const host = stubModal(wrapper)
+
+      await deleteAction(wrapper, 1).trigger('click')
       await flushPromises()
 
-      const cancelButton = wrapper
-        .findAll('dialog.confirm-dialog button')
-        .find((b) => b.text().includes('Annuleer'))!
-      await cancelButton.trigger('click')
+      await modalButton(wrapper, 'Annuleer').trigger('click')
       await flushPromises()
 
-      expect(closeSpy).toHaveBeenCalled()
-      expect(wrapper.find('dialog.confirm-dialog strong').text()).toBe('')
+      expect(host.hide).toHaveBeenCalledTimes(1)
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('')
+    })
+
+    it('routes the modal close event (Esc) through the shared open-state', async () => {
+      const wrapper = await mountPage()
+      stubModal(wrapper)
+
+      await deleteAction(wrapper, 1).trigger('click')
+      await flushPromises()
+
+      wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+      await flushPromises()
+
+      expect(wrapper.find('nldd-modal-dialog strong').text()).toBe('')
+    })
+
+    it('ignores a close event when the modal is already closed (own hide())', async () => {
+      const wrapper = await mountPage()
+      const host = stubModal(wrapper)
+
+      wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+      await flushPromises()
+
+      expect(host.hide).not.toHaveBeenCalled()
     })
 
     it('removes the member from the list on confirm (success branch)', async () => {
       const wrapper = await mountPage()
+      stubModal(wrapper)
       // After the remove the list is re-fetched; the server now returns only the owner.
       membersList.mockResolvedValueOnce([owner])
-      const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-      vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
-      vi.spyOn(dialog, 'close').mockImplementation(() => {})
 
-      await wrapper.find('button.member-delete').trigger('click')
+      await deleteAction(wrapper, 1).trigger('click')
       await flushPromises()
 
-      const confirmButton = wrapper
-        .findAll('dialog.confirm-dialog button')
-        .find((b) => b.text().trim() === 'Verwijderen')!
-      await confirmButton.trigger('click')
+      await modalButton(wrapper, 'Verwijderen').trigger('click')
       await flushPromises()
 
       expect(membersRemove).toHaveBeenCalledWith('p1', 'ed1')
-      expect(wrapper.text()).not.toContain('Editor One (ed@example.com)')
-      expect(wrapper.text()).toContain('Owner One (owner@example.com)')
+      expect(whoCells(wrapper)).not.toContainEqual(['Editor One', 'ed@example.com'])
+      expect(whoCells(wrapper)).toContainEqual(['Owner One', 'owner@example.com'])
     })
 
     it('shows the error message and still closes when remove() rejects (catch + finally)', async () => {
       const wrapper = await mountPage()
-      const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-      vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
-      const closeSpy = vi.spyOn(dialog, 'close').mockImplementation(() => {})
+      const host = stubModal(wrapper)
       membersRemove.mockRejectedValueOnce(new Error('Verwijderen mislukt'))
 
-      await wrapper.find('button.member-delete').trigger('click')
+      await deleteAction(wrapper, 1).trigger('click')
       await flushPromises()
 
-      const confirmButton = wrapper
-        .findAll('dialog.confirm-dialog button')
-        .find((b) => b.text().trim() === 'Verwijderen')!
-      await confirmButton.trigger('click')
+      await modalButton(wrapper, 'Verwijderen').trigger('click')
       await flushPromises()
 
-      expect(wrapper.find('.rvo-alert--error').text()).toContain('Verwijderen mislukt')
-      expect(closeSpy).toHaveBeenCalled()
-      expect(wrapper.text()).toContain('Editor One (ed@example.com)')
+      expect(wrapper.find('nldd-banner').attributes('text')).toBe('Verwijderen mislukt')
+      expect(host.hide).toHaveBeenCalledTimes(1)
+      expect(whoCells(wrapper)).toContainEqual(['Editor One', 'ed@example.com'])
     })
 
     it('returns early in confirmRemove when there is no member to delete', async () => {
       const wrapper = await mountPage()
-      const dialog = wrapper.find('dialog.confirm-dialog').element as HTMLDialogElement
-      vi.spyOn(dialog, 'showModal').mockImplementation(() => {})
-      vi.spyOn(dialog, 'close').mockImplementation(() => {})
+      stubModal(wrapper)
 
-      await wrapper.find('button.member-delete').trigger('click')
+      await deleteAction(wrapper, 1).trigger('click')
       await flushPromises()
-      const cancelButton = wrapper
-        .findAll('dialog.confirm-dialog button')
-        .find((b) => b.text().includes('Annuleer'))!
-      await cancelButton.trigger('click')
+      await modalButton(wrapper, 'Annuleer').trigger('click')
       await flushPromises()
 
-      const confirmButton = wrapper
-        .findAll('dialog.confirm-dialog button')
-        .find((b) => b.text().trim() === 'Verwijderen')!
-      await confirmButton.trigger('click')
+      await modalButton(wrapper, 'Verwijderen').trigger('click')
       await flushPromises()
 
       expect(membersRemove).not.toHaveBeenCalled()
+    })
+
+    it('calls hide() on unmount', async () => {
+      const wrapper = await mountPage()
+      const host = stubModal(wrapper)
+
+      wrapper.unmount()
+      expect(host.hide).toHaveBeenCalledTimes(1)
+    })
+
+    it('unmounts without crashing while the element is not upgraded (no hide)', async () => {
+      const wrapper = await mountPage()
+      wrapper.unmount()
+    })
+
+    it('skips the unmount hide when the dialog ref is null', async () => {
+      const wrapper = await mountPage()
+      ;(wrapper.vm as unknown as { deleteDialogRef: HTMLElement | null }).deleteDialogRef = null
+      wrapper.unmount()
     })
   })
 })
@@ -348,9 +485,9 @@ describe('ProjectMembers — load more', () => {
       .mockResolvedValueOnce({ items: [owner, editor], total: 3 })
       .mockResolvedValueOnce({ items: [owner2], total: 3 })
     const wrapper = await mountPage()
-    const more = wrapper.find('.version-list__more button')
+    const more = wrapper.find('.version-list__more nldd-button')
     expect(more.exists()).toBe(true)
-    expect(more.text()).toContain('leden')
+    expect(more.attributes('text')).toContain('leden')
     await more.trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__more').exists()).toBe(false)
@@ -361,7 +498,7 @@ describe('ProjectMembers — load more', () => {
       .mockResolvedValueOnce({ items: [owner, editor], total: 3 })
       .mockRejectedValueOnce(new Error('netwerk'))
     const wrapper = await mountPage()
-    await wrapper.find('.version-list__more button').trigger('click')
+    await wrapper.find('.version-list__more nldd-button').trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })

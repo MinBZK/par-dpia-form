@@ -2,11 +2,16 @@
  * @vitest-environment jsdom
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, flushPromises } from '@vue/test-utils'
+import { mount, flushPromises, type DOMWrapper } from '@vue/test-utils'
 
 const routerPush = vi.fn()
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
+}))
+
+const backLinkSet = vi.fn()
+vi.mock('../../src/composables/useBackLink', () => ({
+  useBackLink: () => ({ set: backLinkSet }),
 }))
 
 const apiGet = vi.fn()
@@ -57,8 +62,6 @@ const taskInit = vi.fn()
 const setActiveNamespace = vi.fn()
 const taskReset = vi.fn()
 const answerReset = vi.fn()
-// vi.hoisted: a vi.mock factory cannot close over a module const in the TDZ at hoist time.
-const { autoGrowTextareaMock } = vi.hoisted(() => ({ autoGrowTextareaMock: vi.fn() }))
 
 const getTasksFromNamespace = vi.fn((ns: FormType) => flatTaskMap[ns])
 const getTaskByIdFromNamespace = vi.fn(
@@ -78,7 +81,6 @@ vi.mock('@overheid-assessment/core', async () => ({
   OUTPUT_SCHEMA_URL: 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json',
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
     (html ?? '').replace(/<[^>]*>/g, ''),
-  autoGrowTextarea: autoGrowTextareaMock,
   useSchemaStore: () => ({
     get isInitialized() {
       return schemaInitialized.value
@@ -109,12 +111,6 @@ vi.mock('@overheid-assessment/core', async () => ({
 
 import VersionHistory from '../../src/views/VersionHistory.vue'
 
-const AppHeaderStub = {
-  name: 'AppHeader',
-  props: ['backLabel', 'backRoute'],
-  template: '<header class="app-header-stub" :data-back-route="backRoute"></header>',
-}
-
 const ASSESSMENT_ID = 'assess-1'
 
 function setTasks(tasks: Partial<Record<FormType, Record<string, any>>>) {
@@ -126,7 +122,6 @@ function setTasks(tasks: Partial<Record<FormType, Record<string, any>>>) {
 function mountView() {
   return mount(VersionHistory, {
     props: { assessmentId: ASSESSMENT_ID },
-    global: { stubs: { AppHeader: AppHeaderStub, IconDotsVertical: true } },
   })
 }
 
@@ -141,13 +136,31 @@ async function flush() {
   await flushPromises()
 }
 
+// The shared KebabMenu renders its slotted nldd-menu-item elements in the light
+// DOM; jsdom does not enforce popover visibility, so they are directly
+// interactable. Item texts live in the `text` attribute (not wrapper.text()).
+function menuItem(wrapper: ReturnType<typeof mountView>, text: string) {
+  return wrapper.findAll('nldd-menu-item').find((i) => i.attributes('text') === text)
+}
+
+// Dialog titles live in the modal's `text` attribute.
+function dialogByTitle(wrapper: ReturnType<typeof mountView>, title: string) {
+  return wrapper.findAll('nldd-modal-dialog').find((d) => (d.attributes('text') ?? '').includes(title))!
+}
+
+function dialogButton(dialog: DOMWrapper<Element>, text: string) {
+  return dialog.findAll('nldd-button').find((b) => b.attributes('text') === text)!
+}
+
+// NLDD fields deliver their value via event.detail.
+function setNlddValue(field: DOMWrapper<Element>, value: string) {
+  field.element.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+}
+
 async function fieldRestoreDialogConfirm(wrapper: ReturnType<typeof mountView>) {
-  await wrapper.find('.diff-kebab .kebab-menu__trigger').trigger('click')
-  const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
-  await item.trigger('mousedown')
+  await menuItem(wrapper, 'Herstel dit antwoord')!.trigger('click')
   await flushPromises()
-  const dialog = wrapper.findAll('dialog.confirm-dialog').find((d) => d.text().includes('Antwoord herstellen'))!
-  await dialog.find('.rvo-button--primary').trigger('click')
+  await dialogButton(dialogByTitle(wrapper, 'Antwoord herstellen'), 'Herstellen').trigger('click')
   await flushPromises()
 }
 
@@ -162,18 +175,6 @@ beforeEach(() => {
   flatTaskMap[FormType.PRE_SCAN] = {}
   flatTaskMap[FormType.IAMA] = {}
 
-  // jsdom <dialog> lacks showModal/close; stub them so the watchers don't throw.
-  if (!(HTMLDialogElement.prototype as any).showModal) {
-    ;(HTMLDialogElement.prototype as any).showModal = function () {
-      this.open = true
-    }
-  }
-  if (!(HTMLDialogElement.prototype as any).close) {
-    ;(HTMLDialogElement.prototype as any).close = function () {
-      this.open = false
-    }
-  }
-
   apiGet.mockResolvedValue({ role: 'owner', projectId: 'proj-1', currentVersion: 3, state: { answers: {} } })
   apiVersions.mockResolvedValue([])
   apiVersion.mockResolvedValue({ state: {} })
@@ -185,6 +186,9 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks()
 })
+
+// The per-version disclosure; the kebab triggers are nldd-icon-buttons too.
+const DIFF_TOGGLE = '.version-col--toggle nldd-icon-button'
 
 describe('VersionHistory — mount & onMounted', () => {
   it('initializes schema + task stores when uninitialized and shows empty state', async () => {
@@ -244,6 +248,12 @@ describe('VersionHistory — mount & onMounted', () => {
     expect(taskReset).toHaveBeenCalledTimes(1)
     expect(answerReset).toHaveBeenCalledTimes(1)
   })
+
+  it('declares the back link to the assessment in the top bar', async () => {
+    mountView()
+    await flushPromises()
+    expect(backLinkSet).toHaveBeenCalledWith({ text: 'Assessment', to: `/assessment/${ASSESSMENT_ID}` })
+  })
 })
 
 describe('VersionHistory — version list rendering', () => {
@@ -281,7 +291,20 @@ describe('VersionHistory — version list rendering', () => {
     ])
     const wrapper = mountView()
     await flushPromises()
-    expect(wrapper.findAll('.toggle-btn').length).toBe(1)
+    const toggles = wrapper.findAll(DIFF_TOGGLE)
+    expect(toggles.length).toBe(1)
+    expect(toggles[0].attributes('size')).toBe('xs')
+    expect(toggles[0].attributes('variant')).toBe('neutral-transparent')
+    expect(toggles[0].attributes('icon')).toBe('chevron-right')
+    expect(toggles[0].attributes('text')).toBe('Verschillen tonen')
+    expect(toggles[0].attributes('expanded')).toBeUndefined()
+
+    await toggles[0].trigger('click')
+    await flushPromises()
+    const open = wrapper.find(DIFF_TOGGLE)
+    expect(open.attributes('icon')).toBe('chevron-down')
+    expect(open.attributes('text')).toBe('Verschillen inklappen')
+    expect(open.attributes('expanded')).toBe('true')
   })
 })
 
@@ -300,7 +323,7 @@ describe('VersionHistory — load more', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    const more = wrapper.find('.version-list__more button')
+    const more = wrapper.find('.version-list__more nldd-button')
     expect(more.exists()).toBe(true)
 
     await more.trigger('click')
@@ -330,7 +353,7 @@ describe('VersionHistory — load more', () => {
       .mockResolvedValueOnce({ items: [V(2)], total: 3 })
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.version-list__more button').trigger('click')
+    await wrapper.find('.version-list__more nldd-button').trigger('click')
     await flushPromises()
     // v2 is not duplicated (1 header + 2 data rows) and the button is gone.
     expect(wrapper.findAll('.version-row').length).toBe(3)
@@ -344,7 +367,7 @@ describe('VersionHistory — load more', () => {
       .mockRejectedValueOnce(new Error('netwerk'))
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.version-list__more button').trigger('click')
+    await wrapper.find('.version-list__more nldd-button').trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
     expect(wrapper.find('.version-list__more').exists()).toBe(true)
@@ -357,7 +380,7 @@ describe('VersionHistory — load more', () => {
       .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 })
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.version-list__more button').trigger('click')
+    await wrapper.find('.version-list__more nldd-button').trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__more').exists()).toBe(true)
     expect(wrapper.find('[role="status"]').text()).toContain('4 van 5')
@@ -370,10 +393,10 @@ describe('VersionHistory — load more', () => {
       .mockResolvedValueOnce({ items: [V(3), V(2)], total: 5 }) // 1 remaining -> "laatste"
     const wrapper = mountView()
     await flushPromises()
-    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de volgende 3 versies')
-    await wrapper.find('.version-list__more button').trigger('click')
+    expect(wrapper.find('.version-list__more nldd-button').attributes('text')).toBe('Laad de volgende 3 versies')
+    await wrapper.find('.version-list__more nldd-button').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.version-list__more button').text()).toBe('Laad de laatste versie')
+    expect(wrapper.find('.version-list__more nldd-button').attributes('text')).toBe('Laad de laatste versie')
   })
 })
 
@@ -386,10 +409,9 @@ describe('VersionHistory — canEdit / canRestore (role permissions)', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.find('.kebab-menu__trigger').exists()).toBe(true)
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    expect(wrapper.text()).toContain('Beschrijving bewerken')
-    expect(wrapper.text()).not.toContain('Herstellen naar deze versie')
+    expect(wrapper.find('nldd-icon-button').exists()).toBe(true)
+    expect(menuItem(wrapper, 'Beschrijving bewerken')).toBeDefined()
+    expect(menuItem(wrapper, 'Herstellen naar deze versie')).toBeUndefined()
   })
 
   it('viewer role: canEdit false, hides action column entirely', async () => {
@@ -400,11 +422,11 @@ describe('VersionHistory — canEdit / canRestore (role permissions)', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    expect(wrapper.find('.kebab-menu__trigger').exists()).toBe(false)
+    expect(wrapper.find('nldd-icon-button').exists()).toBe(false)
     expect(wrapper.find('.desc-edit-btn').exists()).toBe(false)
   })
 
-  it('owner role: shows "Beschrijving toevoegen" when no description and restore item', async () => {
+  it('owner role: shows "Beschrijving toevoegen" when no description and a destructive restore item', async () => {
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 2, state: {} })
     apiVersions.mockResolvedValue([
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
@@ -412,14 +434,15 @@ describe('VersionHistory — canEdit / canRestore (role permissions)', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    expect(wrapper.text()).toContain('Beschrijving toevoegen')
-    expect(wrapper.text()).toContain('Herstellen naar deze versie')
+    expect(menuItem(wrapper, 'Beschrijving toevoegen')).toBeDefined()
+    const restoreItem = menuItem(wrapper, 'Herstellen naar deze versie')
+    expect(restoreItem).toBeDefined()
+    expect(restoreItem!.attributes('destructive')).toBeDefined()
   })
 })
 
-describe('VersionHistory — kebab menu toggle & focusout', () => {
-  it('toggles open and closed on repeated trigger clicks and closes on focusout', async () => {
+describe('VersionHistory - kebab menu labels', () => {
+  it('labels the row kebab with the version number', async () => {
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 2, state: {} })
     apiVersions.mockResolvedValue([
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: 'd' },
@@ -427,16 +450,7 @@ describe('VersionHistory — kebab menu toggle & focusout', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    const trigger = wrapper.find('.kebab-menu__trigger')
-    await trigger.trigger('click')
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
-    await trigger.trigger('click')
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
-
-    await trigger.trigger('click')
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(true)
-    await wrapper.find('.kebab-menu').trigger('focusout')
-    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
+    expect(wrapper.find('.version-col--action nldd-icon-button').attributes('text')).toBe('Acties voor versie 2')
   })
 })
 
@@ -451,17 +465,63 @@ describe('VersionHistory — description modal', () => {
 
     await wrapper.find('.desc-edit-btn').trigger('click')
     await flushPromises()
-    expect(wrapper.text()).toContain('Beschrijving versie 2 bewerken')
+    const dialog = dialogByTitle(wrapper, 'Beschrijving versie 2 bewerken')
+    expect(dialog.exists()).toBe(true)
 
-    const textarea = wrapper.find('textarea#desc-input')
-    await textarea.setValue('Nieuwe beschrijving')
-    await textarea.trigger('input')
+    const textarea = wrapper.find('nldd-multi-line-text-field')
+    expect(textarea.attributes('resize')).toBe('auto')
+    expect(textarea.attributes('value')).toBe('Origineel')
+    setNlddValue(textarea, 'Nieuwe beschrijving')
+    await flushPromises()
 
-    await wrapper.find('.rvo-button--primary').trigger('click')
+    await dialogButton(dialog, 'Opslaan').trigger('click')
     await flushPromises()
 
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 2, 'Nieuwe beschrijving')
     expect(wrapper.text()).toContain('Nieuwe beschrijving')
+  })
+
+  it('mirrors the open state to show()/hide() on the upgraded modal element', async () => {
+    apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 2, state: {} })
+    apiVersions.mockResolvedValue([
+      { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: 'X' },
+    ])
+    const wrapper = mountView()
+    await flushPromises()
+    const host = dialogByTitle(wrapper, 'Beschrijving versie').element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await wrapper.find('.desc-edit-btn').trigger('click')
+    await flushPromises()
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    await dialogButton(dialogByTitle(wrapper, 'Beschrijving versie'), 'Annuleren').trigger('click')
+    await flushPromises()
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to target.value for a description input event without detail', async () => {
+    apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 2, state: {} })
+    apiVersions.mockResolvedValue([
+      { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: 'X' },
+    ])
+    const wrapper = mountView()
+    await flushPromises()
+    await wrapper.find('.desc-edit-btn').trigger('click')
+    await flushPromises()
+
+    const host = wrapper.find('nldd-multi-line-text-field').element as HTMLElement & { value?: string }
+    host.value = 'Fallback tekst'
+    host.dispatchEvent(new Event('input'))
+    await flushPromises()
+
+    await dialogButton(dialogByTitle(wrapper, 'Beschrijving versie'), 'Opslaan').trigger('click')
+    await flushPromises()
+    expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 2, 'Fallback tekst')
   })
 
   it('saveDescription returns early when no version selected (modal never opened)', async () => {
@@ -485,16 +545,16 @@ describe('VersionHistory — description modal', () => {
 
     vm.openDescModal(2, 'X')
     await flushPromises()
-    const ta = wrapper.find('textarea#desc-input')
-    await ta.setValue('')
-    await wrapper.find('.rvo-button--primary').trigger('click')
+    setNlddValue(wrapper.find('nldd-multi-line-text-field'), '')
+    await flushPromises()
+    await dialogButton(dialogByTitle(wrapper, 'Beschrijving versie'), 'Opslaan').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenLastCalledWith(ASSESSMENT_ID, 2, '')
 
     apiUpdateVersionDescription.mockClear()
     vm.openDescModal(999, 'whatever')
     await flushPromises()
-    await wrapper.find('.rvo-button--primary').trigger('click')
+    await dialogButton(dialogByTitle(wrapper, 'Beschrijving versie'), 'Opslaan').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).toHaveBeenCalledWith(ASSESSMENT_ID, 999, 'whatever')
   })
@@ -509,13 +569,13 @@ describe('VersionHistory — description modal', () => {
 
     await wrapper.find('.desc-edit-btn').trigger('click')
     await flushPromises()
-    const secondary = wrapper.findAll('.confirm-dialog .rvo-button--secondary')[0]
-    await secondary.trigger('click')
+    await dialogButton(dialogByTitle(wrapper, 'Beschrijving versie'), 'Annuleren').trigger('click')
     await flushPromises()
     expect(apiUpdateVersionDescription).not.toHaveBeenCalled()
+    expect((wrapper.vm as any).descModalOpen).toBe(false)
   })
 
-  it('opens the description modal from the kebab menu (mousedown)', async () => {
+  it('opens the description modal from the kebab menu', async () => {
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 2, state: {} })
     apiVersions.mockResolvedValue([
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: 'Y' },
@@ -523,23 +583,26 @@ describe('VersionHistory — description modal', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    const editItem = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Beschrijving'))!
-    await editItem.trigger('mousedown')
+    await menuItem(wrapper, 'Beschrijving bewerken')!.trigger('click')
     await flushPromises()
-    expect(wrapper.text()).toContain('Beschrijving versie 2 bewerken')
+    expect((wrapper.vm as any).descModalOpen).toBe(true)
+    expect(dialogByTitle(wrapper, 'Beschrijving versie 2 bewerken').exists()).toBe(true)
   })
 })
 
 describe('VersionHistory — restore modal & handleRestore', () => {
-  async function openRestoreFor(version: number) {
+  function restoreInput(wrapper: ReturnType<typeof mountView>) {
+    return dialogByTitle(wrapper, 'Versie herstellen').find('nldd-text-field')
+  }
+
+  function restoreButton(wrapper: ReturnType<typeof mountView>) {
+    return dialogButton(dialogByTitle(wrapper, 'Versie herstellen'), 'Herstellen')
+  }
+
+  async function openRestoreFor(_version: number) {
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.kebab-menu__trigger').trigger('click')
-    const restoreItem = wrapper
-      .findAll('.kebab-menu__item')
-      .find((b) => b.text().includes('Herstellen naar deze versie'))!
-    await restoreItem.trigger('mousedown')
+    await menuItem(wrapper, 'Herstellen naar deze versie')!.trigger('click')
     await flushPromises()
     return wrapper
   }
@@ -551,23 +614,51 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     ])
   })
 
-  it('disables Herstellen button until the confirm word is typed', async () => {
+  it('disables the destructive Herstellen button until the confirm word is typed', async () => {
     const wrapper = await openRestoreFor(3)
-    const confirmBtn = wrapper.find('.confirm-dialog__delete')
-    expect(confirmBtn.attributes('disabled')).toBeDefined()
+    expect(restoreButton(wrapper).attributes('variant')).toBe('destructive')
+    expect(restoreButton(wrapper).attributes('disabled')).toBeDefined()
 
-    await wrapper.find('.confirm-dialog__input').setValue('  HERSTELLEN  ')
+    setNlddValue(restoreInput(wrapper), '  HERSTELLEN  ')
     await flushPromises()
-    expect(wrapper.find('.confirm-dialog__delete').attributes('disabled')).toBeUndefined()
+    expect(restoreButton(wrapper).attributes('disabled')).toBeUndefined()
+  })
+
+  it('mirrors the open state to show()/hide() on the upgraded modal element', async () => {
+    const wrapper = mountView()
+    await flushPromises()
+    const host = dialogByTitle(wrapper, 'Versie herstellen').element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await menuItem(wrapper, 'Herstellen naar deze versie')!.trigger('click')
+    await flushPromises()
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    await dialogButton(dialogByTitle(wrapper, 'Versie herstellen'), 'Annuleren').trigger('click')
+    await flushPromises()
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to target.value for a confirm input event without detail', async () => {
+    const wrapper = await openRestoreFor(3)
+    const host = restoreInput(wrapper).element as HTMLElement & { value?: string }
+    host.value = 'HERSTELLEN'
+    host.dispatchEvent(new Event('input'))
+    await flushPromises()
+    expect(restoreButton(wrapper).attributes('disabled')).toBeUndefined()
   })
 
   it('restores: merges metadata/$schema, calls update and navigates', async () => {
     apiVersion.mockResolvedValue({ state: { metadata: { completedTasks: ['1', '2'] }, answers: { b: 2 } } })
     const wrapper = await openRestoreFor(3)
 
-    await wrapper.find('.confirm-dialog__input').setValue('HERSTELLEN')
+    setNlddValue(restoreInput(wrapper), 'HERSTELLEN')
     await flushPromises()
-    await wrapper.find('.confirm-dialog__delete').trigger('click')
+    await restoreButton(wrapper).trigger('click')
     await flushPromises()
 
     expect(apiVersion).toHaveBeenCalledWith(ASSESSMENT_ID, 3, { includeState: true })
@@ -583,9 +674,9 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     apiVersion.mockResolvedValue({})
     const wrapper = await openRestoreFor(3)
 
-    await wrapper.find('.confirm-dialog__input').setValue('HERSTELLEN')
+    setNlddValue(restoreInput(wrapper), 'HERSTELLEN')
     await flushPromises()
-    await wrapper.find('.confirm-dialog__delete').trigger('click')
+    await restoreButton(wrapper).trigger('click')
     await flushPromises()
 
     const [, restoredState] = apiUpdate.mock.calls[0]
@@ -608,9 +699,9 @@ describe('VersionHistory — restore modal & handleRestore', () => {
     apiVersion.mockRejectedValue(new Error('boom'))
     const wrapper = await openRestoreFor(3)
 
-    await wrapper.find('.confirm-dialog__input').setValue('HERSTELLEN')
+    setNlddValue(restoreInput(wrapper), 'HERSTELLEN')
     await flushPromises()
-    await wrapper.find('.confirm-dialog__delete').trigger('click')
+    await restoreButton(wrapper).trigger('click')
     await flushPromises()
 
     expect(alertSpy).toHaveBeenCalledWith('Herstel mislukt. Probeer het opnieuw.')
@@ -620,13 +711,13 @@ describe('VersionHistory — restore modal & handleRestore', () => {
   it('Enter key in confirm input triggers restore only when confirmed', async () => {
     apiVersion.mockResolvedValue({ state: { metadata: { completedTasks: [] }, answers: {} } })
     const wrapper = await openRestoreFor(3)
-    const input = wrapper.find('.confirm-dialog__input')
+    const input = restoreInput(wrapper)
 
     await input.trigger('keyup.enter')
     await flushPromises()
     expect(apiVersion).not.toHaveBeenCalled()
 
-    await input.setValue('HERSTELLEN')
+    setNlddValue(input, 'HERSTELLEN')
     await flushPromises()
     await input.trigger('keyup.enter')
     await flushPromises()
@@ -635,12 +726,9 @@ describe('VersionHistory — restore modal & handleRestore', () => {
 
   it('restore modal cancel resets confirm text', async () => {
     const wrapper = await openRestoreFor(3)
-    await wrapper.find('.confirm-dialog__input').setValue('partial')
-    // Multiple dialogs share the button class; target the restore dialog by text.
-    const restoreDialog = wrapper
-      .findAll('dialog.confirm-dialog')
-      .find((d) => d.text().includes('Versie herstellen'))!
-    await restoreDialog.find('.rvo-button--secondary').trigger('click')
+    setNlddValue(restoreInput(wrapper), 'partial')
+    await flushPromises()
+    await dialogButton(dialogByTitle(wrapper, 'Versie herstellen'), 'Annuleren').trigger('click')
     await flushPromises()
     expect((wrapper.vm as any).restoreConfirmText).toBe('')
   })
@@ -658,11 +746,11 @@ describe('VersionHistory — toggleDiff', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.find('.diff-panel').exists()).toBe(true)
 
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.find('.diff-panel').exists()).toBe(false)
   })
@@ -677,7 +765,7 @@ describe('VersionHistory — toggleDiff', () => {
     await vm.toggleDiff(1)
     await flushPromises()
     expect(apiVersionEdits).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Eerste versie — geen vorige versie om mee te vergelijken.')
+    expect(wrapper.text()).toContain('Eerste versie - geen vorige versie om mee te vergelijken.')
   })
 
   it('shows "Geen inhoudelijke wijzigingen gevonden." when edits map to nothing', async () => {
@@ -690,7 +778,7 @@ describe('VersionHistory — toggleDiff', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('Geen inhoudelijke wijzigingen gevonden.')
   })
@@ -703,7 +791,7 @@ describe('VersionHistory — toggleDiff', () => {
     const wrapper = mountView()
     await flushPromises()
 
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.text()).toContain('Geen inhoudelijke wijzigingen gevonden.')
   })
@@ -715,7 +803,7 @@ describe('VersionHistory — toggleDiff', () => {
     apiVersionEdits.mockResolvedValue([])
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.find('.diff-description').exists()).toBe(true)
     expect(wrapper.text()).toContain('Volledige beschrijving')
@@ -735,7 +823,7 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
     apiVersionEdits.mockResolvedValue(edits)
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     return wrapper
   }
@@ -766,9 +854,10 @@ describe('VersionHistory — mapEditsToDiffFields branches', () => {
         version: 2,
       },
     ])
-    const table = wrapper.find('.diff-table')
-    expect(table.exists()).toBe(true)
+    expect(wrapper.find('.diff-list').exists()).toBe(true)
     expect(wrapper.find('.diff-field').text()).toContain('2.1.1. E-mailadres')
+    const values = wrapper.findAll('.diff-value__label').map((l) => l.text())
+    expect(values).toEqual(['Was', 'Wordt'])
     expect(wrapper.find('.diff-field__group').text()).toContain('Persoonsgegevens #1')
     expect(wrapper.text()).toContain('oud@example.com')
     expect(wrapper.text()).toContain('nieuw@example.com')
@@ -1331,27 +1420,21 @@ describe('VersionHistory — field-level restore', () => {
     apiVersionEdits.mockResolvedValue([edit])
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     return wrapper
   }
 
   async function openFieldRestore(wrapper: ReturnType<typeof mountView>) {
-    const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
-    await kebab.trigger('click')
-    const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
-    await item.trigger('mousedown')
+    await menuItem(wrapper, 'Herstel dit antwoord')!.trigger('click')
     await flushPromises()
   }
 
-  // Several confirm dialogs share button classes; target the field-restore dialog by its "Antwoord herstellen" text.
   function fieldRestoreDialog(wrapper: ReturnType<typeof mountView>) {
-    return wrapper
-      .findAll('dialog.confirm-dialog')
-      .find((d) => d.text().includes('Antwoord herstellen'))!
+    return dialogByTitle(wrapper, 'Antwoord herstellen')
   }
   async function confirmFieldRestore(wrapper: ReturnType<typeof mountView>) {
-    await fieldRestoreDialog(wrapper).find('.rvo-button--primary').trigger('click')
+    await dialogButton(fieldRestoreDialog(wrapper), 'Herstellen').trigger('click')
     await flushPromises()
   }
 
@@ -1367,24 +1450,10 @@ describe('VersionHistory — field-level restore', () => {
       version: 2,
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
 
+    expect(wrapper.find('nldd-icon-button.diff-kebab').attributes('text')).toBe('Acties voor dit antwoord')
     await openFieldRestore(wrapper)
-    expect(wrapper.text()).toContain('Antwoord herstellen')
-  })
-
-  it('field-level kebab toggles closed on second click and closes on focusout', async () => {
-    const wrapper = await setupFieldDiff({
-      id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
-      oldValue: { value: 'a' }, newValue: { value: 'b' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
-    }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
-
-    const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
-    await kebab.trigger('click')
-    expect(wrapper.find('.diff-kebab .kebab-menu__dropdown').exists()).toBe(true)
-    await kebab.trigger('click')
-    expect(wrapper.find('.diff-kebab .kebab-menu__dropdown').exists()).toBe(false)
-    await kebab.trigger('click')
-    await wrapper.find('.diff-kebab').trigger('focusout')
-    expect(wrapper.find('.diff-kebab .kebab-menu__dropdown').exists()).toBe(false)
+    expect((wrapper.vm as any).fieldRestoreModalOpen).toBe(true)
+    expect(fieldRestoreDialog(wrapper).exists()).toBe(true)
   })
 
   it('restores a non-repeatable answer_change (writes flat key)', async () => {
@@ -1816,14 +1885,34 @@ describe('VersionHistory — field-level restore', () => {
     }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
     await openFieldRestore(wrapper)
     apiUpdate.mockClear()
-    await fieldRestoreDialog(wrapper).find('.rvo-button--secondary').trigger('click')
+    await dialogButton(fieldRestoreDialog(wrapper), 'Annuleren').trigger('click')
     await flushPromises()
     expect(apiUpdate).not.toHaveBeenCalled()
     expect((wrapper.vm as any).fieldRestoreModalOpen).toBe(false)
   })
+
+  it('mirrors the field-restore open state to show()/hide() on the upgraded modal element', async () => {
+    const wrapper = await setupFieldDiff({
+      id: 'e1', fieldId: 'dpia.1.1', editType: 'answer_change',
+      oldValue: { value: 'oud' }, newValue: { value: 'nieuw' }, editedBy: 'sam@example.com', editedAt: 't', version: 2,
+    }, { [FormType.DPIA]: { '1.1': { id: '1.1', task: 'Naam' } }, [FormType.PRE_SCAN]: {} })
+    const host = fieldRestoreDialog(wrapper).element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await openFieldRestore(wrapper)
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    await dialogButton(fieldRestoreDialog(wrapper), 'Annuleren').trigger('click')
+    await flushPromises()
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
 })
 
-describe('VersionHistory — native dialog @close handlers', () => {
+describe('VersionHistory - modal @close handlers', () => {
   beforeEach(() => {
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 3, state: { answers: {}, metadata: {} } })
     apiVersions.mockResolvedValue([
@@ -1838,7 +1927,7 @@ describe('VersionHistory — native dialog @close handlers', () => {
     vm.openDescModal(2, 'd')
     await flushPromises()
     expect(vm.descModalOpen).toBe(true)
-    await wrapper.find('dialog.confirm-dialog').trigger('close')
+    await dialogByTitle(wrapper, 'Beschrijving versie').trigger('close')
     expect(vm.descModalOpen).toBe(false)
   })
 
@@ -1850,10 +1939,7 @@ describe('VersionHistory — native dialog @close handlers', () => {
     vm.openRestoreModal(2)
     await flushPromises()
     vm.restoreConfirmText = 'partial'
-    const restoreDialog = wrapper
-      .findAll('dialog.confirm-dialog')
-      .find((d) => d.text().includes('Versie herstellen'))!
-    await restoreDialog.trigger('close')
+    await dialogByTitle(wrapper, 'Versie herstellen').trigger('close')
     expect(vm.restoreModalOpen).toBe(false)
     expect(vm.restoreConfirmText).toBe('')
   })
@@ -1865,10 +1951,7 @@ describe('VersionHistory — native dialog @close handlers', () => {
     vm.openFieldRestoreModal({ fieldId: 'dpia.1.1', label: 'X', rawOldValue: { value: 'v' } })
     await flushPromises()
     expect(vm.fieldRestoreModalOpen).toBe(true)
-    const fieldDialog = wrapper
-      .findAll('dialog.confirm-dialog')
-      .find((d) => d.text().includes('Antwoord herstellen'))!
-    await fieldDialog.trigger('close')
+    await dialogByTitle(wrapper, 'Antwoord herstellen').trigger('close')
     expect(vm.fieldRestoreModalOpen).toBe(false)
     expect(vm.fieldRestoreTarget).toBeNull()
   })
@@ -1880,7 +1963,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     apiVersions.mockResolvedValue([])
   })
 
-  it('openDescModal with null current defaults text to empty and autoResize hits the textarea', async () => {
+  it('openDescModal with null current defaults the modal text to empty', async () => {
     apiVersions.mockResolvedValue([
       { id: 'v2', version: 2, createdByName: 'A', updatedAt: '2026-01-02T10:00:00Z', changeDescription: null },
     ])
@@ -1890,9 +1973,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     vm.openDescModal(2, null)
     await flushPromises()
     expect(vm.descModalText).toBe('')
-    vm.autoResize()
-    await flushPromises()
-    expect(autoGrowTextareaMock).toHaveBeenCalled()
+    expect(wrapper.find('nldd-multi-line-text-field').attributes('value')).toBe('')
   })
 
   it('editable description button: single-line shows no "..." marker', async () => {
@@ -1906,16 +1987,6 @@ describe('VersionHistory — remaining branch coverage', () => {
     expect(btn.exists()).toBe(true)
     expect(btn.text()).toContain('Enkel regel')
     expect(btn.text()).not.toContain('...')
-  })
-
-  it('autoResize is a no-op when the textarea ref is null (guard else branch)', async () => {
-    const wrapper = mountView()
-    await flushPromises()
-    const vm = wrapper.vm as any
-    autoGrowTextareaMock.mockClear()
-    vm.descTextarea = null
-    vm.autoResize()
-    expect(autoGrowTextareaMock).not.toHaveBeenCalled()
   })
 
   it('handleFieldRestore: completed-section restore removes a present task (splice branch)', async () => {
@@ -2018,7 +2089,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     ])
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.find('.diff-field').text()).toContain('noparseinstance')
   })
@@ -2043,7 +2114,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     ])
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     expect(wrapper.find('.diff-field').text()).toContain('Status sectie 7 "Sectie zeven"')
   })
@@ -2079,7 +2150,7 @@ describe('VersionHistory — remaining branch coverage', () => {
     ])
     const wrapper = mountView()
     await flushPromises()
-    await wrapper.find('.toggle-btn').trigger('click')
+    await wrapper.find(DIFF_TOGGLE).trigger('click')
     await flushPromises()
     await fieldRestoreDialogConfirm(wrapper)
     const [, state] = apiUpdate.mock.calls[0]
@@ -2169,7 +2240,7 @@ describe('VersionHistory — remaining branch coverage', () => {
       apiVersionEdits.mockResolvedValue([edit])
       const wrapper = mountView()
       await flushPromises()
-      await wrapper.find('.toggle-btn').trigger('click')
+      await wrapper.find(DIFF_TOGGLE).trigger('click')
       await flushPromises()
       return wrapper
     }
@@ -2303,16 +2374,7 @@ describe('VersionHistory — remaining branch coverage', () => {
         },
         { answers: { '2.1': [{ _index: 0, '2.1.1': { value: 'huidig' } }] }, metadata: {} },
       )
-      const kebab = wrapper.find('.diff-kebab .kebab-menu__trigger')
-      await kebab.trigger('click')
-      const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text().includes('Herstel dit antwoord'))!
-      await item.trigger('mousedown')
-      await flushPromises()
-      const dialog = wrapper
-        .findAll('dialog.confirm-dialog')
-        .find((d) => d.text().includes('Antwoord herstellen'))!
-      await dialog.find('.rvo-button--primary').trigger('click')
-      await flushPromises()
+      await fieldRestoreDialogConfirm(wrapper)
       const [, state] = apiUpdate.mock.calls[0]
       expect((state as any).answers['2.1'][0]['2.1.1'].value).toBe('oud')
     })

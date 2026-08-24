@@ -8,9 +8,17 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { renderMarkdownToHtml } from '../../utils/markdown'
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
+import { CONTENT_READONLY_KEY } from '../../injectionKeys'
+import { computed, inject, ref, nextTick, watch } from 'vue'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/dropdown'
+import '@nldd/design-system/date-field'
+import '@nldd/design-system/toggle-button'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/rich-text'
 
 const props = defineProps<{
   task: FlatTask
@@ -18,6 +26,10 @@ const props = defineProps<{
   label?: string
   description?: string
 }>()
+
+// Read-only role: only the inputs go inert, so the term tooltips in the label
+// and the description stay hoverable.
+const readonly = inject(CONTENT_READONLY_KEY, ref(false))
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
@@ -33,6 +45,12 @@ const displayLabel = computed(() => {
   }
   return props.label
 })
+
+// Shadow-DOM inputs cannot reference the light-DOM label via aria-labelledby;
+// they get the plain label text as accessible-label instead.
+const accessibleLabel = computed(() =>
+  props.label ? getPlainTextWithoutDefinitions(displayLabel.value) : undefined,
+)
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -118,7 +136,11 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
+// focus() is optional: it only exists once the custom element is upgraded
+// (not in jsdom unit tests).
+type TextAreaElement = HTMLElement & { focus?: (options?: FocusOptions) => void }
+
+const textareaRef = ref<TextAreaElement | null>(null)
 const showPreview = ref(false)
 
 const renderedHtml = computed(() => {
@@ -126,44 +148,27 @@ const renderedHtml = computed(() => {
   return renderMarkdownToHtml(String(currentValue.value ?? ''))
 })
 
-// Re-trigger auto-grow and restore focus when switching back from preview to edit
+// Restore focus to the textarea when switching back from preview to edit
 watch(showPreview, (preview) => {
   if (!preview) {
     nextTick(() => {
-      /* istanbul ignore else @preserve -- unreachable: when showPreview turns
-         false the textarea (v-if="!showPreview") is always re-rendered before
-         this nextTick callback runs, so textareaRef is guaranteed to be set. */
-      if (textareaRef.value) {
-        autoGrowTextarea(textareaRef.value)
-        textareaRef.value.focus()
-      }
+      textareaRef.value?.focus?.()
     })
   }
 })
 
-onMounted(() => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-watch(currentValue, () => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-// Text input and textarea handler
+// Text input and textarea handler (NLDD fields deliver the value in
+// event.detail; fall back to target.value for native inputs)
 const handleTextInput = (event: Event) => {
+  const detail = (event as CustomEvent<{ value?: string }>).detail
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
-  answerStore.setAnswer(props.instanceId, target.value)
-  if (target instanceof HTMLTextAreaElement) {
-    autoGrowTextarea(target)
-  }
+  answerStore.setAnswer(props.instanceId, detail?.value ?? target.value)
+}
+
+// nldd-toggle-button flips `selected` itself before it emits change.
+const handlePreviewToggle = (event: Event) => {
+  const detail = (event as CustomEvent<{ selected?: boolean }>).detail
+  showPreview.value = detail?.selected ?? !showPreview.value
 }
 
 // Select handler
@@ -197,30 +202,29 @@ const handleCheckboxInput = (event: Event) => {
 </script>
 
 <template>
-  <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
+  <div v-if="label" class="form-field__label">
+    <label :id="`label-${task.id}-${instanceId}`">
       <span v-html="displayLabel"></span>
     </label>
     <!-- FRIA tag is a link (interactive content) so it must NOT live inside the
          <label> (invalid HTML + pollutes the field's accessible name). Kept as a
-         sibling within the same rvo-form-field__label wrapper for visual adjacency. -->
-    <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon form-field__fria-tag"
+         sibling within the same form-field__label wrapper for visual adjacency. -->
+    <a v-if="task.in_fria" class="form-field__fria-tag"
       href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
       target="_blank" rel="noopener noreferrer"
       title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening">
       art. 27 AI-verordening
-      <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
+      <nldd-icon name="square-arrow-right-top" size="16" aria-hidden="false" aria-label="Opent in nieuw tabblad"></nldd-icon>
     </a>
-    <button v-if="hasType('open_text')" type="button"
+    <!-- The class stays on the host: the comment indicators look it up to
+         position the comment button in the label row. -->
+    <nldd-toggle-button v-if="hasType('open_text')" size="xs"
       class="open-text-field__toggle"
-      :aria-pressed="showPreview"
-      :aria-label="showPreview ? 'Bewerken' : 'Lezen'"
-      @click="showPreview = !showPreview">
-      <span class="utrecht-icon rvo-icon rvo-icon--sm"
-        :class="showPreview ? 'rvo-icon-document-met-potlood' : 'rvo-icon-oog'"></span>
-      {{ showPreview ? 'Bewerken' : 'Lezen' }}
-    </button>
-    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
+      :selected="showPreview"
+      :text="showPreview ? 'Bewerken' : 'Lezen'"
+      :icon="showPreview ? 'pencil-on-square' : 'eye'"
+      @change="handlePreviewToggle"></nldd-toggle-button>
+    <div v-if="description" class="form-field__description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
   </div>
@@ -230,38 +234,40 @@ const handleCheckboxInput = (event: Event) => {
   <ReferenceSuggestions :task="task" />
 
   <!-- Text input field -->
-  <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="text"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+  <div v-if="hasType('text_input')" class="field-group" :inert="readonly || undefined">
+    <nldd-text-field :input-id="`field-${task.id}-${instanceId}`" dir="auto"
+      :accessible-label="accessibleLabel" :value="currentValue"
+      @input="handleTextInput"></nldd-text-field>
   </div>
 
   <!-- Text area with markdown support -->
-  <div v-if="hasType('open_text')" class="open-text-field rvo-margin-block-end--md">
-    <textarea v-if="!showPreview" ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
-      class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
-      :value="currentValue as string | number | readonly string[] | null | undefined"
-      @input="handleTextInput"></textarea>
+  <div v-if="hasType('open_text')" class="open-text-field field-group">
+    <nldd-multi-line-text-field v-if="!showPreview" ref="textareaRef"
+      :inert="readonly || undefined"
+      :input-id="`field-${task.id}-${instanceId}`" dir="auto"
+      :accessible-label="accessibleLabel" rows="5" resize="auto"
+      :value="safeString(currentValue as string | boolean | null)"
+      @input="handleTextInput"></nldd-multi-line-text-field>
 
-    <div v-else
+    <!-- nldd-rich-text is light DOM, so rich-text.css styles the markdown
+         that v-html drops in here. -->
+    <nldd-rich-text v-else spacing="tight"
       class="markdown-preview" dir="auto"
       role="region"
       :aria-label="'Voorbeeld van de opmaak'"
       v-html="renderedHtml">
-    </div>
+    </nldd-rich-text>
   </div>
 
   <!-- Select radio -->
-  <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('radio_option')" class="field-group" :inert="readonly || undefined">
     <div>
-      <div class="rvo-radio-button__group">
-        <label v-for="option in task.options!" :key="String(option.value || '')" class="rvo-radio-button"
+      <div class="form-field__choices" role="radiogroup" :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined">
+        <label v-for="option in task.options!" :key="String(option.value || '')" class="form-field__choice"
           :for="`${task.id}-${instanceId}-${option.value}`">
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
-            class="utrecht-radio-button" @change="handleRadioInput" />
+            @change="handleRadioInput" />
           <span v-html="optionLabel(option)"></span>
         </label>
       </div>
@@ -269,9 +275,9 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select dropdown -->
-  <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
-    <div class="rvo-select-wrapper">
-      <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
+  <div v-else-if="hasType('select_option')" class="field-group" :inert="readonly || undefined">
+    <nldd-dropdown>
+      <select :id="`field-${task.id}-${instanceId}`"
         :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
@@ -279,18 +285,18 @@ const handleCheckboxInput = (event: Event) => {
           v-html="option.value">
         </option>
       </select>
-    </div>
+    </nldd-dropdown>
   </div>
 
   <!-- Multi-select checkboxes in scrollable container -->
-  <div v-else-if="hasType('multiselect_scrollable')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('multiselect_scrollable')" class="field-group" :inert="readonly || undefined">
     <div class="multiselect-scrollable">
-      <div class="rvo-checkbox__group">
+      <div class="form-field__choices">
         <label v-for="option in task.options!" :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked multiselect-scrollable__option" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`">
+          class="form-field__choice multiselect-scrollable__option" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`">
           <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput"
             type="checkbox" />
           <span>{{ option.value }}</span>
         </label>
@@ -301,14 +307,14 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select checkbox -->
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
   refactor.-->
-  <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('checkbox_option')" class="field-group" :inert="readonly || undefined">
     <div v-if="getSourceOptions(task).length > 0">
-      <div class="rvo-checkbox__group">
-        <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
+      <div class="form-field__choices">
+        <label v-for="option in getSourceOptions(task)" :key="option" class="form-field__choice"
           :for="`${task.id}-${instanceId}-${option}`">
           <input :id="`${task.id}-${instanceId}-${option}`" :value="option"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option)"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput"
             type="checkbox" />
           <!-- option is a user free-text answer (getSourceOptions): render as text, not v-html. -->
           <span>{{ option }}</span>
@@ -316,18 +322,18 @@ const handleCheckboxInput = (event: Event) => {
       </div>
     </div>
     <div v-else-if="task.options && task.options.length > 0">
-      <div class="rvo-checkbox__group">
+      <div class="form-field__choices">
         <label v-for="option in task.options!" :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-${safeString(option.value)}`">
+          class="form-field__choice" :for="`${task.id}-${instanceId}-${safeString(option.value)}`">
           <input :id="`${task.id}-${instanceId}-${safeString(option.value)}`" :value="option.value"
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
+            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput"
             type="checkbox" />
           <span v-html="optionLabel(option)"></span>
         </label>
       </div>
     </div>
-    <div v-else class="rvo-text--error">
+    <div v-else class="form-field__error">
       <div v-if="!['0', '18', '19', '20'].includes(getSourceTaskId(task))">
         Vul eerst sectie {{ getSourceTaskId(task) }} "{{ dependencyTaskName }}" in.
       </div>
@@ -339,12 +345,13 @@ const handleCheckboxInput = (event: Event) => {
 
 
 
-  <!-- Date input -->
-  <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="date"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+  <!-- Date input: value is ISO yyyy-mm-dd both ways. Bound to change, not
+       input: the calendar picker only emits change, and input would write ''
+       to the store on every partial keystroke. -->
+  <div v-else-if="hasType('date')" class="field-group" :inert="readonly || undefined">
+    <nldd-date-field :input-id="`field-${task.id}-${instanceId}`"
+      :accessible-label="accessibleLabel" :value="currentValue"
+      @change="handleTextInput"></nldd-date-field>
   </div>
 
   <!-- Image upload -->

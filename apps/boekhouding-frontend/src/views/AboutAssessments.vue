@@ -1,20 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import AppHeader from '../components/AppHeader.vue'
+import '@nldd/design-system/container'
+import '@nldd/design-system/rich-text'
+import '@nldd/design-system/title'
+import { useBackLink } from '../composables/useBackLink'
 
-const hasHistory = computed(() => !!window.history.state?.back)
+const hasHistory = !!window.history.state?.back
+useBackLink().set(hasHistory ? { text: 'Terug' } : { text: 'Ga naar home', to: '/' })
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader
-      :backLabel="hasHistory ? 'Terug' : 'Ga naar home'"
-      :backRoute="hasHistory ? undefined : '/'"
-      :showBack="hasHistory"
-    />
+  <div class="page-container">
+    <nldd-title size="3"><h1>Over Invulhulpen</h1></nldd-title>
 
-    <h1 class="utrecht-heading-1">Over Invulhulpen</h1>
-
+    <nldd-container max-width="44rem">
+    <nldd-rich-text>
     <p>
       Invulhulpen helpt je bij het invullen van een pre-scan, een volledige DPIA en een IAMA.
       De pre-scan en DPIA zijn gebaseerd op het
@@ -27,19 +26,19 @@ const hasHistory = computed(() => !!window.history.state?.back)
       Ze sluiten aan op rijksbrede kaders.
     </p>
 
-    <h2 class="utrecht-heading-2">Pre-scan</h2>
+    <h2>Pre-scan</h2>
     <p>
       De pre-scan is een hulpmiddel om te bepalen of een DPIA, IAMA, DTIA of KIA nodig is. Door een
       aantal gerichte vragen te beantwoorden krijg je inzicht in welke assessments van toepassing
       zijn op jouw project.
     </p>
 
-    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <h3>Bronnen</h3>
     <ul>
       <li><a href="https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA" target="_blank" rel="noopener noreferrer">Informatiemodellen voor de DPIA en pre-scan DPIA</a></li>
     </ul>
 
-    <h2 class="utrecht-heading-2">DPIA</h2>
+    <h2>DPIA</h2>
     <p>
       Bij verwerkingen van persoonsgegevens is het belangrijk om vroegtijdig inzicht te krijgen
       in mogelijke privacyrisico's. Een DPIA is het instrument om van projecten waarbij
@@ -50,7 +49,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       is een rijksbreed model ontwikkeld.
     </p>
 
-    <h3 class="utrecht-heading-3">Wanneer voer je een DPIA uit?</h3>
+    <h3>Wanneer voer je een DPIA uit?</h3>
     <p>
       Een DPIA moet in een vroegtijdig stadium van de beleids- of projectontwikkeling worden
       uitgevoerd. Op dat moment is het namelijk nog mogelijk om met open vizier na te denken over
@@ -59,7 +58,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       aanpassingen in processen, herontwerp van systemen of zelfs stopzetten van een project.
     </p>
 
-    <h3 class="utrecht-heading-3">Wettelijke verplichting</h3>
+    <h3>Wettelijke verplichting</h3>
     <p>In de volgende gevallen is het verplicht om een DPIA uit te voeren:</p>
     <ol>
       <li>Bij de ontwikkeling van beleid en regelgeving waaruit verwerkingen van persoonsgegevens voortvloeien; of</li>
@@ -67,19 +66,19 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>bij gegevensverwerkingen van persoonsgegevens die waarschijnlijk een hoog risico inhouden voor de rechten en vrijheden van betrokkenen.</li>
     </ol>
 
-    <h3 class="utrecht-heading-3">DPIA versie 3.0</h3>
+    <h3>DPIA versie 3.0</h3>
     <p>
       Deze invulhulp is gebaseerd op het Rapportagemodel DPIA Rijksdienst, versie 3.0. Dit is het
       actuele rijksbrede rapportagemodel voor de DPIA.
     </p>
 
-    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <h3>Bronnen</h3>
     <ul>
       <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a></li>
       <li><a href="https://www.kcbr.nl/ontwikkelen-beleid-en-regelgeving/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener noreferrer">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
     </ul>
 
-    <h2 class="utrecht-heading-2">IAMA</h2>
+    <h2>IAMA</h2>
     <p>
       Het Impact Assessment Mensenrechten en Algoritmes (IAMA) helpt overheidsorganisaties bij
       het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand
@@ -89,7 +88,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       AI-systemen, maar ook op algoritmische systemen die geen kunstmatige intelligentie bevatten.
     </p>
 
-    <h3 class="utrecht-heading-3">Wanneer voer je een IAMA uit?</h3>
+    <h3>Wanneer voer je een IAMA uit?</h3>
     <p>
       Het IAMA is een grondrechtenbeoordeling voor impactvolle algoritmes en hoog-risico
       AI-systemen. Voor hoog-risico AI-systemen schrijft de Europese AI-verordening een beoordeling
@@ -100,14 +99,14 @@ const hasHistory = computed(() => !!window.history.state?.back)
       van de inzet van een algoritme zorgvuldig kunnen worden afgewogen voordat het wordt ingezet.
     </p>
 
-    <h3 class="utrecht-heading-3">IAMA versie 2.0</h3>
+    <h3>IAMA versie 2.0</h3>
     <p>
       Deze invulhulp is gebaseerd op IAMA versie 2.0. Dit is een actualisatie van de oorspronkelijke
       versie: gestroomlijnd op basis van gebruikersfeedback en in lijn gebracht met de vereisten uit
       artikel 27 van de Europese AI-verordening. Eerder ingevulde IAMA's (v1) hoeven niet herzien te
       worden.
     </p>
-    <h3 class="utrecht-heading-3">Bronnen</h3>
+    <h3>Bronnen</h3>
     <ul>
       <li><a href="https://open.overheid.nl/documenten/d0947c02-81df-4c00-83df-d88b703025f4/file" target="_blank" rel="noopener noreferrer">IAMA v2.0 - Open Overheid</a></li>
       <li><a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument - Rijksoverheid</a></li>
@@ -115,9 +114,11 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li><a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27" target="_blank" rel="noopener noreferrer">Artikel 27 AI-verordening - EUR-Lex</a></li>
     </ul>
 
-    <h2 class="utrecht-heading-2">Zie ook</h2>
+    <h2>Zie ook</h2>
     <ul>
       <li><a href="https://rijksportaal.overheid-i.nl/organisaties/bzk/artikelen/dg-digitalisering-en-overheidsorganisatie-dgdoo/cio-rijk/informatiebeveiliging-en-privacy/privacy-adviseurs-rijk-par.html" target="_blank" rel="noopener noreferrer">Privacy Adviseurs Rijk (PAR) - Rijksportaal</a></li>
     </ul>
+    </nldd-rich-text>
+    </nldd-container>
   </div>
 </template>

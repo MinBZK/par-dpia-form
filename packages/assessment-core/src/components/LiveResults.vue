@@ -2,6 +2,10 @@
 import { useCalculationStore } from '../stores/calculations'
 import type { AssessmentResult, CriterionResult } from '../stores/calculations'
 import { computed, onMounted } from 'vue'
+import UiAccordion from './ui/UiAccordion.vue'
+import '@nldd/design-system/card'
+import '@nldd/design-system/container'
+import '@nldd/design-system/title'
 
 const calculationStore = useCalculationStore()
 
@@ -55,77 +59,58 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
 </script>
 
 <template>
-  <!-- No assessments: static block with same accordion styling but no expand/collapse -->
-  <div v-if="!hasRequiredOrRecommendedAssessments" class="assessment-results rvo-card">
-    <div class="rvo-accordion">
-      <div class="rvo-accordion__item">
-        <div class="rvo-accordion__item-summary">
-          <div class="rvo-accordion__item-title-container">
-            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-              Tussenresultaten pre-scan
-            </h3>
-            <p class="rvo-accordion-teaser">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- No assessments: static block with same styling but no expand/collapse -->
+  <nldd-card v-if="!hasRequiredOrRecommendedAssessments" class="assessment-results">
+    <nldd-container padding="16">
+      <nldd-title size="5">
+        <h3>Tussenresultaten pre-scan</h3>
+        <p slot="subtitle">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
+      </nldd-title>
+    </nldd-container>
+  </nldd-card>
 
   <!-- Assessments found: expandable accordion -->
-  <div v-else class="assessment-results rvo-card">
-    <div class="rvo-accordion">
-      <details class="rvo-accordion__item" open>
-        <summary class="rvo-accordion__item-summary">
-          <div class="rvo-accordion__item-icon">
-            <span
-              class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
-              role="img" aria-label="Delta omlaag"></span>
-            <span
-              class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
-              role="img" aria-label="Delta omhoog"></span>
-          </div>
-          <div class="rvo-accordion__item-title-container">
-            <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-              Tussenresultaten pre-scan
-            </h3>
-            <div class="rvo-accordion-teaser">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</div>
-          </div>
-        </summary>
-        <div class="rvo-accordion__content">
-          <div v-if="calculationStore.isCalculating">
-            Berekenen...
-          </div>
+  <nldd-card v-else class="assessment-results">
+    <nldd-container padding="16">
+      <UiAccordion open>
+        <template #title>
+          <nldd-title size="5">
+            <h3>Tussenresultaten pre-scan</h3>
+            <p slot="subtitle">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</p>
+          </nldd-title>
+        </template>
+        <div v-if="calculationStore.isCalculating">
+          Berekenen...
+        </div>
 
-          <div v-else>
-            <div v-for="assessment in calculationStore.assessmentResults.filter(r => r.required)"
-              :key="assessment.id">
-              <p>
-                <strong>{{ assessment.id }}</strong><br>
-              </p>
+        <div v-else>
+          <div v-for="assessment in calculationStore.assessmentResults.filter(r => r.required)"
+            :key="assessment.id">
+            <p>
+              <strong>{{ assessment.id }}</strong><br>
+            </p>
 
-              <template v-if="renderAssessmentExplanation(assessment).hasCriteria">
-                <p>{{ renderAssessmentExplanation(assessment).intro }}</p>
-                <ul class="utrecht-unordered-list">
-                  <li v-for="(point, index) in renderAssessmentExplanation(assessment).points" :key="index"
-                    class="utrecht-unordered-list__item">
-                    {{ point }}
-                  </li>
-                </ul>
-              </template>
-              <p v-else v-html="renderAssessmentExplanation(assessment).text.replace(/\n/g, '<br>')"></p>
-            </div>
-
-            <div v-if="calculationStore.calculationErrors.length > 0">
-              <p>Er zijn fouten opgetreden tijdens de berekening:</p>
+            <template v-if="renderAssessmentExplanation(assessment).hasCriteria">
+              <p>{{ renderAssessmentExplanation(assessment).intro }}</p>
               <ul>
-                <li v-for="(error, index) in calculationStore.calculationErrors" :key="index">
-                  {{ error }}
+                <li v-for="(point, index) in renderAssessmentExplanation(assessment).points" :key="index">
+                  {{ point }}
                 </li>
               </ul>
-            </div>
+            </template>
+            <p v-else v-html="renderAssessmentExplanation(assessment).text.replace(/\n/g, '<br>')"></p>
+          </div>
+
+          <div v-if="calculationStore.calculationErrors.length > 0">
+            <p>Er zijn fouten opgetreden tijdens de berekening:</p>
+            <ul>
+              <li v-for="(error, index) in calculationStore.calculationErrors" :key="index">
+                {{ error }}
+              </li>
+            </ul>
           </div>
         </div>
-      </details>
-    </div>
-  </div>
+      </UiAccordion>
+    </nldd-container>
+  </nldd-card>
 </template>

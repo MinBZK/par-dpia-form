@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useTaskStore, type FlatTask } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
 import { FormType, type Task } from '../../src/models/dpia'
 import FormField from '../../src/components/task/FormField.vue'
+import { CONTENT_READONLY_KEY } from '../../src/injectionKeys'
 
 function flatTask(overrides: Partial<FlatTask> = {}): FlatTask {
   return {
@@ -25,16 +26,28 @@ type MountProps = {
   description?: string
 }
 
-function mountField(props: MountProps) {
+function mountField(props: MountProps, readonly = false) {
   return mount(FormField, {
     props,
     global: {
+      provide: { [CONTENT_READONLY_KEY as symbol]: ref(readonly) },
       // Stub ImageField to keep the image-upload component out of the mount.
       stubs: {
         ImageField: { name: 'ImageField', props: ['task', 'instanceId', 'label', 'description'], template: '<div class="image-field-stub" />' },
       },
     },
   })
+}
+
+// NLDD fields deliver their value via a CustomEvent with a detail payload.
+function dispatchNlddInput(el: Element, value: string) {
+  el.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+}
+
+// nldd-toggle-button flips `selected` itself and reports the new state in
+// the change detail; the host is unregistered in jsdom, so the test passes it.
+function toggleSelected(el: Element, selected: boolean) {
+  el.dispatchEvent(new CustomEvent('change', { detail: { selected } }))
 }
 
 describe('FormField.vue', () => {
@@ -57,11 +70,14 @@ describe('FormField.vue', () => {
         label: 'Mijn label',
         description: 'Mijn omschrijving',
       })
-      const label = wrapper.find('label.rvo-label')
+      const labelWrapper = wrapper.find('div.form-field__label')
+      expect(labelWrapper.exists()).toBe(true)
+      const label = labelWrapper.find('label')
       expect(label.exists()).toBe(true)
+      expect(label.attributes('class')).toBeUndefined()
       expect(label.attributes('id')).toBe('label-1.1-1.1[0]')
       expect(label.element.innerHTML).toContain('Mijn label')
-      const desc = wrapper.find('.utrecht-form-field-description')
+      const desc = wrapper.find('.form-field__description')
       expect(desc.exists()).toBe(true)
       expect(desc.attributes('id')).toBe('description-1.1-1.1[0]')
       expect(desc.element.innerHTML).toContain('Mijn omschrijving')
@@ -69,32 +85,55 @@ describe('FormField.vue', () => {
 
     it('omits the label block entirely when no label is given', () => {
       const wrapper = mountField({ task: flatTask(), instanceId: '1.1[0]' })
-      expect(wrapper.find('label.rvo-label').exists()).toBe(false)
-      expect(wrapper.find('input[type="text"]').attributes('aria-labelledby')).toBeUndefined()
+      expect(wrapper.find('div.form-field__label').exists()).toBe(false)
+      expect(wrapper.find('nldd-text-field').attributes('accessible-label')).toBeUndefined()
     })
 
-    it('renders the open_text read/edit toggle and switches preview on click', async () => {
+    it('renders the open_text read/edit toggle and switches preview on change', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('button.open-text-field__toggle')
+      // The class must stay on the host: the comment indicators look it up.
+      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
       expect(toggle.exists()).toBe(true)
-      expect(toggle.text()).toContain('Lezen')
-      expect(toggle.attributes('aria-pressed')).toBe('false')
-      expect(toggle.attributes('aria-label')).toBe('Lezen')
-      expect(wrapper.find('textarea').exists()).toBe(true)
+      expect(toggle.attributes('size')).toBe('xs')
+      expect(toggle.attributes('text')).toBe('Lezen')
+      // Unregistered host in jsdom: the boolean binding lands as an attribute.
+      expect(toggle.attributes('selected')).toBe('false')
+      expect(toggle.attributes('icon')).toBe('eye')
+      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
 
-      await toggle.trigger('click')
-      expect(toggle.text()).toContain('Bewerken')
-      expect(toggle.attributes('aria-pressed')).toBe('true')
-      expect(toggle.attributes('aria-label')).toBe('Bewerken')
-      expect(wrapper.find('textarea').exists()).toBe(false)
+      toggleSelected(toggle.element, true)
+      await nextTick()
+      expect(toggle.attributes('text')).toBe('Bewerken')
+      expect(toggle.attributes('selected')).toBe('true')
+      expect(toggle.attributes('icon')).toBe('pencil-on-square')
+      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(false)
       const preview = wrapper.find('.markdown-preview')
       expect(preview.exists()).toBe(true)
+      // The markdown itself is styled by rich-text.css on this light-DOM host.
+      expect(preview.element.tagName.toLowerCase()).toBe('nldd-rich-text')
+      expect(preview.attributes('spacing')).toBe('tight')
+      expect(preview.attributes('role')).toBe('region')
       expect(preview.attributes('aria-label')).toBe('Voorbeeld van de opmaak')
+    })
+
+    it('falls back to flipping the preview when the change event carries no detail', async () => {
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+        label: 'Toelichting',
+      })
+      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
+
+      await toggle.trigger('change')
+      expect(wrapper.find('.markdown-preview').exists()).toBe(true)
+
+      await toggle.trigger('change')
+      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
     })
 
     it('does not render the toggle button when the field is not open_text', () => {
@@ -103,27 +142,28 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Naam',
       })
-      expect(wrapper.find('button.open-text-field__toggle').exists()).toBe(false)
+      expect(wrapper.find('nldd-toggle-button.open-text-field__toggle').exists()).toBe(false)
     })
   })
 
   describe('renderedHtml and preview watcher', () => {
-    it('renders markdown to HTML in the preview and restores the textarea on switch back', async () => {
+    it('renders markdown to HTML in the preview and restores the multiline field on switch back', async () => {
       answerStore.setAnswer('1.1[0]', '**vet** tekst')
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('button.open-text-field__toggle')
+      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
 
-      await toggle.trigger('click')
+      toggleSelected(toggle.element, true)
+      await nextTick()
       const preview = wrapper.find('.markdown-preview')
       expect(preview.element.innerHTML).toContain('<strong>vet</strong>')
 
-      await toggle.trigger('click')
+      toggleSelected(toggle.element, false)
       await nextTick()
-      expect(wrapper.find('textarea').exists()).toBe(true)
+      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
     })
 
     it('renders an empty preview when there is no value', async () => {
@@ -132,7 +172,8 @@ describe('FormField.vue', () => {
         instanceId: 'empty[0]',
         label: 'Toelichting',
       })
-      await wrapper.find('button.open-text-field__toggle').trigger('click')
+      toggleSelected(wrapper.find('nldd-toggle-button.open-text-field__toggle').element, true)
+      await nextTick()
       expect(wrapper.find('.markdown-preview').element.innerHTML.trim()).toBe('')
     })
 
@@ -143,7 +184,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      expect(wrapper.find('textarea').exists()).toBe(true)
+      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
       // Read the computed through the instance: no preview region exists to assert against.
       const setupState = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
@@ -151,40 +192,111 @@ describe('FormField.vue', () => {
     })
   })
 
+  describe('focus restore when leaving the preview', () => {
+    // The multiline host is recreated when the preview closes, so focus is
+    // stubbed on the prototype: that catches the call regardless of which
+    // element instance the watcher's nextTick callback sees.
+    async function mountAndToggleTwice() {
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+        label: 'Toelichting',
+      })
+      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
+      toggleSelected(toggle.element, true)
+      await nextTick()
+      toggleSelected(toggle.element, false)
+      await nextTick()
+      return wrapper
+    }
+
+    it('restores focus to the multiline host after switching back from the preview', async () => {
+      const focusSpy = vi
+        .spyOn(window.HTMLElement.prototype, 'focus')
+        .mockImplementation(() => {})
+      try {
+        await mountAndToggleTwice()
+        expect(focusSpy).toHaveBeenCalledTimes(1)
+      } finally {
+        focusSpy.mockRestore()
+      }
+    })
+
+    it('does not crash when the unupgraded host has no focus()', async () => {
+      const proto = window.HTMLElement.prototype as HTMLElement & { focus?: () => void }
+      const originalFocus = proto.focus
+      delete proto.focus
+      try {
+        const wrapper = await mountAndToggleTwice()
+        expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
+      } finally {
+        proto.focus = originalFocus
+      }
+    })
+  })
+
   describe('text_input field', () => {
-    it('renders the stored value and writes input back to the store', async () => {
+    it('renders the stored value and writes NLDD input events back to the store', async () => {
       answerStore.setAnswer('1.1[0]', 'bestaande waarde')
       const wrapper = mountField({
         task: flatTask({ type: ['text_input'] }),
         instanceId: '1.1[0]',
         label: 'Naam',
       })
-      const input = wrapper.find('input[type="text"]')
-      expect((input.element as HTMLInputElement).value).toBe('bestaande waarde')
-      expect(input.attributes('aria-labelledby')).toBe('label-1.1-1.1[0]')
+      const field = wrapper.find('nldd-text-field')
+      expect(field.exists()).toBe(true)
+      expect(field.attributes('value')).toBe('bestaande waarde')
+      expect(field.attributes('input-id')).toBe('field-1.1-1.1[0]')
+      expect(field.attributes('dir')).toBe('auto')
+      expect(field.attributes('accessible-label')).toBe('Naam')
+      expect(field.attributes('aria-labelledby')).toBeUndefined()
 
-      await input.setValue('nieuwe waarde')
-      await input.trigger('input')
+      dispatchNlddInput(field.element, 'nieuwe waarde')
       expect(answerStore.getAnswer('1.1[0]')).toBe('nieuwe waarde')
+      await nextTick()
+      expect(field.attributes('value')).toBe('nieuwe waarde')
     })
   })
 
-  describe('open_text textarea input', () => {
-    it('writes textarea input back to the store and auto-grows', async () => {
+  describe('open_text multiline input', () => {
+    it('renders the NLDD multiline attributes and writes input back to the store', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const textarea = wrapper.find('textarea')
-      await textarea.setValue('regel een\nregel twee')
-      await textarea.trigger('input')
+      const field = wrapper.find('nldd-multi-line-text-field')
+      expect(field.exists()).toBe(true)
+      expect(field.attributes('input-id')).toBe('field-1.1-1.1[0]')
+      expect(field.attributes('dir')).toBe('auto')
+      expect(field.attributes('accessible-label')).toBe('Toelichting')
+      expect(field.attributes('rows')).toBe('5')
+      expect(field.attributes('resize')).toBe('auto')
+      expect(field.attributes('value')).toBe('')
+
+      dispatchNlddInput(field.element, 'regel een\nregel twee')
       expect(answerStore.getAnswer('1.1[0]')).toBe('regel een\nregel twee')
+      await nextTick()
+      expect(field.attributes('value')).toBe('regel een\nregel twee')
+    })
+
+    it('keeps the multiline value attribute in sync with the store', async () => {
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+        label: 'Toelichting',
+      })
+      const field = wrapper.find('nldd-multi-line-text-field')
+      expect(field.attributes('value')).toBe('')
+
+      answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
+      await nextTick()
+      expect(field.attributes('value')).toBe('nieuwe inhoud')
     })
   })
 
   describe('radio_option field', () => {
-    it('renders options, marks the selected one and updates on change', async () => {
+    it('renders a labelled radiogroup, marks the selected option and updates on change', async () => {
       answerStore.setAnswer('1.1[0]', 'ja')
       const wrapper = mountField({
         task: flatTask({
@@ -197,8 +309,15 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Akkoord?',
       })
+      const group = wrapper.find('div.form-field__choices')
+      expect(group.exists()).toBe(true)
+      expect(group.attributes('role')).toBe('radiogroup')
+      expect(group.attributes('aria-labelledby')).toBe('label-1.1-1.1[0]')
+      expect(wrapper.findAll('label.form-field__choice')).toHaveLength(2)
+
       const radios = wrapper.findAll('input[type="radio"]')
       expect(radios).toHaveLength(2)
+      expect(radios[0].attributes('name')).toBe('group-1.1-1.1[0]')
       expect((radios[0].element as HTMLInputElement).checked).toBe(true)
       expect((radios[1].element as HTMLInputElement).checked).toBe(false)
 
@@ -206,7 +325,7 @@ describe('FormField.vue', () => {
       expect(answerStore.getAnswer('1.1[0]')).toBe('nee')
     })
 
-    it('handles an option with a null/empty value in the key fallback', () => {
+    it('handles an option with a null/empty value and omits aria-labelledby without a label', () => {
       const wrapper = mountField({
         task: flatTask({
           type: ['radio_option'],
@@ -215,11 +334,12 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
       })
       expect(wrapper.findAll('input[type="radio"]')).toHaveLength(1)
+      expect(wrapper.find('div.form-field__choices').attributes('aria-labelledby')).toBeUndefined()
     })
   })
 
   describe('select_option field', () => {
-    it('renders options and writes the selection back to the store', async () => {
+    it('renders the select slotted in an nldd-dropdown and writes the selection back to the store', async () => {
       const wrapper = mountField({
         task: flatTask({
           type: ['select_option'],
@@ -228,17 +348,21 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Kies',
       })
-      const select = wrapper.find('select')
+      expect(wrapper.find('nldd-dropdown').exists()).toBe(true)
+      const select = wrapper.find('nldd-dropdown select')
       expect(select.exists()).toBe(true)
+      expect(select.attributes('id')).toBe('field-1.1-1.1[0]')
       expect(select.attributes('aria-labelledby')).toBe('label-1.1-1.1[0]')
-      expect(wrapper.findAll('option')).toHaveLength(3)
+      const options = wrapper.findAll('option')
+      expect(options).toHaveLength(3)
+      expect(options[0].text()).toBe('Selecteer een optie')
 
       await select.setValue('b')
       await select.trigger('input')
       expect(answerStore.getAnswer('1.1[0]')).toBe('b')
     })
 
-    it('renders the option key fallback for a null value option', () => {
+    it('renders the option key fallback for a null value option without a label', () => {
       const wrapper = mountField({
         task: flatTask({
           type: ['select_option'],
@@ -247,6 +371,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
       })
       expect(wrapper.findAll('option')).toHaveLength(2)
+      expect(wrapper.find('select').attributes('aria-labelledby')).toBeUndefined()
     })
   })
 
@@ -265,6 +390,8 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Gegevens',
       })
+      expect(wrapper.find('div.form-field__choices').exists()).toBe(true)
+      expect(wrapper.findAll('label.form-field__choice')).toHaveLength(2)
       const boxes = wrapper.findAll('input[type="checkbox"]')
       expect(boxes).toHaveLength(2)
       expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
@@ -366,7 +493,7 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
-      const err = wrapper.find('.rvo-text--error')
+      const err = wrapper.find('.form-field__error')
       expect(err.exists()).toBe(true)
       expect(err.text()).toContain('Vul eerst sectie 5')
       expect(err.text()).toContain('Sectie vijf')
@@ -382,7 +509,7 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
-      const err = wrapper.find('.rvo-text--error')
+      const err = wrapper.find('.form-field__error')
       expect(err.exists()).toBe(true)
       expect(err.text()).toContain('Vul eerst sectie "')
       expect(err.text()).not.toContain('sectie 0')
@@ -398,7 +525,7 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]' })
-      const err = wrapper.find('.rvo-text--error')
+      const err = wrapper.find('.form-field__error')
       expect(err.exists()).toBe(true)
       expect(err.text()).toContain('Vul eerst sectie 9')
       expect(err.text()).toContain('""')
@@ -407,27 +534,50 @@ describe('FormField.vue', () => {
     it('renders the generic-but-empty error when there are no dependencies at all', () => {
       const checkboxTask = flatTask({ id: '6.1', type: ['checkbox_option'] })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]' })
-      const err = wrapper.find('.rvo-text--error')
+      const err = wrapper.find('.form-field__error')
       expect(err.exists()).toBe(true)
       expect(err.text()).toContain('Vul eerst sectie')
     })
   })
 
   describe('date field', () => {
-    it('renders a date input and writes input back to the store', async () => {
+    it('renders an NLDD date field with the ISO value and writes change events back to the store', async () => {
       answerStore.setAnswer('1.1[0]', '2026-01-01')
       const wrapper = mountField({
         task: flatTask({ type: ['date'] }),
         instanceId: '1.1[0]',
         label: 'Datum',
       })
-      const input = wrapper.find('input[type="date"]')
-      expect(input.exists()).toBe(true)
-      expect((input.element as HTMLInputElement).value).toBe('2026-01-01')
+      const field = wrapper.find('nldd-date-field')
+      expect(field.exists()).toBe(true)
+      expect(wrapper.find('input[type="date"]').exists()).toBe(false)
+      expect(field.attributes('input-id')).toBe('field-1.1-1.1[0]')
+      expect(field.attributes('accessible-label')).toBe('Datum')
+      expect(field.attributes('aria-labelledby')).toBeUndefined()
+      expect(field.attributes('value')).toBe('2026-01-01')
 
-      await input.setValue('2026-02-02')
-      await input.trigger('input')
+      // Typed commits and calendar picks both arrive as a change CustomEvent
+      // with the ISO date (or '') in detail.value.
+      field.element.dispatchEvent(new CustomEvent('change', { detail: { value: '2026-02-02' } }))
       expect(answerStore.getAnswer('1.1[0]')).toBe('2026-02-02')
+      await nextTick()
+      expect(field.attributes('value')).toBe('2026-02-02')
+
+      // '' (cleared or unparseable input) reads back as an empty answer.
+      field.element.dispatchEvent(new CustomEvent('change', { detail: { value: '' } }))
+      expect(answerStore.getAnswer('1.1[0]')).toBeNull()
+    })
+
+    it('falls back to event.target.value when a change event carries no detail', () => {
+      const wrapper = mountField({
+        task: flatTask({ type: ['date'] }),
+        instanceId: '1.1[0]',
+        label: 'Datum',
+      })
+      const host = wrapper.find('nldd-date-field').element as HTMLElement & { value?: string }
+      host.value = '2026-03-03'
+      host.dispatchEvent(new Event('change'))
+      expect(answerStore.getAnswer('1.1[0]')).toBe('2026-03-03')
     })
   })
 
@@ -604,8 +754,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1',
         label: 'Naam',
       })
-      const input = wrapper.find('input[type="text"]')
-      expect((input.element as HTMLInputElement).value).toBe('Geref. waarde')
+      expect(wrapper.find('nldd-text-field').attributes('value')).toBe('Geref. waarde')
       expect(answerStore.getAnswer('1.1')).toBe('Geref. waarde')
     })
   })
@@ -618,10 +767,11 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Zonder type',
       })
-      expect(wrapper.find('label.rvo-label').exists()).toBe(true)
+      expect(wrapper.find('div.form-field__label label').exists()).toBe(true)
+      expect(wrapper.find('nldd-text-field').exists()).toBe(false)
+      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(false)
       expect(wrapper.find('input').exists()).toBe(false)
       expect(wrapper.find('select').exists()).toBe(false)
-      expect(wrapper.find('textarea').exists()).toBe(false)
     })
   })
 
@@ -694,40 +844,32 @@ describe('FormField.vue', () => {
     })
   })
 
-  describe('aria-labelledby fallback to undefined without a label', () => {
-    it('open_text textarea has no aria-labelledby when there is no label', () => {
+  describe('accessible naming without a label', () => {
+    it('multiline field has no accessible-label when there is no label', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.find('textarea').attributes('aria-labelledby')).toBeUndefined()
+      expect(wrapper.find('nldd-multi-line-text-field').attributes('accessible-label')).toBeUndefined()
     })
 
-    it('date input has no aria-labelledby when there is no label', () => {
+    it('date field has no accessible-label when there is no label', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['date'] }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.find('input[type="date"]').attributes('aria-labelledby')).toBeUndefined()
+      expect(wrapper.find('nldd-date-field').attributes('accessible-label')).toBeUndefined()
     })
   })
 
-  describe('onMounted and currentValue watcher auto-grow', () => {
-    it('auto-grows the textarea on mount and when the value changes', async () => {
+  describe('accessibleLabel: begrippen-tooltips are stripped', () => {
+    it('passes the plain label text without definition markup as accessible-label', () => {
       const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
+        task: flatTask(),
         instanceId: '1.1[0]',
-        label: 'Toelichting',
+        label: 'Naam <span class="aiv-definition">verwerking<span class="aiv-definition-text">uitleg over verwerking</span></span>',
       })
-      await nextTick()
-      expect(wrapper.find('textarea').exists()).toBe(true)
-
-      answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
-      await nextTick()
-      await nextTick()
-      expect((wrapper.find('textarea').element as HTMLTextAreaElement).value).toBe('nieuwe inhoud')
-
-      wrapper.unmount()
+      expect(wrapper.find('nldd-text-field').attributes('accessible-label')).toBe('Naam verwerking')
     })
   })
 
@@ -753,8 +895,9 @@ describe('FormField.vue', () => {
         instanceId: '2.3[0]',
         label: 'Mijn vraag',
       })
-      const label = wrapper.find('label.rvo-label')
+      const label = wrapper.find('div.form-field__label label')
       expect(label.element.innerHTML).toContain('2.3 Mijn vraag')
+      expect(wrapper.find('nldd-text-field').attributes('accessible-label')).toBe('2.3 Mijn vraag')
     })
 
     it('does NOT prefix the label when the task is explicitly is_official_id: false', async () => {
@@ -778,7 +921,7 @@ describe('FormField.vue', () => {
         instanceId: '2.3[0]',
         label: 'Mijn vraag',
       })
-      const label = wrapper.find('label.rvo-label')
+      const label = wrapper.find('div.form-field__label label')
       expect(label.element.innerHTML).toContain('Mijn vraag')
       expect(label.element.innerHTML).not.toContain('2.3 Mijn vraag')
     })
@@ -794,6 +937,9 @@ describe('FormField.vue', () => {
         instanceId: 'ms[0]',
         label: 'Kies opties',
       })
+      expect(wrapper.find('.multiselect-scrollable').exists()).toBe(true)
+      const choices = wrapper.findAll('label.form-field__choice.multiselect-scrollable__option')
+      expect(choices).toHaveLength(3)
       const checkboxes = wrapper.findAll('input[type="checkbox"]')
       expect(checkboxes).toHaveLength(3)
       expect(wrapper.text()).toContain('Optie A')
@@ -826,9 +972,7 @@ describe('FormField.vue', () => {
         instanceId: 'defstr2[0]',
         label: 'Met default',
       })
-      expect((wrapper.find('input[type="text"]').element as HTMLInputElement).value).toBe(
-        'standaardtekst',
-      )
+      expect(wrapper.find('nldd-text-field').attributes('value')).toBe('standaardtekst')
     })
   })
 
@@ -859,10 +1003,15 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Met FRIA',
       })
-      const tag = wrapper.find('a.rvo-tag')
+      const tag = wrapper.find('a.form-field__fria-tag')
       expect(tag.exists()).toBe(true)
       expect(tag.text()).toContain('art. 27 AI-verordening')
       expect(tag.attributes('rel')).toBe('noopener noreferrer')
+      const icon = tag.find('nldd-icon')
+      expect(icon.exists()).toBe(true)
+      expect(icon.attributes('name')).toBe('square-arrow-right-top')
+      expect(icon.attributes('size')).toBe('16')
+      expect(icon.attributes('aria-label')).toBe('Opent in nieuw tabblad')
     })
 
     it('does not render the FRIA tag when the task is not in_fria', () => {
@@ -871,7 +1020,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Zonder FRIA',
       })
-      expect(wrapper.find('a.rvo-tag').exists()).toBe(false)
+      expect(wrapper.find('a.form-field__fria-tag').exists()).toBe(false)
     })
   })
 
@@ -882,6 +1031,30 @@ describe('FormField.vue', () => {
       // to exercise the early `if (!props.label) return props.label` guard.
       const vm = wrapper.vm as unknown as { displayLabel: string | undefined }
       expect(vm.displayLabel).toBeUndefined()
+    })
+  })
+
+  describe('read-only role', () => {
+    it('makes the input inert and leaves the label alone', () => {
+      const wrapper = mountField(
+        { task: flatTask(), instanceId: '1.1[0]', label: 'Een <span class="aiv-definition">term</span>' },
+        true,
+      )
+      expect(wrapper.find('.field-group').attributes('inert')).toBeDefined()
+      expect(wrapper.find('.form-field__label').attributes('inert')).toBeUndefined()
+    })
+
+    it('leaves the input interactive for an editor', () => {
+      const wrapper = mountField({ task: flatTask(), instanceId: '1.1[0]' })
+      expect(wrapper.find('.field-group').attributes('inert')).toBeUndefined()
+    })
+
+    it('makes the open-text area inert', () => {
+      const wrapper = mountField(
+        { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]' },
+        true,
+      )
+      expect(wrapper.find('nldd-multi-line-text-field').attributes('inert')).toBeDefined()
     })
   })
 })
