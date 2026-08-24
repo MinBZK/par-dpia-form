@@ -94,6 +94,9 @@ build) staan kort onder "Onder de motorkap".
   ruimte boven dan onder een kopje, en geen extra lijnen meer in de kaart.
 * Onder aan een stap staat "Markeer als voltooid" op zijn eigen regel boven de
   knoppen, op elke schermbreedte hetzelfde.
+* De titelbalk van een assessment (naam, opmerkingen, menu) lijnt uit met de
+  inhoudsopgave en de vragen eronder, in plaats van met een eigen kolom.
+* De toelichting onder een startkeuze leest in de gewone tekstkleur.
 * Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
   de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
 * De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave

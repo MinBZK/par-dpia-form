@@ -686,6 +686,27 @@ describe('Form.vue isSigningTask computed', () => {
   })
 })
 
+describe('Form.vue header slot', () => {
+  it('renders a consumer header inside the section, above the two columns', async () => {
+    const persistence = makePersistence()
+    const wrapper = mount(Form, {
+      props: { navigation: makeNavigation(), namespace: FormType.DPIA, validData: makeValidData(), autoStart: true },
+      slots: { header: '<h1 class="consumer-title">Mijn assessment</h1>' },
+      global: { provide: { [PERSISTENCE_KEY as symbol]: persistence }, stubs },
+    })
+    await flushPromises()
+
+    const header = wrapper.find('[slot="header"]')
+    expect(header.exists()).toBe(true)
+    expect(header.find('h1.consumer-title').text()).toBe('Mijn assessment')
+  })
+
+  it('leaves the header slot out when the consumer fills nothing', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    expect(wrapper.find('[slot="header"]').exists()).toBe(false)
+  })
+})
+
 describe('Form.vue reset confirmation dialog', () => {
   it('closes on the modal\'s own close event (Esc / backdrop)', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })

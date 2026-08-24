@@ -151,7 +151,9 @@ vi.mock('@overheid-assessment/core', () => ({
   Form: {
     name: 'Form',
     props: ['navigation', 'namespace', 'validData', 'showBanner', 'showNavHeader', 'showFileActions', 'autoStart', 'commentedRootTaskIds'],
-    template: '<div class="form-stub" :data-namespace="namespace" />',
+    // The editor puts its title bar in Form's header slot, where the section
+    // lines it up with the two columns; render it so it stays assertable.
+    template: '<div class="form-stub" :data-namespace="namespace"><slot name="header" /></div>',
   },
   FormType: FormTypeMock,
   useSchemaStore: () => schemaStore,

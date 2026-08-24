@@ -459,63 +459,6 @@ const confirmDelete = async () => {
   </div>
 
   <template v-else-if="assessment">
-    <div class="page-container">
-      <!-- Form name + versiegeschiedenis + download -->
-      <div class="form-header form-subheader">
-        <div class="form-subheader__left">
-          <h1
-            v-if="!editingName"
-            class="form-name"
-            :class="{ 'form-name--editable': canEdit }"
-            :role="canEdit ? 'button' : undefined"
-            :tabindex="canEdit ? 0 : undefined"
-            :aria-label="canEdit ? 'Klik om naam te bewerken' : undefined"
-            @click="startEditName"
-            @keydown.enter="startEditName"
-          >{{ displayName }}</h1>
-          <div v-else class="form-name-edit">
-            <span class="form-name-prefix">{{ assessmentTypeLabel }}:</span>
-            <nldd-text-field
-              ref="nameInput"
-              class="form-name-input"
-              accessible-label="Naam"
-              :value="editName"
-              @input="onEditNameInput"
-              @keydown.enter="saveName"
-              @keydown.escape="cancelName"
-            ></nldd-text-field>
-            <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
-            <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
-          </div>
-        </div>
-        <div class="form-subheader__right">
-          <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
-          <KebabMenu label="Assessmentacties">
-            <nldd-menu-item text="Versiegeschiedenis" @click="handleVersionHistory"></nldd-menu-item>
-            <nldd-menu-divider></nldd-menu-divider>
-            <nldd-menu-item text="Download als PDF" @click="handleDownloadPdf"></nldd-menu-item>
-            <nldd-menu-item text="Download als JSON" @click="handleDownloadJson"></nldd-menu-item>
-            <nldd-menu-item text="Download als Markdown" @click="handleDownloadMarkdown"></nldd-menu-item>
-            <template v-if="isOwner">
-              <nldd-menu-divider></nldd-menu-divider>
-              <nldd-menu-item text="Assessment verwijderen" destructive @click="openDeleteModal"></nldd-menu-item>
-            </template>
-          </KebabMenu>
-        </div>
-      </div>
-
-      <template v-if="assessment.role === 'viewer' || assessment.role === 'commenter'">
-        <nldd-banner
-          variant="accent"
-          :text="assessment.role === 'viewer'
-            ? 'Je hebt alleen leesrechten op deze assessment.'
-            : 'Je kunt opmerkingen plaatsen maar niet het formulier bewerken.'"
-        ></nldd-banner>
-        <nldd-spacer size="16"></nldd-spacer>
-      </template>
-
-    </div>
-
     <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">
       <div ref="formContainerRef" class="assessment-editor__form" :class="{ 'form-readonly': isReadonly }">
         <Form
@@ -528,7 +471,64 @@ const confirmDelete = async () => {
           :showFileActions="false"
           :autoStart="true"
           :commentedRootTaskIds="commentedRootTaskIds"
-        />
+        >
+          <template #header>
+          <!-- Form name + versiegeschiedenis + download -->
+          <div class="form-header form-subheader">
+            <div class="form-subheader__left">
+              <h1
+                v-if="!editingName"
+                class="form-name"
+                :class="{ 'form-name--editable': canEdit }"
+                :role="canEdit ? 'button' : undefined"
+                :tabindex="canEdit ? 0 : undefined"
+                :aria-label="canEdit ? 'Klik om naam te bewerken' : undefined"
+                @click="startEditName"
+                @keydown.enter="startEditName"
+              >{{ displayName }}</h1>
+              <div v-else class="form-name-edit">
+                <span class="form-name-prefix">{{ assessmentTypeLabel }}:</span>
+                <nldd-text-field
+                  ref="nameInput"
+                  class="form-name-input"
+                  accessible-label="Naam"
+                  :value="editName"
+                  @input="onEditNameInput"
+                  @keydown.enter="saveName"
+                  @keydown.escape="cancelName"
+                ></nldd-text-field>
+                <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
+                <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
+              </div>
+            </div>
+            <div class="form-subheader__right">
+              <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
+              <KebabMenu label="Assessmentacties">
+                <nldd-menu-item text="Versiegeschiedenis" @click="handleVersionHistory"></nldd-menu-item>
+                <nldd-menu-divider></nldd-menu-divider>
+                <nldd-menu-item text="Download als PDF" @click="handleDownloadPdf"></nldd-menu-item>
+                <nldd-menu-item text="Download als JSON" @click="handleDownloadJson"></nldd-menu-item>
+                <nldd-menu-item text="Download als Markdown" @click="handleDownloadMarkdown"></nldd-menu-item>
+                <template v-if="isOwner">
+                  <nldd-menu-divider></nldd-menu-divider>
+                  <nldd-menu-item text="Assessment verwijderen" destructive @click="openDeleteModal"></nldd-menu-item>
+                </template>
+              </KebabMenu>
+            </div>
+          </div>
+
+          <template v-if="assessment.role === 'viewer' || assessment.role === 'commenter'">
+            <nldd-banner
+              variant="accent"
+              :text="assessment.role === 'viewer'
+                ? 'Je hebt alleen leesrechten op deze assessment.'
+                : 'Je kunt opmerkingen plaatsen maar niet het formulier bewerken.'"
+            ></nldd-banner>
+            <nldd-spacer size="16"></nldd-spacer>
+          </template>
+
+          </template>
+        </Form>
       </div>
 
       <CommentPanel

@@ -305,6 +305,12 @@ const isInformationalStep = computed(() => {
          with the page. -->
     <nldd-sidebar-section sidebar-label="Stappen navigatie"
       sticky-top="-200dvh" sticky-bottom="-200dvh">
+      <!-- Page header inside the section, so a consumer's title bar lines up
+           with the two columns instead of with its own container. -->
+      <div v-if="$slots.header" slot="header">
+        <slot name="header" />
+      </div>
+
       <nav slot="sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
           FormType.PRE_SCAN || namespace === FormType.IAMA" :commentedTaskIds="props.commentedRootTaskIds" />
