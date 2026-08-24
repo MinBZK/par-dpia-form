@@ -57,6 +57,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Lukte het niet om een opmerking te plaatsen, te beantwoorden, te bewerken,
+  te verwijderen of op te lossen, dan gebeurde er zichtbaar niets: de knop
+  reageerde, maar je hoorde nooit dat het mislukt was. Je krijgt nu een
+  melding, met een knop om het opnieuw te proberen wanneer dat kan helpen.
+  Bij een verlopen bevoegdheid of een inmiddels verwijderde opmerking staat
+  er wat er aan de hand is, zonder zinloze herhaalknop.
 * Opmerkingen die bij vragen vlak onder elkaar horen, schoven over elkaar
   heen zodra er een wat langere opmerking tussen zat. Daardoor viel een deel
   van de tekst weg en waren "Reageren", "Verwijderen" en "Oplossen" niet meer

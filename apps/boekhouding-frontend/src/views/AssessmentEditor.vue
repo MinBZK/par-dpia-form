@@ -276,12 +276,24 @@ onMounted(async () => {
 // store), and clear the message the moment they resolve. Saving wins, because
 // unsaved work outranks missing updates.
 watch(
-  [() => sync.saveFailing.value, () => collaborationStore.syncFailing],
-  ([saveFailing, syncFailing]) => {
+  [
+    () => sync.saveFailing.value,
+    () => collaborationStore.syncFailing,
+    () => collaborationStore.commentActionError,
+  ],
+  ([saveFailing, syncFailing, commentActionError]) => {
     if (saveFailing) {
       showSyncToast(
         'Geen verbinding met de server. Opslaan lukt even niet, we proberen het opnieuw.',
         () => { sync.retrySaveNow() },
+        { actionLabel: 'Opnieuw proberen', kind: 'failure' },
+      )
+    } else if (commentActionError) {
+      // A comment action is something the user just clicked, so it outranks the passive
+      // "you may be missing updates" notice below.
+      showSyncToast(
+        commentActionError.message,
+        commentActionError.retryable ? () => { collaborationStore.retryCommentAction() } : undefined,
         { actionLabel: 'Opnieuw proberen', kind: 'failure' },
       )
     } else if (syncFailing) {
