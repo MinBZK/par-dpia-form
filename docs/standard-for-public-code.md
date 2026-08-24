@@ -4,8 +4,8 @@ Dit is de zelfevaluatie van Invulhulpen tegen de [Standard for Public Code](http
 
 Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heeft dit niet getoetst.
 
-| | |
-|---|---|
+| Onderdeel | Waarde |
+|-----------|--------|
 | Standaard | Standard for Public Code v0.8.0 |
 | Getoetst op | 24 augustus 2026 |
 | Getoetste versie | commit `9849da6` op `main` |
