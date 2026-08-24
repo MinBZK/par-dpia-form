@@ -4,8 +4,8 @@ export interface ImageResizeOptions {
   maxSizeBytes?: number
 }
 
-const DEFAULT_MAX_WIDTH = 1200
-const DEFAULT_MAX_HEIGHT = 900
+const DEFAULT_MAX_WIDTH = 2400
+const DEFAULT_MAX_HEIGHT = 1800
 const DEFAULT_MAX_SIZE_BYTES = 2 * 1024 * 1024 // 2 MB base64
 
 const SUPPORTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml']

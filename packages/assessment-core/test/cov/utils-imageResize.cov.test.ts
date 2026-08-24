@@ -242,14 +242,14 @@ describe('resizeImageToDataUri — SVG rasterization', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/svg+xml'))
-    expect(capturedW).toBe(1200)
-    expect(capturedH).toBe(900)
+    expect(capturedW).toBe(1600)
+    expect(capturedH).toBe(1200)
   })
 })
 
 describe('resizeImageToDataUri — fitDimensions scaling', () => {
   it('scales down when width exceeds maxWidth', async () => {
-    imageController.naturalWidth = 2400
+    imageController.naturalWidth = 4800
     imageController.naturalHeight = 600
     let capturedW = 0
     let capturedH = 0
@@ -268,13 +268,13 @@ describe('resizeImageToDataUri — fitDimensions scaling', () => {
       return realCreateElement(tag)
     })
     await resizeImageToDataUri(makeFile('image/png'))
-    expect(capturedW).toBe(1200)
+    expect(capturedW).toBe(2400)
     expect(capturedH).toBe(300)
   })
 
   it('scales down when height exceeds maxHeight', async () => {
     imageController.naturalWidth = 600
-    imageController.naturalHeight = 1800
+    imageController.naturalHeight = 3600
     let capturedW = 0
     let capturedH = 0
     canvasToDataUrl = () => dataUriOfBytes('data:image/webp;base64', 10)
@@ -293,7 +293,7 @@ describe('resizeImageToDataUri — fitDimensions scaling', () => {
     })
     await resizeImageToDataUri(makeFile('image/png'))
     expect(capturedW).toBe(300)
-    expect(capturedH).toBe(900)
+    expect(capturedH).toBe(1800)
   })
 
   it('leaves dimensions unchanged when within both maxima', async () => {

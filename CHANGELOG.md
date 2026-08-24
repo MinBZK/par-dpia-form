@@ -54,6 +54,10 @@ build) staan kort onder "Onder de motorkap".
   samengesteld.
 * De invulhulp laadt sneller op een trage verbinding: pagina's, scripts en
   antwoorden gaan nu gecomprimeerd over de lijn.
+* Afbeeldingen die je toevoegt worden op een hogere resolutie bewaard
+  (tot 2400 bij 1800 in plaats van 1200 bij 900). Diagrammen en
+  architectuurplaten blijven daardoor scherp, ook als je inzoomt of ze in de
+  PDF terugziet.
 
 ### Opgelost
 
