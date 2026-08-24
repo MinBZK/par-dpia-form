@@ -12,8 +12,12 @@
 // that only sets custom properties (Vue applies those via the CSSOM, which CSP
 // does not gate, and the cascade lives in a 'self' stylesheet).
 //
-// The standalone-form is intentionally out of scope: it is built as a single
-// inlined file (viteSingleFile) and served with 'unsafe-inline'.
+// The standalone-form's own src/ is out of scope, but no longer because it runs
+// with 'unsafe-inline' — since the hash-based CSP it ships `style-src 'self'`
+// plus a per-build hash of its inlined <style> (build/cspHashPlugin.ts). Its
+// build-time inline styles are therefore hashed and allowed, and the styles that
+// a hash cannot cover — the ones injected at runtime through v-html — come from
+// `sources`, which this guard does scan.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, extname } from 'node:path'
@@ -89,7 +93,8 @@ export function findInlineStyleViolations(content, ext) {
 const CHECK_EXTS = new Set([...MARKUP_EXTS, ...SCRIPT_EXTS, ...YAML_EXTS])
 const SKIP_DIRS = new Set(['node_modules', 'dist', 'coverage', 'generated', 'test', '__tests__'])
 
-// Strict-CSP surfaces only. standalone-form is excluded by design.
+// Strict-CSP surfaces whose inline styles no per-build hash can cover; see the
+// note on standalone-form at the top of this file.
 const TARGETS = [
   'apps/boekhouding-frontend/src',
   'apps/boekhouding-frontend/index.html',
