@@ -155,6 +155,10 @@ build) staan kort onder "Onder de motorkap".
   Linux twee losse mappen opleverde.
 * De linkcontrole controleert `open.overheid.nl` en de eigen schema-URL's weer,
   nu de certificaatketen daar aan de kant van Logius is hersteld.
+* De verwijzingen naar het meldpunt van het NCSC, in `SECURITY.md` en in
+  `/.well-known/security.txt`, wezen naar verplaatste pagina's. Ze gaan nu
+  rechtstreeks naar de huidige, en dat bestand wordt voortaan meegenomen in de
+  linkcontrole.
 * De ontwikkelinstructies voor knoppen beschreven nog de oude RVO-klassen, die
   sinds versie 4.16 van de componentenbibliotheek niet meer bestaan. Bijgewerkt,
   zodat er geen ongestileerde knoppen meer uit voortkomen.

@@ -17,7 +17,7 @@ PDRs helpen ons om:
 
 ## PDR Index
 
-| Nummer | Titel | Prescan/DPIA| Status | Datum |
+| Nummer | Prescan/DPIA | Titel | Status | Datum |
 |--------|-------|--------|-------|-------|
 | [0001](0001-DPIA-aanpassingen-dpia-formulier-voor-consistentie-met-datamodel.md) | DPIA | Aanpassingen DPIA-formulier voor consistentie met datamodel | Geaccepteerd | 2025-05-13 |
 | [0002](0002-PreScan-toevoegen-vraag-scope-wet-en-regelgeving.md) | Pre-scan | Toevoegen DPIA-verplichting vraag voor wet- en regelgeving | Geaccepteerd | 2025-05-13 |
