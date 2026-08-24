@@ -152,3 +152,11 @@ Zie [docs/gegevensverwerking.md](docs/gegevensverwerking.md) voor een overzicht 
 - [Product Decision Records](docs/PDR/README.md) — productbeslissingen en achtergrond
 - [Gegevensverwerking](docs/gegevensverwerking.md) — privacy en dataminimalisatie
 - [Standard for Public Code](docs/standard-for-public-code.md) - zelfevaluatie tegen de zestien criteria
+
+## Bijdragen en hulp
+
+- Een vraag of iets werkt niet: [SUPPORT.md](SUPPORT.md), of kijk in de [issues](https://github.com/MinBZK/par-dpia-form/issues)
+- Zelf iets bijdragen: [CONTRIBUTING.md](CONTRIBUTING.md) en de [openstaande pull requests](https://github.com/MinBZK/par-dpia-form/pulls)
+- Wie het project onderhoudt en hoe besluiten tot stand komen: [GOVERNANCE.md](GOVERNANCE.md)
+- Omgangsvormen: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Een kwetsbaarheid melden: [SECURITY.md](SECURITY.md)

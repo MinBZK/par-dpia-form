@@ -75,7 +75,7 @@ describe('PrivacyStatement', () => {
 
       const mailto = wrapper
         .findAll('a')
-        .find((a) => a.attributes('href') === 'mailto:RIG@rijksoverheid.nl')
+        .find((a) => a.attributes('href') === 'mailto:digigilde@rijksoverheid.nl')
       expect(mailto).toBeTruthy()
     })
   })
