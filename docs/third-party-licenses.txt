@@ -37,6 +37,74 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
+@codemirror/autocomplete@6.20.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/commands@6.11.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-css@6.3.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-html@6.4.12 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-javascript@6.2.5 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-json@6.0.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-markdown@6.5.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-python@6.2.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-rust@6.0.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-sql@6.10.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-xml@6.1.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lang-yaml@6.1.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/language@6.12.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/legacy-modes@6.5.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/lint@6.9.7 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/state@6.7.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@codemirror/view@6.43.9 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 @fastify/accept-negotiator@2.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -97,6 +165,18 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
+@floating-ui/core@1.8.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@floating-ui/dom@1.8.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@floating-ui/utils@0.2.12 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 @jridgewell/gen-mapping@0.3.13 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -117,21 +197,73 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
+@lezer/common@1.5.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/css@1.3.6 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/highlight@1.2.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/html@1.3.13 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/javascript@1.5.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/json@1.0.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/lr@1.4.10 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/markdown@1.7.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/python@1.1.19 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/rust@1.0.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/xml@1.0.6 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lezer/yaml@1.0.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@lit-labs/ssr-dom-shim@1.6.0 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
+
+@lit/reactive-element@2.1.2 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
+
 @lukeed/ms@2.0.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@nl-rvo/assets@1.0.0 [license(s): CC0 1.0]
-├── package.json:  CC0 1.0
-└── license files: CC0 1.0
+@marijn/find-cluster-break@1.0.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
-@nl-rvo/component-library-css@4.20.3 [license(s): CC0-1.0]
-├── package.json:  CC0-1.0
-└── license files: CC0-1.0
-
-@nl-rvo/design-tokens@2.4.2 [license(s): Unknown]
-├── package.json:  Unknown
-└── license files: Unknown
+@nldd/design-system@0.8.83 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
 
 @noble/ciphers@1.3.0 [license(s): MIT]
 ├── package.json:  MIT
@@ -168,14 +300,6 @@ Licenties van gebruikte bibliotheken
 @swc/helpers@0.5.23 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
-
-@tabler/icons@3.46.0 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-@tabler/icons-vue@3.46.0 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
 
 @types/estree@1.0.8 [license(s): MIT]
 ├── package.json:  MIT
@@ -342,6 +466,10 @@ content-disposition@2.0.1 [license(s): MIT]
 └── license files: MIT
 
 cookie@1.1.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+crelt@1.0.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -545,6 +673,18 @@ linebreak@1.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+lit@3.3.3 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
+
+lit-element@4.2.2 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
+
+lit-html@3.3.3 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
+
 local-pkg@1.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -582,10 +722,6 @@ minipass@7.1.3 [license(s): BlueOak-1.0.0]
 └── license files: BlueOak-1.0.0
 
 mlly@1.8.2 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-modern-normalize@3.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -797,6 +933,10 @@ string_decoder@1.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+style-mod@4.1.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 thread-stream@4.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -865,6 +1005,10 @@ vue-router@5.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+w3c-keyname@2.2.8 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 webpack-virtual-modules@0.6.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -877,4 +1021,4 @@ yaml@2.9.0 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
-LICENSES: (MIT AND Zlib), (MPL-2.0 OR Apache-2.0), 0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, CC0 1.0, CC0-1.0, ISC, MIT, MPL-2.0, Unknown, Unlicense
+LICENSES: (MIT AND Zlib), (MPL-2.0 OR Apache-2.0), 0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, EUPL-1.2, ISC, MIT, MPL-2.0, Unlicense

@@ -242,9 +242,9 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await wrapper.findAll('.comment-item__footer nldd-button').find((b) => b.attributes('text') === 'Reageren')!.trigger('click')
       await nextTick()
-      await wrapper.get('.comment-reply-form textarea').setValue('Half getypte reactie')
+      await setFieldValue(wrapper.get('.comment-reply-form nldd-multi-line-text-field'), 'Half getypte reactie')
       return { wrapper, store }
     }
 
@@ -257,7 +257,7 @@ describe('CommentPanel', () => {
       await nextTick()
 
       expect(wrapper.find('.comment-thread').exists()).toBe(true)
-      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-reply-form nldd-multi-line-text-field').attributes('value'))
         .toBe('Half getypte reactie')
     })
 
@@ -290,8 +290,8 @@ describe('CommentPanel', () => {
       await nextTick()
       expect(wrapper.find('.comment-thread').exists()).toBe(true)
 
-      const cancel = wrapper.findAll('.comment-reply-form .comment-action-btn')
-        .find((b) => b.text().includes('Annuleer'))!
+      const cancel = wrapper.findAll('.comment-reply-form nldd-button')
+        .find((b) => b.attributes('text') === 'Annuleer')!
       await cancel.trigger('click')
       await nextTick()
 
@@ -953,13 +953,12 @@ describe('CommentPanel', () => {
       spies.createComment.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const inline = wrapper.get('.comment-inline-form')
-      const textarea = inline.get('textarea')
-      await textarea.setValue('Kostbare tekst')
-      await textarea.trigger('input')
-      await inline.get('.comment-btn--primary').trigger('click')
+      const textarea = inline.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'Kostbare tekst')
+      await inline.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
-      expect((textarea.element as HTMLTextAreaElement).value).toBe('Kostbare tekst')
+      expect(textarea.attributes('value')).toBe('Kostbare tekst')
     })
 
     it('keeps the reply text when posting the reply fails', async () => {
@@ -972,20 +971,19 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await wrapper.findAll('.comment-item__footer nldd-button').find((b) => b.attributes('text') === 'Reageren')!.trigger('click')
       await nextTick()
 
       spies.createReply.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const replyForm = wrapper.get('.comment-reply-form')
-      const textarea = replyForm.get('textarea')
-      await textarea.setValue('Mijn reactie')
-      await textarea.trigger('input')
-      await replyForm.get('.comment-btn--primary').trigger('click')
+      const textarea = replyForm.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'Mijn reactie')
+      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-reply-form').exists()).toBe(true)
-      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-reply-form nldd-multi-line-text-field').attributes('value'))
         .toBe('Mijn reactie')
     })
 
@@ -1110,14 +1108,13 @@ describe('CommentPanel', () => {
       spies.updateComment.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const editBox = wrapper.get('.comment-item__edit')
-      const textarea = editBox.get('textarea')
-      await textarea.setValue('aangepast')
-      await textarea.trigger('input')
-      await editBox.get('.comment-btn--primary').trigger('click')
+      const textarea = editBox.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'aangepast')
+      await editBox.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
-      expect((wrapper.get('.comment-item__edit textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-item__edit nldd-multi-line-text-field').attributes('value'))
         .toBe('aangepast')
     })
 

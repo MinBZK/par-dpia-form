@@ -681,6 +681,40 @@ describe('Form.vue isSigningTask computed', () => {
   })
 })
 
+describe('Form.vue reset confirmation dialog', () => {
+  it('closes on the modal\'s own close event (Esc / backdrop)', async () => {
+    const { wrapper, persistence } = await mountForm({ autoStart: true })
+
+    await buttonByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    await wrapper.vm.$nextTick()
+
+    expect(persistence.clearSavedState).not.toHaveBeenCalled()
+    expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
+      .toContain('De opgeslagen DPIA wordt definitief gewist')
+  })
+
+  it('drives show() and hide() on the upgraded custom element', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await buttonByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    await buttonByText(wrapper, 'Annuleren')!.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('Form.vue read-only role', () => {
   it('makes the completion checkbox inert and leaves the rest of the page alone', async () => {
     const { wrapper } = await mountForm({ autoStart: true, contentInert: true })

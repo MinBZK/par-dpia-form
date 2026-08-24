@@ -1,21 +1,8 @@
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { FormType, type NavigationFunctions } from '@overheid-assessment/core'
 import LandingView from '@/components/LandingView.vue'
-
-// ConfirmDialog uses native <dialog>.showModal(), which jsdom lacks.
-beforeAll(() => {
-  const proto = (globalThis as unknown as { HTMLDialogElement: typeof HTMLDialogElement })
-    .HTMLDialogElement.prototype as HTMLDialogElement & { showModal: () => void; close: () => void }
-  proto.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '')
-  }
-  proto.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open')
-    this.dispatchEvent(new Event('close'))
-  }
-})
 
 function makeNavigation(): NavigationFunctions {
   return {
@@ -405,6 +392,22 @@ describe('LandingView wis alle opgeslagen gegevens', () => {
 
     await clickButtonByText(wrapper, 'Ja, wis alles')
     expect(wrapper.emitted('clearAll')).toHaveLength(1)
+  })
+
+  it('closes on the modal\'s own close event (Esc / backdrop)', async () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+
+    await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
+    findClearAllModal(wrapper).element.dispatchEvent(new CustomEvent('close'))
+    await nextTick()
+
+    expect(wrapper.emitted('clearAll')).toBeUndefined()
+
+    // Closed: opening it again drives show() a single time.
+    const host = findClearAllModal(wrapper).element as HTMLElement & { show?: () => void }
+    host.show = vi.fn()
+    await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
+    expect(host.show).toHaveBeenCalledTimes(1)
   })
 
   it('cancels without emitting', async () => {

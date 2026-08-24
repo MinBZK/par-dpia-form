@@ -1390,6 +1390,16 @@ describe('AssessmentEditor — delete modal dialog watcher', () => {
   })
 })
 
+// The toast is an nldd-notification: its message is an attribute, its retry a
+// slotted nldd-button.
+function toastText(wrapper: ReturnType<typeof mount>) {
+  return wrapper.find('nldd-notification').attributes('text') ?? ''
+}
+
+function toastAction(wrapper: ReturnType<typeof mount>) {
+  return wrapper.find('nldd-notification nldd-button')
+}
+
 describe('AssessmentEditor — reporting a stuck save or sync', () => {
   it('shows a toast with a retry action once saving keeps failing', async () => {
     const wrapper = await mountEditor()
@@ -1397,11 +1407,11 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     sync.saveFailing.value = true
     await nextTick()
 
-    const toast = wrapper.find('.sync-toast')
-    expect(toast.exists()).toBe(true)
-    expect(toast.text()).toContain('Geen verbinding met de server')
-    expect(toast.text()).toContain('Opslaan lukt even niet')
-    expect(toast.find('.sync-toast__action').text()).toBe('Opnieuw proberen')
+    expect(wrapper.find('nldd-notification').exists()).toBe(true)
+    expect(toastText(wrapper)).toContain('Geen verbinding met de server')
+    expect(toastText(wrapper)).toContain('Opslaan lukt even niet')
+    expect(wrapper.find('nldd-notification').attributes('variant')).toBe('critical')
+    expect(toastAction(wrapper).attributes('text')).toBe('Opnieuw proberen')
     wrapper.unmount()
   })
 
@@ -1414,10 +1424,9 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     }
     await nextTick()
 
-    const toast = wrapper.find('.sync-toast')
-    expect(toast.exists()).toBe(true)
-    expect(toast.text()).toContain('De opmerking is niet bijgewerkt')
-    await toast.find('.sync-toast__action').trigger('click')
+    expect(wrapper.find('nldd-notification').exists()).toBe(true)
+    expect(toastText(wrapper)).toContain('De opmerking is niet bijgewerkt')
+    await toastAction(wrapper).trigger('click')
     expect(collaborationStore.retryCommentAction).toHaveBeenCalled()
     wrapper.unmount()
   })
@@ -1431,9 +1440,8 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     }
     await nextTick()
 
-    const toast = wrapper.find('.sync-toast')
-    expect(toast.text()).toContain('Je hebt geen rechten meer')
-    expect(toast.find('.sync-toast__action').exists()).toBe(false)
+    expect(toastText(wrapper)).toContain('Je hebt geen rechten meer')
+    expect(toastAction(wrapper).exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -1444,7 +1452,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     sync.saveFailing.value = true
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').text()).toContain('Opslaan lukt even niet')
+    expect(toastText(wrapper)).toContain('Opslaan lukt even niet')
     wrapper.unmount()
   })
 
@@ -1456,22 +1464,23 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     collaborationStore.commentActionError = null
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 
-  it('keeps the save toast up instead of hiding it after three seconds', async () => {
-    vi.useFakeTimers()
+  it('gives the failure toast no expiry, unlike a plain notice', async () => {
     const wrapper = await mountEditor()
 
     sync.saveFailing.value = true
     await nextTick()
-    vi.advanceTimersByTime(3000)
-    await nextTick()
+    expect(wrapper.find('nldd-notification').attributes('duration')).toBe('0')
 
-    expect(wrapper.find('.sync-toast').exists()).toBe(true)
+    sync.saveFailing.value = false
+    const vm = wrapper.vm as unknown as { showSyncToast: (m: string) => void }
+    vm.showSyncToast('Een collega heeft een wijziging gemaakt')
+    await nextTick()
+    expect(wrapper.find('nldd-notification').attributes('duration')).toBe('3000')
     wrapper.unmount()
-    vi.useRealTimers()
   })
 
   it('retries the save when the toast action is used', async () => {
@@ -1479,7 +1488,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
 
     sync.saveFailing.value = true
     await nextTick()
-    await wrapper.find('.sync-toast__action').trigger('click')
+    await toastAction(wrapper).trigger('click')
 
     expect(sync.retrySaveNow).toHaveBeenCalled()
     wrapper.unmount()
@@ -1493,7 +1502,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     sync.saveFailing.value = false
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').exists()).toBe(false)
+    expect(wrapper.find('nldd-notification').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -1503,7 +1512,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     collaborationStore.syncFailing = true
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').text()).toContain('Geen verbinding met de server. Je ziet mogelijk niet de laatste wijzigingen van anderen')
+    expect(toastText(wrapper)).toContain('Geen verbinding met de server. Je ziet mogelijk niet de laatste wijzigingen van anderen')
     wrapper.unmount()
   })
 
@@ -1519,21 +1528,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     collaborationStore.syncFailing = false
     await nextTick()
 
-    expect(wrapper.find('.sync-toast span').text()).toBe('Een collega heeft een wijziging gemaakt')
-    wrapper.unmount()
-  })
-
-  it('marks the toast as raised while the comment sheet occupies the bottom of the screen', async () => {
-    schemaStore.isInitialized = true
-    const wrapper = await mountEditor()
-    sync.saveFailing.value = true
-    await nextTick()
-    expect(wrapper.find('.sync-toast').classes()).not.toContain('sync-toast--raised')
-
-    await wrapper.find('.comment-badge-stub').trigger('click')
-    await nextTick()
-
-    expect(wrapper.find('.sync-toast').classes()).toContain('sync-toast--raised')
+    expect(toastText(wrapper)).toBe('Een collega heeft een wijziging gemaakt')
     wrapper.unmount()
   })
 
@@ -1544,7 +1539,7 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     sync.saveFailing.value = true
     await nextTick()
 
-    expect(wrapper.find('.sync-toast').text()).toContain('Opslaan lukt even niet')
+    expect(toastText(wrapper)).toContain('Opslaan lukt even niet')
     wrapper.unmount()
   })
 })
