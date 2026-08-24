@@ -401,11 +401,11 @@ tasks:
           expression: "weightedCountMap(
             answers('1.4.1'),
             [
-              'Medewerkers/bewindspersonen',
-              'Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie',
-              'Kinderen jonger dan 16 jaar',
-              'Andere kwetsbare groepen (gehandicapten, minderheden, etc.)',
-              'Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
+              'Categorie betrokkenen: Medewerkers/bewindspersonen',
+              'Categorie betrokkenen: Burgers over wie gegevens worden verwerkt in het proces/systeem/applicatie',
+              'Categorie betrokkenen: Kinderen jonger dan 16 jaar',
+              'Categorie betrokkenen: Andere kwetsbare groepen (gehandicapten, minderheden, etc.)',
+              'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'
             ],
             [1, 1, 3, 3, 0])"
           riskScore:
@@ -850,16 +850,16 @@ tasks:
             expression: "weightedCountMap(
               answers('5.1.2'),
               [
-                'Basisregistratie Grootschalige Topografie (BGT)',
-                'Basisregistratie Inkomen (BRI)',
-                'Basisregistratie Kadaster (BRK)',
-                'Basisregistratie Ondergrond (BRO)',
-                'Basisregistratie Personen (BRP)',
-                'Basisregistratie Topografie (BRT)',
-                'Basisregistratie Voertuigen (BRV)',
-                'Basisregistratie Waarde Onroerende Zaken (WOZ)',
-                'Handelsregister (HR)',
-                'Adressen en Gebouwen (BAG)'
+                'Basisregistratie: Basisregistratie Grootschalige Topografie (BGT)',
+                'Basisregistratie: Basisregistratie Inkomen (BRI)',
+                'Basisregistratie: Basisregistratie Kadaster (BRK)',
+                'Basisregistratie: Basisregistratie Ondergrond (BRO)',
+                'Basisregistratie: Basisregistratie Personen (BRP)',
+                'Basisregistratie: Basisregistratie Topografie (BRT)',
+                'Basisregistratie: Basisregistratie Voertuigen (BRV)',
+                'Basisregistratie: Basisregistratie Waarde Onroerende Zaken (WOZ)',
+                'Basisregistratie: Handelsregister (HR)',
+                'Basisregistratie: Basisregistratie Adressen en Gebouwen (BAG)'
               ],
               [0, 1, 1, 0, 1, 0, 1, 1, 1, 0])"
             riskScore:
