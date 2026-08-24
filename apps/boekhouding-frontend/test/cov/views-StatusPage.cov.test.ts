@@ -110,7 +110,8 @@ describe('StatusPage', () => {
     expect(backend.find('nldd-activity-indicator').exists()).toBe(false)
     expect(backend.get('nldd-icon').attributes('name')).toBe('check-mark-circle')
     expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
-    expect(wrapper.get('[data-test="version"]').text()).toBe('v2026.6.14')
+    // The git tag carries the v; the reading version does not.
+    expect(wrapper.get('[data-test="version"]').text()).toBe('2026.6.14')
     expect(wrapper.find('[data-test="build"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('op commit')
     expect(wrapper.get('[data-test="github-link"]').attributes('href')).toBe(`${REPO}/commit/abc1234`)
@@ -222,7 +223,7 @@ describe('StatusPage', () => {
       loadVersion.mockResolvedValue({ version: 'v2026.6.14', commit: 'abc1234', channel: 'productie' })
       const wrapper = await mountAndCopy()
 
-      expect(writeText).toHaveBeenCalledWith('Invulhulpen versie v2026.6.14')
+      expect(writeText).toHaveBeenCalledWith('Invulhulpen versie 2026.6.14')
       const button = wrapper.get('[data-test="copy-version"]')
       expect(button.attributes('text')).toBe('Gekopieerd')
       expect(button.attributes('start-icon')).toBe('check-mark')

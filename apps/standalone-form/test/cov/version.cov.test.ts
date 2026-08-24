@@ -2,8 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { formatBuildVersion } from '@/version'
 
 describe('formatBuildVersion', () => {
-  it('shows the CalVer tag alone for a released build', () => {
-    expect(formatBuildVersion('v2026.6.20', 'abc1234')).toBe('v2026.6.20')
+  it('shows the CalVer date alone for a released build, without the tag\'s v', () => {
+    expect(formatBuildVersion('v2026.6.20', 'abc1234')).toBe('2026.6.20')
+  })
+
+  it('leaves a tag that carries no v untouched', () => {
+    expect(formatBuildVersion('2026.6.20', 'abc1234')).toBe('2026.6.20')
   })
 
   it('shows "ontwikkel" with the commit for an untagged CI build', () => {

@@ -216,10 +216,11 @@ describe('ProgressTracker.vue', () => {
 
       expect(nodeKind(done)).toBe('done')
       expect(trackStatus(done)).toBe('past')
-      // The marker keeps the chapter number; "done" is the check at the row end.
+      // The marker carries both: the chapter number and, through its past
+      // status, that the chapter is done. No second tick at the row end.
       expect(markerIcon(done)).toBeUndefined()
       expect(markerText(done)).toBe('1')
-      expect(done.find('.toc-done').attributes('icon')).toBe('check-mark')
+      expect(done.find('.toc-done').exists()).toBe(false)
       expect(done.find('.sr-only').text()).toBe(', voltooid')
       expect(done.attributes('current')).toBeUndefined()
 
@@ -256,7 +257,7 @@ describe('ProgressTracker.vue', () => {
       const first = items(wrapper)[0]
 
       expect(nodeKind(first)).toBe('done')
-      expect(first.find('.toc-done').attributes('icon')).toBe('check-mark')
+      expect(trackStatus(first)).toBe('past')
       expect(first.attributes('current')).toBe('true')
     })
 

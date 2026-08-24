@@ -754,12 +754,6 @@ nldd-card p {
   margin-inline-start: auto;
 }
 
-/* When comment button is BEFORE the toggle, group them together on the right:
-   comment button takes the auto margin, toggle loses its auto margin */
-.comment-field-label__btn + .open-text-field__toggle {
-  margin-inline-start: 0.25rem !important;
-}
-
 /* On phones the comment panel becomes a bottom-sheet, closed with its X button. */
 @media (max-width: 768px) {
   .comment-panel {

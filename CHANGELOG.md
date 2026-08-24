@@ -71,8 +71,21 @@ build) staan kort onder "Onder de motorkap".
   de status al aan.
 * De inhoudsopgave heeft geen eigen schuifbalk meer maar scrollt mee met
   de pagina.
-* In de inhoudsopgave blijft het hoofdstuknummer staan als een hoofdstuk
-  is afgevinkt; het vinkje staat nu achter de titel.
+* In de inhoudsopgave blijft het hoofdstuknummer staan als een hoofdstuk is
+  afgevinkt; de gevulde stip geeft aan dat het klaar is, zonder tweede vinkje.
+* De toelichting onder een vraag staat in de gewone tekstkleur; het is tekst
+  die je moet lezen, geen bijschrift.
+* De knop "Lezen" staat bij het tekstvak waar hij bij hoort, niet meer
+  rechtsboven bij de vraag.
+* De uitleg bij een begrip leest op dezelfde tekstgrootte als de rest van de
+  pagina en blijft binnen beeld, ook bij een begrip aan de rand.
+* Selectievakjes en keuzerondjes staan weer op één lijn met hun label.
+* De vragen staan op een vaste leesbreedte in plaats van de volle
+  paginabreedte.
+* Bij het standalone formulier staan "Begin nieuwe ..." en "Exporteer" in de
+  bovenbalk, zodat de pagina zelf alleen nog inhoud bevat.
+* De versie leest zonder de "v" van de tag: "2026.8.24" in plaats van
+  "v2026.8.24".
 * Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
   de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
 * De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave

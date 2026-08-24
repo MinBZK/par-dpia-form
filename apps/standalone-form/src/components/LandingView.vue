@@ -7,6 +7,7 @@ import '@nldd/design-system/container'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/rich-text'
 import '@nldd/design-system/simple-section'
+import '@nldd/design-system/spacer'
 import '@nldd/design-system/title'
 import { AppBanner, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
 
@@ -275,7 +276,12 @@ async function downloadOfflineApp() {
       <p class="version-info">Versie van de invulhulp: {{ appVersion }}</p>
     </nldd-rich-text>
 
-    <ExportPdfInfo />
+    <nldd-spacer size="16"></nldd-spacer>
+    <!-- The card follows the reading measure of the prose above it instead of
+         the full section width. -->
+    <div class="landing-view__prose-width">
+      <ExportPdfInfo />
+    </div>
 
     <!-- Only when there is something to wipe: on an empty browser the button
          would just raise a question it cannot answer. -->

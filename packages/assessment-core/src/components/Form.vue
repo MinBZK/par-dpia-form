@@ -4,12 +4,12 @@ import ProgressTracker from './ProgressTracker.vue'
 import ExportPdfInfo from './ExportPdfInfo.vue'
 import ExportMenu from './ExportMenu.vue'
 import TaskSection from './task/TaskSection.vue'
-import NavHeader from './NavHeader.vue'
 import FileUploadPage from './FileUploadPage.vue'
 import LiveResults from './LiveResults.vue'
 import { useTaskDependencies } from '../composables/useTaskDependencies'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
 import { useConditionalHideReconcile } from '../composables/useConditionalHideReconcile'
+import { useDefinitionTooltips } from '../composables/useDefinitionTooltips'
 import { DPIA, FormType } from '../models/dpia'
 import type { AssessmentState } from '../models/assessmentState'
 import type { NavigationFunctions } from '../models/navigation'
@@ -25,6 +25,8 @@ import { CONTENT_READONLY_KEY } from '../injectionKeys'
 import * as t from 'io-ts'
 import { computed, inject, onMounted, onBeforeUnmount, provide, ref, toRef, watch } from 'vue'
 import '@nldd/design-system/button'
+import '@nldd/design-system/menu-bar'
+import '@nldd/design-system/menu-bar-item'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/sidebar-section'
 import '@nldd/design-system/inline-dialog'
@@ -51,6 +53,9 @@ const props = withDefaults(defineProps<{
   bannerTitle: '',
   commentedRootTaskIds: () => [],
 })
+
+// Keeps a term explanation inside the viewport, whatever the term's position.
+useDefinitionTooltips()
 
 // Inert on the whole question block would take the term tooltips with it:
 // an inert subtree is not hit-tested, so :hover never fires. The flag travels
@@ -268,8 +273,18 @@ const isInformationalStep = computed(() => {
 </script>
 
 <template>
+  <!-- The document actions live in the utility menu bar of the top navigation,
+       so the page below carries content only. -->
   <Banner v-if="showBanner" :title="bannerTitle"
-    back-text="Overzicht" @back="navigation.goToLanding" />
+    back-text="Overzicht" @back="navigation.goToLanding">
+    <template v-if="showNavHeader && formStarted && showFileActions" #utility>
+      <nldd-menu-bar slot="utility" accessible-label="Acties voor dit formulier">
+        <nldd-menu-bar-item icon="arrow-clockwise" :text="`Begin nieuwe ${resetLabel}`"
+          @select="resetOpen = true"></nldd-menu-bar-item>
+        <ExportMenu menu-bar @export="handleExport" />
+      </nldd-menu-bar>
+    </template>
+  </Banner>
   <nldd-inline-dialog v-if="isLoading" variant="loading" text="Ophalen van taken..."></nldd-inline-dialog>
 
   <!-- Show decoding error if decoding has failed. -->
@@ -290,18 +305,12 @@ const isInformationalStep = computed(() => {
          with the page. -->
     <nldd-sidebar-section sidebar-label="Stappen navigatie"
       sticky-top="-200dvh" sticky-bottom="-200dvh">
-      <NavHeader v-if="showNavHeader && formStarted && showFileActions" slot="header">
-        <nldd-button variant="accent-transparent" :text="`Begin nieuwe ${resetLabel}`"
-          start-icon="arrow-clockwise" size="xs" @click="resetOpen = true"></nldd-button>
-        <ExportMenu @export="handleExport" />
-      </NavHeader>
-
       <nav slot="sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
           FormType.PRE_SCAN || namespace === FormType.IAMA" :commentedTaskIds="props.commentedRootTaskIds" />
       </nav>
 
-      <div role="form" aria-labelledby="current-section-heading">
+      <div class="form-content" role="form" aria-labelledby="current-section-heading">
         <FileUploadPage v-if="!formStarted" @start="handleStart" />
 
         <template v-else>

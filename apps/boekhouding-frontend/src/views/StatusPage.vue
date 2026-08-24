@@ -27,6 +27,9 @@ const hasHistory = !!window.history.state?.back
 useBackLink().set(hasHistory ? { text: 'Terug' } : { text: 'Ga naar home', to: '/' })
 
 const frontend = ref<VersionInfo>({ version: 'dev', commit: 'dev', channel: 'dev' })
+
+// The git tag carries the v (vYYYY.M.D); the reading version does not.
+const displayVersion = computed(() => frontend.value.version.replace(/^v/, ''))
 const backendState = ref<ProbeState>('loading')
 const keycloakState = ref<ProbeState>('loading')
 const copyState = ref<'idle' | 'done' | 'error'>('idle')
@@ -62,7 +65,7 @@ function statusMeta(state: ProbeState): StatusMeta {
 }
 
 function buildVersionText(): string {
-  if (frontend.value.version !== 'dev') return `Invulhulpen versie ${frontend.value.version}`
+  if (frontend.value.version !== 'dev') return `Invulhulpen versie ${displayVersion.value}`
   const commit = hasCommit.value ? ` op commit ${frontend.value.commit}` : ''
   return `Invulhulpen ontwikkelversie${commit}`
 }
@@ -203,7 +206,7 @@ onMounted(async () => {
       </p>
       <nldd-card>
         <nldd-container padding="16" gap="16">
-          <p class="version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ frontend.version }}</span></template></p>
+          <p class="version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ displayVersion }}</span></template></p>
           <nldd-container layout="wrap" gap="8" class="version-card__actions">
             <nldd-button
               variant="secondary"

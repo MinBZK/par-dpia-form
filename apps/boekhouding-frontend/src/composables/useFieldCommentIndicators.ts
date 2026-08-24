@@ -5,11 +5,8 @@ import '@nldd/design-system/button'
 /**
  * Observes the DOM for field labels and injects comment buttons.
  *
- * For open_text fields (which have an .open-text-field__toggle button),
- * the comment button is placed next to the toggle in the same flex row.
- *
- * For other fields, the label container gets flex styling so the button
- * appears on the right side of the label.
+ * The label container gets flex styling so the button sits at the right of the
+ * label row, before the description.
  */
 export function useFieldCommentIndicators(
   containerRef: Ref<HTMLElement | null>,
@@ -97,26 +94,16 @@ export function useFieldCommentIndicators(
         continue
       }
 
-      // Check if this is an open_text field (has toggle button)
-      const toggle = labelContainer.querySelector('.open-text-field__toggle')
+      // Make the label container flex and add the button
+      labelContainer.classList.add('comment-field-label--flex')
+      btn.classList.add('comment-field-label__btn')
 
-      if (toggle) {
-        // Insert BEFORE the toggle — then move margin-auto to our button
-        // so both buttons group on the right
-        btn.classList.add('comment-field-label__btn')
-        labelContainer.insertBefore(btn, toggle)
+      // Insert before the description (if any) or at the end
+      const description = labelContainer.querySelector('.form-field__description')
+      if (description) {
+        labelContainer.insertBefore(btn, description)
       } else {
-        // Non-open_text: make the label container flex and add the button
-        labelContainer.classList.add('comment-field-label--flex')
-        btn.classList.add('comment-field-label__btn')
-
-        // Insert before the description (if any) or at the end
-        const description = labelContainer.querySelector('.form-field__description')
-        if (description) {
-          labelContainer.insertBefore(btn, description)
-        } else {
-          labelContainer.appendChild(btn)
-        }
+        labelContainer.appendChild(btn)
       }
 
       injectedElements.set(fieldId, btn)

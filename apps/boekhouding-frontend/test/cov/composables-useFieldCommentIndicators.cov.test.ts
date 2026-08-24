@@ -278,7 +278,7 @@ describe('useFieldCommentIndicators', () => {
   })
 
   describe('injection placement', () => {
-    it('inserts before the toggle for open_text fields', () => {
+    it('places the button in the label row of an open_text field too', () => {
       const { container } = makeLabel({
         id: 'label-x-1.1',
         withLabelContainer: true,
@@ -288,11 +288,11 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
 
+      // The read/edit switch moved to the field itself, so the label row holds
+      // nothing but the label and this button.
       const labelContainer = container.querySelector('.form-field__label')!
-      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
-      const toggle = labelContainer.querySelector('.open-text-field__toggle')!
-      expect(btn.nextElementSibling).toBe(toggle)
-      expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(false)
+      expect(labelContainer.querySelector('nldd-button')).toBeTruthy()
+      expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
     })
 
     it('inserts before the description for non-open_text fields with a description', () => {

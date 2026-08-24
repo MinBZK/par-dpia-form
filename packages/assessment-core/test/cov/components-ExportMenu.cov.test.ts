@@ -87,4 +87,30 @@ describe('ExportMenu.vue split-variant', () => {
 
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
+
+  it('rendert als item in de utility menu-balk met dezelfde exportopties', () => {
+    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
+
+    const item = wrapper.find('nldd-menu-bar-item')
+    expect(item.attributes('text')).toBe('Exporteer')
+    expect(item.attributes('icon')).toBe('download')
+    expect(item.attributes('expandable')).toBeDefined()
+    expect(item.find('nldd-menu').attributes('accessible-label')).toBe('Exportopties')
+    expect(item.findAll('nldd-menu-item').map((i) => i.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
+
+    // Neither of the other two hosts renders alongside it.
+    expect(wrapper.find('nldd-split-button').exists()).toBe(false)
+    expect(wrapper.find('nldd-button').exists()).toBe(false)
+  })
+
+  it('emit per menu-item het bijbehorende formaat in de menu-balk-variant', async () => {
+    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
+
+    const items = wrapper.findAll('nldd-menu-item')
+    await items[0].trigger('click')
+    await items[1].trigger('click')
+    await items[2].trigger('click')
+
+    expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
+  })
 })

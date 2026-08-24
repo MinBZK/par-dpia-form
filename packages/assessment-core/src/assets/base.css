@@ -36,6 +36,12 @@ body {
    row and description keep stable class names: the boekhouding-frontend
    comment system locates fields through .form-field__label,
    .form-field__description and the label-* id convention. */
+/* Questions read at the same measure as the rest of the prose in the design
+   system; a column the full width of the page runs past a comfortable line. */
+.form-content {
+  max-width: var(--components-rich-text-main-max-width);
+}
+
 .form-field__label {
   display: flex;
   flex-direction: column;
@@ -47,7 +53,7 @@ body {
 }
 
 .form-field__description {
-  color: var(--semantics-content-secondary-color, #556273);
+  color: var(--semantics-content-color);
 }
 
 .form-field__error {
@@ -65,6 +71,7 @@ body {
 }
 
 .form-field__choice {
+  --form-choice-line-height: var(--primitives-line-height-snug, 1.5);
   display: flex;
   align-items: flex-start;
   gap: var(--primitives-space-8, 0.5rem);
@@ -77,7 +84,13 @@ body {
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
-  margin: 0;
+  /* Centre the box on the first line of the label: flex-start alone hangs it
+     from the top of a line box that is taller than the box itself. The `lh`
+     unit is no use here — the browser forces line-height: normal on a checkbox
+     or radio — so the label's line is rebuilt from its own font size and the
+     line-height the choices are set in. */
+  font-size: inherit;
+  margin: max(0px, calc((1em * var(--form-choice-line-height) - 1.25rem) / 2)) 0 0;
   accent-color: var(--primitives-color-accent-600, #007bc7);
 }
 
@@ -261,8 +274,7 @@ nldd-sidebar-section {
   background: var(--semantics-content-secondary-color);
 }
 
-.toc-comment,
-.toc-done {
+.toc-comment {
   flex-shrink: 0;
 }
 
@@ -278,8 +290,8 @@ nldd-sidebar-section {
 
 .aiv-definition .aiv-definition-text {
   display: none;
-  min-width: 500px;
-  max-width: 1000px;
+  width: max-content;
+  max-width: min(36rem, calc(100vw - 2rem));
   /* The tinted surface the cards use, so the panel reads as raised against the
      page. Not the raw neutrals it used before (neutral-0 turns near-black in
      dark mode), and not the DS tooltip tokens either: those only pair correctly
@@ -295,18 +307,17 @@ nldd-sidebar-section {
   position: absolute;
   z-index: 1;
 
-  /* Position below the term by default */
+  /* Below the term, hugging its right edge; useDefinitionTooltips shifts the
+     panel back inside the viewport when that would run it off the edge. */
   top: 100%;
   right: 0;
+  translate: var(--aiv-definition-shift, 0);
   margin-top: 5px;
 
   /* Text styling */
-  font-family: var(--primitives-font-family-body, RijksSans, system-ui, sans-serif);
-  font-size: var(--primitives-font-size-90, 1rem);
-  font-weight: 400;
+  font: var(--primitives-font-body-md-regular-loose);
   font-style: normal;
   text-align: left;
-  line-height: 1.5;
 
   /* Fix for Safari */
   backdrop-filter: blur(0);
@@ -331,18 +342,10 @@ nldd-sidebar-section {
   }
 }
 
-.form-field__label:has(.open-text-field__toggle) {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.form-field__label:has(.open-text-field__toggle) .form-field__description {
-  flex-basis: 100%;
-}
-
-.open-text-field__toggle {
-  margin-inline-start: auto;
+.open-text-field__bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-end: var(--primitives-space-4, 0.25rem);
 }
 
 /* Frame around the markdown read mode; the content itself is styled by
@@ -428,23 +431,6 @@ nldd-sidebar-section {
   padding-inline: 0.75rem;
 }
 
-.nav-header {
-  border-block-end: 1px solid var(--primitives-color-neutral-200, #ddd);
-}
-
-.nav-header__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--primitives-space-16, 1rem);
-  padding-block: var(--primitives-space-4, 0.25rem);
-}
-
-.nav-header__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--primitives-space-8, 0.5rem);
-}
 
 .export-pdf-info__heading-row {
   display: flex;
@@ -545,6 +531,10 @@ nldd-sidebar-section {
 .landing-view h1 {
   font-size: var(--primitives-font-size-500, 2rem);
   line-height: 1.25;
+}
+
+.landing-view__prose-width {
+  max-width: var(--components-rich-text-main-max-width);
 }
 
 .landing-view nldd-card,

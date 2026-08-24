@@ -150,8 +150,6 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
         </nldd-timeline-track-cell>
         <nldd-spacer-cell size="12"></nldd-spacer-cell>
         <nldd-text-cell class="toc-title" :text="step.title"></nldd-text-cell>
-        <nldd-icon-cell v-if="step.done" class="toc-done"
-          icon="check-mark" size="16" color="success"></nldd-icon-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
           icon="comment" size="16" color="accent"></nldd-icon-cell>
         <span v-if="step.done" class="sr-only">, voltooid</span>

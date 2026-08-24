@@ -216,14 +216,6 @@ const handleCheckboxInput = (event: Event) => {
       art. 27 AI-verordening
       <nldd-icon name="square-arrow-right-top" size="16" aria-hidden="false" aria-label="Opent in nieuw tabblad"></nldd-icon>
     </a>
-    <!-- The class stays on the host: the comment indicators look it up to
-         position the comment button in the label row. -->
-    <nldd-toggle-button v-if="hasType('open_text')" size="xs"
-      class="open-text-field__toggle"
-      :selected="showPreview"
-      :text="showPreview ? 'Bewerken' : 'Lezen'"
-      :icon="showPreview ? 'pencil-on-square' : 'eye'"
-      @change="handlePreviewToggle"></nldd-toggle-button>
     <div v-if="description" class="form-field__description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
@@ -242,6 +234,16 @@ const handleCheckboxInput = (event: Event) => {
 
   <!-- Text area with markdown support -->
   <div v-if="hasType('open_text')" class="open-text-field field-group">
+    <!-- The switch belongs to the box it changes, so it sits on top of it
+         rather than at the far end of the question. -->
+    <div class="open-text-field__bar">
+      <nldd-toggle-button size="xs"
+        class="open-text-field__toggle"
+        :selected="showPreview"
+        :text="showPreview ? 'Bewerken' : 'Lezen'"
+        :icon="showPreview ? 'pencil-on-square' : 'eye'"
+        @change="handlePreviewToggle"></nldd-toggle-button>
+    </div>
     <nldd-multi-line-text-field v-if="!showPreview" ref="textareaRef"
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
