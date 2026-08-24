@@ -183,7 +183,8 @@ Wat we wel doen:
 - De repository volgt de [REUSE-specificatie](https://reuse.software/) 3.3: `REUSE.toml` legt de licentie per pad vast en `LICENSES/` bevat de bijbehorende teksten. Elk van de 473 bestanden heeft daarmee machine-leesbare licentie- en copyright-informatie. Bewust gekozen boven een SPDX-header per bestand, omdat dat met ~460 bestanden vooral merge-conflicten oplevert zonder extra compliance.
 - De uitzondering is expliciet: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` staat als `LicenseRef-Rijkshuisstijl` geannoteerd, met de voorwaarden in `LICENSES/LicenseRef-Rijkshuisstijl.txt`. De webfont verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een licentievermelding; deze `.ttf`-bestanden blijven zolang de PDF-export ze nodig heeft (pdfmake kan geen woff2).
 - `reuse lint` draait als pre-commit-hook en daarmee in de verplichte `pre-commit`-check op `main`. Let op de grens: de `**`-regel licenseert nieuwe bestanden vanzelf als EUPL-1.2, dus code die van elders komt heeft een handmatige annotatie nodig. Dat staat in `CONTRIBUTING.md`.
-- Aandachtspunt: `@nl-rvo/design-tokens` staat in `LICENSES.txt` als `Unknown`, omdat dat pakket zonder licentieveld publiceert. Dat is een gat bij de leverancier, niet hier; het vervalt met de overstap naar NLDD.
+- De licenties van dependencies staan in `docs/third-party-licenses.txt`, gegenereerd door `script/generate_licenses.py`. De lijst was verouderd; hij is bijgewerkt en `pnpm check:licenses` bewaakt in CI dat hij dat blijft. Platformspecifieke binaries worden weggelaten, anders zou de uitkomst per besturingssysteem verschillen.
+- Aandachtspunt: `@nl-rvo/design-tokens` staat in die lijst als `Unknown`, omdat dat pakket zonder licentieveld publiceert. Dat is een gat bij de leverancier, niet hier; het vervalt met de overstap naar NLDD.
 
 ## 14. Make the codebase findable
 
