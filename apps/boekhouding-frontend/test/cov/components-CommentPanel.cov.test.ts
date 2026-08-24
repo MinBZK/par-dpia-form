@@ -825,6 +825,56 @@ describe('CommentPanel', () => {
       expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Een nieuwe opmerking')
     })
 
+    it('keeps what you typed when placing the comment fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [],
+        activeFieldId: '1.1',
+      })
+      await flushRaf()
+      await nextTick()
+
+      spies.createComment.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const inline = wrapper.get('.comment-inline-form')
+      const textarea = inline.get('textarea')
+      await textarea.setValue('Kostbare tekst')
+      await textarea.trigger('input')
+      await inline.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect((textarea.element as HTMLTextAreaElement).value).toBe('Kostbare tekst')
+    })
+
+    it('keeps the reply text when posting the reply fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [thread({ id: 'root', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await nextTick()
+
+      spies.createReply.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const replyForm = wrapper.get('.comment-reply-form')
+      const textarea = replyForm.get('textarea')
+      await textarea.setValue('Mijn reactie')
+      await textarea.trigger('input')
+      await replyForm.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-reply-form').exists()).toBe(true)
+      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+        .toBe('Mijn reactie')
+    })
+
     it('disables the Plaatsen button while the body is empty', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
       const { wrapper, spies } = mountPanel({
@@ -926,6 +976,36 @@ describe('CommentPanel', () => {
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'aangepast')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
+    })
+
+    it('stays in edit mode with your text when saving the edit fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        currentUserId: 'user-1',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__body').trigger('click')
+      await nextTick()
+      await nextTick()
+
+      spies.updateComment.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const editBox = wrapper.get('.comment-item__edit')
+      const textarea = editBox.get('textarea')
+      await textarea.setValue('aangepast')
+      await textarea.trigger('input')
+      await editBox.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+      expect((wrapper.get('.comment-item__edit textarea').element as HTMLTextAreaElement).value)
+        .toBe('aangepast')
     })
 
     it('starts editing via the enter key on the body', async () => {

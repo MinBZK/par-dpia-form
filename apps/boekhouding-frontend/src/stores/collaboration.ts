@@ -35,13 +35,47 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   // fetches the same delta again.
   let mutationSeq = 0
 
+  // Set when a comment action fails, so the failure can be reported instead of the button
+  // appearing to do nothing. Only transient failures are worth another attempt; a 403 or 404
+  // says the attempt itself was wrong, and retrying it changes nothing.
+  const commentActionError = ref<{ message: string; retryable: boolean } | null>(null)
+  let lastFailedAction: (() => Promise<unknown>) | null = null
+
+  function describeActionFailure(cause: unknown): { message: string; retryable: boolean } {
+    const status = cause instanceof ApiError ? cause.status : 0
+
+    if (status === 403) {
+      return { message: 'Je hebt geen rechten meer om dit te doen. Ververs de pagina.', retryable: false }
+    }
+    if (status === 404) {
+      return { message: 'Deze opmerking bestaat niet meer. Ververs de pagina.', retryable: false }
+    }
+    if (status === 429) {
+      return { message: 'Te veel verzoeken achter elkaar. Probeer het zo nog eens.', retryable: true }
+    }
+    return { message: 'Geen verbinding met de server. De opmerking is niet bijgewerkt.', retryable: true }
+  }
+
   async function mutate<T>(action: () => Promise<T>): Promise<T> {
     mutationSeq++
     try {
-      return await action()
+      const result = await action()
+      commentActionError.value = null
+      lastFailedAction = null
+      return result
+    } catch (cause) {
+      commentActionError.value = describeActionFailure(cause)
+      lastFailedAction = action
+      throw cause
     } finally {
       mutationSeq++
     }
+  }
+
+  async function retryCommentAction() {
+    const action = lastFailedAction
+    if (!action) return
+    return mutate(action)
   }
 
   // — Computed getters —
@@ -351,6 +385,7 @@ export const useCollaborationStore = defineStore('collaboration', () => {
     loading,
     error,
     syncFailing,
+    commentActionError,
     // Computed
     threadsByField,
     unresolvedCountByField,
@@ -365,6 +400,7 @@ export const useCollaborationStore = defineStore('collaboration', () => {
     deleteComment,
     resolveThread,
     reopenThread,
+    retryCommentAction,
     reset,
   }
 })

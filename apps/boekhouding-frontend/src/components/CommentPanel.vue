@@ -211,21 +211,34 @@ function canDeleteComment(authorId: string): boolean {
   return isOwnComment(authorId) || props.role === 'owner'
 }
 
+// The store records a failed action and the editor reports it; catching here keeps the
+// failure from surfacing as an unhandled rejection, and leaves what the user typed in place.
+async function succeeded(action: () => Promise<unknown>): Promise<boolean> {
+  try {
+    await action()
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function submitComment(fieldId: string) {
   const body = newCommentBody.value.trim()
   if (!body) return
 
-  await commentStore.createComment(fieldId, body)
-  newCommentBody.value = ''
+  if (await succeeded(() => commentStore.createComment(fieldId, body))) {
+    newCommentBody.value = ''
+  }
 }
 
 async function submitReply(parentId: string, fieldId: string) {
   const body = replyBody.value.trim()
   if (!body) return
 
-  await commentStore.createReply(parentId, fieldId, body)
-  replyBody.value = ''
-  replyingTo.value = null
+  if (await succeeded(() => commentStore.createReply(parentId, fieldId, body))) {
+    replyBody.value = ''
+    replyingTo.value = null
+  }
 }
 
 function startReply(threadId: string) {
@@ -262,21 +275,22 @@ function cancelEdit() {
 
 async function submitEdit() {
   if (!editingId.value || !editBody.value.trim()) return
-  await commentStore.updateComment(editingId.value, editBody.value.trim())
-  editingId.value = null
-  editBody.value = ''
+  if (await succeeded(() => commentStore.updateComment(editingId.value!, editBody.value.trim()))) {
+    editingId.value = null
+    editBody.value = ''
+  }
 }
 
 async function handleDelete(commentId: string) {
-  await commentStore.deleteComment(commentId)
+  await succeeded(() => commentStore.deleteComment(commentId))
 }
 
 async function handleResolve(commentId: string) {
-  await commentStore.resolveThread(commentId)
+  await succeeded(() => commentStore.resolveThread(commentId))
 }
 
 async function handleReopen(commentId: string) {
-  await commentStore.reopenThread(commentId)
+  await succeeded(() => commentStore.reopenThread(commentId))
 }
 </script>
 

@@ -766,6 +766,102 @@ describe('deleteComment()', () => {
   })
 })
 
+describe('commentActionError — a failed action must be reportable', () => {
+  it('records a Dutch message and keeps the action for retry when a mutation fails', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Geen verbinding met de server. De opmerking is niet bijgewerkt.',
+      retryable: true,
+    })
+  })
+
+  it('does not offer a retry for a 403, where trying again cannot help', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Geen toegang', 403))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Geen toegang')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Je hebt geen rechten meer om dit te doen. Ververs de pagina.',
+      retryable: false,
+    })
+  })
+
+  it('does not offer a retry for a comment that no longer exists', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Weg', 404))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Weg')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Deze opmerking bestaat niet meer. Ververs de pagina.',
+      retryable: false,
+    })
+  })
+
+  it('reports a rate limit in its own words', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Te druk', 429))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Te druk')
+
+    expect(store.commentActionError?.message).toBe(
+      'Te veel verzoeken achter elkaar. Probeer het zo nog eens.',
+    )
+    expect(store.commentActionError?.retryable).toBe(true)
+  })
+
+  it('retryCommentAction runs the failed action again and clears the error on success', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+    expect(store.commentActionError).not.toBeNull()
+
+    mockCommentsResolve.mockResolvedValueOnce({ resolvedAt: 'R-TS', resolvedBy: 'user-3' })
+    await store.retryCommentAction()
+
+    expect(mockCommentsResolve).toHaveBeenCalledTimes(2)
+    expect(store.threads[0].resolvedAt).toBe('R-TS')
+    expect(store.commentActionError).toBeNull()
+  })
+
+  it('a later successful action clears an earlier error', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+
+    mockCommentsReopen.mockResolvedValueOnce({})
+    await store.reopenThread('t1')
+
+    expect(store.commentActionError).toBeNull()
+  })
+
+  it('retryCommentAction does nothing when there is no failed action', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    await store.retryCommentAction()
+    expect(mockCommentsResolve).not.toHaveBeenCalled()
+  })
+})
+
 describe('resolveThread()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()

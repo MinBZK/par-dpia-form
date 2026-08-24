@@ -93,9 +93,11 @@ const {
     assessmentUpdatedAt: null as string | null,
     lastModifiedBySelf: true,
     syncFailing: false,
+    commentActionError: null as { message: string; retryable: boolean } | null,
     load: vi.fn().mockResolvedValue(undefined),
     startPolling: vi.fn(),
     reset: vi.fn(),
+    retryCommentAction: vi.fn().mockResolvedValue(undefined),
   })
 
   const fieldClickHolder: {
@@ -283,6 +285,8 @@ beforeEach(async () => {
   sync.retrySaveNow.mockReset()
   sync.retrySaveNow.mockResolvedValue(undefined)
   collaborationStore.syncFailing = false
+  collaborationStore.commentActionError = null
+  collaborationStore.retryCommentAction.mockClear()
   collaborationStore.assessmentVersion = null
   collaborationStore.assessmentUpdatedAt = null
   collaborationStore.lastModifiedBySelf = true
@@ -1273,6 +1277,61 @@ describe('AssessmentEditor — reporting a stuck save or sync', () => {
     expect(toast.text()).toContain('Geen verbinding met de server')
     expect(toast.text()).toContain('Opslaan lukt even niet')
     expect(toast.find('.sync-toast__action').text()).toBe('Opnieuw proberen')
+    wrapper.unmount()
+  })
+
+  it('reports a failed comment action with a retry', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.commentActionError = {
+      message: 'Geen verbinding met de server. De opmerking is niet bijgewerkt.',
+      retryable: true,
+    }
+    await nextTick()
+
+    const toast = wrapper.find('.sync-toast')
+    expect(toast.exists()).toBe(true)
+    expect(toast.text()).toContain('De opmerking is niet bijgewerkt')
+    await toast.find('.sync-toast__action').trigger('click')
+    expect(collaborationStore.retryCommentAction).toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('offers no retry when trying again cannot help', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.commentActionError = {
+      message: 'Je hebt geen rechten meer om dit te doen. Ververs de pagina.',
+      retryable: false,
+    }
+    await nextTick()
+
+    const toast = wrapper.find('.sync-toast')
+    expect(toast.text()).toContain('Je hebt geen rechten meer')
+    expect(toast.find('.sync-toast__action').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('lets a stuck save outrank a failed comment action', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.commentActionError = { message: 'Opmerkingfout', retryable: true }
+    sync.saveFailing.value = true
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').text()).toContain('Opslaan lukt even niet')
+    wrapper.unmount()
+  })
+
+  it('drops the comment toast once the action succeeds', async () => {
+    const wrapper = await mountEditor()
+
+    collaborationStore.commentActionError = { message: 'Opmerkingfout', retryable: true }
+    await nextTick()
+    collaborationStore.commentActionError = null
+    await nextTick()
+
+    expect(wrapper.find('.sync-toast').exists()).toBe(false)
     wrapper.unmount()
   })
 
