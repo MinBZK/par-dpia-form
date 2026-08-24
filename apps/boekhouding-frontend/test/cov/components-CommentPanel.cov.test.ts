@@ -229,6 +229,118 @@ describe('CommentPanel', () => {
     })
   })
 
+  describe('a colleague resolves the thread while you are typing', () => {
+    async function panelWithOpenReply() {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({ id: 'root', fieldId: '1.1' })
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await nextTick()
+      await wrapper.get('.comment-reply-form textarea').setValue('Half getypte reactie')
+      return { wrapper, store }
+    }
+
+    it('keeps the thread and the draft when the thread is resolved elsewhere', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      // What the poll does when a colleague resolves it.
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = 'Noor Dijkstra'
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(true)
+      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+        .toBe('Half getypte reactie')
+    })
+
+    it('says who resolved it', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = 'Noor Dijkstra'
+      await nextTick()
+
+      expect(wrapper.get('.comment-thread__resolved-label').text())
+        .toContain('Noor Dijkstra')
+    })
+
+    it('falls back to a colleague when the name is unknown', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = null
+      await nextTick()
+
+      expect(wrapper.get('.comment-thread__resolved-label').text())
+        .toContain('een collega')
+    })
+
+    it('lets the thread go once the reply form is closed', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+      expect(wrapper.find('.comment-thread').exists()).toBe(true)
+
+      const cancel = wrapper.findAll('.comment-reply-form .comment-action-btn')
+        .find((b) => b.text().includes('Annuleer'))!
+      await cancel.trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(false)
+    })
+
+    it('keeps a thread whose reply is being edited', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({
+        id: 'root',
+        fieldId: '1.1',
+        replies: [reply('r1', 'user-1', 'Sam')],
+      })
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        currentUserId: 'user-1',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item--reply .comment-item__body').trigger('click')
+      await nextTick()
+      await nextTick()
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+    })
+
+    it('hides a resolved thread that has nothing open in it', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [thread({ id: 'root', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(false)
+    })
+  })
+
   describe('stackedEntries — cards never cover each other', () => {
     // Fields sit 97px apart in the form while a card with a few lines of text is far taller,
     // so without stacking the cards overlap and hide each other's text and buttons.
