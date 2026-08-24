@@ -61,6 +61,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Terwijl je doortypte, kon de invulhulp twee keer tegelijk opslaan. De tweede
+  poging botste dan met je eigen eerste, wat een extra versie in de
+  geschiedenis opleverde en soms een venster "een collega heeft dit veld
+  gewijzigd" terwijl het je eigen vorige opslag was. Er gaat nu één opslag
+  tegelijk de deur uit, en wat je tijdens het opslaan typt gaat mee in de
+  volgende.
 * Verwijderde je de eerste van twee herhaalbare groepen zonder de overgebleven
   groep in te vullen, dan stond die na opnieuw openen weer als de eerste groep
   genummerd. Verwees er iets naar, bijvoorbeeld een bijbehorende partij in een
