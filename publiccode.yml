@@ -1,4 +1,4 @@
-publiccodeYmlVersion: "0.5"
+publiccodeYmlVersion: "0"
 name: Invulhulp voor Pre-scan, DPIA en IAMA
 url: "https://github.com/MinBZK/par-dpia-form"
 landingURL: "https://invulhulpen.rijksapp.nl"
@@ -44,10 +44,12 @@ description:
 legal:
   license: EUPL-1.2
   mainCopyrightOwner: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
-  repoOwner: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
+organisation:
+  uri: "https://identifier.overheid.nl/tooi/id/ministerie/mnre1034"
+  name: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties
 intendedAudience:
   countries:
-    - nl
+    - NL
   scope:
     - government
 localisation:

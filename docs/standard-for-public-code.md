@@ -191,8 +191,9 @@ Wat we wel doen:
 **Gedeeltelijk.**
 
 - Naam, beschrijving en `publiccode.yml` zijn inhoudelijk in orde, en de software heeft een eigen domein (invulhulpen.rijksapp.nl).
-- Gat: de repo is niet aangemeld bij het open-sourceregister op oss.developer.overheid.nl.
-- Het metadatabestand heette `publiccode.yaml` en is hernoemd naar `publiccode.yml`, de naam waar de standaard en de crawlers van uitgaan. Dat was een plausibele technische oorzaak voor het uitblijven van indexering. `releaseDate` en `softwareVersion` volgen nu de laatste release.
+- `publiccode.yml` komt zonder waarschuwingen door de officiële [publiccode-parser](https://github.com/italia/publiccode-parser-go) en door het JSON-schema van SchemaStore, en noemt de organisatie met haar TOOI-identifier (`https://identifier.overheid.nl/tooi/id/ministerie/mnre1034`). Dat is de identifier waar het open-sourceregister op koppelt.
+- Gat: de repo staat nog niet in het open-sourceregister op oss.developer.overheid.nl. De git-organisatie MinBZK is daar wel aangesloten, dus indexering verloopt via hun crawler; het bestand heette tot voor kort `publiccode.yaml` en werd daardoor waarschijnlijk overgeslagen. Verschijnt de repo na de eerstvolgende ronde niet, dan is een mail naar developer.overheid@geonovum.nl de route.
+- `releaseDate` en `softwareVersion` volgen de laatste release, bewaakt door `script/ci/assert-publiccode-version.sh`.
 - Gat: geen `CITATION.cff` of vergelijkbare persistente identifier.
 - De repo-slug `par-dpia-form` bevat de onverklaarde afkorting "par". De naam in `publiccode.yml` is wel beschrijvend.
 
