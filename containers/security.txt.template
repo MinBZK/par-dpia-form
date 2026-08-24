@@ -10,11 +10,11 @@ Expires: ${SECURITY_TXT_EXPIRES}
 Canonical: ${SECURITY_TXT_CANONICAL_HOST}/.well-known/security.txt
 
 Policy: https://github.com/MinBZK/par-dpia-form/blob/main/SECURITY.md
-Policy: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
+Policy: https://www.ncsc.nl/producten-en-diensten/kwetsbaarheid-melden-cvd
 Policy: https://www.ncsc.nl/en/cvd-report-form
 
 Contact: https://github.com/MinBZK/par-dpia-form/security/advisories/new
-Contact: https://www.ncsc.nl/dienstverlening/kwetsbaarheid-melden-cvd
+Contact: https://www.ncsc.nl/producten-en-diensten/kwetsbaarheid-melden-cvd
 Contact: https://www.ncsc.nl/en/cvd-report-form
 Contact: mailto:security@ncsc.nl
 Encryption: https://www.ncsc.nl/pgp.txt

@@ -9,8 +9,8 @@ Found a (suspected) security vulnerability? In order of preference:
    report.
 2. **NCSC Coordinated Vulnerability Disclosure**, for the running service, or
    if you cannot reach the team through GitHub:
-   * Nederlands: **[NCSC Kwetsbaarheid melden](https://www.ncsc.nl/contact/kwetsbaarheid-melden)**
-   * English: **[NCSC report vulnerability](https://english.ncsc.nl/contact/reporting-a-vulnerability-cvd)**
+   * Nederlands: **[NCSC Kwetsbaarheid melden](https://www.ncsc.nl/producten-en-diensten/kwetsbaarheid-melden-cvd)**
+   * English: **[NCSC report vulnerability](https://www.ncsc.nl/en/cvd-report-form)**
 
 A suspicion is welcome too; we would rather look into a false alarm than miss
 a real vulnerability. Please do not disclose a finding publicly until we have

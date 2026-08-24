@@ -56,6 +56,7 @@ jobs:
             '**/*.md'
             '**/*.ts'
             '**/*.vue'
+            'containers/security.txt.template'
           # Outside the workspace: inside it, the retry attempt below picks
           # the report up again as one of its own **/*.md inputs.
           output: ${{ runner.temp }}/lychee-out.md
