@@ -13,7 +13,7 @@ Issues zijn openbaar. Zet er geen persoonsgegevens of vertrouwelijke inhoud uit 
 
 ## Een vraag over de inhoud van een assessment
 
-Gaat je vraag over wat een vraag in de Pre-scan, DPIA of IAMA betekent, dan gaat die over het onderliggende model en niet over deze software. De inhoud volgt het Rijksmodel DPIA en het IAMA-kader; de bronbestanden staan in [`sources/`](sources/). Denk je dat de invulhulp het model verkeerd weergeeft, open dan een issue.
+Gaat je vraag over wat een vraag in de Pre-scan, DPIA of IAMA betekent, dan gaat die over het onderliggende model en niet over deze software. De inhoud volgt het Rijksmodel DPIA en het IAMA; de bronbestanden staan in [`sources/`](sources/). Denk je dat de invulhulp het model verkeerd weergeeft, open dan een issue.
 
 ## Liever per e-mail
 

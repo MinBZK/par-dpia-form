@@ -93,6 +93,11 @@ jobs:
           TAG_NAME: ${{ steps.tag.outputs.name }}
         run: bash script/ci/assert-plugin-version.sh "$TAG_NAME"
 
+      - name: Valideer publiccode-versie
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/assert-publiccode-version.sh "$TAG_NAME"
+
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io

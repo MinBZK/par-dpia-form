@@ -18,7 +18,7 @@ description:
   nl:
     shortDescription: >-
       Webapplicatie voor Pre-scan-, DPIA- en IAMA-assessments volgens het
-      Rijksmodel DPIA en het IAMA-kader van de Nederlandse overheid.
+      Rijksmodel DPIA en het IAMA van de Nederlandse overheid.
     longDescription: >
       De invulhulp is een browsergebaseerde applicatie waarmee organisaties een
       Pre-scan, een volledige DPIA (Data Protection Impact Assessment / Gegevensbeschermingseffectbeoordeling)
@@ -31,7 +31,7 @@ description:
       applicatie die zonder installatie of server in de browser draait, en als
       samenwerkomgeving waarin meerdere personen met rollen (eigenaar, bewerker, commentator,
       lezer) samen aan dezelfde assessments werken. De assessments volgen het Rijksmodel DPIA
-      en het IAMA-kader van de Nederlandse overheid en zijn gebouwd met het
+      en het IAMA van de Nederlandse overheid en zijn gebouwd met het
       NL Design System / RVO-componentenbibliotheek.
     documentation: "https://github.com/MinBZK/par-dpia-form/blob/main/README.md"
     features:

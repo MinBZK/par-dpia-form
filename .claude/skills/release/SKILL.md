@@ -33,7 +33,18 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
    ```
 
    Dat schrijft `.plugin/plugin.json` en genereert de Claude Code- en
-   Cursor-manifests. Breng het geheel via een PR naar `main`.
+   Cursor-manifests.
+
+   **Zet in dezelfde PR `publiccode.yml` op dezelfde versie.** Dat bestand is de
+   metadata waarop open-sourcecatalogi de laatste versie tonen:
+
+   ```bash
+   bash script/ci/set-publiccode-version.sh v2026.6.14
+   ```
+
+   Dat zet `softwareVersion` en `releaseDate` (onder CalVer volgt de datum uit
+   de tag; een micro-suffix houdt dezelfde datum). Breng het geheel via een PR
+   naar `main`.
 
 2. **Zorg dat acceptatie groen is.** De tag promoot het image dat voor de
    main-commit is gebouwd; de `Deploy acceptatie`-run voor die commit moet
@@ -56,8 +67,8 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
 ## Wat er daarna automatisch gebeurt
 
 - **`tag-release.yaml`** valideert het tagformaat, dat de tag nog niet bestaat,
-  dat het geen downgrade is, dat de changelog-sectie er staat, dat de plugin op
-  dezelfde versie staat en dat de acceptatie-images bestaan. Pas daarna pusht
+  dat het geen downgrade is, dat de changelog-sectie er staat, dat de plugin en
+  `publiccode.yml` op dezelfde versie staan en dat de acceptatie-images bestaan. Pas daarna pusht
   het de tag en start het `release.yaml` (een tag-push door `GITHUB_TOKEN` start
   `release.yaml` niet vanzelf).
 - **`release.yaml`** valideert het CalVer-formaat en de changelog-sectie, maakt
@@ -78,6 +89,7 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
 | CalVer-formaat | `vYYYY.M.D[.MICRO]`, geen voorloopnullen |
 | Changelog | Een niet-lege `## [versie]`-sectie moet bestaan |
 | Plugin-versie | De assessments-plugin moet op dezelfde CalVer staan als de tag |
+| Publiccode-versie | `publiccode.yml` moet dezelfde CalVer en de bijbehorende `releaseDate` dragen |
 | Downgrade | De tag moet de hoogste CalVer-tag zijn — fix forward, deploy nooit een oudere tag |
 | Tag bestaat nog niet | Hertaggen is geen release — breng een fix uit onder een nieuwe, hogere tag |
 | Tag op main | De getagde commit moet op `main` staan |
@@ -90,7 +102,8 @@ vangnet voor een tag die alsnog met de hand gepusht wordt.
 
 De gedeelde checks staan in `script/ci/` (`validate-calver-tag.sh`,
 `changelog-section.sh`, `assert-newest-calver-tag.sh`,
-`assert-plugin-version.sh`, `assert-tag-absent.sh`) en worden door
+`assert-plugin-version.sh`, `assert-publiccode-version.sh`,
+`assert-tag-absent.sh`) en worden door
 `tag-release.yaml`, `release.yaml` en `deploy-productie.yaml` gebruikt; ze zijn
 gedekt door `script/tests/test_ci_release.py`.
 

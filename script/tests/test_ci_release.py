@@ -18,6 +18,8 @@ CHANGELOG = CI_DIR / "changelog-section.sh"
 ASSERT_NEWEST = CI_DIR / "assert-newest-calver-tag.sh"
 ASSERT_PLUGIN = CI_DIR / "assert-plugin-version.sh"
 ASSERT_ABSENT = CI_DIR / "assert-tag-absent.sh"
+ASSERT_PUBLICCODE = CI_DIR / "assert-publiccode-version.sh"
+SET_PUBLICCODE = CI_DIR / "set-publiccode-version.sh"
 NEWEST = CI_DIR / "newest-calver-tag.sh"
 
 
@@ -163,6 +165,76 @@ def test_plugin_version_missing_field_fails(tmp_path: Path):
 
 def test_plugin_manifest_missing_fails(tmp_path: Path):
     assert run(ASSERT_PLUGIN, "v2026.6.20", str(tmp_path / "weg.json")).returncode != 0
+
+
+# --- assert-publiccode-version.sh / set-publiccode-version.sh ---------------
+
+
+@pytest.fixture
+def publiccode(tmp_path: Path) -> Path:
+    path = tmp_path / "publiccode.yml"
+    path.write_text(
+        'publiccodeYmlVersion: "0.5"\n'
+        "name: Invulhulp\n"
+        'releaseDate: "2026-06-20"\n'
+        'softwareVersion: "2026.6.20"\n'
+    )
+    return path
+
+
+def test_publiccode_version_matches_tag(publiccode):
+    assert run(ASSERT_PUBLICCODE, "v2026.6.20", str(publiccode)).returncode == 0
+
+
+def test_publiccode_version_mismatch_fails(publiccode):
+    result = run(ASSERT_PUBLICCODE, "v2026.7.1", str(publiccode))
+    assert result.returncode != 0
+    assert "softwareVersion" in result.stderr
+    assert "releaseDate" in result.stderr
+
+
+def test_publiccode_date_mismatch_fails(tmp_path: Path):
+    # Right version, stale date: the date is not free-form under CalVer.
+    path = tmp_path / "publiccode.yml"
+    path.write_text('releaseDate: "2026-06-14"\nsoftwareVersion: "2026.6.20"\n')
+    result = run(ASSERT_PUBLICCODE, "v2026.6.20", str(path))
+    assert result.returncode != 0
+    assert "releaseDate" in result.stderr
+
+
+def test_publiccode_micro_tag_keeps_the_date(tmp_path: Path):
+    path = tmp_path / "publiccode.yml"
+    path.write_text('releaseDate: "2026-06-20"\nsoftwareVersion: "2026.6.20.1"\n')
+    assert run(ASSERT_PUBLICCODE, "v2026.6.20.1", str(path)).returncode == 0
+
+
+def test_publiccode_missing_field_fails(tmp_path: Path):
+    path = tmp_path / "publiccode.yml"
+    path.write_text('name: Invulhulp\nreleaseDate: "2026-06-20"\n')
+    assert run(ASSERT_PUBLICCODE, "v2026.6.20", str(path)).returncode != 0
+
+
+def test_publiccode_file_missing_fails(tmp_path: Path):
+    assert run(ASSERT_PUBLICCODE, "v2026.6.20", str(tmp_path / "weg.yml")).returncode != 0
+
+
+def test_publiccode_tag_without_day_fails(publiccode):
+    result = run(ASSERT_PUBLICCODE, "v2026.6", str(publiccode))
+    assert result.returncode != 0
+    assert "CalVer" in result.stderr
+
+
+def test_set_publiccode_version_satisfies_the_guard(publiccode):
+    assert run(SET_PUBLICCODE, "v2026.9.5", str(publiccode)).returncode == 0
+    assert 'softwareVersion: "2026.9.5"' in publiccode.read_text()
+    assert 'releaseDate: "2026-09-05"' in publiccode.read_text()
+    assert run(ASSERT_PUBLICCODE, "v2026.9.5", str(publiccode)).returncode == 0
+
+
+def test_set_publiccode_version_needs_the_fields(tmp_path: Path):
+    path = tmp_path / "publiccode.yml"
+    path.write_text("name: Invulhulp\n")
+    assert run(SET_PUBLICCODE, "v2026.9.5", str(path)).returncode != 0
 
 
 # --- assert-tag-absent.sh --------------------------------------------------

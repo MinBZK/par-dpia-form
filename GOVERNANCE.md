@@ -12,7 +12,7 @@ De software wordt gebouwd en beheerd met publieke middelen. Er is geen commerci√
 
 **Over de software.** Functionaliteit, techniek en prioriteiten worden in de openbare issues en pull requests besproken en door het onderhoudsteam besloten. Wie een richting wil voorstellen, opent een issue voordat er code komt; dat scheelt werk aan beide kanten.
 
-**Over de inhoud van de assessments.** De vragen en toelichtingen in [`sources/`](sources/) volgen het Rijksmodel DPIA en het IAMA-kader. Die inhoud wordt niet in deze repository bepaald. Het onderhoudsteam voert wijzigingen door zodra de kaderhouder ze vaststelt, en kan zelf geen vragen toevoegen of herformuleren die van het model afwijken. Constateer je dat de invulhulp het model verkeerd weergeeft, meld dat dan als issue; dat is wel iets wat hier opgelost wordt.
+**Over de inhoud van de assessments.** De vragen en toelichtingen in [`sources/`](sources/) volgen het Rijksmodel DPIA en het IAMA, twee documenten die buiten deze repository worden vastgesteld. Het onderhoudsteam neemt een wijziging over zodra de eigenaar van het model of het instrument die publiceert, en voegt zelf geen vragen toe die daarvan afwijken. Constateer je dat de invulhulp het model verkeerd weergeeft, meld dat dan als issue; dat is wel iets wat hier opgelost wordt.
 
 ## Hoe een wijziging binnenkomt
 
