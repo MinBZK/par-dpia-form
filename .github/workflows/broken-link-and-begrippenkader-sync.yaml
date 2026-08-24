@@ -32,10 +32,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Target specific files and improve the arguments.
-          # open.overheid.nl serves an incomplete TLS chain (leaf from
-          # DigiCert, intermediates still from certSIGN), so lychee cannot
-          # verify it. Review the exclusions periodically.
+          # Every exclusion below is one CI cannot resolve on principle, not
+          # one that is merely inconvenient: intranet and container-internal
+          # hosts, ../../issues links that only resolve in the GitHub UI, a
+          # template literal, and the schema blob that does not exist on main
+          # until the PR adding it is merged. Review the list per issue #443.
+          # The default lychee user agent trips the WAF in front of
+          # wetten.overheid.nl (see #512).
           args: &lychee_args >-
             --verbose
             --no-progress
@@ -43,17 +46,16 @@ jobs:
             --timeout 30
             --max-retries 3
             --retry-wait-time 2
+            --user-agent "Mozilla/5.0 (compatible; par-dpia-form link check; +https://github.com/MinBZK/par-dpia-form)"
             --exclude-loopback
             --exclude "file:///.*/issues.*"
-            --exclude "file:///home/runner/work/.*"
             --exclude "https://rijksportaal.overheid-i.nl/.*"
-            --exclude "https://open.overheid.nl/.*"
-            --exclude "https://www.npmjs.com/.*"
-            --exclude "https://httpproblems.com/.*"
+            --exclude 'httpproblems\.com/http-status/\$%7Bstatus%7D'
             --exclude "^http://(keycloak|backend|postgres):[0-9]+"
             --exclude "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/.*"
             --exclude-path '/test/'
             --exclude-path 'pnpm-lock\.yaml'
+            --exclude-path './lychee'
             '**/*.yaml'
             '**/*.md'
             '**/*.ts'

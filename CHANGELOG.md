@@ -162,6 +162,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De linkcontrole sloeg alle verwijzingen tussen documenten in de repository
+  over, waardoor kapotte links in de Product Decision Records ruim een jaar
+  onopgemerkt bleven. Die uitzondering is weg en de kapotte links zijn
+  hersteld; de map `docs/PDR` bestond bovendien in twee schrijfwijzen, wat op
+  Linux twee losse mappen opleverde.
+* De linkcontrole controleert `open.overheid.nl` en de eigen schema-URL's weer,
+  nu de certificaatketen daar aan de kant van Logius is hersteld.
 * De ontwikkelinstructies voor knoppen beschreven nog de oude RVO-klassen, die
   sinds versie 4.16 van de componentenbibliotheek niet meer bestaan. Bijgewerkt,
   zodat er geen ongestileerde knoppen meer uit voortkomen.
