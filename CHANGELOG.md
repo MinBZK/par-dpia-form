@@ -71,6 +71,15 @@ build) staan kort onder "Onder de motorkap".
 * Een tekstlabel in de DPIA bevatte een schrijffout.
 * Een lege versiebeschrijving kon een nieuwe versie aanmaken zonder
   wijziging; dat kan niet meer.
+* Een opgeloste opmerking kon kort daarna weer als openstaand tevoorschijn
+  komen. Dat gebeurde wanneer je precies oploste terwijl de invulhulp
+  achtergrondgegevens ophaalde: die iets oudere gegevens overschreven je
+  wijziging. Hetzelfde gold voor een nieuwe reactie of een aanpassing van
+  een opmerking. Wat je zelf doet gaat nu altijd voor.
+* Een reactie van een collega kwam pas in beeld zodra er ook iets aan de
+  hoofdopmerking veranderde. Reacties verschijnen nu direct, en een
+  discussie die je voor het eerst te zien krijgt komt meteen compleet met
+  alle bestaande reacties binnen.
 
 ### Beveiliging
 
