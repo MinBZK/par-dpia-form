@@ -122,6 +122,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De ontwikkelinstructies voor knoppen beschreven nog de oude RVO-klassen, die
+  sinds versie 4.16 van de componentenbibliotheek niet meer bestaan. Bijgewerkt,
+  zodat er geen ongestileerde knoppen meer uit voortkomen.
 * De wekelijkse beveiligingsscan keek alleen naar de acceptatie-omgeving en niet
   naar productie, terwijl juist die maandenlang stil kan staan en zo nieuwe
   meldingen verzamelt. Beide omgevingen worden nu gescand en apart gerapporteerd.
