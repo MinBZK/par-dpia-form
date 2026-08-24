@@ -130,7 +130,8 @@ build) staan kort onder "Onder de motorkap".
   locatie van het model.
 * Het standalone formulier op `/zonder-account/` toonde in productie
   "ontwikkel" met een commit in plaats van de release-versie; het laat nu
-  dezelfde versie zien als de statuspagina.
+  dezelfde versie zien als de statuspagina, en het uitbrengen van een release
+  stopt voortaan als dat versienummer er niet in gezet kan worden.
 * Was je aan een project toegevoegd met een e-mailadres dat bij de inlogdienst
   anders geschreven stond (hoofdletters), dan zag je dat project na het inloggen
   niet staan en kreeg je een tweede, leeg account. Adressen worden nu eenduidig
