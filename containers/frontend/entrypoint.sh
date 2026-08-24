@@ -25,4 +25,7 @@ else
     envsubst < /etc/nginx/security.txt.template > /tmp/security.txt
 fi
 
-exec nginx -g 'daemon off;'
+# -e: nginx opens its compile-time default error log before it parses the config,
+# and that path is unwritable for an unprivileged uid. `stderr` is nginx's own
+# special value for fd 2, not a path it has to open like /dev/stderr.
+exec nginx -e stderr -g 'daemon off;'

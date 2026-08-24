@@ -23,6 +23,13 @@ build) staan kort onder "Onder de motorkap".
   veldnamen, die alleen cijfers toestond, terwijl het IAMA vraagnummers als
   "2.2A.1" en "5.A.grp-gediend" gebruikt.
 
+### Onder de motorkap
+
+* De frontend-container start zonder foutmelding over een logbestand dat niet
+  geschreven kan worden. Bij het bijwerken van beveiligingspatches werd nginx
+  zelf vervangen door de Alpine-variant, die bij het opstarten een ander,
+  onbereikbaar logpad probeerde te openen.
+
 ## [2026.8.24]
 
 ### Toegevoegd
