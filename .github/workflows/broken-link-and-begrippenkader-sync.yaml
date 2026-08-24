@@ -37,8 +37,6 @@ jobs:
           # hosts, ../../issues links that only resolve in the GitHub UI, a
           # template literal, and the schema blob that does not exist on main
           # until the PR adding it is merged. Review the list per issue #443.
-          # The default lychee user agent trips the WAF in front of
-          # wetten.overheid.nl (see #512).
           args: &lychee_args >-
             --verbose
             --no-progress
@@ -46,7 +44,6 @@ jobs:
             --timeout 30
             --max-retries 3
             --retry-wait-time 2
-            --user-agent "Mozilla/5.0 (compatible; par-dpia-form link check; +https://github.com/MinBZK/par-dpia-form)"
             --exclude-loopback
             --exclude "file:///.*/issues.*"
             --exclude "https://rijksportaal.overheid-i.nl/.*"
@@ -55,13 +52,13 @@ jobs:
             --exclude "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/.*"
             --exclude-path '/test/'
             --exclude-path 'pnpm-lock\.yaml'
-            --exclude-path './lychee'
             '**/*.yaml'
             '**/*.md'
             '**/*.ts'
             '**/*.vue'
-          # Output file for creating issues
-          output: ./lychee/out.md
+          # Outside the workspace: inside it, the retry attempt below picks
+          # the report up again as one of its own **/*.md inputs.
+          output: ${{ runner.temp }}/lychee-out.md
           # Fail if any link is broken
           fail: true
 
@@ -79,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: *lychee_args
-          output: ./lychee/out.md
+          output: ${{ runner.temp }}/lychee-out.md
           fail: true
 
       # Longer cool-down before the final attempt: bot-block windows (403 from
@@ -95,7 +92,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: *lychee_args
-          output: ./lychee/out.md
+          output: ${{ runner.temp }}/lychee-out.md
           fail: true
 
       - name: Update or create the broken-links issue (schedule/manual only)
@@ -105,11 +102,11 @@ jobs:
         run: |
           existing=$(gh issue list --label broken-links --state open --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
-            gh issue edit "$existing" --body-file ./lychee/out.md
+            gh issue edit "$existing" --body-file "$RUNNER_TEMP/lychee-out.md"
           else
             # gh issue create needs the label to exist; ensure it idempotently.
             gh label create broken-links --color ededed --description "Automatically detected broken links" 2>/dev/null || true
-            gh issue create --title "Broken links detected" --body-file ./lychee/out.md --label broken-links
+            gh issue create --title "Broken links detected" --body-file "$RUNNER_TEMP/lychee-out.md" --label broken-links
           fi
 
   sync-begrippenkader-dpia:
