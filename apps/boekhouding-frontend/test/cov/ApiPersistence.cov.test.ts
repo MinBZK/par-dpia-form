@@ -1254,6 +1254,60 @@ describe('handleConflict (409) — auto-merge retry failures', () => {
     await p.saveAppState()
     expect(console.error).toHaveBeenCalledWith('Failed to save merged state:', expect.any(Error))
   })
+
+  it('reports and retries when the merged-state retry fails with a generic error', async () => {
+    vi.useFakeTimers()
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 9,
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'ander' } } },
+    }))
+    mockUpdate.mockRejectedValueOnce(new Error('retry kapot'))
+
+    await p.saveAppState()
+    expect(p.sync.hasUnsavedChanges.value).toBe(true)
+
+    const callsBeforeRetry = mockUpdate.mock.calls.length
+    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
+    await vi.advanceTimersByTimeAsync(5000)
+
+    expect(mockUpdate.mock.calls.length).toBeGreaterThan(callsBeforeRetry)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
+  })
+
+  it('clears an earlier save failure once the auto-merge lands', async () => {
+    vi.useFakeTimers()
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+    await p.saveAppState()
+    expect(p.sync.hasUnsavedChanges.value).toBe(true)
+
+    mockUpdate.mockRejectedValueOnce(new MockApiError('Conflict', 409))
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 9,
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: { '0.1': { value: 'ander' } } },
+    }))
+    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
+    await vi.advanceTimersByTimeAsync(5000)
+
+    expect(p.sync.knownVersion.value).toBe(12)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
+  })
 })
 
 describe('handleConflict (409) — true conflict → dialog + resolution', () => {
@@ -1352,6 +1406,48 @@ describe('handleConflict (409) — true conflict → dialog + resolution', () =>
     await Promise.resolve()
 
     expect(console.error).toHaveBeenCalledWith('Failed to save resolved state:', expect.any(Error))
+  })
+
+  it('reports and retries when the resolution save fails with a generic error', async () => {
+    vi.useFakeTimers()
+    const { p } = await setupConflict()
+    mockUpdate.mockRejectedValueOnce(new Error('resolve kapot'))
+
+    p.conflictState.resolve(new Map([['1.1', 'mine']]))
+    await nextTick()
+    await Promise.resolve()
+
+    expect(p.sync.hasUnsavedChanges.value).toBe(true)
+
+    const callsBeforeRetry = mockUpdate.mock.calls.length
+    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
+    await vi.advanceTimersByTimeAsync(5000)
+
+    expect(mockUpdate.mock.calls.length).toBeGreaterThan(callsBeforeRetry)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
+  })
+
+  it('stays quiet when the resolution save hits an expired session', async () => {
+    const { p } = await setupConflict()
+    mockUpdate.mockRejectedValueOnce(new MockSessionExpiredError())
+
+    p.conflictState.resolve(new Map([['1.1', 'mine']]))
+    await nextTick()
+    await Promise.resolve()
+
+    expect(p.sync.saveFailing.value).toBe(false)
+    expect(console.error).not.toHaveBeenCalledWith('Failed to save resolved state:', expect.anything())
+  })
+
+  it('clears an earlier save failure once the resolution lands', async () => {
+    const { p } = await setupConflict()
+    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 12 }))
+
+    p.conflictState.resolve(new Map([['1.1', 'mine']]))
+    await nextTick()
+    await Promise.resolve()
+
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
   })
 
   it('resolve() is a no-op when there is no pending resolveCallback', async () => {

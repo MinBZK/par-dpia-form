@@ -316,12 +316,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
+        clearSaveFailure()
       } catch (retryError) {
         if (retryError instanceof SessionExpiredError) return
         if (retryError instanceof ApiError && retryError.status === 409) {
           await handleConflict()
         } else {
           console.error('Failed to save merged state:', retryError)
+          registerSaveFailure(retryError)
         }
       }
       return
@@ -365,11 +367,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
+        clearSaveFailure()
       } catch (retryError) {
+        if (retryError instanceof SessionExpiredError) return
         if (retryError instanceof ApiError && retryError.status === 409) {
           await handleConflict()
         } else {
           console.error('Failed to save resolved state:', retryError)
+          registerSaveFailure(retryError)
         }
       }
     }
