@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { diffStates, parseInstanceId, buildFieldUrn } from '../src/utils/diffStates.js'
+import { diffStates } from '../src/utils/diffStates.js'
+import { parseInstanceId, buildFieldUrn } from '../src/utils/fieldId.js'
 
 const USER = '00000000-0000-0000-0000-000000000002'
 const URN = 'urn:nl:dpia:3.0'

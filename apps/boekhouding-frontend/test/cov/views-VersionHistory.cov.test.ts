@@ -65,7 +65,11 @@ const getTaskByIdFromNamespace = vi.fn(
   (ns: FormType, taskId: string) => flatTaskMap[ns]?.[taskId] ?? null,
 )
 
-vi.mock('@overheid-assessment/core', () => ({
+// The field-id parsers are pulled in for real: the view's diff rows depend on
+// their exact behaviour, and a hand-written stub here would drift from them.
+vi.mock('@overheid-assessment/core', async () => ({
+  ...(await import('../../../../packages/assessment-core/src/utils/fieldUrn')),
+  ...(await import('../../../../packages/assessment-core/src/utils/instanceId')),
   FormType: {
     DPIA: 'dpia',
     PRE_SCAN: 'prescan',
@@ -1295,7 +1299,7 @@ describe('VersionHistory — getFieldOptions branches', () => {
   })
 })
 
-describe('VersionHistory — parseFieldId & toDotFieldId', () => {
+describe('VersionHistory — toDotFieldId', () => {
   let vm: any
   beforeEach(async () => {
     apiGet.mockResolvedValue({ role: 'owner', projectId: 'p', currentVersion: 3, state: {} })
@@ -1305,33 +1309,10 @@ describe('VersionHistory — parseFieldId & toDotFieldId', () => {
     vm = wrapper.vm
   })
 
-  it('parses a URN with task_index', () => {
-    expect(vm.parseFieldId('urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0')).toEqual({ namespace: 'dpia', key: '2.1.3[0]' })
-  })
-
-  it('parses a URN without task_index', () => {
-    expect(vm.parseFieldId('urn:nl:dpia:3.0?=task_id=2.1.3')).toEqual({ namespace: 'dpia', key: '2.1.3' })
-  })
-
-  it('maps prescan_dpia namespace to prescan', () => {
-    expect(vm.parseFieldId('urn:nl:prescan_dpia:1.0?=task_id=1.1')).toEqual({ namespace: 'prescan', key: '1.1' })
-  })
-
-  it('returns null for a malformed URN', () => {
-    expect(vm.parseFieldId('urn:nl:dpia:3.0')).toBeNull()
-  })
-
-  it('parses dot-format', () => {
-    expect(vm.parseFieldId('dpia.2.1')).toEqual({ namespace: 'dpia', key: '2.1' })
-  })
-
-  it('returns null for a string with no dot', () => {
-    expect(vm.parseFieldId('nodot')).toBeNull()
-  })
-
-  it('toDotFieldId converts URN and returns input on unparseable', () => {
+  it('converts a URN and returns the input for an id without a namespace', () => {
     expect(vm.toDotFieldId('urn:nl:dpia:3.0?=task_id=2.1&task_index=2')).toBe('dpia.2.1[2]')
     expect(vm.toDotFieldId('nodot')).toBe('nodot')
+    expect(vm.toDotFieldId('urn:nl:dpia:3.0')).toBe('urn:nl:dpia:3.0')
   })
 })
 
@@ -2242,6 +2223,40 @@ describe('VersionHistory — remaining branch coverage', () => {
       expect(wrapper.find('.diff-field').text()).toContain('Status sectie 3 "Belangenafweging"')
       expect(wrapper.find('.diff-old').text()).toContain('Voltooid')
       expect(wrapper.find('.diff-new').text()).toContain('Niet voltooid')
+    })
+
+    it('falls back to the raw field id when the URN is malformed (instance_added)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:iama:1.0',
+          editType: 'instance_added',
+          oldValue: null,
+          newValue: null,
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {},
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('urn:nl:iama:1.0')
+    })
+
+    it('falls back to the raw field id when the URN is malformed (section_complete)', async () => {
+      const wrapper = await setupIama(
+        {
+          id: 'e1',
+          fieldId: 'urn:nl:iama:1.0',
+          editType: 'section_complete',
+          oldValue: false,
+          newValue: true,
+          editedBy: 'sam@example.com',
+          editedAt: 't',
+          version: 2,
+        },
+        {},
+      )
+      expect(wrapper.find('.diff-field').text()).toContain('urn:nl:iama:1.0')
     })
 
     it('renders an iama instance_added edit (mapEditsToDiffFields IAMA branch)', async () => {
