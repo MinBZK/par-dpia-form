@@ -6,19 +6,26 @@ Zie LICENSE voor de volledige licentietekst.
 Licentiehouder: Ministerie van Binnenlandse Zaken en Koninkrijksrelaties (BZK)
 Repository: https://github.com/MinBZK/par-dpia-form
 
+Platformspecifieke binaries (bijvoorbeeld @esbuild/linux-x64) staan er niet in:
+pnpm rapporteert die van het platform waarop de lijst gemaakt is.
+
 
 Licenties van gebruikte bibliotheken
 =====================================
 
-@babel/helper-string-parser@7.27.1 [license(s): MIT]
+@babel/generator@8.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@babel/helper-validator-identifier@7.28.5 [license(s): MIT]
+@babel/helper-string-parser@7.29.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@babel/parser@7.29.0 [license(s): MIT]
+@babel/helper-validator-identifier@7.29.7 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@babel/parser@7.29.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -26,19 +33,23 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@babel/types@7.29.0 [license(s): MIT]
+@babel/types@7.29.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/accept-negotiator@2.0.1 [license(s): MIT]
+@fastify/accept-negotiator@2.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/ajv-compiler@4.0.5 [license(s): MIT]
+@fastify/ajv-compiler@4.0.6 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/cors@11.2.0 [license(s): MIT]
+@fastify/compress@9.2.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@fastify/cors@11.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -46,15 +57,15 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/fast-json-stringify-compiler@5.0.3 [license(s): MIT]
+@fastify/fast-json-stringify-compiler@5.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/forwarded@3.0.1 [license(s): MIT]
+@fastify/forwarded@3.0.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/helmet@13.0.2 [license(s): MIT]
+@fastify/helmet@13.1.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -66,27 +77,43 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/rate-limit@10.3.0 [license(s): MIT]
+@fastify/rate-limit@11.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/send@4.1.0 [license(s): MIT]
+@fastify/send@4.1.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/static@9.0.0 [license(s): MIT]
+@fastify/static@10.1.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/swagger@9.7.0 [license(s): MIT]
+@fastify/swagger@9.8.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/swagger-ui@5.2.5 [license(s): MIT]
+@fastify/swagger-ui@6.1.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@jridgewell/gen-mapping@0.3.13 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@jridgewell/remapping@2.3.5 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@jridgewell/resolve-uri@3.1.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
 @jridgewell/sourcemap-codec@1.5.5 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@jridgewell/trace-mapping@0.3.31 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -98,75 +125,127 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  CC0 1.0
 └── license files: CC0 1.0
 
-@nl-rvo/component-library-css@4.8.0 [license(s): CC0-1.0]
+@nl-rvo/component-library-css@4.20.3 [license(s): CC0-1.0]
 ├── package.json:  CC0-1.0
 └── license files: CC0-1.0
 
-@nl-rvo/design-tokens@1.9.0 [license(s): Unknown]
+@nl-rvo/design-tokens@2.4.2 [license(s): Unknown]
 ├── package.json:  Unknown
 └── license files: Unknown
+
+@noble/ciphers@1.3.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@noble/hashes@1.8.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@oxc-project/types@0.146.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@pdf-lib/standard-fonts@1.0.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@pdf-lib/upng@1.0.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@pdfme/pdf-lib@6.1.12 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 @pinojs/redact@0.4.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@swc/helpers@0.5.19 [license(s): Apache-2.0]
+@rolldown/pluginutils@1.0.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@swc/helpers@0.5.23 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
-@tabler/icons@3.40.0 [license(s): MIT]
+@tabler/icons@3.46.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@tabler/icons-vue@3.40.0 [license(s): MIT]
+@tabler/icons-vue@3.46.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/compiler-core@3.5.30 [license(s): MIT]
+@types/estree@1.0.8 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/compiler-dom@3.5.30 [license(s): MIT]
+@types/jsesc@2.5.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/compiler-sfc@3.5.30 [license(s): MIT]
+@types/node@26.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/compiler-ssr@3.5.30 [license(s): MIT]
+@types/trusted-types@2.0.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-api@6.6.4 [license(s): MIT]
+@vue-macros/common@3.1.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-kit@7.7.9 [license(s): MIT]
+@vue/compiler-core@3.5.41 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/devtools-shared@7.7.9 [license(s): MIT]
+@vue/compiler-dom@3.5.41 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/reactivity@3.5.30 [license(s): MIT]
+@vue/compiler-sfc@3.5.41 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/runtime-core@3.5.30 [license(s): MIT]
+@vue/compiler-ssr@3.5.41 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/runtime-dom@3.5.30 [license(s): MIT]
+@vue/devtools-api@8.1.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/server-renderer@3.5.30 [license(s): MIT]
+@vue/devtools-kit@8.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/shared@3.5.30 [license(s): MIT]
+@vue/devtools-shared@8.2.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@vue/reactivity@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@vue/runtime-core@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@vue/runtime-dom@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@vue/server-renderer@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+@vue/shared@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+abort-controller@3.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -174,7 +253,11 @@ abstract-logging@2.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ajv@8.18.0 [license(s): MIT]
+acorn@8.17.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+ajv@8.20.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -182,11 +265,19 @@ ajv-formats@3.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+ast-kit@2.2.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+ast-walker-scope@0.9.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 atomic-sleep@1.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-avvio@9.2.0 [license(s): MIT]
+avvio@9.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -202,7 +293,7 @@ birpc@2.9.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-brace-expansion@5.0.4 [license(s): MIT]
+brace-expansion@5.0.9 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -210,23 +301,47 @@ brotli@1.3.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+browserify-zlib@0.2.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+buffer@6.0.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+chokidar@5.0.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 clone@2.1.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-content-disposition@1.0.1 [license(s): MIT]
+color@5.0.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+color-convert@3.1.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+color-name@2.1.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+color-string@2.1.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+confbox@0.1.8 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+content-disposition@2.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
 cookie@1.1.1 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-copy-anything@4.0.5 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-crypto-js@4.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -246,11 +361,19 @@ dequal@2.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+detect-libc@2.1.2 [license(s): Apache-2.0]
+├── package.json:  Apache-2.0
+└── license files: Apache-2.0
+
 dfa@1.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-drizzle-orm@0.44.7 [license(s): Apache-2.0]
+dompurify@3.4.14 [license(s): (MPL-2.0 OR Apache-2.0)]
+├── package.json:  (MPL-2.0 OR Apache-2.0)
+└── license files: (MPL-2.0 OR Apache-2.0)
+
+drizzle-orm@0.45.2 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
@@ -258,11 +381,27 @@ entities@7.0.1 [license(s): BSD-2-Clause]
 ├── package.json:  BSD-2-Clause
 └── license files: BSD-2-Clause
 
+esbuild@0.28.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 escape-html@1.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
 estree-walker@2.0.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+event-target-shim@5.0.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+events@3.3.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+exsolve@1.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -274,7 +413,7 @@ fast-deep-equal@3.1.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-fast-json-stringify@6.3.0 [license(s): MIT]
+fast-json-stringify@7.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -282,15 +421,15 @@ fast-querystring@1.1.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-fast-uri@3.1.0 [license(s): BSD-3-Clause]
+fast-uri@3.1.5 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-fastify@5.8.2 [license(s): MIT]
+fastify@5.12.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-fastify-plugin@5.1.0 [license(s): MIT]
+fastify-plugin@6.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -298,7 +437,11 @@ fastq@1.20.1 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
-find-my-way@9.5.0 [license(s): MIT]
+fdir@6.5.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+find-my-way@9.8.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -314,7 +457,7 @@ glob@13.0.6 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
-helmet@8.1.0 [license(s): MIT]
+helmet@8.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -322,9 +465,17 @@ hookable@5.5.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+html-entities@2.6.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 http-errors@2.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
+
+ieee754@1.2.1 [license(s): BSD-3-Clause]
+├── package.json:  BSD-3-Clause
+└── license files: BSD-3-Clause
 
 inherits@2.0.4 [license(s): ISC]
 ├── package.json:  ISC
@@ -334,11 +485,11 @@ io-ts@2.2.22 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ipaddr.js@2.3.0 [license(s): MIT]
+ip-address@10.5.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-is-what@5.5.0 [license(s): MIT]
+ipaddr.js@2.5.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -346,11 +497,19 @@ jexl@2.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-jose@6.2.1 [license(s): MIT]
+jiti@2.7.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-jpeg-exif@1.1.4 [license(s): MIT]
+jose@6.2.9 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+js-md5@0.8.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+jsesc@3.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -366,7 +525,11 @@ json-schema-traverse@1.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-keycloak-js@26.2.3 [license(s): Apache-2.0]
+json5@2.2.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+keycloak-js@26.2.4 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
@@ -374,11 +537,19 @@ light-my-request@6.6.0 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
+lightningcss@1.33.0 [license(s): MPL-2.0]
+├── package.json:  MPL-2.0
+└── license files: MPL-2.0
+
 linebreak@1.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-lru-cache@11.2.7 [license(s): BlueOak-1.0.0]
+local-pkg@1.2.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+lru-cache@11.5.2 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
@@ -386,11 +557,23 @@ magic-string@0.30.21 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+magic-string-ast@1.0.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+marked@18.0.10 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 mime@3.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-minimatch@10.2.4 [license(s): BlueOak-1.0.0]
+mime-db@1.54.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+minimatch@10.2.6 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
@@ -398,7 +581,7 @@ minipass@7.1.3 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
-mitt@3.0.1 [license(s): MIT]
+mlly@1.8.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -410,7 +593,19 @@ ms@2.1.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-nanoid@3.3.11 [license(s): MIT]
+muggle-string@0.4.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+nanoid@3.3.18 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+node-html-better-parser@1.5.9 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+nostics@1.1.4 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -426,19 +621,27 @@ pako@0.2.9 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+pako@1.0.11 [license(s): (MIT AND Zlib)]
+├── package.json:  (MIT AND Zlib)
+└── license files: (MIT AND Zlib)
+
 path-scurry@2.0.2 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
-pdfkit@0.17.2 [license(s): MIT]
+pathe@2.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-pdfmake@0.3.6 [license(s): MIT]
+pdfkit@0.19.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-perfect-debounce@1.0.0 [license(s): MIT]
+pdfmake@0.3.11 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+perfect-debounce@2.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -446,7 +649,11 @@ picocolors@1.1.1 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
-pinia@3.0.4 [license(s): MIT]
+picomatch@4.0.5 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+pinia@4.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -462,23 +669,43 @@ pino-std-serializers@7.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-png-js@1.0.0 [license(s): MIT]
+pkg-types@1.3.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-postcss@8.5.8 [license(s): MIT]
+png-js@1.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-postgres@3.4.8 [license(s): Unlicense]
+postcss@8.5.26 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+postgres@3.4.9 [license(s): Unlicense]
 ├── package.json:  Unlicense
 └── license files: Unlicense
+
+process@0.11.10 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 process-warning@4.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
+quansync@0.2.11 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
 quick-format-unescaped@4.0.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+readable-stream@4.7.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+readdirp@5.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -506,7 +733,19 @@ rfdc@1.4.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-safe-regex2@5.1.0 [license(s): MIT]
+rolldown@1.2.5 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+rollup@4.59.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+safe-buffer@5.2.1 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+safe-regex2@5.1.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -514,15 +753,19 @@ safe-stable-stringify@2.5.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-sax@1.5.0 [license(s): BlueOak-1.0.0]
+sax@1.6.0 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
+
+scule@1.3.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 secure-json-parse@4.1.0 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-semver@7.7.4 [license(s): ISC]
+semver@7.8.5 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
@@ -542,10 +785,6 @@ source-map-js@1.2.1 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-speakingurl@14.0.1 [license(s): BSD]
-├── package.json:  BSD
-└── license files: BSD
-
 split2@4.2.0 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
@@ -554,11 +793,11 @@ statuses@2.0.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-superjson@2.2.6 [license(s): MIT]
+string_decoder@1.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-thread-stream@4.0.0 [license(s): MIT]
+thread-stream@4.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -566,7 +805,11 @@ tiny-inflate@1.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-toad-cache@3.7.0 [license(s): MIT]
+tinyglobby@0.2.17 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+toad-cache@3.7.4 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -578,9 +821,21 @@ tslib@2.8.1 [license(s): 0BSD]
 ├── package.json:  0BSD
 └── license files: 0BSD
 
-typescript@5.7.3 [license(s): Apache-2.0]
+tsx@4.23.12 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+typescript@5.9.3 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
+
+ufo@1.6.4 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+undici-types@8.3.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
 
 unicode-properties@1.4.1 [license(s): MIT]
 ├── package.json:  MIT
@@ -590,11 +845,27 @@ unicode-trie@2.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-vue@3.5.30 [license(s): MIT]
+unplugin@3.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-vue-router@4.6.4 [license(s): MIT]
+unplugin-utils@0.3.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+vite@8.2.2 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+vue@3.5.41 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+vue-router@5.2.0 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+webpack-virtual-modules@0.6.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -602,8 +873,8 @@ xmldoc@2.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-yaml@2.8.2 [license(s): ISC]
+yaml@2.9.0 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
-LICENSES: 0BSD, Apache-2.0, BSD, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, CC0 1.0, CC0-1.0, ISC, MIT, Unknown, Unlicense
+LICENSES: (MIT AND Zlib), (MPL-2.0 OR Apache-2.0), 0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, CC0 1.0, CC0-1.0, ISC, MIT, MPL-2.0, Unknown, Unlicense

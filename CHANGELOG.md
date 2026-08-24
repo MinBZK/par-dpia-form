@@ -196,6 +196,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* Het overzicht van licenties van gebruikte bibliotheken stond al een tijd stil
+  en is bijgewerkt. Het staat nu in `docs/third-party-licenses.txt`, en een
+  controle in CI zorgt dat het niet opnieuw achterloopt.
 * Van elk bestand in de repository is nu machine-leesbaar onder welke licentie
   het valt, volgens de REUSE-specificatie. Dat maakt zichtbaar wat wél en niet
   onder de open licentie van de invulhulp valt: de fontbestanden van de
