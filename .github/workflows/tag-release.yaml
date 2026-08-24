@@ -1,0 +1,140 @@
+name: Tag release
+
+# Set a CalVer tag only after every release guard has passed. Until this
+# existed, all six guards ran *after* the tag was pushed: a mistake meant a fix
+# commit on main, deleting the tag locally and on the remote, and retagging into
+# a downgrade guard built to distrust exactly that. Here the tag is created
+# locally, checked, and pushed only when everything holds — a failed run leaves
+# nothing behind to clean up.
+#
+# The tag push itself cannot start release.yaml: a push by GITHUB_TOKEN does not
+# trigger `on: push`. This workflow therefore dispatches release.yaml explicitly,
+# the same way release.yaml starts deploy-productie.yaml.
+#
+# release.yaml keeps all of its own guards; it stays the backstop for a tag that
+# is pushed by hand.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'CalVer-versie (bv. 2026.6.14 of v2026.6.14); de tag mag nog niet bestaan'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tag-release
+  cancel-in-progress: false
+
+env:
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/backend
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+      actions: write
+    steps:
+      # Always main: a release comes from the branch that acceptatie runs.
+      # Unlike the other workflows this one keeps its credentials: pushing the
+      # tag is the whole point.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      # Accept the version with or without the v-prefix; everything downstream
+      # works with the tag name.
+      - name: Bepaal de tagnaam
+        id: tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          echo "name=v${VERSION#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Valideer CalVer-tagformaat
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/validate-calver-tag.sh "$TAG_NAME"
+
+      - name: Controleer dat de tag nog niet bestaat
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/assert-tag-absent.sh "$TAG_NAME"
+
+      # Local only. assert-newest-calver-tag.sh compares against the tags in the
+      # repository, so the tag has to exist for it to judge — creating it here
+      # keeps that script unchanged and still pushes nothing.
+      - name: Zet de tag lokaal
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: git tag "$TAG_NAME"
+
+      - name: Bescherm tegen downgrade
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/assert-newest-calver-tag.sh "$TAG_NAME"
+
+      - name: Controleer changelog-sectie
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/changelog-section.sh "$TAG_NAME" > /dev/null
+
+      - name: Valideer plugin-versie
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: bash script/ci/assert-plugin-version.sh "$TAG_NAME"
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # deploy-productie promotes exactly these images and refuses without them.
+      # Checking here means a red acceptatie blocks the tag instead of the
+      # deploy, which is the whole point of cutting before tagging.
+      - name: Controleer dat de acceptatie-images bestaan
+        run: |
+          set -euo pipefail
+          commit="$(git rev-parse HEAD)"
+          short="${commit:0:7}"
+          for image in "$FRONTEND_IMAGE" "$BACKEND_IMAGE"; do
+            if ! docker buildx imagetools inspect "${image}:${short}" >/dev/null 2>&1; then
+              echo "Image ${image}:${short} bestaat niet. Is de 'Deploy acceptatie'-run voor commit ${commit} geslaagd?" >&2
+              exit 1
+            fi
+          done
+
+      # Every guard has passed; only now does the tag leave the runner.
+      - name: Push de tag
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: git push origin "$TAG_NAME"
+
+      # A tag pushed by GITHUB_TOKEN does not fire release.yaml's push trigger,
+      # so start it by dispatch. If this step fails the tag does exist: rerun
+      # release.yaml by hand with the same tag (it is idempotent).
+      - name: Start de release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: gh workflow run release.yaml --ref "$TAG_NAME" -f tag="$TAG_NAME"
+
+      - name: Vat samen
+        env:
+          TAG_NAME: ${{ steps.tag.outputs.name }}
+        run: |
+          {
+            echo "## Release ${TAG_NAME} uitgebracht"
+            echo
+            echo "Alle guards zijn geslaagd, de tag staat op main en \`release.yaml\` is gestart."
+          } >> "$GITHUB_STEP_SUMMARY"

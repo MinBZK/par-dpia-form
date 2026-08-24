@@ -15,6 +15,12 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Let a release age before adopting it: a compromised npm publish is
+    # usually caught within days. Security updates ignore the cooldown, so a
+    # patch for a known vulnerability still arrives immediately.
+    cooldown:
+      default-days: 3
+      semver-major-days: 7
     groups:
       npm-dependencies:
         patterns:
@@ -34,14 +40,16 @@ updates:
         patterns:
           - "*"
 
-  # Container base images — one entry covers every Containerfile directory
+  # Container base images — one entry covers every Containerfile directory.
+  # Daily, unlike the rest: a base image digest is how OS-level patches reach
+  # us, and the image scan blocks merges on exactly those findings.
   - package-ecosystem: "docker"
     directories:
       - "/containers/backend"
       - "/containers/frontend"
       - "/containers/standalone"
     schedule:
-      interval: "weekly"
+      interval: "daily"
     groups:
       container-images:
         patterns:

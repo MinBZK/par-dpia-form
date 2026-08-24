@@ -1,31 +1,44 @@
 import Fastify, { type FastifyInstance } from 'fastify'
+import compress from '@fastify/compress'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
 import swagger from '@fastify/swagger'
 import swaggerUi from '@fastify/swagger-ui'
 import { config } from './config.js'
+import { verifyBearer } from './middleware/auth.js'
 import { projectRoutes } from './routes/projects.js'
 import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
 import { commentRoutes } from './routes/comments.js'
 import { syncRoutes } from './routes/sync.js'
+import { securityTxt } from './utils/securityTxt.js'
 
 export const API_VERSION = '1.0.0'
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    /** Flip the readiness probe to 503 ahead of a graceful shutdown. */
+    beginShutdown: () => void
+  }
+}
 
 export interface BuildAppOptions {
   logger?: boolean
   /** Expose Swagger UI + /api/openapi.json. Defaults to config.exposeApiDocs. */
   exposeApiDocs?: boolean
-  /** Fastify trustProxy value (proxy CIDR / hop count). Defaults to config.trustProxy. */
-  trustProxy?: string | boolean | number
+  /** Fastify trustProxy value (proxy CIDR or named range). Defaults to config.trustProxy. */
+  trustProxy?: string | boolean
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
   const exposeApiDocs = options.exposeApiDocs ?? config.exposeApiDocs
   const app = Fastify({
     logger: options.logger ?? true,
-    bodyLimit: 25 * 1024 * 1024, // 25 MB — assessments with embedded images can be large
+    // Small by default so a new route cannot inherit a 25 MB parse budget by
+    // accident. The two routes that carry an assessment state raise it
+    // themselves (STATE_BODY_LIMIT); everything else sends a handful of fields.
+    bodyLimit: 64 * 1024,
     // Trust the proxy hop so req.ip is the real client (rate limiting); see config.ts.
     trustProxy: options.trustProxy ?? config.trustProxy,
   })
@@ -34,8 +47,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
         connectSrc: ["'self'"],
         frameAncestors: ["'none'"],
@@ -44,7 +57,22 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   })
 
   await app.register(cors, config.cors)
-  await app.register(rateLimit, { max: 300, timeWindow: '1 minute' })
+  // Responses only. The plugin's request-decompression hook is on by default and
+  // would let a few kB of gzip inflate to the full route bodyLimit, turning the
+  // expensive save/export routes into a cheap amplification target.
+  await app.register(compress, { global: true, globalDecompression: false })
+  // The key decides the bucket and the budget: a request whose token verifies gets
+  // its own per-user bucket, anything else shares a per-IP one. Verifying here (on
+  // onRequest, before requireAuth exists) is what makes that safe: the payload is
+  // memoised, so requireAuth does not verify a second time.
+  await app.register(rateLimit, {
+    timeWindow: '1 minute',
+    keyGenerator: async (request) => {
+      const verified = await verifyBearer(request)
+      return verified.ok ? `user:${verified.payload.sub}` : `ip:${request.ip}`
+    },
+    max: (_request, key) => (key.startsWith('user:') ? config.rateLimit.userMax : config.rateLimit.max),
+  })
 
   if (exposeApiDocs) await app.register(swagger, {
     openapi: {
@@ -74,7 +102,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         },
         responses: {
           TooManyRequests: {
-            description: 'Rate limit overschreden (max 300 requests per minuut)',
+            description: 'Rate limit overschreden. Geauthenticeerde verzoeken tellen per ingelogde gebruiker, overige per IP-adres.',
             content: {
               'application/problem+json': {
                 schema: {
@@ -99,7 +127,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
               },
               'X-RateLimit-Limit': {
                 description: 'Maximum aantal requests per tijdvenster',
-                schema: { type: 'integer', example: 300 },
+                schema: { type: 'integer', example: 1000 },
               },
               'X-RateLimit-Remaining': {
                 description: 'Resterend aantal requests in huidig tijdvenster',
@@ -153,6 +181,18 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
       })
     }
 
+    // Fastify's own message is English and says nothing about the cause. The
+    // only unbounded thing a client can send is images, so name them.
+    if (status === 413) {
+      return reply.status(413).type('application/problem+json').send({
+        type: 'https://httpproblems.com/http-status/413',
+        title: 'Verzoek te groot',
+        status: 413,
+        detail: 'Het verzoek is te groot om te verwerken. Dit komt meestal door afbeeldingen: verwijder er een of gebruik een kleiner bestand.',
+        instance: request.url,
+      })
+    }
+
     app.log.error(error)
     return reply.status(status).type('application/problem+json').send({
       type: `https://httpproblems.com/http-status/${status}`,
@@ -169,15 +209,26 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
 
-  app.get('/api/health', { schema: { hide: true } }, async () => ({
-    status: 'ok',
-    apiVersion: API_VERSION,
-    version: process.env.APP_VERSION || 'dev',
-    commit: (process.env.APP_COMMIT || 'dev').slice(0, 7),
-  }))
+  // Readiness: reports 503 once beginShutdown() has been called, so Kubernetes
+  // stops routing new traffic here before the server actually closes.
+  let shuttingDown = false
+  app.decorate('beginShutdown', () => {
+    shuttingDown = true
+  })
 
+  app.get('/api/health', { schema: { hide: true } }, async (_request, reply) => {
+    if (shuttingDown) reply.status(503)
+    return {
+      status: shuttingDown ? 'shutting_down' : 'ok',
+      apiVersion: API_VERSION,
+      version: process.env.APP_VERSION || 'dev',
+      commit: (process.env.APP_COMMIT || 'dev').slice(0, 7),
+    }
+  })
+
+  // Rendered once at import time from the shared template (see securityTxt.ts).
   app.get('/.well-known/security.txt', { schema: { hide: true } }, async (_request, reply) => {
-    return reply.redirect('https://www.ncsc.nl/.well-known/security.txt', 301)
+    return reply.type('text/plain; charset=utf-8').send(securityTxt)
   })
 
   if (exposeApiDocs) {

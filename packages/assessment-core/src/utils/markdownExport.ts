@@ -1,7 +1,7 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType, type ImageValue, isImageValue } from '../stores/answers'
 import { FormType } from '../models/dpia'
-import { getPlainTextWithoutDefinitions } from './stripHtml'
+import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
@@ -271,7 +271,7 @@ function formatAnswerValue(value: unknown): string {
   if (value === 'true') return 'Ja'
   if (value === 'false') return 'Nee'
   if (value === 'null') return '*Niet ingevuld*'
-  return String(value)
+  return withoutDefinitionMarkup(String(value))
 }
 
 function downloadFile(content: string, filename: string, mimeType: string) {

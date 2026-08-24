@@ -1,7 +1,20 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import { FormType, type NavigationFunctions } from '@overheid-assessment/core'
 import LandingView from '@/components/LandingView.vue'
+
+// ConfirmDialog uses native <dialog>.showModal(), which jsdom lacks.
+beforeAll(() => {
+  const proto = (globalThis as unknown as { HTMLDialogElement: typeof HTMLDialogElement })
+    .HTMLDialogElement.prototype as HTMLDialogElement & { showModal: () => void; close: () => void }
+  proto.showModal = function (this: HTMLDialogElement) {
+    this.setAttribute('open', '')
+  }
+  proto.close = function (this: HTMLDialogElement) {
+    this.removeAttribute('open')
+    this.dispatchEvent(new Event('close'))
+  }
+})
 
 function makeNavigation(): NavigationFunctions {
   return {
@@ -177,41 +190,41 @@ describe('LandingView cached-session choice (#322)', () => {
   it('"Start nieuwe DPIA" opens a type-specific confirmation and emits startFresh on confirm', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
 
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
 
     await clickButtonByText(wrapper, 'Start nieuwe DPIA')
-    const dialog = wrapper.find('[role="dialog"]')
+    const dialog = wrapper.find('dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.text()).toContain('Nieuwe DPIA starten?')
 
     await clickButtonByText(wrapper, 'Ja, start nieuwe DPIA')
 
     expect(wrapper.emitted('startFresh')).toEqual([[FormType.DPIA]])
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 
   it('closes the confirmation without emitting when cancelled', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.PRE_SCAN] })
 
     await clickButtonByText(wrapper, 'Start nieuwe pre-scan')
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('dialog').exists()).toBe(true)
 
     await clickButtonByText(wrapper, 'Annuleren')
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 
   it('closes the confirmation when the backdrop is clicked', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.IAMA] })
 
     await clickButtonByText(wrapper, 'Start nieuwe IAMA')
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('dialog').exists()).toBe(true)
 
-    await wrapper.find('.fresh-confirm-overlay').trigger('click')
+    await wrapper.find('dialog').trigger('click')
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 })
 
@@ -312,5 +325,43 @@ describe('LandingView offline HTML download', () => {
     await flushPromises()
 
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+  })
+})
+
+describe('LandingView wis alle opgeslagen gegevens', () => {
+  it('shows nothing when the browser holds no saved answers', () => {
+    const wrapper = mountLanding({ cachedTypes: [] })
+    expect(wrapper.text()).not.toContain('Opgeslagen gegevens wissen')
+  })
+
+  it('names the single assessment that has saved answers', () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+    expect(wrapper.text()).toContain('antwoorden van je DPIA opgeslagen')
+  })
+
+  it('lists several assessments as a readable enumeration', () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA] })
+    expect(wrapper.text()).toContain('Pre-scan, DPIA en IAMA')
+  })
+
+  it('emits clearAll only after the confirmation', async () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+
+    await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
+    expect(wrapper.emitted('clearAll')).toBeUndefined()
+    expect(wrapper.text()).toContain('Alle opgeslagen gegevens wissen?')
+
+    await clickButtonByText(wrapper, 'Ja, wis alles')
+    expect(wrapper.emitted('clearAll')).toHaveLength(1)
+  })
+
+  it('cancels without emitting', async () => {
+    const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
+
+    await clickButtonByText(wrapper, 'Wis alle opgeslagen gegevens')
+    await clickButtonByText(wrapper, 'Annuleren')
+
+    expect(wrapper.emitted('clearAll')).toBeUndefined()
+    expect(wrapper.text()).not.toContain('Alle opgeslagen gegevens wissen?')
   })
 })

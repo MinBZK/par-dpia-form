@@ -1,13 +1,21 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
 import { assessmentInstances, assessmentVersions, assessmentEdits, users } from '../db/schema.js'
-import { eq, and, desc, asc } from 'drizzle-orm'
+import { eq, and, desc, asc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { diffStates } from '../utils/diffStates.js'
 import { rebuildState } from '../utils/rebuildState.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
+import { stripUnknownStateKeys } from '../utils/sanitizeState.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+import { assessmentParams, assessmentVersionParams, dutchSchemaErrorFormatter, STATE_BODY_LIMIT } from '../utils/routeSchemas.js'
+
+// Generous page-size caps: normal histories fit in one page, but the result set
+// can never grow unbounded. Edits are the largest (one row per changed field).
+const VERSIONS_PAGE = { defaultSize: 100, maxSize: 500 }
+const EDITS_PAGE = { defaultSize: 500, maxSize: 2000 }
 
 // Sentinel to trigger transaction rollback when a concurrent write wins the
 // optimistic-lock race (conditional UPDATE affected 0 rows).
@@ -19,12 +27,14 @@ class OptimisticLockError extends Error {
 }
 
 export async function assessmentRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   app.addHook('preHandler', requireAuth)
 
   // Get an assessment instance
   app.get<{
     Params: { assessmentId: string }
-  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', { schema: { tags: ['assessments'], params: assessmentParams } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply, { includeState: true })
     if (!result) return
@@ -36,14 +46,32 @@ export async function assessmentRoutes(app: FastifyInstance) {
   app.put<{
     Params: { assessmentId: string }
     Body: { state?: unknown; changeDescription?: string; name?: string; expectedVersion?: number; newVersion?: boolean }
-  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', {
+    bodyLimit: STATE_BODY_LIMIT,
+    schema: {
+      tags: ['assessments'],
+      params: assessmentParams,
+      body: {
+        type: 'object',
+        properties: {
+          state: { type: 'object' },
+          changeDescription: { type: 'string', maxLength: 2000 },
+          name: { type: 'string', minLength: 1, maxLength: 200 },
+          expectedVersion: { type: 'integer', minimum: 1 },
+          newVersion: { type: 'boolean' },
+        },
+        additionalProperties: false,
+      },
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const { state, changeDescription, name, expectedVersion, newVersion: forceNewVersion } = request.body
     const userId = request.user!.id
 
-    // Restore actions (newVersion + changeDescription) require owner role
-    const isRestore = forceNewVersion && changeDescription
-    const minimumRole = isRestore ? 'owner' as const : 'editor' as const
+    // newVersion mints a version row on demand, including an empty one when the
+    // diff is empty. That is unbounded, so the flag is owner-gated on its own
+    // and not only in combination with changeDescription (a restore).
+    const minimumRole = forceNewVersion ? 'owner' as const : 'editor' as const
     const result = await requireAssessmentAccess(assessmentId, userId, minimumRole, request.url, reply, { includeState: true })
     if (!result) return
     const { assessment } = result
@@ -78,7 +106,14 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
     }
 
-    const stateValidation = validateState(state)
+    // Strip before validating, never reject: a legacy row can still carry keys
+    // the v2 schema dropped, and its owner must stay able to save.
+    const { state: cleanState, dropped } = stripUnknownStateKeys(state)
+    if (dropped.length > 0) {
+      request.log.warn({ dropped }, 'Assessment state carried keys the schema does not define')
+    }
+
+    const stateValidation = validateState(cleanState)
     if (!stateValidation.valid) {
       request.log.warn({ errors: stateValidation.errors }, 'Assessment state rejected: schema validation failed')
       return reply.status(400).type('application/problem+json').send({
@@ -118,7 +153,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     // Diff against cachedState (no extra query needed)
     const previousState = assessment.cachedState
     const edits = previousState
-      ? diffStates(previousState, state, userId)
+      ? diffStates(previousState, cleanState, userId)
       : []
 
     // No content changes: update cachedState only (saves UI-state like
@@ -127,11 +162,11 @@ export async function assessmentRoutes(app: FastifyInstance) {
     // Gated on !forceNewVersion (not !changeDescription): a changeDescription
     // alone must NOT mint an empty version row — that is unbounded, so an
     // explicit empty checkpoint must go through forceNewVersion, which is
-    // owner-gated (isRestore).
+    // owner-gated above.
     if (previousState && edits.length === 0 && !forceNewVersion) {
       await db
         .update(assessmentInstances)
-        .set({ cachedState: state, updatedAt: new Date() })
+        .set({ cachedState: cleanState, updatedAt: new Date() })
         .where(eq(assessmentInstances.id, assessmentId))
       return assessment
     }
@@ -163,7 +198,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
         // Conditional UPDATE first: it gates the version/edit writes below.
         const updateData: Record<string, unknown> = {
           currentVersion: nextVersion,
-          cachedState: state,
+          cachedState: cleanState,
           updatedAt: new Date(),
         }
         if (name) updateData.name = name
@@ -238,7 +273,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Delete assessment
   app.delete<{
     Params: { assessmentId: string }
-  }>('/:assessmentId', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+  }>('/:assessmentId', { schema: { tags: ['assessments'], params: assessmentParams } }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'owner', request.url, reply)
     if (!result) return
@@ -250,10 +285,25 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get version history
   app.get<{
     Params: { assessmentId: string }
-  }>('/:assessmentId/versions', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    Querystring: PageQuery
+  }>('/:assessmentId/versions', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Versiegeschiedenis van een assessment (gepagineerd). Het totale aantal versies staat in de X-Total-Count response-header.',
+      params: assessmentParams,
+      querystring: pageQuerySchema(VERSIONS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
+
+    const { limit, offset } = parsePagination(request.query, VERSIONS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentVersions)
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
+    reply.header('X-Total-Count', total)
 
     const versions = await db
       .select({
@@ -269,17 +319,20 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .innerJoin(users, eq(assessmentVersions.createdBy, users.id))
       .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentVersions.version))
+      .limit(limit)
+      .offset(offset)
 
     return versions
   })
 
   // Get specific version
   app.get<{
-    Params: { assessmentId: string; version: string }
+    Params: { assessmentId: string; version: number }
     Querystring: { includeState?: string }
-  }>('/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
-    const { assessmentId, version } = request.params
-    const versionNum = parseInt(version, 10)
+  }>('/:assessmentId/versions/:version', {
+    schema: { tags: ['assessments'], params: assessmentVersionParams },
+  }, async (request, reply) => {
+    const { assessmentId, version: versionNum } = request.params
     const includeState = request.query.includeState === 'true'
 
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
@@ -314,7 +367,9 @@ export async function assessmentRoutes(app: FastifyInstance) {
     }
 
     if (includeState) {
-      const state = await rebuildState(assessmentId, versionNum)
+      // A version older than the current one is frozen, so its rebuild is cacheable.
+      const immutable = versionNum < result.assessment.currentVersion
+      const state = await rebuildState(assessmentId, versionNum, { immutable })
       return { ...versionData, state }
     }
 
@@ -323,10 +378,17 @@ export async function assessmentRoutes(app: FastifyInstance) {
 
   // Get edits for a specific version
   app.get<{
-    Params: { assessmentId: string; version: string }
-  }>('/:assessmentId/versions/:version/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
-    const { assessmentId, version } = request.params
-    const versionNum = parseInt(version, 10)
+    Params: { assessmentId: string; version: number }
+    Querystring: PageQuery
+  }>('/:assessmentId/versions/:version/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Veldwijzigingen van één versie (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      params: assessmentVersionParams,
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
+    const { assessmentId, version: versionNum } = request.params
 
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
@@ -352,6 +414,13 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
     }
 
+    const { limit, offset } = parsePagination(request.query, EDITS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentEdits)
+      .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
+    reply.header('X-Total-Count', total)
+
     const edits = await db
       .select({
         id: assessmentEdits.id,
@@ -364,19 +433,32 @@ export async function assessmentRoutes(app: FastifyInstance) {
       })
       .from(assessmentEdits)
       .where(eq(assessmentEdits.assessmentVersionId, versionRow.id))
-      .orderBy(asc(assessmentEdits.editedAt))
+      .orderBy(asc(assessmentEdits.editedAt), asc(assessmentEdits.id))
+      .limit(limit)
+      .offset(offset)
 
     return edits.map(edit => ({ ...edit, version: versionNum }))
   })
 
   // Update version description
   app.patch<{
-    Params: { assessmentId: string; version: string }
-    Body: { changeDescription: string }
-  }>('/:assessmentId/versions/:version', { schema: { tags: ['assessments'] } }, async (request, reply) => {
-    const { assessmentId, version } = request.params
+    Params: { assessmentId: string; version: number }
+    Body: { changeDescription?: string | null }
+  }>('/:assessmentId/versions/:version', {
+    schema: {
+      tags: ['assessments'],
+      params: assessmentVersionParams,
+      body: {
+        type: 'object',
+        properties: {
+          changeDescription: { type: ['string', 'null'], maxLength: 2000 },
+        },
+        additionalProperties: false,
+      },
+    },
+  }, async (request, reply) => {
+    const { assessmentId, version: versionNum } = request.params
     const { changeDescription } = request.body
-    const versionNum = parseInt(version, 10)
 
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'editor', request.url, reply)
     if (!result) return
@@ -408,10 +490,26 @@ export async function assessmentRoutes(app: FastifyInstance) {
   // Get edit audit log
   app.get<{
     Params: { assessmentId: string }
-  }>('/:assessmentId/edits', { schema: { tags: ['assessments'] } }, async (request, reply) => {
+    Querystring: PageQuery
+  }>('/:assessmentId/edits', {
+    schema: {
+      tags: ['assessments'],
+      description: 'Volledig wijzigingslogboek van een assessment (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      params: assessmentParams,
+      querystring: pageQuerySchema(EDITS_PAGE),
+    },
+  }, async (request, reply) => {
     const { assessmentId } = request.params
     const result = await requireAssessmentAccess(assessmentId, request.user!.id, 'viewer', request.url, reply)
     if (!result) return
+
+    const { limit, offset } = parsePagination(request.query, EDITS_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(assessmentEdits)
+      .innerJoin(assessmentVersions, eq(assessmentEdits.assessmentVersionId, assessmentVersions.id))
+      .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
+    reply.header('X-Total-Count', total)
 
     const edits = await db
       .select()
@@ -419,6 +517,8 @@ export async function assessmentRoutes(app: FastifyInstance) {
       .innerJoin(assessmentVersions, eq(assessmentEdits.assessmentVersionId, assessmentVersions.id))
       .where(eq(assessmentVersions.assessmentInstanceId, assessmentId))
       .orderBy(desc(assessmentEdits.editedAt))
+      .limit(limit)
+      .offset(offset)
 
     return edits
   })

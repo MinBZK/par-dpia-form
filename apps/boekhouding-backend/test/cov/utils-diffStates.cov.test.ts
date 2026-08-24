@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { parseInstanceId, buildFieldUrn, diffStates } from '../../src/utils/diffStates.js'
+import { diffStates } from '../../src/utils/diffStates.js'
+import { parseInstanceId, buildFieldUrn } from '../../src/utils/fieldId.js'
 import type { EditRecord } from '../../src/utils/diffStates.js'
 
 const URN = 'urn:nl:dpia:3.0'

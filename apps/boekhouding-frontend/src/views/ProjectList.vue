@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { projects as projectsApi, type Project } from '../api'
+import { ApiError, projects as projectsApi, type Project } from '../api'
+import { usePaginatedList } from '../composables/usePaginatedList'
 import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconPlus } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 
 const router = useRouter()
-const projectList = ref<Project[]>([])
+const {
+  items: projectList, loadingMore, loadError, loadStatus, statusRef,
+  hasMore, nextBatchSize, loadFirst, loadMore,
+} = usePaginatedList<Project>((page, pageSize) => projectsApi.list(page, pageSize), (p) => p.id)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const showCreateForm = ref(false)
@@ -16,9 +20,14 @@ const newProjectDescription = ref('')
 
 onMounted(async () => {
   try {
-    projectList.value = await projectsApi.list()
-  } catch {
-    error.value = 'Kan projecten niet laden. Probeer het later opnieuw.'
+    await loadFirst()
+  } catch (e) {
+    // This list only contains your own projects, so a 403 here is about the
+    // account rather than one project. Retrying will not fix that, so show what
+    // the server says instead of advising a retry.
+    error.value = e instanceof ApiError && e.status === 403
+      ? e.message
+      : 'Kan projecten niet laden. Probeer het later opnieuw.'
   } finally {
     loading.value = false
   }
@@ -67,13 +76,25 @@ const handleCreate = async () => {
         </router-link>
       </div>
 
-      <div v-if="!showCreateForm">
+      <div v-if="hasMore" class="version-list__more">
+        <button
+          class="rvo-button rvo-button--secondary rvo-button--size-sm"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          Laad de volgende {{ nextBatchSize }} projecten
+        </button>
+      </div>
+      <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
+      <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
+
+      <div v-if="!showCreateForm" class="rvo-margin-block-end--2xl">
         <button class="rvo-button rvo-button--primary rvo-button--size-md rvo-button--icon-before" @click="showCreateForm = true">
           <IconPlus :size="20" /> Nieuw project
         </button>
       </div>
 
-      <form v-else @submit.prevent="handleCreate" class="rvo-margin-block-start--md">
+      <form v-else @submit.prevent="handleCreate" class="rvo-margin-block-start--md rvo-margin-block-end--2xl">
         <h2 class="utrecht-heading-2">Nieuw project</h2>
         <div class="rvo-form-field rvo-margin-block-end--md">
           <label class="rvo-form-field__label" for="projectName">Naam</label>

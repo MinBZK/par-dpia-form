@@ -20,7 +20,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Link Checker
         id: lychee
@@ -32,10 +32,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Target specific files and improve the arguments.
-          # open.overheid.nl serves an incomplete TLS chain (leaf from
-          # DigiCert, intermediates still from certSIGN), so lychee cannot
-          # verify it. Review the exclusions periodically.
+          # Every exclusion below is one CI cannot resolve on principle, not
+          # one that is merely inconvenient: intranet and container-internal
+          # hosts, ../../issues links that only resolve in the GitHub UI, a
+          # template literal, and the schema blob that does not exist on main
+          # until the PR adding it is merged. Review the list per issue #443.
           args: &lychee_args >-
             --verbose
             --no-progress
@@ -45,11 +46,8 @@ jobs:
             --retry-wait-time 2
             --exclude-loopback
             --exclude "file:///.*/issues.*"
-            --exclude "file:///home/runner/work/.*"
             --exclude "https://rijksportaal.overheid-i.nl/.*"
-            --exclude "https://open.overheid.nl/.*"
-            --exclude "https://www.npmjs.com/.*"
-            --exclude "https://httpproblems.com/.*"
+            --exclude 'httpproblems\.com/http-status/\$%7Bstatus%7D'
             --exclude "^http://(keycloak|backend|postgres):[0-9]+"
             --exclude "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/.*"
             --exclude-path '/test/'
@@ -58,8 +56,10 @@ jobs:
             '**/*.md'
             '**/*.ts'
             '**/*.vue'
-          # Output file for creating issues
-          output: ./lychee/out.md
+            'containers/security.txt.template'
+          # Outside the workspace: inside it, the retry attempt below picks
+          # the report up again as one of its own **/*.md inputs.
+          output: ${{ runner.temp }}/lychee-out.md
           # Fail if any link is broken
           fail: true
 
@@ -71,12 +71,29 @@ jobs:
       - name: Link Checker (retry)
         id: lychee_retry
         if: steps.lychee.outcome == 'failure'
+        continue-on-error: true
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: *lychee_args
-          output: ./lychee/out.md
+          output: ${{ runner.temp }}/lychee-out.md
+          fail: true
+
+      # Longer cool-down before the final attempt: bot-block windows (403 from
+      # e.g. wetten.overheid.nl) outlast the 30 s pause above.
+      - name: Wait before final link-check attempt
+        if: steps.lychee_retry.outcome == 'failure'
+        run: sleep 300
+
+      - name: Link Checker (final attempt)
+        if: steps.lychee_retry.outcome == 'failure'
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: *lychee_args
+          output: ${{ runner.temp }}/lychee-out.md
           fail: true
 
       - name: Update or create the broken-links issue (schedule/manual only)
@@ -86,11 +103,11 @@ jobs:
         run: |
           existing=$(gh issue list --label broken-links --state open --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
-            gh issue edit "$existing" --body-file ./lychee/out.md
+            gh issue edit "$existing" --body-file "$RUNNER_TEMP/lychee-out.md"
           else
             # gh issue create needs the label to exist; ensure it idempotently.
             gh label create broken-links --color ededed --description "Automatically detected broken links" 2>/dev/null || true
-            gh issue create --title "Broken links detected" --body-file ./lychee/out.md --label broken-links
+            gh issue create --title "Broken links detected" --body-file "$RUNNER_TEMP/lychee-out.md" --label broken-links
           fi
 
   sync-begrippenkader-dpia:
@@ -104,12 +121,16 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Download YAML file
         run: |
-          curl -s https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml -o sources/begrippenkader_dpia.yaml
+          # -f: fail (no file written) on HTTP >= 400 so an error page is never
+          # committed as if it were the begrippenkader. --retry rides out flaky 5xx.
+          curl -fsS --retry 3 --retry-delay 2 \
+            https://modellen.jenvgegevens.nl/dpia/begrippenkader-dpia.yaml \
+            -o sources/begrippenkader_dpia.yaml
       - name: Check for changes
         id: git-check
         run: |
@@ -163,11 +184,11 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
       - name: Set up uv
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: '3.14'
           enable-cache: true

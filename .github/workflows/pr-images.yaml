@@ -1,0 +1,121 @@
+name: PR images
+
+# Every pull request builds and scans both images, including bot and fork ones.
+# Publishing to GHCR and deploying a preview happen on top of that same build
+# and only when the `preview` label is present, so anything that reaches the
+# registry has passed the scan.
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+      - closed
+
+# A label event that is not about previews does no work. Giving those runs a
+# group of their own keeps them from cancelling a run that does: Dependabot
+# labels its pull requests the moment it opens them, which cancelled the very
+# build-and-scan run the label event then skipped.
+concurrency:
+  group: pr-images-${{ github.event.pull_request.number }}-${{ (github.event.action == 'labeled' || github.event.action == 'unlabeled') && github.event.label.name != 'preview' && github.run_id || 'shared' }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_ID: asses-k2n
+  DEPLOYMENT_CLONE_FROM: acceptatie
+
+jobs:
+  # A preview is opt-in per PR: it appears when the `preview` label is added and
+  # disappears when the label is removed or the PR closes. Adding the label is
+  # the only way in, so an unattended PR never holds pods and database
+  # connections. Fork and bot PRs are scanned but never published: they have no
+  # access to ZAD_API_KEY or GHCR push.
+  images:
+    if: >-
+      github.event.action == 'opened' ||
+      github.event.action == 'reopened' ||
+      github.event.action == 'synchronize' ||
+      (github.event.action == 'labeled' && github.event.label.name == 'preview')
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/_build-images.yaml
+    with:
+      frontend-image: ghcr.io/minbzk/par-dpia-form/preview/frontend
+      backend-image: ghcr.io/minbzk/par-dpia-form/preview/backend
+      tag-prefix: pr-${{ github.event.pull_request.number }}-
+      publish: ${{ github.event.pull_request.user.type != 'Bot' && github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'preview') }}
+
+  deploy-preview:
+    # The image refs are empty unless the images were published, which makes
+    # this the same gate as the `publish` input without restating it.
+    needs: images
+    if: needs.images.outputs.frontend-image != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      deployments: write
+    environment:
+      name: pr-${{ github.event.pull_request.number }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - id: deploy
+        uses: RijksICTGilde/zad-actions/deploy@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          clone-from: ${{ env.DEPLOYMENT_CLONE_FROM }}
+          # clone-from does not copy this, and the platform default moves.
+          domain-format: deployment-project
+          comment-on-pr: 'true'
+          wait-for-ready: 'true'
+          health-endpoint: /api/health
+          components: >-
+            [
+              {"name": "frontend", "image": "${{ needs.images.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.images.outputs.backend-image }}"}
+            ]
+
+  cleanup-preview:
+    if: >-
+      github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'unlabeled' && github.event.label.name == 'preview') ||
+        (github.event.action == 'closed' &&
+         contains(github.event.pull_request.labels.*.name, 'preview'))
+      )
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
+      deployments: write
+    steps:
+      - uses: RijksICTGilde/zad-actions/cleanup@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
+        with:
+          api-key: ${{ secrets.ZAD_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: pr-${{ github.event.pull_request.number }}
+          delete-github-deployments: 'true'
+          delete-pr-comment: 'true'
+      - name: Delete this PR's preview container images
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_TAG: pr-${{ github.event.pull_request.number }}
+        run: |
+          for pkg in preview/frontend preview/backend; do
+            enc="par-dpia-form%2F${pkg/\//%2F}"
+            gh api --paginate "/orgs/minbzk/packages/container/${enc}/versions" \
+              --jq ".[] | select(.metadata.container.tags[] | startswith(\"${PR_TAG}-\")) | .id" \
+              | while read -r id; do
+                  gh api -X DELETE "/orgs/minbzk/packages/container/${enc}/versions/${id}" || true
+                done
+          done

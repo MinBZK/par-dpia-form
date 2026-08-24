@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
-import { TaskTypeValue } from '../../models/dpia'
+import { type Option, TaskTypeValue } from '../../models/dpia'
 import { useAnswerStore } from '../../stores/answers'
 import { type FlatTask } from '../../stores/tasks'
 import { useTaskStore } from '../../stores/tasks'
@@ -107,6 +107,11 @@ const currentValue = computed(() => {
 
 function safeString(value: string | boolean | null): string {
   return value !== null ? String(value) : ''
+}
+
+// The label carries the definition markup; the value stays the stored answer.
+function optionLabel(option: Option): string {
+  return option.label ?? safeString(option.value)
 }
 
 const hasType = (typeToCheck: TaskTypeValue): boolean => {
@@ -257,7 +262,7 @@ const handleCheckboxInput = (event: Event) => {
           <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
             :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
             class="utrecht-radio-button" @change="handleRadioInput" />
-          <span v-html="option.label"></span>
+          <span v-html="optionLabel(option)"></span>
         </label>
       </div>
     </div>
@@ -318,7 +323,7 @@ const handleCheckboxInput = (event: Event) => {
             :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
             :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
             type="checkbox" />
-          <span v-html="option.value"></span>
+          <span v-html="optionLabel(option)"></span>
         </label>
       </div>
     </div>

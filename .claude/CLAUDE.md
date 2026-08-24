@@ -23,6 +23,12 @@ pnpm monorepo met workspaces:
 - Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan als Vite ze niet resolved via de workspace-link. In de container-omgeving worden ze automatisch mee-geïnstalleerd via `pnpm install`.
 - Geen eenregelige wrapper-functies — roep de oorspronkelijke functie direct aan
 
+## Pull requests
+
+Weeg bij elke PR af of `CHANGELOG.md` bijgewerkt moet worden. Meestal wel. Voeg toe onder `## [Unreleased]`, in de bestaande secties (`Toegevoegd` / `Gewijzigd` / `Opgelost` / `Beveiliging` / `Onder de motorkap`). Schrijf voor gebruikers van de invulhulp: wat merken zij ervan, niet welke functie is aangepast. Puur technische wijzigingen gaan kort onder "Onder de motorkap".
+
+Overslaan mag bij uitzondering, en dan bewust: een wijziging die niemand buiten de repo merkt (losse dependency-bump zonder gedragsverandering, typo in een comment, testonderhoud). Bij twijfel: wel opnemen.
+
 ## Ontwikkelen
 
 ```bash
@@ -44,17 +50,17 @@ pnpm dev
 podman compose -f containers/compose.dev.yaml -f containers/compose.override.yaml up -d
 ```
 
-Let op: compose voegt lijsten **samen** in plaats van te vervangen. Alleen een override met `ports: - "5433:5432"` levert zowel `5432:5432` als `5433:5432` op (en faalt als 5432 bezet is). Gebruik de YAML-tag `!reset` om de lijst eerst leeg te maken:
+Let op: compose voegt lijsten **samen** in plaats van te vervangen. Alleen een override met `ports: - "5433:5432"` levert zowel `5432:5432` als `5433:5432` op (en faalt als 5432 bezet is). Gebruik de YAML-tag `!override` om de lijst te **vervangen** (en `!reset []` om 'm leeg te maken). Let op: `!reset` gevolgd door lijst-items doet niet wat je zou denken: de docker-compose-provider wist de lijst én negeert de opgegeven items. Gebruik daar dus `!override`:
 
 ```yaml
 services:
   postgres:
-    ports: !reset
+    ports: !override
       - "5433:5432"
   keycloak:
     ports: !reset []     # niet rechtstreeks exposen; via reverse proxy
   backend:
-    ports: !reset
+    ports: !override
       - "3001:3000"
 ```
 
@@ -74,6 +80,7 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - API-routes onder `/api/v1/` (NL GOV API Design Rules: major versie in URI-pad)
 - Foutresponses: `application/problem+json` (RFC 9457)
 - Security: `@fastify/helmet` (security headers), `@fastify/rate-limit`, `API-Version` response header
+- Env-variabelen, de schaalgrenzen en het DB-connectiebudget staan in `apps/boekhouding-backend/README.md`
 
 ## Frontend
 
@@ -136,11 +143,11 @@ Elke workspace test met **Vitest**. Scripts per workspace: `test` (`vitest run`)
 - CI: GitHub Actions workflows in `.github/workflows/` (main is leidend; zie `docs/deployment.md`):
   - `deploy-acceptatie.yaml` — bouwt frontend + backend containers → GHCR en werkt ZAD-deployment `acceptatie` bij (push naar main)
   - `deploy-productie.yaml` — promoot de acceptatie-images naar de CalVer-tag (geen rebuild) en werkt ZAD-deployment `productie` bij; `workflow_dispatch`-only, gestart door `release.yaml` (of handmatig)
-  - `deploy-preview.yaml` — preview-omgeving per PR naar main (kloon van `acceptatie`)
+  - `pr-images.yaml` — bouwt en scant beide images op elke PR naar main; publiceert naar GHCR en zet een preview-omgeving op (kloon van `acceptatie`) alleen bij het label `preview`
   - `release.yaml` — bij een CalVer-tag: maakt de GitHub-release (changelog-notes), start daarna `deploy-productie`, en hangt het standalone formulier (offline single-file) als release-asset aan
   - `build-standalone.yaml` — bouwt standalone formulier als artifact (main branch)
   - `test.yaml` — type-check, tests én coverage (100%-drempel over alle workspaces; Postgres-service voor backend-integratietests)
-- GHCR images: `ghcr.io/minbzk/par-dpia-form/dev/frontend` en `dev/backend` (publiek leesbaar)
+- GHCR images: `ghcr.io/minbzk/par-dpia-form/frontend` en `/backend` (publiek leesbaar); previews onder `preview/`
 
 ## Assessment state format
 

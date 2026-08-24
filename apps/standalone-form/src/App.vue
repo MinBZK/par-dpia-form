@@ -83,6 +83,12 @@ const startFresh = (type: FormType) => {
   goByType[type]()
 }
 
+// Wiping every namespace at once, for someone leaving a shared computer.
+const clearAll = () => {
+  ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
+  refreshCachedTypes()
+}
+
 // Resuming (saved state present) jumps straight into the form; a fresh start
 // shows the intro/upload page. clearSavedState() runs before navigation, so
 // this reflects the right intent at mount time.
@@ -96,6 +102,7 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
     :navigation="navigationFunctions"
     :cached-types="cachedTypes"
     @start-fresh="startFresh"
+    @clear-all="clearAll"
   />
 
   <!-- DPIA Form -->

@@ -1,4 +1,5 @@
 {
+  "_public": "This configuration is public by design (OIDC discovery data, no secrets). See https://github.com/MinBZK/par-dpia-form/blob/main/SECURITY.md#known-non-findings",
   "keycloakUrl": "${OIDC_URL}",
   "keycloakRealm": "${OIDC_REALM}",
   "keycloakClientId": "${OIDC_PUBLIC_CLIENT_ID}",

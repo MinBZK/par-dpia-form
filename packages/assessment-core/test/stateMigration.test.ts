@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
-import { migrateStateV1toV2 } from '../src/utils/stateMigration'
+import { migrateOptionValueAnswers, migrateStateV1toV2 } from '../src/utils/stateMigration'
 import { OUTPUT_SCHEMA_URL, type AssessmentState } from '../src/models/assessmentState'
+import type { Answer } from '../src/stores/answers'
+import type { FlatTask } from '../src/stores/tasks'
 
 const urnLookup: Record<string, string> = {
   dpia: 'urn:nl:dpia:3.0',
@@ -412,5 +414,77 @@ describe('migrateStateV1toV2', () => {
       const result = migrateStateV1toV2(cleanV2, urnLookup)
       expect(result).toBe(cleanV2)
     })
+  })
+})
+
+describe('migrateOptionValueAnswers', () => {
+  const definition = '<span class="aiv-definition-text">de uitleg</span>'
+  const legacyRadio = `<span class="aiv-definition">Toelaatbaar${definition}</span> op grond van recht`
+  const legacyCheckbox = `<span class="aiv-definition">Categorie: Burgers${definition}</span>`
+
+  function task(id: string, values: (string | boolean | null)[]): FlatTask {
+    return {
+      id,
+      task: id,
+      type: ['radio_option'],
+      parentId: null,
+      childrenIds: [],
+      options: values.map(value => ({ value })),
+    }
+  }
+
+  const tasks: Record<string, FlatTask> = {
+    '13.1.1.5': task('13.1.1.5', ['Toelaatbaar op grond van recht', null]),
+    '1.4.1': task('1.4.1', ['Categorie: Burgers', 'Categorie: Kinderen']),
+    '0.1': { id: '0.1', task: '0.1', type: ['open_text'], parentId: null, childrenIds: [] },
+  }
+
+  function answer(value: Answer['value']): Answer {
+    return { value, lastEditedAt: '2026-08-24T00:00:00Z' }
+  }
+
+  it('maps a legacy single answer onto its option value', () => {
+    const result = migrateOptionValueAnswers({ '13.1.1.5': answer(legacyRadio) }, tasks)
+    expect(result['13.1.1.5'].value).toBe('Toelaatbaar op grond van recht')
+  })
+
+  it('maps legacy answers inside a repeatable instance key', () => {
+    const result = migrateOptionValueAnswers({ '13.1.1.5[2]': answer(legacyRadio) }, tasks)
+    expect(result['13.1.1.5[2]'].value).toBe('Toelaatbaar op grond van recht')
+  })
+
+  it('maps every item of a legacy multiple-choice answer', () => {
+    const result = migrateOptionValueAnswers(
+      { '1.4.1': answer([legacyCheckbox, 'Categorie: Kinderen']) },
+      tasks,
+    )
+    expect(result['1.4.1'].value).toEqual(['Categorie: Burgers', 'Categorie: Kinderen'])
+  })
+
+  it('keeps a value that no longer matches any option', () => {
+    const orphan = `<span class="aiv-definition">Vervallen optie${definition}</span>`
+    const result = migrateOptionValueAnswers({ '13.1.1.5': answer(orphan) }, tasks)
+    expect(result['13.1.1.5'].value).toBe(orphan)
+  })
+
+  it('leaves answers without definition markup untouched', () => {
+    const result = migrateOptionValueAnswers({ '13.1.1.5': answer('Toelaatbaar op grond van recht') }, tasks)
+    expect(result['13.1.1.5'].value).toBe('Toelaatbaar op grond van recht')
+  })
+
+  it('leaves answers of tasks without options untouched', () => {
+    const result = migrateOptionValueAnswers({ '0.1': answer(legacyRadio) }, tasks)
+    expect(result['0.1'].value).toBe(legacyRadio)
+  })
+
+  it('leaves an image answer untouched', () => {
+    const image = { data: 'data:image/png;base64,AAA', title: 'plaatje' }
+    const result = migrateOptionValueAnswers({ '13.1.1.5': answer(image) }, tasks)
+    expect(result['13.1.1.5'].value).toBe(image)
+  })
+
+  it('keeps the edit metadata of a migrated answer', () => {
+    const result = migrateOptionValueAnswers({ '13.1.1.5': answer(legacyRadio) }, tasks)
+    expect(result['13.1.1.5'].lastEditedAt).toBe('2026-08-24T00:00:00Z')
   })
 })

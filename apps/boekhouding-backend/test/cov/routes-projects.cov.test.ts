@@ -306,6 +306,9 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     expect(body).toHaveLength(1)
     expect(body[0].id).toBe(a.id)
     expect(body[0].name).toBe('A1')
+    // The list must not return the full assessment content.
+    expect(body[0].cachedState).toBeUndefined()
+    expect(body[0].state).toBeUndefined()
   })
 })
 
@@ -411,7 +414,9 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
       method: 'POST',
       url: `/api/v1/projects/${project.id}/assessments`,
       headers: authHeader(await tokenFor(owner)),
-      payload: { assessmentType: 'aiia' },
+      // A lean state (no $schema/urn) is what the import and conversion paths send;
+      // it is the only create path that fills metadata.urn from ASSESSMENT_TYPE_URNS.
+      payload: { assessmentType: 'aiia', state: {} },
     })
     expect(res.statusCode).toBe(201)
     expect(res.json().name).toBe('AIIA')

@@ -49,6 +49,9 @@ services:
       CORS_ORIGIN: http://localhost:5174
       OIDC_URL: http://localhost:8080
       OIDC_INTERNAL_URL: http://keycloak:8080
+      # Keycloak is reached by service name on the compose network, so the JWKS
+      # cannot be https here. Never set this in a deployed environment.
+      OIDC_ALLOW_INSECURE_JWKS: "true"
       OIDC_REALM: invulhulpen
       OIDC_PUBLIC_CLIENT_ID: boekhouding-frontend
       NODE_ENV: development
@@ -76,6 +79,7 @@ services:
       - ../apps/standalone-form/src:/app/apps/standalone-form/src
       - ../apps/standalone-form/index.html:/app/apps/standalone-form/index.html
       - ../apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
+      - ../apps/standalone-form/build:/app/apps/standalone-form/build
       - ../sources:/app/sources
 
   frontend:

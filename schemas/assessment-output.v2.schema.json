@@ -68,6 +68,22 @@
                     }
                 ]
             }
+        },
+        "_prescanAnswers": {
+            "type": "object",
+            "description": "Pre-scan answers carried alongside a DPIA so the DPIA can cross-reference them after reload. Written by the client (buildApiState); not part of the assessment answers themselves.",
+            "propertyNames": {
+                "$ref": "#/$defs/answerKey"
+            },
+            "additionalProperties": {
+                "oneOf": [
+                    { "$ref": "#/$defs/answer" },
+                    {
+                        "type": "array",
+                        "items": { "$ref": "#/$defs/indexedGroupElement" }
+                    }
+                ]
+            }
         }
     },
     "required": ["$schema", "metadata", "answers"],
@@ -139,6 +155,10 @@
                 }
             },
             "required": ["_index"],
+            "propertyNames": {
+                "pattern": "^(_index|[0-9]+(\\.[0-9]+)*(\\[[0-9]+\\])?)$",
+                "description": "Child keys are either '_index' or a task ID (e.g. '2.1.1'). Restricting the key names rejects '__proto__'/'constructor'/'prototype', mirroring the top-level answers propertyNames guard."
+            },
             "additionalProperties": {
                 "oneOf": [
                     { "$ref": "#/$defs/answer" },

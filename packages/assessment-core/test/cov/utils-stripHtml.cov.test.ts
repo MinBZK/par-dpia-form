@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cleanDefinitions, getPlainTextWithoutDefinitions } from '../../src/utils/stripHtml'
+import { cleanDefinitions, getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from '../../src/utils/stripHtml'
 
 describe('cleanDefinitions', () => {
   it('returns empty string for empty string input', () => {
@@ -90,5 +90,18 @@ describe('getPlainTextWithoutDefinitions', () => {
   it('returns empty string when the cleaned html has no text content (textContent falsy branch)', () => {
     const html = '<br><hr>'
     expect(getPlainTextWithoutDefinitions(html)).toBe('')
+  })
+})
+
+describe('withoutDefinitionMarkup', () => {
+  it('returns free text untouched, markdown included', () => {
+    const markdown = '**vet** en een <lijst> met a < b'
+    expect(withoutDefinitionMarkup(markdown)).toBe(markdown)
+  })
+
+  it('reduces a legacy answer with definition markup to its option value', () => {
+    const legacy =
+      '<span class="aiv-definition">Toelaatbaar<span class="aiv-definition-text">de uitleg</span></span> op grond van recht'
+    expect(withoutDefinitionMarkup(legacy)).toBe('Toelaatbaar op grond van recht')
   })
 })

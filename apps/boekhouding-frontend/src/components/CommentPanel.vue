@@ -39,8 +39,10 @@ const canResolve = computed(() =>
 
 const fieldPositions = ref(new Map<string, number>())
 const fieldLabels = ref(new Map<string, string>())
+const groupHeights = ref(new Map<string, number>())
 let formObserver: MutationObserver | null = null
 let resizeObserver: ResizeObserver | null = null
+const groupObserver = new ResizeObserver(() => measureGroups())
 let updateTimer: ReturnType<typeof setTimeout> | null = null
 
 function updateFieldPositions() {
@@ -77,6 +79,14 @@ function schedulePositionUpdate() {
   updateTimer = setTimeout(() => updateFieldPositions(), 50)
 }
 
+// A thread you are writing in must not vanish when a colleague resolves it mid-sentence: that
+// would take the draft with it. It stays until you close what you had open.
+function hasOpenInput(thread: CommentThread): boolean {
+  return replyingTo.value === thread.id
+    || editingId.value === thread.id
+    || thread.replies.some(r => r.id === editingId.value)
+}
+
 // Entries positioned at their field's vertical offset
 const positionedEntries = computed(() => {
   const positions = fieldPositions.value
@@ -90,7 +100,7 @@ const positionedEntries = computed(() => {
 
     const visible = showResolved.value
       ? fieldThreads
-      : fieldThreads.filter(t => !t.resolvedAt)
+      : fieldThreads.filter(t => !t.resolvedAt || hasOpenInput(t))
 
     if (visible.length > 0 || fieldId === props.activeFieldId) {
       entries.push({ fieldId, threads: visible, top })
@@ -109,8 +119,56 @@ const positionedEntries = computed(() => {
   return entries
 })
 
+// Groups are absolutely positioned at their field's offset, so a group taller than the gap to
+// the next field would cover it — hiding text and action buttons. Walking top to bottom and
+// keeping each group below the previous one trades exact field alignment for readability, the
+// way Google Docs does. Heights are measured, so this only settles once the groups are laid
+// out; moving a group does not change its height, so measuring cannot loop.
+const GROUP_GAP_PX = 8
+
+const stackedEntries = computed(() => {
+  let previousBottom = Number.NEGATIVE_INFINITY
+
+  return positionedEntries.value.map((entry) => {
+    const top = Math.max(entry.top, previousBottom)
+    previousBottom = top + (groupHeights.value.get(entry.fieldId) ?? 0) + GROUP_GAP_PX
+    return { ...entry, top }
+  })
+})
+
+// A queued resize notification can still arrive after the panel is gone, hence the guard here
+// but not in observeGroups, which only ever runs while mounted.
+function measureGroups() {
+  const bodyEl = panelBodyRef.value
+  if (!bodyEl) return
+
+  const heights = new Map<string, number>()
+  for (const el of bodyEl.querySelectorAll<HTMLElement>('[data-field-group]')) {
+    heights.set(el.dataset.fieldGroup!, el.offsetHeight)
+  }
+  groupHeights.value = heights
+}
+
+function observeGroups() {
+  groupObserver.disconnect()
+  for (const el of panelBodyRef.value!.querySelectorAll<HTMLElement>('[data-field-group]')) {
+    groupObserver.observe(el)
+  }
+}
+
+// A group's height changes when its text reflows or an edit/reply form opens, which shifts
+// everything below it.
+watch(positionedEntries, async () => {
+  await nextTick()
+  observeGroups()
+  measureGroups()
+})
+
 onMounted(() => {
   requestAnimationFrame(() => updateFieldPositions())
+
+  observeGroups()
+  measureGroups()
 
   if (props.formContainerRef) {
     formObserver = new MutationObserver(schedulePositionUpdate)
@@ -124,6 +182,7 @@ onMounted(() => {
 onUnmounted(() => {
   formObserver?.disconnect()
   resizeObserver?.disconnect()
+  groupObserver.disconnect()
   if (updateTimer) clearTimeout(updateTimer)
 })
 
@@ -160,21 +219,34 @@ function canDeleteComment(authorId: string): boolean {
   return isOwnComment(authorId) || props.role === 'owner'
 }
 
+// The store records a failed action and the editor reports it; catching here keeps the
+// failure from surfacing as an unhandled rejection, and leaves what the user typed in place.
+async function succeeded(action: () => Promise<unknown>): Promise<boolean> {
+  try {
+    await action()
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function submitComment(fieldId: string) {
   const body = newCommentBody.value.trim()
   if (!body) return
 
-  await commentStore.createComment(fieldId, body)
-  newCommentBody.value = ''
+  if (await succeeded(() => commentStore.createComment(fieldId, body))) {
+    newCommentBody.value = ''
+  }
 }
 
 async function submitReply(parentId: string, fieldId: string) {
   const body = replyBody.value.trim()
   if (!body) return
 
-  await commentStore.createReply(parentId, fieldId, body)
-  replyBody.value = ''
-  replyingTo.value = null
+  if (await succeeded(() => commentStore.createReply(parentId, fieldId, body))) {
+    replyBody.value = ''
+    replyingTo.value = null
+  }
 }
 
 function startReply(threadId: string) {
@@ -211,21 +283,22 @@ function cancelEdit() {
 
 async function submitEdit() {
   if (!editingId.value || !editBody.value.trim()) return
-  await commentStore.updateComment(editingId.value, editBody.value.trim())
-  editingId.value = null
-  editBody.value = ''
+  if (await succeeded(() => commentStore.updateComment(editingId.value!, editBody.value.trim()))) {
+    editingId.value = null
+    editBody.value = ''
+  }
 }
 
 async function handleDelete(commentId: string) {
-  await commentStore.deleteComment(commentId)
+  await succeeded(() => commentStore.deleteComment(commentId))
 }
 
 async function handleResolve(commentId: string) {
-  await commentStore.resolveThread(commentId)
+  await succeeded(() => commentStore.resolveThread(commentId))
 }
 
 async function handleReopen(commentId: string) {
-  await commentStore.reopenThread(commentId)
+  await succeeded(() => commentStore.reopenThread(commentId))
 }
 </script>
 
@@ -256,13 +329,13 @@ async function handleReopen(commentId: string) {
     <div class="comment-panel__body" ref="panelBodyRef">
       <!-- Empty state -->
       <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <p v-else-if="positionedEntries.length === 0" class="comment-panel__empty">
+      <p v-else-if="stackedEntries.length === 0" class="comment-panel__empty">
         Er zijn nog geen opmerkingen bij deze stap. Klik op "Opmerking" bij een vraag om er een te plaatsen.
       </p>
 
       <!-- Positioned comment groups (Google Docs style) -->
       <div
-        v-for="entry in positionedEntries"
+        v-for="entry in stackedEntries"
         :key="entry.fieldId"
         :data-field-group="entry.fieldId"
         class="comment-field-group"
@@ -282,6 +355,10 @@ async function handleReopen(commentId: string) {
           class="comment-thread"
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
         >
+          <p v-if="thread.resolvedAt && hasOpenInput(thread)" class="comment-thread__resolved-label" role="status">
+            Opgelost door {{ thread.resolvedByName || 'een collega' }} terwijl je hier aan het schrijven was.
+          </p>
+
           <!-- Root comment -->
           <div class="comment-item">
             <div class="comment-item__header">

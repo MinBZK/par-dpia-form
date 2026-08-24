@@ -1,7 +1,7 @@
 # Stage 1: build
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS build
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS build
 
-RUN corepack enable && corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
+RUN npm install --global corepack@0.35.0 && corepack enable && corepack prepare pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af --activate
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 COPY apps/boekhouding-frontend/package.json apps/boekhouding-frontend/
 
 # Install all dependencies (inclusief devDependencies voor build)
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 ARG GIT_SHA=dev
 
@@ -38,8 +38,19 @@ RUN npx vite build
 
 RUN printf '{"version":"dev","commit":"%s","channel":"acceptatie"}\n' "$(printf '%s' "$GIT_SHA" | cut -c1-7)" > dist/version.json
 
+# security.txt Expires, fixed at build time; setUTCFullYear handles leap
+# years correctly, which epoch-plus-N-days arithmetic does not.
+RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); process.stdout.write(d.toISOString())" \
+    > /app/security-txt-expires
+
 # Stage 2: unprivileged nginx voor statische bestanden
 FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:e88d990b349df8cf4aa82f16642d7a23375016638c9ace4e5c6ca25028e62e65
+
+# `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
+# the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
+USER root
+RUN apk upgrade --no-cache && rm -rf /var/cache/apk/*
+USER 101
 
 # Hoofd-SPA
 COPY --from=build /app/apps/boekhouding-frontend/dist /usr/share/nginx/html
@@ -55,6 +66,8 @@ COPY containers/frontend/nginx/snippets/ /etc/nginx/snippets/
 COPY --from=build /app/apps/standalone-form/dist/csp-standalone.conf /etc/nginx/snippets/csp-standalone.conf
 
 COPY containers/frontend/nginx/config.json.template /etc/nginx/config.json.template
+COPY containers/security.txt.template /etc/nginx/security.txt.template
+COPY --from=build /app/security-txt-expires /etc/security-txt-expires
 COPY --chmod=755 containers/frontend/entrypoint.sh /entrypoint.sh
 
 ENV OIDC_URL=http://localhost:8080
@@ -63,4 +76,11 @@ ENV OIDC_PUBLIC_CLIENT_ID=boekhouding-frontend
 ENV STANDALONE_URL=/zonder-account/
 
 EXPOSE 8080
+
+# 127.0.0.1, not localhost: this image's own entrypoint (not the base
+# image's) never runs the ipv6-listen-by-default patch, so nginx only binds
+# IPv4 and an ::1 resolution would refuse the connection.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/config.json || exit 1
+
 ENTRYPOINT ["/entrypoint.sh"]

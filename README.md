@@ -151,3 +151,4 @@ Zie [docs/gegevensverwerking.md](docs/gegevensverwerking.md) voor een overzicht 
 
 - [Product Decision Records](docs/PDR/README.md) — productbeslissingen en achtergrond
 - [Gegevensverwerking](docs/gegevensverwerking.md) — privacy en dataminimalisatie
+- [Standard for Public Code](docs/standard-for-public-code.md) - zelfevaluatie tegen de zestien criteria

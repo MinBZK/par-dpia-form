@@ -15,6 +15,15 @@ const ENV_KEYS = [
   'HOST',
   'DATABASE_SERVER_FULL',
   'TRUST_PROXY',
+  'DB_POOL_MAX',
+  'DB_CONNECT_TIMEOUT',
+  'DB_IDLE_TIMEOUT',
+  'DB_STATEMENT_TIMEOUT',
+  'DB_IDLE_IN_TX_TIMEOUT',
+  'SHUTDOWN_DELAY',
+  'RATE_LIMIT_MAX',
+  'RATE_LIMIT_USER_MAX',
+  'OIDC_ALLOW_INSECURE_JWKS',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -161,20 +170,204 @@ describe('config — parseCorsOrigin', () => {
 })
 
 describe('config — parseTrustProxy', () => {
-  it('defaults to 1 hop when TRUST_PROXY is unset', async () => {
+  it('defaults to the private address ranges when TRUST_PROXY is unset', async () => {
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(1)
+    expect(config.trustProxy).toBe('uniquelocal')
   })
 
-  it('coerces a numeric TRUST_PROXY to a number (hop count)', async () => {
+  it('falls back to the default for a leftover hop count', async () => {
     process.env.TRUST_PROXY = '2'
     const config = await loadConfig()
-    expect(config.trustProxy).toBe(2)
+    expect(config.trustProxy).toBe('uniquelocal')
+  })
+
+  it('turns proxy trust off for 0', async () => {
+    process.env.TRUST_PROXY = '0'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
+  })
+
+  it('turns proxy trust off for false', async () => {
+    process.env.TRUST_PROXY = 'false'
+    const config = await loadConfig()
+    expect(config.trustProxy).toBe(false)
   })
 
   it('passes a non-numeric TRUST_PROXY through as a CIDR/IP string', async () => {
     process.env.TRUST_PROXY = '10.0.0.0/8'
     const config = await loadConfig()
     expect(config.trustProxy).toBe('10.0.0.0/8')
+  })
+})
+
+describe('config - db pool (parsePositiveInt with clamping)', () => {
+  it('uses safe defaults when the pool env vars are unset', async () => {
+    const config = await loadConfig()
+    expect(config.db).toEqual({
+      max: 9,
+      connectTimeout: 10,
+      idleTimeout: 30,
+      statementTimeout: 15,
+      idleInTransactionTimeout: 15,
+    })
+  })
+
+  it('accepts a valid override within range', async () => {
+    process.env.DB_POOL_MAX = '12'
+    process.env.DB_CONNECT_TIMEOUT = '5'
+    process.env.DB_IDLE_TIMEOUT = '120'
+    const config = await loadConfig()
+    expect(config.db).toEqual({
+      max: 12,
+      connectTimeout: 5,
+      idleTimeout: 120,
+      statementTimeout: 15,
+      idleInTransactionTimeout: 15,
+    })
+  })
+
+  it('falls back to the default for a non-numeric value', async () => {
+    process.env.DB_POOL_MAX = 'abc'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(9)
+  })
+
+  it('falls back to the default for a value below 1 (e.g. 0)', async () => {
+    process.env.DB_POOL_MAX = '0'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(9)
+  })
+
+  it('clamps a value above the per-user cap (pool capped at 20)', async () => {
+    process.env.DB_POOL_MAX = '500'
+    const config = await loadConfig()
+    expect(config.db.max).toBe(20)
+  })
+})
+
+describe('config - db statement/idle-in-transaction timeouts (M2 fast-fail)', () => {
+  it('defaults statementTimeout and idleInTransactionTimeout to 15 seconds', async () => {
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(15)
+    expect(config.db.idleInTransactionTimeout).toBe(15)
+  })
+
+  it('honours DB_STATEMENT_TIMEOUT and DB_IDLE_IN_TX_TIMEOUT overrides', async () => {
+    process.env.DB_STATEMENT_TIMEOUT = '30'
+    process.env.DB_IDLE_IN_TX_TIMEOUT = '20'
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(30)
+    expect(config.db.idleInTransactionTimeout).toBe(20)
+  })
+
+  it('clamps an excessive statement timeout to 300 seconds', async () => {
+    process.env.DB_STATEMENT_TIMEOUT = '99999'
+    const config = await loadConfig()
+    expect(config.db.statementTimeout).toBe(300)
+  })
+
+  it('falls back to the default for a non-numeric idle-in-transaction value', async () => {
+    process.env.DB_IDLE_IN_TX_TIMEOUT = 'abc'
+    const config = await loadConfig()
+    expect(config.db.idleInTransactionTimeout).toBe(15)
+  })
+})
+
+describe('config - shutdownDelay (parseNonNegativeInt)', () => {
+  it('defaults the shutdown delay to 5 seconds when SHUTDOWN_DELAY is unset', async () => {
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(5)
+  })
+
+  it('returns the parsed value when set', async () => {
+    process.env.SHUTDOWN_DELAY = '12'
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(12)
+  })
+
+  it('accepts 0 (close immediately - for local use, never in Kubernetes)', async () => {
+    process.env.SHUTDOWN_DELAY = '0'
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(0)
+  })
+
+  it('falls back to the default for a non-numeric value', async () => {
+    process.env.SHUTDOWN_DELAY = 'abc'
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(5)
+  })
+
+  it('falls back to the default for a negative value', async () => {
+    process.env.SHUTDOWN_DELAY = '-3'
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(5)
+  })
+
+  it('clamps an excessive value to 60 (must stay under the grace period)', async () => {
+    process.env.SHUTDOWN_DELAY = '600'
+    const config = await loadConfig()
+    expect(config.shutdownDelay).toBe(60)
+  })
+})
+
+describe('config - rateLimit', () => {
+  it('defaults the per-IP max to 100 and the per-user max to 1000', async () => {
+    const config = await loadConfig()
+    expect(config.rateLimit.max).toBe(100)
+    expect(config.rateLimit.userMax).toBe(1000)
+  })
+
+  it('honours a RATE_LIMIT_MAX override', async () => {
+    process.env.RATE_LIMIT_MAX = '500'
+    const config = await loadConfig()
+    expect(config.rateLimit.max).toBe(500)
+  })
+
+  it('honours a RATE_LIMIT_USER_MAX override', async () => {
+    process.env.RATE_LIMIT_USER_MAX = '750'
+    const config = await loadConfig()
+    expect(config.rateLimit.userMax).toBe(750)
+  })
+})
+
+describe('assertSecureJwksUri', () => {
+  async function loadAssert() {
+    vi.resetModules()
+    const mod = await import('../../src/config.js')
+    return mod.assertSecureJwksUri
+  }
+
+  it('accepts an https JWKS URI', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('https://keycloak.example.nl/realms/x/protocol/openid-connect/certs', false)).not.toThrow()
+  })
+
+  it('accepts plain HTTP on loopback (the test JWKS server)', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://127.0.0.1:8080/certs', false)).not.toThrow()
+    expect(() => assertSecureJwksUri('http://localhost:8080/certs', false)).not.toThrow()
+  })
+
+  it('accepts plain HTTP behind the explicit opt-in (container dev stack)', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak:8080/certs', true)).not.toThrow()
+  })
+
+  it('refuses plain HTTP to a remote host', async () => {
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak.example.nl/certs', false)).toThrow(/not https/)
+  })
+
+  it('reads the opt-in from OIDC_ALLOW_INSECURE_JWKS by default', async () => {
+    process.env.OIDC_ALLOW_INSECURE_JWKS = 'true'
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri('http://keycloak:8080/certs')).not.toThrow()
+    delete process.env.OIDC_ALLOW_INSECURE_JWKS
+  })
+
+  it('defaults to the configured JWKS URI', async () => {
+    process.env.OIDC_INTERNAL_URL = 'https://keycloak.example.nl'
+    const assertSecureJwksUri = await loadAssert()
+    expect(() => assertSecureJwksUri()).not.toThrow()
   })
 })

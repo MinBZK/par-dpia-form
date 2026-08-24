@@ -91,7 +91,7 @@ describe('POST /:projectId/members', () => {
     expect(res.statusCode).toBe(403)
   })
 
-  it('returns 400 when email is missing', async () => {
+  it('returns 400 when email is missing (body schema)', async () => {
     const owner = await createUser()
     const project = await projectOwnedBy(owner)
 
@@ -103,7 +103,7 @@ describe('POST /:projectId/members', () => {
     })
     expect(res.statusCode).toBe(400)
     expect(res.headers['content-type']).toContain('application/problem+json')
-    expect(res.json()).toMatchObject({ status: 400, detail: 'E-mailadres is verplicht' })
+    expect(res.json()).toMatchObject({ status: 400, detail: 'Ongeldige verzoekgegevens' })
   })
 
   it('creates a placeholder user when the email is unknown and adds them (default role editor)', async () => {
@@ -183,7 +183,7 @@ describe('POST /:projectId/members', () => {
     })
     expect(res.statusCode).toBe(400)
     expect(res.json()).toMatchObject({ status: 400 })
-    expect(res.json().detail).toContain('Ongeldige rol: superadmin')
+    expect(res.json().detail).toContain("veld 'role' is ongeldig")
   })
 })
 
@@ -203,7 +203,7 @@ describe('PUT /:projectId/members/:userId', () => {
     expect(res.statusCode).toBe(403)
   })
 
-  it('returns 400 when role is missing', async () => {
+  it('returns 400 when role is missing (body schema)', async () => {
     const owner = await createUser()
     const project = await projectOwnedBy(owner)
 
@@ -214,7 +214,7 @@ describe('PUT /:projectId/members/:userId', () => {
       payload: {},
     })
     expect(res.statusCode).toBe(400)
-    expect(res.json()).toMatchObject({ status: 400, detail: 'Rol is verplicht' })
+    expect(res.json()).toMatchObject({ status: 400, detail: 'Ongeldige verzoekgegevens' })
   })
 
   it('returns 404 when the target membership does not exist', async () => {

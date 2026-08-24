@@ -5,6 +5,7 @@ import { eq, and, isNull, gt, asc, inArray } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireAssessmentAccess } from '../middleware/assessmentAccess.js'
 import { computeLastModifiedAt } from '../utils/comments.js'
+import { assessmentParams, commentParams, sinceQuerySchema, dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 const commentSelect = {
   id: comments.id,
@@ -19,7 +20,54 @@ const commentSelect = {
   updatedAt: comments.updatedAt,
 }
 
+// Generous hard cap so a comment list (or a wide ?since delta) can never be
+// pulled unbounded in a single query. Well above any realistic per-assessment
+// thread count; the sync endpoint's commentCount lets clients detect a cap hit.
+const COMMENTS_MAX = 1000
+
+type CommentRow = {
+  id: string
+  parentId: string | null
+  authorId: string
+  authorName: string
+  body: string
+  resolvedBy: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+async function resolvedByNames(rows: CommentRow[]): Promise<Record<string, string>> {
+  const ids = [...new Set(rows.filter(r => r.resolvedBy).map(r => r.resolvedBy!))]
+  if (ids.length === 0) return {}
+
+  const rowsByUser = await db
+    .select({ id: users.id, displayName: users.displayName })
+    .from(users)
+    .where(inArray(users.id, ids))
+  return Object.fromEntries(rowsByUser.map(u => [u.id, u.displayName]))
+}
+
+function groupRepliesByParent(replies: CommentRow[]) {
+  const byParent = new Map<string, Array<Omit<CommentRow, 'resolvedBy'>>>()
+  for (const r of replies) {
+    const list = byParent.get(r.parentId!) || []
+    list.push({
+      id: r.id,
+      parentId: r.parentId,
+      authorId: r.authorId,
+      authorName: r.authorName,
+      body: r.body,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })
+    byParent.set(r.parentId!, list)
+  }
+  return byParent
+}
+
 export async function commentRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   app.addHook('preHandler', requireAuth)
 
   // GET /assessments/:assessmentId/comments — bulk load, optional ?since=ISO8601
@@ -27,7 +75,7 @@ export async function commentRoutes(app: FastifyInstance) {
     Params: { assessmentId: string }
     Querystring: { since?: string }
   }>('/:assessmentId/comments', {
-    schema: { tags: ['comments'] },
+    schema: { tags: ['comments'], params: assessmentParams, querystring: sinceQuerySchema },
   }, async (request, reply) => {
     const { assessmentId } = request.params
     const { since } = request.query
@@ -37,104 +85,87 @@ export async function commentRoutes(app: FastifyInstance) {
 
     const sinceDate = since ? new Date(since) : null
 
-    // Fetch root comments (no parentId)
-    const rootConditions = [
-      eq(comments.assessmentInstanceId, assessmentId),
-      isNull(comments.parentId),
-    ]
+    // Incremental poll: every comment touched since the watermark, flat — roots and replies
+    // alike, so a changed reply reaches the client even when its root did not move.
     if (sinceDate) {
-      rootConditions.push(gt(comments.updatedAt, sinceDate))
+      const changed = await db
+        .select(commentSelect)
+        .from(comments)
+        .innerJoin(users, eq(comments.authorId, users.id))
+        .where(
+          and(
+            eq(comments.assessmentInstanceId, assessmentId),
+            gt(comments.updatedAt, sinceDate),
+          ),
+        )
+        // Ordered by updatedAt so the cap truncates the tail: the watermark below is the
+        // largest updatedAt delivered, and everything cut off sits above it and arrives on
+        // the next poll. Ordering by createdAt would strand those changes for good.
+        .orderBy(asc(comments.updatedAt), asc(comments.id))
+        .limit(COMMENTS_MAX)
+
+      // A root the client has not seen before must arrive with its full reply list, or the
+      // client stores the thread empty and its comment count drifts from the server's.
+      const changedRootIds = changed.filter(c => c.parentId === null).map(c => c.id)
+      const rootReplies = changedRootIds.length > 0
+        ? await db
+          .select(commentSelect)
+          .from(comments)
+          .innerJoin(users, eq(comments.authorId, users.id))
+          .where(inArray(comments.parentId, changedRootIds))
+          .orderBy(asc(comments.createdAt))
+          .limit(COMMENTS_MAX)
+        : []
+
+      const repliesByParent = groupRepliesByParent(rootReplies)
+      const names = await resolvedByNames(changed)
+
+      return {
+        comments: changed.map((c) => {
+          const entry = { ...c, resolvedByName: c.resolvedBy ? names[c.resolvedBy] : null }
+          if (c.parentId !== null) return entry
+          return { ...entry, replies: repliesByParent.get(c.id) || [] }
+        }),
+        // Echo the watermark when nothing changed — dropping it sends the client back to a
+        // full list on its next poll.
+        lastModifiedAt: computeLastModifiedAt(changed.map(c => c.updatedAt))?.toISOString()
+          ?? sinceDate.toISOString(),
+        currentUserId: request.user!.id,
+      }
     }
 
     const rootComments = await db
       .select(commentSelect)
       .from(comments)
       .innerJoin(users, eq(comments.authorId, users.id))
-      .where(and(...rootConditions))
+      .where(
+        and(
+          eq(comments.assessmentInstanceId, assessmentId),
+          isNull(comments.parentId),
+        ),
+      )
       .orderBy(asc(comments.createdAt))
+      .limit(COMMENTS_MAX)
 
-    const resolvedByIds = [...new Set(rootComments.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
-    const resolvedByNames: Record<string, string> = {}
-    if (resolvedByIds.length > 0) {
-      const resolvedUsers = await db
-        .select({ id: users.id, displayName: users.displayName })
-        .from(users)
-        .where(inArray(users.id, resolvedByIds))
-      for (const u of resolvedUsers) resolvedByNames[u.id] = u.displayName
-    }
-
+    const names = await resolvedByNames(rootComments)
     const rootIds = rootComments.map(c => c.id)
-    let allReplies: typeof rootComments = []
 
-    if (rootIds.length > 0) {
-      if (sinceDate) {
-        const recentReplies = await db
-          .select(commentSelect)
-          .from(comments)
-          .innerJoin(users, eq(comments.authorId, users.id))
-          .where(
-            and(
-              eq(comments.assessmentInstanceId, assessmentId),
-              gt(comments.updatedAt, sinceDate),
-            ),
-          )
-          .orderBy(asc(comments.createdAt))
-
-        // Build resolvedByNames from the actual response data
-        const pollResolvedByIds = [...new Set(recentReplies.filter(c => c.resolvedBy).map(c => c.resolvedBy!))]
-        const pollResolvedByNames: Record<string, string> = {}
-        if (pollResolvedByIds.length > 0) {
-          const resolvedUsers = await db
-            .select({ id: users.id, displayName: users.displayName })
-            .from(users)
-            .where(inArray(users.id, pollResolvedByIds))
-          for (const u of resolvedUsers) pollResolvedByNames[u.id] = u.displayName
-        }
-
-        const lastModified = recentReplies.reduce(
-          (max, c) => c.updatedAt > max ? c.updatedAt : max,
-          recentReplies[0].updatedAt,
-        )
-
-        return {
-          comments: recentReplies.map(c => ({
-            ...c,
-            resolvedByName: c.resolvedBy ? pollResolvedByNames[c.resolvedBy] : null,
-          })),
-          lastModifiedAt: lastModified.toISOString(),
-          currentUserId: request.user!.id,
-        }
-      }
-
-      allReplies = await db
+    const allReplies = rootIds.length > 0
+      ? await db
         .select(commentSelect)
         .from(comments)
         .innerJoin(users, eq(comments.authorId, users.id))
         .where(inArray(comments.parentId, rootIds))
         .orderBy(asc(comments.createdAt))
-    }
+        .limit(COMMENTS_MAX)
+      : []
 
-    // Group replies by parentId
-    const repliesByParent = new Map<string, typeof allReplies>()
-    for (const reply of allReplies) {
-      const list = repliesByParent.get(reply.parentId!) || []
-      list.push(reply)
-      repliesByParent.set(reply.parentId!, list)
-    }
+    const repliesByParent = groupRepliesByParent(allReplies)
 
-    // Build nested response
     const threaded = rootComments.map(root => ({
       ...root,
-      resolvedByName: root.resolvedBy ? resolvedByNames[root.resolvedBy] : null,
-      replies: (repliesByParent.get(root.id) || []).map(r => ({
-        id: r.id,
-        parentId: r.parentId,
-        authorId: r.authorId,
-        authorName: r.authorName,
-        body: r.body,
-        createdAt: r.createdAt,
-        updatedAt: r.updatedAt,
-      })),
+      resolvedByName: root.resolvedBy ? names[root.resolvedBy] : null,
+      replies: repliesByParent.get(root.id) || [],
     }))
 
     const lastModifiedAt = computeLastModifiedAt([
@@ -156,11 +187,14 @@ export async function commentRoutes(app: FastifyInstance) {
   }>('/:assessmentId/comments', {
     schema: {
       tags: ['comments'],
+      params: assessmentParams,
       body: {
         type: 'object',
         required: ['fieldId', 'body'],
         properties: {
-          fieldId: { type: 'string', minLength: 1 },
+          // A URN field id ('urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0') stays
+          // well under this; the cap keeps a text column from being used as storage.
+          fieldId: { type: 'string', minLength: 1, maxLength: 255 },
           body: { type: 'string', minLength: 1, maxLength: 2000 },
           parentId: { type: 'string', format: 'uuid' },
         },
@@ -236,14 +270,16 @@ export async function commentRoutes(app: FastifyInstance) {
   // PATCH /assessments/:assessmentId/comments/:commentId — edit body or toggle resolved state
   // Accepts exactly one of `body` or `resolvedAt`:
   //   - `body`: author-only, edits the comment text
-  //   - `resolvedAt`: editor+, null reopens the thread, ISO timestamp resolves it
-  //     (server always derives `resolvedBy` from the caller; clients cannot set it)
+  //   - `resolvedAt`: editor+, null reopens the thread, any timestamp resolves it
+  //     (server derives both `resolvedBy` and the stored timestamp from the request;
+  //     a value sent by the client is accepted for compatibility but ignored)
   app.patch<{
     Params: { assessmentId: string; commentId: string }
     Body: { body?: string; resolvedAt?: string | null }
   }>('/:assessmentId/comments/:commentId', {
     schema: {
       tags: ['comments'],
+      params: commentParams,
       body: {
         type: 'object',
         properties: {
@@ -303,7 +339,7 @@ export async function commentRoutes(app: FastifyInstance) {
       const [updated] = await db
         .update(comments)
         .set({
-          resolvedAt: resolving ? new Date(resolvedAt as string) : null,
+          resolvedAt: resolving ? new Date() : null,
           resolvedBy: resolving ? userId : null,
           updatedAt: new Date(),
         })
@@ -336,7 +372,7 @@ export async function commentRoutes(app: FastifyInstance) {
   app.delete<{
     Params: { assessmentId: string; commentId: string }
   }>('/:assessmentId/comments/:commentId', {
-    schema: { tags: ['comments'] },
+    schema: { tags: ['comments'], params: commentParams },
   }, async (request, reply) => {
     const { assessmentId, commentId } = request.params
     const userId = request.user!.id

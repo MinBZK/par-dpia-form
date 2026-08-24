@@ -5,6 +5,7 @@ import ExportPdfInfo from './ExportPdfInfo.vue'
 import ExportMenu from './ExportMenu.vue'
 import TaskSection from './task/TaskSection.vue'
 import UiButton from './ui/UiButton.vue'
+import ConfirmDialog from './ui/ConfirmDialog.vue'
 import NavHeader from './NavHeader.vue'
 import FileUploadPage from './FileUploadPage.vue'
 import LiveResults from './LiveResults.vue'
@@ -182,7 +183,20 @@ const handleStart = (fileData?: AssessmentState) => {
   formStarted.value = true
 }
 
+const resetOpen = ref(false)
+
+const resetLabel = computed(() =>
+  taskStore.activeNamespace === FormType.DPIA ? 'DPIA'
+  : taskStore.activeNamespace === FormType.IAMA ? 'IAMA'
+  : 'Pre-scan')
+
+// Counted from the store rather than storage: this is what the user is about to
+// lose, phrased in the thing they recognise.
+const filledAnswerCount = computed(() =>
+  Object.keys(answerStore.answers[taskStore.activeNamespace]).length)
+
 const handleReset = () => {
+  resetOpen.value = false
   // 1. Clear persistence
   persistence.clearSavedState(taskStore.activeNamespace)
 
@@ -232,8 +246,8 @@ const isInformationalStep = computed(() => {
   <template v-else>
     <NavHeader v-if="showNavHeader" :navigation="navigation">
       <template v-if="formStarted && showFileActions">
-        <UiButton variant="tertiary" :label="`Begin nieuwe ${taskStore.activeNamespace ===
-          FormType.DPIA ? 'DPIA' : taskStore.activeNamespace === FormType.IAMA ? 'IAMA' : 'Pre-scan'}`" icon="refresh" size="xs" @click="handleReset" />
+        <UiButton variant="tertiary" :label="`Begin nieuwe ${resetLabel}`" icon="refresh" size="xs"
+          @click="resetOpen = true" />
         <ExportMenu @export="handleExport" />
       </template>
     </NavHeader>
@@ -285,4 +299,18 @@ const isInformationalStep = computed(() => {
       </div>
     </div>
   </template>
+
+  <ConfirmDialog v-if="resetOpen" :open="resetOpen" :title="`Nieuwe ${resetLabel} beginnen?`"
+    :confirm-label="`Ja, begin nieuwe ${resetLabel}`" @cancel="resetOpen = false" @confirm="handleReset">
+    <p class="utrecht-paragraph">
+      <template v-if="filledAnswerCount > 0">
+        Je {{ resetLabel }} met {{ filledAnswerCount }} ingevuld{{ filledAnswerCount === 1 ? '' : 'e' }}
+        antwoord{{ filledAnswerCount === 1 ? '' : 'en' }} wordt definitief gewist.
+      </template>
+      <template v-else>
+        De opgeslagen {{ resetLabel }} wordt definitief gewist.
+      </template>
+      Dit kan niet ongedaan worden gemaakt. Exporteer eerst als je de antwoorden wilt bewaren.
+    </p>
+  </ConfirmDialog>
 </template>

@@ -1,0 +1,21 @@
+[
+  "apps/boekhouding-frontend/src/components/ConflictResolutionDialog.vue::v-html::field.myFormatted",
+  "apps/boekhouding-frontend/src/components/ConflictResolutionDialog.vue::v-html::field.theirFormatted",
+  "apps/boekhouding-frontend/src/views/VersionHistory.vue::v-html::field.newValue.replace(/\\n/g, '<br>')",
+  "apps/boekhouding-frontend/src/views/VersionHistory.vue::v-html::field.oldValue.replace(/\\n/g, '<br>')",
+  "packages/assessment-core/src/components/FileUploadPage.vue::v-html::introText::body:cb947b902738",
+  "packages/assessment-core/src/components/LiveResults.vue::v-html::renderAssessmentExplanation(assessment).text.replace(/\\n/g, '<br>')",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::description",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::displayLabel::body:5673db2f1d0a",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::option.value",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::optionLabel(option)",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::optionLabel(option)",
+  "packages/assessment-core/src/components/task/FormField.vue::v-html::renderedHtml::body:dc54c3f5400e",
+  "packages/assessment-core/src/components/task/TaskGroup.vue::v-html::instanceLabel::body:94ade37314cc",
+  "packages/assessment-core/src/components/task/TaskGroup.vue::v-html::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::v-html::taskStore.taskById(childId).description",
+  "packages/assessment-core/src/utils/stripHtml.ts::innerHTML::cleanedHtml::body:7e26acade82c",
+  "packages/assessment-core/src/utils/stripHtml.ts::innerHTML::html"
+]

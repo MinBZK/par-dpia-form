@@ -1,19 +1,4 @@
-export function parseInstanceId(instanceId: string): { taskId: string; index?: number } {
-  const match = instanceId.match(/^(.+)\[(\d+)\]$/)
-  if (match) return { taskId: match[1], index: parseInt(match[2]) }
-  return { taskId: instanceId }
-}
-
-/**
- * Build a URN-based field identifier for the assessment_edits table.
- * Example: "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0"
- */
-export function buildFieldUrn(urn: string, instanceId: string): string {
-  const { taskId, index } = parseInstanceId(instanceId)
-  let fieldUrn = `${urn}?=task_id=${taskId}`
-  if (index !== undefined) fieldUrn += `&task_index=${index}`
-  return fieldUrn
-}
+import { buildFieldUrn } from './fieldId.js'
 
 export type EditRecord = {
   fieldId: string

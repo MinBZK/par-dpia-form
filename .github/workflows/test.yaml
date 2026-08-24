@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -28,7 +31,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -38,19 +43,28 @@ jobs:
       - name: Enable corepack & pin pnpm
         run: |
           corepack enable
-          corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
+          corepack prepare pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af --activate
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: CSP inline-style guard (#326)
         run: pnpm check:csp
 
+      - name: v-html sink guard
+        run: pnpm check:vhtml
+
+      - name: Public runtime config guard
+        run: pnpm check:config
+
       - name: Set up uv
-        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: '3.14'
           enable-cache: true
+
+      - name: security.txt guard
+        run: pnpm check:securitytxt
 
       - name: Security audit (production dependencies)
         run: pnpm audit --prod --audit-level high
@@ -94,12 +108,7 @@ jobs:
       - name: Type check standalone form
         run: cd apps/standalone-form && npx vue-tsc --noEmit
 
-      - name: Run backend tests
-        env:
-          TEST_DATABASE_URL: postgresql://parassessment:parassessment@localhost:5432/parassessment_test
-        run: pnpm --filter boekhouding-backend test
-
-      - name: Run coverage (alle workspaces)
+      - name: Run tests (alle workspaces)
         env:
           TEST_DATABASE_URL: postgresql://parassessment:parassessment@localhost:5432/parassessment_test
         run: pnpm -r --if-present test:coverage

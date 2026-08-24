@@ -9,14 +9,24 @@ interface TrustedTypesFactory {
 }
 
 /**
- * Register a Trusted Types `default` policy that routes every DOM sink which
- * receives a string (Vue `v-html`, third-party `innerHTML`, …) through
- * DOMPurify. Combined with `require-trusted-types-for 'script'` in the CSP this
- * becomes a single, browser-enforced sanitization chokepoint for DOM XSS —
- * defense-in-depth on top of the markdown allowlist renderer.
+ * Register a Trusted Types `default` policy that routes raw `innerHTML` sinks
+ * through DOMPurify. Combined with `require-trusted-types-for 'script'` in the
+ * CSP this sanitizes strings assigned directly to a DOM sink (e.g. stripHtml.ts).
+ *
+ * IMPORTANT: this does NOT cover Vue `v-html`. Vue registers its own Trusted
+ * Types policy named `vue` (a no-op passthrough, `createHTML: (v) => v`) and
+ * wraps every `v-html`/innerHTML assignment through it, so the browser never
+ * falls back to this `default` policy for those sinks. v-html output must
+ * therefore be sanitized at the call site (escapeHtml/stripHtml or the markdown
+ * allowlist renderer); do not rely on this policy as a v-html safety net.
  *
  * No-op where Trusted Types is unsupported, so it is safe to call unconditionally
  * at bootstrap. Idempotent: a second call (e.g. HMR) does not re-register.
+ *
+ * Deliberately registers `createHTML` only, not `createScriptURL`: the app has
+ * no script-URL sink, so omitting that rule fails closed (a `TrustedScriptURL`
+ * sink throws instead of being silently allowed) rather than adding a rule
+ * whose behavior nobody has reviewed.
  */
 export function installTrustedTypesPolicy(): void {
   const tt = (globalThis as { trustedTypes?: TrustedTypesFactory }).trustedTypes

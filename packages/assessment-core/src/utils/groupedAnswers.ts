@@ -59,9 +59,8 @@ export function groupAnswers(
     }
   }
 
-  // Include empty instances that exist in taskInstances but have no answers.
-  // Only when the user has added extras beyond the single default instance,
-  // to avoid saving default [0] entries for every repeatable task.
+  // Include empty instances that exist in taskInstances but have no answers,
+  // so they survive a save/load cycle.
   if (taskInstances) {
     for (const [taskId, task] of Object.entries(flatTasks)) {
       if (!task.repeatable) continue
@@ -74,8 +73,13 @@ export function groupAnswers(
         }
       }
 
-      // Skip when only the default instance exists — it gets recreated by init()
-      if (existingIndices.size <= 1 && !grouped.has(taskId)) continue
+      // init() recreates instance 0 for every repeatable, so an untouched default
+      // is not worth an empty group in every assessment. A lone instance with any
+      // other index does have to be written: without it, a load hands the user
+      // back instance 0 and the mapping to whatever depends on it shifts.
+      const onlyTheDefault =
+        existingIndices.size === 0 || (existingIndices.size === 1 && existingIndices.has(0))
+      if (onlyTheDefault && !grouped.has(taskId)) continue
 
       if (!grouped.has(taskId)) {
         grouped.set(taskId, new Map())
@@ -113,7 +117,10 @@ export function groupAnswers(
 export function flattenGroupedAnswers(
   grouped: Record<string, GroupedAnswerValue>,
 ): Record<string, Answer> {
-  const result: Record<string, Answer> = {}
+  // No prototype, so a `__proto__` key lands as an ordinary property rather than
+  // replacing this object's prototype. Every caller sanitizes the result today;
+  // this keeps the function safe for one that does not.
+  const result: Record<string, Answer> = Object.create(null)
 
   for (const [key, value] of Object.entries(grouped)) {
     if (Array.isArray(value)) {

@@ -1,6 +1,8 @@
 import { db } from '../db/connection.js'
 import { assessmentEdits, assessmentInstances, assessmentVersions } from '../db/schema.js'
 import { eq, and, lte, asc } from 'drizzle-orm'
+import { rebuildCacheKey, getCachedRebuild, setCachedRebuild } from './rebuildStateCache.js'
+import { parseFieldUrn, parseInstanceId } from './fieldId.js'
 
 /**
  * Rebuild the full assessment state by replaying edits from version 1 up to `upToVersion`.
@@ -8,11 +10,21 @@ import { eq, and, lte, asc } from 'drizzle-orm'
  *
  * Falls back to cachedState if no edits exist (legacy data created before
  * the initial_state edit was introduced).
+ *
+ * `opts.immutable` marks a rebuild of a frozen (older-than-current) version as
+ * cacheable, so repeated views of the same historical version skip the replay.
  */
 export async function rebuildState(
   assessmentInstanceId: string,
   upToVersion: number,
+  opts: { immutable?: boolean } = {},
 ): Promise<unknown> {
+  const cacheKey = rebuildCacheKey(assessmentInstanceId, upToVersion)
+  if (opts.immutable) {
+    const cached = getCachedRebuild(cacheKey)
+    if (cached !== undefined) return cached
+  }
+
   const rows = await db
     .select({
       fieldId: assessmentEdits.fieldId,
@@ -64,19 +76,17 @@ export async function rebuildState(
       continue
     }
 
-    const key = parseFieldKey(row.fieldId)
-    if (!key) continue
+    const parsed = parseFieldUrn(row.fieldId)
+    if (!parsed) continue
+    const key = parsed.key
 
     switch (row.editType) {
       case 'answer_change': {
         if (!state.answers) state.answers = {}
 
         // Check if this is a child of a grouped array (key has [index] suffix)
-        const instanceMatch = key.match(/^(.+)\[(\d+)\]$/)
-        if (instanceMatch) {
-          const childTaskId = instanceMatch[1]
-          const index = parseInt(instanceMatch[2])
-
+        const { taskId: childTaskId, index } = parseInstanceId(key)
+        if (index !== undefined) {
           const parentKey = findGroupedParent(state.answers, childTaskId)
           if (parentKey) {
             const arr = state.answers[parentKey]
@@ -117,10 +127,8 @@ export async function rebuildState(
       }
       case 'instance_added': {
         if (!state.answers) state.answers = {}
-        const addMatch = key.match(/^(.+)\[(\d+)\]$/)
-        if (addMatch) {
-          const parentKey = addMatch[1]
-          const index = parseInt(addMatch[2])
+        const { taskId: parentKey, index } = parseInstanceId(key)
+        if (index !== undefined) {
           if (!Array.isArray(state.answers[parentKey])) {
             state.answers[parentKey] = []
           }
@@ -139,10 +147,8 @@ export async function rebuildState(
       }
       case 'instance_removed': {
         if (!state.answers) break
-        const removeMatch = key.match(/^(.+)\[(\d+)\]$/)
-        if (removeMatch) {
-          const parentKey = removeMatch[1]
-          const index = parseInt(removeMatch[2])
+        const { taskId: parentKey, index } = parseInstanceId(key)
+        if (index !== undefined) {
           const arr = state.answers[parentKey]
           if (Array.isArray(arr)) {
             state.answers[parentKey] = arr.filter((el: any) => el._index !== index)
@@ -160,6 +166,10 @@ export async function rebuildState(
     }
   }
 
+  // Only cache the deterministic replay result, never the cachedState fallback
+  // above (that path depends on the mutable instance state).
+  if (opts.immutable) setCachedRebuild(cacheKey, state)
+
   return state
 }
 
@@ -175,34 +185,4 @@ function findGroupedParent(answers: Record<string, unknown>, childTaskId: string
     }
   }
   return null
-}
-
-/**
- * Extract the answer key from a field ID stored in assessment_edits.
- * The returned key is used internally to locate the answer in the state
- * (either as a direct key or matched to a grouped array element via _index).
- *
- * URN format: "urn:nl:dpia:3.0?=task_id=2.1.3" → "2.1.3"
- * URN with index: "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0" → "2.1.3[0]"
- * Legacy dot format: "dpia.2.1.3" → "2.1.3"
- * Plain key: "2.1.3" → "2.1.3"
- */
-function parseFieldKey(fieldId: string): string | null {
-  // URN format
-  if (fieldId.startsWith('urn:')) {
-    const match = fieldId.match(/^urn:nl:\w+:[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
-    if (!match) return null
-    const taskId = match[1]
-    const index = match[2]
-    return index !== undefined ? `${taskId}[${index}]` : taskId
-  }
-
-  // Legacy dot format: "dpia.rest.of.key" or "prescan.rest.of.key"
-  if (fieldId.startsWith('dpia.') || fieldId.startsWith('prescan.')) {
-    const dotIndex = fieldId.indexOf('.')
-    return fieldId.substring(dotIndex + 1)
-  }
-
-  // Plain key (new format)
-  return fieldId
 }

@@ -25,8 +25,8 @@ concurrency:
 env:
   PROJECT_ID: asses-k2n
   DEPLOYMENT_NAME: productie
-  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/frontend
-  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/dev/backend
+  FRONTEND_IMAGE: ghcr.io/minbzk/par-dpia-form/frontend
+  BACKEND_IMAGE: ghcr.io/minbzk/par-dpia-form/backend
 
 jobs:
   promote:
@@ -35,7 +35,7 @@ jobs:
       frontend-image: ${{ steps.promote.outputs.frontend-image }}
       backend-image: ${{ steps.promote.outputs.backend-image }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
@@ -70,14 +70,14 @@ jobs:
             exit 1
           fi
 
-      - uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Promoot acceptatie-images naar CalVer-tag
-        id: promote
+      - name: Bepaal het acceptatie-image voor deze tag
+        id: image
         env:
           TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
         run: |
@@ -90,15 +90,92 @@ jobs:
               exit 1
             fi
           done
+          echo "short=${short}" >> "$GITHUB_OUTPUT"
+
+      # Report-only, and that has to hold for the reporting itself too: a
+      # registry hiccup or a failed database download must not stop a release
+      # over information it was only ever going to print. Promotion does not
+      # rebuild, so nothing found here has a fix available in this run anyway.
+      - name: Trivy scan van het frontend-image
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.FRONTEND_IMAGE }}:${{ steps.image.outputs.short }}
+          scan-type: image
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+          format: json
+          output: trivy-frontend.json
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trivy scan van het backend-image
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.BACKEND_IMAGE }}:${{ steps.image.outputs.short }}
+          scan-type: image
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '0'
+          format: json
+          output: trivy-backend.json
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rapporteer de bevindingen bij deze release
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          for c in frontend backend; do
+            jq --arg component "$c" '
+              [ .Results[]?.Vulnerabilities[]? | {
+                  component: $component,
+                  id: .VulnerabilityID,
+                  severity: .Severity,
+                  pkg: .PkgName,
+                  installed: .InstalledVersion,
+                  fixed: .FixedVersion
+                } ]' "trivy-${c}.json" > "findings-${c}.json"
+          done
+          jq -s 'add' findings-*.json > findings.json
+          count=$(jq 'length' findings.json)
+          {
+            echo "## Beveiligingsscan bij promotie"
+            echo
+            if [ "$count" = "0" ]; then
+              echo "Geen oplosbare CRITICAL- of HIGH-meldingen in de images die naar productie gaan."
+            else
+              echo "| Image | Ernst | Pakket | Nu | Opgelost in | Melding |"
+              echo "| --- | --- | --- | --- | --- | --- |"
+              jq -r 'sort_by(.severity, .component, .pkg) | .[] |
+                     "| \(.component) | \(.severity) | `\(.pkg)` | \(.installed) | \(.fixed) | \(.id) |"' findings.json
+              echo
+              echo "Promotie bouwt niet opnieuw, dus dit blokkeert de release niet. Wil je het meenemen: los het op main op en breng een nieuwe tag uit."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$count" != "0" ]; then
+            echo "::warning::${count} oplosbare CRITICAL/HIGH-meldingen in de images van deze release; zie de samenvatting van deze run."
+          fi
+
+      - name: Promoot acceptatie-images naar CalVer-tag
+        id: promote
+        env:
+          TAG_NAME: ${{ github.event.inputs.tag || github.ref_name }}
+          SHORT: ${{ steps.image.outputs.short }}
+        run: |
+          set -euo pipefail
           docker build --pull \
-            --build-arg "BASE=${FRONTEND_IMAGE}:${short}" \
+            --build-arg "BASE=${FRONTEND_IMAGE}:${SHORT}" \
             --build-arg "TAG=${TAG_NAME}" \
-            --build-arg "COMMIT=${short}" \
+            --build-arg "COMMIT=${SHORT}" \
             -f containers/frontend/overlay.Dockerfile \
             -t "${FRONTEND_IMAGE}:${TAG_NAME}" .
           docker push "${FRONTEND_IMAGE}:${TAG_NAME}"
           docker build --pull \
-            --build-arg "BASE=${BACKEND_IMAGE}:${short}" \
+            --build-arg "BASE=${BACKEND_IMAGE}:${SHORT}" \
             --build-arg "TAG=${TAG_NAME}" \
             -f containers/backend/overlay.Dockerfile \
             -t "${BACKEND_IMAGE}:${TAG_NAME}" .
@@ -116,7 +193,7 @@ jobs:
       url: https://invulhulpen.rijksapp.nl
     steps:
       - name: Deploy to ZAD
-        uses: RijksICTGilde/zad-actions/deploy@13434cd415db0cd195a2c5f12bf67645acfcb635 # v4.0.6
+        uses: RijksICTGilde/zad-actions/deploy@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
         with:
           api-key: ${{ secrets.ZAD_API_KEY }}
           project-id: ${{ env.PROJECT_ID }}

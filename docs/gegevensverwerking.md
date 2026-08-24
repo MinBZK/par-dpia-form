@@ -45,7 +45,7 @@ Bij elke authenticatie worden het e-mailadres en de weergavenaam uit Keycloak ge
 
 ## Rate limiting
 
-De API hanteert een limiet van 300 verzoeken per minuut per IP-adres (via `@fastify/rate-limit`). Hiervoor worden IP-adressen tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
+De API hanteert een limiet van 1000 verzoeken per minuut per ingelogde gebruiker (via `@fastify/rate-limit`). Verzoeken zonder geldig token tellen mee in een limiet van 100 verzoeken per minuut per IP-adres. Hiervoor worden de gebruikersidentificatie uit het token respectievelijk het IP-adres tijdelijk in het geheugen bijgehouden. Deze gegevens worden niet persistent opgeslagen.
 
 ## Serverlogs
 
@@ -74,7 +74,7 @@ Persoonsgegevens worden niet gedeeld met derden en niet doorgegeven aan landen b
 - Rolgebaseerde toegangscontrole (eigenaar, bewerker, commentator, lezer)
 - Veld-niveau auditlogging (bewerkingsgeschiedenis)
 - Security headers via `@fastify/helmet` (CSP, X-Frame-Options, etc.)
-- Rate limiting (300 verzoeken per minuut per IP)
+- Rate limiting (1000 verzoeken per minuut per ingelogde gebruiker, 100 per IP voor overig verkeer)
 
 ## Geautomatiseerde besluitvorming
 
@@ -127,8 +127,8 @@ Het [DUTO-raamwerk][duto] schrijft voor dat overheidsinformatie vindbaar, beschi
 [avg-art6]: https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32016R0679#d1e1883-1-1 "AVG artikel 6 — Rechtmatigheid van de verwerking"
 [avg-art24]: https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32016R0679 "AVG artikel 24 — Verantwoordelijkheid van de verwerkingsverantwoordelijke"
 [avg-art35]: https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=CELEX:32016R0679 "AVG artikel 35 — Gegevensbeschermingseffectbeoordeling"
-[wp248]: https://ec.europa.eu/newsroom/article29/item-detail.cfm?item_id=611236 "WP29 Guidelines on DPIA (WP248 rev.01, 4 oktober 2017)"
+[wp248]: https://ec.europa.eu/newsroom/article29/items/611236 "WP29 Guidelines on DPIA (WP248 rev.01, 4 oktober 2017)"
 [ap-dpia]: https://www.autoriteitpersoonsgegevens.nl/en/themes/basic-gdpr/gdpr-in-practice/data-protection-impact-assessment-dpia "Autoriteit Persoonsgegevens — DPIA"
 [archiefwet-1995]: https://wetten.overheid.nl/BWBR0007376/ "Archiefwet 1995 — wetten.overheid.nl"
-[archiefwet-nieuw]: https://www.eerstekamer.nl/wetsvoorstel/35968_archiefwet_20 "Archiefwet 20.. (35.968) — Eerste Kamer"
+[archiefwet-nieuw]: https://www.eerstekamer.nl/wetsvoorstel/35968_archiefwet_2026 "Archiefwet 2026 (35.968) — Eerste Kamer"
 [duto]: https://www.nationaalarchief.nl/archiveren/kennisbank/duto-raamwerk "DUTO-raamwerk — Nationaal Archief"

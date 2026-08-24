@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -22,7 +22,20 @@ onUnmounted(() => {
   answerStore.reset()
 })
 
+const VERSIONS_PAGE_SIZE = 100
 const versions = ref<AssessmentVersion[]>([])
+const totalVersions = ref(0)
+const versionsPage = ref(1)
+const loadingMore = ref(false)
+const reachedEnd = ref(false)
+const loadError = ref('')
+const loadStatus = ref('')
+const loadStatusRef = ref<HTMLElement | null>(null)
+const hasMoreVersions = computed(() => !reachedEnd.value && versions.value.length < totalVersions.value)
+const nextBatchSize = computed(() => Math.min(VERSIONS_PAGE_SIZE, totalVersions.value - versions.value.length))
+// nextBatchSize is only 1 when exactly one version remains, i.e. the last one.
+const loadMoreLabel = computed(() =>
+  nextBatchSize.value === 1 ? 'Laad de laatste versie' : `Laad de volgende ${nextBatchSize.value} versies`)
 const role = ref<string | null>(null)
 const projectId = ref<string | null>(null)
 const loading = ref(true)
@@ -75,8 +88,10 @@ async function handleFieldRestore() {
   const version = expandedVersion.value
   if (!field || !version) return
 
-  const parsed = parseFieldId(field.fieldId)
-  if (!parsed) return
+  // No namespace means the field id is neither a URN nor dot format, so there is
+  // no telling which assessment the answer belongs to: leave the state alone.
+  const parsed = parseFieldUrn(field.fieldId)
+  if (!parsed?.namespace) return
   const key = parsed.key
 
   try {
@@ -98,11 +113,8 @@ async function handleFieldRestore() {
       currentState.metadata.completedTasks = completed
     } else if (field.editType === 'instance_added' || field.editType === 'instance_removed') {
       // Undo instance add/remove on the grouped array
-      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
-      if (indexMatch) {
-        const parentKey = indexMatch[1]
-        const index = parseInt(indexMatch[2])
-
+      const { taskId: parentKey, index } = parseInstanceId(key)
+      if (index !== undefined) {
         if (field.editType === 'instance_added') {
           // Undo add = remove the instance
           const arr = currentState.answers[parentKey]
@@ -129,16 +141,14 @@ async function handleFieldRestore() {
         }
       }
     } else {
-      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
+      const { taskId, index } = parseInstanceId(key)
       const rawVal = field.rawOldValue as { value?: unknown } | null | undefined
       const newAnswer = rawVal && typeof rawVal === 'object' && 'value' in rawVal
         ? { value: rawVal.value, lastEditedAt: new Date().toISOString() }
         : null
 
-      if (indexMatch) {
+      if (index !== undefined) {
         // Repeatable field: find parent group and update element in grouped array
-        const taskId = indexMatch[1]
-        const index = parseInt(indexMatch[2])
         const formType = formTypeForNamespace(parsed.namespace)
         const flatTasks = taskStore.getTasksFromNamespace(formType)
         const task = flatTasks?.[taskId]
@@ -191,8 +201,12 @@ async function handleFieldRestore() {
     currentState.$schema = currentState.$schema || OUTPUT_SCHEMA_URL
     await assessmentsApi.update(props.assessmentId, currentState, { changeDescription: restoreDesc, newVersion: true, expectedVersion: assessment.currentVersion })
 
-    // Refresh version list
-    versions.value = await assessmentsApi.versions(props.assessmentId)
+    // Refresh version list (back to the first page)
+    const refreshed = await assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE)
+    versions.value = refreshed.items
+    totalVersions.value = refreshed.total
+    versionsPage.value = 1
+    reachedEnd.value = false
 
     fieldRestoreModalOpen.value = false
     fieldRestoreTarget.value = null
@@ -261,13 +275,52 @@ onMounted(async () => {
 
   const [assessment, v] = await Promise.all([
     assessmentsApi.get(props.assessmentId),
-    assessmentsApi.versions(props.assessmentId),
+    assessmentsApi.versions(props.assessmentId, 1, VERSIONS_PAGE_SIZE),
   ])
   role.value = (assessment as any).role || null
   projectId.value = assessment.projectId
-  versions.value = v
+  versions.value = v.items
+  totalVersions.value = v.total
+  versionsPage.value = 1
+  reachedEnd.value = false
   loading.value = false
 })
+
+async function loadMoreVersions() {
+  loadingMore.value = true
+  loadError.value = ''
+  try {
+    const next = await assessmentsApi.versions(props.assessmentId, versionsPage.value + 1, VERSIONS_PAGE_SIZE)
+    versionsPage.value += 1
+    totalVersions.value = next.total
+    // Offset paging can overlap when a version is created concurrently; dedupe by
+    // id and stop once a page adds nothing new so the button cannot get stuck.
+    const seen = new Set(versions.value.map((v) => v.id))
+    const fresh = next.items.filter((v) => !seen.has(v.id))
+    if (fresh.length === 0) {
+      reachedEnd.value = true
+    } else {
+      versions.value.push(...fresh)
+    }
+    await announceLoaded()
+  } catch {
+    loadError.value = 'Meer versies laden is mislukt. Probeer het opnieuw.'
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+// Announce the load to assistive tech, and when the last page has loaded (button
+// gone) move focus to the status node so keyboard users are not dumped to the top.
+async function announceLoaded() {
+  loadStatus.value = hasMoreVersions.value
+    ? `${versions.value.length} van ${totalVersions.value} versies geladen`
+    : `Alle ${versions.value.length} versies geladen`
+  if (!hasMoreVersions.value) {
+    await nextTick()
+    loadStatusRef.value!.focus()
+  }
+}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleString('nl-NL', {
@@ -541,31 +594,11 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
 }
 
 /**
- * Parse a URN-based field ID into namespace and key for label lookup.
- * "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0" → { namespace: "dpia", key: "2.1.3[0]" }
- * Falls back to dot-format parsing: "dpia.2.1" → { namespace: "dpia", key: "2.1" }
- */
-function parseFieldId(fieldId: string): { namespace: string; key: string } | null {
-  if (fieldId.startsWith('urn:')) {
-    const match = fieldId.match(/^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
-    if (!match) return null
-    const namespace = match[1] === 'prescan_dpia' ? 'prescan' : match[1]
-    const taskId = match[2]
-    const index = match[3]
-    const key = index !== undefined ? `${taskId}[${index}]` : taskId
-    return { namespace, key }
-  }
-  const dotIndex = fieldId.indexOf('.')
-  if (dotIndex === -1) return null
-  return { namespace: fieldId.substring(0, dotIndex), key: fieldId.substring(dotIndex + 1) }
-}
-
-/**
  * Convert a fieldId (URN or dot-format) to dot-format for label lookup.
  */
 function toDotFieldId(fieldId: string): string {
-  const parsed = parseFieldId(fieldId)
-  if (!parsed) return fieldId
+  const parsed = parseFieldUrn(fieldId)
+  if (!parsed?.namespace) return fieldId
   return `${parsed.namespace}.${parsed.key}`
 }
 
@@ -629,13 +662,12 @@ function mapEditsToDiffFields(
   for (const [dotId, edit] of collapsed) {
     // Instance added/removed: both values are null, so handle before the no-change check
     if (edit.editType === 'instance_added' || edit.editType === 'instance_removed') {
-      const parsed = parseFieldId(edit.fieldId)
-      const taskId = parsed?.key.replace(/\[\d+\]$/, '') ?? dotId
+      const parsed = parseFieldUrn(edit.fieldId)
+      const { taskId, index } = parsed ? parseInstanceId(parsed.key) : { taskId: dotId, index: undefined }
       const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
-      const indexMatch = parsed?.key.match(/\[(\d+)\]$/)
-      const indexLabel = indexMatch ? ` #${parseInt(indexMatch[1]) + 1}` : ''
+      const indexLabel = index !== undefined ? ` #${index + 1}` : ''
       const label = task?.is_official_id ? `${task.id}. ${name}${indexLabel}` : `${name}${indexLabel}`
       const added = edit.editType === 'instance_added'
       const fieldValues = added ? edit.newValue : edit.oldValue
@@ -659,7 +691,7 @@ function mapEditsToDiffFields(
     const options = getFieldOptions(dotId)
 
     if (edit.editType === 'section_complete') {
-      const parsed = parseFieldId(edit.fieldId)
+      const parsed = parseFieldUrn(edit.fieldId)
       const taskId = parsed ? (parsed.key.startsWith('completed.') ? parsed.key.substring('completed.'.length) : parsed.key) : edit.fieldId
       const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
@@ -707,7 +739,7 @@ function mapEditsToDiffFields(
         <p>Geen versies gevonden.</p>
       </div>
 
-      <div v-else class="version-list rvo-margin-block-end--lg">
+      <div v-else class="version-list rvo-margin-block-end--lg" :aria-busy="loadingMore">
         <div class="version-row version-row--header">
           <span class="version-col--toggle"></span>
           <span class="version-col--nr">Versie</span>
@@ -831,6 +863,19 @@ function mapEditsToDiffFields(
             </table>
           </div>
         </template>
+
+        <div v-if="hasMoreVersions" class="version-list__more">
+          <button
+            class="rvo-button rvo-button--secondary rvo-button--size-sm"
+            :disabled="loadingMore"
+            @click="loadMoreVersions"
+          >
+            {{ loadMoreLabel }}
+          </button>
+        </div>
+
+        <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
+        <p ref="loadStatusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
       </div>
     </template>
 

@@ -118,6 +118,19 @@ const stubs = {
     template: '<div class="stub-fileupload"><button class="fu-start" @click="$emit(\'start\')" /></div>',
   },
   LiveResults: { name: 'LiveResults', template: '<div class="stub-liveresults" />' },
+  // Native <dialog>.showModal does not exist in jsdom; the stub exposes the two
+  // outcomes so a test can confirm or cancel.
+  ConfirmDialog: {
+    name: 'ConfirmDialog',
+    props: ['open', 'title', 'confirmLabel'],
+    emits: ['confirm', 'cancel'],
+    template:
+      '<div v-if="open" class="stub-confirm-dialog" :data-title="title">' +
+      '<slot />' +
+      '<button class="cd-confirm" @click="$emit(\'confirm\')" />' +
+      '<button class="cd-cancel" @click="$emit(\'cancel\')" />' +
+      '</div>',
+  },
   UiButton: {
     name: 'UiButton',
     props: ['variant', 'label', 'icon', 'size', 'showIconAfter'],
@@ -452,10 +465,9 @@ describe('Form.vue export handlers', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Failed to export pdf:', expect.any(Error))
   })
 
-  it('exports to JSON via the ExportMenu (replaces the removed SaveForm modal)', async () => {
+  it('exports to JSON via the ExportMenu', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
-    // The SaveForm modal was removed; JSON export now flows through ExportMenu.
     await wrapper.findAll('.em-json')[0].trigger('click')
     await flushPromises()
 
@@ -514,11 +526,45 @@ describe('Form.vue handleReset', () => {
     await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
+    // The button only asks; the reset happens on confirm.
+    expect(persistence.clearSavedState).not.toHaveBeenCalled()
+    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('1 ingevuld antwoord')
+
+    await wrapper.find('.cd-confirm').trigger('click')
+    await wrapper.vm.$nextTick()
+
     expect(persistence.clearSavedState).toHaveBeenCalledWith(FormType.DPIA)
     expect(answerStore.answers[FormType.DPIA]).toEqual({})
     expect(taskStore.completedRootTaskIds[FormType.DPIA]).toEqual(new Set())
     expect(wrapper.find('.stub-fileupload').exists()).toBe(true)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(false)
+  })
+
+  it('cancels without clearing, and phrases the warning without a count', async () => {
+    const { wrapper, persistence } = await mountForm({ autoStart: true })
+
+    await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Nothing answered yet, so there is no number worth naming.
+    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('De opgeslagen DPIA wordt definitief gewist')
+
+    await wrapper.find('.cd-cancel').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(persistence.clearSavedState).not.toHaveBeenCalled()
+    expect(wrapper.find('.stub-confirm-dialog').exists()).toBe(false)
+  })
+
+  it('pluralises the warning for more than one answer', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const answerStore = useAnswerStore()
+    answerStore.answers[FormType.DPIA] = { '0.1': { value: 'a' }, '0.2': { value: 'b' } }
+
+    await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('2 ingevulde antwoorden')
   })
 
   it('uses the rootTaskIds fallback "0" and skips re-init when validData is null', async () => {

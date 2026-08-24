@@ -1,0 +1,51 @@
+name: Package-manager version monitor
+
+# Dependabot cannot track the pnpm/corepack versions (they live in RUN lines /
+# the packageManager field, not a manifest it parses). This weekly check
+# compares the pins to the npm registry and keeps a single tracking issue in
+# sync: opened/updated when a newer version exists, closed when the pins catch
+# up. It never fails a build; it only notifies. Uses the built-in GITHUB_TOKEN.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"  # Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check for newer pnpm/corepack
+        id: check
+        run: node scripts/check-package-manager-updates.mjs | tee pm-report.md
+
+      - name: Sync the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BEHIND: ${{ steps.check.outputs.behind }}
+          LABEL: package-manager-update
+          TITLE: "Package-manager update available (pnpm/corepack)"
+        run: |
+          set -euo pipefail
+          existing="$(gh issue list --state open --label "$LABEL" --json number --jq '.[0].number // empty')"
+          if [ "$BEHIND" = "true" ]; then
+            if [ -n "$existing" ]; then
+              gh issue edit "$existing" --body-file pm-report.md
+              echo "Updated tracking issue #$existing"
+            else
+              gh label create "$LABEL" --color FBCA04 --description "A newer pnpm/corepack is published than pinned" 2>/dev/null || true
+              gh issue create --title "$TITLE" --label "$LABEL" --body-file pm-report.md
+            fi
+          elif [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "The pnpm/corepack pins are current again; closing."
+            gh issue close "$existing"
+          fi

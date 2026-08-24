@@ -1,8 +1,10 @@
 import type { AssessmentState, GroupedAnswerValue, IndexedGroupElement } from '../models/assessmentState'
 import type { TaskStoreType } from '../stores/tasks'
-import type { AnswerStoreType } from '../stores/answers'
+import type { Answer, AnswerStoreType } from '../stores/answers'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
+import { sanitizeAnswers } from './sanitizeState'
+import { migrateOptionValueAnswers } from './stateMigration'
 
 /**
  * Apply an AssessmentState to the task and answer stores.
@@ -28,8 +30,14 @@ export function applyStateToStores(
       ? flattenGroupedAnswers(answers as Record<string, GroupedAnswerValue>)
       : answers
 
-    answerStore.answers[ns] = {}
-    Object.assign(answerStore.answers[ns], flat)
+    // Sanitize here as well as on import: this is the single point every state
+    // passes through (import, server load, browser storage).
+    const { answers: safe } = sanitizeAnswers(flat as Record<string, unknown>)
+
+    answerStore.answers[ns] = migrateOptionValueAnswers(
+      safe as Record<string, Answer>,
+      taskStore.flatTasks[ns],
+    )
   }
 }
 

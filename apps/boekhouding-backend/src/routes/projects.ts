@@ -1,20 +1,42 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
 import { projects, projectMembers, assessmentInstances, assessmentVersions, assessmentEdits } from '../db/schema.js'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, asc, desc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
 import { hasOnlyAllowedImages } from '../utils/imageValidator.js'
 import { validateState } from '../utils/validateState.js'
 import { normalizeCreateState } from '../utils/normalizeCreateState.js'
+import { stripUnknownStateKeys } from '../utils/sanitizeState.js'
+import { parsePagination, pageQuerySchema, type PageQuery } from '../utils/pagination.js'
+import { projectParams, dutchSchemaErrorFormatter, STATE_BODY_LIMIT } from '../utils/routeSchemas.js'
+
+const LIST_PAGE = { defaultSize: 100, maxSize: 500 }
 
 export async function projectRoutes(app: FastifyInstance) {
+  app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
+
   // All project routes require auth
   app.addHook('preHandler', requireAuth)
 
   // List projects for the current user
-  app.get('/', { schema: { tags: ['projects'] } }, async (request) => {
+  app.get<{
+    Querystring: PageQuery
+  }>('/', {
+    schema: {
+      tags: ['projects'],
+      description: 'Projecten van de huidige gebruiker (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      querystring: pageQuerySchema(LIST_PAGE),
+    },
+  }, async (request, reply) => {
     const userId = request.user!.id
+
+    const { limit, offset } = parsePagination(request.query, LIST_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
+      .from(projectMembers)
+      .where(eq(projectMembers.userId, userId))
+    reply.header('X-Total-Count', total)
 
     const result = await db
       .select({
@@ -28,6 +50,9 @@ export async function projectRoutes(app: FastifyInstance) {
       .from(projectMembers)
       .innerJoin(projects, eq(projectMembers.projectId, projects.id))
       .where(eq(projectMembers.userId, userId))
+      .orderBy(desc(projects.updatedAt), asc(projects.id))
+      .limit(limit)
+      .offset(offset)
 
     return result
   })
@@ -69,7 +94,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.get<{
     Params: { projectId: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: { tags: ['projects'], params: projectParams },
     preHandler: [requireProjectAccess('viewer')],
   }, async (request) => {
     const { projectId } = request.params
@@ -88,7 +113,18 @@ export async function projectRoutes(app: FastifyInstance) {
     Params: { projectId: string }
     Body: { name?: string; description?: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: {
+      tags: ['projects'],
+      params: projectParams,
+      body: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', minLength: 1, maxLength: 200 },
+          description: { type: 'string', maxLength: 2000 },
+        },
+        additionalProperties: false,
+      },
+    },
     preHandler: [requireProjectAccess('owner')],
   }, async (request) => {
     const { projectId } = request.params
@@ -111,7 +147,7 @@ export async function projectRoutes(app: FastifyInstance) {
   app.delete<{
     Params: { projectId: string }
   }>('/:projectId', {
-    schema: { tags: ['projects'] },
+    schema: { tags: ['projects'], params: projectParams },
     preHandler: [requireProjectAccess('owner')],
   }, async (request, reply) => {
     const { projectId } = request.params
@@ -123,16 +159,43 @@ export async function projectRoutes(app: FastifyInstance) {
 
   app.get<{
     Params: { projectId: string }
+    Querystring: PageQuery
   }>('/:projectId/assessments', {
-    schema: { tags: ['assessments'] },
+    schema: {
+      tags: ['assessments'],
+      description: 'Assessments in een project (gepagineerd). Het totale aantal staat in de X-Total-Count response-header.',
+      params: projectParams,
+      querystring: pageQuerySchema(LIST_PAGE),
+    },
     preHandler: [requireProjectAccess('viewer')],
-  }, async (request) => {
+  }, async (request, reply) => {
     const { projectId } = request.params
 
-    const assessments = await db
-      .select()
+    // The list needs only metadata; cachedState (all answers + embedded images)
+    // is excluded here. Full state comes from GET /:assessmentId?includeState.
+    const { limit, offset } = parsePagination(request.query, LIST_PAGE)
+    const [{ total }] = await db
+      .select({ total: count() })
       .from(assessmentInstances)
       .where(eq(assessmentInstances.projectId, projectId))
+    reply.header('X-Total-Count', total)
+
+    const assessments = await db
+      .select({
+        id: assessmentInstances.id,
+        projectId: assessmentInstances.projectId,
+        assessmentType: assessmentInstances.assessmentType,
+        name: assessmentInstances.name,
+        createdBy: assessmentInstances.createdBy,
+        currentVersion: assessmentInstances.currentVersion,
+        createdAt: assessmentInstances.createdAt,
+        updatedAt: assessmentInstances.updatedAt,
+      })
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.projectId, projectId))
+      .orderBy(desc(assessmentInstances.updatedAt), asc(assessmentInstances.id))
+      .limit(limit)
+      .offset(offset)
 
     return assessments
   })
@@ -141,8 +204,10 @@ export async function projectRoutes(app: FastifyInstance) {
     Params: { projectId: string }
     Body: { name?: string; assessmentType: 'prescan' | 'dpia' | 'iama' | 'aiia'; state?: unknown }
   }>('/:projectId/assessments', {
+    bodyLimit: STATE_BODY_LIMIT,
     schema: {
       tags: ['assessments'],
+      params: projectParams,
       body: {
         type: 'object',
         required: ['assessmentType'],
@@ -176,7 +241,13 @@ export async function projectRoutes(app: FastifyInstance) {
     // state must not be persisted and later replayed verbatim by rebuildState.
     let initialState: Record<string, unknown> = {}
     if (state !== undefined) {
-      initialState = normalizeCreateState(state as Record<string, unknown>, assessmentType)
+      const stripped = stripUnknownStateKeys(
+        normalizeCreateState(state as Record<string, unknown>, assessmentType),
+      )
+      if (stripped.dropped.length > 0) {
+        request.log.warn({ dropped: stripped.dropped }, 'Initial assessment state carried keys the schema does not define')
+      }
+      initialState = stripped.state as Record<string, unknown>
       const stateValidation = validateState(initialState)
       if (!stateValidation.valid) {
         request.log.warn({ errors: stateValidation.errors }, 'Initial assessment state rejected: schema validation failed')

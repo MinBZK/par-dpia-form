@@ -44,13 +44,45 @@ describe('validateState', () => {
   })
 
   it('accepts the extra top-level _prescanAnswers field the DPIA client sends', () => {
-    // buildApiState() adds _prescanAnswers for DPIA saves; the schema has no
-    // additionalProperties:false at the root, so this must keep validating.
     const result = validateState({
       ...validState({ '0.1': answer('x') }),
       _prescanAnswers: { '0.1': answer('leftover') },
     })
     expect(result.valid).toBe(true)
+  })
+
+  it('accepts grouped repeatable answers inside _prescanAnswers', () => {
+    const result = validateState({
+      ...validState(),
+      _prescanAnswers: { '2.1': [{ _index: 0, '2.1.1': answer('Email') }] },
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  // The schema stays open at the root on purpose: an export from before the v2
+  // migration carries `taskState` and `metadata.activeNamespace` and still
+  // declares this schema URL, so closing it would retroactively invalidate
+  // files this app produced itself. stripUnknownStateKeys drops those keys
+  // before they can be persisted, and logs what it dropped.
+  it('accepts a legacy key at the root, which the stripper removes instead', () => {
+    const result = validateState({ ...validState(), taskState: { dpia: {} } })
+    expect(result.valid).toBe(true)
+  })
+
+  it('accepts a legacy metadata key, which the stripper removes instead', () => {
+    const result = validateState({
+      ...validState(),
+      metadata: { urn: 'urn:nl:dpia:3.0', createdAt: '2026-01-01T00:00:00.000Z', activeNamespace: 'dpia' },
+    })
+    expect(result.valid).toBe(true)
+  })
+
+  it('still rejects a malformed _prescanAnswers key', () => {
+    const result = validateState({
+      ...validState(),
+      _prescanAnswers: { 'geen-taak-id': answer('x') },
+    })
+    expect(result.valid).toBe(false)
   })
 
   it('accepts a realistic full client payload (drift guard for buildApiState)', () => {
@@ -108,6 +140,14 @@ describe('validateState', () => {
 
   it('rejects a grouped element without _index', () => {
     const result = validateState(validState({ '2.1': [{ '2.1.1': answer('x') }] }))
+    expect(result.valid).toBe(false)
+  })
+
+  it('rejects a grouped element with a __proto__ child key', () => {
+    // JSON.parse makes __proto__ a real own property (unlike an object literal,
+    // where __proto__: sets the prototype). This is how it arrives over HTTP.
+    const groups = JSON.parse('[{"_index":0,"__proto__":{"value":"x","lastEditedAt":"2026-01-01T00:00:00.000Z"}}]')
+    const result = validateState(validState({ '2.1': groups }))
     expect(result.valid).toBe(false)
   })
 

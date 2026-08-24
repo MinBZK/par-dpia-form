@@ -653,6 +653,18 @@ a.card-link:hover {
   min-width: fit-content;
 }
 
+.version-list__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.version-list__error {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  color: var(--rvo-color-rood, #d52b1e);
+}
+
 .desc-edit-btn {
   background: none;
   border: none;
@@ -1370,9 +1382,14 @@ a.card-link:hover {
 .sync-toast {
   position: fixed;
   bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 48rem;
+  /* Centred by auto margins, not by left:50% + translateX: with only `left` set,
+     the shrink-to-fit width is capped at viewport minus that offset, so the box
+     could never exceed half the screen and wrapped its text with room to spare. */
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: min(48rem, calc(100vw - 2rem));
   z-index: 100;
   display: flex;
   align-items: center;
@@ -1381,6 +1398,15 @@ a.card-link:hover {
   color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* The comment panel is a bottom-sheet on phones, so a toast pinned to the bottom
+   would sit on top of it; move it out of the way instead of stacking above it. */
+@media (max-width: 768px) {
+  .sync-toast--raised {
+    top: 1rem;
+    bottom: auto;
+  }
 }
 
 .sync-toast__action {

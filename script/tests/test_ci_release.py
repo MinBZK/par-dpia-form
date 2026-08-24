@@ -16,6 +16,9 @@ CI_DIR = Path(__file__).resolve().parents[2] / "script" / "ci"
 VALIDATE = CI_DIR / "validate-calver-tag.sh"
 CHANGELOG = CI_DIR / "changelog-section.sh"
 ASSERT_NEWEST = CI_DIR / "assert-newest-calver-tag.sh"
+ASSERT_PLUGIN = CI_DIR / "assert-plugin-version.sh"
+ASSERT_ABSENT = CI_DIR / "assert-tag-absent.sh"
+NEWEST = CI_DIR / "newest-calver-tag.sh"
 
 
 def run(script: Path, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
@@ -124,3 +127,100 @@ def test_first_release_allowed(tmp_path: Path):
     git("commit", "--allow-empty", "-m", "init")
     # No tags at all: the first release is always allowed.
     assert run(ASSERT_NEWEST, "v2026.6.6", cwd=tmp_path).returncode == 0
+
+
+# --- assert-plugin-version.sh ----------------------------------------------
+
+
+@pytest.fixture
+def plugin_manifest(tmp_path: Path) -> Path:
+    path = tmp_path / "plugin.json"
+    path.write_text('{\n  "name": "assessments",\n  "version": "2026.6.20"\n}\n')
+    return path
+
+
+def test_plugin_version_matches_tag(plugin_manifest):
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(plugin_manifest)).returncode == 0
+
+
+def test_plugin_version_mismatch_fails(plugin_manifest):
+    result = run(ASSERT_PLUGIN, "v2026.7.1", str(plugin_manifest))
+    assert result.returncode != 0
+    assert "2026.6.20" in result.stderr
+
+
+def test_plugin_version_micro_tag(tmp_path: Path):
+    path = tmp_path / "plugin.json"
+    path.write_text('{"name": "assessments", "version": "2026.6.20.1"}\n')
+    assert run(ASSERT_PLUGIN, "v2026.6.20.1", str(path)).returncode == 0
+
+
+def test_plugin_version_missing_field_fails(tmp_path: Path):
+    path = tmp_path / "plugin.json"
+    path.write_text('{"name": "assessments"}\n')
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(path)).returncode != 0
+
+
+def test_plugin_manifest_missing_fails(tmp_path: Path):
+    assert run(ASSERT_PLUGIN, "v2026.6.20", str(tmp_path / "weg.json")).returncode != 0
+
+
+# --- assert-tag-absent.sh --------------------------------------------------
+
+
+def test_absent_tag_allowed(tagged_repo):
+    assert run(ASSERT_ABSENT, "v2026.7.1", cwd=tagged_repo).returncode == 0
+
+
+def test_existing_tag_blocked(tagged_repo):
+    result = run(ASSERT_ABSENT, "v2026.6.10", cwd=tagged_repo)
+    assert result.returncode != 0
+    assert "bestaat al" in result.stderr
+
+
+def test_absent_tag_is_not_fooled_by_a_prefix(tagged_repo):
+    # v2026.6.6.1 exists, v2026.6.6.11 does not: no substring matching.
+    assert run(ASSERT_ABSENT, "v2026.6.6.11", cwd=tagged_repo).returncode == 0
+
+
+# --- newest-calver-tag.sh --------------------------------------------------
+
+
+def test_newest_prints_highest_calver(tagged_repo):
+    result = run(NEWEST, cwd=tagged_repo)
+    assert result.returncode == 0
+    assert result.stdout.strip() == "v2026.6.10"
+
+
+def test_newest_ignores_semver_tags(tmp_path: Path):
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "Test")
+    git("commit", "--allow-empty", "-m", "init")
+    git("tag", "v0.1.3")
+    git("tag", "v2026.6.6")
+    assert run(NEWEST, cwd=tmp_path).stdout.strip() == "v2026.6.6"
+
+
+def test_newest_sorts_micro_above_base(tagged_repo):
+    # v2026.6.6.1 must outrank v2026.6.6, and both stay below v2026.6.10.
+    subprocess.run(
+        ["git", "tag", "-d", "v2026.6.10"], cwd=tagged_repo, check=True, capture_output=True
+    )
+    assert run(NEWEST, cwd=tagged_repo).stdout.strip() == "v2026.6.6.1"
+
+
+def test_newest_is_empty_without_calver_tags(tmp_path: Path):
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "Test")
+    git("commit", "--allow-empty", "-m", "init")
+    result = run(NEWEST, cwd=tmp_path)
+    assert result.returncode == 0
+    assert result.stdout.strip() == ""

@@ -13,6 +13,7 @@ import type { CommentThread, CommentReply } from '../../src/api'
 // we provide minimal stand-ins (test-environment only).
 const observedTargets: HTMLElement[] = []
 let lastResizeCallback: (() => void) | null = null
+const resizeCallbacks: Array<() => void> = []
 const mountedWrappers: Array<{ unmount: () => void }> = []
 
 class StubResizeObserver {
@@ -20,6 +21,7 @@ class StubResizeObserver {
   constructor(cb: () => void) {
     this.callback = cb
     lastResizeCallback = cb
+    resizeCallbacks.push(cb)
   }
   observe(el: HTMLElement) {
     observedTargets.push(el)
@@ -31,6 +33,7 @@ beforeEach(() => {
   setActivePinia(createPinia())
   observedTargets.length = 0
   lastResizeCallback = null
+  resizeCallbacks.length = 0
   ;(globalThis as unknown as { CSS: { escape: (s: string) => string } }).CSS = {
     escape: (s: string) => s,
   }
@@ -223,6 +226,208 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
       expect(wrapper.find('.comment-inline-form').exists()).toBe(canComment)
+    })
+  })
+
+  describe('a colleague resolves the thread while you are typing', () => {
+    async function panelWithOpenReply() {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({ id: 'root', fieldId: '1.1' })
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await nextTick()
+      await wrapper.get('.comment-reply-form textarea').setValue('Half getypte reactie')
+      return { wrapper, store }
+    }
+
+    it('keeps the thread and the draft when the thread is resolved elsewhere', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      // What the poll does when a colleague resolves it.
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = 'Noor Dijkstra'
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(true)
+      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+        .toBe('Half getypte reactie')
+    })
+
+    it('says who resolved it', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = 'Noor Dijkstra'
+      await nextTick()
+
+      expect(wrapper.get('.comment-thread__resolved-label').text())
+        .toContain('Noor Dijkstra')
+    })
+
+    it('falls back to a colleague when the name is unknown', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      store.threads[0].resolvedByName = null
+      await nextTick()
+
+      expect(wrapper.get('.comment-thread__resolved-label').text())
+        .toContain('een collega')
+    })
+
+    it('lets the thread go once the reply form is closed', async () => {
+      const { wrapper, store } = await panelWithOpenReply()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+      expect(wrapper.find('.comment-thread').exists()).toBe(true)
+
+      const cancel = wrapper.findAll('.comment-reply-form .comment-action-btn')
+        .find((b) => b.text().includes('Annuleer'))!
+      await cancel.trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(false)
+    })
+
+    it('keeps a thread whose reply is being edited', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({
+        id: 'root',
+        fieldId: '1.1',
+        replies: [reply('r1', 'user-1', 'Sam')],
+      })
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        currentUserId: 'user-1',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item--reply .comment-item__body').trigger('click')
+      await nextTick()
+      await nextTick()
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+    })
+
+    it('hides a resolved thread that has nothing open in it', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, store } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [thread({ id: 'root', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      store.threads[0].resolvedAt = '2026-04-12T15:00:00Z'
+      await nextTick()
+
+      expect(wrapper.find('.comment-thread').exists()).toBe(false)
+    })
+  })
+
+  describe('stackedEntries — cards never cover each other', () => {
+    // Fields sit 97px apart in the form while a card with a few lines of text is far taller,
+    // so without stacking the cards overlap and hide each other's text and buttons.
+    const FIELD_TOPS = [0, 97, 194]
+    const CARD_HEIGHTS = [247, 107, 167]
+
+    function stubTop(el: HTMLElement, top: number) {
+      el.getBoundingClientRect = () => ({ top, bottom: top, left: 0, right: 0, width: 0, height: 0, x: 0, y: top, toJSON: () => ({}) }) as DOMRect
+    }
+
+    async function mountThreeCards() {
+      const form = buildFormContainer([
+        { id: 'label-dpia-2.1.1', rvoLabel: 'Persoonsgegeven' },
+        { id: 'label-dpia-2.1.2', rvoLabel: 'Categorie' },
+        { id: 'label-dpia-2.1.3', rvoLabel: 'Herkomst' },
+      ])
+      form.querySelectorAll<HTMLElement>('[id^="label-"]').forEach((el, i) => stubTop(el, FIELD_TOPS[i]))
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [
+          thread({ id: 'a', fieldId: '2.1.1' }),
+          thread({ id: 'b', fieldId: '2.1.2' }),
+          thread({ id: 'c', fieldId: '2.1.3' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+      await nextTick()
+
+      // jsdom has no layout, so the rendered cards report their real heights only once stubbed.
+      wrapper.findAll('[data-field-group]').forEach((g, i) => {
+        Object.defineProperty(g.element, 'offsetHeight', { get: () => CARD_HEIGHTS[i], configurable: true })
+      })
+      for (const cb of resizeCallbacks) cb()
+      await nextTick()
+
+      return wrapper
+    }
+
+    function topsOf(wrapper: { findAll: (s: string) => Array<{ element: Element }> }): number[] {
+      return wrapper.findAll('[data-field-group]').map(g =>
+        Number.parseFloat((g.element as HTMLElement).style.getPropertyValue('--comment-top')),
+      )
+    }
+
+    it('pushes each card below the previous one instead of letting them overlap', async () => {
+      const wrapper = await mountThreeCards()
+      const tops = topsOf(wrapper)
+
+      expect(tops).toEqual([0, 255, 370])
+      for (let i = 1; i < tops.length; i++) {
+        expect(tops[i]).toBeGreaterThanOrEqual(tops[i - 1] + CARD_HEIGHTS[i - 1])
+      }
+    })
+
+    it('survives a resize notification that arrives after the panel is unmounted', async () => {
+      const wrapper = await mountThreeCards()
+      const callbacks = [...resizeCallbacks]
+      wrapper.unmount()
+
+      expect(() => { for (const cb of callbacks) cb() }).not.toThrow()
+    })
+
+    it('leaves a card at its own field when there is room above it', async () => {
+      const form = buildFormContainer([
+        { id: 'label-dpia-3.1', rvoLabel: 'Eerste' },
+        { id: 'label-dpia-3.2', rvoLabel: 'Tweede' },
+      ])
+      const tops = [0, 900]
+      form.querySelectorAll<HTMLElement>('[id^="label-"]').forEach((el, i) => stubTop(el, tops[i]))
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '3.1' }), thread({ id: 'b', fieldId: '3.2' })],
+      })
+      await flushRaf()
+      await nextTick()
+      await nextTick()
+
+      wrapper.findAll('[data-field-group]').forEach((g) => {
+        Object.defineProperty(g.element, 'offsetHeight', { get: () => 120, configurable: true })
+      })
+      for (const cb of resizeCallbacks) cb()
+      await nextTick()
+
+      expect(topsOf(wrapper)).toEqual([0, 900])
     })
   })
 
@@ -732,6 +937,56 @@ describe('CommentPanel', () => {
       expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Een nieuwe opmerking')
     })
 
+    it('keeps what you typed when placing the comment fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [],
+        activeFieldId: '1.1',
+      })
+      await flushRaf()
+      await nextTick()
+
+      spies.createComment.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const inline = wrapper.get('.comment-inline-form')
+      const textarea = inline.get('textarea')
+      await textarea.setValue('Kostbare tekst')
+      await textarea.trigger('input')
+      await inline.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect((textarea.element as HTMLTextAreaElement).value).toBe('Kostbare tekst')
+    })
+
+    it('keeps the reply text when posting the reply fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        threads: [thread({ id: 'root', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await nextTick()
+
+      spies.createReply.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const replyForm = wrapper.get('.comment-reply-form')
+      const textarea = replyForm.get('textarea')
+      await textarea.setValue('Mijn reactie')
+      await textarea.trigger('input')
+      await replyForm.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-reply-form').exists()).toBe(true)
+      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+        .toBe('Mijn reactie')
+    })
+
     it('disables the Plaatsen button while the body is empty', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
       const { wrapper, spies } = mountPanel({
@@ -833,6 +1088,36 @@ describe('CommentPanel', () => {
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'aangepast')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
+    })
+
+    it('stays in edit mode with your text when saving the edit fails', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
+      const { wrapper, spies } = mountPanel({
+        role: 'owner',
+        currentUserId: 'user-1',
+        formContainerRef: form,
+        threads: [t],
+      })
+      await flushRaf()
+      await nextTick()
+
+      await wrapper.get('.comment-item__body').trigger('click')
+      await nextTick()
+      await nextTick()
+
+      spies.updateComment.mockRejectedValueOnce(new Error('netwerkfout'))
+
+      const editBox = wrapper.get('.comment-item__edit')
+      const textarea = editBox.get('textarea')
+      await textarea.setValue('aangepast')
+      await textarea.trigger('input')
+      await editBox.get('.comment-btn--primary').trigger('click')
+      await nextTick()
+
+      expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
+      expect((wrapper.get('.comment-item__edit textarea').element as HTMLTextAreaElement).value)
+        .toBe('aangepast')
     })
 
     it('starts editing via the enter key on the body', async () => {

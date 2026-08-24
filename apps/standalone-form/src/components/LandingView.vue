@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AppBanner, UiButton, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
+import { AppBanner, UiButton, ConfirmDialog, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
 
 const props = defineProps<{
   navigation: NavigationFunctions
@@ -9,7 +9,26 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   startFresh: [type: FormType]
+  clearAll: []
 }>()
+
+const clearAllOpen = ref(false)
+
+// Names the assessments that actually have something saved, so the warning says
+// what is at stake instead of "alle gegevens".
+const cachedTitles = computed(() =>
+  cards.filter((card) => props.cachedTypes.includes(card.type)).map((card) => card.title))
+
+const cachedSummary = computed(() => {
+  const titles = cachedTitles.value
+  if (titles.length <= 1) return titles.join('')
+  return `${titles.slice(0, -1).join(', ')} en ${titles[titles.length - 1]}`
+})
+
+function confirmClearAll() {
+  clearAllOpen.value = false
+  emit('clearAll')
+}
 
 // Injected as a <meta> tag at build time (see vite.config.ts injectVersionMeta),
 // so the production overlay can sed-patch the version without touching the
@@ -175,7 +194,7 @@ async function downloadOfflineApp() {
         <h3 class="utrecht-heading-3">Bronnen</h3>
         <ul>
           <li><a href="https://www.kcbr.nl/sites/default/files/2023-08/Rapportagemodel%20DPIA%20Rijksdienst%20v3.0.docx" target="_blank" rel="noopener noreferrer">Rapportagemodel DPIA Rijksdienst</a></li>
-          <li><a href="https://www.kcbr.nl/beleid-en-regelgeving-ontwikkelen/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener noreferrer">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
+          <li><a href="https://www.kcbr.nl/ontwikkelen-beleid-en-regelgeving/beleidskompas/verplichte-kwaliteitseisen/data-protection-impact-assessment" target="_blank" rel="noopener noreferrer">Data Protection Impact Assessment - Kenniscentrum voor beleid en regelgeving</a></li>
         </ul>
       </div>
 
@@ -231,23 +250,38 @@ async function downloadOfflineApp() {
         </p>
       </div>
 
+      <!-- Only when there is something to wipe: on an empty browser the button
+           would just raise a question it cannot answer. -->
+      <div v-if="cachedTitles.length > 0" class="rvo-layout-margin-vertical--md">
+        <h2 class="utrecht-heading-2">Opgeslagen gegevens wissen</h2>
+        <p>
+          In deze browser staan antwoorden van je {{ cachedSummary }} opgeslagen. Werk je op een
+          gedeelde of openbare computer, wis ze dan voordat je weggaat.
+        </p>
+        <UiButton variant="secondary" label="Wis alle opgeslagen gegevens" icon="verwijderen"
+          @click="clearAllOpen = true" />
+      </div>
+
     </div>
   </div>
 
-  <!-- "Start nieuwe X" confirmation -->
-  <div v-if="freshTarget" class="fresh-confirm-overlay" @click.self="cancelFresh">
-    <div class="fresh-confirm" role="dialog" aria-modal="true" aria-labelledby="fresh-confirm-title">
-      <h2 id="fresh-confirm-title" class="utrecht-heading-2">Nieuwe {{ freshTargetCard?.title }} starten?</h2>
-      <p class="utrecht-paragraph">
-        Je hebt een opgeslagen versie van de {{ freshTargetCard?.title }}. Als je een nieuwe start, wordt
-        die opgeslagen versie definitief gewist. Dit kan niet ongedaan worden gemaakt.
-      </p>
-      <div class="fresh-confirm__actions">
-        <UiButton variant="tertiary" label="Annuleren" @click="cancelFresh" />
-        <UiButton variant="warning" :label="`Ja, start nieuwe ${freshTargetCard?.title}`" @click="confirmFresh" />
-      </div>
-    </div>
-  </div>
+  <ConfirmDialog v-if="clearAllOpen" :open="clearAllOpen" title="Alle opgeslagen gegevens wissen?"
+    confirm-label="Ja, wis alles" @cancel="clearAllOpen = false" @confirm="confirmClearAll">
+    <p class="utrecht-paragraph">
+      Dit wist de opgeslagen antwoorden van je {{ cachedSummary }} uit deze browser. Dit kan niet
+      ongedaan worden gemaakt. Exporteer eerst als je ze wilt bewaren.
+    </p>
+  </ConfirmDialog>
+
+  <ConfirmDialog v-if="freshTarget" :open="!!freshTarget"
+    :title="`Nieuwe ${freshTargetCard?.title} starten?`"
+    :confirm-label="`Ja, start nieuwe ${freshTargetCard?.title}`"
+    @cancel="cancelFresh" @confirm="confirmFresh">
+    <p class="utrecht-paragraph">
+      Je hebt een opgeslagen versie van de {{ freshTargetCard?.title }}. Als je een nieuwe start, wordt
+      die opgeslagen versie definitief gewist. Dit kan niet ongedaan worden gemaakt.
+    </p>
+  </ConfirmDialog>
 </template>
 
 <style scoped>
@@ -256,31 +290,5 @@ async function downloadOfflineApp() {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
-}
-
-.fresh-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  z-index: 1000;
-}
-
-.fresh-confirm {
-  background: #fff;
-  max-width: 32rem;
-  width: 100%;
-  padding: 1.5rem;
-  border-radius: 4px;
-}
-
-.fresh-confirm__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-block-start: 1rem;
 }
 </style>

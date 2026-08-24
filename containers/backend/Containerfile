@@ -1,7 +1,7 @@
 # Stage 1: install dependencies and build
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS build
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS build
 
-RUN corepack enable && corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
+RUN npm install --global corepack@0.35.0 && corepack enable && corepack prepare pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af --activate
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
 
 # Install all dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy source
 COPY apps/boekhouding-backend/ apps/boekhouding-backend/
@@ -19,19 +19,36 @@ COPY apps/boekhouding-backend/ apps/boekhouding-backend/
 WORKDIR /app/apps/boekhouding-backend
 RUN npx tsc
 
-# Stage 2: production image with only runtime dependencies
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66
+# security.txt Expires, fixed at build time; same mechanism as
+# containers/frontend/Containerfile.
+RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); process.stdout.write(d.toISOString())" \
+    > /app/security-txt-expires
 
-RUN corepack enable && corepack prepare pnpm@11.13.0+sha512.88d94724d8f2e6c186744a5584c6e59ecac869ec7ba15e9cb4cd628e8dc7066820b2481d8ee3b51ea8da323a7378068aa58c556a3720d32b7c20a051d088363a --activate
+# Production dependencies as a self-contained tree the runtime stage can copy.
+# hoisted, because pnpm's default layout leaves symlinks into a store that is
+# not copied along.
+WORKDIR /app
+RUN pnpm --filter @overheid-assessment/boekhouding-backend deploy --prod --legacy --node-linker=hoisted /prod
+
+# Stage 2: production image with only runtime dependencies
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019
+
+# No package manager here: dependencies arrive prebuilt from the build stage.
+# npm ships with the base image and carries its own vendored tar, undici,
+# ip-address and brace-expansion, which every image scan reports.
+#
+# `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
+# the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
+RUN apk upgrade --no-cache \
+    && rm -rf /var/cache/apk/* \
+       /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 WORKDIR /app
 
-# Copy workspace config and package manifests
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
-COPY apps/boekhouding-backend/package.json apps/boekhouding-backend/
-
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod || pnpm install --prod
+# package.json comes along because Node needs its "type": "module" to resolve
+# the compiled output as ESM.
+COPY --from=build /prod/node_modules apps/boekhouding-backend/node_modules
+COPY --from=build /app/apps/boekhouding-backend/package.json apps/boekhouding-backend/package.json
 
 # Copy compiled output and drizzle migrations
 COPY --from=build /app/apps/boekhouding-backend/dist apps/boekhouding-backend/dist
@@ -40,6 +57,11 @@ COPY --from=build /app/apps/boekhouding-backend/drizzle apps/boekhouding-backend
 # Canonical output schema — read at startup by validateState.ts (resolved at /app/schemas).
 COPY schemas/assessment-output.v2.schema.json schemas/assessment-output.v2.schema.json
 
+# Shared security.txt template (also used by containers/frontend/Containerfile);
+# read at startup by securityTxt.ts.
+COPY containers/security.txt.template containers/security.txt.template
+COPY --from=build /app/security-txt-expires containers/security-txt-expires
+
 WORKDIR /app/apps/boekhouding-backend
 
 ARG GIT_SHA=dev
@@ -47,4 +69,7 @@ ENV APP_COMMIT=$GIT_SHA
 
 USER 1000
 
-CMD ["sh", "-c", "node dist/db/migrate.js && node dist/index.js"]
+# `exec` replaces the shell with node after migrations, so node becomes PID 1
+# and receives SIGTERM on a rolling deploy/scale-down for graceful shutdown
+# (drain in-flight requests + release the DB pool); otherwise sh swallows it.
+CMD ["sh", "-c", "node dist/db/migrate.js && exec node dist/index.js"]

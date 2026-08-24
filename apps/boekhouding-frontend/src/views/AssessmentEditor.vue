@@ -12,6 +12,7 @@ import {
   exportToMarkdown,
   exportToPdf,
   PERSISTENCE_KEY,
+  sanitizeAnswers,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
@@ -63,13 +64,21 @@ function toggleCommentPanel() {
 }
 
 // Sync toast state
-const syncToast = ref<{ message: string; action?: () => void } | null>(null)
+interface SyncToast {
+  message: string
+  action?: () => void
+  actionLabel?: string
+  // Failure toasts describe a state that persists, so they stay up until it
+  // clears instead of vanishing after three seconds.
+  kind?: 'failure'
+}
+const syncToast = ref<SyncToast | null>(null)
 let syncToastTimer: ReturnType<typeof setTimeout> | null = null
 
-function showSyncToast(message: string, action?: () => void) {
+function showSyncToast(message: string, action?: () => void, options: Omit<SyncToast, 'message' | 'action'> = {}) {
   if (syncToastTimer) clearTimeout(syncToastTimer)
-  syncToast.value = { message, action }
-  if (!action) {
+  syncToast.value = { message, action, ...options }
+  if (!action && !options.kind) {
     syncToastTimer = setTimeout(() => { syncToast.value = null }, 3000)
   }
 }
@@ -249,7 +258,9 @@ onMounted(async () => {
           taskStore.setActiveNamespace(FormType.PRE_SCAN)
           answerStore.setActiveNamespace(FormType.PRE_SCAN)
           taskStore.init(preScanSchema.tasks)
-          answerStore.answers[FormType.PRE_SCAN] = prescanAnswers as any
+          // These bypass applyStateToStores, so they need the same key and
+          // image check every other loaded answer gets.
+          answerStore.answers[FormType.PRE_SCAN] = sanitizeAnswers(prescanAnswers).answers as any
           taskStore.setActiveNamespace(prevNamespace)
           answerStore.setActiveNamespace(prevNamespace)
         }
@@ -267,7 +278,53 @@ onMounted(async () => {
   }
 })
 
+// A failed save and a stalled sync are both states, not events: report them only
+// once they persist (the thresholds live in ApiPersistence and the collaboration
+// store), and clear the message the moment they resolve. Saving wins, because
+// unsaved work outranks missing updates.
+watch(
+  [
+    () => sync.saveFailing.value,
+    () => collaborationStore.syncFailing,
+    () => collaborationStore.commentActionError,
+  ],
+  ([saveFailing, syncFailing, commentActionError]) => {
+    if (saveFailing) {
+      showSyncToast(
+        'Geen verbinding met de server. Opslaan lukt even niet, we proberen het opnieuw.',
+        () => { sync.retrySaveNow() },
+        { actionLabel: 'Opnieuw proberen', kind: 'failure' },
+      )
+    } else if (commentActionError) {
+      // A comment action is something the user just clicked, so it outranks the passive
+      // "you may be missing updates" notice below.
+      showSyncToast(
+        commentActionError.message,
+        commentActionError.retryable ? () => { collaborationStore.retryCommentAction() } : undefined,
+        { actionLabel: 'Opnieuw proberen', kind: 'failure' },
+      )
+    } else if (syncFailing) {
+      showSyncToast(
+        'Geen verbinding met de server. Je ziet mogelijk niet de laatste wijzigingen van anderen.',
+        undefined,
+        { kind: 'failure' },
+      )
+    } else if (syncToast.value?.kind === 'failure') {
+      dismissSyncToast()
+    }
+  },
+)
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!sync.hasUnsavedChanges.value) return
+  event.preventDefault()
+  // Some browsers still only honour the legacy returnValue.
+  event.returnValue = ''
+}
+window.addEventListener('beforeunload', handleBeforeUnload)
+
 onUnmounted(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
   collaborationStore.reset()
 })
 
@@ -520,9 +577,14 @@ const confirmDelete = async () => {
 
   <!-- Sync toast -->
   <Transition name="sync-toast">
-    <div v-if="syncToast" class="sync-toast rvo-alert--padding-sm" role="status">
+    <div
+      v-if="syncToast"
+      class="sync-toast rvo-alert--padding-sm"
+      :class="{ 'sync-toast--raised': commentPanelOpen }"
+      role="status"
+    >
       <span>{{ syncToast.message }}</span>
-      <button v-if="syncToast.action" class="sync-toast__action" @click="syncToast.action">Bijwerken</button>
+      <button v-if="syncToast.action" class="sync-toast__action" @click="syncToast.action">{{ syncToast.actionLabel ?? 'Bijwerken' }}</button>
     </div>
   </Transition>
   </div>

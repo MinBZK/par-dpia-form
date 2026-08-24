@@ -263,7 +263,7 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
     expect(body.lastModifiedAt).toBe(rootUpdated.toISOString())
   })
 
-  it('skips the reply/polling branch entirely when there are no root comments and since is set', async () => {
+  it('echoes the watermark when nothing changed, so the client stays on incremental polls', async () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'owner')
     const since = new Date('2026-03-20T12:00:00Z')
@@ -276,7 +276,109 @@ describe('GET /assessments/:id/comments — polling (?since=)', () => {
     expect(res.statusCode).toBe(200)
     const body = res.json()
     expect(body.comments).toEqual([])
-    expect(body.lastModifiedAt).toBeNull()
+    expect(body.lastModifiedAt).toBe(since.toISOString())
+  })
+
+  it('rejects an unparseable since with 400 instead of failing on the query', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedAssessmentFor(owner, 'owner')
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/comments?since=abc`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('returns a changed reply even when its root did not move', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedAssessmentFor(owner, 'owner')
+
+    const root = await seedComment({
+      assessmentInstanceId: assessment.id,
+      authorId: owner.id,
+      createdAt: new Date('2026-03-20T09:00:00Z'),
+      updatedAt: new Date('2026-03-20T09:00:00Z'),
+    })
+    const replyUpdated = new Date('2026-03-20T11:00:00Z')
+    const reply = await seedComment({
+      assessmentInstanceId: assessment.id,
+      authorId: owner.id,
+      parentId: root.id,
+      createdAt: new Date('2026-03-20T09:30:00Z'),
+      updatedAt: replyUpdated,
+    })
+
+    const since = new Date('2026-03-20T10:00:00Z')
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/comments?since=${encodeURIComponent(since.toISOString())}`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.comments).toHaveLength(1)
+    expect(body.comments[0].id).toBe(reply.id)
+    expect(body.comments[0].parentId).toBe(root.id)
+    expect(body.lastModifiedAt).toBe(replyUpdated.toISOString())
+  })
+
+  it('gives a changed root its full reply list, including replies older than the watermark', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedAssessmentFor(owner, 'owner')
+
+    const root = await seedComment({
+      assessmentInstanceId: assessment.id,
+      authorId: owner.id,
+      createdAt: new Date('2026-03-20T09:00:00Z'),
+      updatedAt: new Date('2026-03-20T11:00:00Z'),
+    })
+    const oldReply = await seedComment({
+      assessmentInstanceId: assessment.id,
+      authorId: owner.id,
+      parentId: root.id,
+      createdAt: new Date('2026-03-20T09:30:00Z'),
+      updatedAt: new Date('2026-03-20T09:30:00Z'),
+    })
+
+    const since = new Date('2026-03-20T10:00:00Z')
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/comments?since=${encodeURIComponent(since.toISOString())}`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.comments).toHaveLength(1)
+    expect(body.comments[0].id).toBe(root.id)
+    expect(body.comments[0].replies).toHaveLength(1)
+    expect(body.comments[0].replies[0].id).toBe(oldReply.id)
+  })
+
+  it('names the resolver on a root that was resolved since the watermark', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedAssessmentFor(owner, 'owner')
+
+    const root = await seedComment({
+      assessmentInstanceId: assessment.id,
+      authorId: owner.id,
+      createdAt: new Date('2026-03-20T09:00:00Z'),
+      updatedAt: new Date('2026-03-20T11:00:00Z'),
+      resolvedAt: new Date('2026-03-20T11:00:00Z'),
+      resolvedBy: owner.id,
+    })
+
+    const since = new Date('2026-03-20T10:00:00Z')
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/comments?since=${encodeURIComponent(since.toISOString())}`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(200)
+    const body = res.json()
+    expect(body.comments[0].id).toBe(root.id)
+    expect(body.comments[0].resolvedByName).toBe(body.comments[0].authorName)
   })
 })
 
@@ -506,7 +608,7 @@ describe('PATCH /assessments/:id/comments/:commentId — resolve/reopen', () => 
     expect(res.json().detail).toBe('Commentaar niet gevonden of is een reactie')
   })
 
-  it('resolves a root comment, setting resolvedAt and resolvedBy', async () => {
+  it('resolves a root comment with a server-derived resolvedAt and resolvedBy', async () => {
     const owner = await createUser()
     const { assessment } = await seedAssessmentFor(owner, 'editor')
     const comment = await seedComment({
@@ -514,16 +616,20 @@ describe('PATCH /assessments/:id/comments/:commentId — resolve/reopen', () => 
       authorId: owner.id,
     })
 
-    const resolvedAt = new Date('2026-03-20T10:00:00Z').toISOString()
+    // The client-sent timestamp is ignored: the audit trail must not be datable
+    // by the caller.
+    const clientClaim = new Date('2020-01-01T10:00:00Z').toISOString()
+    const before = Date.now()
     const res = await app.inject({
       method: 'PATCH',
       url: `/api/v1/assessments/${assessment.id}/comments/${comment.id}`,
       headers: authHeader(await tokenFor(owner)),
-      payload: { resolvedAt },
+      payload: { resolvedAt: clientClaim },
     })
     expect(res.statusCode).toBe(200)
     const body = res.json()
-    expect(body.resolvedAt).toBe(resolvedAt)
+    expect(body.resolvedAt).not.toBe(clientClaim)
+    expect(new Date(body.resolvedAt).getTime()).toBeGreaterThanOrEqual(before)
     expect(body.resolvedBy).toBe(owner.id)
   })
 

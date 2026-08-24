@@ -5,12 +5,16 @@ import { projects as projectsApi, assessments as assessmentsApi, type Project, t
 import { FormType, type AssessmentState, type ImportType, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
+import { usePaginatedList } from '../composables/usePaginatedList'
 
 const props = defineProps<{ projectId: string }>()
 const router = useRouter()
 
 const project = ref<Project | null>(null)
-const assessmentList = ref<AssessmentInstance[]>([])
+const {
+  items: assessmentList, loadingMore, loadError: moreLoadError, loadStatus, statusRef,
+  hasMore, nextBatchSize, loadFirst, loadMore,
+} = usePaginatedList<AssessmentInstance>((page, pageSize) => assessmentsApi.list(props.projectId, page, pageSize), (a) => a.id)
 const loading = ref(true)
 
 const editingName = ref(false)
@@ -63,12 +67,11 @@ const loadError = ref<string | null>(null)
 
 onMounted(async () => {
   try {
-    const [p, a] = await Promise.all([
+    const [p] = await Promise.all([
       projectsApi.get(props.projectId),
-      assessmentsApi.list(props.projectId),
+      loadFirst(),
     ])
     project.value = p
-    assessmentList.value = a
   } catch {
     loadError.value = 'Kan project niet laden. Probeer het later opnieuw.'
   } finally {
@@ -419,6 +422,18 @@ const formatDate = (dateStr: string) =>
           </router-link>
         </div>
       </div>
+
+      <div v-if="hasMore" class="version-list__more">
+        <button
+          class="rvo-button rvo-button--secondary rvo-button--size-sm"
+          :disabled="loadingMore"
+          @click="loadMore"
+        >
+          Laad de volgende {{ nextBatchSize }} assessments
+        </button>
+      </div>
+      <p v-if="moreLoadError" class="version-list__error" role="alert">{{ moreLoadError }}</p>
+      <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
       <div v-if="project.role === 'owner' || project.role === 'editor'">
         <h2 class="utrecht-heading-2">Start een nieuwe assessment</h2>

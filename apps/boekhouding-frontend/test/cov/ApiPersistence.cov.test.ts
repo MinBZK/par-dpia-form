@@ -18,10 +18,12 @@ const mockUpdate = vi.fn()
 
 class MockApiError extends Error {
   status: number
-  constructor(message: string, status: number) {
+  retryAfterSeconds?: number
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 class MockSessionExpiredError extends Error {
@@ -808,6 +810,204 @@ describe('saveAppState — error handling', () => {
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'x', lastEditedAt: 't' }
     await p.saveAppState()
     expect(console.error).toHaveBeenCalledWith('Failed to save form state to API:', expect.any(Error))
+  })
+})
+
+describe('saveAppState — failure state and retry', () => {
+  async function persistenceWithPendingChange() {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'x', lastEditedAt: 't' }
+    return p
+  }
+
+  it('stays quiet after a single failure, so one blip does not alarm the user', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+
+    expect(p.sync.saveFailing.value).toBe(false)
+  })
+
+  it('reports failing once the first retry also fails', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockApiError('Serverfout', 500))
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await vi.advanceTimersByTimeAsync(5000)
+
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+    expect(p.sync.saveFailing.value).toBe(true)
+  })
+
+  it('escalates the delay when retries keep failing', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockApiError('Serverfout', 500))
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await vi.advanceTimersByTimeAsync(5000)
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(mockUpdate).toHaveBeenCalledTimes(3)
+  })
+
+  it('clears the failure state when a retry succeeds', async () => {
+    vi.useFakeTimers()
+    mockUpdate
+      .mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+      .mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+      .mockResolvedValueOnce({ currentVersion: 2 })
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(p.sync.saveFailing.value).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(15000)
+
+    expect(p.sync.saveFailing.value).toBe(false)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
+  })
+
+  it('waits the Retry-After interval on a 429 instead of the default backoff', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockApiError('Te veel verzoeken', 429, 30))
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(25000)
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+  })
+
+  it('retrySaveNow() saves immediately and cancels the scheduled retry', async () => {
+    vi.useFakeTimers()
+    mockUpdate
+      .mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+      .mockResolvedValueOnce({ currentVersion: 2 })
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await p.sync.retrySaveNow()
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+
+    await vi.advanceTimersByTimeAsync(60000)
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+  })
+
+  it('retrySaveNow() simply saves when no retry is pending', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockResolvedValue({ currentVersion: 2 })
+    const p = await persistenceWithPendingChange()
+
+    await p.sync.retrySaveNow()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(p.sync.saveFailing.value).toBe(false)
+  })
+
+  it('schedules no retry when the session expired — logging in again drives the recovery', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockSessionExpiredError())
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await vi.advanceTimersByTimeAsync(60000)
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(p.sync.saveFailing.value).toBe(false)
+  })
+
+  it('reports unsaved changes while a debounced save is still waiting to run', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockResolvedValue({ currentVersion: 2 })
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    p.setupWatchers()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'net getypt', lastEditedAt: 't' }
+    await nextTick()
+    expect(p.sync.hasUnsavedChanges.value).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(500)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
+  })
+
+  it('cancels a scheduled retry when a later save succeeds first', async () => {
+    vi.useFakeTimers()
+    mockUpdate
+      .mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+      .mockResolvedValueOnce({ currentVersion: 2 })
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await p.saveAppState()
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+
+    await vi.advanceTimersByTimeAsync(60000)
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+    expect(p.sync.saveFailing.value).toBe(false)
+  })
+
+  it('replaces a pending retry when a second attempt fails in the meantime', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockApiError('Serverfout', 500))
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    await p.saveAppState()
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+
+    // The first attempt's 5s timer must be gone, not left to fire alongside the
+    // second attempt's 15s one.
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(mockUpdate).toHaveBeenCalledTimes(3)
+  })
+
+  it('drops a pending retry when the editor tears down its watchers', async () => {
+    vi.useFakeTimers()
+    mockUpdate.mockRejectedValue(new MockApiError('Serverfout', 500))
+    const p = await persistenceWithPendingChange()
+    const teardown = p.setupWatchers()
+
+    await p.saveAppState()
+    teardown()
+    await vi.advanceTimersByTimeAsync(60000)
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports unsaved changes while a save is outstanding', async () => {
+    vi.useFakeTimers()
+    mockUpdate
+      .mockRejectedValueOnce(new MockApiError('Serverfout', 500))
+      .mockResolvedValueOnce({ currentVersion: 2 })
+    const p = await persistenceWithPendingChange()
+
+    await p.saveAppState()
+    expect(p.sync.hasUnsavedChanges.value).toBe(true)
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(p.sync.hasUnsavedChanges.value).toBe(false)
   })
 })
 
@@ -2020,6 +2220,73 @@ describe('persistPendingToSession — no pending changes (size === 0 early retur
     expect(mockUpdate).toHaveBeenCalled()
     expect(sessionStorage.getItem('pending:a1')).toBeNull()
     teardown()
+  })
+})
+
+describe('teardown stops late writes', () => {
+  it('saveAppState does nothing after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+    teardown()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'na de teardown', lastEditedAt: 't' }
+    await p.saveAppState()
+
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('handleConflict abandons the merge when the fetch resolves after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('conflict', 409))
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+
+    const savePromise = p.saveAppState()
+    await Promise.resolve()
+    teardown()
+    release(getResponse({ currentVersion: 2 }))
+    await savePromise
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('handleRemoteChange reports no changes when the fetch resolves after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+    const remotePromise = p.sync.handleRemoteChange('1')
+    await Promise.resolve()
+    teardown()
+    release(getResponse({
+      currentVersion: 2,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '1.1': { value: 'collega' } },
+      },
+    }))
+
+    expect(await remotePromise).toMatchObject({ backgroundMerged: 0, activeSectionChanges: [] })
+    expect(answerStore.answers[FormType.DPIA]['1.1']).toBeUndefined()
   })
 })
 

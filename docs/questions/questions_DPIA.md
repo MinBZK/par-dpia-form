@@ -6,7 +6,7 @@
 | 1 | Voorstel | Beschrijf het voorstel waar de DPIA op toeziet op hoofdlijnen en benoem hoe het voorstel tot stan... | task_group |  |  |
 | 1.1 |   Voorstel |  | open_text |  |  |
 | 1.2 |   Afbeeldingen | Afbeeldingen | task_group |  |  |
-| 1.2.1 |     Afbeelding | Voeg een link toe naar de plek waar de afbeelding is opgeslagen. Dit kan een link naar een samenwerkruimte, een gedeelde map of een andere specifieke opslaglocatie zijn. | text_input |  |  |
+| 1.2.1 |     Afbeelding | Upload een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen. | image |  |  |
 | 2 | Persoonsgegevens | Beschrijf alle persoonsgegevens die worden verwerkt. Classificeer deze persoonsgegevens naar: <br... | task_group |  |  |
 | 2.1 |   Persoonsgegevens |  | task_group |  |  |
 | 2.1.1 |     Persoonsgegeven |  | text_input |  |  |

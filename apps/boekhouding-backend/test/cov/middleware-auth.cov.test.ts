@@ -6,6 +6,8 @@ import { truncateAll } from '../helpers/testDb.js'
 import { config } from '../../src/config.js'
 import { db } from '../../src/db/connection.js'
 import { users } from '../../src/db/schema.js'
+import { userIdCache } from '../../src/utils/userIdCache.js'
+import { warmUpJwks } from '../../src/middleware/auth.js'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { TokenClaims } from '../helpers/testJwks.js'
@@ -149,6 +151,10 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
     expect((await getProjects(authHeader(t))).statusCode).toBe(200)
     const [before] = await db.select().from(users).where(eq(users.oidcSub, sub))
 
+    // Clear the identity cache so the second request re-reads the existing user
+    // from the DB (exercising the "found, unchanged" branch) rather than hitting
+    // the cache and short-circuiting.
+    userIdCache.clear()
     expect((await getProjects(authHeader(t))).statusCode).toBe(200)
     const [after] = await db.select().from(users).where(eq(users.oidcSub, sub))
 
@@ -164,11 +170,31 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
 
     expect((await getProjects(authHeader(await token({ sub, email: firstEmail, name: 'Oude Naam' })))).statusCode).toBe(200)
 
+    // A fresh (uncached) login must sync the changed claims; clear the cache to
+    // simulate TTL expiry between the two logins.
+    userIdCache.clear()
     expect((await getProjects(authHeader(await token({ sub, email: secondEmail, name: 'Nieuwe Naam' })))).statusCode).toBe(200)
 
     const [row] = await db.select().from(users).where(eq(users.oidcSub, sub))
     expect(row.email).toBe(secondEmail)
     expect(row.displayName).toBe('Nieuwe Naam')
+  })
+
+  it('cache hit: a second request with the same sub skips the DB sync (changes lag until TTL)', async () => {
+    const sub = randomUUID()
+    const firstEmail = `${sub}-old@example.com`
+    const secondEmail = `${sub}-new@example.com`
+
+    // First login populates the cache.
+    expect((await getProjects(authHeader(await token({ sub, email: firstEmail, name: 'Oude Naam' })))).statusCode).toBe(200)
+
+    // Second login with changed claims but WITHOUT clearing the cache: the cache
+    // hit serves the id and skips the users-lookup + sync, so the DB is unchanged.
+    expect((await getProjects(authHeader(await token({ sub, email: secondEmail, name: 'Nieuwe Naam' })))).statusCode).toBe(200)
+
+    const [row] = await db.select().from(users).where(eq(users.oidcSub, sub))
+    expect(row.email).toBe(firstEmail)
+    expect(row.displayName).toBe('Oude Naam')
   })
 
   it('first login does NOT take over an email already claimed by another subject (409)', async () => {
@@ -189,5 +215,79 @@ describe('requireAuth — displayName precedence + user provisioning', () => {
     expect(row.id).toBe(existing.id)
     expect(row.oidcSub).toBe(legacySub)
     expect(row.displayName).toBe('Origineel')
+  })
+})
+
+describe('requireAuth — token type', () => {
+  it('refuses an ID token', async () => {
+    const t = await token({ sub: randomUUID(), typ: 'ID' })
+    const res = await getProjects(authHeader(t))
+    expect(res.statusCode).toBe(401)
+    expect(res.json().detail).toBe('Ongeldig tokentype')
+  })
+})
+
+describe('requireAuth — email verification', () => {
+  it('refuses a first login with an unverified email', async () => {
+    const t = await token({ sub: randomUUID(), email_verified: false })
+    const res = await getProjects(authHeader(t))
+    expect(res.statusCode).toBe(403)
+    expect(res.json().detail).toContain('niet geverifieerd')
+  })
+
+  it('does not create an account for an unverified email', async () => {
+    const sub = randomUUID()
+    const email = `unverified-${randomUUID()}@example.com`
+    await getProjects(authHeader(await token({ sub, email, email_verified: false })))
+
+    const rows = await db.select().from(users).where(eq(users.email, email))
+    expect(rows).toHaveLength(0)
+  })
+
+  it('does not claim an invite placeholder with an unverified email', async () => {
+    const email = `invited-${randomUUID()}@example.com`
+    await db.insert(users).values({ email, displayName: email })
+
+    const res = await getProjects(authHeader(await token({ sub: randomUUID(), email, email_verified: false })))
+    expect(res.statusCode).toBe(403)
+
+    const [row] = await db.select().from(users).where(eq(users.email, email))
+    expect(row.oidcSub).toBeNull()
+  })
+
+  it('keeps the stored email when a returning user presents an unverified new address', async () => {
+    const sub = randomUUID()
+    const oldEmail = `old-${randomUUID()}@example.com`
+    await getProjects(authHeader(await token({ sub, email: oldEmail, name: 'Naam' })))
+    userIdCache.clear()
+
+    const newEmail = `new-${randomUUID()}@example.com`
+    const res = await getProjects(
+      authHeader(await token({ sub, email: newEmail, name: 'Nieuwe Naam', email_verified: false })),
+    )
+    expect(res.statusCode).toBe(200)
+
+    const [row] = await db.select().from(users).where(eq(users.oidcSub, sub))
+    expect(row.email).toBe(oldEmail)
+    // The name is not an identity binding, so it still syncs.
+    expect(row.displayName).toBe('Nieuwe Naam')
+  })
+})
+
+describe('warmUpJwks', () => {
+  it('resolves when the warm-up succeeds', async () => {
+    let called = false
+    await warmUpJwks(async () => { called = true })
+    expect(called).toBe(true)
+  })
+
+  it('swallows a failing warm-up', async () => {
+    await expect(warmUpJwks(async () => { throw new Error('keycloak down') })).resolves.toBeUndefined()
+  })
+
+  // Without an injected warm function it reloads the real key set, which in this
+  // suite is the loopback JWKS server.
+  it('reloads the configured JWKS by default', async () => {
+    await expect(warmUpJwks()).resolves.toBeUndefined()
   })
 })

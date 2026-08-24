@@ -667,6 +667,52 @@ describe('GET /assessments/:id/versions', () => {
     expect(body[0].createdByName.length).toBeGreaterThan(0)
     expect(body[0].createdBy).toBe(owner.id)
   })
+
+  it('paginates the version list and reports X-Total-Count', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({ '0.1': answer('start') }))
+    const token = await tokenFor(owner)
+
+    // Force three distinct versions (forceNewVersion bypasses consolidation).
+    for (let i = 1; i <= 3; i++) {
+      const res = await app.inject({
+        method: 'PUT',
+        url: `/api/v1/assessments/${assessment.id}`,
+        headers: authHeader(token),
+        payload: {
+          state: makeState({ '0.1': answer(`v${i}`) }),
+          expectedVersion: i,
+          newVersion: true,
+          changeDescription: `v${i}`,
+        },
+      })
+      expect(res.statusCode).toBe(200)
+    }
+
+    const full = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/versions`,
+      headers: authHeader(token),
+    })
+    const total = Number(full.headers['x-total-count'])
+    expect(total).toBe(full.json().length)
+    expect(total).toBeGreaterThanOrEqual(3)
+
+    const page1 = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/versions?pageSize=2`,
+      headers: authHeader(token),
+    })
+    expect(page1.json()).toHaveLength(2)
+    expect(page1.headers['x-total-count']).toBe(String(total))
+
+    const page2 = await app.inject({
+      method: 'GET',
+      url: `/api/v1/assessments/${assessment.id}/versions?page=2&pageSize=2`,
+      headers: authHeader(token),
+    })
+    expect(page2.json()).toHaveLength(total - 2)
+  })
 })
 
 describe('GET /assessments/:id/versions/:version', () => {
@@ -737,6 +783,35 @@ describe('GET /assessments/:id/versions/:version', () => {
     const body = res.json()
     expect(body.version).toBe(2)
     expect(body.state).toBeDefined()
+  })
+
+  it('serves a repeated old-version rebuild from cache (immutable path)', async () => {
+    const owner = await createUser()
+    const { assessment } = await seedFor(owner, 'owner', makeState({}))
+    const token = await tokenFor(owner)
+
+    // Two labeled saves → distinct versions 2 and 3 (changeDescription blocks
+    // consolidation), so version 2 is older than current (3) and thus immutable.
+    await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(token),
+      payload: { state: makeState({ '0.1': answer('X') }), expectedVersion: 1, changeDescription: 'v2' },
+    })
+    await app.inject({
+      method: 'PUT',
+      url: `/api/v1/assessments/${assessment.id}`,
+      headers: authHeader(token),
+      payload: { state: makeState({ '0.1': answer('Y') }), expectedVersion: 2, changeDescription: 'v3' },
+    })
+
+    const url = `/api/v1/assessments/${assessment.id}/versions/2?includeState=true`
+    const first = await app.inject({ method: 'GET', url, headers: authHeader(token) })
+    const second = await app.inject({ method: 'GET', url, headers: authHeader(token) })
+
+    expect(first.statusCode).toBe(200)
+    expect(second.statusCode).toBe(200)
+    expect(second.json().state).toEqual(first.json().state)
   })
 })
 

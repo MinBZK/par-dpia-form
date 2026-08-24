@@ -13,6 +13,9 @@
     "db:generate": "pnpm --filter @overheid-assessment/boekhouding-backend db:generate",
     "db:migrate": "pnpm --filter @overheid-assessment/boekhouding-backend db:migrate",
     "check:csp": "node --test scripts/check-inline-styles.test.mjs && node scripts/check-inline-styles.mjs",
+    "check:vhtml": "node --test scripts/check-vhtml.test.mjs && node scripts/check-vhtml.mjs",
+    "check:config": "node --test scripts/check-runtime-config.test.mjs && node scripts/check-runtime-config.mjs",
+    "check:securitytxt": "uv run --frozen pytest script/tests/test_check_securitytxt.py -q && uv run --frozen python script/check_securitytxt.py",
     "test:e2e": "node tests/e2e/sync.spec.mjs",
     "test:coverage": "pnpm -r --if-present test:coverage"
   },
@@ -20,6 +23,6 @@
     "jexl": "^2.3.0"
   },
   "devDependencies": {
-    "playwright": "1.61.1"
+    "playwright": "1.62.1"
   }
 }

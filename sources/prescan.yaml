@@ -45,7 +45,7 @@ tasks:
         Geef een korte beschrijving van de verwerking of het geheel van verwerkingen: om welk proces/systeem/applicatie gaat het.
         Besteed daarbij aandacht aan de context waarin de verwerking plaatsvindt, door wie, waar, waarom en hoe.
         Om wat voor bedrijfsproces(sen) gaat het en om hoeveel gegevens over wie.
-        Deze input kun je hergebruiken voor paragraaf 1 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.<br>
+        Deze input kun je hergebruiken voor paragraaf 1 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.<br>
         Beschrijf het proces waar de beoogde verwerkingen van persoonsgegevens deel van uitmaken.
         Noem daarbij de stappen op hoofdlijnen, betrokken partijen, en welke systemen of applicaties gebruikt zullen worden.
       id: "0.2"
@@ -60,7 +60,7 @@ tasks:
     - task: Doel gegevensverwerking
       description: >-
         Welk doel wil de organisatie bereiken met de gegevensverwerking?
-        Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+        Dit kan hergebruikt worden in paragraaf 5 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.3"
       repeatable: false
       type:
@@ -71,7 +71,7 @@ tasks:
         - id: "5.1.1"
           type: "one-to-many"
     - task: Wat is de grondslag voor de verwerking?
-      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2023-09/Model%20DPIA%20Rijksdienst%20v3.0.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.4"
       repeatable: false
       type:
@@ -251,7 +251,7 @@ tasks:
           condition:
             id: "1.1.2"
             operator: contains
-            value: "'Categorie gewone persoonsgegevens: Overige'"
+            value: "Categorie gewone persoonsgegevens: Overige"
           action: show
         repeatable: false
         references:
@@ -430,7 +430,7 @@ tasks:
           condition:
             id: "1.4.1"
             operator: contains
-            value: "'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'"
+            value: "Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)"
           action: show
         repeatable: false
         references:

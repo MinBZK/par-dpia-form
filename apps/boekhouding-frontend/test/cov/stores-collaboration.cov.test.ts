@@ -19,6 +19,17 @@ class FakeSessionExpiredError extends Error {
   }
 }
 
+class FakeApiError extends Error {
+  status: number
+  retryAfterSeconds?: number
+  constructor(message: string, status: number, retryAfterSeconds?: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.retryAfterSeconds = retryAfterSeconds
+  }
+}
+
 vi.mock('../../src/api', () => ({
   commentsApi: {
     list: (...args: unknown[]) => mockCommentsList(...args),
@@ -30,6 +41,7 @@ vi.mock('../../src/api', () => ({
   },
   syncApi: { get: (...args: unknown[]) => mockSyncGet(...args) },
   SessionExpiredError: FakeSessionExpiredError,
+  ApiError: FakeApiError,
 }))
 
 function makeThread(overrides: Record<string, unknown> = {}): any {
@@ -395,6 +407,144 @@ describe('pollForUpdates() via visibility handler', () => {
   })
 })
 
+describe('resolve while a poll is in flight (issue #440)', () => {
+  it('keeps a locally resolved thread resolved when a pre-resolve snapshot lands', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    mockCommentsResolve.mockResolvedValueOnce({
+      resolvedAt: '2026-04-12T14:00:00.000Z',
+      resolvedBy: 'user-1',
+    })
+    await store.resolveThread('t1')
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 't1', replies: undefined })],
+      lastModifiedAt: '2026-04-12T12:00:00.000Z',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+
+  it('keeps the resolve when the poll starts while the resolve is still in flight', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    // The resolve goes out first and is still awaiting its response.
+    let releaseResolve: (v: any) => void = () => {}
+    const resolveGate = new Promise<any>((r) => { releaseResolve = r })
+    mockCommentsResolve.mockReturnValueOnce(resolveGate)
+    const resolving = store.resolveThread('t1')
+
+    // A poll starts during that window and reads the server before the PATCH commits.
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1, version: 9 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    releaseResolve({ resolvedAt: '2026-04-12T14:00:00.000Z', resolvedBy: 'user-1' })
+    await resolving
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 't1', replies: undefined })],
+      lastModifiedAt: '2026-04-12T12:00:00.000Z',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads[0].resolvedAt).toBe('2026-04-12T14:00:00.000Z')
+    // The document signals are unaffected by a comment mutation and still land.
+    expect(store.assessmentVersion).toBe(9)
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+
+  it('drops the whole response when the store moved to another assessment mid-poll', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = []
+    store.lastModifiedAt = null
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 0, version: 42 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    store.assessmentId = 'assessment-2'
+
+    releaseList(commentsResponse({
+      comments: [makeThread({ id: 'van-assessment-1' })],
+      lastModifiedAt: 'OUD',
+    }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(store.threads).toHaveLength(0)
+    expect(store.lastModifiedAt).toBeNull()
+    expect(store.assessmentVersion).toBeNull()
+    store.stopPolling()
+  })
+
+  it('drops a poll response when a mutation failed while it was in flight', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1', replies: [] })]
+    store.lastModifiedAt = null
+
+    let rejectResolve: (e: unknown) => void = () => {}
+    const resolveGate = new Promise<any>((_r, reject) => { rejectResolve = reject })
+    mockCommentsResolve.mockReturnValueOnce(resolveGate)
+    const resolving = store.resolveThread('t1')
+
+    let releaseList: (v: any) => void = () => {}
+    const listGate = new Promise<any>((r) => { releaseList = r })
+    mockSyncGet.mockResolvedValueOnce(syncResponse({ commentCount: 1 }))
+    mockCommentsList.mockReturnValueOnce(listGate)
+
+    store.startPolling()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await vi.waitFor(() => expect(mockCommentsList).toHaveBeenCalledTimes(1))
+
+    rejectResolve(new Error('netwerkfout'))
+    await expect(resolving).rejects.toThrow('netwerkfout')
+
+    releaseList(commentsResponse({ comments: [makeThread({ id: 't1' })], lastModifiedAt: 'NEW' }))
+    await listGate
+    await new Promise((r) => setTimeout(r, 0))
+
+    // The watermark is untouched, so the next poll re-requests the same delta.
+    expect(store.lastModifiedAt).toBeNull()
+    store.stopPolling()
+  })
+})
+
 describe('schedulePoll() timer loop', () => {
   function setVisibility(state: 'visible' | 'hidden') {
     Object.defineProperty(document, 'visibilityState', {
@@ -616,6 +766,102 @@ describe('deleteComment()', () => {
   })
 })
 
+describe('commentActionError — a failed action must be reportable', () => {
+  it('records a Dutch message and keeps the action for retry when a mutation fails', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Geen verbinding met de server. De opmerking is niet bijgewerkt.',
+      retryable: true,
+    })
+  })
+
+  it('does not offer a retry for a 403, where trying again cannot help', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Geen toegang', 403))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Geen toegang')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Je hebt geen rechten meer om dit te doen. Ververs de pagina.',
+      retryable: false,
+    })
+  })
+
+  it('does not offer a retry for a comment that no longer exists', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Weg', 404))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Weg')
+
+    expect(store.commentActionError).toEqual({
+      message: 'Deze opmerking bestaat niet meer. Ververs de pagina.',
+      retryable: false,
+    })
+  })
+
+  it('reports a rate limit in its own words', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Te druk', 429))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Te druk')
+
+    expect(store.commentActionError?.message).toBe(
+      'Te veel verzoeken achter elkaar. Probeer het zo nog eens.',
+    )
+    expect(store.commentActionError?.retryable).toBe(true)
+  })
+
+  it('retryCommentAction runs the failed action again and clears the error on success', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+    expect(store.commentActionError).not.toBeNull()
+
+    mockCommentsResolve.mockResolvedValueOnce({ resolvedAt: 'R-TS', resolvedBy: 'user-3' })
+    await store.retryCommentAction()
+
+    expect(mockCommentsResolve).toHaveBeenCalledTimes(2)
+    expect(store.threads[0].resolvedAt).toBe('R-TS')
+    expect(store.commentActionError).toBeNull()
+  })
+
+  it('a later successful action clears an earlier error', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    store.threads = [makeThread({ id: 't1' })]
+
+    mockCommentsResolve.mockRejectedValueOnce(new FakeApiError('Kapot', 500))
+    await expect(store.resolveThread('t1')).rejects.toThrow('Kapot')
+
+    mockCommentsReopen.mockResolvedValueOnce({})
+    await store.reopenThread('t1')
+
+    expect(store.commentActionError).toBeNull()
+  })
+
+  it('retryCommentAction does nothing when there is no failed action', async () => {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    await store.retryCommentAction()
+    expect(mockCommentsResolve).not.toHaveBeenCalled()
+  })
+})
+
 describe('resolveThread()', () => {
   it('returns early without an assessmentId', async () => {
     const store = await freshStore()
@@ -703,5 +949,77 @@ describe('reset()', () => {
     expect(store.currentUserId).toBeNull()
     expect(store.loading).toBe(false)
     expect(store.error).toBeNull()
+  })
+})
+
+describe('syncFailing — reporting a sync that stays stuck', () => {
+  function setVisibility(state: 'visible' | 'hidden') {
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => state,
+    })
+  }
+
+  afterEach(() => {
+    setVisibility('visible')
+    vi.useRealTimers()
+  })
+
+  async function pollingStore() {
+    const store = await freshStore()
+    store.assessmentId = 'assessment-1'
+    vi.useFakeTimers()
+    setVisibility('visible')
+    store.startPolling()
+    return store
+  }
+
+  it('stays quiet while a single poll fails, since the next one heals it', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    expect(store.syncFailing).toBe(false)
+    store.stopPolling()
+  })
+
+  it('reports failing after three consecutive failed polls', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    expect(store.syncFailing).toBe(true)
+    store.stopPolling()
+  })
+
+  it('clears the failure state as soon as a poll succeeds', async () => {
+    mockSyncGet.mockRejectedValue(new Error('netwerk weg'))
+    const store = await pollingStore()
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(store.syncFailing).toBe(true)
+
+    mockSyncGet.mockResolvedValue(syncResponse({ commentCount: 0 }))
+    mockCommentsList.mockResolvedValue(commentsResponse())
+    await vi.advanceTimersByTimeAsync(10_000)
+
+    expect(store.syncFailing).toBe(false)
+    store.stopPolling()
+  })
+
+  it('honours Retry-After on a 429 instead of hammering every 10 seconds', async () => {
+    mockSyncGet.mockRejectedValue(new FakeApiError('Te veel verzoeken', 429, 30))
+    const store = await pollingStore()
+
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(20_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(1)
+
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(mockSyncGet).toHaveBeenCalledTimes(2)
+    store.stopPolling()
   })
 })

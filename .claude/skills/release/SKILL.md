@@ -17,25 +17,49 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
    `## [Unreleased]` naar een nieuwe sectie met de versie en datum:
 
    ```markdown
-   ## [2026.6.14] - 2026-06-14
+   ## [2026.6.14]
    ```
 
-   (versie zonder de `v`-prefix en zonder voorloopnullen). Laat een lege
-   `## [Unreleased]` achter. Breng dit via een PR naar `main`.
+   (versie zonder de `v`-prefix en zonder voorloopnullen, en zonder datum: de
+   versie ís de datum). Laat een lege
+   `## [Unreleased]` achter.
+
+   **Zet in dezelfde PR de assessments-plugin op dezelfde versie.** De plugin
+   wordt rechtstreeks uit de working tree geladen, dus het nummer moet
+   gecommit zijn vóór de tag:
+
+   ```bash
+   python3 .claude/plugins/assessments/scripts/generate_plugin.py --set-version 2026.6.14
+   ```
+
+   Dat schrijft `.plugin/plugin.json` en genereert de Claude Code- en
+   Cursor-manifests. Breng het geheel via een PR naar `main`.
 
 2. **Zorg dat acceptatie groen is.** De tag promoot het image dat voor de
    main-commit is gebouwd; de `Deploy acceptatie`-run voor die commit moet
-   geslaagd zijn (anders bestaat het te promoten image niet).
+   geslaagd zijn (anders bestaat het te promoten image niet). `tag-release`
+   controleert dit ook zelf.
 
-3. **Tag zetten en pushen** op de juiste main-commit:
+3. **Release uitbrengen** via `tag-release`. Zet de tag niet met de hand: die
+   workflow draait eerst álle guards en zet de tag pas als ze slagen, zodat een
+   misser geen tag achterlaat om op te ruimen.
 
    ```bash
-   git tag v2026.6.14
-   git push origin v2026.6.14
+   gh workflow run tag-release.yaml -f version=2026.6.14
+   gh run watch "$(gh run list --workflow=tag-release.yaml --limit 1 --json databaseId --jq '.[0].databaseId')"
    ```
+
+   Faalt de run, dan bestaat de tag niet: los op wat de melding aanwijst, breng
+   dat naar `main` en start `tag-release` opnieuw. Geen tag verwijderen, geen
+   hertaggen.
 
 ## Wat er daarna automatisch gebeurt
 
+- **`tag-release.yaml`** valideert het tagformaat, dat de tag nog niet bestaat,
+  dat het geen downgrade is, dat de changelog-sectie er staat, dat de plugin op
+  dezelfde versie staat en dat de acceptatie-images bestaan. Pas daarna pusht
+  het de tag en start het `release.yaml` (een tag-push door `GITHUB_TOKEN` start
+  `release.yaml` niet vanzelf).
 - **`release.yaml`** valideert het CalVer-formaat en de changelog-sectie, maakt
   de GitHub-release met die sectie als notes, en **start daarna pas**
   `deploy-productie`. In een aparte job bouwt het het standalone formulier en
@@ -53,15 +77,22 @@ bijgewerkt; `main` werkt alleen acceptatie bij.
 |-------|-----|
 | CalVer-formaat | `vYYYY.M.D[.MICRO]`, geen voorloopnullen |
 | Changelog | Een niet-lege `## [versie]`-sectie moet bestaan |
+| Plugin-versie | De assessments-plugin moet op dezelfde CalVer staan als de tag |
 | Downgrade | De tag moet de hoogste CalVer-tag zijn — fix forward, deploy nooit een oudere tag |
+| Tag bestaat nog niet | Hertaggen is geen release — breng een fix uit onder een nieuwe, hogere tag |
 | Tag op main | De getagde commit moet op `main` staan |
 | Image bestaat | De `Deploy acceptatie`-run voor die commit moet geslaagd zijn |
 | Dispatchbaar | `deploy-productie.yaml` moet op de default branch (`main`) staan, anders kan `release.yaml` het niet starten — zet de eerste CalVer-tag pas na de merge naar `main` |
 
+Via `tag-release` vallen deze guards **vóór** de tag, dus een misser laat niets
+achter. `release.yaml` en `deploy-productie.yaml` houden hun eigen guards als
+vangnet voor een tag die alsnog met de hand gepusht wordt.
+
 De gedeelde checks staan in `script/ci/` (`validate-calver-tag.sh`,
-`changelog-section.sh`, `assert-newest-calver-tag.sh`) en worden door zowel
-`release.yaml` als `deploy-productie.yaml` gebruikt; ze zijn gedekt door
-`script/tests/test_ci_release.py`.
+`changelog-section.sh`, `assert-newest-calver-tag.sh`,
+`assert-plugin-version.sh`, `assert-tag-absent.sh`) en worden door
+`tag-release.yaml`, `release.yaml` en `deploy-productie.yaml` gebruikt; ze zijn
+gedekt door `script/tests/test_ci_release.py`.
 
 ## Hotfix
 

@@ -1,8 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { commentsApi, syncApi, SessionExpiredError, type CommentThread, type CommentReply } from '../api'
+import { commentsApi, syncApi, ApiError, SessionExpiredError, type CommentThread, type CommentReply } from '../api'
 
 const POLL_INTERVAL_MS = 10_000
+// Consecutive failed polls before the user is told the document may be stale. A
+// single miss heals itself on the next tick and is not worth a message.
+const SYNC_FAILURE_THRESHOLD = 3
 
 export const useCollaborationStore = defineStore('collaboration', () => {
   const assessmentId = ref<string | null>(null)
@@ -17,10 +20,63 @@ export const useCollaborationStore = defineStore('collaboration', () => {
 
   const loading = ref(false)
   const error = ref<string | null>(null)
+  const syncFailing = ref(false)
 
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let visibilityHandler: (() => void) | null = null
   let isPolling = false
+  let consecutiveFailures = 0
+  let pollBlockedUntil = 0
+
+  // Bumped when a local mutation starts and again when it settles, so any change across a
+  // poll means a mutation overlapped it. A poll response reflects the server as it was when
+  // the request went out, which may predate an overlapping mutation; applying it would revert
+  // that mutation. Such a response is dropped without moving the watermark, so the next poll
+  // fetches the same delta again.
+  let mutationSeq = 0
+
+  // Set when a comment action fails, so the failure can be reported instead of the button
+  // appearing to do nothing. Only transient failures are worth another attempt; a 403 or 404
+  // says the attempt itself was wrong, and retrying it changes nothing.
+  const commentActionError = ref<{ message: string; retryable: boolean } | null>(null)
+  let lastFailedAction: (() => Promise<unknown>) | null = null
+
+  function describeActionFailure(cause: unknown): { message: string; retryable: boolean } {
+    const status = cause instanceof ApiError ? cause.status : 0
+
+    if (status === 403) {
+      return { message: 'Je hebt geen rechten meer om dit te doen. Ververs de pagina.', retryable: false }
+    }
+    if (status === 404) {
+      return { message: 'Deze opmerking bestaat niet meer. Ververs de pagina.', retryable: false }
+    }
+    if (status === 429) {
+      return { message: 'Te veel verzoeken achter elkaar. Probeer het zo nog eens.', retryable: true }
+    }
+    return { message: 'Geen verbinding met de server. De opmerking is niet bijgewerkt.', retryable: true }
+  }
+
+  async function mutate<T>(action: () => Promise<T>): Promise<T> {
+    mutationSeq++
+    try {
+      const result = await action()
+      commentActionError.value = null
+      lastFailedAction = null
+      return result
+    } catch (cause) {
+      commentActionError.value = describeActionFailure(cause)
+      lastFailedAction = action
+      throw cause
+    } finally {
+      mutationSeq++
+    }
+  }
+
+  async function retryCommentAction() {
+    const action = lastFailedAction
+    if (!action) return
+    return mutate(action)
+  }
 
   // — Computed getters —
 
@@ -80,19 +136,40 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   }
 
   async function pollForUpdates() {
-    if (isPolling || !assessmentId.value) return
+    const id = assessmentId.value
+    if (isPolling || !id) return
+    // Respect a 429's Retry-After instead of knocking every POLL_INTERVAL_MS,
+    // which would keep the bucket empty for the whole window.
+    if (Date.now() < pollBlockedUntil) return
     isPolling = true
+    const seenMutationSeq = mutationSeq
 
     try {
-      const syncResponse = await syncApi.get(assessmentId.value)
+      const syncResponse = await syncApi.get(id)
 
       // Detect deletions: when a comment is removed, the /comments?since=... query can't report it
       // (the row is gone). A count mismatch is our signal to do a full refresh instead of incremental.
       const needsFullRefresh = syncResponse.commentCount !== localCommentCount()
 
       const commentsResponse = needsFullRefresh
-        ? await commentsApi.list(assessmentId.value)
-        : await commentsApi.list(assessmentId.value, lastModifiedAt.value ?? undefined)
+        ? await commentsApi.list(id)
+        : await commentsApi.list(id, lastModifiedAt.value ?? undefined)
+
+      // Nothing from this poll applies once the store moved to another assessment.
+      if (assessmentId.value !== id) return
+
+      // The sync signals describe the document, which a comment mutation cannot touch, so
+      // they land even when the comment data below is dropped. Both round trips succeeded,
+      // so the failure state clears either way.
+      assessmentVersion.value = syncResponse.version
+      assessmentUpdatedAt.value = syncResponse.updatedAt
+      lastModifiedBySelf.value = syncResponse.lastModifiedBySelf
+      consecutiveFailures = 0
+      syncFailing.value = false
+
+      // Drop the comment data when a mutation overlapped the poll: this response predates it
+      // and would revert it. The watermark stays put, so the next poll refetches the delta.
+      if (mutationSeq !== seenMutationSeq) return
 
       if (needsFullRefresh) {
         threads.value = commentsResponse.comments
@@ -124,15 +201,18 @@ export const useCollaborationStore = defineStore('collaboration', () => {
       }
 
       lastModifiedAt.value = commentsResponse.lastModifiedAt
-      assessmentVersion.value = syncResponse.version
-      assessmentUpdatedAt.value = syncResponse.updatedAt
-      lastModifiedBySelf.value = syncResponse.lastModifiedBySelf
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         stopPolling()
         return
       }
-      // Silently ignore other poll errors — next poll will retry
+      // A single failed poll heals itself on the next tick; only a run of them is
+      // reported, so the user knows they may be looking at a stale document.
+      consecutiveFailures++
+      syncFailing.value = consecutiveFailures >= SYNC_FAILURE_THRESHOLD
+      if (error instanceof ApiError && error.retryAfterSeconds !== undefined) {
+        pollBlockedUntil = Date.now() + error.retryAfterSeconds * 1000
+      }
     } finally {
       isPolling = false
     }
@@ -173,93 +253,111 @@ export const useCollaborationStore = defineStore('collaboration', () => {
   }
 
   async function createComment(fieldId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const created = await commentsApi.create(assessmentId.value, fieldId, body)
-    threads.value.push({ ...created, replies: created.replies || [] })
-    return created
+    return mutate(async () => {
+      const created = await commentsApi.create(id, fieldId, body)
+      threads.value.push({ ...created, replies: created.replies || [] })
+      return created
+    })
   }
 
   async function createReply(parentId: string, fieldId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const created = await commentsApi.create(assessmentId.value, fieldId, body, parentId)
-    const thread = threads.value.find(t => t.id === parentId)
-    if (thread) {
-      thread.replies.push({
-        id: created.id,
-        parentId,
-        authorId: created.authorId,
-        authorName: created.authorName,
-        body: created.body,
-        createdAt: created.createdAt,
-        updatedAt: created.updatedAt,
-      })
-    }
-    return created
+    return mutate(async () => {
+      const created = await commentsApi.create(id, fieldId, body, parentId)
+      const thread = threads.value.find(t => t.id === parentId)
+      if (thread) {
+        thread.replies.push({
+          id: created.id,
+          parentId,
+          authorId: created.authorId,
+          authorName: created.authorName,
+          body: created.body,
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+        })
+      }
+      return created
+    })
   }
 
   async function updateComment(commentId: string, body: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.update(assessmentId.value, commentId, body)
+    return mutate(async () => {
+      await commentsApi.update(id, commentId, body)
 
-    for (const thread of threads.value) {
-      if (thread.id === commentId) {
-        thread.body = body
-        thread.updatedAt = new Date().toISOString()
-        return
-      }
-      for (const reply of thread.replies) {
-        if (reply.id === commentId) {
-          reply.body = body
-          reply.updatedAt = new Date().toISOString()
+      for (const thread of threads.value) {
+        if (thread.id === commentId) {
+          thread.body = body
+          thread.updatedAt = new Date().toISOString()
           return
         }
+        for (const reply of thread.replies) {
+          if (reply.id === commentId) {
+            reply.body = body
+            reply.updatedAt = new Date().toISOString()
+            return
+          }
+        }
       }
-    }
+    })
   }
 
   async function deleteComment(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.delete(assessmentId.value, commentId)
+    return mutate(async () => {
+      await commentsApi.delete(id, commentId)
 
-    const threadIdx = threads.value.findIndex(t => t.id === commentId)
-    if (threadIdx >= 0) {
-      threads.value.splice(threadIdx, 1)
-      return
-    }
-
-    for (const thread of threads.value) {
-      const replyIdx = thread.replies.findIndex(r => r.id === commentId)
-      if (replyIdx >= 0) {
-        thread.replies.splice(replyIdx, 1)
+      const threadIdx = threads.value.findIndex(t => t.id === commentId)
+      if (threadIdx >= 0) {
+        threads.value.splice(threadIdx, 1)
         return
       }
-    }
+
+      for (const thread of threads.value) {
+        const replyIdx = thread.replies.findIndex(r => r.id === commentId)
+        if (replyIdx >= 0) {
+          thread.replies.splice(replyIdx, 1)
+          return
+        }
+      }
+    })
   }
 
   async function resolveThread(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    const updated = await commentsApi.resolve(assessmentId.value, commentId)
-    const thread = threads.value.find(t => t.id === commentId)
-    if (thread) {
-      thread.resolvedAt = updated.resolvedAt
-      thread.resolvedBy = updated.resolvedBy
-    }
+    return mutate(async () => {
+      const updated = await commentsApi.resolve(id, commentId)
+      const thread = threads.value.find(t => t.id === commentId)
+      if (thread) {
+        thread.resolvedAt = updated.resolvedAt
+        thread.resolvedBy = updated.resolvedBy
+      }
+    })
   }
 
   async function reopenThread(commentId: string) {
-    if (!assessmentId.value) return
+    const id = assessmentId.value
+    if (!id) return
 
-    await commentsApi.reopen(assessmentId.value, commentId)
-    const thread = threads.value.find(t => t.id === commentId)
-    if (thread) {
-      thread.resolvedAt = null
-      thread.resolvedBy = null
-    }
+    return mutate(async () => {
+      await commentsApi.reopen(id, commentId)
+      const thread = threads.value.find(t => t.id === commentId)
+      if (thread) {
+        thread.resolvedAt = null
+        thread.resolvedBy = null
+      }
+    })
   }
 
   function reset() {
@@ -286,6 +384,8 @@ export const useCollaborationStore = defineStore('collaboration', () => {
     currentUserId,
     loading,
     error,
+    syncFailing,
+    commentActionError,
     // Computed
     threadsByField,
     unresolvedCountByField,
@@ -300,6 +400,7 @@ export const useCollaborationStore = defineStore('collaboration', () => {
     deleteComment,
     resolveThread,
     reopenThread,
+    retryCommentAction,
     reset,
   }
 })

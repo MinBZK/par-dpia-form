@@ -18,10 +18,11 @@ import {
 import { assessments, ApiError, SessionExpiredError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
 import { escapeHtml, stripHtml } from './utils/html'
+import { PENDING_STORAGE_PREFIX, UI_STORAGE_PREFIX } from './storageKeys'
 import type { ConflictField } from './components/ConflictResolutionDialog.vue'
 
 const DEBOUNCE_MS = 500
-const UI_STORAGE_PREFIX = 'ui:'
+const RETRY_DELAYS_MS = [5_000, 15_000, 45_000]
 
 export interface ConflictState {
   active: boolean
@@ -34,8 +35,18 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const taskStore = useTaskStore()
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
+  let retryTimer: ReturnType<typeof setTimeout> | null = null
+  let failedSaves = 0
+  // Surfaced to the editor: saveFailing only after a retry has also failed, so a
+  // single blip stays invisible; hasUnsavedChanges drives the unload guard.
+  const saveFailing = ref(false)
+  const hasUnsavedChanges = ref(false)
   const knownVersion = ref<number | undefined>()
   const knownUpdatedAt = ref<string | undefined>()
+
+  // Requests in flight are not cancelled on teardown. Their continuations run
+  // against whatever the stores hold by then, which is the next assessment.
+  let disposed = false
 
   // Concurrency guards for collaboration sync
   let saveInProgress = false
@@ -130,6 +141,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
+    if (disposed) return
+
     let resolveSave: () => void
     saveComplete = new Promise<void>(resolve => { resolveSave = resolve })
     saveInProgress = true
@@ -174,6 +187,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       lastSavedState = JSON.parse(JSON.stringify(buildState()))
       pendingChanges.clear()
       instancesDirty = false
+      clearSaveFailure()
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         persistPendingToSession()
@@ -184,10 +198,48 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         return
       }
       console.error('Failed to save form state to API:', error)
+      registerSaveFailure(error)
     } finally {
       saveInProgress = false
       resolveSave!()
     }
+  }
+
+  function clearSaveFailure() {
+    failedSaves = 0
+    saveFailing.value = false
+    hasUnsavedChanges.value = false
+    if (retryTimer) {
+      clearTimeout(retryTimer)
+      retryTimer = null
+    }
+  }
+
+  // Without this a failed save is only retried when the next edit schedules one:
+  // stop typing at the wrong moment and the work is never sent.
+  function registerSaveFailure(error: unknown) {
+    failedSaves++
+    saveFailing.value = failedSaves >= 2
+    hasUnsavedChanges.value = true
+
+    const retryAfter = error instanceof ApiError ? error.retryAfterSeconds : undefined
+    const delay = retryAfter !== undefined
+      ? retryAfter * 1000
+      : RETRY_DELAYS_MS[Math.min(failedSaves - 1, RETRY_DELAYS_MS.length - 1)]
+
+    if (retryTimer) clearTimeout(retryTimer)
+    retryTimer = setTimeout(() => {
+      retryTimer = null
+      saveAppState()
+    }, delay)
+  }
+
+  async function retrySaveNow(): Promise<void> {
+    if (retryTimer) {
+      clearTimeout(retryTimer)
+      retryTimer = null
+    }
+    await saveAppState()
   }
 
   /** Wait for an in-flight save to complete, with a timeout to prevent hangs. */
@@ -211,7 +263,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return
       throw error
     }
-    if (!fresh.state) return
+    if (disposed || !fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
     const serverState = normalizeServerResponse(fresh.state)
@@ -521,7 +573,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
       throw error
     }
-    if (!fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+    if (disposed || !fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
 
     const serverState = normalizeServerResponse(fresh.state)
     const serverDiff = computeFieldDiff(lastSavedState, flattenForDiff(serverState))
@@ -693,6 +745,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   function debouncedSave() {
+    // Also covers the debounce window itself: an edit made a second before the tab
+    // closes is unsaved too, not just one whose save failed.
+    hasUnsavedChanges.value = true
     if (debounceTimer) clearTimeout(debounceTimer)
     debounceTimer = setTimeout(() => saveAppState(), DEBOUNCE_MS)
   }
@@ -798,10 +853,15 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
+      disposed = true
       document.removeEventListener('visibilitychange', onVisibilityChange)
       if (debounceTimer) {
         clearTimeout(debounceTimer)
         debounceTimer = null
+      }
+      if (retryTimer) {
+        clearTimeout(retryTimer)
+        retryTimer = null
       }
     }
   }
@@ -811,15 +871,15 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       updatePendingChanges()
       if (pendingChanges.size === 0) return
       const entries = Array.from(pendingChanges.entries())
-      sessionStorage.setItem(`pending:${assessmentId}`, JSON.stringify(entries))
+      sessionStorage.setItem(PENDING_STORAGE_PREFIX + assessmentId, JSON.stringify(entries))
     } catch { /* sessionStorage may be unavailable */ }
   }
 
   function restorePendingFromSession() {
     try {
-      const raw = sessionStorage.getItem(`pending:${assessmentId}`)
+      const raw = sessionStorage.getItem(PENDING_STORAGE_PREFIX + assessmentId)
       if (!raw) return
-      sessionStorage.removeItem(`pending:${assessmentId}`)
+      sessionStorage.removeItem(PENDING_STORAGE_PREFIX + assessmentId)
       const entries: [string, { key: string; value: unknown }][] = JSON.parse(raw)
       for (const [, change] of entries) {
         applyFieldChange(change.key, change.value)
@@ -850,6 +910,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     applyDeferredChanges,
     applyDeferredOnNavigate,
     hasDeferredChanges,
+    saveFailing,
+    hasUnsavedChanges,
+    retrySaveNow,
   }
 
   return { ...persistence, conflictState, sync }
