@@ -1,3 +1,4 @@
+import { FormType } from '../models/dpia'
 import { buildInstanceId, parseInstanceId } from './instanceId'
 
 // r-component (RFC 8141) carrying the task coordinates, e.g.
@@ -6,9 +7,9 @@ import { buildInstanceId, parseInstanceId } from './instanceId'
 const FIELD_URN = /^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/
 
 // Namespace prefixes of the dot format: legacy edit rows written before the URNs,
-// and the ids the version history builds to look labels up by. A new assessment
-// has to be added here, or its dot ids parse as a plain key without a namespace.
-const DOT_NAMESPACES = ['dpia', 'prescan', 'iama']
+// and the ids the version history builds to look labels up by. Derived from
+// FormType, so a new assessment is covered the moment it exists.
+const DOT_NAMESPACES: string[] = Object.values(FormType)
 
 /**
  * Build a URN-based field identifier for the assessment_edits table.
