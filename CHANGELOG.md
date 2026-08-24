@@ -97,6 +97,13 @@ build) staan kort onder "Onder de motorkap".
 * De titelbalk van een assessment (naam, opmerkingen, menu) lijnt uit met de
   inhoudsopgave en de vragen eronder, in plaats van met een eigen kolom.
 * De toelichting onder een startkeuze leest in de gewone tekstkleur.
+* De uitleg- en verklaringpagina's staan in het midden van het scherm, op een
+  leesbare regelbreedte.
+* De terugknop noemt de pagina waar je vandaan komt, in plaats van "Terug".
+* Op de statuspagina is de uitkomst per onderdeel een gekleurd vlak in plaats
+  van een klein labeltje, en het icoon voor de achterkant is een server.
+* Elke pagina gebruikt dezelfde paginabreedte en marges van het design system,
+  zodat koppen, kaarten en tekst overal op dezelfde lijn beginnen.
 * Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
   de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
 * De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave
