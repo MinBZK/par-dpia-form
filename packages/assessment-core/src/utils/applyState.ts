@@ -4,6 +4,7 @@ import type { Answer, AnswerStoreType } from '../stores/answers'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
 import { sanitizeAnswers } from './sanitizeState'
+import { migrateOptionValueAnswers } from './stateMigration'
 
 /**
  * Apply an AssessmentState to the task and answer stores.
@@ -33,7 +34,10 @@ export function applyStateToStores(
     // passes through (import, server load, browser storage).
     const { answers: safe } = sanitizeAnswers(flat as Record<string, unknown>)
 
-    answerStore.answers[ns] = safe as Record<string, Answer>
+    answerStore.answers[ns] = migrateOptionValueAnswers(
+      safe as Record<string, Answer>,
+      taskStore.flatTasks[ns],
+    )
   }
 }
 

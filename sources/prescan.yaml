@@ -251,7 +251,7 @@ tasks:
           condition:
             id: "1.1.2"
             operator: contains
-            value: "'Categorie gewone persoonsgegevens: Overige'"
+            value: "Categorie gewone persoonsgegevens: Overige"
           action: show
         repeatable: false
         references:
@@ -430,7 +430,7 @@ tasks:
           condition:
             id: "1.4.1"
             operator: contains
-            value: "'Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)'"
+            value: "Categorie betrokkenen: Specificatie categorie betrokkenen (bijv. vanuit uitvoeringswetgeving)"
           action: show
         repeatable: false
         references:

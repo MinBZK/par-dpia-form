@@ -1,6 +1,8 @@
 import { type AssessmentState, OUTPUT_SCHEMA_URL } from '../models/assessmentState'
 import { type FormType } from '../models/dpia'
 import { type Answer } from '../stores/answers'
+import { type FlatTask } from '../stores/tasks'
+import { DEFINITION_CLASS, getPlainTextWithoutDefinitions } from './stripHtml'
 
 // Legacy DPIATaskState shape (before taskInstances removal)
 interface LegacyDPIATaskState {
@@ -187,4 +189,42 @@ function stripLegacyFields(
   }
 
   return cleaned
+}
+
+/**
+ * Answers saved before option values became plain identifiers hold the option's
+ * display markup instead. Map those back onto the matching option value, so
+ * dependencies, calculations and exports compare against the same string the
+ * form now stores.
+ */
+export function migrateOptionValueAnswers(
+  answers: Record<string, Answer>,
+  tasks: Record<string, FlatTask>,
+): Record<string, Answer> {
+  const migrated: Record<string, Answer> = {}
+
+  for (const [key, answer] of Object.entries(answers)) {
+    const options = tasks[key.replace(/\[\d+\]$/, '')]?.options
+    if (!options?.length) {
+      migrated[key] = answer
+      continue
+    }
+
+    const values = options.map(option => (option.value === null ? '' : String(option.value)))
+    const toOptionValue = (stored: string): string => {
+      if (!stored.includes(DEFINITION_CLASS)) return stored
+      const plain = getPlainTextWithoutDefinitions(stored).trim()
+      return values.find(value => value === plain) ?? stored
+    }
+
+    if (typeof answer.value === 'string') {
+      migrated[key] = { ...answer, value: toOptionValue(answer.value) }
+    } else if (Array.isArray(answer.value)) {
+      migrated[key] = { ...answer, value: answer.value.map(toOptionValue) }
+    } else {
+      migrated[key] = answer
+    }
+  }
+
+  return migrated
 }

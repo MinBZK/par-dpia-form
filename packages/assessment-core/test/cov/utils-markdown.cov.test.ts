@@ -165,6 +165,13 @@ describe('markdownToPdfContent — inline token handling (processInlineTokens)',
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('*'))).toBe(true)
   })
 
+  it('drops inline raw HTML instead of printing its markup', () => {
+    const content = markdownToPdfContent('before <span class="x">inside</span> after') as any
+    const parts = textArray(content).filter((t: any) => typeof t === 'string')
+    expect(parts.some((t: string) => t.includes('<span'))).toBe(false)
+    expect(parts.some((t: string) => t.includes('before'))).toBe(true)
+  })
+
   it('handles an unknown inline token with text via the default branch (inline image)', () => {
     const content = markdownToPdfContent('see ![the alt](https://example.com/x.png) here') as any
     expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('the alt'))).toBe(true)
@@ -233,9 +240,9 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(content.stack).toHaveLength(2)
   })
 
-  it('handles an unknown block token with a string text (default true branch)', () => {
-    const content = markdownToPdfContent('<div>raw block</div>') as any
-    expect(textArray(content).some((t: any) => typeof t === 'string' && t.includes('raw block'))).toBe(true)
+  it('drops a raw HTML block instead of printing its markup', () => {
+    const content = markdownToPdfContent('<div>raw block</div>')
+    expect(content).toEqual({ text: '' })
   })
 
   it('handles an unknown block token without a string text (default false branch)', () => {
