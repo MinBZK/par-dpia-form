@@ -265,20 +265,15 @@ async function downloadOfflineApp() {
     </p>
   </ConfirmDialog>
 
-  <!-- "Start nieuwe X" confirmation -->
-  <div v-if="freshTarget" class="fresh-confirm-overlay" @click.self="cancelFresh">
-    <div class="fresh-confirm" role="dialog" aria-modal="true" aria-labelledby="fresh-confirm-title">
-      <h2 id="fresh-confirm-title" class="utrecht-heading-2">Nieuwe {{ freshTargetCard?.title }} starten?</h2>
-      <p class="utrecht-paragraph">
-        Je hebt een opgeslagen versie van de {{ freshTargetCard?.title }}. Als je een nieuwe start, wordt
-        die opgeslagen versie definitief gewist. Dit kan niet ongedaan worden gemaakt.
-      </p>
-      <div class="fresh-confirm__actions">
-        <UiButton variant="tertiary" label="Annuleren" @click="cancelFresh" />
-        <UiButton variant="warning" :label="`Ja, start nieuwe ${freshTargetCard?.title}`" @click="confirmFresh" />
-      </div>
-    </div>
-  </div>
+  <ConfirmDialog v-if="freshTarget" :open="!!freshTarget"
+    :title="`Nieuwe ${freshTargetCard?.title} starten?`"
+    :confirm-label="`Ja, start nieuwe ${freshTargetCard?.title}`"
+    @cancel="cancelFresh" @confirm="confirmFresh">
+    <p class="utrecht-paragraph">
+      Je hebt een opgeslagen versie van de {{ freshTargetCard?.title }}. Als je een nieuwe start, wordt
+      die opgeslagen versie definitief gewist. Dit kan niet ongedaan worden gemaakt.
+    </p>
+  </ConfirmDialog>
 </template>
 
 <style scoped>
@@ -287,31 +282,5 @@ async function downloadOfflineApp() {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1rem;
-}
-
-.fresh-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  padding: 1rem;
-  z-index: 1000;
-}
-
-.fresh-confirm {
-  background: #fff;
-  max-width: 32rem;
-  width: 100%;
-  padding: 1.5rem;
-  border-radius: 4px;
-}
-
-.fresh-confirm__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-block-start: 1rem;
 }
 </style>

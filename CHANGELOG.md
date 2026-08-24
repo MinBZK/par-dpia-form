@@ -71,6 +71,9 @@ build) staan kort onder "Onder de motorkap".
   melding, met een knop om het opnieuw te proberen wanneer dat kan helpen.
   Bij een verlopen bevoegdheid of een inmiddels verwijderde opmerking staat
   er wat er aan de hand is, zonder zinloze herhaalknop.
+* De bevestiging bij "Start nieuwe..." op de startpagina van het standalone
+  formulier sluit nu ook met Escape, houdt de toetsenbordfocus binnen het
+  venster en geeft die daarna terug aan de knop die hem opende.
 * Opmerkingen die bij vragen vlak onder elkaar horen, schoven over elkaar
   heen zodra er een wat langere opmerking tussen zat. Daardoor viel een deel
   van de tekst weg en waren "Reageren", "Verwijderen" en "Oplossen" niet meer
