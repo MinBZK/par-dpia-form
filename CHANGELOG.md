@@ -15,6 +15,8 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+## [2026.8.24]
+
 ### Toegevoegd
 
 * Op de startpagina van het standalone formulier staat nu "Wis alle opgeslagen
@@ -427,7 +429,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.6.20...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.24...HEAD
+[2026.8.24]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.24
 [2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20
 [0.1.3]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.3
 [0.1.2]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.2
