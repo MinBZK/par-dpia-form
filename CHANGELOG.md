@@ -199,6 +199,9 @@ build) staan kort onder "Onder de motorkap".
 * De metadata waarmee open-sourcecatalogi de invulhulp beschrijven noemt nu het
   ministerie met zijn officiële overheidsidentificatie, zodat de invulhulp
   onder de juiste organisatie te vinden is.
+* De invulhulp is getoetst aan de OpenSSF Best Practices, een internationale
+  checklist voor open source projecten. Alle verplichte punten zijn in orde;
+  de uitkomst per punt staat in `docs/openssf-best-practices.md`.
 * Het overzicht van licenties van gebruikte bibliotheken stond al een tijd stil
   en is bijgewerkt. Het staat nu in `docs/third-party-licenses.txt`, en een
   controle in CI zorgt dat het niet opnieuw achterloopt.

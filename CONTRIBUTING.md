@@ -58,6 +58,16 @@ ours. Check your change with:
 uvx --from 'reuse[charset-normalizer]' reuse lint
 ```
 
+### Tests
+
+Add tests along with your change. Every workspace enforces 100% coverage of
+`src/**` (statements, branches, functions and lines), so a change without tests
+fails CI rather than lowering the bar. Run them with:
+
+```bash
+pnpm -r --if-present test:coverage
+```
+
 ### Reporting Bugs
 
 #### Before Submitting a Bug Report
