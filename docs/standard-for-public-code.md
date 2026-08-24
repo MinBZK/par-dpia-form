@@ -1,0 +1,215 @@
+# Standard for Public Code: zelfevaluatie
+
+Dit is de zelfevaluatie van Invulhulpen tegen de [Standard for Public Code](https://standard.publiccode.net/) versie 0.8.0. De standaard bestaat uit zestien criteria met normatieve eisen (MUST, SHOULD, OPTIONAL). Deze evaluatie legt per criterium vast waar de codebase staat, met bewijs, en wat er nodig is om een gat te dichten.
+
+Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heeft dit niet getoetst.
+
+| | |
+|---|---|
+| Standaard | Standard for Public Code v0.8.0 |
+| Getoetst op | 24 augustus 2026 |
+| Getoetste versie | commit `9849da6` op `main` |
+| Uitgevoerd door | het onderhoudsteam |
+| Volgende ronde | bij de eerstvolgende jaarlijkse herijking, of eerder bij grote wijzigingen |
+
+## Samenvatting
+
+| # | Criterium | Oordeel |
+|---|-----------|---------|
+| 1 | [Code in the open](#1-code-in-the-open) | Voldaan |
+| 2 | [Bundle policy and source code](#2-bundle-policy-and-source-code) | Voldaan |
+| 3 | [Make the codebase reusable and portable](#3-make-the-codebase-reusable-and-portable) | Gedeeltelijk |
+| 4 | [Welcome contributors](#4-welcome-contributors) | Gedeeltelijk |
+| 5 | [Make contributing easy](#5-make-contributing-easy) | Gedeeltelijk |
+| 6 | [Maintain version control](#6-maintain-version-control) | Voldaan |
+| 7 | [Require review of contributions](#7-require-review-of-contributions) | Gat |
+| 8 | [Document codebase objectives](#8-document-codebase-objectives) | Gedeeltelijk |
+| 9 | [Document the code](#9-document-the-code) | Gedeeltelijk |
+| 10 | [Use plain English](#10-use-plain-english) | Bewuste afwijking |
+| 11 | [Use open standards](#11-use-open-standards) | Grotendeels |
+| 12 | [Use continuous integration](#12-use-continuous-integration) | Voldaan |
+| 13 | [Publish with an open license](#13-publish-with-an-open-license) | Gedeeltelijk |
+| 14 | [Make the codebase findable](#14-make-the-codebase-findable) | Gedeeltelijk |
+| 15 | [Use a coherent style](#15-use-a-coherent-style) | Gedeeltelijk |
+| 16 | [Document codebase maturity](#16-document-codebase-maturity) | Voldaan |
+
+Eén criterium heeft een gat op een MUST-eis: bijdragen van het onderhoudsteam gaan zonder review naar `main` (criterium 7). Eén criterium halen we bewust niet: de documentatie is Nederlands, terwijl de standaard Engels als gezaghebbende taal eist (criterium 10).
+
+## 1. Code in the open
+
+**Voldaan.**
+
+- Alle broncode staat publiek op [github.com/MinBZK/par-dpia-form](https://github.com/MinBZK/par-dpia-form), zonder login te bekijken.
+- Het beleid staat er ook: `sources/prescan.yaml`, `sources/dpia.yaml`, `sources/iama.yaml` en de begrippenkaders.
+- Geen gevoelige informatie in de repo of de historie. De enige credentials zijn bewuste dev-waarden (`containers/compose.dev.yaml`) en testgebruikers.
+- Ontwikkeling verloopt in kleine, aan issues gekoppelde commits en pull requests, niet in langlopende privéforks.
+- Kanttekening: werk ontstaat soms eerst op een niet-publieke Forgejo-instantie voordat het als PR op GitHub landt. Alles komt uiteindelijk publiek samen, maar dit is niet beschreven in `CONTRIBUTING.md`.
+
+## 2. Bundle policy and source code
+
+**Voldaan.** Dit is het sterkste punt van de codebase.
+
+- Het Rijksmodel DPIA 3.0 en het IAMA-kader staan als YAML in `sources/`, in dezelfde repo, releases en reviewstroom als de code die ze uitvoert.
+- Het beleid is machine-leesbaar en ondubbelzinnig: gevalideerd tegen `schemas/assessment-definition.v2.schema.json` en `schemas/begrippenkader.v1.schema.json`.
+- CI bewaakt de samenhang tussen beleid en code bij elke push en PR (`.github/workflows/test.yaml`), aangevuld met `script/tests/test_schema_validation.py` en tests in `packages/assessment-core`.
+- Data en interpreterende logica zijn gescheiden: `sources/` (data), `schemas/` (contract), `packages/assessment-core` (logica), met gegenereerde leesbare overzichten in `docs/questions/` en `docs/tasks/`.
+
+## 3. Make the codebase reusable and portable
+
+**Gedeeltelijk.**
+
+Wat er staat: de stack is volledig open source (PostgreSQL, Keycloak, Fastify, Vue 3, nginx), lokaal te draaien via `containers/compose.dev.yaml`, en contextafhankelijke instellingen lopen via omgevingsvariabelen (`containers/frontend/nginx/config.json.template`, `docs/deployment.md`).
+
+Wat ontbreekt:
+
+- `containers/frontend/nginx/snippets/csp-app.conf` bevat `https://keycloak.rijksapp.nl` hardcoded in de CSP, terwijl de rest van de Keycloak-configuratie wel geparametriseerd is. Een andere organisatie kan het frontend-image daardoor niet zonder patch gebruiken.
+- `docs/deployment.md` beschrijft alleen de ZAD-route. Er is geen beschrijving van een generieke container- of Kubernetes-deployment.
+- `packages/assessment-core` heeft geen README, terwijl het de module is die het meeste kans op hergebruik heeft.
+- `usedBy` in `publiccode.yaml` noemt alleen BZK, en er is geen publieke roadmap waaruit meerdere partijen spreken.
+- `localisationReady: false`: de UI is niet lokaliseerbaar. Dat is verdedigbaar voor een wettelijk Nederlands kader, maar staat nergens als bewuste keuze gemotiveerd.
+
+## 4. Welcome contributors
+
+**Gedeeltelijk.**
+
+- Iedereen kan issues en pull requests indienen, en dat gebeurt ook: onder meer de issues #451, #449 en #417 en de samengevoegde PR's #424 en #272 komen van buiten het team.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` en issue- en PR-templates zijn aanwezig.
+- Gat: er is geen `GOVERNANCE.md` die besluitvorming en onderhoud beschrijft. Staat gepland in #379.
+- Gat: er is geen publieke roadmap. De openstaande issues fungeren als informele backlog, maar zijn niet als roadmap geprioriteerd.
+- Nergens staat wie de kosten van reviewen draagt. Eén regel in `CONTRIBUTING.md` volstaat.
+
+## 5. Make contributing easy
+
+**Gedeeltelijk.**
+
+- De responsible-disclosure-kant is sterk: `SECURITY.md` beschrijft private vulnerability reporting via GitHub en de CVD-route van het NCSC, met scope en bekende non-findings.
+- Gat op een MUST: `README.md` linkt nergens naar de issue tracker, naar pull requests of naar `CONTRIBUTING.md`. Het instapdocument wijst de bijdrageroute dus niet aan.
+- Het enige open kanaal is GitHub Issues. De rol-mailbox uit `publiccode.yaml` wordt in README noch CONTRIBUTING als contactpunt genoemd. Dit wordt opgelost met de geplande `SUPPORT.md` (#379).
+
+## 6. Maintain version control
+
+**Voldaan.**
+
+- Alles staat in Git, met leesbare commitberichten die het waarom vastleggen, niet alleen het wat.
+- Commits verwijzen waar mogelijk naar issues en PR's.
+- Releases zijn getagd, CalVer sinds `v2026.6.20`, en het releaseproces staat in `CONTRIBUTING.md`.
+- Los eindje: de PR-template vraagt akkoord met de DCO (`DCO.md`), maar er is geen `Signed-off-by` in de commits en geen DCO-check in CI. Ondertekenen is optioneel in de standaard, maar belofte en praktijk lopen hier uiteen. Kies: handhaven met een DCO-check, of de checkbox schrappen.
+
+## 7. Require review of contributions
+
+**Gat.** Dit is het enige criterium met een openstaande MUST-eis.
+
+De eis: elke bijdrage die in de codebase terechtkomt wordt door een andere contributor gereviewd, ook die van maintainers.
+
+De praktijk:
+
+- De ruleset op `main` eist nominaal één goedkeuring plus code-owner-review, met `test`, `pre-commit` en beide image-scans als verplichte checks.
+- Diezelfde ruleset staat `OrganizationAdmin` en repository-rol 5 toe om altijd te bypassen (`bypass_mode: always`).
+- De twaalf meest recent samengevoegde pull requests zijn alle twaalf van de hoofdmaintainer en hebben nul reviews.
+- Externe bijdragen worden wél gereviewd (PR #424 en #272), maar de doorlooptijd loopt op tot weken of maanden, ver boven de twee werkdagen die de standaard als richtlijn geeft.
+
+Dit is deels structureel: één maintainer kan zichzelf niet reviewen. Er zijn twee eerlijke uitwegen, en beide vragen een besluit:
+
+1. Een tweede reviewer aanwijzen binnen het team en de bypass uit de ruleset halen, zodat de eis ook voor eigen bijdragen geldt.
+2. De afwijking expliciet vastleggen in `GOVERNANCE.md`, inclusief wat er in plaats van menselijke review staat (verplichte CI met 100% dekkingsdrempel, image-scans, pre-commit).
+
+Optie 1 is wat de standaard vraagt. Optie 2 is eerlijker dan een ruleset die streng oogt maar routinematig omzeild wordt.
+
+## 8. Document codebase objectives
+
+**Gedeeltelijk.**
+
+- De doelstelling staat beschreven in `docs/rapport/rapport_v0.1.1.md`, maar dat document dateert van vóór de IAMA-uitbreiding en de samenwerkfunctionaliteit, en wordt niet genoemd in de documentatielijst van `README.md`.
+- De koppeling met de onderliggende beleidsdoelen is impliciet: `docs/standard/form_standard.md` noemt het Rijksmodel DPIA 3.0, `docs/gegevensverwerking.md` verwijst naar AVG artikel 35, maar er is geen link naar het beleid dat DPIA- en IAMA-gebruik voorschrijft.
+- Kleinste stap: een korte "Doel"-alinea in `README.md`, met links naar de beleidsbronnen.
+
+## 9. Document the code
+
+**Gedeeltelijk.**
+
+- Installeren en draaien is goed gedocumenteerd (`README.md`), en `apps/boekhouding-backend/README.md` is uitgebreid.
+- Gat: `packages/assessment-core`, `apps/boekhouding-frontend` en `apps/standalone-form` hebben geen eigen README.
+- Gat: er zijn geen voorbeelden of schermafbeeldingen van de kernfunctionaliteit (een assessment invullen en exporteren, samenwerken, PDF-export).
+- De README opent direct met vaktermen. Twee of drie zinnen in gewone taal over wat een DPIA en een IAMA zijn, en waarom ze bestaan, maken het geheel toegankelijk voor journalisten en beleidsmakers.
+- `docs/deployment.md` bevat een architectuurdiagram, maar dat is niet gelinkt vanuit de documentatiesectie van de README.
+- Documentatiekwaliteit wordt in CI alleen op kapotte links gecontroleerd (`broken-link-and-begrippenkader-sync.yaml`).
+
+## 10. Use plain English
+
+**Bewuste afwijking, met één gat dat we wel dichten.**
+
+De standaard eist letterlijk dat Engels een van de gezaghebbende talen is en dat alle documentatie in alle gezaghebbende talen actueel is. Sinds v0.8.0 mogen daarnaast andere talen gezaghebbend zijn.
+
+Onze situatie:
+
+- Broncode en code-comments zijn Engels. Dat voldoet aan de MUST-eis over broncode.
+- De assessmentinhoud in `sources/*.yaml` is Nederlands. Dat valt onder de uitzondering voor beleid dat als code wordt geïnterpreteerd.
+- README, CHANGELOG en `docs/` zijn Nederlands, omdat de doelgroep Nederlandse overheidsorganisaties zijn die een wettelijk Nederlands kader invullen.
+
+De afwijking: er is geen Engelse documentatie, dus Engels is geen gezaghebbende taal en de MUST-eis wordt niet gehaald. Volledig voldoen zou betekenen dat alle documentatie in twee talen actueel gehouden wordt, en die onderhoudslast weegt niet op tegen het bereik.
+
+Wat we wel doen:
+
+- Het talenbeleid expliciet vastleggen (Nederlands gezaghebbend, code en comments Engels), zodat de eerste MUST-eis, "documenteer de set gezaghebbende talen", wel gehaald wordt. Nu leeft die conventie alleen in interne instructies.
+- Een Engelse samenvatting van de README toevoegen, zodat hergebruik buiten Nederland mogelijk blijft. Die is een courtesy translation, geen gezaghebbende versie.
+- Een begrippenlijst toevoegen of afkortingen bij eerste gebruik uitleggen: DPIA, IAMA, DTIA, AVG, BIO2, PDR en CalVer staan nu grotendeels onverklaard in de README.
+
+## 11. Use open standards
+
+**Grotendeels.**
+
+- De gebruikte standaarden zijn open en aantoonbaar geïmplementeerd: `application/problem+json` (RFC 9457), de `API-Version`-header en URI-versioning conform de NL GOV API Design Rules (`apps/boekhouding-backend/src/app.ts`), JSON Schema, OpenAPI, EUPL-1.2 als SPDX-identifier, security.txt (RFC 9116).
+- De standaardentabel in `README.md` is onvolledig: OpenAPI, JSON Schema en RFC 9116 ontbreken, terwijl ze wel gebruikt worden.
+- Gat: niet-open onderdelen zijn nergens als zodanig gemarkeerd. ZAD is een intern rijksplatform en GHCR is een leveranciersregistry. Beide zitten alleen in deployment en CI, niet in de applicatiecode, maar dat onderscheid hoort expliciet in `docs/deployment.md` te staan.
+- De schema's worden in CI gevalideerd; er is geen Spectral-lint op de OpenAPI-spec tegen de ADR-ruleset en geen geautomatiseerde toegankelijkheidstest.
+
+## 12. Use continuous integration
+
+**Voldaan.**
+
+- Alle workspaces draaien hun testsuite bij elke wijziging, met een harde dekkingsdrempel van 100% per workspace.
+- `test`, `pre-commit` en beide image-scans zijn verplichte statuschecks op `main`.
+- De repo is publiek, dus de uitkomsten van CI zijn zonder login te zien.
+- `CONTRIBUTING.md` en de PR-template sturen op één issue per bijdrage en op logisch gegroepeerde commits.
+- Enige SHOULD die ontbreekt: dekking wordt afgedwongen maar niet als trend of badge zichtbaar gemaakt.
+
+## 13. Publish with an open license
+
+**Gedeeltelijk.**
+
+- De hoofdlicentie is in orde: EUPL-1.2, OSI- en FSF-erkend, volledige tekst in `LICENSE`, vermeld in `README.md` en in `publiccode.yaml`. Bijdragers hoeven geen auteursrecht over te dragen.
+- Gat: geen machine-leesbare licentie per bestand. Er zijn geen SPDX-headers, geen `REUSE.toml` en geen `LICENSES/`-map. Gepland als aparte PR in #379.
+- Gat: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` valt onder de Rijkshuisstijl-voorwaarden en niet onder EUPL-1.2, en dat staat nergens vermeld. De webfont-kant verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een expliciete licentievermelding, maar de PDF-export gebruikt de meegeleverde `.ttf`-bestanden nog rechtstreeks.
+- `@nl-rvo/design-tokens@1.9.0` staat in `LICENSES.txt` als `Unknown`. Verifiëren, of laten vervallen met de overstap naar NLDD.
+
+## 14. Make the codebase findable
+
+**Gedeeltelijk.**
+
+- Naam, beschrijving en `publiccode.yaml` zijn inhoudelijk in orde, en de software heeft een eigen domein (invulhulpen.rijksapp.nl).
+- Gat: de repo is niet aangemeld bij het open-sourceregister op oss.developer.overheid.nl.
+- Het metadatabestand heet `publiccode.yaml`, terwijl de standaard en de crawlers uitgaan van `publiccode.yml`. Dat is een plausibele technische oorzaak voor het uitblijven van indexering.
+- Gat: geen `CITATION.cff` of vergelijkbare persistente identifier.
+- De repo-slug `par-dpia-form` bevat de onverklaarde afkorting "par". De naam in `publiccode.yaml` is wel beschrijvend.
+
+## 15. Use a coherent style
+
+**Gedeeltelijk.**
+
+- De tooling is er: ESLint met Vue-plugin, Prettier, EditorConfig, ruff voor Python, shellcheck, gitleaks.
+- Gat: ESLint en Prettier draaien nergens in CI. Alleen ruff, shellcheck en de basiscontroles van pre-commit worden afgedwongen; het root-`lint`-script wordt in geen enkele workflow aangeroepen.
+- Gat: er is geen stijlgids voor mensen. `CONTRIBUTING.md` verwijst niet naar de linterconfiguraties en zegt niets over verwachtingen rond comments en documentatie in de code.
+- YAML, Markdown en SQL hebben geen stijlcontrole.
+
+## 16. Document codebase maturity
+
+**Voldaan.**
+
+- De volwassenheid staat prominent: `developmentStatus: beta` in `publiccode.yaml` en een statusbadge in `README.md`, consistent met elkaar.
+- Versies zijn getagd en de versioneringsmethode is gedocumenteerd (`CHANGELOG.md` legt de overstap van SemVer naar CalVer uit).
+- `CHANGELOG.md` houdt de wijzigingen per release bij, gericht op wat gebruikers merken.
+- Aandachtspunt: de `package.json`-versies van de workspaces staan nog op `0.0.1` en bewegen niet mee met de tags. Verder verdient "beta" een toelichting nu de software in productie draait, bijvoorbeeld door per onderdeel te benoemen wat stabiel is.
+
+## Vervolg
+
+De gaten uit deze evaluatie worden opgepakt via issue [#379](https://github.com/MinBZK/par-dpia-form/issues/379). Twee punten vragen eerst een besluit van het team: de reviewpraktijk uit criterium 7 en het talenbeleid uit criterium 10.
