@@ -67,6 +67,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Mislukte het opslaan nadat de invulhulp je wijzigingen met die van een
+  collega had samengevoegd, dan hoorde je dat niet en werd het ook niet opnieuw
+  geprobeerd: je werk bleef staan zonder dat het verstuurd was. Dat meldt nu
+  net zo als een gewone mislukte opslag, mét automatische nieuwe poging. Ging
+  het samenvoegen wél goed, dan verdwijnt de waarschuwing over niet-opgeslagen
+  werk nu ook echt.
 * Terwijl je doortypte, kon de invulhulp twee keer tegelijk opslaan. De tweede
   poging botste dan met je eigen eerste, wat een extra versie in de
   geschiedenis opleverde en soms een venster "een collega heeft dit veld
