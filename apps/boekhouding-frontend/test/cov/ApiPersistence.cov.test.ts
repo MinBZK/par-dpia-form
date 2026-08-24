@@ -2223,6 +2223,73 @@ describe('persistPendingToSession — no pending changes (size === 0 early retur
   })
 })
 
+describe('teardown stops late writes', () => {
+  it('saveAppState does nothing after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+    teardown()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'na de teardown', lastEditedAt: 't' }
+    await p.saveAppState()
+
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('handleConflict abandons the merge when the fetch resolves after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('conflict', 409))
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+
+    const savePromise = p.saveAppState()
+    await Promise.resolve()
+    teardown()
+    release(getResponse({ currentVersion: 2 }))
+    await savePromise
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('handleRemoteChange reports no changes when the fetch resolves after teardown', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+    const remotePromise = p.sync.handleRemoteChange('1')
+    await Promise.resolve()
+    teardown()
+    release(getResponse({
+      currentVersion: 2,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '1.1': { value: 'collega' } },
+      },
+    }))
+
+    expect(await remotePromise).toMatchObject({ backgroundMerged: 0, activeSectionChanges: [] })
+    expect(answerStore.answers[FormType.DPIA]['1.1']).toBeUndefined()
+  })
+})
+
 function teardownTimers() {
   vi.runOnlyPendingTimers()
 }

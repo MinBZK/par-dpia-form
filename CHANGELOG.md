@@ -65,6 +65,13 @@ build) staan kort onder "Onder de motorkap".
   typen was, dan verdween de hele opmerking uit beeld en was je tekst weg.
   De opmerking blijft nu staan zolang je er iets openstaan hebt, met een
   regel erboven dat een collega hem heeft opgelost. Je tekst blijft staan.
+* Ging je naar een ander assessment op het moment dat een collega net iets in
+  hetzelfde assessment had opgeslagen, dan kon de DPIA die je verliet stilletjes
+  zijn pre-scan-antwoorden kwijtraken. Er was niets aan te zien: de DPIA zelf
+  bleef compleet, alleen de overgenomen antwoorden uit de pre-scan waren weg,
+  ook na opnieuw laden. Een assessment dat je hebt verlaten slaat nu niets meer
+  op. Wat je vlak voor het weggaan nog wijzigde, wordt in dat geval dus niet
+  bewaard; je ziet dat bij terugkomst en kunt het opnieuw invullen.
 * Lukte het niet om een opmerking te plaatsen, te beantwoorden, te bewerken,
   te verwijderen of op te lossen, dan gebeurde er zichtbaar niets: de knop
   reageerde, maar je hoorde nooit dat het mislukt was. Je krijgt nu een
