@@ -61,6 +61,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Loste een collega een opmerking op terwijl jij er een reactie bij aan het
+  typen was, dan verdween de hele opmerking uit beeld en was je tekst weg.
+  De opmerking blijft nu staan zolang je er iets openstaan hebt, met een
+  regel erboven dat een collega hem heeft opgelost. Je tekst blijft staan.
 * Lukte het niet om een opmerking te plaatsen, te beantwoorden, te bewerken,
   te verwijderen of op te lossen, dan gebeurde er zichtbaar niets: de knop
   reageerde, maar je hoorde nooit dat het mislukt was. Je krijgt nu een

@@ -79,6 +79,14 @@ function schedulePositionUpdate() {
   updateTimer = setTimeout(() => updateFieldPositions(), 50)
 }
 
+// A thread you are writing in must not vanish when a colleague resolves it mid-sentence: that
+// would take the draft with it. It stays until you close what you had open.
+function hasOpenInput(thread: CommentThread): boolean {
+  return replyingTo.value === thread.id
+    || editingId.value === thread.id
+    || thread.replies.some(r => r.id === editingId.value)
+}
+
 // Entries positioned at their field's vertical offset
 const positionedEntries = computed(() => {
   const positions = fieldPositions.value
@@ -92,7 +100,7 @@ const positionedEntries = computed(() => {
 
     const visible = showResolved.value
       ? fieldThreads
-      : fieldThreads.filter(t => !t.resolvedAt)
+      : fieldThreads.filter(t => !t.resolvedAt || hasOpenInput(t))
 
     if (visible.length > 0 || fieldId === props.activeFieldId) {
       entries.push({ fieldId, threads: visible, top })
@@ -347,6 +355,10 @@ async function handleReopen(commentId: string) {
           class="comment-thread"
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
         >
+          <p v-if="thread.resolvedAt && hasOpenInput(thread)" class="comment-thread__resolved-label" role="status">
+            Opgelost door {{ thread.resolvedByName || 'een collega' }} terwijl je hier aan het schrijven was.
+          </p>
+
           <!-- Root comment -->
           <div class="comment-item">
             <div class="comment-item__header">
