@@ -465,10 +465,9 @@ describe('Form.vue export handlers', () => {
     expect(consoleSpy).toHaveBeenCalledWith('Failed to export pdf:', expect.any(Error))
   })
 
-  it('exports to JSON via the ExportMenu (replaces the removed SaveForm modal)', async () => {
+  it('exports to JSON via the ExportMenu', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
-    // The SaveForm modal was removed; JSON export now flows through ExportMenu.
     await wrapper.findAll('.em-json')[0].trigger('click')
     await flushPromises()
 
