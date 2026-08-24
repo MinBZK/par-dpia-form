@@ -30,13 +30,19 @@ const onNativeClose = () => {
   if (props.open) emit('cancel')
 }
 
+// A click on ::backdrop lands on the dialog element itself, since the content is
+// a child. That is the only way to tell the two apart.
+const onBackdropClick = (event: MouseEvent) => {
+  if (event.target === dialog.value) emit('cancel')
+}
+
 onBeforeUnmount(() => {
   if (dialog.value?.open) dialog.value.close()
 })
 </script>
 
 <template>
-  <dialog ref="dialog" class="confirm-dialog" @close="onNativeClose">
+  <dialog ref="dialog" class="confirm-dialog" @close="onNativeClose" @click="onBackdropClick">
     <div class="confirm-dialog__content">
       <h2 class="utrecht-heading-2">{{ title }}</h2>
       <slot />

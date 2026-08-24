@@ -168,41 +168,41 @@ describe('LandingView cached-session choice (#322)', () => {
   it('"Start nieuwe DPIA" opens a type-specific confirmation and emits startFresh on confirm', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.DPIA] })
 
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
 
     await clickButtonByText(wrapper, 'Start nieuwe DPIA')
-    const dialog = wrapper.find('[role="dialog"]')
+    const dialog = wrapper.find('dialog')
     expect(dialog.exists()).toBe(true)
     expect(dialog.text()).toContain('Nieuwe DPIA starten?')
 
     await clickButtonByText(wrapper, 'Ja, start nieuwe DPIA')
 
     expect(wrapper.emitted('startFresh')).toEqual([[FormType.DPIA]])
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 
   it('closes the confirmation without emitting when cancelled', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.PRE_SCAN] })
 
     await clickButtonByText(wrapper, 'Start nieuwe pre-scan')
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('dialog').exists()).toBe(true)
 
     await clickButtonByText(wrapper, 'Annuleren')
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 
   it('closes the confirmation when the backdrop is clicked', async () => {
     const wrapper = mountLanding({ cachedTypes: [FormType.IAMA] })
 
     await clickButtonByText(wrapper, 'Start nieuwe IAMA')
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(true)
+    expect(wrapper.find('dialog').exists()).toBe(true)
 
-    await wrapper.find('.fresh-confirm-overlay').trigger('click')
+    await wrapper.find('dialog').trigger('click')
 
     expect(wrapper.emitted('startFresh')).toBeUndefined()
-    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
   })
 })
 

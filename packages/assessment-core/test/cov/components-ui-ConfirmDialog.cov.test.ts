@@ -95,6 +95,17 @@ describe('ConfirmDialog', () => {
     expect(wrapper.emitted('cancel')).toBeUndefined()
   })
 
+  it('cancels on a backdrop click but not on a click inside', async () => {
+    const wrapper = mountDialog(true)
+    const el = wrapper.find('dialog')
+
+    await wrapper.find('.confirm-dialog__content').trigger('click')
+    expect(wrapper.emitted('cancel')).toBeUndefined()
+
+    await el.trigger('click')
+    expect(wrapper.emitted('cancel')).toHaveLength(1)
+  })
+
   it('returns early in sync() when the dialog ref is null (defensive guard)', async () => {
     const wrapper = mountDialog(false)
     ;(wrapper.vm as unknown as { dialog: HTMLDialogElement | null }).dialog = null
