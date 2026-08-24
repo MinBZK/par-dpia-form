@@ -47,7 +47,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       Ervaar je problemen met de toegankelijkheid van deze applicatie? Neem contact met ons op:
     </p>
     <ul>
-      <li>E-mail: <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a></li>
+      <li>E-mail: <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a></li>
       <li>GitHub: <a href="https://github.com/MinBZK/par-dpia-form/issues" target="_blank" rel="noopener noreferrer">Issues melden</a></li>
     </ul>
 
@@ -55,7 +55,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <p>
       Wordt je melding niet (binnen een redelijke termijn) opgepakt, of ben je niet tevreden met de
       reactie? Neem dan contact op met het team dat de applicatie heeft ontwikkeld via
-      <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a>.
+      <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>.
     </p>
 
     <p class="rvo-text--sm rvo-text--subtle rvo-margin-block-start--lg">

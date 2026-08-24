@@ -91,7 +91,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     </ul>
     <p>
       Voor het uitoefenen van deze rechten kun je contact opnemen via
-      <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a>.
+      <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>.
     </p>
 
     <h2 class="utrecht-heading-2">Verplicht of vrijwillig</h2>
@@ -115,7 +115,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h2 class="utrecht-heading-2">Contact</h2>
     <p>
       Ministerie van Binnenlandse Zaken en Koninkrijksrelaties<br />
-      E-mail: <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a>
+      E-mail: <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>
     </p>
   </div>
 </template>

@@ -80,7 +80,7 @@ describe('AccessibilityStatement', () => {
       expect(text).toContain('Escalatie')
       expect(text).toContain('Deze verklaring is opgesteld op 15 maart 2026.')
 
-      const mailto = wrapper.find('a[href="mailto:RIG@rijksoverheid.nl"]')
+      const mailto = wrapper.find('a[href="mailto:digigilde@rijksoverheid.nl"]')
       expect(mailto.exists()).toBe(true)
     })
   })

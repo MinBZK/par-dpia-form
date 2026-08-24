@@ -83,7 +83,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         contact: {
           name: 'Invulhulpen — MinBZK',
           url: config.publicUrl,
-          email: 'RIG@rijksoverheid.nl',
+          email: 'digigilde@rijksoverheid.nl',
         },
       },
       servers: [{ url: '/' }],

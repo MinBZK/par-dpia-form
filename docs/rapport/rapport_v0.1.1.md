@@ -6,7 +6,7 @@ Datum: 17 juli 2025
 Contact:
 - robbert.bos@rijksoverheid.nl
 - ravi.meijer@rijksoverheid.nl
-- RIG@rijksoverheid.nl
+- digigilde@rijksoverheid.nl
 GitHub: https://github.com/MinBZK/par-dpia-form
 Tool: https://minbzk.github.io/par-dpia-form/
 ---

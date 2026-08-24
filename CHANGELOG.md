@@ -43,6 +43,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Wie een vraag heeft, vindt nu op één plek waar die thuishoort: `SUPPORT.md`
+  beschrijft per soort vraag het kanaal, van gebruik en bugs tot een melding
+  over omgangsvormen. De startpagina van de repository verwijst er direct naar.
+* Alle contactadressen wijzen nu naar dezelfde rol-mailbox
+  (digigilde@rijksoverheid.nl), waaronder die in de privacyverklaring en de
+  toegankelijkheidsverklaring.
 * De IAMA-tekst benoemt samenwerking nadrukkelijker.
 * Lange lijsten en overzichten laden nu in delen in plaats van in één
   keer, met een "Meer laden"-knop waar dat helpt. Zo blijven de
@@ -177,6 +183,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* `GOVERNANCE.md` beschrijft wie de invulhulp onderhoudt, hoe besluiten tot stand
+  komen en wanneer een wijziging door een tweede persoon wordt bekeken. Ook staat
+  er waarom de inhoud van de assessments niet in deze repository wordt bepaald.
+* Het metadatabestand `publiccode.yaml` heet nu `publiccode.yml`, de naam waar
+  open-sourcecatalogi op zoeken, en noemt de laatste uitgebrachte versie.
 * De repository is getoetst aan de Standard for Public Code, de gids voor open
   source in de publieke sector. De uitkomst staat per criterium in
   `docs/standard-for-public-code.md`, inclusief de punten die nog open staan en

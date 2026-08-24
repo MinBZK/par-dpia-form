@@ -24,6 +24,9 @@ By participating, you are expected to uphold this code. Please report unacceptab
 
 ## I Have a Question
 
+See [SUPPORT.md](SUPPORT.md) for where to get help, which channel fits which
+kind of question, and what you can expect from the maintainers. In short:
+
 Before you ask a question, it is best to search for existing [Issues](../../issues/)
 that might help you. In case you have found a suitable issue and still need clarification, you can write your question
 in this issue.
