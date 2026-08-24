@@ -93,6 +93,9 @@ function processInlineTokens(tokens: Token[]): PdfText[] {
       case 'escape':
         parts.push(t.text)
         break
+      case 'html':
+        // Mirrors the HTML renderer above, which drops raw HTML as well.
+        break
       default:
         parts.push((t as { text: string }).text)
         break
@@ -167,12 +170,10 @@ function processBlockTokens(tokens: Token[]): Content[] {
         } as Content)
         break
       case 'space':
+      case 'html':
         break
       default:
-        // Unknown block token — extract text if available
-        if ('text' in t && typeof t.text === 'string') {
-          content.push({ text: t.text })
-        }
+        // Unknown block token (e.g. a table): no pdfmake equivalent.
         break
     }
   }

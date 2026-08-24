@@ -247,3 +247,86 @@ def test_process_dpia_enriches_top_level_description():
     result = process_dpia(dpia, term_map)
 
     assert "aiv-definition" in result["description"]
+
+
+def make_option_task(option, task_type="radio_option"):
+    """Wrap one option in the deel/task nesting process_tasks expects."""
+    return [
+        {
+            "id": "1",
+            "task": "Deel",
+            "type": ["task_group"],
+            "tasks": [
+                {
+                    "id": "1.1",
+                    "task": "Wie verwerkt?",
+                    "type": [task_type],
+                    "options": [option],
+                }
+            ],
+        }
+    ]
+
+
+def test_option_value_stays_plain_and_generated_label_carries_the_definition():
+    term_map = create_term_map(make_begrippenkader(("verwerker", "een partij")))
+
+    tasks = make_option_task({"value": "De verwerker doet dit"})
+    option = process_tasks(tasks, term_map)[0]["tasks"][0]["options"][0]
+
+    assert option["value"] == "De verwerker doet dit"
+    assert "aiv-definition" in option["label"]
+
+
+def test_option_label_from_the_source_is_enriched_in_place():
+    term_map = create_term_map(make_begrippenkader(("verwerker", "een partij")))
+
+    tasks = make_option_task(
+        {"value": "ja", "label": "De verwerker doet dit"}, task_type="checkbox_option"
+    )
+    option = process_tasks(tasks, term_map)[0]["tasks"][0]["options"][0]
+
+    assert option["value"] == "ja"
+    assert "aiv-definition" in option["label"]
+
+
+def test_non_string_option_value_gets_no_generated_label():
+    term_map = create_term_map(make_begrippenkader(("verwerker", "een partij")))
+
+    tasks = make_option_task({"value": True})
+    option = process_tasks(tasks, term_map)[0]["tasks"][0]["options"][0]
+
+    assert option == {"value": True}
+
+
+def test_dependency_condition_value_is_left_alone():
+    term_map = create_term_map(make_begrippenkader(("verwerker", "een partij")))
+
+    tasks = [
+        {
+            "id": "1",
+            "task": "Deel",
+            "type": ["task_group"],
+            "tasks": [
+                {
+                    "id": "1.1",
+                    "task": "Toelichting",
+                    "type": ["open_text"],
+                    "dependencies": [
+                        {
+                            "type": "conditional",
+                            "condition": {
+                                "id": "1.0",
+                                "operator": "contains",
+                                "value": "De verwerker doet dit",
+                            },
+                            "action": "show",
+                        }
+                    ],
+                }
+            ],
+        }
+    ]
+    condition = process_tasks(tasks, term_map)[0]["tasks"][0]["dependencies"][0]["condition"]
+
+    assert condition["value"] == "De verwerker doet dit"

@@ -56,6 +56,14 @@ build) staan kort onder "Onder de motorkap".
   van de tekst weg en waren "Reageren", "Verwijderen" en "Oplossen" niet meer
   aan te klikken. Opmerkingen schuiven nu netjes onder elkaar door; ze staan
   dan iets lager dan hun vraag, maar blijven volledig leesbaar en bruikbaar.
+* In de PDF- en Markdown-export stond bij DPIA-hoofdstuk 13 (Doelbinding) in
+  plaats van je antwoord een lap opmaakcode die begon met `<span class=`. Het
+  antwoord staat er nu gewoon als tekst. Bestaande DPIA's worden bij het openen
+  automatisch bijgewerkt, dus ook eerder ingevulde antwoorden exporteren weer
+  goed.
+* De vervolgvraag "Specificatie van het wetsartikel" in hoofdstuk 13 verscheen
+  nooit, ook niet na het kiezen van "Toelaatbaar op grond van Unie- of
+  lidstaatrechtelijk recht". Die vraag komt nu wel op.
 * Een mislukte poging om je werk op te slaan of om de wijzigingen van
   collega's op te halen verdween stilletjes: je zag niets, terwijl je
   laatste tekst niet opgeslagen was of je naar een verouderde versie zat

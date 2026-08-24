@@ -30,3 +30,16 @@ export function getPlainTextWithoutDefinitions(html: string | undefined | null):
   tempElement.innerHTML = cleanedHtml; // nosec: trusted schema content
   return tempElement.textContent || '';
 }
+
+// Marker of the definition markup the enrichment pipeline injects into labels.
+export const DEFINITION_CLASS = 'aiv-definition'
+
+/**
+ * Strip definition markup from an answer saved before option values became
+ * plain identifiers. Free text is returned untouched, so markdown a user typed
+ * keeps its formatting downstream.
+ */
+export function withoutDefinitionMarkup(value: string): string {
+  if (!value.includes(DEFINITION_CLASS)) return value
+  return getPlainTextWithoutDefinitions(value)
+}

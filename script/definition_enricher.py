@@ -435,7 +435,7 @@ def process_tasks(tasks, term_map, level=0, already_matched_terms=None, once_per
                     task_copy["description"], term_map, page_matched
                 )
 
-        # Process options values for both checkbox_option and radio_option type tasks
+        # Process option labels for both checkbox_option and radio_option type tasks
         task_type = task_copy.get("type", [])
         # Handle both string and list types
         if isinstance(task_type, str):
@@ -445,42 +445,17 @@ def process_tasks(tasks, term_map, level=0, already_matched_terms=None, once_per
         else:
             is_option_task = False
 
+        # The value is the stored answer and is compared verbatim by dependencies,
+        # calculations and exports, so only the label carries definition markup.
         if is_option_task and "options" in task_copy and isinstance(task_copy["options"], list):
             options_copy = []
             for option in task_copy["options"]:
                 option_copy = option.copy()
-                if "value" in option_copy and isinstance(option_copy["value"], str):
-                    option_copy["value"] = inject_terms(
-                        option_copy["value"], term_map, page_matched
-                    )
-                # Process label if it exists and is a string
-                if "label" in option_copy and isinstance(option_copy["label"], str):
-                    option_copy["label"] = inject_terms(
-                        option_copy["label"], term_map, page_matched
-                    )
+                label = option_copy.get("label", option_copy.get("value"))
+                if isinstance(label, str):
+                    option_copy["label"] = inject_terms(label, term_map, page_matched)
                 options_copy.append(option_copy)
             task_copy["options"] = options_copy
-
-        # Process dependencies with 'contains' operator
-        if "dependencies" in task_copy and isinstance(task_copy["dependencies"], list):
-            dependencies_copy = []
-            for dependency in task_copy["dependencies"]:
-                dependency_copy = dependency.copy()
-                if (
-                    isinstance(dependency_copy, dict)
-                    and dependency_copy.get("type") == "conditional"
-                    and dependency_copy.get("condition", {}).get("operator") == "contains"
-                ):
-                    # Include the value in the processing if it exists
-                    condition = dependency_copy.get("condition", {}).copy()
-                    value = condition.get("value")
-                    if isinstance(value, str):
-                        # Process the value using inject_terms
-                        replaced_value = inject_terms(value, term_map)
-                        condition["value"] = replaced_value.strip("'")
-                        dependency_copy["condition"] = condition
-                dependencies_copy.append(dependency_copy)
-            task_copy["dependencies"] = dependencies_copy
 
         # Recursively process subtasks with incremented level
         if "tasks" in task_copy and isinstance(task_copy["tasks"], list):

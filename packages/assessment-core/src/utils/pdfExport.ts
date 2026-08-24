@@ -3,7 +3,7 @@ import { type AnswerStoreType, isImageValue, type ImageValue } from '../stores/a
 import { convertWebpToPng } from './imageResize'
 import { type CalculationStoreType } from '../stores/calculations'
 import { FormType } from '../models/dpia'
-import { getPlainTextWithoutDefinitions } from './stripHtml'
+import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
@@ -398,7 +398,7 @@ function formatAnswerContent(value: any): Content {
   if (value === 'true') return { text: 'Ja', style: 'normal' }
   if (value === 'false') return { text: 'Nee', style: 'normal' }
   if (value === 'null') return { text: '', style: 'normal' }
-  return markdownToPdfContent(String(value))
+  return markdownToPdfContent(withoutDefinitionMarkup(String(value)))
 }
 
 // A4 (595pt) minus page margins (70+70) = 455pt usable content width
