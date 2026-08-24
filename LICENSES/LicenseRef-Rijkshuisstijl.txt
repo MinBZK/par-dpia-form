@@ -1,0 +1,30 @@
+Rijksoverheid Sans (Rijksoverheidsanstext)
+
+Auteursrecht voorbehouden door de Staat der Nederlanden (Ministerie van
+Algemene Zaken), conform de regeling van 16 juni 2008 (Stcrt. 2008, nr. 115)
+en artikel 15b van de Auteurswet 1912.
+
+Het font is uitsluitend bestemd voor gebruik in publicaties van de
+Rijksoverheid, of door partijen aan wie de Rijksoverheid de huisstijl ter
+beschikking heeft gesteld voor werkzaamheden of diensten in opdracht van de
+Rijksoverheid.
+
+Voor ander gebruik is voorafgaande schriftelijke toestemming van de
+Rijksoverheid vereist. Toestemming kan worden aangevraagd bij de
+Rijksvoorlichtingsdienst.
+
+Dat de fontbestanden in deze repository staan, impliceert geen licentie of
+toestemming buiten dat kader. Ze zijn opgenomen zodat de PDF-export van deze
+invulhulp werkt voor gebruikers binnen dat kader; de rest van de repository
+valt onder de EUPL-1.2.
+
+Volledige gebruiksvoorwaarden:
+https://www.rijkshuisstijl.nl/basiselementen/typografie/gebruiksvoorwaarden-typografie
+
+---
+
+English summary: the Rijksoverheid Sans typeface is copyright of the State of
+the Netherlands and may only be used for Dutch central government publications,
+or by parties working under commission of the Dutch central government. Any
+other use requires prior written permission. Including these font files here
+grants no licence beyond that. The rest of this repository is EUPL-1.2.

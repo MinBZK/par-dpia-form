@@ -4,7 +4,7 @@ Dit is de zelfevaluatie van Invulhulpen tegen de [Standard for Public Code](http
 
 Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heeft dit niet getoetst.
 
-De criteria 4, 5, 7 en 14 zijn bijgewerkt nadat `SUPPORT.md` en `GOVERNANCE.md` waren toegevoegd en `publiccode.yml` was hernoemd.
+De criteria 4, 5, 7 en 14 zijn bijgewerkt nadat `SUPPORT.md` en `GOVERNANCE.md` waren toegevoegd en `publiccode.yml` was hernoemd; criterium 13 nadat de repository REUSE-compliant werd.
 
 | Onderdeel | Waarde |
 |-----------|--------|
@@ -30,7 +30,7 @@ De criteria 4, 5, 7 en 14 zijn bijgewerkt nadat `SUPPORT.md` en `GOVERNANCE.md` 
 | 10 | [Use plain English](#10-use-plain-english) | Bewuste afwijking |
 | 11 | [Use open standards](#11-use-open-standards) | Grotendeels |
 | 12 | [Use continuous integration](#12-use-continuous-integration) | Voldaan |
-| 13 | [Publish with an open license](#13-publish-with-an-open-license) | Gedeeltelijk |
+| 13 | [Publish with an open license](#13-publish-with-an-open-license) | Voldaan |
 | 14 | [Make the codebase findable](#14-make-the-codebase-findable) | Gedeeltelijk |
 | 15 | [Use a coherent style](#15-use-a-coherent-style) | Gedeeltelijk |
 | 16 | [Document codebase maturity](#16-document-codebase-maturity) | Voldaan |
@@ -177,12 +177,13 @@ Wat we wel doen:
 
 ## 13. Publish with an open license
 
-**Gedeeltelijk.**
+**Voldaan.**
 
 - De hoofdlicentie is in orde: EUPL-1.2, OSI- en FSF-erkend, volledige tekst in `LICENSE`, vermeld in `README.md` en in `publiccode.yml`. Bijdragers hoeven geen auteursrecht over te dragen.
-- Gat: geen machine-leesbare licentie per bestand. Er zijn geen SPDX-headers, geen `REUSE.toml` en geen `LICENSES/`-map. Gepland als aparte PR in #379.
-- Gat: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` valt onder de Rijkshuisstijl-voorwaarden en niet onder EUPL-1.2, en dat staat nergens vermeld. De webfont-kant verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een expliciete licentievermelding, maar de PDF-export gebruikt de meegeleverde `.ttf`-bestanden nog rechtstreeks.
-- `@nl-rvo/design-tokens@1.9.0` staat in `LICENSES.txt` als `Unknown`. Verifiëren, of laten vervallen met de overstap naar NLDD.
+- De repository volgt de [REUSE-specificatie](https://reuse.software/) 3.3: `REUSE.toml` legt de licentie per pad vast en `LICENSES/` bevat de bijbehorende teksten. Elk van de 473 bestanden heeft daarmee machine-leesbare licentie- en copyright-informatie. Bewust gekozen boven een SPDX-header per bestand, omdat dat met ~460 bestanden vooral merge-conflicten oplevert zonder extra compliance.
+- De uitzondering is expliciet: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` staat als `LicenseRef-Rijkshuisstijl` geannoteerd, met de voorwaarden in `LICENSES/LicenseRef-Rijkshuisstijl.txt`. De webfont verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een licentievermelding; deze `.ttf`-bestanden blijven zolang de PDF-export ze nodig heeft (pdfmake kan geen woff2).
+- `reuse lint` draait als pre-commit-hook en daarmee in de verplichte `pre-commit`-check op `main`. Let op de grens: de `**`-regel licenseert nieuwe bestanden vanzelf als EUPL-1.2, dus code die van elders komt heeft een handmatige annotatie nodig. Dat staat in `CONTRIBUTING.md`.
+- Aandachtspunt: `@nl-rvo/design-tokens` staat in `LICENSES.txt` als `Unknown`, omdat dat pakket zonder licentieveld publiceert. Dat is een gat bij de leverancier, niet hier; het vervalt met de overstap naar NLDD.
 
 ## 14. Make the codebase findable
 

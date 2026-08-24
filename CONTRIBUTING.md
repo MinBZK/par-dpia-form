@@ -45,6 +45,19 @@ We will then take care of the issue as soon as possible.
 > When contributing to this project, you must agree that you have authored 100% of the content, that you have the
 necessary rights to the content and that the content you contribute may be provided under the project license.
 
+This repository follows the [REUSE specification](https://reuse.software/): the
+project licence is declared once, in `REUSE.toml`, rather than as a header in
+every file. New files are covered by that rule and need no header.
+
+Files that come from somewhere else are the exception. Vendoring anything under
+a different licence means adding an annotation for it in `REUSE.toml` and the
+licence text in `LICENSES/`, because the linter cannot tell that a file is not
+ours. Check your change with:
+
+```bash
+uvx --from 'reuse[charset-normalizer]' reuse lint
+```
+
 ### Reporting Bugs
 
 #### Before Submitting a Bug Report
