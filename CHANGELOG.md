@@ -30,8 +30,22 @@ build) staan kort onder "Onder de motorkap".
   veldnamen, die alleen cijfers toestond, terwijl het IAMA vraagnummers als
   "2.2A.1" en "5.A.grp-gediend" gebruikt.
 
+### Beveiliging
+
+* De invulhulp stuurt nu ook `X-Permitted-Cross-Domain-Policies: none` mee, zodat
+  oudere browserplug-ins geen eigen regels kunnen aannemen over het ophalen van
+  gegevens van het domein.
+* De browser wordt gevraagd de invulhulp apart te houden van andere applicaties
+  op rijksapp.nl. Een handvol browserfuncties waarmee pagina's binnen hetzelfde
+  domein onderling gegevens kunnen uitwisselen, werkt daardoor niet meer voor de
+  invulhulp.
+
 ### Onder de motorkap
 
+* Twee guards in CI houden de beveiligingsinstellingen op hun plek: de build
+  valt om als nginx ooit weer door de Alpine-variant wordt vervangen, en een
+  check bewaakt dat de security-headers van de website en de API niet
+  ongemerkt uit elkaar lopen.
 * De frontend-container start zonder foutmelding over een logbestand dat niet
   geschreven kan worden. Bij het bijwerken van beveiligingspatches werd nginx
   zelf vervangen door de Alpine-variant, die bij het opstarten een ander,
