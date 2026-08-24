@@ -92,6 +92,33 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - Knoppen: direct `nldd-button` met `variant` (`primary`/`secondary`/`accent-transparent`/`neutral-transparent`/`destructive`), `size` (`xs`/`sm`/`md`), `start-icon`/`end-icon`. Iconen: `nldd-icon name="..."` (namen uit de NLDD-registry). Kebab-menu's: gedeeld `KebabMenu` (nldd-icon-button met een `nldd-menu` in het `popup`-slot; de knop ankert en togglet de menu zelf). Let op: `nldd-menu` is zelf de popover (niet nesten in `nldd-popover`).
 - NLDD-componenten renderen in shadow DOM: aria-labelledby/for koppelt niet over de grens, gebruik `accessible-label` (plain text). Veld-labels met schema-HTML (begrippen-tooltips) en radio/checkbox-opties blijven native inputs in light DOM. NLDD-velden leveren hun waarde in `event.detail` - lees `event.detail?.value ?? event.target.value`.
 
+## NLDD-plugin voor Claude Code
+
+Het NLDD-team publiceert een Claude Code-plugin met de componentreferentie, de
+changelog per versie en de ontwerprichtlijnen van het design system. Gebruik die
+bij elke UI-wijziging: hij zegt welke attributen, slots en tokens een component
+echt heeft, in plaats van dat je het gokt.
+
+Draait de plugin nog niet, installeer hem dan zo (de marketplace is de
+Storybook-repo van het design system zelf):
+
+```
+/plugin marketplace add MinBZK/storybook
+/plugin install nldd@nldd-plugins
+```
+
+Daarna is de skill `nldd` beschikbaar. Wat erin zit: `reference.md` (alle
+`nldd-*`-elementen met attributen, slots en events), `changelog.md` (leidend bij
+een versiebump: lees elke `Breaking`-sectie tussen jouw versie en de doelversie),
+`design-guidelines.md` (de ontwerpkeuzes: invoer, navigatie, feedback, microcopy)
+en werkende voorbeelden. Houd de plugin-versie gelijk aan de
+`@nldd/design-system`-versie in `package.json`; de referentie hoort bij precies
+die release.
+
+Kom je iets tegen dat niet via attributen of tokens kan, noteer het dan in
+[`docs/nldd-feedback.md`](../docs/nldd-feedback.md). Die lijst gaat voor de merge
+langs het NLDD-team.
+
 ## Ontwerpinstructies
 
 Deze regels komen steeds terug bij review; houd je eraan voordat je een scherm oplevert.
