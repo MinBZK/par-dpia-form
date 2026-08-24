@@ -13,52 +13,65 @@ Guide for styling in this project using the RVO (Rijksdienst voor Ondernemend Ne
 ### Correct pattern
 
 ```html
-<button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md">
+<button class="rvo-button rvo-button--primary rvo-button--size-md">
   Label
 </button>
 ```
 
-Structure: `utrecht-button` + variant + size
+Structure: `rvo-button` + variant + size.
 
 ### Common mistake
 
-```html
-<!-- WRONG: --rvo-primary-action does not exist -->
-<button class="utrecht-button utrecht-button--rvo-primary-action">
+Button moved from `utrecht-button*` to `rvo-button*` in `@nl-rvo/component-library-css` 4.16. The
+`.utrecht-button` class is gone from the bundle, so the old markup renders as an unstyled browser
+button. Only the design *tokens* still carry the old name (`--utrecht-button-background-color`).
 
-<!-- CORRECT: variant without rvo- prefix (except tertiary) -->
-<button class="utrecht-button utrecht-button--primary-action">
+```html
+<!-- WRONG: these classes no longer exist -->
+<button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md">
+
+<!-- CORRECT -->
+<button class="rvo-button rvo-button--primary rvo-button--size-md">
 ```
 
 ### Variants
 
 | Class | Usage |
 |-------|-------|
-| `utrecht-button--primary-action` | Main action (blue) |
-| `utrecht-button--secondary-action` | Secondary action (outlined) |
-| `utrecht-button--rvo-tertiary-action` | Tertiary action (text-only, has `rvo-` prefix) |
-| `utrecht-button--primary-action utrecht-button--warning` | Destructive/warning action |
+| `rvo-button--primary` | Main action |
+| `rvo-button--secondary` | Secondary action |
+| `rvo-button--tertiary` | Tertiary action |
+| `rvo-button--quaternary` | Quaternary action |
+| `rvo-button--subtle` | Low-emphasis action |
+| `rvo-button--warning` | Destructive action; combine with `--primary` (see UiButton.vue) |
+| `rvo-button--warning-subtle` | Low-emphasis destructive action |
 
 ### Sizes
 
 | Class | Usage |
 |-------|-------|
-| `utrecht-button--rvo-xs` | Extra small |
-| `utrecht-button--rvo-md` | Medium (default) |
-| `utrecht-button--rvo-full-width` | Full container width |
+| `rvo-button--size-xs` | Extra small |
+| `rvo-button--size-sm` | Small |
+| `rvo-button--size-md` | Medium (default) |
+
+Full container width: `rvo-button--full-width`.
+
+### Icon position is ours, not RVO's
+
+`rvo-button--icon-before` and `rvo-button--icon-after` are **not** in the RVO bundle. They are
+defined in `packages/assessment-core/src/assets/base.css` under `.rvo-theme`. They work in this
+repo; do not expect them elsewhere.
 
 ### Reference implementation
 
-See `packages/assessment-core/src/components/ui/UiButton.vue` for the canonical button component that handles variant and size mapping.
+`packages/assessment-core/src/components/ui/UiButton.vue` maps variant, size and icon position to
+classes. Note that `warning` there emits `rvo-button--primary rvo-button--warning`.
 
-## Button Groups
+### Button groups
 
-```html
-<div class="utrecht-button-group" role="group" aria-label="Beschrijving van de groep">
-  <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md">Opslaan</button>
-  <button class="utrecht-button utrecht-button--secondary-action utrecht-button--rvo-md">Annuleer</button>
-</div>
-```
+There is no button-group component: `utrecht-button-group` and `rvo-button-group` exist neither in
+the bundle nor in this repo. Lay buttons out with a plain flex container in the project's own CSS,
+the way `.comment-item__edit-actions` does.
 
 ## Design Tokens
 
@@ -97,7 +110,7 @@ Do NOT use `<style scoped>` in Vue components. Use RVO utility classes and globa
 
 <!-- CORRECT: use RVO classes in template -->
 <template>
-  <button class="utrecht-button utrecht-button--primary-action utrecht-button--rvo-md">
+  <button class="rvo-button rvo-button--primary rvo-button--size-md">
     Click
   </button>
 </template>
