@@ -177,6 +177,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* De repository is getoetst aan de Standard for Public Code, de gids voor open
+  source in de publieke sector. De uitkomst staat per criterium in
+  `docs/standard-for-public-code.md`, inclusief de punten die nog open staan en
+  de keuze om de documentatie Nederlandstalig te houden.
 * De linkcontrole sloeg alle verwijzingen tussen documenten in de repository
   over, waardoor kapotte links in de Product Decision Records ruim een jaar
   onopgemerkt bleven. Die uitzondering is weg en de kapotte links zijn
