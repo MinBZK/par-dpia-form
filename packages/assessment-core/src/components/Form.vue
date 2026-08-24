@@ -318,25 +318,24 @@ const isInformationalStep = computed(() => {
 
           <nldd-spacer size="32"></nldd-spacer>
           <!-- Navigation buttons -->
-          <div class="button-group-container" role="group" aria-label="Formulier navigatie">
-            <nldd-button v-if="!isFirstTask" variant="secondary" start-icon="arrow-left" text="Vorige stap" @click="goToPrevious"></nldd-button>
-            <div v-if="!isLastTask && !isInformationalStep" class="button-group-container__completed">
-              <label class="form-field__choice" :for="`${currentRootTaskId}-completed`"
-                :inert="contentInert || undefined">
-                <input :id="`${currentRootTaskId}-completed`" name="step_completed"
-                  type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
-                  @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
-                Markeer als voltooid
-              </label>
-            </div>
-            <div class="button-group-container__end">
-              <div v-if="!isLastTask">
-                <nldd-button variant="primary" end-icon="arrow-right"
-                  text="Volgende stap" @click="goToNext"></nldd-button>
-              </div>
+          <!-- The checkbox is a control, not an action, so it sits on its own
+               line above the two actions at every width. -->
+          <nldd-container gap="16">
+            <label v-if="!isLastTask && !isInformationalStep" class="form-field__choice"
+              :for="`${currentRootTaskId}-completed`" :inert="contentInert || undefined">
+              <input :id="`${currentRootTaskId}-completed`" name="step_completed"
+                type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
+                @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
+              Markeer als voltooid
+            </label>
+            <div class="step-actions" role="group" aria-label="Formulier navigatie">
+              <nldd-button v-if="!isFirstTask" variant="secondary" start-icon="arrow-left"
+                text="Vorige stap" @click="goToPrevious"></nldd-button>
+              <nldd-button v-if="!isLastTask" variant="primary" end-icon="arrow-right"
+                text="Volgende stap" @click="goToNext"></nldd-button>
               <ExportMenu v-if="isLastTask" split @export="handleExport" />
             </div>
-          </div>
+          </nldd-container>
           <template v-if="isLastTask">
             <nldd-spacer size="32"></nldd-spacer>
             <ExportPdfInfo />

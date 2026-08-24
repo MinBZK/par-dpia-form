@@ -62,7 +62,7 @@ describe('LiveResults.vue', () => {
       expect(card.exists()).toBe(true)
       expect(card.find('nldd-container').attributes('padding')).toBe('16')
       const title = card.find('nldd-title')
-      expect(title.attributes('size')).toBe('5')
+      expect(title.attributes('size')).toBe('3')
       expect(title.find('h3').text()).toBe('Tussenresultaten pre-scan')
       expect(title.find('p[slot="subtitle"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er geen assessments vereist.',
@@ -264,9 +264,10 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      const strongs = wrapper.findAll('strong').map((s) => s.text())
-      expect(strongs).toContain('DPIA')
-      expect(strongs).not.toContain('KIA')
+      // Each assessment is a real heading, one step under the card title.
+      const headings = wrapper.findAll('nldd-rich-text h4').map((h) => h.text())
+      expect(headings).toContain('DPIA')
+      expect(headings).not.toContain('KIA')
     })
   })
 
@@ -277,7 +278,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.text()).toContain('Er zijn fouten opgetreden tijdens de berekening:')
+      expect(wrapper.text()).toContain('Fouten tijdens de berekening')
       // The assessment has no criteria, so the only list in the content is the
       // error list.
       const errorItems = wrapper.findAll('.ui-accordion__content ul li')

@@ -7,7 +7,6 @@ import '@nldd/design-system/container'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/rich-text'
 import '@nldd/design-system/simple-section'
-import '@nldd/design-system/spacer'
 import '@nldd/design-system/title'
 import { AppBanner, ExportPdfInfo, FormType, type NavigationFunctions } from '@overheid-assessment/core'
 
@@ -178,6 +177,7 @@ async function downloadOfflineApp() {
 <template>
   <AppBanner title="Invulhulpen" />
   <nldd-simple-section class="landing-view" width="60rem" padding-bottom="0">
+    <nldd-container gap="24">
     <h1>Invulhulpen voor pre-scan, DPIA en IAMA</h1>
 
     <nldd-collection layout="grid" item-width="380px" gap="16px">
@@ -198,9 +198,13 @@ async function downloadOfflineApp() {
         </nldd-container>
       </nldd-card>
     </nldd-collection>
+    </nldd-container>
   </nldd-simple-section>
 
   <nldd-simple-section class="landing-view" width="60rem">
+    <!-- The section spaces its slots, not the blocks inside one slot; the
+         container is the design system's primitive for that rhythm. -->
+    <nldd-container gap="32">
     <nldd-rich-text>
       <h2>Pre-scan</h2>
       <p>
@@ -276,12 +280,11 @@ async function downloadOfflineApp() {
       <p class="version-info">Versie van de invulhulp: {{ appVersion }}</p>
     </nldd-rich-text>
 
-    <nldd-spacer size="16"></nldd-spacer>
     <!-- The card follows the reading measure of the prose above it instead of
          the full section width. -->
-    <div class="landing-view__prose-width">
+    <nldd-container max-width="45rem">
       <ExportPdfInfo />
-    </div>
+    </nldd-container>
 
     <!-- Only when there is something to wipe: on an empty browser the button
          would just raise a question it cannot answer. -->
@@ -307,6 +310,7 @@ async function downloadOfflineApp() {
         Het downloaden is niet gelukt. Probeer het opnieuw.
       </p>
     </nldd-rich-text>
+    </nldd-container>
   </nldd-simple-section>
 
   <!-- "Start nieuwe X" confirmation -->

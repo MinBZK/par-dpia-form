@@ -4,6 +4,7 @@ import type { AssessmentResult, CriterionResult } from '../stores/calculations'
 import { computed, onMounted } from 'vue'
 import UiAccordion from './ui/UiAccordion.vue'
 import '@nldd/design-system/card'
+import '@nldd/design-system/rich-text'
 import '@nldd/design-system/container'
 import '@nldd/design-system/title'
 
@@ -62,7 +63,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
   <!-- No assessments: static block with same styling but no expand/collapse -->
   <nldd-card v-if="!hasRequiredOrRecommendedAssessments" class="assessment-results">
     <nldd-container padding="16">
-      <nldd-title size="5">
+      <nldd-title size="3">
         <h3>Tussenresultaten pre-scan</h3>
         <p slot="subtitle">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
       </nldd-title>
@@ -74,7 +75,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
     <nldd-container padding="16">
       <UiAccordion open>
         <template #title>
-          <nldd-title size="5">
+          <nldd-title size="3">
             <h3>Tussenresultaten pre-scan</h3>
             <p slot="subtitle">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</p>
           </nldd-title>
@@ -83,12 +84,13 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
           Berekenen...
         </div>
 
-        <div v-else>
-          <div v-for="assessment in calculationStore.assessmentResults.filter(r => r.required)"
+        <!-- Real headings per assessment, in rich-text: it gives a heading more
+             room above than below, so an explanation reads as part of the
+             assessment it belongs to. -->
+        <nldd-rich-text v-else>
+          <template v-for="assessment in calculationStore.assessmentResults.filter(r => r.required)"
             :key="assessment.id">
-            <p>
-              <strong>{{ assessment.id }}</strong><br>
-            </p>
+            <h4>{{ assessment.id }}</h4>
 
             <template v-if="renderAssessmentExplanation(assessment).hasCriteria">
               <p>{{ renderAssessmentExplanation(assessment).intro }}</p>
@@ -99,17 +101,17 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
               </ul>
             </template>
             <p v-else v-html="renderAssessmentExplanation(assessment).text.replace(/\n/g, '<br>')"></p>
-          </div>
+          </template>
 
-          <div v-if="calculationStore.calculationErrors.length > 0">
-            <p>Er zijn fouten opgetreden tijdens de berekening:</p>
+          <template v-if="calculationStore.calculationErrors.length > 0">
+            <h4>Fouten tijdens de berekening</h4>
             <ul>
               <li v-for="(error, index) in calculationStore.calculationErrors" :key="index">
                 {{ error }}
               </li>
             </ul>
-          </div>
-        </div>
+          </template>
+        </nldd-rich-text>
       </UiAccordion>
     </nldd-container>
   </nldd-card>

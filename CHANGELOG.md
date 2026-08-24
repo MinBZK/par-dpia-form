@@ -86,6 +86,14 @@ build) staan kort onder "Onder de motorkap".
   bovenbalk, zodat de pagina zelf alleen nog inhoud bevat.
 * De versie leest zonder de "v" van de tag: "2026.8.24" in plaats van
   "v2026.8.24".
+* Een hoofdstuk waar je in bezig bent houdt zijn nummer in de inhoudsopgave;
+  de kleur van de stip geeft aan dat je ermee bezig bent.
+* De blokken op de startpagina van het standalone formulier staan verder uit
+  elkaar.
+* De tussenresultaten van de pre-scan hebben echte kopjes per assessment, meer
+  ruimte boven dan onder een kopje, en geen extra lijnen meer in de kaart.
+* Onder aan een stap staat "Markeer als voltooid" op zijn eigen regel boven de
+  knoppen, op elke schermbreedte hetzelfde.
 * Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
   de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
 * De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave

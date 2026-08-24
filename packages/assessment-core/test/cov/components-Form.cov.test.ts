@@ -407,7 +407,7 @@ describe('Form.vue navigation buttons', () => {
     expect(buttonByText(wrapper, 'Volgende stap')).toBeTruthy()
     expect(wrapper.find('label.form-field__choice input[type="checkbox"]').exists()).toBe(true)
     // No last-section ExportMenu in the content area on a non-last section.
-    expect(wrapper.find('.button-group-container .stub-exportmenu').exists()).toBe(false)
+    expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(false)
   })
 
   it('goToNext flushes saves and advances; the last section shows "Vorige stap" + the content ExportMenu', async () => {
@@ -423,7 +423,7 @@ describe('Form.vue navigation buttons', () => {
     expect(buttonByText(wrapper, 'Vorige stap')).toBeTruthy()
     // The last section renders the shared ExportMenu (with a real PDF export
     // button) inside the navigation button group.
-    expect(wrapper.find('.button-group-container .stub-exportmenu').exists()).toBe(true)
+    expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(true)
     expect(wrapper.findAll('.em-pdf').length).toBeGreaterThan(0)
     expect(buttonByText(wrapper, 'Volgende stap')).toBeFalsy()
     expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)

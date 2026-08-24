@@ -293,7 +293,7 @@ describe('ProgressTracker.vue', () => {
   })
 
   describe('deels ingevuld (progress)', () => {
-    it('toont een sectie met antwoorden (niet voltooid, niet huidig) als progress met kern in de marker', () => {
+    it('toont een sectie met antwoorden (niet voltooid, niet huidig) als progress, met het nummer in de marker', () => {
       seedRootTasks(taskStore, [
         flatTask({ id: '0', task: 'Inleiding' }),
         flatTask({ id: '1', task: 'Vragen' }),
@@ -307,9 +307,10 @@ describe('ProgressTracker.vue', () => {
 
       expect(nodeKind(partial)).toBe('progress')
       expect(trackStatus(partial)).toBe('future')
-      // The core replaces the number in the marker.
-      expect(partial.find('nldd-timeline-track-cell .toc-progress-core').exists()).toBe(true)
-      expect(markerText(partial)).toBeUndefined()
+      // The number stays; the class tints the marker's fill through the
+      // component's own token.
+      expect(partial.classes()).toContain('toc-item--progress')
+      expect(markerText(partial)).toBe('2')
       expect(markerIcon(partial)).toBeUndefined()
       expect(partial.findAll('.sr-only').some(s => s.text() === ', deels ingevuld')).toBe(true)
     })

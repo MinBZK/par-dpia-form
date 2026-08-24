@@ -95,12 +95,10 @@ body {
 }
 
 /* Shared accordion: native details/summary with NLDD chevron icons. */
-.ui-accordion {
-  border-block-end: 1px solid var(--primitives-color-neutral-200, #ddd);
-}
-
-.ui-accordion:first-of-type {
-  border-block-start: 1px solid var(--primitives-color-neutral-200, #ddd);
+/* A rule only where two accordions meet: a single one inside a card would
+   otherwise draw a second frame around itself. */
+.ui-accordion + .ui-accordion {
+  border-block-start: 1px solid var(--semantics-dividers-color, #e0e0e0);
 }
 
 .ui-accordion__summary {
@@ -198,40 +196,18 @@ legend.task-fieldset__legend--sub {
   padding-inline-start: 1.25rem;
 }
 
-.button-group-container {
+/* One action at each end of the row, wrapping to two lines when they no longer
+   fit. nldd-container lays children out but has no space-between, so this one
+   rule stays; it replaces the old media query. */
+.step-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
   gap: var(--primitives-space-16, 1rem);
-  width: 100%;
 }
 
-.button-group-container__completed {
+.step-actions > *:only-child {
   margin-inline-start: auto;
-}
-
-.button-group-container__completed + .button-group-container__end {
-  margin-inline-start: 0;
-}
-
-.button-group-container__end {
-  display: flex;
-  align-items: center;
-  gap: var(--primitives-space-16, 1rem);
-  margin-inline-start: auto;
-}
-
-@media (max-width: 480px) {
-  .button-group-container__completed {
-    margin-inline-start: 0;
-    order: -1;
-    flex-basis: 100%;
-  }
-  .button-group-container__end,
-  .button-group-container__completed + .button-group-container__end {
-    margin-inline-start: auto;
-  }
 }
 
 /* Table of contents (progress tracker): a vertical step list built on the NLDD
@@ -267,11 +243,10 @@ nldd-sidebar-section {
 }
 
 /* Started ("deels ingevuld"): a small filled core slotted into the marker. */
-.toc-progress-core {
-  width: var(--primitives-space-8, 0.5rem);
-  height: var(--primitives-space-8, 0.5rem);
-  border-radius: 50%;
-  background: var(--semantics-content-secondary-color);
+/* A chapter someone has started keeps its number and shows the state in the
+   marker's fill, through the component's own token. */
+.toc-item--progress {
+  --components-timeline-track-cell-future-background-color: var(--primitives-color-accent-100);
 }
 
 .toc-comment {
@@ -531,10 +506,6 @@ nldd-sidebar-section {
 .landing-view h1 {
   font-size: var(--primitives-font-size-500, 2rem);
   line-height: 1.25;
-}
-
-.landing-view__prose-width {
-  max-width: var(--components-rich-text-main-max-width);
 }
 
 .landing-view nldd-card,

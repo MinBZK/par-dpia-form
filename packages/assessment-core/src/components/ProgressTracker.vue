@@ -82,8 +82,8 @@ interface Step {
   done: boolean
   comment: boolean
   status: 'past' | 'current' | 'future'
-  // The step marker encodes the state: a check mark when done, a small core
-  // when started (slot), the chapter number otherwise.
+  // The marker always carries the chapter number; its fill carries the state
+  // (done, current, started, untouched).
   markerText: string | null
   navigable: boolean
 }
@@ -105,7 +105,7 @@ function describe(task: FlatTask): Step {
     done,
     comment: props.commentedTaskIds.includes(task.id),
     status: done ? 'past' : current ? 'current' : 'future',
-    markerText: node === 'progress' ? null : num,
+    markerText: num,
     navigable: isNavigable.value,
   }
 }
@@ -145,9 +145,7 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
         @click="goToTask(step.id)">
         <nldd-timeline-track-cell class="toc-track-cell" variant="step"
           :status="step.status" :position="positionOf(i)"
-          :text="step.markerText">
-          <span v-if="step.node === 'progress'" class="toc-progress-core"></span>
-        </nldd-timeline-track-cell>
+          :text="step.markerText"></nldd-timeline-track-cell>
         <nldd-spacer-cell size="12"></nldd-spacer-cell>
         <nldd-text-cell class="toc-title" :text="step.title"></nldd-text-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
