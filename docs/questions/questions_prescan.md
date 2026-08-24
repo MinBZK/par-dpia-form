@@ -58,4 +58,4 @@
 | 7.1 |   Kinderrechten |  | task_group |  |  |
 | 7.1.1 |     Biedt u een digitale dienst aan of gebruikt u deze? |  | radio_option | True; False |  |
 | 7.1.2 |     Biedt u een digitale dienst aan die primair bedoeld is voor gebruik door personen jonger dan 18 jaar? |  | radio_option | True; False | Show if 7.1.1 |
-| 7.1.3 |     Kunt u aantonen dat de dienst niet zal worden gebruikt door personen jonger dan 18 jaar of deze niet wordt ingezet bij personen jonger dan 18 jaar? | Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst. | radio_option | True; False | Show if 7.1.1 |
+| 7.1.3 |     Kunt u aantonen dat de dienst niet zal worden gebruikt door personen jonger dan 18 jaar of deze niet wordt ingezet bij personen jonger dan 18 jaar? | Zorg voor goede leeftijdsverificatie om te voorkomen dat minderjarigen gebruik maken van de digitale dienst. | radio_option | True; False | Show if 7.1.2 |
