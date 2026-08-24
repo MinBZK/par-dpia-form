@@ -14,9 +14,10 @@
 const FIELD_URN = /^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/
 
 // Namespace prefixes of the dot format: legacy edit rows written before the URNs,
-// and the ids the version history builds to look labels up by. A new assessment
-// has to be added here, or its dot ids parse as a plain key without a namespace.
-const DOT_NAMESPACES = ['dpia', 'prescan', 'iama']
+// and the ids the version history builds to look labels up by. Core derives this
+// from its FormType enum; here it is a literal, and the conformance test turns a
+// new assessment that only lands there into a failing test.
+const DOT_NAMESPACES = ['prescan', 'dpia', 'iama']
 
 /**
  * Build an instance ID from a task ID and optional index.

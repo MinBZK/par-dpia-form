@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import * as backend from '../src/utils/fieldId.js'
 import * as core from '../../../packages/assessment-core/src/utils/fieldUrn'
 import * as coreInstanceId from '../../../packages/assessment-core/src/utils/instanceId'
+import { FormType } from '../../../packages/assessment-core/src/models/dpia'
 
 /**
  * The field identifier format lives in two places: here and in assessment-core.
@@ -69,6 +70,17 @@ describe('field id conformance with assessment-core', () => {
 
   it('parses field ids identically', () => {
     for (const fieldId of FIELD_IDS) {
+      expect(backend.parseFieldUrn(fieldId), fieldId).toEqual(core.parseFieldUrn(fieldId))
+    }
+  })
+
+  it('reads the dot format for every assessment core knows about', () => {
+    // Core derives its namespace list from FormType; this copy spells it out, so
+    // a new assessment that only lands in the enum fails here instead of quietly
+    // making its version history unrestorable.
+    for (const namespace of Object.values(FormType)) {
+      const fieldId = `${namespace}.2.1.3`
+      expect(backend.parseFieldUrn(fieldId), fieldId).toEqual({ namespace, key: '2.1.3' })
       expect(backend.parseFieldUrn(fieldId), fieldId).toEqual(core.parseFieldUrn(fieldId))
     }
   })
