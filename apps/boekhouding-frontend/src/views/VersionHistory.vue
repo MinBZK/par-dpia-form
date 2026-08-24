@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -74,8 +74,10 @@ async function handleFieldRestore() {
   const version = expandedVersion.value
   if (!field || !version) return
 
-  const parsed = parseFieldId(field.fieldId)
-  if (!parsed) return
+  // No namespace means the field id is neither a URN nor dot format, so there is
+  // no telling which assessment the answer belongs to: leave the state alone.
+  const parsed = parseFieldUrn(field.fieldId)
+  if (!parsed?.namespace) return
   const key = parsed.key
 
   try {
@@ -97,11 +99,8 @@ async function handleFieldRestore() {
       currentState.metadata.completedTasks = completed
     } else if (field.editType === 'instance_added' || field.editType === 'instance_removed') {
       // Undo instance add/remove on the grouped array
-      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
-      if (indexMatch) {
-        const parentKey = indexMatch[1]
-        const index = parseInt(indexMatch[2])
-
+      const { taskId: parentKey, index } = parseInstanceId(key)
+      if (index !== undefined) {
         if (field.editType === 'instance_added') {
           // Undo add = remove the instance
           const arr = currentState.answers[parentKey]
@@ -128,19 +127,15 @@ async function handleFieldRestore() {
         }
       }
     } else {
-      const indexMatch = key.match(/^(.+)\[(\d+)\]$/)
+      const { taskId, index } = parseInstanceId(key)
       const rawVal = field.rawOldValue as { value?: unknown } | null | undefined
       const newAnswer = rawVal && typeof rawVal === 'object' && 'value' in rawVal
         ? { value: rawVal.value, lastEditedAt: new Date().toISOString() }
         : null
 
-      if (indexMatch) {
+      if (index !== undefined) {
         // Repeatable field: find parent group and update element in grouped array
-        const taskId = indexMatch[1]
-        const index = parseInt(indexMatch[2])
-        const formType = parsed.namespace === 'dpia' ? FormType.DPIA
-          : parsed.namespace === 'iama' ? FormType.IAMA
-          : FormType.PRE_SCAN
+        const formType = formTypeForNamespace(parsed.namespace)
         const flatTasks = taskStore.getTasksFromNamespace(formType)
         const task = flatTasks?.[taskId]
         const parentId = task?.parentId
@@ -407,9 +402,7 @@ function getFieldLabel(fieldId: string): { label: string; groupLabel?: string } 
   const taskId = stripInstanceSuffix(raw)
   const indexMatch = raw.match(/\[(\d+)\]$/)
 
-  const formType = ns === 'dpia' ? FormType.DPIA
-    : ns === 'iama' ? FormType.IAMA
-    : FormType.PRE_SCAN
+  const formType = formTypeForNamespace(ns)
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.task) {
@@ -465,9 +458,7 @@ function getFieldOptions(fieldId: string): Record<string, string> | null {
   const ns = fieldId.substring(0, dotIndex)
   const taskId = stripInstanceSuffix(fieldId.substring(dotIndex + 1))
 
-  const formType = ns === 'dpia' ? FormType.DPIA
-    : ns === 'iama' ? FormType.IAMA
-    : FormType.PRE_SCAN
+  const formType = formTypeForNamespace(ns)
   const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
 
   if (task?.options && task.options.length > 0) {
@@ -582,32 +573,19 @@ function formatValue(val: unknown, options: Record<string, string> | null): stri
 }
 
 /**
- * Parse a URN-based field ID into namespace and key for label lookup.
- * "urn:nl:dpia:3.0?=task_id=2.1.3&task_index=0" → { namespace: "dpia", key: "2.1.3[0]" }
- * Falls back to dot-format parsing: "dpia.2.1" → { namespace: "dpia", key: "2.1" }
- */
-function parseFieldId(fieldId: string): { namespace: string; key: string } | null {
-  if (fieldId.startsWith('urn:')) {
-    const match = fieldId.match(/^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/)
-    if (!match) return null
-    const namespace = match[1] === 'prescan_dpia' ? 'prescan' : match[1]
-    const taskId = match[2]
-    const index = match[3]
-    const key = index !== undefined ? `${taskId}[${index}]` : taskId
-    return { namespace, key }
-  }
-  const dotIndex = fieldId.indexOf('.')
-  if (dotIndex === -1) return null
-  return { namespace: fieldId.substring(0, dotIndex), key: fieldId.substring(dotIndex + 1) }
-}
-
-/**
  * Convert a fieldId (URN or dot-format) to dot-format for label lookup.
  */
 function toDotFieldId(fieldId: string): string {
-  const parsed = parseFieldId(fieldId)
-  if (!parsed) return fieldId
+  const parsed = parseFieldUrn(fieldId)
+  if (!parsed?.namespace) return fieldId
   return `${parsed.namespace}.${parsed.key}`
+}
+
+/** Map the namespace out of a field ID onto the assessment it belongs to. */
+function formTypeForNamespace(namespace?: string): FormType {
+  if (namespace === 'dpia') return FormType.DPIA
+  if (namespace === 'iama') return FormType.IAMA
+  return FormType.PRE_SCAN
 }
 
 // Diff — fetch edits from the API instead of diffing full states
@@ -670,15 +648,12 @@ function mapEditsToDiffFields(
   for (const [dotId, edit] of collapsed) {
     // Instance added/removed: both values are null, so handle before the no-change check
     if (edit.editType === 'instance_added' || edit.editType === 'instance_removed') {
-      const parsed = parseFieldId(edit.fieldId)
-      const taskId = parsed?.key.replace(/\[\d+\]$/, '') ?? dotId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
-        : parsed?.namespace === 'iama' ? FormType.IAMA
-        : FormType.PRE_SCAN
+      const parsed = parseFieldUrn(edit.fieldId)
+      const { taskId, index } = parsed ? parseInstanceId(parsed.key) : { taskId: dotId, index: undefined }
+      const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
-      const indexMatch = parsed?.key.match(/\[(\d+)\]$/)
-      const indexLabel = indexMatch ? ` #${parseInt(indexMatch[1]) + 1}` : ''
+      const indexLabel = index !== undefined ? ` #${index + 1}` : ''
       const label = task?.is_official_id ? `${task.id}. ${name}${indexLabel}` : `${name}${indexLabel}`
       const added = edit.editType === 'instance_added'
       const fieldValues = added ? edit.newValue : edit.oldValue
@@ -702,11 +677,9 @@ function mapEditsToDiffFields(
     const options = getFieldOptions(dotId)
 
     if (edit.editType === 'section_complete') {
-      const parsed = parseFieldId(edit.fieldId)
+      const parsed = parseFieldUrn(edit.fieldId)
       const taskId = parsed ? (parsed.key.startsWith('completed.') ? parsed.key.substring('completed.'.length) : parsed.key) : edit.fieldId
-      const formType = parsed?.namespace === 'dpia' ? FormType.DPIA
-        : parsed?.namespace === 'iama' ? FormType.IAMA
-        : FormType.PRE_SCAN
+      const formType = formTypeForNamespace(parsed?.namespace)
       const task = taskStore.getTaskByIdFromNamespace(formType, taskId)
       const name = task?.task ? getPlainTextWithoutDefinitions(task.task) : taskId
       result.push({

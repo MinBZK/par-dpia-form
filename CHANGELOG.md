@@ -61,6 +61,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Verwijderde je de eerste van twee herhaalbare groepen zonder de overgebleven
+  groep in te vullen, dan stond die na opnieuw openen weer als de eerste groep
+  genummerd. Verwees er iets naar, bijvoorbeeld een bijbehorende partij in een
+  andere sectie, dan schoof die verwijzing mee. De groep houdt nu het nummer
+  dat hij had.
 * Loste een collega een opmerking op terwijl jij er een reactie bij aan het
   typen was, dan verdween de hele opmerking uit beeld en was je tekst weg.
   De opmerking blijft nu staan zolang je er iets openstaan hebt, met een
@@ -187,6 +192,10 @@ build) staan kort onder "Onder de motorkap".
   `/.well-known/security.txt`, wezen naar verplaatste pagina's. Ze gaan nu
   rechtstreeks naar de huidige, en dat bestand wordt voortaan meegenomen in de
   linkcontrole.
+* Het formaat van veld-identificatiecodes (waarmee de bewerkgeschiedenis en het
+  herstellen van één antwoord werken) stond in vier losse kopieën, elk met een
+  eigen reguliere expressie. Er is nu één implementatie per pakket, en een test
+  bewaakt dat de kopie in de backend gelijk blijft aan die van de invulhulp.
 * De ontwikkelinstructies voor knoppen beschreven nog de oude RVO-klassen, die
   sinds versie 4.16 van de componentenbibliotheek niet meer bestaan. Bijgewerkt,
   zodat er geen ongestileerde knoppen meer uit voortkomen.
