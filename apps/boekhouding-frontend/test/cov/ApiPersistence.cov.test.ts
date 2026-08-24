@@ -763,6 +763,58 @@ describe('saveAppState — success path', () => {
   })
 })
 
+describe('saveAppState — one PUT at a time', () => {
+  it('queues a second save instead of sending it alongside the first', async () => {
+    vi.useFakeTimers()
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValue(getResponse({ currentVersion: 4 }))
+
+    let releaseFirst: (value: unknown) => void
+    mockUpdate.mockImplementationOnce(() => new Promise((resolve) => { releaseFirst = resolve }))
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 6 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'eerste', lastEditedAt: 't' }
+    const first = p.saveAppState()
+    await Promise.resolve()
+
+    // Second edit while the first PUT is still in flight.
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'tweede', lastEditedAt: 't' }
+    await p.saveAppState()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+
+    releaseFirst!(getResponse({ currentVersion: 5 }))
+    await first
+    await vi.runAllTimersAsync()
+
+    // The queued save went out on its own, with the version the first one returned.
+    expect(mockUpdate).toHaveBeenCalledTimes(2)
+    expect(mockUpdate.mock.calls[1][2]).toEqual({ expectedVersion: 5 })
+    vi.useRealTimers()
+  })
+
+  it('does not queue anything when no save is in flight', async () => {
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValue(getResponse({ currentVersion: 4 }))
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 5 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'eenmalig', lastEditedAt: 't' }
+    await p.saveAppState()
+    await p.saveAppState()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('saveAppState — error handling', () => {
   it('persists pending to session on SessionExpiredError', async () => {
     const { answerStore } = initStores()
