@@ -196,6 +196,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* Van elk bestand in de repository is nu machine-leesbaar onder welke licentie
+  het valt, volgens de REUSE-specificatie. Dat maakt zichtbaar wat wél en niet
+  onder de open licentie van de invulhulp valt: de fontbestanden van de
+  Rijkshuisstijl zijn nu expliciet als uitzondering vastgelegd, met hun eigen
+  gebruiksvoorwaarden erbij.
 * `GOVERNANCE.md` beschrijft wie de invulhulp onderhoudt, hoe besluiten tot stand
   komen en wanneer een wijziging door een tweede persoon wordt bekeken. Ook staat
   er waarom de inhoud van de assessments niet in deze repository wordt bepaald.

@@ -1,0 +1,26 @@
+version = 1
+
+# Bulk annotations instead of an SPDX header in every file: with ~460 files the
+# headers would collide with every open pull request without adding compliance.
+# REUSE.toml is the form the specification prescribes for this since 3.2.
+#
+# The `**` rule licenses everything as EUPL-1.2, new files included. Anything
+# vendored from elsewhere therefore needs its own annotation below; the linter
+# cannot tell that a third-party file is not ours.
+#
+# Check locally with: uvx --from 'reuse[charset-normalizer]' reuse lint
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Ministerie van Binnenlandse Zaken en Koninkrijksrelaties"
+SPDX-License-Identifier = "EUPL-1.2"
+
+# Rijksoverheid Sans is house style, not ours to relicense. The web font comes
+# from @nldd/design-system; these TTFs stay for the PDF export, because pdfmake
+# cannot embed woff2.
+[[annotations]]
+path = "packages/assessment-core/src/assets/fonts/**"
+precedence = "override"
+SPDX-FileCopyrightText = "Staat der Nederlanden (Ministerie van Algemene Zaken)"
+SPDX-License-Identifier = "LicenseRef-Rijkshuisstijl"
