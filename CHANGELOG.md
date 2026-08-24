@@ -61,6 +61,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Verwijderde je de eerste van twee herhaalbare groepen zonder de overgebleven
+  groep in te vullen, dan stond die na opnieuw openen weer als de eerste groep
+  genummerd. Verwees er iets naar, bijvoorbeeld een bijbehorende partij in een
+  andere sectie, dan schoof die verwijzing mee. De groep houdt nu het nummer
+  dat hij had.
 * Loste een collega een opmerking op terwijl jij er een reactie bij aan het
   typen was, dan verdween de hele opmerking uit beeld en was je tekst weg.
   De opmerking blijft nu staan zolang je er iets openstaan hebt, met een
