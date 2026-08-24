@@ -44,6 +44,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const knownVersion = ref<number | undefined>()
   const knownUpdatedAt = ref<string | undefined>()
 
+  // Requests in flight are not cancelled on teardown. Their continuations run
+  // against whatever the stores hold by then, which is the next assessment.
+  let disposed = false
+
   // Concurrency guards for collaboration sync
   let saveInProgress = false
   let applyingDeferred = false
@@ -137,6 +141,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
+    if (disposed) return
+
     let resolveSave: () => void
     saveComplete = new Promise<void>(resolve => { resolveSave = resolve })
     saveInProgress = true
@@ -257,7 +263,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return
       throw error
     }
-    if (!fresh.state) return
+    if (disposed || !fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
     const serverState = normalizeServerResponse(fresh.state)
@@ -567,7 +573,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
       throw error
     }
-    if (!fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
+    if (disposed || !fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
 
     const serverState = normalizeServerResponse(fresh.state)
     const serverDiff = computeFieldDiff(lastSavedState, flattenForDiff(serverState))
@@ -847,6 +853,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     document.addEventListener('visibilitychange', onVisibilityChange)
 
     return () => {
+      disposed = true
       document.removeEventListener('visibilitychange', onVisibilityChange)
       if (debounceTimer) {
         clearTimeout(debounceTimer)
