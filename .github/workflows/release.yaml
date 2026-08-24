@@ -39,6 +39,9 @@ jobs:
       - name: Valideer plugin-versie
         run: bash script/ci/assert-plugin-version.sh "$TAG_NAME"
 
+      - name: Valideer publiccode-versie
+        run: bash script/ci/assert-publiccode-version.sh "$TAG_NAME"
+
       - name: Haal changelog-sectie op
         run: bash script/ci/changelog-section.sh "$TAG_NAME" > release-notes.md
 

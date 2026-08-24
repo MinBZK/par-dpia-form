@@ -51,7 +51,7 @@ Eén criterium heeft een gat op een MUST-eis: bijdragen van het onderhoudsteam g
 
 **Voldaan.** Dit is het sterkste punt van de codebase.
 
-- Het Rijksmodel DPIA 3.0 en het IAMA-kader staan als YAML in `sources/`, in dezelfde repo, releases en reviewstroom als de code die ze uitvoert.
+- Het Rijksmodel DPIA 3.0 en het IAMA staan als YAML in `sources/`, in dezelfde repo, releases en reviewstroom als de code die ze uitvoert.
 - Het beleid is machine-leesbaar en ondubbelzinnig: gevalideerd tegen `schemas/assessment-definition.v2.schema.json` en `schemas/begrippenkader.v1.schema.json`.
 - CI bewaakt de samenhang tussen beleid en code bij elke push en PR (`.github/workflows/test.yaml`), aangevuld met `script/tests/test_schema_validation.py` en tests in `packages/assessment-core`.
 - Data en interpreterende logica zijn gescheiden: `sources/` (data), `schemas/` (contract), `packages/assessment-core` (logica), met gegenereerde leesbare overzichten in `docs/questions/` en `docs/tasks/`.
