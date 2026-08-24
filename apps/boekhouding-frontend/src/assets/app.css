@@ -132,7 +132,7 @@ nldd-card p {
 }
 
 .description-add__label {
-  color: var(--primitives-color-neutral-400, #999999);
+  color: var(--semantics-content-secondary-color);
   font-size: var(--primitives-font-size-80, 0.875rem);
   visibility: hidden;
 }
@@ -180,14 +180,11 @@ nldd-card p {
   margin-top: 0.2em;
 }
 
-.start-dialog__option-label {
-  font-size: var(--primitives-font-size-90, 1rem);
-}
-
 .start-dialog__option-hint {
   display: block;
-  color: var(--primitives-color-neutral-400, #999999);
-  font-size: var(--primitives-font-size-80, 0.875rem);
+  /* Text you have to read to pick an option, so it keeps the text colour; the
+     smaller size carries the hierarchy. */
+  font-size: var(--primitives-font-size-90, 1rem);
 }
 
 .start-dialog__sub-options {
