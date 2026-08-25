@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useTaskStore } from '../src/stores/tasks'
 import { useAnswerStore } from '../src/stores/answers'
 import { useSchemaStore } from '../src/stores/schemas'
+import { useCalculationStore } from '../src/stores/calculations'
 import { shouldShowTask } from '../src/utils/dependency'
 import { FormType, type Task } from '../src/models/dpia'
 
@@ -65,6 +66,25 @@ describe.each(ASSESSMENTS)('%s option values stay plain identifiers', (_name, ta
 
     expect(unmatched).toEqual([])
   })
+
+  it('matches every weightedCountMap key to a real option value', () => {
+    const unmatched: string[] = []
+
+    for (const task of all) {
+      const expression = task.calculation?.expression
+      if (!expression?.includes('weightedCountMap')) continue
+
+      const sourceId = /answers\(\s*'([^']+)'\s*\)/.exec(expression)?.[1]
+      const keys = [...expression.matchAll(/'([^']+)'/g)].map(m => m[1]).filter(k => k !== sourceId)
+      const options = optionValuesOf(all.find(t => t.id === sourceId))
+
+      for (const key of keys) {
+        if (!options.includes(key)) unmatched.push(`${task.id}: ${key}`)
+      }
+    }
+
+    expect(unmatched).toEqual([])
+  })
 })
 
 describe('DPIA 13.1.1.6 follow-up question', () => {
@@ -91,5 +111,29 @@ describe('DPIA 13.1.1.6 follow-up question', () => {
     answerStore.setAnswer(source, option)
 
     expect(shouldShowTask('13.1.1.6', target, taskStore, answerStore)).toBe(true)
+  })
+})
+
+describe('pre-scan weighted scores', () => {
+  it('counts a weighted option towards its risk score', async () => {
+    setActivePinia(createPinia())
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+    const schemaStore = useSchemaStore()
+    const calculationStore = useCalculationStore()
+
+    taskStore.setActiveNamespace(FormType.PRE_SCAN)
+    answerStore.setActiveNamespace(FormType.PRE_SCAN)
+    schemaStore.init({ dpia: dpiaSchema, preScan: prescanSchema })
+    taskStore.init((prescanSchema as { tasks: Task[] }).tasks, true)
+
+    const instanceId = taskStore.getInstanceIdsForTask('5.1.2')[0]
+    // 'Basisregistratie Inkomen (BRI)' carries weight 1 in the expression.
+    answerStore.setAnswer(instanceId, [optionValuesOf(taskStore.taskById('5.1.2'))[1]])
+
+    calculationStore.init()
+    await calculationStore.runCalculations()
+
+    expect(calculationStore.calculatedScores['basisregistratie']).toBe(1)
   })
 })
