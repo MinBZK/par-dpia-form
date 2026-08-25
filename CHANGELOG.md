@@ -15,6 +15,8 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+## [2026.8.25]
+
 ### Gewijzigd
 
 * De invulhulp laadt sneller bij een tweede bezoek. Afbeeldingen, pictogrammen
@@ -465,7 +467,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.24...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.25...HEAD
+[2026.8.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.25
 [2026.8.24]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.24
 [2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20
 [0.1.3]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.3
