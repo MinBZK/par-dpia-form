@@ -20,7 +20,7 @@
                 },
                 "id": {
                     "type": "string",
-                    "description": "Task ID. Doubles as the answer key in a saved assessment, so it must match $defs/answerKey in assessment-output.v2.schema.json. Anchored on purpose: an id this pattern lets through but the output schema rejects costs the user their answers.",
+                    "description": "Task ID, also used as the answer key under which an answer to this task is stored. A numeric first segment, then optional segments of letters, digits and hyphens (e.g. '0.1', '2.1.3', '2.2A.1').",
                     "pattern": "^[0-9]+(\\.[A-Za-z0-9-]+)*$"
                 },
                 "is_official_id": {
