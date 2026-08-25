@@ -48,8 +48,14 @@ FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:e88d990b349df8cf4aa82
 
 # `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
 # the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
+# --ignore nginx: Alpine ships an identically versioned nginx package, so a
+# blanket upgrade swaps out nginx.org's binary for Alpine's, which is built with
+# --prefix=/var/lib/nginx and no --error-log-path.
 USER root
-RUN apk upgrade --no-cache && rm -rf /var/cache/apk/*
+RUN apk upgrade --no-cache --ignore nginx && rm -rf /var/cache/apk/*
+# Fails the build if nginx is ever the Alpine package again: --ignore protects
+# silently, and losing it cost months of production alerts before anyone looked.
+RUN nginx -V 2>&1 | grep -q -- '--prefix=/etc/nginx'
 USER 101
 
 # Hoofd-SPA
@@ -77,9 +83,10 @@ ENV STANDALONE_URL=/zonder-account/
 
 EXPOSE 8080
 
-# 127.0.0.1, not localhost: this image's own entrypoint (not the base
-# image's) never runs the ipv6-listen-by-default patch, so nginx only binds
-# IPv4 and an ::1 resolution would refuse the connection.
+# 127.0.0.1, not localhost: nothing adds an IPv6 listen to our default.conf, so
+# nginx binds IPv4 only and an ::1 resolution would refuse the connection. The
+# base image's ipv6 patch would not help even if its entrypoint ran: that script
+# skips any default.conf whose checksum differs from the packaged one.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget -qO- http://127.0.0.1:8080/config.json || exit 1
 

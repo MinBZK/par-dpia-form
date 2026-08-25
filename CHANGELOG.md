@@ -22,6 +22,43 @@ build) staan kort onder "Onder de motorkap".
   het gewicht bleef nul. Beide tellen nu mee zoals bedoeld. Let op: hierdoor kan
   de pre-scan tot een andere uitkomst komen dan voorheen, bijvoorbeeld "DPIA
   verplicht" waar eerder geen verplichting uit kwam.
+## [2026.8.25]
+
+### Gewijzigd
+
+* De invulhulp laadt sneller bij een tweede bezoek. Afbeeldingen, pictogrammen
+  en lettertypen worden nu net zo lang bewaard als scripts en stijlen, in plaats
+  van bij elk bezoek opnieuw te worden gecontroleerd. Een nieuwe versie komt nog
+  steeds meteen door.
+
+### Opgelost
+
+* Een IAMA bewaart weer alle antwoorden. Vanaf stap 2 gingen antwoorden
+  verloren bij het opnieuw openen, en een geëxporteerd IAMA-bestand werd
+  geweigerd met "ongeldige veldnamen". De oorzaak zat in de controle op
+  veldnamen, die alleen cijfers toestond, terwijl het IAMA vraagnummers als
+  "2.2A.1" en "5.A.grp-gediend" gebruikt.
+
+### Beveiliging
+
+* De invulhulp stuurt nu ook `X-Permitted-Cross-Domain-Policies: none` mee, zodat
+  oudere browserplug-ins geen eigen regels kunnen aannemen over het ophalen van
+  gegevens van het domein.
+* De browser wordt gevraagd de invulhulp apart te houden van andere applicaties
+  op rijksapp.nl. Een handvol browserfuncties waarmee pagina's binnen hetzelfde
+  domein onderling gegevens kunnen uitwisselen, werkt daardoor niet meer voor de
+  invulhulp.
+
+### Onder de motorkap
+
+* Twee guards in CI houden de beveiligingsinstellingen op hun plek: de build
+  valt om als nginx ooit weer door de Alpine-variant wordt vervangen, en een
+  check bewaakt dat de security-headers van de website en de API niet
+  ongemerkt uit elkaar lopen.
+* De frontend-container start zonder foutmelding over een logbestand dat niet
+  geschreven kan worden. Bij het bijwerken van beveiligingspatches werd nginx
+  zelf vervangen door de Alpine-variant, die bij het opstarten een ander,
+  onbereikbaar logpad probeerde te openen.
 
 ## [2026.8.24]
 
@@ -437,7 +474,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.24...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.25...HEAD
+[2026.8.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.25
 [2026.8.24]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.24
 [2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20
 [0.1.3]: https://github.com/MinBZK/par-dpia-form/releases/tag/v0.1.3

@@ -1,10 +1,7 @@
 import { isImageValue } from '../stores/answers'
 
-// Answer keys are task ids: '0.1', '2.1.3', or an indexed variant '2.1.3[0]'.
-// Mirrors $defs/answerKey in schemas/assessment-output.v2.schema.json, which the
-// backend enforces on save. Applying the same rule on the client keeps the
-// standalone form (which has no backend to fall back on) equally strict.
-const ANSWER_KEY = /^[0-9]+(\.[0-9]+)*(\[[0-9]+\])?$/
+// $defs/answerKey in schemas/assessment-output.v2.schema.json.
+export const ANSWER_KEY = /^[0-9]+(\.[A-Za-z0-9-]+)*(\[[0-9]+\])?$/
 
 export function isValidAnswerKey(key: string): boolean {
   return ANSWER_KEY.test(key)
