@@ -72,3 +72,32 @@ def test_validator_rejects_urn_violating_pattern(tmp_path):
 
     assert is_valid is False
     assert errors
+
+
+def test_validator_accepts_iama_style_task_id(tmp_path):
+    """IAMA numbers its questions like the official model: 2.2A.1, 5.A.grp-gediend."""
+    source = dict(VALID_SOURCE)
+    source["tasks"] = [dict(VALID_SOURCE["tasks"][0], id="2.2A.1")]
+    yaml_path = _write_yaml(tmp_path, source)
+
+    validator = SchemaValidator(REPO_ROOT)
+    is_valid, errors, _ = validator.validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is True, errors
+
+
+def test_validator_rejects_task_id_the_output_schema_would_drop(tmp_path):
+    """An id the answer-key pattern rejects must fail here, not in production.
+
+    The pattern used to be unanchored, so an id like this validated at build
+    time and then cost the user every answer from that field on.
+    """
+    source = dict(VALID_SOURCE)
+    source["tasks"] = [dict(VALID_SOURCE["tasks"][0], id="1.veld met spaties")]
+    yaml_path = _write_yaml(tmp_path, source)
+
+    validator = SchemaValidator(REPO_ROOT)
+    is_valid, errors, _ = validator.validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is False
+    assert errors

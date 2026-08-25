@@ -108,6 +108,22 @@ describe('validateState', () => {
     expect(result.errors).toBe('')
   })
 
+  // The payload an IAMA loses everything over: its second root task is '1.0' and
+  // its question ids carry letters, so a digits-only pattern 400s the whole save.
+  it('accepts a realistic IAMA payload (letter task ids, root task "1.0")', () => {
+    const result = validateState({
+      $schema: SCHEMA_URL,
+      metadata: { urn: 'urn:nl:iama:1.0', createdAt: '2026-01-01T00:00:00.000Z', completedTasks: ['0', '1.0'] },
+      answers: {
+        '1.actiepunten.tekst': answer('Actiepunt'),
+        '2.2A.1': answer('Antwoord'),
+        '5.A.grp-gediend': [{ _index: 0, '5.A.1': answer('Belang') }],
+      },
+    })
+    expect(result.valid).toBe(true)
+    expect(result.errors).toBe('')
+  })
+
   it('rejects state missing $schema and reports an error', () => {
     const { $schema, ...withoutSchema } = validState()
     const result = validateState(withoutSchema)
