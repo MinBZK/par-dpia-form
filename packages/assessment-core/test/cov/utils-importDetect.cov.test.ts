@@ -393,6 +393,16 @@ describe('parseAndValidateImport - key sanitizing', () => {
     expect(() => parseAndValidateImport(raw)).toThrow('niet-ondersteund formaat')
   })
 
+  it('accepts an IAMA export with letter-bearing task ids', () => {
+    const raw = JSON.stringify({
+      metadata: { urn: 'urn:nl:iama:1.0' },
+      answers: { '2.2A.1': { value: 'Antwoord' }, '5.A.grp-gediend': [{ _index: 0, '5.A.1': { value: 'Belang' } }] },
+    })
+
+    const state = parseAndValidateImport(raw)
+    expect(Object.keys(state.answers)).toEqual(['2.2A.1', '5.A.grp-gediend'])
+  })
+
   it('accepts a file whose answer keys are all task ids', () => {
     const raw = JSON.stringify({
       metadata: { urn: 'urn:nl:dpia:3.0' },

@@ -9,6 +9,14 @@ describe('isValidAnswerKey', () => {
     }
   })
 
+  // IAMA numbers its questions the way the official model does, so a task id is
+  // not all digits. Rejecting these lost every answer from the second step on.
+  it('accepts IAMA task ids with letters and hyphens', () => {
+    for (const key of ['2.2A', '2.2A.1', '5.A.grp-gediend', '1.actiepunten.tekst', '5.A.1[2]']) {
+      expect(isValidAnswerKey(key)).toBe(true)
+    }
+  })
+
   it('rejects prototype-bearing and non-task keys', () => {
     for (const key of ['__proto__', 'constructor', 'prototype', 'dpia', '2.1.3[a]', '', '2.']) {
       expect(isValidAnswerKey(key)).toBe(false)

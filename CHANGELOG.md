@@ -15,6 +15,14 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* Een IAMA bewaart weer alle antwoorden. Vanaf stap 2 gingen antwoorden
+  verloren bij het opnieuw openen, en een geëxporteerd IAMA-bestand werd
+  geweigerd met "ongeldige veldnamen". De oorzaak zat in de controle op
+  veldnamen, die alleen cijfers toestond, terwijl het IAMA vraagnummers als
+  "2.2A.1" en "5.A.grp-gediend" gebruikt.
+
 ## [2026.8.24]
 
 ### Toegevoegd
