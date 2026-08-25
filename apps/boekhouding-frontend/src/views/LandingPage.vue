@@ -66,8 +66,9 @@ const assessments = [
 </script>
 
 <template>
-  <nldd-simple-section>
-    <section class="landing-hero" aria-labelledby="landing-hero-title">
+  <nldd-simple-section width="60rem" padding-top="24">
+    <nldd-container gap="48">
+    <section aria-labelledby="landing-hero-title">
       <h1 id="landing-hero-title">
         Krijg grip op pre-scans, DPIA's en IAMA's
       </h1>
@@ -79,7 +80,7 @@ const assessments = [
       </nldd-container>
     </section>
 
-    <section class="landing-section" aria-labelledby="landing-paths-title">
+    <section aria-labelledby="landing-paths-title">
       <h2 id="landing-paths-title">Kies hoe je werkt</h2>
       <nldd-collection layout="grid" item-width="380px" gap="16px">
         <nldd-card>
@@ -127,7 +128,7 @@ const assessments = [
       </nldd-collection>
     </section>
 
-    <section class="landing-section" aria-labelledby="landing-pillars-title">
+    <section aria-labelledby="landing-pillars-title">
       <h2 id="landing-pillars-title">Voor de overheid, door de overheid</h2>
       <nldd-collection layout="grid" item-width="20rem" gap="24px">
         <nldd-container
@@ -146,7 +147,7 @@ const assessments = [
       </nldd-collection>
     </section>
 
-    <section id="assessments" class="landing-section" aria-labelledby="landing-assessments-title">
+    <section id="assessments" aria-labelledby="landing-assessments-title">
       <h2 id="landing-assessments-title">De drie assessments</h2>
       <nldd-collection layout="grid" item-width="290px" gap="16px">
         <nldd-card v-for="assessment in assessments" :key="assessment.title">
@@ -160,5 +161,6 @@ const assessments = [
         <router-link to="/over" class="content-link">Lees meer over de invulhulpen</router-link>
       </p>
     </section>
+    </nldd-container>
   </nldd-simple-section>
 </template>

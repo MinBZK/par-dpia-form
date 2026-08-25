@@ -168,6 +168,18 @@ describe('previousPage', () => {
     expect(previousPage.value).toEqual({ text: 'Vorige pagina', to: '/bestaat-niet' })
   })
 
+  it('does not let one informational page become the way back from another', async () => {
+    mockIsAuthenticated.value = true
+    await router.push('/projecten')
+    await router.push('/over')
+    expect(previousPage.value).toEqual({ text: 'Projecten', to: '/projecten' })
+
+    await router.push('/toegankelijkheid')
+
+    // Still the last working page, not the page just left.
+    expect(previousPage.value).toEqual({ text: 'Projecten', to: '/projecten' })
+  })
+
   it('stays put on a navigation to the same path', async () => {
     mockIsAuthenticated.value = true
     await router.push('/over')

@@ -303,7 +303,7 @@ const isInformationalStep = computed(() => {
          has no attribute to opt out of sticky, so the insets are the only way
          in through its public API; with these the panel simply scrolls along
          with the page. -->
-    <nldd-sidebar-section sidebar-label="Stappen navigatie"
+    <nldd-sidebar-section sidebar-label="Stappen navigatie" padding-top="24"
       sticky-top="-200dvh" sticky-bottom="-200dvh">
       <!-- Page header inside the section, so a consumer's title bar lines up
            with the two columns instead of with its own container. -->

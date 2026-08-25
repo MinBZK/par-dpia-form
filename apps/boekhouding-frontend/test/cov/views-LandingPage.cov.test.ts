@@ -68,7 +68,7 @@ describe('LandingPage', () => {
 
     it('introduces the pre-scan as the starting point and the ways of working, with no en/em-dash', () => {
       const wrapper = mountPage()
-      const lead = wrapper.find('.landing-hero nldd-text').text()
+      const lead = wrapper.find("[aria-labelledby='landing-hero-title'] nldd-text").text()
       expect(lead).toContain('Begin met de pre-scan')
       expect(lead).toContain('zonder account')
       // Project rule: use a normal hyphen "-", never an en/em-dash.
@@ -77,7 +77,7 @@ describe('LandingPage', () => {
 
     it('has no buttons or links in the hero (the choice lives in the block below)', () => {
       const wrapper = mountPage()
-      const hero = wrapper.find('.landing-hero')
+      const hero = wrapper.find("[aria-labelledby='landing-hero-title']")
       expect(hero.findAll('a')).toHaveLength(0)
       expect(hero.findAll('button')).toHaveLength(0)
       expect(hero.findAll('nldd-button')).toHaveLength(0)

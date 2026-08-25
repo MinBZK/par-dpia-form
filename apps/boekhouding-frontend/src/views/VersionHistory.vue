@@ -728,7 +728,7 @@ function mapEditsToDiffFields(
 </script>
 
 <template>
-  <nldd-simple-section>
+  <nldd-simple-section padding-top="24">
     <nldd-title size="3"><h1>Versiegeschiedenis</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>

@@ -57,7 +57,8 @@ const handleCreate = async () => {
 </script>
 
 <template>
-  <nldd-simple-section>
+  <nldd-simple-section padding-top="24">
+    <nldd-container gap="24">
     <nldd-title size="3"><h1>Projecten</h1></nldd-title>
 
     <div v-if="loading">
@@ -138,5 +139,6 @@ const handleCreate = async () => {
         </nldd-button-group>
       </form>
     </template>
+    </nldd-container>
   </nldd-simple-section>
 </template>

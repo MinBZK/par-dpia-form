@@ -12,7 +12,7 @@ useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 </script>
 
 <template>
-  <nldd-simple-section width="45rem">
+  <nldd-simple-section width="45rem" padding-top="24">
     <nldd-container gap="16">
     <nldd-title size="3"><h1>Toegankelijkheidsverklaring</h1></nldd-title>
 
@@ -60,9 +60,7 @@ useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
       <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>.
     </p>
 
-    <nldd-text size="xs" color="secondary">
-      Deze verklaring is opgesteld op 15 maart 2026.
-    </nldd-text>
+    <p><em>Deze verklaring is opgesteld op 15 maart 2026.</em></p>
     </nldd-rich-text>
     </nldd-container>
   </nldd-simple-section>

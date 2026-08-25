@@ -102,7 +102,12 @@ describe('App.vue', () => {
     expect(wrapper.find('main#main-content').attributes('tabindex')).toBe('-1')
     expect(wrapper.find('nldd-page-footer').exists()).toBe(true)
 
-    const footerItems = wrapper.findAll('nldd-page-footer-legal-bar-item')
+    // start: who runs this, without a link. end: the four legal links.
+    const owner = wrapper.find('nldd-page-footer-legal-bar-item[slot="start"]')
+    expect(owner.attributes('text')).toBe('Ministerie van Binnenlandse Zaken en Koninkrijksrelaties')
+    expect(owner.attributes('href')).toBeUndefined()
+
+    const footerItems = wrapper.findAll('nldd-page-footer-legal-bar-item[slot="end"]')
     expect(footerItems).toHaveLength(4)
     expect(footerItems.map((l) => l.attributes('text'))).toEqual([
       'Privacyverklaring',

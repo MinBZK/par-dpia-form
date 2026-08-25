@@ -527,6 +527,9 @@ nldd-card p {
 .comment-panel {
   width: clamp(20rem, 20vw, 30rem);
   flex-shrink: 0;
+  /* Start where the page content starts, not against the navigation bar: the
+     section above sets the same top padding. */
+  padding-block-start: var(--primitives-space-24, 1.5rem);
   background: var(--semantics-surfaces-base-background-color);
   display: flex;
   flex-direction: column;
@@ -535,11 +538,9 @@ nldd-card p {
 
 .comment-panel__header {
   display: flex;
-  /* The DS icon button is a 44px touch target; on the narrowest panel width the
-     title and the actions no longer share one line. */
-  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: var(--primitives-space-8, 0.5rem);
   padding: 0.75rem 1rem;
   flex-shrink: 0;
   position: sticky;
@@ -552,6 +553,11 @@ nldd-card p {
   font-size: var(--primitives-font-size-90, 1rem);
   font-weight: 700;
   margin: 0;
+  /* Shrink before the actions do, so the row never breaks in two. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .comment-panel__actions {
@@ -707,17 +713,17 @@ nldd-card p {
 
 /* Inline new comment form (appears at field level) */
 .comment-inline-form {
-  padding: 0.5rem 0.75rem;
+  padding: var(--primitives-space-12, 0.75rem);
   border-radius: var(--semantics-surfaces-corner-radius);
-  border: 2px solid var(--semantics-content-accent-color);
+  border: var(--semantics-surfaces-border-width, 1px) solid var(--semantics-content-accent-color);
   background: var(--semantics-surfaces-base-background-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--primitives-box-shadows-level-1);
 }
 
 .comment-inline-form__actions {
   display: flex;
-  gap: 0.25rem;
-  margin-top: 0.375rem;
+  gap: var(--primitives-space-8, 0.5rem);
+  margin-top: var(--primitives-space-8, 0.5rem);
 }
 
 /* Field comment buttons (injected by useFieldCommentIndicators): only the
@@ -789,14 +795,6 @@ nldd-card p {
 /* ───────────────────────────────────────────────
    Landing page
    ─────────────────────────────────────────────── */
-
-.landing-hero {
-  margin-block-start: var(--primitives-space-32, 2rem);
-}
-
-.landing-section {
-  margin-block-start: var(--primitives-space-32, 2rem);
-}
 
 .project-detail-header {
   display: flex;

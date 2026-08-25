@@ -341,7 +341,7 @@ const formatDate = (dateStr: string) =>
 
 <template>
   <div>
-  <nldd-simple-section>
+  <nldd-simple-section padding-top="24">
     <div v-if="loading"><p>Laden...</p></div>
 
     <nldd-banner v-else-if="loadError" variant="warning" :text="loadError"></nldd-banner>

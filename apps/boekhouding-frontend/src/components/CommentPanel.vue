@@ -321,6 +321,7 @@ async function handleReopen(commentId: string) {
         </label>
         <nldd-icon-button
           class="comment-panel__close"
+          size="sm"
           icon="dismiss"
           text="Sluiten"
           variant="neutral-transparent"
@@ -516,14 +517,14 @@ async function handleReopen(commentId: string) {
           ></nldd-multi-line-text-field>
           <div class="comment-inline-form__actions">
             <nldd-button
-              size="xs"
+              size="sm"
               variant="primary"
               text="Plaatsen"
               :disabled="!newCommentBody.trim() || undefined"
               @click="submitComment(entry.fieldId)"
             ></nldd-button>
             <nldd-button
-              size="xs"
+              size="sm"
               variant="neutral-transparent"
               text="Annuleer"
               @click="newCommentBody = ''; emit('deactivate-field')"

@@ -46,25 +46,25 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/privacy',
     name: 'privacy',
-    meta: { backLabel: 'Privacyverklaring', public: true },
+    meta: { informational: true, backLabel: 'Privacyverklaring', public: true },
     component: () => import('./views/PrivacyStatement.vue'),
   },
   {
     path: '/toegankelijkheid',
     name: 'accessibility',
-    meta: { backLabel: 'Toegankelijkheid', public: true },
+    meta: { informational: true, backLabel: 'Toegankelijkheid', public: true },
     component: () => import('./views/AccessibilityStatement.vue'),
   },
   {
     path: '/over',
     name: 'about',
-    meta: { backLabel: 'Over Invulhulpen', public: true },
+    meta: { informational: true, backLabel: 'Over Invulhulpen', public: true },
     component: () => import('./views/AboutAssessments.vue'),
   },
   {
     path: '/status',
     name: 'status',
-    meta: { backLabel: 'Status', public: true },
+    meta: { informational: true, backLabel: 'Status', public: true },
     component: () => import('./views/StatusPage.vue'),
   },
   {
@@ -88,7 +88,10 @@ export const router = createRouter({
 })
 
 router.beforeEach(async (to, from) => {
-  if (from.name && from.fullPath !== to.fullPath) {
+  // Informational pages are reachable from the footer of every page, so they
+  // never become the place a reader goes "back" to: that would trap them in a
+  // loop between two of them. The last working page stays the destination.
+  if (from.name && !from.meta.informational && from.fullPath !== to.fullPath) {
     previousPage.value = { text: (from.meta.backLabel as string | undefined) ?? 'Vorige pagina', to: from.fullPath }
   }
 

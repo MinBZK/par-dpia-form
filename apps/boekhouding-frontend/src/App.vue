@@ -70,6 +70,9 @@ const displayName = computed(() => user.value?.displayName || 'Account')
 
       <nldd-page-footer slot="footer">
         <nldd-page-footer-legal-bar slot="legal-bar" @click="onFooterNav">
+          <!-- start: who runs this. end: the legal links. -->
+          <nldd-page-footer-legal-bar-item slot="start"
+            text="Ministerie van Binnenlandse Zaken en Koninkrijksrelaties"></nldd-page-footer-legal-bar-item>
           <nldd-page-footer-legal-bar-item slot="end" href="/privacy"
             text="Privacyverklaring"></nldd-page-footer-legal-bar-item>
           <nldd-page-footer-legal-bar-item slot="end" href="/toegankelijkheid"

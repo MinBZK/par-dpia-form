@@ -104,6 +104,19 @@ build) staan kort onder "Onder de motorkap".
   van een klein labeltje, en het icoon voor de achterkant is een server.
 * Elke pagina gebruikt dezelfde paginabreedte en marges van het design system,
   zodat koppen, kaarten en tekst overal op dezelfde lijn beginnen.
+* De startpagina en de statuspagina staan weer op een leesbare breedte in
+  plaats van schermbreed, en er zit minder lucht tussen de bovenbalk en de
+  eerste inhoud.
+* Tussen een paginakop en de kaarten eronder zit meer ruimte.
+* De terugknop op een uitleg- of verklaringpagina brengt je terug naar de
+  pagina waar je aan het werk was, ook als je eerst nog een andere uitlegpagina
+  opende.
+* Onder aan elke pagina staat nu ook wie de invulhulp uitgeeft.
+* In het opmerkingenpaneel is de sluitknop kleiner, staat de kop op één regel
+  met de knoppen, en lijnt het paneel uit met de inhoud ernaast. De knoppen
+  onder een nieuwe opmerking zijn beter aanklikbaar.
+* De datum onder de toegankelijkheidsverklaring leest als gewone (cursieve)
+  tekst.
 * Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
   de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
 * De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave

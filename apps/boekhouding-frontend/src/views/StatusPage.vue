@@ -117,15 +117,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <nldd-simple-section>
-    <nldd-container gap="16">
-    <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
-    <p>
-      Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
-      zie je dat hieronder, met een korte uitleg.
-    </p>
+  <nldd-simple-section width="60rem" padding-top="24">
+    <nldd-container gap="48">
+      <nldd-container gap="16">
+        <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
+        <p>
+          Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
+          zie je dat hieronder, met een korte uitleg.
+        </p>
+      </nldd-container>
 
-    <section class="landing-section" aria-labelledby="status-onderdelen">
+    <section aria-labelledby="status-onderdelen">
       <h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2>
       <nldd-collection layout="grid" item-width="380px" gap="16px">
 
@@ -194,7 +196,7 @@ onMounted(async () => {
       </nldd-collection>
     </section>
 
-    <section class="landing-section" aria-labelledby="status-versie">
+    <section aria-labelledby="status-versie">
       <h2 id="status-versie">Welke versie draait er?</h2>
       <p>
         Handig om mee te sturen als je een probleem meldt. Je kunt de versie kopiëren of de
