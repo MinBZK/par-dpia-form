@@ -44,7 +44,7 @@ RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); pro
     > /app/security-txt-expires
 
 # Stage 2: unprivileged nginx voor statische bestanden
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:e88d990b349df8cf4aa82f16642d7a23375016638c9ace4e5c6ca25028e62e65
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:bcf91d2c73ab64fa1c4ac7fbac5ac523057c8af7d553ab9251c7aef38c260979
 
 # `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
 # the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
