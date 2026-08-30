@@ -203,9 +203,17 @@ describe('CommentPanel', () => {
 
     it('toggles showResolved via the checkbox', async () => {
       const { wrapper } = mountPanel()
-      const checkbox = wrapper.get('.comment-panel__toggle input')
-      await checkbox.setValue(true)
-      expect((checkbox.element as HTMLInputElement).checked).toBe(true)
+      const checkbox = wrapper.get('.comment-panel__toggle')
+      expect(checkbox.attributes('checked')).toBeUndefined()
+
+      // The field reports its new state in the change detail.
+      checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(checkbox.attributes('checked')).toBeDefined()
+
+      // A change without a payload says nothing, so the toggle stays as it was.
+      await checkbox.trigger('change')
+      expect(checkbox.attributes('checked')).toBeDefined()
     })
   })
 
@@ -521,7 +529,9 @@ describe('CommentPanel', () => {
 
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
 
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
       expect(wrapper.find('.comment-thread--resolved').exists()).toBe(true)
     })
@@ -778,7 +788,9 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
 
       const footerButtons = wrapper.findAll('.comment-item__footer nldd-button')
@@ -1315,7 +1327,9 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
 
       const replyItem = wrapper.get('.comment-item--reply')

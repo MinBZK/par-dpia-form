@@ -8,7 +8,14 @@ import ExportMenu from '../../src/components/ExportMenu.vue'
 // as inert elements: tests assert on host attributes and slot nesting and
 // simulate the NLDD events (action-click) with dispatched events.
 
-const MENU_ITEM_TEXTS = ['Exporteer als PDF', 'Exporteer als JSON', 'Exporteer als Markdown']
+// Under a trigger that already says "Exporteer" the items only name the format;
+// the split button's menu hangs off the chevron, so there they spell it out.
+const MENU_ITEM_TEXTS = ['PDF', 'JSON', 'Markdown']
+const SPLIT_ITEM_TEXTS = ['Exporteer als PDF', 'Exporteer als JSON', 'Exporteer als Markdown']
+
+// nldd-menu-item fires `select` (not a bare click) when it is activated.
+const select = (item: { element: Element }) =>
+  item.element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
 
 describe('ExportMenu.vue compacte variant (zonder split)', () => {
   it('rendert een expandable "Exporteer"-knop met het menu in de popup-slot', () => {
@@ -30,7 +37,9 @@ describe('ExportMenu.vue compacte variant (zonder split)', () => {
     expect(menu.exists()).toBe(true)
     expect(menu.attributes('slot')).toBe('popup')
     expect(menu.attributes('anchor')).toBeUndefined()
-    expect(menu.attributes('accessible-label')).toBe('Exportopties')
+    // nldd-menu has no accessible-label; the menu takes its name from the
+    // button that opens it, so setting one here would be silently ignored.
+    expect(menu.attributes('accessible-label')).toBeUndefined()
     const items = menu.findAll('nldd-menu-item')
     expect(items.map((item) => item.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
 
@@ -42,9 +51,8 @@ describe('ExportMenu.vue compacte variant (zonder split)', () => {
     const wrapper = mount(ExportMenu, { attachTo: document.body })
 
     const items = wrapper.findAll('nldd-menu-item')
-    await items[0].trigger('click')
-    await items[1].trigger('click')
-    await items[2].trigger('click')
+    items.forEach(select)
+    await nextTick()
 
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
     wrapper.unmount()
@@ -60,9 +68,9 @@ describe('ExportMenu.vue split-variant', () => {
     expect(splitButton.attributes('variant')).toBe('secondary')
     expect(splitButton.attributes('text')).toBe('Exporteer als PDF')
 
-    expect(splitButton.find('nldd-menu').attributes('accessible-label')).toBe('Exportopties')
+    expect(splitButton.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
     const items = splitButton.findAll('nldd-menu-item')
-    expect(items.map((item) => item.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
+    expect(items.map((item) => item.attributes('text'))).toEqual(SPLIT_ITEM_TEXTS)
 
     // The compact standalone button is not rendered in split mode.
     expect(wrapper.find('nldd-button').exists()).toBe(false)
@@ -81,9 +89,8 @@ describe('ExportMenu.vue split-variant', () => {
     const wrapper = mount(ExportMenu, { props: { split: true } })
 
     const items = wrapper.findAll('nldd-menu-item')
-    await items[0].trigger('click')
-    await items[1].trigger('click')
-    await items[2].trigger('click')
+    items.forEach(select)
+    await nextTick()
 
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
@@ -95,7 +102,7 @@ describe('ExportMenu.vue split-variant', () => {
     expect(item.attributes('text')).toBe('Exporteer')
     expect(item.attributes('icon')).toBe('download')
     expect(item.attributes('expandable')).toBeDefined()
-    expect(item.find('nldd-menu').attributes('accessible-label')).toBe('Exportopties')
+    expect(item.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
     expect(item.findAll('nldd-menu-item').map((i) => i.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
 
     // Neither of the other two hosts renders alongside it.
@@ -107,9 +114,8 @@ describe('ExportMenu.vue split-variant', () => {
     const wrapper = mount(ExportMenu, { props: { menuBar: true } })
 
     const items = wrapper.findAll('nldd-menu-item')
-    await items[0].trigger('click')
-    await items[1].trigger('click')
-    await items[2].trigger('click')
+    items.forEach(select)
+    await nextTick()
 
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })

@@ -48,7 +48,7 @@ const displayName = computed(() => user.value?.displayName || 'Account')
             <nldd-menu-bar slot="utility" accessible-label="Account">
               <nldd-menu-bar-item v-if="isAuthenticated" icon="user" :text="displayName"
                 expandable accessible-label="Accountmenu">
-                <nldd-menu accessible-label="Accountmenu">
+                <nldd-menu>
                   <nldd-menu-group text="Weergave">
                     <ThemeMenuItems />
                   </nldd-menu-group>

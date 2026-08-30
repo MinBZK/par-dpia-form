@@ -119,6 +119,10 @@ Kom je iets tegen dat niet via attributen of tokens kan, noteer het dan in
 [`docs/nldd-feedback.md`](../docs/nldd-feedback.md). Die lijst gaat voor de merge
 langs het NLDD-team.
 
+Wat de plugin niet dekt — de valkuilen die we in *deze* repo tegenkwamen
+(importeren per component, namen verifiëren tegen het package, foutmeldingen
+koppelen, eigen CSS verantwoorden): `rules/nldd-integration.md`.
+
 ## Ontwerpinstructies
 
 Deze regels komen steeds terug bij review; houd je eraan voordat je een scherm oplevert.

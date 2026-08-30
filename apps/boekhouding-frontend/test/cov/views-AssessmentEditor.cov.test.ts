@@ -825,7 +825,8 @@ describe('AssessmentEditor — kebab menu', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     expect(wrapper.find('nldd-icon-button').attributes('text')).toBe('Assessmentacties')
-    expect(wrapper.find('nldd-menu').attributes('accessible-label')).toBe('Assessmentacties')
+    // The name lives on the trigger: nldd-menu ignores accessible-label.
+    expect(wrapper.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
     wrapper.unmount()
   })
 

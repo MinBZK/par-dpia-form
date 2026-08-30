@@ -205,7 +205,9 @@ def inject_terms(text, term_map, already_matched_terms=None):
     chars = list(text)
 
     # Find all existing aiv-definition spans first and mark their positions as matched
-    span_pattern = r'<span class="aiv-definition">.*?</span></span>'
+    # Tolerate attributes after the class (tabindex), so already-enriched
+    # markup is still recognised and not wrapped a second time.
+    span_pattern = r'<span class="aiv-definition"[^>]*>.*?</span></span>'
     for match in re.finditer(span_pattern, text, re.DOTALL):
         start, end = match.span()
         # Mark all positions in this span as already matched
@@ -279,10 +281,14 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 definition = html.escape(term_data["definition"])
                 hoofdterm = html.escape(term_data.get("hoofdterm") or "")
 
-                # Create the HTML with the original matched text
+                # Create the HTML with the original matched text.
+                # tabindex="0" makes the term reachable without a mouse: the
+                # panel opens on :focus-within as well as :hover, so keyboard
+                # and touch users can read the explanation too.
                 term_html = (
-                    f'<span class="aiv-definition">{html.escape(matched_text)}'
-                    f'<span class="aiv-definition-text">{definition}'
+                    f'<span class="aiv-definition" tabindex="0">'
+                    f'{html.escape(matched_text)}'
+                    f'<span class="aiv-definition-text" role="note">{definition}'
                 )
 
                 # Add toelichting if available

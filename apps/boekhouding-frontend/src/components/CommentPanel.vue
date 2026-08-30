@@ -4,6 +4,7 @@ import { useCollaborationStore } from '../stores/collaboration'
 import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
 import '@nldd/design-system/card'
+import '@nldd/design-system/checkbox-field'
 import '@nldd/design-system/container'
 import '@nldd/design-system/icon'
 import '@nldd/design-system/icon-button'
@@ -20,6 +21,14 @@ const emit = defineEmits<{ close: []; 'deactivate-field': [] }>()
 const commentStore = useCollaborationStore()
 
 const showResolved = ref(false)
+
+// nldd-checkbox-field reports the new state in the change detail; the inner
+// checkbox re-emits across the shadow boundary, so read the value rather than
+// toggling to keep the duplicate harmless.
+const handleResolvedToggle = (event: Event) => {
+  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
+  if (checked !== undefined) showResolved.value = checked
+}
 const panelBodyRef = ref<HTMLElement | null>(null)
 
 // New comment state
@@ -315,10 +324,9 @@ async function handleReopen(commentId: string) {
     <div class="comment-panel__header">
       <h2 class="comment-panel__title">Opmerkingen</h2>
       <div class="comment-panel__actions">
-        <label class="comment-panel__toggle">
-          <input v-model="showResolved" type="checkbox" />
-          Opgeloste tonen
-        </label>
+        <nldd-checkbox-field class="comment-panel__toggle" label="Opgeloste tonen"
+          :checked="showResolved || undefined"
+          @change="handleResolvedToggle"></nldd-checkbox-field>
         <nldd-icon-button
           class="comment-panel__close"
           size="sm"

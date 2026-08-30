@@ -2,6 +2,7 @@
 import { reactive, ref, watch } from 'vue'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/button'
+import '@nldd/design-system/radio-button'
 import '@nldd/design-system/form-section'
 
 export interface ConflictField {
@@ -27,6 +28,11 @@ const emit = defineEmits<{
 type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
 const dialogRef = ref<ModalDialogElement | null>(null)
 const selections = reactive<Record<string, 'mine' | 'theirs'>>({})
+
+// The bare radio reports its own state; only the newly checked one matters.
+const onConflictChoice = (event: Event, fieldId: string, keuze: 'mine' | 'theirs') => {
+  if ((event as CustomEvent<{ checked?: boolean }>).detail?.checked) selections[fieldId] = keuze
+}
 
 watch(() => props.active, (open) => {
   if (open) {
@@ -74,12 +80,13 @@ function handleResolve() {
             class="conflict-option"
             :class="{ 'conflict-option--selected': selections[field.fieldId] === 'mine' }"
           >
-            <input
-              type="radio"
+            <nldd-radio-button
               :name="`conflict-${field.fieldId}`"
-              :checked="selections[field.fieldId] === 'mine'"
-              @change="selections[field.fieldId] = 'mine'"
-            />
+              value="mine"
+              accessible-label="Jouw waarde"
+              :checked="selections[field.fieldId] === 'mine' || undefined"
+              @change="onConflictChoice($event, field.fieldId, 'mine')"
+            ></nldd-radio-button>
             <span>
               <span class="conflict-option__label">Jouw waarde</span>
               <span v-html="field.myFormatted"></span>
@@ -89,12 +96,13 @@ function handleResolve() {
             class="conflict-option"
             :class="{ 'conflict-option--selected': selections[field.fieldId] === 'theirs' }"
           >
-            <input
-              type="radio"
+            <nldd-radio-button
               :name="`conflict-${field.fieldId}`"
-              :checked="selections[field.fieldId] === 'theirs'"
-              @change="selections[field.fieldId] = 'theirs'"
-            />
+              value="theirs"
+              accessible-label="Andere waarde"
+              :checked="selections[field.fieldId] === 'theirs' || undefined"
+              @change="onConflictChoice($event, field.fieldId, 'theirs')"
+            ></nldd-radio-button>
             <span>
               <span class="conflict-option__label">Andere waarde</span>
               <span v-html="field.theirFormatted"></span>

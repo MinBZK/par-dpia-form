@@ -1,3 +1,12 @@
+/* Reserve the scrollbar track even when a page fits. Pre-scan steps are short
+   enough to drop below the viewport, so without this the scrollbar appears and
+   disappears from step to step and shifts the whole layout sideways on
+   platforms where it takes up space. Neither the design system nor the browser
+   default does this for us. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* The Vue mount point sits between body and nldd-app-view; without an explicit
    height the NLDD app shell collapses to 0 and nothing renders. */
 html:has(nldd-app-view) #app {
@@ -54,10 +63,6 @@ body {
 
 .form-field__description {
   color: var(--semantics-content-color);
-}
-
-.form-field__error {
-  color: var(--semantics-content-critical-color, #b62c20);
 }
 
 .field-group {
@@ -210,14 +215,12 @@ legend.task-fieldset__legend--sub {
   margin-inline-start: auto;
 }
 
-/* Table of contents (progress tracker): a vertical step list built on the NLDD
-   timeline-track-cell (variant="step"). The marker carries the chapter number,
-   a check mark once completed, or a small core once started; status colours,
-   the connecting line and the halo around the marker all come from the
-   component and are theme-aware. */
+/* Table of contents (progress tracker): a plain nldd-list. The row carries its
+   own hover, focus and current state; the chapter number rides along as the
+   cell's overline and a check mark closes off a finished step. */
 
 /* The table of contents sits open in the sidebar column; drop the
-   sidebar-section's boxed surface and border so it reads as a clean timeline. */
+   sidebar-section's boxed surface and border so it reads as one list. */
 nldd-sidebar-section {
   --components-sidebar-section-sidebar-box-background-color: transparent;
   --components-sidebar-section-sidebar-box-highlight-border-color: transparent;
@@ -230,26 +233,24 @@ nldd-sidebar-section {
   padding-inline: var(--components-list-item-indicator-inline-inset);
 }
 
+/* nldd-text carries the weight and colour; only the gap to the list is ours. */
 .progress-tracker__title {
-  font-weight: 700;
+  display: block;
   margin-block-end: var(--primitives-space-8, 0.5rem);
-  color: var(--semantics-content-color);
 }
 
-/* nldd-list draws the rows; what stays is the marker column, the "partly
-   filled" core slotted into it, and the comment marker at the row end. */
-.toc-track-cell {
-  flex-shrink: 0;
+/* The design system's hover sits at 1.17:1 against the page: enough on a dense
+   table, thin for a navigation column the pointer has to aim at. Borrow the
+   selected step's own fill, one stop darker and theme-aware by the same token. */
+.toc-item {
+  --components-list-item-is-hovered-background-color: light-dark(
+    var(--primitives-color-neutral-100),
+    var(--primitives-color-neutral-250)
+  );
 }
 
-/* Started ("deels ingevuld"): a small filled core slotted into the marker. */
-/* A chapter someone has started keeps its number and shows the state in the
-   marker's fill, through the component's own token. */
-.toc-item--progress {
-  --components-timeline-track-cell-future-background-color: var(--primitives-color-accent-100);
-}
-
-.toc-comment {
+.toc-comment,
+.toc-done {
   flex-shrink: 0;
 }
 
@@ -258,9 +259,17 @@ nldd-sidebar-section {
   position: relative;
   display: inline-block;
   /* NLDD has no defined-term component/token; currentColor stays legible in
-     both color schemes. */
+     both color schemes. The cursor follows the design system, which puts
+     `default` on everything interactive down to its links -- inheriting the
+     surrounding text's I-beam would read as selectable text instead. */
   border-bottom: 2px dotted currentColor;
-  cursor: help;
+  cursor: var(--semantics-controls-link-cursor, default);
+}
+
+.aiv-definition:focus-visible {
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
+  border-radius: var(--primitives-corner-radius-xs, 4px);
 }
 
 .aiv-definition .aiv-definition-text {
@@ -268,17 +277,17 @@ nldd-sidebar-section {
   width: max-content;
   max-width: min(36rem, calc(100vw - 2rem));
   /* The tinted surface the cards use, so the panel reads as raised against the
-     page. Not the raw neutrals it used before (neutral-0 turns near-black in
-     dark mode), and not the DS tooltip tokens either: those only pair correctly
-     inside nldd-tooltip's own shadow scope, and read as white on light grey
-     out here. */
+     page -- not the DS tooltip tokens. nldd-tooltip is built for one short
+     line: 280px wide at the xs type size. These panels hold a definition plus
+     "Toelichting" and "Voorbeeld(en)" (median ~450 characters, up to 6500), so
+     they read as a small card rather than a tooltip. */
   background-color: var(--semantics-surfaces-tinted-background-color);
   color: var(--semantics-content-color);
   box-shadow: var(--primitives-box-shadows-level-2);
   text-align: left;
   border-radius: var(--semantics-surfaces-corner-radius);
   border: 1px solid var(--semantics-surfaces-tinted-border-color);
-  padding: 12px;
+  padding: var(--primitives-space-12, 12px);
   position: absolute;
   z-index: 1;
 
@@ -287,7 +296,7 @@ nldd-sidebar-section {
   top: 100%;
   right: 0;
   translate: var(--aiv-definition-shift, 0);
-  margin-top: 5px;
+  margin-top: var(--primitives-space-4, 4px);
 
   /* Text styling */
   font: var(--primitives-font-body-md-regular-loose);
@@ -298,8 +307,10 @@ nldd-sidebar-section {
   backdrop-filter: blur(0);
 }
 
-/* Make the tooltip visible on hover */
-.aiv-definition:hover .aiv-definition-text {
+/* Open on hover and on keyboard focus, the way nldd-tooltip does. Without the
+   focus half the explanation is unreachable without a mouse. */
+.aiv-definition:hover .aiv-definition-text,
+.aiv-definition:focus-within .aiv-definition-text {
   display: block;
 }
 
@@ -413,21 +424,30 @@ nldd-sidebar-section {
   gap: var(--primitives-space-8, 0.5rem);
 }
 
-/* Pill-shaped link next to a field label pointing at art. 27 AI-verordening. */
-.form-field__fria-tag {
+/* Tag-shaped link next to a field label, pointing at art. 27 AI-verordening.
+   Not nldd-tag: that component states plainly that a tag is not interactive,
+   and this one navigates. So it stays an <a> and borrows the tag's own accent
+   tokens -- same fill, border, radius and type scale as a real nldd-tag. */
+.form-field__fria-tag,
+.content-tag-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.25em;
-  margin-inline-start: 0.4em;
+  gap: var(--primitives-space-4, 0.25rem);
+  margin-inline-start: var(--primitives-space-4, 0.25rem);
   vertical-align: middle;
-  padding: 0.1em 0.6em;
-  border: 1px solid var(--primitives-color-accent-300, #b3d9ef);
-  border-radius: 999px;
-  background: var(--primitives-color-accent-50, #eef7fb);
-  color: var(--primitives-color-accent-700, #01689b);
-  font-size: var(--primitives-font-size-80, 0.8rem);
-  font-weight: 400;
+  padding-inline: var(--primitives-space-6, 0.375rem);
+  border: var(--primitives-border-width-thin, 1px) solid
+    var(--semantics-categories-accent-tinted-highlight-border-color);
+  border-radius: var(--components-tag-md-corner-radius);
+  background: var(--semantics-categories-accent-tinted-background-color);
+  color: var(--semantics-categories-accent-tinted-content-color);
+  font: var(--primitives-font-body-xs-medium-flat);
   text-decoration: none;
+}
+
+.form-field__fria-tag:hover,
+.content-tag-link:hover {
+  border-color: var(--semantics-categories-accent-tinted-content-color);
 }
 
 .task-section__source-image {
@@ -455,20 +475,6 @@ nldd-sidebar-section {
   flex-shrink: 0;
 }
 
-.content-tag-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25em;
-  margin-inline-start: 0.2em;
-  vertical-align: middle;
-  padding: 0.1em 0.6em;
-  border: 1px solid var(--primitives-color-accent-300, #b3d9ef);
-  border-radius: 999px;
-  background: var(--primitives-color-accent-50, #eef7fb);
-  color: var(--primitives-color-accent-700, #01689b);
-  font-size: var(--primitives-font-size-80, 0.8rem);
-  text-decoration: none;
-}
 
 .content-tag-link::after {
   content: '\2197';

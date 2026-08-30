@@ -40,7 +40,8 @@ describe('KebabMenu', () => {
     const menu = wrapper.find('nldd-icon-button > nldd-menu')
     expect(menu.exists()).toBe(true)
     expect(menu.attributes('slot')).toBe('popup')
-    expect(menu.attributes('accessible-label')).toBe('Projectacties')
+    // nldd-menu has no accessible-label; the trigger button carries the name.
+    expect(menu.attributes('accessible-label')).toBeUndefined()
     // No manual wiring left: the popup slot owns anchoring and expanded state.
     expect(menu.attributes('anchor')).toBeUndefined()
     expect(wrapper.find('nldd-icon-button').attributes('expanded')).toBeUndefined()

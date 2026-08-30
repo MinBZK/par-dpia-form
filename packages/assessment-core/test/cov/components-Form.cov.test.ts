@@ -405,7 +405,7 @@ describe('Form.vue navigation buttons', () => {
     const { wrapper } = await mountForm({ autoStart: true })
     expect(buttonByText(wrapper, 'Vorige stap')).toBeFalsy()
     expect(buttonByText(wrapper, 'Volgende stap')).toBeTruthy()
-    expect(wrapper.find('label.form-field__choice input[type="checkbox"]').exists()).toBe(true)
+    expect(wrapper.find('nldd-checkbox-field.step-complete').exists()).toBe(true)
     // No last-section ExportMenu in the content area on a non-last section.
     expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(false)
   })
@@ -426,7 +426,7 @@ describe('Form.vue navigation buttons', () => {
     expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(true)
     expect(wrapper.findAll('.em-pdf').length).toBeGreaterThan(0)
     expect(buttonByText(wrapper, 'Volgende stap')).toBeFalsy()
-    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    expect(wrapper.find('nldd-checkbox-field').exists()).toBe(false)
   })
 
   it('goToPrevious flushes saves and goes back a section', async () => {
@@ -460,11 +460,36 @@ describe('Form.vue navigation buttons', () => {
     const taskStore = useTaskStore()
     ;(persistence.flushSave as ReturnType<typeof vi.fn>).mockClear()
 
-    const checkbox = wrapper.find('input[type="checkbox"]')
-    await checkbox.trigger('change')
+    // The field reports the new state in the change detail.
+    const checkbox = wrapper.find('nldd-checkbox-field')
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
     expect(taskStore.isRootTaskCompleted('0')).toBe(true)
     expect(persistence.flushSave).toHaveBeenCalled()
+  })
+
+  it('ignores the duplicate change the inner checkbox re-emits through the shadow boundary', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const taskStore = useTaskStore()
+    const checkbox = wrapper.find('nldd-checkbox-field')
+
+    // One click arrives twice: nldd-checkbox emits composed: true and the field
+    // emits its own. Both carry the same state, so the second must not undo it.
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
+
+    expect(taskStore.isRootTaskCompleted('0')).toBe(true)
+  })
+
+  it('ignores a change event without a checked flag', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const taskStore = useTaskStore()
+
+    await wrapper.find('nldd-checkbox-field').trigger('change')
+
+    expect(taskStore.isRootTaskCompleted('0')).toBe(false)
   })
 })
 
@@ -744,12 +769,12 @@ describe('Form.vue reset confirmation dialog', () => {
 describe('Form.vue read-only role', () => {
   it('makes the completion checkbox inert and leaves the rest of the page alone', async () => {
     const { wrapper } = await mountForm({ autoStart: true, contentInert: true })
-    expect(wrapper.find('label.form-field__choice').attributes('inert')).toBeDefined()
+    expect(wrapper.find('nldd-checkbox-field.step-complete').attributes('inert')).toBeDefined()
     expect(wrapper.find('div[role="form"]').attributes('inert')).toBeUndefined()
   })
 
   it('leaves the completion checkbox interactive for an editor', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
-    expect(wrapper.find('label.form-field__choice').attributes('inert')).toBeUndefined()
+    expect(wrapper.find('nldd-checkbox-field.step-complete').attributes('inert')).toBeUndefined()
   })
 })

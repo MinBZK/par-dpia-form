@@ -7,9 +7,8 @@ import { PERSISTENCE_KEY } from '../persistence'
 import '@nldd/design-system/icon-cell'
 import '@nldd/design-system/list'
 import '@nldd/design-system/list-item'
-import '@nldd/design-system/spacer-cell'
+import '@nldd/design-system/text'
 import '@nldd/design-system/text-cell'
-import '@nldd/design-system/timeline-track-cell'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
@@ -77,11 +76,11 @@ interface Step {
   key: string
   id: string | null
   title: string
+  label: string
   node: Node
   current: boolean
   done: boolean
   comment: boolean
-  status: 'past' | 'current' | 'future'
   // The marker always carries the chapter number; its fill carries the state
   // (done, current, started, untouched).
   markerText: string | null
@@ -100,11 +99,13 @@ function describe(task: FlatTask): Step {
     key: task.id,
     id: task.id,
     title,
+    // Number and title on one line: as an overline it would cost a second line
+    // per row, and the DPIA already runs to 22 chapters.
+    label: num ? `${num}. ${title}` : title,
     node,
     current,
     done,
     comment: props.commentedTaskIds.includes(task.id),
-    status: done ? 'past' : current ? 'current' : 'future',
     markerText: num,
     navigable: isNavigable.value,
   }
@@ -116,40 +117,32 @@ const steps = computed<Step[]>(() => {
     out.push(describe(conclusionTask.value))
   } else {
     out.push({
-      key: '__end__', id: null, title: 'Proces voltooid',
+      key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid',
       node: 'open', current: false, done: false, comment: false,
-      status: 'future', markerText: null, navigable: false,
+      markerText: null, navigable: false,
     })
   }
   return out
 })
-
-function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
-  if (steps.value.length === 1) return 'only'
-  if (index === 0) return 'first'
-  if (index === steps.value.length - 1) return 'last'
-  return 'between'
-}
 </script>
 
 <template>
   <div class="progress-tracker">
-    <div class="progress-tracker__title">Inhoudsopgave</div>
-    <!-- nldd-list owns the row: hover, focus, the current marker and arrow-key
-         navigation. dividers="never" keeps the timeline the only vertical line. -->
+    <nldd-text class="progress-tracker__title" weight="bold">Inhoudsopgave</nldd-text>
+    <!-- A plain list: nldd-list owns hover, focus and arrow-key navigation, and
+         the row carries its own state. The chapter number rides along as the
+         cell's overline; a check mark at the end says the step is done. -->
     <nldd-list variant="simple" dividers="never" accessible-label="Inhoudsopgave">
-      <nldd-list-item v-for="(step, i) in steps" :key="step.key"
+      <nldd-list-item v-for="step in steps" :key="step.key"
         class="toc-item" :class="`toc-item--${step.node}`"
         :button="step.navigable || undefined"
         :current="step.current || undefined"
         @click="goToTask(step.id)">
-        <nldd-timeline-track-cell class="toc-track-cell" variant="step"
-          :status="step.status" :position="positionOf(i)"
-          :text="step.markerText"></nldd-timeline-track-cell>
-        <nldd-spacer-cell size="12"></nldd-spacer-cell>
-        <nldd-text-cell class="toc-title" :text="step.title"></nldd-text-cell>
+        <nldd-text-cell class="toc-title" :text="step.label"></nldd-text-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
           icon="comment" size="16" color="accent"></nldd-icon-cell>
+        <nldd-icon-cell v-if="step.done" class="toc-done"
+          icon="check-mark" size="16" color="success"></nldd-icon-cell>
         <span v-if="step.done" class="sr-only">, voltooid</span>
         <span v-if="step.node === 'progress'" class="sr-only">, deels ingevuld</span>
         <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>

@@ -60,10 +60,6 @@ nldd-card p {
   margin-block-start: var(--primitives-space-16, 1rem);
 }
 
-.project-create-form nldd-form-field {
-  display: block;
-  margin-block-end: var(--primitives-space-16, 1rem);
-}
 
 /* SPA-internal content link (router-link): the same roles the design system
    gives a real link. */
@@ -90,6 +86,9 @@ nldd-card p {
   --editor-col: 76rem;
 }
 
+/* nldd-collection's own `gap` spaces the items inside it; the design system
+   leaves the space below the collection to the page. A spacer element per
+   collection would be six extra nodes for one value, so it lives here. */
 .app-main nldd-collection {
   margin-block-end: var(--primitives-space-24, 1.5rem);
 }

@@ -49,8 +49,9 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
-      expect(wrapper.find('nldd-form-field').attributes('label')).toContain(
-        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.',
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('[slot="subtitle"]').text()).toContain(
+        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?',
       )
       expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met de DPIA')
     })
@@ -73,9 +74,8 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper a').attributes('href')).toBe(
         'https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes',
       )
-      expect(wrapper.find('nldd-form-field').attributes('label')).toContain(
-        'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
-      )
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('[slot="subtitle"]').text()).toContain('Heb je al eerder een IAMA ingevuld?')
       expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met het IAMA')
     })
   })
@@ -91,8 +91,12 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is.',
       )
-      expect(wrapper.find('nldd-form-field').attributes('label')).toContain(
-        'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking?',
+      // The heading stays short (nldd-title caps at 40ch); the question that
+      // used to be the label now reads on the line below it.
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('[slot="subtitle"]').text()).toBe(
+        'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? ' +
+          'Upload het PDF- of JSON-bestand om verder te werken.',
       )
       expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met de pre-scan')
     })

@@ -32,11 +32,24 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   nadruk. Daarmee kunnen we het component niet gebruiken zonder die structuur te
   verliezen. Gevraagd: een content-slot (of een `nldd-popover`-variant die als
   tooltip te gebruiken is).
+- **Geen component voor een gedefinieerd begrip.** Onze begrippenuitleg komt als
+  gegenereerde HTML uit de YAML-bronnen en gaat via `v-html` het scherm op;
+  daar kan geen component in staan. Wij tekenen de stippellijn, het paneel en
+  het openen op hover én focus daarom zelf, met de DS-tokens voor oppervlak,
+  rand en focusring. Gevraagd: een `nldd-definition`-achtig component, of een
+  gedocumenteerd patroon (tokens + gedrag) voor een begrip in lopende tekst.
 - **`nldd-sidebar-section` kan zijn sticky-gedrag niet uit.** De sidebar plakt en
   wordt op viewporthoogte gekapt, met een eigen scrollgebied als gevolg. Er is
   geen attribuut om dat uit te zetten; wij duwen nu `sticky-top` en
   `sticky-bottom` naar `-200dvh` om de kolom gewoon mee te laten scrollen.
   Gevraagd: `sticky="never"` of een `no-sticky`-attribuut.
+- **Geen tag-vormige link.** Wij zetten bij een vraag een verwijzing naar
+  art. 27 AI-verordening als klein gekaderd label. `nldd-tag` zegt expliciet
+  "a tag is not interactive"; `nldd-token` is voor data die de gebruiker
+  hanteert (dismiss/menu), en `nldd-link` heeft geen tag-vorm. Wij tekenen de
+  vorm daarom zelf met de `--semantics-categories-accent-tinted-*`-tokens en
+  `--components-tag-md-corner-radius`. Gevraagd: een `href` op `nldd-tag`, of
+  een gedocumenteerde route voor een tag die ergens heen wijst.
 - **Geen verticaal ellips-icoon.** Een kebab-menu is de standaardplek voor
   rij-acties, maar de iconenset heeft alleen de horizontale variant. Wij draaien
   hem 90 graden met CSS. Gevraagd: `ellipsis-vertical` in de registry.
@@ -48,11 +61,18 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   elkaar even hoog krijgen lukt met kaarten vanzelf en met boxen niet (de host is
   geen flex/grid-item dat groeit). Wij zetten `display: grid` op de host.
   Gevraagd: gelijk gedrag, of documenteer het verschil.
-- **Component-tokens van het ene component werken niet in een ander.** De
-  `--components-tooltip-*`-tokens leveren buiten `nldd-tooltip` wit op lichtgrijs,
-  omdat achtergrond en tekstkleur alleen binnen dat component op elkaar zijn
-  afgestemd. Gevraagd: in de documentatie benoemen welke tokens buiten hun
-  component bruikbaar zijn.
+- **`nldd-menu` kan geen toegankelijke naam krijgen.** Het component heeft geen
+  `accessible-label` (anders dan `nldd-menu-bar`, `nldd-menu-bar-item` en
+  `nldd-icon-button`, die hem wel hebben), en zet zelf geen `aria-label` of
+  `aria-labelledby` op zijn `role="menu"`. Wij zetten de naam nu op de knop die
+  het menu opent; dat dekt de trigger, maar het menu zelf blijft naamloos.
+  Gevraagd: `accessible-label` op `nldd-menu`, of documenteren dat de naam
+  bewust van de trigger komt.
+- **Onduidelijk welke component-tokens buiten hun component bruikbaar zijn.**
+  Nagemeten leveren de `--components-tooltip-*`-tokens buiten `nldd-tooltip`
+  wel degelijk een correct paar (contrast 6.2 in licht, 9.9 in donker), maar
+  dat staat nergens; je moet het uitproberen. Gevraagd: in de documentatie
+  benoemen welke tokens los van hun component gebruikt mogen worden.
 
 ## Bespreekpunten met het team
 

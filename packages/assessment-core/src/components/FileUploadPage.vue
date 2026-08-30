@@ -4,7 +4,7 @@ import ExportPdfInfo from './ExportPdfInfo.vue'
 import '@nldd/design-system/banner'
 import '@nldd/design-system/button'
 import '@nldd/design-system/container'
-import '@nldd/design-system/form-field'
+import '@nldd/design-system/title'
 import '@nldd/design-system/rich-text'
 import '@nldd/design-system/file-field'
 import '@nldd/design-system/spacer'
@@ -36,13 +36,18 @@ const introText = computed(() => {
 
 const isGroupAssessment = computed(() => taskStore.activeNamespace === FormType.IAMA)
 
-const uploadText = computed(() => {
+// A heading, not a sentence: nldd-title caps its text at 40ch, so anything
+// longer wraps to two lines. The question itself moved to the line below,
+// which is where the full sentence belongs anyway.
+const uploadText = 'Verdergaan met een eerder bestand'
+
+const uploadHint = computed(() => {
   if (taskStore.activeNamespace === FormType.DPIA) {
-    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand om verder te werken.';
   } else if (taskStore.activeNamespace === FormType.IAMA) {
-    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand om verder te werken.';
   } else {
-    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand om verder te werken.';
   }
 })
 
@@ -123,17 +128,26 @@ const formTypeArticle = computed(() => {
         </nldd-banner>
       </div>
 
-      <div class="task-fieldset__content">
-        <!-- No "Optioneel" badge here: the label is a whole sentence and the
-             badge lands mid-paragraph. The sentence already asks a question. -->
-        <nldd-form-field :label="uploadText">
-          <nldd-file-field accept=".json,.pdf" @change="handleFileSelect"></nldd-file-field>
-        </nldd-form-field>
+      <!-- A heading of its own, so the upload step reads as a step instead of
+           a third paragraph. Not nldd-form-section: that draws a rule above and
+           below, which is meant for a stack of sections sharing their lines --
+           a single one between other content just adds two stray rules. -->
+      <div>
+        <nldd-title size="5">
+          <h2>{{ uploadText }}</h2>
+          <span slot="subtitle">{{ uploadHint }}</span>
+        </nldd-title>
+        <nldd-spacer size="12"></nldd-spacer>
+        <nldd-file-field accept=".json,.pdf"
+          accessible-label="Eerder opgeslagen PDF- of JSON-bestand"
+          @change="handleFileSelect"></nldd-file-field>
         <nldd-spacer size="16"></nldd-spacer>
         <ExportPdfInfo />
       </div>
 
-      <div>
+      <!-- Same row as the step pages use: the action that moves you forward
+           sits at the right-hand end there, so it does here too. -->
+      <div class="step-actions">
         <nldd-button variant="primary" :start-icon="isProcessing ? 'arrow-clockwise' : undefined"
           :text="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
           :disabled="isProcessing || undefined" @click="startDpia"></nldd-button>

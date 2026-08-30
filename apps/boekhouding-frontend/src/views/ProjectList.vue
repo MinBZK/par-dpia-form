@@ -11,6 +11,7 @@ import '@nldd/design-system/button-group'
 import '@nldd/design-system/card'
 import '@nldd/design-system/collection'
 import '@nldd/design-system/container'
+import '@nldd/design-system/form'
 import '@nldd/design-system/form-field'
 import '@nldd/design-system/multi-line-text-field'
 import '@nldd/design-system/text-field'
@@ -113,8 +114,12 @@ const handleCreate = async () => {
         ></nldd-button>
       </div>
 
-      <form v-else class="project-create-form" @submit.prevent="handleCreate">
+      <div v-else class="project-create-form">
         <h2>Nieuw project</h2>
+        <nldd-form>
+        <!-- Own <form> as direct child: that is the framework-friendly mode, so
+             the component mirrors attributes instead of migrating Vue's nodes. -->
+        <form @submit.prevent="handleCreate">
         <nldd-form-field label="Naam">
           <nldd-text-field
             input-id="projectName"
@@ -137,7 +142,9 @@ const handleCreate = async () => {
           <nldd-button variant="primary" type="submit" text="Project toevoegen"></nldd-button>
           <nldd-button variant="secondary" text="Annuleren" @click="showCreateForm = false"></nldd-button>
         </nldd-button-group>
-      </form>
+        </form>
+        </nldd-form>
+      </div>
     </template>
     </nldd-container>
   </nldd-simple-section>

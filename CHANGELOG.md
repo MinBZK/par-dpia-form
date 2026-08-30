@@ -22,6 +22,8 @@ build) staan kort onder "Onder de motorkap".
   blijft), met onder meer een inhoudsopgave die op smalle schermen inklapt,
   duidelijker statuslabels bij de pre-scan-uitkomst en toegankelijkere
   menu's en dialogen. Alle functionaliteit werkt zoals voorheen.
+* Het exportmenu noemt onder de knop "Exporteer" alleen nog het formaat
+  ("PDF", "JSON", "Markdown") in plaats van drie keer "Exporteer als ...".
 * De melding dat Invulhulpen in ontwikkeling is, staat nu als smalle
   statusbalk boven aan het scherm in plaats van als blok in de pagina.
 * De terugkoppeling naar het overzicht of het project staat nu als
@@ -79,6 +81,11 @@ build) staan kort onder "Onder de motorkap".
   rechtsboven bij de vraag.
 * De uitleg bij een begrip leest op dezelfde tekstgrootte als de rest van de
   pagina en blijft binnen beeld, ook bij een begrip aan de rand.
+* De uitleg bij een begrip is nu ook zonder muis te openen: je bereikt een
+  begrip met de tab-toets en de uitleg verschijnt zodra het de focus heeft.
+  De muisaanwijzer is de gewone pijl, net als bij de andere onderdelen van
+  het ontwerpsysteem; de stippellijn onder het begrip geeft aan dat er
+  uitleg is.
 * Selectievakjes en keuzerondjes staan weer op één lijn met hun label.
 * De vragen staan op een vaste leesbreedte in plaats van de volle
   paginabreedte.
@@ -140,6 +147,10 @@ build) staan kort onder "Onder de motorkap".
   niet gebruiken. Alleen de invoervelden staan nu op slot.
 * De inhoudsopgave had een eigen, onzichtbare schuifbalk waardoor de laatste
   hoofdstukken buiten beeld bleven; hij schuift nu gewoon met de pagina mee.
+* Bij de pre-scan verschoof de pagina zijwaarts bij elke volgende stap: korte
+  stappen passen op het scherm en lange niet, waardoor de schuifbalk steeds
+  verscheen en verdween. De ruimte voor de schuifbalk blijft nu gereserveerd,
+  zodat de vragen en de inhoudsopgave op hun plek blijven staan.
 
 ### Onder de motorkap
 
@@ -148,6 +159,12 @@ build) staan kort onder "Onder de motorkap".
   NLDD design-tokens; de Trusted-Types-CSP staat de `lit-html`-policy toe.
   Het standalone single-file formulier is hierdoor fors kleiner (de losse
   RVO-CSS met fonts en iconenset verviel).
+* Het formulier "Nieuw project" gebruikt nu `nldd-form` voor zijn
+  velduitlijning in plaats van eigen marges, zodat het ritme meebeweegt met
+  het design system.
+* De valkuilen van het design system die de NLDD-plugin niet dekt, staan nu
+  in `.claude/rules/nldd-integration.md` (namen verifiëren tegen het
+  package, foutmeldingen koppelen, eigen CSS verantwoorden).
 
 ## [2026.8.25]
 

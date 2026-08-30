@@ -25,6 +25,8 @@ import { CONTENT_READONLY_KEY } from '../injectionKeys'
 import * as t from 'io-ts'
 import { computed, inject, onMounted, onBeforeUnmount, provide, ref, toRef, watch } from 'vue'
 import '@nldd/design-system/button'
+import '@nldd/design-system/checkbox-field'
+import '@nldd/design-system/divider'
 import '@nldd/design-system/menu-bar'
 import '@nldd/design-system/menu-bar-item'
 import '@nldd/design-system/modal-dialog'
@@ -270,6 +272,32 @@ const isInformationalStep = computed(() => {
   const task = taskStore.taskById(currentRootTaskId.value)
   return taskIsOfTaskType(task, 'informational')
 })
+
+const stepCompleted = computed(() => taskStore.isRootTaskCompleted(currentRootTaskId.value))
+
+// The label states what ticking the box does, and once ticked it confirms what
+// happened: a checkbox that keeps the same wording either way leaves you
+// guessing whether the click registered.
+const completeLabel = computed(() =>
+  stepCompleted.value ? 'Afgerond — je kunt hier later op terugkomen' : 'Markeer deze stap als afgerond',
+)
+
+// nldd-checkbox-field emits its own change, and the inner nldd-checkbox emits
+// one that crosses the shadow boundary as well (composed: true) -- so a single
+// click arrives twice. Set the state from the event instead of toggling, and a
+// duplicate is a no-op rather than an undo.
+const handleCompleteChange = (event: Event) => {
+  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
+  if (checked === undefined || checked === stepCompleted.value) return
+  taskStore.toggleCompleteForTaskId(currentRootTaskId.value)
+  flushBeforeNavigate()
+}
+
+const completeAnnouncement = computed(() => {
+  if (!formStarted.value || isLastTask.value || isInformationalStep.value) return ''
+  if (!stepCompleted.value) return ''
+  return `${taskStore.taskById(currentRootTaskId.value).task} is afgerond`
+})
 </script>
 
 <template>
@@ -322,18 +350,21 @@ const isInformationalStep = computed(() => {
         <template v-else>
           <TaskSection :taskId="currentRootTaskId" />
 
+          <!-- A rule closes off the questions: without it the checkbox and the
+               two step buttons float loose under the last answer. -->
           <nldd-spacer size="32"></nldd-spacer>
-          <!-- Navigation buttons -->
+          <nldd-divider></nldd-divider>
+          <nldd-spacer size="24"></nldd-spacer>
           <!-- The checkbox is a control, not an action, so it sits on its own
                line above the two actions at every width. -->
           <nldd-container gap="16">
-            <label v-if="!isLastTask && !isInformationalStep" class="form-field__choice"
-              :for="`${currentRootTaskId}-completed`" :inert="contentInert || undefined">
-              <input :id="`${currentRootTaskId}-completed`" name="step_completed"
-                type="checkbox" :checked="taskStore.isRootTaskCompleted(currentRootTaskId)"
-                @change="taskStore.toggleCompleteForTaskId(currentRootTaskId); flushBeforeNavigate()" />
-              Markeer als voltooid
-            </label>
+            <nldd-checkbox-field v-if="!isLastTask && !isInformationalStep"
+              class="step-complete" name="step_completed" :label="completeLabel"
+              :checked="stepCompleted || undefined" :inert="contentInert || undefined"
+              @change="handleCompleteChange"></nldd-checkbox-field>
+            <!-- The label changes on screen; this says the same thing out loud,
+                 naming the step so it still makes sense out of context. -->
+            <p class="sr-only" role="status" aria-live="polite">{{ completeAnnouncement }}</p>
             <div class="step-actions" role="group" aria-label="Formulier navigatie">
               <nldd-button v-if="!isFirstTask" variant="secondary" start-icon="arrow-left"
                 text="Vorige stap" @click="goToPrevious"></nldd-button>

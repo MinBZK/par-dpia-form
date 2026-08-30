@@ -8,6 +8,7 @@ import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, 
 import KebabMenu from '../components/KebabMenu.vue'
 import { useBackLink } from '../composables/useBackLink'
 import '@nldd/design-system/button'
+import '@nldd/design-system/radio-button'
 import '@nldd/design-system/simple-section'
 import '@nldd/design-system/menu'
 import '@nldd/design-system/banner'
@@ -50,6 +51,18 @@ const dialogOpen = ref(false)
 const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
 const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
+
+// The bare radio reports its own state; only the newly checked one matters.
+const isChecked = (event: Event) =>
+  (event as CustomEvent<{ checked?: boolean }>).detail?.checked === true
+
+const onStartOption = (event: Event, value: typeof dialogOption.value) => {
+  if (isChecked(event)) dialogOption.value = value
+}
+
+const onPrescanChoice = (event: Event, id: string) => {
+  if (isChecked(event)) selectedPrescanId.value = id
+}
 const uploadFile = ref<File | null>(null)
 const dialogError = ref<string | null>(null)
 const dialogSubmitting = ref(false)
@@ -479,12 +492,16 @@ const formatDate = (dateStr: string) =>
           <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
+            <nldd-radio-button name="startOption" value="empty"
+              :checked="dialogOption === 'empty' || undefined"
+              @change="onStartOption($event, 'empty')"></nldd-radio-button>
             <span class="start-dialog__option-label">Start een nieuwe DPIA</span>
           </label>
 
           <label v-if="existingPrescans.length > 0" class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="prescan-project" name="startOption" />
+            <nldd-radio-button name="startOption" value="prescan-project"
+              :checked="dialogOption === 'prescan-project' || undefined"
+              @change="onStartOption($event, 'prescan-project')"></nldd-radio-button>
             <span class="start-dialog__option-label">Neem antwoorden over uit een pre-scan</span>
           </label>
 
@@ -494,13 +511,18 @@ const formatDate = (dateStr: string) =>
               :key="ps.id"
               class="start-dialog__option"
             >
-              <input type="radio" v-model="selectedPrescanId" :value="ps.id" name="prescanChoice" />
+              <nldd-radio-button name="prescanChoice" :value="String(ps.id)"
+                :accessible-label="ps.name"
+                :checked="selectedPrescanId === ps.id || undefined"
+                @change="onPrescanChoice($event, ps.id)"></nldd-radio-button>
               <span class="start-dialog__option-label">{{ ps.name }} <span>({{ formatDate(ps.updatedAt) }})</span></span>
             </label>
           </div>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="import" name="startOption" />
+            <nldd-radio-button name="startOption" value="import"
+              :checked="dialogOption === 'import' || undefined"
+              @change="onStartOption($event, 'import')"></nldd-radio-button>
             <span class="start-dialog__option-label">
               Importeer een bestaande DPIA of pre-scan
               <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
@@ -521,12 +543,16 @@ const formatDate = (dateStr: string) =>
           <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
+            <nldd-radio-button name="startOption" value="empty"
+              :checked="dialogOption === 'empty' || undefined"
+              @change="onStartOption($event, 'empty')"></nldd-radio-button>
             <span class="start-dialog__option-label">Start een nieuwe IAMA</span>
           </label>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="import" name="startOption" />
+            <nldd-radio-button name="startOption" value="import"
+              :checked="dialogOption === 'import' || undefined"
+              @change="onStartOption($event, 'import')"></nldd-radio-button>
             <span class="start-dialog__option-label">
               Importeer een bestaande IAMA
               <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder.</span>
@@ -547,12 +573,16 @@ const formatDate = (dateStr: string) =>
           <legend class="sr-only">Kies een startoptie</legend>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
+            <nldd-radio-button name="startOption" value="empty"
+              :checked="dialogOption === 'empty' || undefined"
+              @change="onStartOption($event, 'empty')"></nldd-radio-button>
             <span class="start-dialog__option-label">Start een nieuwe pre-scan</span>
           </label>
 
           <label class="start-dialog__option">
-            <input type="radio" v-model="dialogOption" value="prescan-json-upload" name="startOption" />
+            <nldd-radio-button name="startOption" value="prescan-json-upload"
+              :checked="dialogOption === 'prescan-json-upload' || undefined"
+              @change="onStartOption($event, 'prescan-json-upload')"></nldd-radio-button>
             <span class="start-dialog__option-label">Importeer een bestaande pre-scan (JSON- of PDF-bestand)</span>
           </label>
 

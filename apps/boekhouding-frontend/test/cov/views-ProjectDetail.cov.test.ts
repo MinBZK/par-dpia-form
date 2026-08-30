@@ -49,6 +49,17 @@ vi.mock('@overheid-assessment/core', () => ({
 }))
 
 import ProjectDetail from '../../src/views/ProjectDetail.vue'
+import { nextTick } from 'vue'
+
+// The design system's radio reports its choice in a change event; picking one
+// means dispatching that, not setting a native input's value.
+const pickRadio = async (wrapper: { findAll: (s: string) => { element: Element }[] }, value: string) => {
+  const radio = wrapper.findAll('nldd-radio-button').find((r) => r.element.getAttribute('value') === value)
+  if (!radio) throw new Error(`geen radio met value "${value}"`)
+  radio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+  await nextTick()
+}
+
 
 type Role = 'owner' | 'editor' | 'viewer' | undefined
 
@@ -563,8 +574,9 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      const radio = dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!
-      await radio.setValue()
+      const radio = dialog.findAll('nldd-radio-button').find((r) => r.element.getAttribute('value') === 'prescan-project')!
+      radio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -581,10 +593,14 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
+      await pickRadio(dialog, 'prescan-project')
       await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
+      await pickRadio(dialog, 'ps1')
       await flushPromises()
+      // The outgoing radio fires a change too; that one must not clear the pick.
+      dialog.findAll('nldd-radio-button').find((r) => r.element.getAttribute('value') === 'ps1')!.element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await nextTick()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
       expect(dialog.find('nldd-banner[variant="critical"]').attributes('text')).toBe('De geselecteerde pre-scan bevat geen ingevulde gegevens')
@@ -599,9 +615,9 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
+      await pickRadio(dialog, 'prescan-project')
       await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
+      await pickRadio(dialog, 'ps1')
       await flushPromises()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -618,9 +634,9 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
+      await pickRadio(dialog, 'prescan-project')
       await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
+      await pickRadio(dialog, 'ps1')
       await flushPromises()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -646,9 +662,9 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
+      await pickRadio(dialog, 'prescan-project')
       await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
+      await pickRadio(dialog, 'ps1')
       await flushPromises()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -665,7 +681,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       await findButton(dialog, 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -682,7 +698,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
 
       const file = new File([JSON.stringify({ answers: { '1.1': { value: 'a' } } })], 'dpia.json', { type: 'application/json' })
@@ -704,7 +720,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
 
       const file = new File([JSON.stringify({ answers: { '0.1': { value: 'p' } } })], 'ps.json', { type: 'application/json' })
@@ -731,7 +747,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       const file = new File(['{}'], 'x.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -772,7 +788,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      await pickRadio(dialog, 'prescan-json-upload')
       await flushPromises()
       await findButton(dialog, 'Start pre-scan')!.trigger('click')
       await flushPromises()
@@ -786,7 +802,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      await pickRadio(dialog, 'prescan-json-upload')
       await flushPromises()
       const file = new File(['{}'], 'ps.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -804,7 +820,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      await pickRadio(dialog, 'prescan-json-upload')
       await flushPromises()
       const file = new File(['{}'], 'ps.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -824,7 +840,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      await pickRadio(dialog, 'prescan-json-upload')
       await flushPromises()
       const file = new File([JSON.stringify(state)], 'ps.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -843,7 +859,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      await pickRadio(dialog, 'prescan-json-upload')
       await flushPromises()
       const fileField = dialog.find('nldd-file-field')
       // A bare change event without detail lands in the no-files branch.
@@ -925,19 +941,40 @@ describe('ProjectDetail', () => {
     })
   })
 
+  describe('radio change events without a choice', () => {
+    it('ignores a change that reports the option was unchecked', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await findButton(wrapper, 'Start DPIA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
+      const radios = () => dialog.findAll('nldd-radio-button')
+      const importRadio = radios().find((r) => r.element.getAttribute('value') === 'import')!
+
+      // The outgoing option also fires a change; only the newly checked one counts.
+      importRadio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await nextTick()
+      expect(importRadio.attributes('checked')).toBeUndefined()
+
+      wrapper.unmount()
+    })
+  })
+
   describe('"empty" radio re-selection (inline v-model update handler)', () => {
     it('re-selects the empty DPIA option after switching to import', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
       await findButton(wrapper, 'Start DPIA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      const radios = () => dialog.findAll('input[type="radio"]')
-      await radios().find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      const radios = () => dialog.findAll('nldd-radio-button')
+      radios().find((r) => r.element.getAttribute('value') === 'import')!.element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      const emptyRadio = radios().find((r) => (r.element as HTMLInputElement).value === 'empty')!
-      await emptyRadio.setValue()
+      const emptyRadio = radios().find((r) => r.element.getAttribute('value') === 'empty')!
+      emptyRadio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      expect((emptyRadio.element as HTMLInputElement).checked).toBe(true)
+      expect(emptyRadio.attributes('checked')).toBeDefined()
     })
 
     it('re-selects the empty pre-scan option after switching to upload', async () => {
@@ -945,13 +982,16 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start pre-scan')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      const radios = () => dialog.findAll('input[type="radio"]')
-      await radios().find((r) => (r.element as HTMLInputElement).value === 'prescan-json-upload')!.setValue()
+      const radios = () => dialog.findAll('nldd-radio-button')
+      radios().find((r) => r.element.getAttribute('value') === 'prescan-json-upload')!.element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      const emptyRadio = radios().find((r) => (r.element as HTMLInputElement).value === 'empty')!
-      await emptyRadio.setValue()
+      const emptyRadio = radios().find((r) => r.element.getAttribute('value') === 'empty')!
+      emptyRadio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      expect((emptyRadio.element as HTMLInputElement).checked).toBe(true)
+      expect(emptyRadio.attributes('checked')).toBeDefined()
     })
   })
 
@@ -1028,7 +1068,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       await findButton(dialog, 'Start IAMA')!.trigger('click')
       await flushPromises()
@@ -1045,7 +1085,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       const file = new File([JSON.stringify(state)], 'iama.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -1062,13 +1102,16 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      const radios = () => dialog.findAll('input[type="radio"]')
-      await radios().find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      const radios = () => dialog.findAll('nldd-radio-button')
+      radios().find((r) => r.element.getAttribute('value') === 'import')!.element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      const emptyRadio = radios().find((r) => (r.element as HTMLInputElement).value === 'empty')!
-      await emptyRadio.setValue()
+      const emptyRadio = radios().find((r) => r.element.getAttribute('value') === 'empty')!
+      emptyRadio.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await nextTick()
       await flushPromises()
-      expect((emptyRadio.element as HTMLInputElement).checked).toBe(true)
+      expect(emptyRadio.attributes('checked')).toBeDefined()
     })
   })
 
@@ -1082,7 +1125,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       const file = new File(['%PDF-1.4'], 'iama.PDF', { type: 'application/pdf' })
       const fileField = dialog.find('nldd-file-field')
@@ -1102,7 +1145,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       const file = new File(['{}'], 'x.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')
@@ -1121,7 +1164,7 @@ describe('ProjectDetail', () => {
       await findButton(wrapper, 'Start IAMA')!.trigger('click')
       await flushPromises()
       const dialog = wrapper.find('nldd-modal-dialog[data-test="start-dialog"]')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
+      await pickRadio(dialog, 'import')
       await flushPromises()
       const file = new File(['{}'], 'x.json', { type: 'application/json' })
       const fileField = dialog.find('nldd-file-field')

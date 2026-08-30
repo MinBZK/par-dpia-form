@@ -44,10 +44,10 @@ function dispatchNlddInput(el: Element, value: string) {
   el.dispatchEvent(new CustomEvent('input', { detail: { value } }))
 }
 
-// nldd-toggle-button flips `selected` itself and reports the new state in
-// the change detail; the host is unregistered in jsdom, so the test passes it.
-function toggleSelected(el: Element, selected: boolean) {
-  el.dispatchEvent(new CustomEvent('change', { detail: { selected } }))
+// nldd-segmented-control reports the newly chosen value in the change detail;
+// the host is unregistered in jsdom, so the test dispatches it.
+function chooseMode(el: Element, preview: boolean) {
+  el.dispatchEvent(new CustomEvent('change', { detail: { value: preview ? 'lezen' : 'bewerken' } }))
 }
 
 describe('FormField.vue', () => {
@@ -96,21 +96,21 @@ describe('FormField.vue', () => {
         label: 'Toelichting',
       })
       // The class must stay on the host: the comment indicators look it up.
-      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
+      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
       expect(toggle.exists()).toBe(true)
-      expect(toggle.attributes('size')).toBe('xs')
-      expect(toggle.attributes('text')).toBe('Lezen')
-      // Unregistered host in jsdom: the boolean binding lands as an attribute.
-      expect(toggle.attributes('selected')).toBe('false')
-      expect(toggle.attributes('icon')).toBe('eye')
+      expect(toggle.attributes('size')).toBe('sm')
+      expect(toggle.attributes('variant')).toBe('icon-and-text')
+      // Both modes are named; `value` marks which one is current.
+      expect(toggle.attributes('value')).toBe('bewerken')
+      const items = toggle.findAll('nldd-segmented-control-item')
+      expect(items.map((i) => i.attributes('text'))).toEqual(['Bewerken', 'Lezen'])
+      expect(items.map((i) => i.attributes('icon'))).toEqual(['pencil-on-square', 'eye'])
       expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
 
-      toggleSelected(toggle.element, true)
+      chooseMode(toggle.element, true)
       await nextTick()
-      expect(toggle.attributes('text')).toBe('Bewerken')
-      expect(toggle.attributes('selected')).toBe('true')
-      expect(toggle.attributes('icon')).toBe('pencil-on-square')
+      expect(toggle.attributes('value')).toBe('lezen')
       expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(false)
       const preview = wrapper.find('.markdown-preview')
       expect(preview.exists()).toBe(true)
@@ -121,19 +121,21 @@ describe('FormField.vue', () => {
       expect(preview.attributes('aria-label')).toBe('Voorbeeld van de opmaak')
     })
 
-    it('falls back to flipping the preview when the change event carries no detail', async () => {
+    it('keeps the current mode when the change event carries no value', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
+      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
 
-      await toggle.trigger('change')
-      expect(wrapper.find('.markdown-preview').exists()).toBe(true)
-
+      // A change without a value says nothing about which mode was chosen.
       await toggle.trigger('change')
       expect(wrapper.find('.markdown-preview').exists()).toBe(false)
+
+      chooseMode(toggle.element, true)
+      await nextTick()
+      expect(wrapper.find('.markdown-preview').exists()).toBe(true)
     })
 
     it('does not render the toggle button when the field is not open_text', () => {
@@ -142,7 +144,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Naam',
       })
-      expect(wrapper.find('nldd-toggle-button.open-text-field__toggle').exists()).toBe(false)
+      expect(wrapper.find('nldd-segmented-control.open-text-field__toggle').exists()).toBe(false)
     })
   })
 
@@ -154,14 +156,14 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
+      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
 
-      toggleSelected(toggle.element, true)
+      chooseMode(toggle.element, true)
       await nextTick()
       const preview = wrapper.find('.markdown-preview')
       expect(preview.element.innerHTML).toContain('<strong>vet</strong>')
 
-      toggleSelected(toggle.element, false)
+      chooseMode(toggle.element, false)
       await nextTick()
       expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
     })
@@ -172,7 +174,7 @@ describe('FormField.vue', () => {
         instanceId: 'empty[0]',
         label: 'Toelichting',
       })
-      toggleSelected(wrapper.find('nldd-toggle-button.open-text-field__toggle').element, true)
+      chooseMode(wrapper.find('nldd-segmented-control.open-text-field__toggle').element, true)
       await nextTick()
       expect(wrapper.find('.markdown-preview').element.innerHTML.trim()).toBe('')
     })
@@ -202,10 +204,10 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const toggle = wrapper.find('nldd-toggle-button.open-text-field__toggle')
-      toggleSelected(toggle.element, true)
+      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
+      chooseMode(toggle.element, true)
       await nextTick()
-      toggleSelected(toggle.element, false)
+      chooseMode(toggle.element, false)
       await nextTick()
       return wrapper
     }
@@ -309,19 +311,96 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Akkoord?',
       })
-      const group = wrapper.find('div.form-field__choices')
+      // Plain labels: the design system's group handles arrow keys and mutual
+      // exclusion, so no hand-rolled radiogroup remains.
+      const group = wrapper.find('nldd-radio-button-group')
       expect(group.exists()).toBe(true)
-      expect(group.attributes('role')).toBe('radiogroup')
-      expect(group.attributes('aria-labelledby')).toBe('label-1.1-1.1[0]')
-      expect(wrapper.findAll('label.form-field__choice')).toHaveLength(2)
+      expect(group.attributes('name')).toBe('group-1.1-1.1[0]')
+      expect(group.attributes('accessible-labeled-by')).toBe('label-1.1-1.1[0]')
+      expect(wrapper.find('div.form-field__choices').exists()).toBe(false)
 
-      const radios = wrapper.findAll('input[type="radio"]')
+      const radios = wrapper.findAll('nldd-radio-button-field')
       expect(radios).toHaveLength(2)
-      expect(radios[0].attributes('name')).toBe('group-1.1-1.1[0]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(true)
-      expect((radios[1].element as HTMLInputElement).checked).toBe(false)
+      expect(radios.map((r) => r.attributes('label'))).toEqual(['Ja', 'Nee'])
+      expect(radios[0].attributes('checked')).toBeDefined()
+      expect(radios[1].attributes('checked')).toBeUndefined()
 
-      await radios[1].trigger('change')
+      group.element.dispatchEvent(new CustomEvent('change', { detail: { value: 'nee' } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('1.1[0]')).toBe('nee')
+    })
+
+    it('omits aria-labelledby on the native fallback when there is no label', () => {
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['radio_option'],
+          options: [
+            { value: null, label: '<span class="aiv-definition">Onbekend</span>' },
+            { value: 'ja', label: 'Ja' },
+          ],
+        }),
+        instanceId: '1.1[0]',
+      })
+      expect(wrapper.find('div.form-field__choices').attributes('aria-labelledby')).toBeUndefined()
+    })
+
+    it('ignores a group change without a value', async () => {
+      answerStore.setAnswer('1.1[0]', 'ja')
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['radio_option'],
+          options: [
+            { value: 'ja', label: 'Ja' },
+            { value: 'nee', label: 'Nee' },
+          ],
+        }),
+        instanceId: '1.1[0]',
+      })
+      // The group re-emits the field's change, so a payload-less duplicate must
+      // not wipe the stored answer.
+      await wrapper.find('nldd-radio-button-group').trigger('change')
+      expect(answerStore.getAnswer('1.1[0]')).toBe('ja')
+    })
+
+    it('renders the design system group for a radio field without any options', () => {
+      const wrapper = mountField({
+        task: flatTask({ type: ['radio_option'], options: undefined }),
+        instanceId: '1.1[0]',
+      })
+      expect(wrapper.find('nldd-radio-button-group').exists()).toBe(true)
+      expect(wrapper.findAll('nldd-radio-button-field')).toHaveLength(0)
+    })
+
+    it('splits the control from the label when an option carries definition markup', async () => {
+      answerStore.setAnswer('1.1[0]', 'ja')
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['radio_option'],
+          options: [
+            { value: 'ja', label: '<span class="aiv-definition">Ja</span>' },
+            { value: 'nee', label: 'Nee' },
+          ],
+        }),
+        instanceId: '1.1[0]',
+        label: 'Akkoord?',
+      })
+      // nldd-radio-button-field takes plain text only, so the bare control does
+      // the drawing and the label stays in light DOM where markup renders.
+      expect(wrapper.find('nldd-radio-button-group').exists()).toBe(false)
+      expect(wrapper.find('div.form-field__choices').attributes('role')).toBe('radiogroup')
+
+      const radios = wrapper.findAll('.form-field__choice nldd-radio-button')
+      expect(radios).toHaveLength(2)
+      expect(radios[0].attributes('checked')).toBeDefined()
+      expect(radios[0].attributes('accessible-label')).toBe('Ja')
+
+      radios[1].element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('1.1[0]')).toBe('nee')
+
+      // A change reporting "unchecked" is the outgoing option; it must not clear.
+      radios[0].element.dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('1.1[0]')).toBe('nee')
     })
 
@@ -333,8 +412,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.findAll('input[type="radio"]')).toHaveLength(1)
-      expect(wrapper.find('div.form-field__choices').attributes('aria-labelledby')).toBeUndefined()
+      expect(wrapper.findAll('nldd-radio-button-field')).toHaveLength(1)
+      expect(wrapper.find('nldd-radio-button-group').attributes('accessible-labeled-by')).toBeUndefined()
     })
   })
 
@@ -392,17 +471,17 @@ describe('FormField.vue', () => {
       })
       expect(wrapper.find('div.form-field__choices').exists()).toBe(true)
       expect(wrapper.findAll('label.form-field__choice')).toHaveLength(2)
-      const boxes = wrapper.findAll('input[type="checkbox"]')
+      const boxes = wrapper.findAll('.form-field__choice nldd-checkbox')
       expect(boxes).toHaveLength(2)
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
+      expect(boxes[0].attributes('checked')).toBeDefined()
+      expect(boxes[1].attributes('checked')).toBeUndefined()
 
-      ;(boxes[1].element as HTMLInputElement).checked = true
-      await boxes[1].trigger('change')
+            boxes[1].element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['email', 'telefoon'])
 
-      ;(boxes[0].element as HTMLInputElement).checked = false
-      await boxes[0].trigger('change')
+            boxes[0].element.dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['telefoon'])
     })
 
@@ -416,9 +495,9 @@ describe('FormField.vue', () => {
         instanceId: 'fresh[0]',
         label: 'Keuze',
       })
-      const box = wrapper.find('input[type="checkbox"]')
-      ;(box.element as HTMLInputElement).checked = true
-      await box.trigger('change')
+      const box = wrapper.find('.form-field__choice nldd-checkbox')
+            box.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('fresh[0]')).toEqual(['x'])
     })
 
@@ -431,9 +510,10 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const box = wrapper.find('input[type="checkbox"]')
+      const box = wrapper.find('.form-field__choice nldd-checkbox')
       expect(box.exists()).toBe(true)
-      expect(box.attributes('id')).toBe('1.1-1.1[0]-')
+      // safeString(null) -> empty string; the field carries it as its value.
+      expect(box.attributes('value')).toBe('')
     })
   })
 
@@ -467,12 +547,14 @@ describe('FormField.vue', () => {
         instanceId: '3.1[0]',
         label: 'Categorieën',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
+      // Source options are the reader's own free text: plain, so the design
+      // system's field carries them.
+      const boxes = wrapper.findAll('nldd-checkbox-field')
       expect(boxes).toHaveLength(1)
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
+      expect(boxes[0].attributes('checked')).toBeDefined()
 
-      ;(boxes[0].element as HTMLInputElement).checked = false
-      await boxes[0].trigger('change')
+      boxes[0].element.dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('3.1[0]')).toEqual([])
     })
   })
@@ -493,10 +575,10 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
-      const err = wrapper.find('.form-field__error')
+      const err = wrapper.find('nldd-inline-dialog.form-field__dependency')
       expect(err.exists()).toBe(true)
-      expect(err.text()).toContain('Vul eerst sectie 5')
-      expect(err.text()).toContain('Sectie vijf')
+      expect(err.attributes('supporting-text')).toContain('Vul eerst sectie 5')
+      expect(err.attributes('supporting-text')).toContain('Sectie vijf')
     })
 
     it('shows the generic error when source section id is in the exempt list', () => {
@@ -509,11 +591,11 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]', label: 'Cat' })
-      const err = wrapper.find('.form-field__error')
+      const err = wrapper.find('nldd-inline-dialog.form-field__dependency')
       expect(err.exists()).toBe(true)
-      expect(err.text()).toContain('Vul eerst sectie "')
-      expect(err.text()).not.toContain('sectie 0')
-      expect(err.text()).toContain('Inleiding')
+      expect(err.attributes('supporting-text')).toContain('Vul eerst sectie "')
+      expect(err.attributes('supporting-text')).not.toContain('sectie 0')
+      expect(err.attributes('supporting-text')).toContain('Inleiding')
     })
 
     it('renders an empty dependency name when the source task does not exist', () => {
@@ -525,18 +607,18 @@ describe('FormField.vue', () => {
         ],
       })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]' })
-      const err = wrapper.find('.form-field__error')
+      const err = wrapper.find('nldd-inline-dialog.form-field__dependency')
       expect(err.exists()).toBe(true)
-      expect(err.text()).toContain('Vul eerst sectie 9')
-      expect(err.text()).toContain('""')
+      expect(err.attributes('supporting-text')).toContain('Vul eerst sectie 9')
+      expect(err.attributes('supporting-text')).toContain('""')
     })
 
     it('renders the generic-but-empty error when there are no dependencies at all', () => {
       const checkboxTask = flatTask({ id: '6.1', type: ['checkbox_option'] })
       const wrapper = mountField({ task: checkboxTask, instanceId: '6.1[0]' })
-      const err = wrapper.find('.form-field__error')
+      const err = wrapper.find('nldd-inline-dialog.form-field__dependency')
       expect(err.exists()).toBe(true)
-      expect(err.text()).toContain('Vul eerst sectie')
+      expect(err.attributes('supporting-text')).toContain('Vul eerst sectie')
     })
   })
 
@@ -606,8 +688,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(true)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[0].attributes('checked')).toBeDefined()
     })
 
     it('uses a string defaultValue converted to boolean when no answer stored', () => {
@@ -623,8 +705,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'nostore[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[1].element as HTMLInputElement).checked).toBe(true)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[1].attributes('checked')).toBeDefined()
     })
 
     it('uses a non-string boolean defaultValue directly when no answer stored', () => {
@@ -640,8 +722,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'nostore2[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(true)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[0].attributes('checked')).toBeDefined()
     })
 
     it('converts the literal string "null" to null for a boolean|null valueType', () => {
@@ -657,9 +739,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(false)
-      expect((radios[1].element as HTMLInputElement).checked).toBe(false)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[0].attributes('checked')).toBeUndefined()
+      expect(radios[1].attributes('checked')).toBeUndefined()
     })
 
     it('keeps a non-boolean string value as a string for a boolean valueType', () => {
@@ -672,8 +754,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(true)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[0].attributes('checked')).toBeDefined()
     })
   })
 
@@ -688,9 +770,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(true)
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
+      const boxes = wrapper.findAll('.form-field__choice nldd-checkbox')
+      expect(boxes[0].attributes('checked')).toBeDefined()
+      expect(boxes[1].attributes('checked')).toBeUndefined()
     })
 
     it('uses an empty array when there is no stored answer for a string[] field', () => {
@@ -702,8 +784,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'none[0]',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
+      const boxes = wrapper.findAll('.form-field__choice nldd-checkbox')
+      expect(boxes[0].attributes('checked')).toBeUndefined()
     })
 
     it('keeps an already-array stored value as-is for a string[] field', () => {
@@ -716,8 +798,8 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(true)
+      const boxes = wrapper.findAll('.form-field__choice nldd-checkbox')
+      expect(boxes[1].attributes('checked')).toBeDefined()
     })
   })
 
@@ -788,9 +870,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'novalue[0]',
       })
-      const radios = wrapper.findAll('input[type="radio"]')
-      expect((radios[0].element as HTMLInputElement).checked).toBe(false)
-      expect((radios[1].element as HTMLInputElement).checked).toBe(false)
+      const radios = wrapper.findAll('nldd-radio-button-field')
+      expect(radios[0].attributes('checked')).toBeUndefined()
+      expect(radios[1].attributes('checked')).toBeUndefined()
     })
   })
 
@@ -805,9 +887,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'defstr[0]',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
+      const boxes = wrapper.findAll('.form-field__choice nldd-checkbox')
+      expect(boxes[0].attributes('checked')).toBeUndefined()
+      expect(boxes[1].attributes('checked')).toBeUndefined()
     })
   })
 
@@ -821,9 +903,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const box = wrapper.findAll('input[type="checkbox"]')[0]
-      ;(box.element as HTMLInputElement).checked = true
-      await box.trigger('change')
+      const box = wrapper.findAll('.form-field__choice nldd-checkbox')[0]
+            box.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['a'])
     })
 
@@ -837,9 +919,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: '1.1[0]',
       })
-      const box = wrapper.findAll('input[type="checkbox"]')[0]
-      ;(box.element as HTMLInputElement).checked = true
-      await box.trigger('change')
+      const box = wrapper.findAll('.form-field__choice nldd-checkbox')[0]
+            box.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       expect(answerStore.getAnswer('1.1[0]')).toEqual(['a'])
     })
   })
@@ -938,13 +1020,56 @@ describe('FormField.vue', () => {
         label: 'Kies opties',
       })
       expect(wrapper.find('.multiselect-scrollable').exists()).toBe(true)
-      const choices = wrapper.findAll('label.form-field__choice.multiselect-scrollable__option')
-      expect(choices).toHaveLength(3)
-      const checkboxes = wrapper.findAll('input[type="checkbox"]')
+      // Plain option values, so the design system's field carries the label.
+      const checkboxes = wrapper.findAll('nldd-checkbox-field.multiselect-scrollable__option')
       expect(checkboxes).toHaveLength(3)
-      expect(wrapper.text()).toContain('Optie A')
-      expect(wrapper.text()).toContain('Optie B')
-      expect(wrapper.text()).toContain('Optie C')
+      expect(checkboxes.map((c) => c.attributes('label'))).toEqual(['Optie A', 'Optie B', 'Optie C'])
+    })
+
+    it('adds and removes a multiselect option through the field change event', async () => {
+      answerStore.setAnswer('ms3[0]', ['Optie A'])
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['multiselect_scrollable'],
+          valueType: 'string[]',
+          options: [{ value: 'Optie A' }, { value: 'Optie B' }],
+        }),
+        instanceId: 'ms3[0]',
+      })
+      const boxes = wrapper.findAll('nldd-checkbox-field')
+
+      boxes[1].element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('ms3[0]')).toEqual(['Optie A', 'Optie B'])
+
+      boxes[0].element.dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('ms3[0]')).toEqual(['Optie B'])
+
+      // The inner checkbox re-emits across the shadow boundary: a duplicate
+      // carrying the same state must not add the value twice.
+      boxes[1].element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('ms3[0]')).toEqual(['Optie B'])
+
+      // A change without a payload says nothing, so the answer stands.
+      await boxes[1].trigger('change')
+      expect(answerStore.getAnswer('ms3[0]')).toEqual(['Optie B'])
+    })
+
+    it('starts from an empty list when the field has no stored answer yet', async () => {
+      const wrapper = mountField({
+        task: flatTask({
+          type: ['multiselect_scrollable'],
+          valueType: 'string[]',
+          options: [{ value: 'Optie A' }],
+        }),
+        instanceId: 'msleeg[0]',
+      })
+      wrapper.find('nldd-checkbox-field').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(answerStore.getAnswer('msleeg[0]')).toEqual(['Optie A'])
     })
 
     it('checks the option that is present in the current array answer (Array.isArray && includes branch)', () => {
@@ -959,9 +1084,9 @@ describe('FormField.vue', () => {
         instanceId: 'ms2[0]',
         label: 'Kies opties',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(true)
+      const boxes = wrapper.findAll('nldd-checkbox-field')
+      expect(boxes[0].attributes('checked')).toBeUndefined()
+      expect(boxes[1].attributes('checked')).toBeDefined()
     })
   })
 
@@ -989,10 +1114,9 @@ describe('FormField.vue', () => {
         }),
         instanceId: 'nonstrdef[0]',
       })
-      const boxes = wrapper.findAll('input[type="checkbox"]')
-      // No default applied -> nothing checked.
-      expect((boxes[0].element as HTMLInputElement).checked).toBe(false)
-      expect((boxes[1].element as HTMLInputElement).checked).toBe(false)
+      const boxes = wrapper.findAll('nldd-checkbox-field')
+      // No default applied -> nothing checked; the reader makes the choice.
+      expect(boxes.map((b) => b.attributes('checked'))).toEqual([undefined, undefined])
     })
   })
 

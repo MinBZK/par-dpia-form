@@ -88,10 +88,9 @@ describe('ConflictResolutionDialog', () => {
     expect(options(wrapper, 1)[0].classes()).toContain('conflict-option--selected')
     expect(options(wrapper, 0)[1].classes()).not.toContain('conflict-option--selected')
 
-    const mineRadio = options(wrapper, 0)[0].find('input[type="radio"]').element as HTMLInputElement
-    const theirRadio = options(wrapper, 0)[1].find('input[type="radio"]').element as HTMLInputElement
-    expect(mineRadio.checked).toBe(true)
-    expect(theirRadio.checked).toBe(false)
+    // The design system draws the control; the label keeps its formatted value.
+    expect(options(wrapper, 0)[0].find('nldd-radio-button').attributes('checked')).toBeDefined()
+    expect(options(wrapper, 0)[1].find('nldd-radio-button').attributes('checked')).toBeUndefined()
 
     wrapper.unmount()
   })
@@ -181,7 +180,14 @@ describe('ConflictResolutionDialog', () => {
     stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    await options(wrapper)[1].find('input[type="radio"]').trigger('change')
+    options(wrapper)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
+
+    // The outgoing option fires a change as well; only the checked one counts.
+    options(wrapper)[0].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+    await wrapper.vm.$nextTick()
 
     expect(options(wrapper)[1].classes()).toContain('conflict-option--selected')
     expect(options(wrapper)[0].classes()).not.toContain('conflict-option--selected')
@@ -196,8 +202,12 @@ describe('ConflictResolutionDialog', () => {
     stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    await options(wrapper)[1].find('input[type="radio"]').trigger('change')
-    await options(wrapper)[0].find('input[type="radio"]').trigger('change')
+    options(wrapper)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
+    options(wrapper)[0].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
     expect(options(wrapper)[0].classes()).toContain('conflict-option--selected')
     expect(options(wrapper)[1].classes()).not.toContain('conflict-option--selected')
@@ -213,7 +223,9 @@ describe('ConflictResolutionDialog', () => {
     stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    await options(wrapper, 1)[1].find('input[type="radio"]').trigger('change')
+    options(wrapper, 1)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
     await resolveButton(wrapper).trigger('click')
 

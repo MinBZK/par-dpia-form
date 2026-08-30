@@ -71,14 +71,13 @@ function titles(wrapper: ReturnType<typeof mountTracker>): (string | undefined)[
 function nodeKind(item: ReturnType<typeof items>[number]): string {
   return ['done', 'current', 'progress', 'open'].find(k => item.classes().includes(`toc-item--${k}`)) ?? '?'
 }
-function trackStatus(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('status')
+// The row carries its own state now: a check mark cell marks a finished step,
+// and the chapter number sits in front of the title on the same line.
+function hasCheck(item: ReturnType<typeof items>[number]): boolean {
+  return item.find('nldd-icon-cell.toc-done').exists()
 }
-function markerIcon(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('icon')
-}
-function markerText(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('text')
+function rowLabel(item: ReturnType<typeof items>[number]): string | undefined {
+  return item.find('nldd-text-cell.toc-title').attributes('text')
 }
 
 describe('ProgressTracker.vue', () => {
@@ -100,9 +99,9 @@ describe('ProgressTracker.vue', () => {
       const list = wrapper.find('nldd-list')
       expect(list.exists()).toBe(true)
       expect(list.attributes('accessible-label')).toBe('Inhoudsopgave')
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
-      expect(cells.length).toBe(items(wrapper).length)
-      for (const cell of cells) expect(cell.attributes('variant')).toBe('step')
+      // A plain list: no timeline track, one text cell per row.
+      expect(wrapper.findAll('nldd-timeline-track-cell')).toHaveLength(0)
+      expect(wrapper.findAll('nldd-text-cell.toc-title')).toHaveLength(items(wrapper).length)
     })
 
     it('sluit zonder conclusietaak af met een niet-navigeerbaar "Proces voltooid"-item (geen button-attribuut)', () => {
@@ -111,10 +110,9 @@ describe('ProgressTracker.vue', () => {
       const wrapper = mountTracker({ props: { navigable: true } })
       const last = items(wrapper)[items(wrapper).length - 1]
 
-      expect(last.find('.toc-title').attributes('text')).toBe('Proces voltooid')
-      expect(markerText(last)).toBeUndefined()
+      expect(rowLabel(last)).toBe('Proces voltooid')
       expect(nodeKind(last)).toBe('open')
-      expect(markerIcon(last)).toBeUndefined()
+      expect(hasCheck(last)).toBe(false)
       // Not navigable -> no button attribute on the list-item.
       expect(last.attributes('button')).toBeUndefined()
     })
@@ -130,23 +128,15 @@ describe('ProgressTracker.vue', () => {
       taskStore.currentRootTaskId[FormType.DPIA] = '0'
 
       const wrapper = mountTracker({ props: { navigable: true } })
-      // The number sits in the step marker, not in the title.
-      expect(titles(wrapper)).toEqual(['Inleiding', 'Vragen', 'Ondertekening'])
-      expect(titles(wrapper)).not.toContain('Proces voltooid')
-      expect(wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('text')))
-        .toEqual(['0', '1', undefined])
-
-      const positions = wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('position'))
-      expect(positions).toEqual(['first', 'between', 'last'])
+      // The signing task closes the list, and a signing step carries no number.
+      expect(items(wrapper).map(rowLabel)).toEqual(['0. Inleiding', '1. Vragen', 'Ondertekening'])
     })
 
-    it('markeert een lijst met precies een stap als position="only" (geen lijnstompjes)', () => {
+    it('toont alleen het "Proces voltooid"-item wanneer er geen stappen zijn', () => {
       seedRootTasks(taskStore, [])
 
       const wrapper = mountTracker()
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
-      expect(cells).toHaveLength(1)
-      expect(cells[0].attributes('position')).toBe('only')
+      expect(items(wrapper)).toHaveLength(1)
       expect(titles(wrapper)).toEqual(['Proces voltooid'])
     })
 
@@ -157,8 +147,7 @@ describe('ProgressTracker.vue', () => {
       seedRootTasks(taskStore, [noType])
 
       const wrapper = mountTracker()
-      expect(titles(wrapper)).toEqual(['Geen type', 'Proces voltooid'])
-      expect(markerText(items(wrapper)[0])).toBe('0')
+      expect(rowLabel(items(wrapper)[0])).toBe('0. Geen type')
     })
   })
 
@@ -167,24 +156,21 @@ describe('ProgressTracker.vue', () => {
       seedRootTasks(taskStore, [flatTask({ id: '0', task: 'Zonder prefix', is_official_id: false })])
 
       const wrapper = mountTracker()
-      expect(markerText(items(wrapper)[0])).toBeUndefined()
-      expect(items(wrapper)[0].find('.toc-title').attributes('text')).toBe('Zonder prefix')
+      expect(rowLabel(items(wrapper)[0])).toBe('Zonder prefix')
     })
 
     it('zet het nummer voor een officieel id in de marker van een gewone taak', () => {
       seedRootTasks(taskStore, [flatTask({ id: '3', task: 'Met nummer', is_official_id: true, type: ['task_group'] })])
 
       const wrapper = mountTracker()
-      expect(markerText(items(wrapper)[0])).toBe('3')
-      expect(items(wrapper)[0].find('.toc-title').attributes('text')).toBe('Met nummer')
+      expect(rowLabel(items(wrapper)[0])).toBe('3. Met nummer')
     })
 
     it('toont geen nummer voor een informational taak met officieel id (rechter OR-tak)', () => {
       seedRootTasks(taskStore, [flatTask({ id: '0', task: 'Toelichting', type: ['informational'], is_official_id: true })])
 
       const wrapper = mountTracker()
-      expect(markerText(items(wrapper)[0])).toBeUndefined()
-      expect(items(wrapper)[0].find('.toc-title').attributes('text')).toBe('Toelichting')
+      expect(rowLabel(items(wrapper)[0])).toBe('Toelichting')
     })
 
     it('toont geen nummer voor een signing-taak met officieel id', () => {
@@ -195,8 +181,7 @@ describe('ProgressTracker.vue', () => {
 
       const wrapper = mountTracker()
       const last = items(wrapper)[items(wrapper).length - 1]
-      expect(markerText(last)).toBeUndefined()
-      expect(last.find('.toc-title').attributes('text')).toBe('Slot')
+      expect(rowLabel(last)).toBe('Slot')
     })
   })
 
@@ -215,19 +200,15 @@ describe('ProgressTracker.vue', () => {
       const open = items(wrapper)[0]
 
       expect(nodeKind(done)).toBe('done')
-      expect(trackStatus(done)).toBe('past')
-      // The marker carries both: the chapter number and, through its past
-      // status, that the chapter is done. No second tick at the row end.
-      expect(markerIcon(done)).toBeUndefined()
-      expect(markerText(done)).toBe('1')
-      expect(done.find('.toc-done').exists()).toBe(false)
+      // A finished step ends in a check mark; the number stays in the label.
+      expect(hasCheck(done)).toBe(true)
+      expect(rowLabel(done)).toBe('1. Vragen')
       expect(done.find('.sr-only').text()).toBe(', voltooid')
       expect(done.attributes('current')).toBeUndefined()
 
       expect(nodeKind(open)).toBe('open')
-      expect(trackStatus(open)).toBe('future')
-      expect(markerIcon(open)).toBeUndefined()
-      expect(markerText(open)).toBe('0')
+      expect(hasCheck(open)).toBe(false)
+      expect(rowLabel(open)).toBe('0. Inleiding')
       expect(open.find('.sr-only').exists()).toBe(false)
     })
 
@@ -242,10 +223,9 @@ describe('ProgressTracker.vue', () => {
       const current = items(wrapper)[1]
 
       expect(nodeKind(current)).toBe('current')
-      expect(trackStatus(current)).toBe('current')
-      expect(markerText(current)).toBe('1')
+      expect(rowLabel(current)).toBe('1. Vragen')
       expect(current.attributes('current')).toBe('true')
-      expect(markerIcon(current)).toBeUndefined()
+      expect(hasCheck(current)).toBe(false)
     })
 
     it('een voltooide huidige stap houdt de check (node done) maar krijgt ook het current-attribuut', () => {
@@ -257,7 +237,7 @@ describe('ProgressTracker.vue', () => {
       const first = items(wrapper)[0]
 
       expect(nodeKind(first)).toBe('done')
-      expect(trackStatus(first)).toBe('past')
+      expect(nodeKind(first)).toBe('done')
       expect(first.attributes('current')).toBe('true')
     })
 
@@ -272,9 +252,9 @@ describe('ProgressTracker.vue', () => {
       const wrapper = mountTracker({ props: { disabled: true, navigable: true } })
       for (const item of items(wrapper)) {
         expect(nodeKind(item)).toBe('open')
-        expect(trackStatus(item)).toBe('future')
+        expect(nodeKind(item)).toBe('open')
         expect(item.attributes('current')).toBeUndefined()
-        expect(markerIcon(item)).toBeUndefined()
+        expect(hasCheck(item)).toBe(false)
       }
     })
 
@@ -288,7 +268,7 @@ describe('ProgressTracker.vue', () => {
 
       const wrapper = mountTracker({ props: { navigable: true } })
       expect(nodeKind(items(wrapper)[1])).toBe('open')
-      expect(markerIcon(items(wrapper)[1])).toBeUndefined()
+      expect(hasCheck(items(wrapper)[1])).toBe(false)
     })
   })
 
@@ -306,12 +286,11 @@ describe('ProgressTracker.vue', () => {
       const partial = items(wrapper)[2]
 
       expect(nodeKind(partial)).toBe('progress')
-      expect(trackStatus(partial)).toBe('future')
-      // The number stays; the class tints the marker's fill through the
-      // component's own token.
+      expect(hasCheck(partial)).toBe(false)
       expect(partial.classes()).toContain('toc-item--progress')
-      expect(markerText(partial)).toBe('2')
-      expect(markerIcon(partial)).toBeUndefined()
+      // The number stays, now in front of the title on the same line.
+      expect(rowLabel(partial)).toBe('2. Slot')
+      expect(hasCheck(partial)).toBe(false)
       expect(partial.findAll('.sr-only').some(s => s.text() === ', deels ingevuld')).toBe(true)
     })
 
