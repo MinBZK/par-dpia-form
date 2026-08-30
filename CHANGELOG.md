@@ -17,6 +17,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Een selectievakje staat weer op één lijn met de eerste regel van zijn label.
+* De verwijzing naar art. 27 AI-verordening is weer een label ter grootte van
+  zijn tekst, in plaats van een balk over de volle kolombreedte, en leest een
+  maat groter.
 * De hele interface is overgezet naar het NLDD Design System van de
   Nederlandse Digitale Dienst. De vormgeving is vernieuwd (Rijkshuisstijl
   blijft), met onder meer een inhoudsopgave die op smalle schermen inklapt,

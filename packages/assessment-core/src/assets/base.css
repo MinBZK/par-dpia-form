@@ -84,6 +84,16 @@ body {
   cursor: default;
 }
 
+.form-field__choice nldd-checkbox,
+.form-field__choice nldd-radio-button {
+  flex-shrink: 0;
+  /* Centre the control on the first line of the label. The control is 24px and
+     the line box 27px, so flex-start leaves it 1.5px high -- enough to read as
+     misaligned against a capital. Rebuilt from the label's own font size,
+     because `1lh` inside the control resolves against the control. */
+  margin-block-start: max(0px, calc((1em * var(--form-choice-line-height) - 1.5rem) / 2));
+}
+
 .form-field__choice input[type='radio'],
 .form-field__choice input[type='checkbox'] {
   width: 1.25rem;
@@ -431,17 +441,20 @@ nldd-sidebar-section {
 .form-field__fria-tag,
 .content-tag-link {
   display: inline-flex;
+  /* A flex child of the label column stretches to its width unless it says
+     otherwise, and a tag that wide reads as an input. */
+  align-self: flex-start;
   align-items: center;
   gap: var(--primitives-space-4, 0.25rem);
   margin-inline-start: var(--primitives-space-4, 0.25rem);
   vertical-align: middle;
-  padding-inline: var(--primitives-space-6, 0.375rem);
+  padding: var(--primitives-space-2, 0.125rem) var(--primitives-space-8, 0.5rem);
   border: var(--primitives-border-width-thin, 1px) solid
     var(--semantics-categories-accent-tinted-highlight-border-color);
   border-radius: var(--components-tag-md-corner-radius);
   background: var(--semantics-categories-accent-tinted-background-color);
   color: var(--semantics-categories-accent-tinted-content-color);
-  font: var(--primitives-font-body-xs-medium-flat);
+  font: var(--primitives-font-body-sm-medium-flat);
   text-decoration: none;
 }
 
