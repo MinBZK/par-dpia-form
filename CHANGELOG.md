@@ -17,6 +17,8 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Invulhulpen heeft een eigen tabbladpictogram: een document met een pen op
+  het Rijksblauw, in plaats van het blauwe vlak van eerder.
 * Een selectievakje staat weer op één lijn met de eerste regel van zijn label.
 * De verwijzing naar art. 27 AI-verordening is weer een label ter grootte van
   zijn tekst, in plaats van een balk over de volle kolombreedte, en leest een

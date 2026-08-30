@@ -68,6 +68,14 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   het menu opent; dat dekt de trigger, maar het menu zelf blijft naamloos.
   Gevraagd: `accessible-label` op `nldd-menu`, of documenteren dat de naam
   bewust van de trigger komt.
+- **Geen favicon-variant van een icoon.** Elke applicatie heeft een
+  tabbladpictogram nodig, en de logische bron is de iconenset van het systeem.
+  De registry levert alleen een 24x24-pad met `currentColor`, bedoeld voor
+  `nldd-icon`. Wij bouwen de tegel (Rijksblauw, ronde hoeken) en de
+  16/32/48-varianten daarom zelf, inclusief een vereenvoudigde tekening voor
+  16 pixels, want de gewone iconen lopen op die maat dicht. Gevraagd: per icoon
+  een favicon-uitvoer (SVG-tegel plus meergrootte-ICO), of een gedocumenteerd
+  recept met de juiste tegelkleur en marges.
 - **Onduidelijk welke component-tokens buiten hun component bruikbaar zijn.**
   Nagemeten leveren de `--components-tooltip-*`-tokens buiten `nldd-tooltip`
   wel degelijk een correct paar (contrast 6.2 in licht, 9.9 in donker), maar
