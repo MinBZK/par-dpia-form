@@ -287,7 +287,7 @@ def inject_terms(text, term_map, already_matched_terms=None):
                 # and touch users can read the explanation too.
                 term_html = (
                     f'<span class="aiv-definition" tabindex="0">'
-                    f'{html.escape(matched_text)}'
+                    f"{html.escape(matched_text)}"
                     f'<span class="aiv-definition-text" role="note">{definition}'
                 )
 
