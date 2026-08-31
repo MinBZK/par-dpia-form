@@ -279,7 +279,7 @@ const stepCompleted = computed(() => taskStore.isRootTaskCompleted(currentRootTa
 // happened: a checkbox that keeps the same wording either way leaves you
 // guessing whether the click registered.
 const completeLabel = computed(() =>
-  stepCompleted.value ? 'Afgerond — je kunt hier later op terugkomen' : 'Markeer deze stap als afgerond',
+  stepCompleted.value ? 'Afgerond, je kunt hier later op terugkomen' : 'Markeer deze stap als afgerond',
 )
 
 // nldd-checkbox-field emits its own change, and the inner nldd-checkbox emits

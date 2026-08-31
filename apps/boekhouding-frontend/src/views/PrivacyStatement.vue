@@ -26,19 +26,19 @@ useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
     <h2>Welke gegevens verwerken we?</h2>
     <p>Bij het gebruik van Invulhulpen verwerken we de volgende persoonsgegevens:</p>
     <ul>
-      <li><strong>E-mailadres</strong> — verkregen via de inlogvoorziening (SSO Rijk / RIG Keycloak) bij authenticatie</li>
-      <li><strong>Weergavenaam</strong> — verkregen via de inlogvoorziening bij authenticatie</li>
-      <li><strong>Bewerkingsgeschiedenis</strong> — welke gebruiker welke velden heeft gewijzigd en wanneer</li>
-      <li><strong>Projectlidmaatschap</strong> — welke gebruikers lid zijn van welke projecten en hun rol daarin</li>
-      <li><strong>IP-adres en request-metadata</strong> — worden vastgelegd in serverlogboeken ten behoeve van beveiliging en foutopsporing</li>
+      <li><strong>E-mailadres</strong>: verkregen via de inlogvoorziening (SSO Rijk / RIG Keycloak) bij authenticatie</li>
+      <li><strong>Weergavenaam</strong>: verkregen via de inlogvoorziening bij authenticatie</li>
+      <li><strong>Bewerkingsgeschiedenis</strong>: welke gebruiker welke velden heeft gewijzigd en wanneer</li>
+      <li><strong>Projectlidmaatschap</strong>: welke gebruikers lid zijn van welke projecten en hun rol daarin</li>
+      <li><strong>IP-adres en request-metadata</strong>: worden vastgelegd in serverlogboeken ten behoeve van beveiliging en foutopsporing</li>
     </ul>
 
     <h2>Waarom verwerken we deze gegevens?</h2>
     <p>We verwerken deze gegevens voor de volgende doeleinden:</p>
     <ul>
-      <li><strong>Authenticatie en autorisatie</strong> — om te bepalen wie toegang heeft tot welke projecten</li>
-      <li><strong>Samenwerking</strong> — zodat meerdere gebruikers samen aan een assessment kunnen werken</li>
-      <li><strong>Audit trail</strong> — om een traceerbare historie te bieden van wie wat heeft gewijzigd, ten behoeve van kwaliteitsborging en verantwoording</li>
+      <li><strong>Authenticatie en autorisatie</strong>: om te bepalen wie toegang heeft tot welke projecten</li>
+      <li><strong>Samenwerking</strong>: zodat meerdere gebruikers samen aan een assessment kunnen werken</li>
+      <li><strong>Audit trail</strong>: om een traceerbare historie te bieden van wie wat heeft gewijzigd, ten behoeve van kwaliteitsborging en verantwoording</li>
     </ul>
 
     <h2>Rechtsgrond</h2>
@@ -84,11 +84,11 @@ useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
     <h2>Je rechten</h2>
     <p>Op grond van de AVG heb je de volgende rechten:</p>
     <ul>
-      <li><strong>Inzage</strong> — je kunt opvragen welke gegevens we van je verwerken</li>
-      <li><strong>Rectificatie</strong> — je kunt onjuiste gegevens laten corrigeren</li>
-      <li><strong>Verwijdering</strong> — je kunt verzoeken om verwijdering van je gegevens</li>
-      <li><strong>Beperking</strong> — je kunt vragen om beperking van de verwerking</li>
-      <li><strong>Bezwaar</strong> — je kunt bezwaar maken tegen de verwerking</li>
+      <li><strong>Inzage</strong>: je kunt opvragen welke gegevens we van je verwerken</li>
+      <li><strong>Rectificatie</strong>: je kunt onjuiste gegevens laten corrigeren</li>
+      <li><strong>Verwijdering</strong>: je kunt verzoeken om verwijdering van je gegevens</li>
+      <li><strong>Beperking</strong>: je kunt vragen om beperking van de verwerking</li>
+      <li><strong>Bezwaar</strong>: je kunt bezwaar maken tegen de verwerking</li>
     </ul>
     <p>
       Voor het uitoefenen van deze rechten kun je contact opnemen via
