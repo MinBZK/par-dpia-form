@@ -118,17 +118,18 @@ onMounted(async () => {
 
 <template>
   <nldd-simple-section width="60rem" padding-top="24">
-    <nldd-container gap="48">
+    <nldd-container gap="32">
       <nldd-container gap="16">
         <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
-        <p>
+        <nldd-text>
           Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
           zie je dat hieronder, met een korte uitleg.
-        </p>
+        </nldd-text>
       </nldd-container>
 
     <section aria-labelledby="status-onderdelen">
-      <h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2>
+      <nldd-container gap="16">
+      <nldd-title size="4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
       <nldd-collection layout="grid" item-width="380px" gap="16px">
 
         <nldd-card>
@@ -194,14 +195,16 @@ onMounted(async () => {
         </nldd-card>
 
       </nldd-collection>
+      </nldd-container>
     </section>
 
     <section aria-labelledby="status-versie">
-      <h2 id="status-versie">Welke versie draait er?</h2>
-      <p>
+      <nldd-container gap="16">
+      <nldd-title size="4"><h2 id="status-versie">Welke versie draait er?</h2></nldd-title>
+      <nldd-text>
         Handig om mee te sturen als je een probleem meldt. Je kunt de versie kopiëren of de
         broncode op GitHub bekijken.
-      </p>
+      </nldd-text>
       <nldd-card>
         <nldd-container padding="16" gap="16">
           <p class="version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ displayVersion }}</span></template></p>
@@ -220,6 +223,7 @@ onMounted(async () => {
               :href="githubUrl"
               target="_blank"
               text="Open op GitHub"
+              start-icon="git-branch"
               end-icon="external-link"
               data-test="github-link"
             ></nldd-button>
@@ -227,6 +231,7 @@ onMounted(async () => {
           <span class="sr-only" role="status" aria-live="polite" data-test="copy-feedback">{{ copyFeedback }}</span>
         </nldd-container>
       </nldd-card>
+      </nldd-container>
     </section>
     </nldd-container>
   </nldd-simple-section>
