@@ -73,7 +73,7 @@ const assessments = [
         Krijg grip op pre-scans, DPIA's en IAMA's
       </h1>
       <nldd-container max-width="42rem">
-        <nldd-text color="secondary">
+        <nldd-text>
           Begin met de pre-scan en vul daarna, afhankelijk van de uitkomst, een DPIA en/of IAMA in.
           Werk zonder account in je browser, ook offline, of log in om samen te werken.
         </nldd-text>
