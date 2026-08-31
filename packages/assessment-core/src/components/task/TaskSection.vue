@@ -285,14 +285,21 @@ function shouldSkipTask(taskId: string): boolean {
           <template v-else>
             <template v-for="instanceId in taskStore.getInstanceIdsForTask(group.id)" :key="instanceId">
               <template v-if="shouldShowTask(group.id, instanceId)">
-                <!--Single task (no children): render the task itself -->
-                <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
-                  :instanceId="instanceId" :showDescription="true" />
+                <!-- One question per box: nldd-box is the design system's way of
+                     marking off a region that belongs together, and the tint
+                     makes the question boundaries scannable in a long section. -->
+                <nldd-box>
+                  <nldd-container padding="16">
+                    <!--Single task (no children): render the task itself -->
+                    <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
+                      :instanceId="instanceId" :showDescription="true" />
 
-                <!-- Nested task group (has children): render children as TaskGroup -->
-                <template v-else>
-                  <TaskGroup :taskId="group.id" :instanceId="instanceId" />
-                </template>
+                    <!-- Nested task group (has children): render children as TaskGroup -->
+                    <template v-else>
+                      <TaskGroup :taskId="group.id" :instanceId="instanceId" />
+                    </template>
+                  </nldd-container>
+                </nldd-box>
               </template>
             </template>
 
@@ -310,8 +317,13 @@ function shouldSkipTask(taskId: string): boolean {
         <ActionPointsOverview v-if="showActiepuntenOverview" />
       </nldd-container>
 
-      <!-- Single task: render the task itself -->
-      <TaskItem v-else-if="!taskIsOfTaskType(task, 'task_group')" :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
+      <!-- Single task: render the task itself, in the same box as the
+           questions of a grouped section. -->
+      <nldd-box v-else-if="!taskIsOfTaskType(task, 'task_group')">
+        <nldd-container padding="16">
+          <TaskItem :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
+        </nldd-container>
+      </nldd-box>
     </nldd-container>
   </div>
 </template>

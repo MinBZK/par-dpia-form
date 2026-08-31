@@ -275,13 +275,6 @@ const isInformationalStep = computed(() => {
 
 const stepCompleted = computed(() => taskStore.isRootTaskCompleted(currentRootTaskId.value))
 
-// The label states what ticking the box does, and once ticked it confirms what
-// happened: a checkbox that keeps the same wording either way leaves you
-// guessing whether the click registered.
-const completeLabel = computed(() =>
-  stepCompleted.value ? 'Afgerond, je kunt hier later op terugkomen' : 'Markeer deze stap als afgerond',
-)
-
 // nldd-checkbox-field emits its own change, and the inner nldd-checkbox emits
 // one that crosses the shadow boundary as well (composed: true) -- so a single
 // click arrives twice. Set the state from the event instead of toggling, and a
@@ -359,7 +352,7 @@ const completeAnnouncement = computed(() => {
                line above the two actions at every width. -->
           <nldd-container gap="16">
             <nldd-checkbox-field v-if="!isLastTask && !isInformationalStep"
-              class="step-complete" name="step_completed" :label="completeLabel"
+              class="step-complete" name="step_completed" label="Markeer deze stap als afgerond"
               :checked="stepCompleted || undefined" :inert="contentInert || undefined"
               @change="handleCompleteChange"></nldd-checkbox-field>
             <!-- The label changes on screen; this says the same thing out loud,
