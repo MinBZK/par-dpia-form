@@ -190,3 +190,20 @@ describe('previousPage', () => {
     expect(previousPage.value).toBeNull()
   })
 })
+
+describe('scroll behaviour', () => {
+  const scroll = () =>
+    router.options.scrollBehavior as (
+      to: unknown,
+      from: unknown,
+      saved: { left: number; top: number } | null,
+    ) => unknown
+
+  it('opens a new page at the top', () => {
+    expect(scroll()({}, {}, null)).toEqual({ top: 0 })
+  })
+
+  it('restores the reader\u2019s place on back and forward', () => {
+    expect(scroll()({}, {}, { left: 0, top: 640 })).toEqual({ left: 0, top: 640 })
+  })
+})

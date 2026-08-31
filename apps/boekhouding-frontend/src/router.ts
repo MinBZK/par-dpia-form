@@ -85,6 +85,9 @@ export const previousPage = ref<{ text: string; to: string } | null>(null)
 export const router = createRouter({
   history: createWebHistory(),
   routes,
+  // A new page starts at the top; only browser back/forward restores where the
+  // reader was.
+  scrollBehavior: (_to, _from, savedPosition) => savedPosition ?? { top: 0 },
 })
 
 router.beforeEach(async (to, from) => {
