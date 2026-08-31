@@ -76,6 +76,15 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   16 pixels, want de gewone iconen lopen op die maat dicht. Gevraagd: per icoon
   een favicon-uitvoer (SVG-tegel plus meergrootte-ICO), of een gedocumenteerd
   recept met de juiste tegelkleur en marges.
+- **`nldd-modal-dialog` geeft maar een deel van `nldd-inline-dialog` door.** De
+  modal rendert intern een inline-dialog, maar spiegelt alleen `variant`,
+  `icon`, `text`, `supporting-text` en `accessible-label`. `size="lg"`,
+  `icon-color` en `heading-level` blijven onbereikbaar. Gevolg: het icoon is
+  altijd 40px terwijl de titel `body-md-bold` blijft, dus in een bevestiging
+  weegt het icoon zwaarder dan de vraag; en de titel blijft een `<p>`, dus de
+  dialoog heeft geen kop voor een screenreader. Bij `variant="alert"` overrulet
+  het component bovendien een eigen `icon`. Gevraagd: `size`, `icon-color` en
+  `heading-level` doorgeven, of documenteren waarom niet.
 - **Onduidelijk welke component-tokens buiten hun component bruikbaar zijn.**
   Nagemeten leveren de `--components-tooltip-*`-tokens buiten `nldd-tooltip`
   wel degelijk een correct paar (contrast 6.2 in licht, 9.9 in donker), maar
