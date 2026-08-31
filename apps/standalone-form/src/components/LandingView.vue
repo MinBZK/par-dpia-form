@@ -286,6 +286,20 @@ async function downloadOfflineApp() {
       <ExportPdfInfo />
     </nldd-container>
 
+    <nldd-rich-text v-if="canDownloadOfflineCopy">
+      <h2>Offline gebruiken</h2>
+      <p>
+        Je kunt deze invulhulp als één HTML-bestand downloaden en lokaal openen, ook zonder internet.
+        Het bestand bevat de volledige invulhulp. Je gegevens blijven op je eigen computer.
+      </p>
+      <nldd-button variant="secondary" text="Download invulhulp als HTML-bestand" start-icon="file-badge-arrow-down"
+        width="100%" max-width="22rem" :disabled="downloading || undefined"
+        @click="downloadOfflineApp"></nldd-button>
+      <p v-if="downloadFailed" role="alert" class="download-error">
+        Het downloaden is niet gelukt. Probeer het opnieuw.
+      </p>
+    </nldd-rich-text>
+
     <!-- Only when there is something to wipe: on an empty browser the button
          would just raise a question it cannot answer. -->
     <nldd-rich-text v-if="cachedTitles.length > 0">
@@ -294,21 +308,8 @@ async function downloadOfflineApp() {
         In deze browser staan antwoorden van je {{ cachedSummary }} opgeslagen. Werk je op een
         gedeelde of openbare computer, wis ze dan voordat je weggaat.
       </p>
-      <nldd-button variant="secondary" text="Wis alle opgeslagen gegevens" start-icon="trash"
+      <nldd-button variant="secondary" text="Wis alle opgeslagen gegevens" start-icon="trash" width="100%" max-width="22rem"
         @click="clearAllOpen = true"></nldd-button>
-    </nldd-rich-text>
-
-    <nldd-rich-text v-if="canDownloadOfflineCopy">
-      <h2>Offline gebruiken</h2>
-      <p>
-        Je kunt deze invulhulp als één HTML-bestand downloaden en lokaal openen, ook zonder internet.
-        Het bestand bevat de volledige invulhulp. Je gegevens blijven op je eigen computer.
-      </p>
-      <nldd-button variant="secondary" text="Download invulhulp als HTML-bestand" :disabled="downloading || undefined"
-        @click="downloadOfflineApp"></nldd-button>
-      <p v-if="downloadFailed" role="alert" class="download-error">
-        Het downloaden is niet gelukt. Probeer het opnieuw.
-      </p>
     </nldd-rich-text>
     </nldd-container>
   </nldd-simple-section>
