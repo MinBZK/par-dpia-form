@@ -194,7 +194,7 @@ describe('LandingPage', () => {
       }
       const icons = grid.findAll('nldd-icon')
       expect(icons.map((icon) => icon.attributes('name'))).toEqual([
-        'book',
+        'foundation',
         'square-grid-2x2',
         'seal-check-mark',
         'numbered-list',

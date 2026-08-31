@@ -25,7 +25,7 @@ async function goToProjects() {
 
 const pillars: { icon: string; title: string; body: string }[] = [
   {
-    icon: 'book',
+    icon: 'foundation',
     title: 'Gebaseerd op rijksbrede kaders',
     body: 'De pre-scan en DPIA volgen het Rapportagemodel DPIA Rijksdienst (versie 3.0) en de Informatiemodellen voor de DPIA en pre-scan DPIA. Het IAMA is gebaseerd op het instrument van de Universiteit Utrecht (versie 2.0).',
   },
