@@ -50,7 +50,7 @@ describe('FileUploadPage.vue', () => {
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
       expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
-      expect(wrapper.find('[slot="subtitle"]').text()).toContain(
+      expect(wrapper.find('nldd-text').text()).toContain(
         'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?',
       )
       expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met de DPIA')
@@ -75,7 +75,7 @@ describe('FileUploadPage.vue', () => {
         'https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes',
       )
       expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
-      expect(wrapper.find('[slot="subtitle"]').text()).toContain('Heb je al eerder een IAMA ingevuld?')
+      expect(wrapper.find('nldd-text').text()).toContain('Heb je al eerder een IAMA ingevuld?')
       expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met het IAMA')
     })
   })
@@ -91,10 +91,11 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is.',
       )
-      // The heading stays short (nldd-title caps at 40ch); the question that
-      // used to be the label now reads on the line below it.
+      // The heading stays short (nldd-title caps at 40ch); the question reads
+      // on the line below it, in the normal text colour rather than as a
+      // subtitle, because it is an instruction and not a caption.
       expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
-      expect(wrapper.find('[slot="subtitle"]').text()).toBe(
+      expect(wrapper.find('nldd-text').text()).toBe(
         'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? ' +
           'Upload het PDF- of JSON-bestand om verder te werken.',
       )

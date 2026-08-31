@@ -8,6 +8,7 @@ import '@nldd/design-system/title'
 import '@nldd/design-system/rich-text'
 import '@nldd/design-system/file-field'
 import '@nldd/design-system/spacer'
+import '@nldd/design-system/text'
 import { type AssessmentState } from '../models/assessmentState'
 import { importFromJson } from '../utils/jsonExport'
 import { importFromPdf } from '../utils/pdfImport'
@@ -135,8 +136,9 @@ const formTypeArticle = computed(() => {
       <div>
         <nldd-title size="5">
           <h2>{{ uploadText }}</h2>
-          <span slot="subtitle">{{ uploadHint }}</span>
         </nldd-title>
+        <nldd-spacer size="8"></nldd-spacer>
+        <nldd-text>{{ uploadHint }}</nldd-text>
         <nldd-spacer size="12"></nldd-spacer>
         <nldd-file-field accept=".json,.pdf"
           accessible-label="Eerder opgeslagen PDF- of JSON-bestand"
@@ -145,13 +147,11 @@ const formTypeArticle = computed(() => {
         <ExportPdfInfo />
       </div>
 
-      <!-- Same row as the step pages use: the action that moves you forward
-           sits at the right-hand end there, so it does here too. -->
-      <div class="step-actions">
+      <nldd-container layout="wrap" gap="16">
         <nldd-button variant="primary" :start-icon="isProcessing ? 'arrow-clockwise' : undefined"
           :text="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
           :disabled="isProcessing || undefined" @click="startDpia"></nldd-button>
-      </div>
+      </nldd-container>
 
       <nldd-banner v-if="fileUploadError" variant="critical" :text="fileUploadError"></nldd-banner>
     </nldd-container>
