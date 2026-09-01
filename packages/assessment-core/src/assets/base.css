@@ -470,25 +470,6 @@ nldd-sidebar-section {
 
 /* Styling hooks for HTML embedded in the YAML sources (rendered via v-html,
    so these must stay global light-DOM rules). */
-.content-alert {
-  display: flex;
-  gap: var(--primitives-space-8, 0.5rem);
-  padding: var(--primitives-space-12, 0.75rem) var(--primitives-space-16, 1rem);
-  border-radius: 8px;
-  margin-block: var(--primitives-space-8, 0.5rem);
-}
-
-.content-alert--info {
-  background: var(--primitives-color-accent-50, #eef7fb);
-  border: 1px solid var(--primitives-color-accent-200, #b3d9ef);
-}
-
-.content-alert__label {
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-
 .content-tag-link::after {
   content: '\2197';
   font-size: 0.9em;

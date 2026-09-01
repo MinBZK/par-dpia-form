@@ -188,7 +188,7 @@ const cancelPendingDelete = () => {
               <!-- Repeatable simple fields -->
               <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
                 :key="`simple-rep-${childInstanceId}`">
-                <div v-if="shouldShowTask(childId, childInstanceId)">
+                <div v-if="shouldShowTask(childId, childInstanceId)" class="task-fieldset__repeatable">
                   <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
                     :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
@@ -202,7 +202,7 @@ const cancelPendingDelete = () => {
 
               <!-- Add button for repeatable field -->
               <template v-if="canUserCreateInstances(childId)">
-                <nldd-button :inert="readonly || undefined" variant="accent-transparent" start-icon="plus"
+                <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
                   :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                   @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
                 <nldd-spacer size="16"></nldd-spacer>
@@ -238,7 +238,7 @@ const cancelPendingDelete = () => {
               <nldd-box v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
                 :background="boxBackground">
                 <nldd-container padding="16">
-                  <nldd-button :inert="readonly || undefined" variant="accent-transparent" start-icon="plus"
+                  <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
                     :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                     @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
                 </nldd-container>

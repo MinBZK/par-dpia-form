@@ -43,7 +43,7 @@ function choose(format: ExportFormat) {
 
   <!-- Item in the utility menu bar of the top navigation. -->
   <nldd-menu-bar-item v-else-if="menuBar" text="Exporteer" icon="download" expandable>
-    <nldd-menu>
+    <nldd-menu width="10rem">
       <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
         @select="choose(f.format)"></nldd-menu-item>
     </nldd-menu>
@@ -52,7 +52,7 @@ function choose(format: ExportFormat) {
   <!-- Compact button with the menu in its popup slot. -->
   <nldd-button v-else variant="accent-transparent" size="xs" text="Exporteer"
     expandable popup-type="menu">
-    <nldd-menu slot="popup">
+    <nldd-menu slot="popup" width="10rem">
       <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
         @select="choose(f.format)"></nldd-menu-item>
     </nldd-menu>

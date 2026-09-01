@@ -12,6 +12,7 @@ import '@nldd/design-system/container'
 import '@nldd/design-system/title'
 import { FormType } from '../../models/dpia'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
+import { tidyDescriptionHtml } from '../../utils/descriptionHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '../../stores/tasks'
 import { computed } from 'vue'
@@ -229,7 +230,7 @@ function shouldSkipTask(taskId: string): boolean {
 
     <nldd-container v-if="isSigningTask" gap="32">
       <div v-if="task.description" class="task-section__description">
-        <p class="preserve-whitespace" v-html="task.description"></p>
+        <div class="preserve-whitespace" v-html="tidyDescriptionHtml(task.description)"></div>
       </div>
 
       <Results v-if="activeNamespace === FormType.PRE_SCAN" />
@@ -249,7 +250,7 @@ function shouldSkipTask(taskId: string): boolean {
 
       <!-- Description section (if available) -->
       <div v-if="task.description" class="task-section__description">
-        <p class="preserve-whitespace" v-html="task.description"></p>
+        <div class="preserve-whitespace" v-html="tidyDescriptionHtml(task.description)"></div>
         <template v-if="task.sources">
           <template v-for="source in task.sources" :key="source">
             <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
@@ -272,7 +273,7 @@ function shouldSkipTask(taskId: string): boolean {
                   <h3>{{ taskStore.taskById(childId).task }}</h3>
                 </nldd-title>
               </template>
-              <p class="preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
+              <div class="preserve-whitespace" v-html="tidyDescriptionHtml(taskStore.taskById(childId).description)"></div>
               <template v-if="taskStore.taskById(childId).sources">
                 <template v-for="source in taskStore.taskById(childId).sources" :key="source.source">
                   <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
@@ -305,7 +306,7 @@ function shouldSkipTask(taskId: string): boolean {
 
             <nldd-box v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)">
               <nldd-container padding="16">
-                <nldd-button variant="accent-transparent" start-icon="plus"
+                <nldd-button variant="secondary" start-icon="plus"
                   :text="`Voeg extra ${taskStore.taskById(group.id).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
                   @click="handleAddRepeatableTask(group.id)"></nldd-button>
               </nldd-container>
