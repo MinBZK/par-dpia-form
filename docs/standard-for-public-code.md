@@ -4,6 +4,8 @@ Dit is de zelfevaluatie van Invulhulpen tegen de [Standard for Public Code](http
 
 Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heeft dit niet getoetst.
 
+De criteria 4, 5, 7 en 14 zijn bijgewerkt nadat `SUPPORT.md` en `GOVERNANCE.md` waren toegevoegd en `publiccode.yml` was hernoemd; criterium 13 nadat de repository REUSE-compliant werd.
+
 | Onderdeel | Waarde |
 |-----------|--------|
 | Standaard | Standard for Public Code v0.8.0 |
@@ -20,7 +22,7 @@ Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heef
 | 2 | [Bundle policy and source code](#2-bundle-policy-and-source-code) | Voldaan |
 | 3 | [Make the codebase reusable and portable](#3-make-the-codebase-reusable-and-portable) | Gedeeltelijk |
 | 4 | [Welcome contributors](#4-welcome-contributors) | Gedeeltelijk |
-| 5 | [Make contributing easy](#5-make-contributing-easy) | Gedeeltelijk |
+| 5 | [Make contributing easy](#5-make-contributing-easy) | Voldaan |
 | 6 | [Maintain version control](#6-maintain-version-control) | Voldaan |
 | 7 | [Require review of contributions](#7-require-review-of-contributions) | Gat |
 | 8 | [Document codebase objectives](#8-document-codebase-objectives) | Gedeeltelijk |
@@ -28,12 +30,12 @@ Het is een zelfevaluatie, geen certificering. De Foundation for Public Code heef
 | 10 | [Use plain English](#10-use-plain-english) | Bewuste afwijking |
 | 11 | [Use open standards](#11-use-open-standards) | Grotendeels |
 | 12 | [Use continuous integration](#12-use-continuous-integration) | Voldaan |
-| 13 | [Publish with an open license](#13-publish-with-an-open-license) | Gedeeltelijk |
+| 13 | [Publish with an open license](#13-publish-with-an-open-license) | Voldaan |
 | 14 | [Make the codebase findable](#14-make-the-codebase-findable) | Gedeeltelijk |
 | 15 | [Use a coherent style](#15-use-a-coherent-style) | Gedeeltelijk |
 | 16 | [Document codebase maturity](#16-document-codebase-maturity) | Voldaan |
 
-Eén criterium heeft een gat op een MUST-eis: bijdragen van het onderhoudsteam gaan zonder review naar `main` (criterium 7). Eén criterium halen we bewust niet: de documentatie is Nederlands, terwijl de standaard Engels als gezaghebbende taal eist (criterium 10).
+Eén criterium heeft een gat op een MUST-eis: bijdragen van het onderhoudsteam gaan naar `main` zonder dat review afdwingbaar is (criterium 7). Wat we in plaats daarvan doen, staat in `GOVERNANCE.md`. Eén criterium halen we bewust niet: de documentatie is Nederlands, terwijl de standaard Engels als gezaghebbende taal eist (criterium 10).
 
 ## 1. Code in the open
 
@@ -49,7 +51,7 @@ Eén criterium heeft een gat op een MUST-eis: bijdragen van het onderhoudsteam g
 
 **Voldaan.** Dit is het sterkste punt van de codebase.
 
-- Het Rijksmodel DPIA 3.0 en het IAMA-kader staan als YAML in `sources/`, in dezelfde repo, releases en reviewstroom als de code die ze uitvoert.
+- Het Rijksmodel DPIA 3.0 en het IAMA staan als YAML in `sources/`, in dezelfde repo, releases en reviewstroom als de code die ze uitvoert.
 - Het beleid is machine-leesbaar en ondubbelzinnig: gevalideerd tegen `schemas/assessment-definition.v2.schema.json` en `schemas/begrippenkader.v1.schema.json`.
 - CI bewaakt de samenhang tussen beleid en code bij elke push en PR (`.github/workflows/test.yaml`), aangevuld met `script/tests/test_schema_validation.py` en tests in `packages/assessment-core`.
 - Data en interpreterende logica zijn gescheiden: `sources/` (data), `schemas/` (contract), `packages/assessment-core` (logica), met gegenereerde leesbare overzichten in `docs/questions/` en `docs/tasks/`.
@@ -65,7 +67,7 @@ Wat ontbreekt:
 - `containers/frontend/nginx/snippets/csp-app.conf` bevat `https://keycloak.rijksapp.nl` hardcoded in de CSP, terwijl de rest van de Keycloak-configuratie wel geparametriseerd is. Een andere organisatie kan het frontend-image daardoor niet zonder patch gebruiken.
 - `docs/deployment.md` beschrijft alleen de ZAD-route. Er is geen beschrijving van een generieke container- of Kubernetes-deployment.
 - `packages/assessment-core` heeft geen README, terwijl het de module is die het meeste kans op hergebruik heeft.
-- `usedBy` in `publiccode.yaml` noemt alleen BZK, en er is geen publieke roadmap waaruit meerdere partijen spreken.
+- `usedBy` in `publiccode.yml` noemt alleen BZK, en er is geen publieke roadmap waaruit meerdere partijen spreken.
 - `localisationReady: false`: de UI is niet lokaliseerbaar. Dat is verdedigbaar voor een wettelijk Nederlands kader, maar staat nergens als bewuste keuze gemotiveerd.
 
 ## 4. Welcome contributors
@@ -74,17 +76,18 @@ Wat ontbreekt:
 
 - Iedereen kan issues en pull requests indienen, en dat gebeurt ook: onder meer de issues #451, #449 en #417 en de samengevoegde PR's #424 en #272 komen van buiten het team.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` en issue- en PR-templates zijn aanwezig.
-- Gat: er is geen `GOVERNANCE.md` die besluitvorming en onderhoud beschrijft. Staat gepland in #379.
+- `GOVERNANCE.md` beschrijft wie het project onderhoudt, hoe besluiten tot stand komen en wie waarover gaat, inclusief het onderscheid tussen besluiten over de software en over de inhoud van de assessments.
+- `SUPPORT.md` en `GOVERNANCE.md` benoemen dat het onderhoudsteam dit naast ander werk doet en dat er geen reactietermijn wordt gegarandeerd, zodat duidelijk is wie de kosten van reviewen draagt.
 - Gat: er is geen publieke roadmap. De openstaande issues fungeren als informele backlog, maar zijn niet als roadmap geprioriteerd.
-- Nergens staat wie de kosten van reviewen draagt. Eén regel in `CONTRIBUTING.md` volstaat.
 
 ## 5. Make contributing easy
 
-**Gedeeltelijk.**
+**Voldaan.**
 
 - De responsible-disclosure-kant is sterk: `SECURITY.md` beschrijft private vulnerability reporting via GitHub en de CVD-route van het NCSC, met scope en bekende non-findings.
-- Gat op een MUST: `README.md` linkt nergens naar de issue tracker, naar pull requests of naar `CONTRIBUTING.md`. Het instapdocument wijst de bijdrageroute dus niet aan.
-- Het enige open kanaal is GitHub Issues. De rol-mailbox uit `publiccode.yaml` wordt in README noch CONTRIBUTING als contactpunt genoemd. Dit wordt opgelost met de geplande `SUPPORT.md` (#379).
+- `README.md` heeft een sectie "Bijdragen en hulp" met links naar de issues, de pull requests, `SUPPORT.md`, `CONTRIBUTING.md`, `GOVERNANCE.md`, `CODE_OF_CONDUCT.md` en `SECURITY.md`.
+- `SUPPORT.md` wijst per soort vraag het kanaal aan: issues voor gebruik en bugs, de rol-mailbox digigilde@rijksoverheid.nl voor wie geen issue kan of wil openen, `SECURITY.md` voor kwetsbaarheden, en dezelfde mailbox voor meldingen onder de gedragscode.
+- Alle contactadressen in de repository wijzen nu naar diezelfde rol-mailbox, ook de privacyverklaring, de toegankelijkheidsverklaring en de OpenAPI-info van de backend.
 
 ## 6. Maintain version control
 
@@ -108,12 +111,11 @@ De praktijk:
 - De twaalf meest recent samengevoegde pull requests zijn alle twaalf van de hoofdmaintainer en hebben nul reviews.
 - Externe bijdragen worden wél gereviewd (PR #424 en #272), maar de doorlooptijd loopt op tot weken of maanden, ver boven de twee werkdagen die de standaard als richtlijn geeft.
 
-Dit is deels structureel: één maintainer kan zichzelf niet reviewen. Er zijn twee eerlijke uitwegen, en beide vragen een besluit:
+Wat we hierover hebben besloten staat in [`GOVERNANCE.md`](../GOVERNANCE.md): bijdragen van buiten worden altijd door een maintainer gereviewd, en bij bijdragen van het onderhoudsteam beoordeelt de auteur of een tweede paar ogen nodig is. Die inschatting is niet vrijblijvend; er staat een lijst van gevallen waarin een tweede reviewer verplicht is, waaronder authenticatie en autorisatie, databasemigraties, persoonsgegevens, de inhoud van `sources/` en de beveiligingsconfiguratie van de containers.
 
-1. Een tweede reviewer aanwijzen binnen het team en de bypass uit de ruleset halen, zodat de eis ook voor eigen bijdragen geldt.
-2. De afwijking expliciet vastleggen in `GOVERNANCE.md`, inclusief wat er in plaats van menselijke review staat (verplichte CI met 100% dekkingsdrempel, image-scans, pre-commit).
+Daarmee is de praktijk beschreven en toetsbaar, maar het criterium blijft een gat: de standaard vraagt review van álle bijdragen, zonder risico-afweging. Om het gat te sluiten is één wijziging nodig, namelijk repository-rol 5 uit `bypass_actors` halen zodat de bestaande CODEOWNERS-regel ook voor het team afdwingbaar wordt. Het onderhoudsteam telt vier leden, dus er is geen structurele belemmering; de kosten zitten in doorlooptijd.
 
-Optie 1 is wat de standaard vraagt. Optie 2 is eerlijker dan een ruleset die streng oogt maar routinematig omzeild wordt.
+Los daarvan: de doorlooptijd van reviews op externe bijdragen loopt op tot weken of maanden, ver boven de twee werkdagen die de standaard als richtlijn geeft.
 
 ## 8. Document codebase objectives
 
@@ -175,22 +177,25 @@ Wat we wel doen:
 
 ## 13. Publish with an open license
 
-**Gedeeltelijk.**
+**Voldaan.**
 
-- De hoofdlicentie is in orde: EUPL-1.2, OSI- en FSF-erkend, volledige tekst in `LICENSE`, vermeld in `README.md` en in `publiccode.yaml`. Bijdragers hoeven geen auteursrecht over te dragen.
-- Gat: geen machine-leesbare licentie per bestand. Er zijn geen SPDX-headers, geen `REUSE.toml` en geen `LICENSES/`-map. Gepland als aparte PR in #379.
-- Gat: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` valt onder de Rijkshuisstijl-voorwaarden en niet onder EUPL-1.2, en dat staat nergens vermeld. De webfont-kant verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een expliciete licentievermelding, maar de PDF-export gebruikt de meegeleverde `.ttf`-bestanden nog rechtstreeks.
-- `@nl-rvo/design-tokens@1.9.0` staat in `LICENSES.txt` als `Unknown`. Verifiëren, of laten vervallen met de overstap naar NLDD.
+- De hoofdlicentie is in orde: EUPL-1.2, OSI- en FSF-erkend, volledige tekst in `LICENSE`, vermeld in `README.md` en in `publiccode.yml`. Bijdragers hoeven geen auteursrecht over te dragen.
+- De repository volgt de [REUSE-specificatie](https://reuse.software/) 3.3: `REUSE.toml` legt de licentie per pad vast en `LICENSES/` bevat de bijbehorende teksten. Elk van de 473 bestanden heeft daarmee machine-leesbare licentie- en copyright-informatie. Bewust gekozen boven een SPDX-header per bestand, omdat dat met ~460 bestanden vooral merge-conflicten oplevert zonder extra compliance.
+- De uitzondering is expliciet: `packages/assessment-core/src/assets/fonts/rijksoverheidsanstext-*.ttf` staat als `LicenseRef-Rijkshuisstijl` geannoteerd, met de voorwaarden in `LICENSES/LicenseRef-Rijkshuisstijl.txt`. De webfont verdwijnt met de overstap naar `@nldd/design-system`, dat de fonts zelf meelevert met een licentievermelding; deze `.ttf`-bestanden blijven zolang de PDF-export ze nodig heeft (pdfmake kan geen woff2).
+- `reuse lint` draait als pre-commit-hook en daarmee in de verplichte `pre-commit`-check op `main`. Let op de grens: de `**`-regel licenseert nieuwe bestanden vanzelf als EUPL-1.2, dus code die van elders komt heeft een handmatige annotatie nodig. Dat staat in `CONTRIBUTING.md`.
+- De licenties van dependencies staan in `docs/third-party-licenses.txt`, gegenereerd door `script/generate_licenses.py`. De lijst was verouderd; hij is bijgewerkt en `pnpm check:licenses` bewaakt in CI dat hij dat blijft. Platformspecifieke binaries worden weggelaten, anders zou de uitkomst per besturingssysteem verschillen.
+- Aandachtspunt: `@nl-rvo/design-tokens` staat in die lijst als `Unknown`, omdat dat pakket zonder licentieveld publiceert. Dat is een gat bij de leverancier, niet hier; het vervalt met de overstap naar NLDD.
 
 ## 14. Make the codebase findable
 
 **Gedeeltelijk.**
 
-- Naam, beschrijving en `publiccode.yaml` zijn inhoudelijk in orde, en de software heeft een eigen domein (invulhulpen.rijksapp.nl).
-- Gat: de repo is niet aangemeld bij het open-sourceregister op oss.developer.overheid.nl.
-- Het metadatabestand heet `publiccode.yaml`, terwijl de standaard en de crawlers uitgaan van `publiccode.yml`. Dat is een plausibele technische oorzaak voor het uitblijven van indexering.
+- Naam, beschrijving en `publiccode.yml` zijn inhoudelijk in orde, en de software heeft een eigen domein (invulhulpen.rijksapp.nl).
+- `publiccode.yml` komt zonder waarschuwingen door de officiële [publiccode-parser](https://github.com/italia/publiccode-parser-go) en door het JSON-schema van SchemaStore, en noemt de organisatie met haar TOOI-identifier (`https://identifier.overheid.nl/tooi/id/ministerie/mnre1034`). Dat is de identifier waar het open-sourceregister op koppelt.
+- Gat: de repo staat nog niet in het open-sourceregister op oss.developer.overheid.nl. De git-organisatie MinBZK is daar wel aangesloten, dus indexering verloopt via hun crawler; het bestand heette tot voor kort `publiccode.yaml` en werd daardoor waarschijnlijk overgeslagen. Verschijnt de repo na de eerstvolgende ronde niet, dan is een mail naar developer.overheid@geonovum.nl de route.
+- `releaseDate` en `softwareVersion` volgen de laatste release, bewaakt door `script/ci/assert-publiccode-version.sh`.
 - Gat: geen `CITATION.cff` of vergelijkbare persistente identifier.
-- De repo-slug `par-dpia-form` bevat de onverklaarde afkorting "par". De naam in `publiccode.yaml` is wel beschrijvend.
+- De repo-slug `par-dpia-form` bevat de onverklaarde afkorting "par". De naam in `publiccode.yml` is wel beschrijvend.
 
 ## 15. Use a coherent style
 
@@ -205,7 +210,7 @@ Wat we wel doen:
 
 **Voldaan.**
 
-- De volwassenheid staat prominent: `developmentStatus: beta` in `publiccode.yaml` en een statusbadge in `README.md`, consistent met elkaar.
+- De volwassenheid staat prominent: `developmentStatus: beta` in `publiccode.yml` en een statusbadge in `README.md`, consistent met elkaar.
 - Versies zijn getagd en de versioneringsmethode is gedocumenteerd (`CHANGELOG.md` legt de overstap van SemVer naar CalVer uit).
 - `CHANGELOG.md` houdt de wijzigingen per release bij, gericht op wat gebruikers merken.
 - Aandachtspunt: de `package.json`-versies van de workspaces staan nog op `0.0.1` en bewegen niet mee met de tags. Verder verdient "beta" een toelichting nu de software in productie draait, bijvoorbeeld door per onderdeel te benoemen wat stabiel is.

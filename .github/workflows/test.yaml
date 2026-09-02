@@ -57,6 +57,9 @@ jobs:
       - name: Public runtime config guard
         run: pnpm check:config
 
+      - name: Security header baseline guard
+        run: pnpm check:headers
+
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
@@ -68,6 +71,9 @@ jobs:
 
       - name: Security audit (production dependencies)
         run: pnpm audit --prod --audit-level high
+
+      - name: Third-party licence list guard
+        run: pnpm check:licenses
 
       - name: Generate assessment JSON sources
         run: |

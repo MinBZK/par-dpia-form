@@ -23,6 +23,10 @@ repos:
     rev: v0.11.0.1-1
     hooks:
         - id: shellcheck
+-   repo: https://github.com/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+        - id: reuse
 -   repo: local
     hooks:
         - id: assessments-plugin-manifests

@@ -15,6 +15,8 @@
     "check:csp": "node --test scripts/check-inline-styles.test.mjs && node scripts/check-inline-styles.mjs",
     "check:vhtml": "node --test scripts/check-vhtml.test.mjs && node scripts/check-vhtml.mjs",
     "check:config": "node --test scripts/check-runtime-config.test.mjs && node scripts/check-runtime-config.mjs",
+    "check:headers": "node --test scripts/check-security-headers.test.mjs && node scripts/check-security-headers.mjs",
+    "check:licenses": "uv run --frozen pytest script/tests/test_generate_licenses.py -q && pnpm licenses list --prod --json | uv run --frozen python script/generate_licenses.py --check",
     "check:securitytxt": "uv run --frozen pytest script/tests/test_check_securitytxt.py -q && uv run --frozen python script/check_securitytxt.py",
     "test:e2e": "node tests/e2e/sync.spec.mjs",
     "test:coverage": "pnpm -r --if-present test:coverage"

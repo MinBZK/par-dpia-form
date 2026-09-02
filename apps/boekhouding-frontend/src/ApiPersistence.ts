@@ -50,6 +50,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
 
   // Concurrency guards for collaboration sync
   let saveInProgress = false
+  let saveQueued = false
   let applyingDeferred = false
   let saveComplete: Promise<void> = Promise.resolve()
 
@@ -143,6 +144,15 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   async function saveAppState(): Promise<void> {
     if (disposed) return
 
+    // One PUT at a time. Two saves in flight carry the same expectedVersion, so
+    // the second always loses the optimistic lock: a 409 against the user's own
+    // previous save, an extra version, and a conflict dialog with themselves if
+    // they kept typing in between.
+    if (saveInProgress) {
+      saveQueued = true
+      return
+    }
+
     let resolveSave: () => void
     saveComplete = new Promise<void>(resolve => { resolveSave = resolve })
     saveInProgress = true
@@ -177,6 +187,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       }
 
       const apiState = buildApiState()
+      // Snapshot what actually goes out, before the await. Taking it afterwards
+      // would count anything typed during the request as saved, and the queued
+      // save would find nothing left to send.
+      const sentState = JSON.parse(JSON.stringify(buildState()))
       const updated = await assessments.update(assessmentId, apiState, {
         expectedVersion: knownVersion.value,
       })
@@ -184,7 +198,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         knownVersion.value = updated.currentVersion
         knownUpdatedAt.value = new Date().toISOString()
       }
-      lastSavedState = JSON.parse(JSON.stringify(buildState()))
+      lastSavedState = sentState
       pendingChanges.clear()
       instancesDirty = false
       clearSaveFailure()
@@ -202,6 +216,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     } finally {
       saveInProgress = false
       resolveSave!()
+      if (saveQueued) {
+        saveQueued = false
+        debouncedSave()
+      }
     }
   }
 
@@ -298,12 +316,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
+        clearSaveFailure()
       } catch (retryError) {
         if (retryError instanceof SessionExpiredError) return
         if (retryError instanceof ApiError && retryError.status === 409) {
           await handleConflict()
         } else {
           console.error('Failed to save merged state:', retryError)
+          registerSaveFailure(retryError)
         }
       }
       return
@@ -347,11 +367,14 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         }
         lastSavedState = JSON.parse(JSON.stringify(buildState()))
         pendingChanges.clear()
+        clearSaveFailure()
       } catch (retryError) {
+        if (retryError instanceof SessionExpiredError) return
         if (retryError instanceof ApiError && retryError.status === 409) {
           await handleConflict()
         } else {
           console.error('Failed to save resolved state:', retryError)
+          registerSaveFailure(retryError)
         }
       }
     }

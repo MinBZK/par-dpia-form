@@ -35,8 +35,10 @@ jobs:
           # Every exclusion below is one CI cannot resolve on principle, not
           # one that is merely inconvenient: intranet and container-internal
           # hosts, ../../issues links that only resolve in the GitHub UI, a
-          # template literal, and the schema blob that does not exist on main
-          # until the PR adding it is merged. Review the list per issue #443.
+          # template literal, the schema blob that does not exist on main
+          # until the PR adding it is merged, and our own release pages, whose
+          # newest entry the changelog names before tag-release creates it.
+          # Review the list per issue #443.
           args: &lychee_args >-
             --verbose
             --no-progress
@@ -50,6 +52,7 @@ jobs:
             --exclude 'httpproblems\.com/http-status/\$%7Bstatus%7D'
             --exclude "^http://(keycloak|backend|postgres):[0-9]+"
             --exclude "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/.*"
+            --exclude "https://github.com/MinBZK/par-dpia-form/(releases/tag|compare)/v.*"
             --exclude-path '/test/'
             --exclude-path 'pnpm-lock\.yaml'
             '**/*.yaml'
