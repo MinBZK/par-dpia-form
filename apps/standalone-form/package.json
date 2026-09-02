@@ -14,7 +14,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@nldd/design-system": "0.8.83",
+    "@nldd/design-system": "0.8.85",
     "@overheid-assessment/core": "workspace:*",
     "pdfmake": "^0.3.11",
     "pinia": "^4.0.3",

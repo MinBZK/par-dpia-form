@@ -19,6 +19,7 @@ import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/spacer-cell'
 import '@nldd/design-system/text-cell'
 import '@nldd/design-system/text-field'
+import '@nldd/design-system/validation-list'
 import '@nldd/design-system/title'
 
 const props = defineProps<{ projectId: string }>()
@@ -227,12 +228,15 @@ const whoLabel = (member: Member) =>
             required
             :value="inviteEmail"
             :invalid="inviteEmailError ? true : undefined"
-            error-message="inviteEmailError"
             @input="inviteEmail = fieldValue($event); inviteEmailError = ''"
           ></nldd-text-field>
-          <nldd-form-field-error-text id="inviteEmailError">
-            {{ inviteEmailError }}
-          </nldd-form-field-error-text>
+          <!-- 0.8.85 replaced nldd-form-field-error-text (and the field's
+               error-message id wiring) with a validation list. Inside an
+               nldd-form-field it needs no `for`: the field hands its own
+               control over. -->
+          <nldd-validation-list v-if="inviteEmailError">
+            <nldd-validation-item>{{ inviteEmailError }}</nldd-validation-item>
+          </nldd-validation-list>
         </nldd-form-field>
         <nldd-form-field label="Rol">
           <nldd-dropdown>
