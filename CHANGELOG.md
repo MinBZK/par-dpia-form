@@ -15,6 +15,21 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Toegevoegd
+
+* De DPIA en het IAMA zijn aan elkaar gekoppeld, volgens de handreiking
+  "Gezamenlijk gebruik IAMA en Model DPIA Rijksdienst". Vul je beide in, dan
+  zie je bij een vraag de antwoorden terug die je in het andere instrument al
+  hebt gegeven, zodat je ze niet twee keer hoeft op te schrijven. De aanleiding
+  uit het IAMA vult het voorstel in de DPIA alvast in.
+
+### Gewijzigd
+
+* Het blok met antwoorden uit een ander onderdeel verschijnt nu ook in het
+  IAMA, en noemt telkens waar de antwoorden vandaan komen: de pre-scan, de
+  DPIA of het IAMA. Eerder was dit blok er alleen in de DPIA en heette het
+  altijd "Informatie uit pre-scan".
+
 ## [2026.8.25]
 
 ### Gewijzigd
