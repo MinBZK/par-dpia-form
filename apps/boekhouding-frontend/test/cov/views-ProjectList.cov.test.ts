@@ -90,7 +90,7 @@ describe('ProjectList', () => {
       await flushPromises()
 
       expect(wrapper.text()).not.toContain('Projecten laden...')
-      expect(wrapper.text()).toContain('Je hebt nog geen projecten. Maak er een aan om te beginnen.')
+      expect(wrapper.find('nldd-inline-dialog').attributes('text')).toBe('Nog geen projecten')
     })
 
     it('shows a warning banner when projects.list() rejects (catch branch)', async () => {
@@ -102,7 +102,7 @@ describe('ProjectList', () => {
       expect(banner.exists()).toBe(true)
       expect(banner.attributes('variant')).toBe('warning')
       expect(banner.attributes('text')).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
-      expect(wrapper.text()).not.toContain('Je hebt nog geen projecten')
+      expect(wrapper.find('nldd-inline-dialog').exists()).toBe(false)
     })
 
     it('shows the server message on a 403 instead of advising a retry', async () => {

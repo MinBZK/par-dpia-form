@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
 import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
+import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/card'
 import '@nldd/design-system/checkbox-field'
 import '@nldd/design-system/container'
@@ -341,9 +342,10 @@ async function handleReopen(commentId: string) {
     <div class="comment-panel__body" ref="panelBodyRef">
       <!-- Empty state -->
       <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <p v-else-if="stackedEntries.length === 0" class="comment-panel__empty">
-        Er zijn nog geen opmerkingen bij deze stap. Klik op "Opmerking" bij een vraag om er een te plaatsen.
-      </p>
+      <nldd-inline-dialog v-else-if="stackedEntries.length === 0" class="comment-panel__empty"
+        icon="comment" icon-color="secondary"
+        text="Nog geen opmerkingen"
+        supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
 
       <!-- Positioned comment groups (Google Docs style) -->
       <div

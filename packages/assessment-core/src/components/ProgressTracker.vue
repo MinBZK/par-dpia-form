@@ -143,6 +143,10 @@ const steps = computed<Step[]>(() => {
           icon="comment" size="16" color="accent"></nldd-icon-cell>
         <nldd-icon-cell v-if="step.done" class="toc-done"
           icon="check-mark" size="16" color="success"></nldd-icon-cell>
+        <!-- Started but not finished: a small filled dot, the state the
+             timeline marker used to carry in its core. -->
+        <nldd-icon-cell v-else-if="step.node === 'progress'" class="toc-progress"
+          icon="circle-filled-small" size="16" color="accent"></nldd-icon-cell>
         <span v-if="step.done" class="sr-only">, voltooid</span>
         <span v-if="step.node === 'progress'" class="sr-only">, deels ingevuld</span>
         <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>

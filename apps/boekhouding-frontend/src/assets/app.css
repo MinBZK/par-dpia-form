@@ -112,28 +112,9 @@ nldd-card p {
   outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
+/* The button sits where the description would be; only the pull-left is ours. */
 .description-add {
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin-left: -4px;
-}
-
-.description-add__label {
-  color: var(--semantics-content-secondary-color);
-  font-size: var(--primitives-font-size-80, 0.875rem);
-  visibility: hidden;
-}
-
-.description-add:hover .description-add__label,
-.description-add:focus-visible .description-add__label {
-  visibility: visible;
-  color: var(--semantics-content-accent-color);
-}
-
-.description-add:focus-visible {
-  outline: var(--semantics-focus-ring-outline);
-  outline-offset: var(--semantics-focus-ring-outline-offset);
+  margin-inline-start: -4px;
 }
 
 .editable-field-group {

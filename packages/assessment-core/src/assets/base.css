@@ -260,7 +260,8 @@ nldd-sidebar-section {
 }
 
 .toc-comment,
-.toc-done {
+.toc-done,
+.toc-progress {
   flex-shrink: 0;
 }
 

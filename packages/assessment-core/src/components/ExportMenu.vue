@@ -42,7 +42,8 @@ function choose(format: ExportFormat) {
   </nldd-split-button>
 
   <!-- Item in the utility menu bar of the top navigation. -->
-  <nldd-menu-bar-item v-else-if="menuBar" text="Exporteer" icon="download" expandable>
+  <nldd-menu-bar-item v-else-if="menuBar" text="Exporteer" icon="download"
+    content-priority="icon" expandable>
     <nldd-menu width="10rem">
       <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
         @select="choose(f.format)"></nldd-menu-item>

@@ -33,7 +33,7 @@ describe('ActionPointsOverview.vue', () => {
 
     const wrapper = mountOverview()
     expect(wrapper.text()).toContain('Overzicht actiepunten')
-    expect(wrapper.text()).toContain('Er zijn nog geen actiepunten ingevuld in de voorgaande delen.')
+    expect(wrapper.find('nldd-inline-dialog').attributes('text')).toBe('Nog geen actiepunten')
     expect(wrapper.find('h3').exists()).toBe(false)
   })
 
@@ -57,7 +57,7 @@ describe('ActionPointsOverview.vue', () => {
 
     // No answer set for 1.actiepunten.1 -> getAnswer returns falsy -> filtered out.
     const wrapper = mountOverview()
-    expect(wrapper.text()).toContain('Er zijn nog geen actiepunten ingevuld in de voorgaande delen.')
+    expect(wrapper.find('nldd-inline-dialog').attributes('text')).toBe('Nog geen actiepunten')
   })
 
   it('groups filled-in action points under the parent deel label and lists them', () => {

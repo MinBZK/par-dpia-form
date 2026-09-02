@@ -5,6 +5,7 @@ import { ApiError, projects as projectsApi, type Project } from '../api'
 import { useAnchorNav } from '../composables/useAnchorNav'
 import { usePaginatedList } from '../composables/usePaginatedList'
 import '@nldd/design-system/banner'
+import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/simple-section'
 import '@nldd/design-system/button'
 import '@nldd/design-system/button-group'
@@ -69,9 +70,10 @@ const handleCreate = async () => {
     <nldd-banner v-else-if="error" variant="warning" :text="error"></nldd-banner>
 
     <template v-else>
-      <div v-if="projectList.length === 0">
-        <p>Je hebt nog geen projecten. Maak er een aan om te beginnen.</p>
-      </div>
+      <nldd-inline-dialog v-if="projectList.length === 0"
+        icon="folder" icon-color="secondary"
+        text="Nog geen projecten"
+        supporting-text="Een project bundelt de assessments die bij elkaar horen. Maak er een aan om te beginnen."></nldd-inline-dialog>
 
       <!-- max-items: the collection hides items past its own cap (24) even
            without a load-more button. The server pages the list, so the cap is

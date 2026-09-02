@@ -376,8 +376,9 @@ describe('ProjectDetail', () => {
   describe('editable description (startEditDescription / saveDescription / cancelDescription)', () => {
     it('shows the "Beschrijving toevoegen" affordance when editable and description empty', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner', description: '' }) })
-      expect(wrapper.find('.description-add').exists()).toBe(true)
-      expect(wrapper.text()).toContain('Beschrijving toevoegen')
+      // A real button now: the label rides on the text attribute, and it is
+      // visible from the start instead of appearing on hover.
+      expect(wrapper.find('.description-add').attributes('text')).toBe('Beschrijving toevoegen')
     })
 
     it('does not show the affordance for a non-editable role with empty description', async () => {

@@ -73,6 +73,9 @@ function nodeKind(item: ReturnType<typeof items>[number]): string {
 }
 // The row carries its own state now: a check mark cell marks a finished step,
 // and the chapter number sits in front of the title on the same line.
+function hasDot(item: ReturnType<typeof items>[number]): boolean {
+  return item.find('nldd-icon-cell.toc-progress').exists()
+}
 function hasCheck(item: ReturnType<typeof items>[number]): boolean {
   return item.find('nldd-icon-cell.toc-done').exists()
 }
@@ -287,6 +290,9 @@ describe('ProgressTracker.vue', () => {
 
       expect(nodeKind(partial)).toBe('progress')
       expect(hasCheck(partial)).toBe(false)
+      // Started, not finished: a dot rather than a check mark.
+      expect(hasDot(partial)).toBe(true)
+      expect(hasDot(items(wrapper)[0])).toBe(false)
       expect(partial.classes()).toContain('toc-item--progress')
       // The number stays, now in front of the title on the same line.
       expect(rowLabel(partial)).toBe('2. Slot')

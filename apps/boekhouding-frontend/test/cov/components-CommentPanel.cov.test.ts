@@ -198,7 +198,7 @@ describe('CommentPanel', () => {
     it('shows the empty state when there are no positioned entries', () => {
       const { wrapper } = mountPanel({ loading: false })
       const empty = wrapper.get('.comment-panel__empty')
-      expect(empty.text()).toContain('Er zijn nog geen opmerkingen bij deze stap')
+      expect(empty.attributes('text')).toBe('Nog geen opmerkingen')
     })
 
     it('toggles showResolved via the checkbox', async () => {

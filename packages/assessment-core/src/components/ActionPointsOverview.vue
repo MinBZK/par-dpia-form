@@ -2,6 +2,7 @@
 import { useTaskStore } from '../stores/tasks'
 import { useAnswerStore } from '../stores/answers'
 import { computed } from 'vue'
+import '@nldd/design-system/inline-dialog'
 
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
@@ -56,9 +57,10 @@ const hasAnyActionPoints = computed(() =>
         Overzicht actiepunten
       </legend>
 
-      <p v-if="!hasAnyActionPoints">
-        Er zijn nog geen actiepunten ingevuld in de voorgaande delen.
-      </p>
+      <nldd-inline-dialog v-if="!hasAnyActionPoints"
+        icon="check-list" icon-color="secondary"
+        text="Nog geen actiepunten"
+        supporting-text="Actiepunten die je in de voorgaande delen invult, verschijnen hier."></nldd-inline-dialog>
 
       <template v-else>
         <div v-for="group in actionPointGroups" :key="group.deelLabel">

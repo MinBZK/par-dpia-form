@@ -390,9 +390,12 @@ const formatDate = (dateStr: string) =>
       </div>
 
       <p v-if="!editingDescription && project.description" class="preserve-whitespace project-detail-description" :class="{ 'editable-field': isEditable() }" role="button" :tabindex="isEditable() ? 0 : undefined" :aria-label="isEditable() ? 'Klik om beschrijving te bewerken' : undefined" @click="startEditDescription" @keydown.enter="startEditDescription">{{ project.description }}</p>
-      <div v-if="!editingDescription && !project.description && isEditable()" class="description-add" role="button" tabindex="0" aria-label="Klik om een beschrijving toe te voegen" @click="startEditDescription" @keydown.enter="startEditDescription">
-        <span class="description-add__label">Beschrijving toevoegen</span>
-      </div>
+      <!-- A real button: the label used to be hidden until hover, so the option
+           was invisible on first look and unreachable on touch. -->
+      <nldd-button v-if="!editingDescription && !project.description && isEditable()"
+        class="description-add" variant="accent-transparent" size="xs"
+        start-icon="plus" text="Beschrijving toevoegen"
+        @click="startEditDescription"></nldd-button>
       <div v-if="editingDescription" class="editable-field-group">
         <nldd-multi-line-text-field
           ref="descriptionInput"

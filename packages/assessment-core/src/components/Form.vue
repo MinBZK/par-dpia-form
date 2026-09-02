@@ -300,7 +300,11 @@ const completeAnnouncement = computed(() => {
     back-text="Overzicht" @back="navigation.goToLanding">
     <template v-if="showNavHeader && formStarted && showFileActions" #utility>
       <nldd-menu-bar slot="utility" accessible-label="Acties voor dit formulier">
-        <nldd-menu-bar-item icon="arrow-clockwise" :text="`Begin nieuwe ${resetLabel}`"
+        <!-- content-priority: when the bar runs out of room it drops the label
+             and keeps the icon, rather than pushing the whole item into the
+             overflow menu. "Begin nieuwe Pre-scan" alone is 209px wide. -->
+        <nldd-menu-bar-item icon="arrow-clockwise" content-priority="icon"
+          :text="`Begin nieuwe ${resetLabel}`"
           @select="resetOpen = true"></nldd-menu-bar-item>
         <ExportMenu menu-bar @export="handleExport" />
       </nldd-menu-bar>
