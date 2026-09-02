@@ -3,6 +3,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import type { AnswerValue, ImageValue } from '../../src/stores/answers'
+import { FormType } from '../../src/models/dpia'
 
 // Hoisted mock holder so each test can control getPreviewDataForSection's return.
 const previewHolder: {
@@ -24,14 +25,20 @@ interface PreviewItem {
   taskId: string
   taskTitle: string
   answer: AnswerValue
+  sourceNamespace: FormType
 }
 
-function item(taskId: string, taskTitle: string, answer: AnswerValue): PreviewItem {
-  return { taskId, taskTitle, answer }
+function item(
+  taskId: string,
+  taskTitle: string,
+  answer: AnswerValue,
+  sourceNamespace: FormType = FormType.PRE_SCAN,
+): PreviewItem {
+  return { taskId, taskTitle, answer, sourceNamespace }
 }
 
-async function mountPreview(dpiaTaskId = '2.1') {
-  const wrapper = mount(PreScanPreview, { props: { dpiaTaskId } })
+async function mountPreview(sectionTaskId = '2.1') {
+  const wrapper = mount(PreScanPreview, { props: { sectionTaskId } })
   // Flush onMounted's loadPreScanAnswers before reading the DOM.
   await nextTick()
   return wrapper
@@ -46,7 +53,7 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-describe('PreScanPreview hasPreScanData (v-if)', () => {
+describe('PreScanPreview hasPreviewData (v-if)', () => {
   it('renders nothing when getPreviewDataForSection returns an empty list', async () => {
     previewHolder.getPreviewDataForSection.mockReturnValue([])
 
@@ -84,6 +91,48 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
     expect(entries).toHaveLength(2)
     expect(entries[0].text()).toContain('1.1. Eerste')
     expect(entries[1].text()).toContain('1.3. Tweede')
+  })
+})
+
+describe('PreScanPreview grouping per source form', () => {
+  it('names the DPIA as the source when the answers come from the DPIA', async () => {
+    previewHolder.getPreviewDataForSection.mockReturnValue([
+      item('16.1.1', 'Beschrijving van het risico', 'Onjuiste uitkomst', FormType.DPIA),
+    ])
+
+    const wrapper = await mountPreview('3.5')
+
+    expect(wrapper.text()).toContain('Informatie uit de DPIA')
+    expect(wrapper.text()).toContain(
+      'Je hebt in de DPIA informatie ingevuld die mogelijk relevant is.',
+    )
+  })
+
+  it('names the IAMA as the source when the answers come from the IAMA', async () => {
+    previewHolder.getPreviewDataForSection.mockReturnValue([
+      item('3.5.2', 'Welke risico\'s introduceert het algoritme?', 'Uitsluiting', FormType.IAMA),
+    ])
+
+    const wrapper = await mountPreview('16')
+
+    expect(wrapper.text()).toContain('Informatie uit het IAMA')
+    expect(wrapper.text()).toContain(
+      'Je hebt in het IAMA informatie ingevuld die mogelijk relevant is.',
+    )
+  })
+
+  it('renders one block per source form, pre-scan first', async () => {
+    previewHolder.getPreviewDataForSection.mockReturnValue([
+      item('3.5.2', 'Uit het IAMA', 'A', FormType.IAMA),
+      item('0.2', 'Uit de pre-scan', 'B', FormType.PRE_SCAN),
+    ])
+
+    const wrapper = await mountPreview('16')
+
+    const blocks = wrapper.findAll('.rvo-accordion__item')
+    expect(blocks).toHaveLength(2)
+    expect(blocks[0].text()).toContain('Informatie uit pre-scan')
+    expect(blocks[1].text()).toContain('Informatie uit het IAMA')
   })
 })
 
@@ -160,8 +209,8 @@ describe('PreScanPreview formatAnswer branches', () => {
   })
 })
 
-describe('PreScanPreview dpiaTaskId watcher', () => {
-  it('reloads preview data when the dpiaTaskId prop changes', async () => {
+describe('PreScanPreview sectionTaskId watcher', () => {
+  it('reloads preview data when the sectionTaskId prop changes', async () => {
     previewHolder.getPreviewDataForSection.mockImplementation((id: string) =>
       id === '2.1'
         ? [item('1.1', 'Sectie 2', 'Eerste sectie')]
@@ -172,7 +221,7 @@ describe('PreScanPreview dpiaTaskId watcher', () => {
     expect(wrapper.text()).toContain('1.1. Sectie 2')
     expect(previewHolder.getPreviewDataForSection).toHaveBeenLastCalledWith('2.1')
 
-    await wrapper.setProps({ dpiaTaskId: '5.1' })
+    await wrapper.setProps({ sectionTaskId: '5.1' })
     await nextTick()
 
     expect(previewHolder.getPreviewDataForSection).toHaveBeenLastCalledWith('5.1')
@@ -188,7 +237,7 @@ describe('PreScanPreview dpiaTaskId watcher', () => {
     const wrapper = await mountPreview('2.1')
     expect(wrapper.find('.rvo-accordion').exists()).toBe(true)
 
-    await wrapper.setProps({ dpiaTaskId: '9.9' })
+    await wrapper.setProps({ sectionTaskId: '9.9' })
     await nextTick()
 
     expect(wrapper.find('.rvo-accordion').exists()).toBe(false)

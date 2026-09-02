@@ -121,6 +121,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "1.1"
+                  type: pre-fill
           - task: Wat is het doel dat bereikt dient te worden met de inzet van het algoritme? Wat is hierbij het hoofddoel en wat zijn subdoelen?
             id: "1.1.2"
             in_fria: true
@@ -136,6 +140,9 @@ tasks:
                 - id: "5.A.1"
                   type: pre-view
                 - id: "2.1.2"
+                  type: pre-view
+              DPIA:
+                - id: "5.1.1"
                   type: pre-view
       - task: Publieke waarden
         description: >-
@@ -157,6 +164,9 @@ tasks:
                   type: pre-view
                 - id: "5.A.1"
                   type: pre-view
+              DPIA:
+                - id: "7.1.1"
+                  type: pre-view
           - task: Wat zijn de publieke waarden die mogelijk negatief geraakt worden door de inzet van het algoritme?
             id: "1.2.2"
             type:
@@ -167,6 +177,9 @@ tasks:
                 - id: "3.5.2"
                   type: pre-view
 
+              DPIA:
+                - id: "7.1.1"
+                  type: pre-view
       - task: Wettelijke grondslag
         id: "1.3"
         type:
@@ -186,6 +199,10 @@ tasks:
             - value: false
               label: Nee
             repeatable: false
+            references:
+              DPIA:
+                - id: "9.1.1.1"
+                  type: pre-view
           - task: "Stop met de ontwikkeling of implementatie van het AI-systeem en ga terug naar de tekentafel."
             id: "1.3.3"
             type:
@@ -218,6 +235,12 @@ tasks:
                   operator: equals
                   value: false
                 action: show
+            references:
+              DPIA:
+                - id: "9.1.1.1"
+                  type: pre-view
+                - id: "11.1.1.2"
+                  type: pre-view
           - task: Wat is de wettelijke grondslag hiervoor?
             id: "1.3.4"
             type:
@@ -231,6 +254,12 @@ tasks:
                   value: true
                 action: show
 
+            references:
+              DPIA:
+                - id: "9.1.1.2"
+                  type: pre-view
+                - id: "11.1.1.2"
+                  type: pre-view
       - task: Verantwoordelijkheden
         id: "1.4"
         type:
@@ -250,28 +279,50 @@ tasks:
                 type:
                   - open_text
                 repeatable: false
+                references:
+                  DPIA:
+                    - id: "6.1.1.1"
+                      type: pre-view
               - task: B) Bij de inzet
                 id: "1.4.1.2"
                 is_official_id: false
                 type:
                   - open_text
                 repeatable: false
+                references:
+                  DPIA:
+                    - id: "6.1.1.1"
+                      type: pre-view
               - task: C) Bij het beheer
                 id: "1.4.1.3"
                 is_official_id: false
                 type:
                   - open_text
                 repeatable: false
+                references:
+                  DPIA:
+                    - id: "6.1.1.1"
+                      type: pre-view
           - task: Wie is eindverantwoordelijk voor het algoritme?
             id: "1.4.2"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "6.1.1.2"
+                  type: pre-view
           - task: Is er een exitstrategie wanneer in de toekomst blijkt dat het algoritme niet meer gewenst of nodig is? Hoe ziet deze exitstrategie eruit?
             id: "1.4.3"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "8.1.1.3"
+                  type: pre-view
+                - id: "17.1.3"
+                  type: pre-view
       - task: Actiepunten Deel 1
         id: "1.actiepunten"
         is_official_id: false
@@ -344,6 +395,10 @@ tasks:
                     label: "Zelflerend"
                   - value: "niet-zelflerend"
                     label: "Niet-zelflerend"
+                references:
+                  DPIA:
+                    - id: "4"
+                      type: pre-view
               - task: Toelichting
                 description: >-
                   Hoe specifieker het antwoord hier is, hoe makkelijker het is om de hiernavolgende vragen te beantwoorden.
@@ -357,6 +412,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "4"
+                  type: pre-view
+                - id: "14.1"
+                  type: pre-view
       - task: Totstandkoming algoritme – Niet-zelflerend
         id: "2.2A"
         type:
@@ -375,6 +436,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "4"
+                  type: pre-view
           - task: Welke aannames en bias liggen in deze beslisregels besloten?
             id: "2.2A.2"
             type:
@@ -386,6 +451,10 @@ tasks:
               - open_text
             repeatable: false
 
+            references:
+              DPIA:
+                - id: "14.2"
+                  type: pre-view
       - task: Totstandkoming algoritme – Zelflerend
         id: "2.2B"
         type:
@@ -404,6 +473,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "2.1.6"
+                  type: pre-view
           - task: Zijn de kwaliteit en betrouwbaarheid van de trainingsdata en testdata voldoende voor de beoogde toepassing? Leg uit.
             id: "2.2B.2"
             type:
@@ -420,6 +493,10 @@ tasks:
               - open_text
             repeatable: false
 
+            references:
+              DPIA:
+                - id: "14.2"
+                  type: pre-view
       - task: Inzet algoritme
         description: >-
           Als het algoritme extern wordt ingekocht en de ontwikkelaar niet aanwezig is, raadpleeg dan de instructies voor gebruik voor het beantwoorden van de volgende vragen.
@@ -433,6 +510,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "2.1.3"
+                  type: pre-view
           - task: Zijn de kwaliteit en betrouwbaarheid van de data die als input worden gebruikt voor het algoritme voldoende voor de beoogde toepassing? Leg uit.
             id: "2.3.2"
             type:
@@ -482,16 +563,30 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "6.1.1.1"
+                  type: pre-view
           - task: Zijn de data voldoende beveiligd? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.
             id: "2.5.2"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "17.1.3"
+                  type: pre-view
           - task: Is er controle op de toegang tot de data? Maak hierin onderscheid tussen de inputdata en de outputdata en leg uit.
             id: "2.5.3"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "6.1.1.3"
+                  type: pre-view
+                - id: "17.1.3"
+                  type: pre-view
       - task: Actiepunten Deel 2
         id: "2.actiepunten"
         is_official_id: false
@@ -552,6 +647,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "3.1.2"
+                  type: pre-view
           - task: >-
               Tijd/periode: wanneer gaat het algoritme ingezet worden? Hoe lang
               is de periode dat het ingezet wordt?
@@ -583,6 +682,10 @@ tasks:
               - open_text
             repeatable: false
 
+            references:
+              DPIA:
+                - id: "17.1.3"
+                  type: pre-view
       - task: De rol van de medewerker
         id: "3.2"
         type:
@@ -597,6 +700,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "4"
+                  type: pre-view
+                - id: "15.6.2"
+                  type: pre-view
           - task: >-
               Is het mogelijk voor de medewerker om af te wijken van de uitkomst
               van het algoritme (indien nodig)? Leg uit.
@@ -605,6 +714,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "4"
+                  type: pre-view
+                - id: "15.6.2"
+                  type: pre-view
           - task: >-
               Zijn de betrokken medewerkers voldoende AI-geletterd om met het
               algoritme om te gaan? Hebben medewerkers nieuwe kennis en
@@ -613,6 +728,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "16.1.2"
+                  type: pre-view
           - task: >-
               Vormt de inzet van het algoritme een risico voor de huidige kennis
               en kunde van de medewerker? Leg uit.
@@ -634,6 +753,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.8.2"
+                  type: pre-view
           - task: >-
               Wat is de externe communicatiestrategie over het algoritme en het
               proces eromheen?
@@ -641,12 +764,20 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.8.2"
+                  type: pre-view
           - task: >-
               Wie is/zijn verantwoordelijk voor deze communicatiestrategieën?
             id: "3.3.3"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.8.2"
+                  type: pre-view
           - task: >-
               Hoe uitlegbaar en begrijpelijk is het algoritme voor betrokkenen?
             id: "3.3.4"
@@ -654,6 +785,10 @@ tasks:
               - open_text
             repeatable: false
 
+            references:
+              DPIA:
+                - id: "15.8.2"
+                  type: pre-view
       - task: Monitoring en evaluatie
         id: "3.4"
         type:
@@ -686,6 +821,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.7.2"
+                  type: pre-view
           - task: >-
               Bestaat er een risico dat het algoritme wordt ingezet voor andere
               doeleinden dan waar het oorspronkelijk voor is bedoeld ('function
@@ -694,6 +833,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "13.1.1.5"
+                  type: pre-view
           - task: >-
               Wanneer is de inzet van het algoritme een succes? Op basis waarvan
               wordt dit bepaald? Op welk(e) moment(en) wordt dit bepaald?
@@ -716,6 +859,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "16.1.2"
+                  type: pre-view
           - task: >-
               Welke risico's of nadelige effecten introduceert de inzet van het
               algoritme voor deze mensen en/of groepen? Let ook op de geraakte
@@ -728,6 +875,9 @@ tasks:
             references:
               IAMA:
                 - id: "5.A.2"
+                  type: pre-view
+              DPIA:
+                - id: "16.1.1"
                   type: pre-view
           - task: >-
               Welke positieve effecten introduceert de inzet van het algoritme
@@ -743,12 +893,20 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.8.2"
+                  type: pre-view
           - task: >-
               Is er een opt-out voor betrokkenen? Hoe is dit ingeregeld?
             id: "3.5.5"
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "15.7.2"
+                  type: pre-view
           - task: >-
               Zou de inzet van dit (soort) algoritme(s) kunnen leiden tot
               ongewenste maatschappelijke effecten? Hoe acceptabel zijn deze
@@ -765,6 +923,9 @@ tasks:
               IAMA:
                 - id: "5.A.2"
                   type: pre-view
+              DPIA:
+                - id: "16.1.1"
+                  type: pre-view
           - task: >-
               Zijn er zorgen over dit algoritme die tot dusver niet (genoeg) aan
               bod zijn gekomen? Zo ja, wat zijn deze zorgen en hoe kunnen deze
@@ -773,6 +934,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "16.1.1"
+                  type: pre-view
       - task: Actiepunten Deel 3
         id: "3.actiepunten"
         is_official_id: false
@@ -891,6 +1056,10 @@ tasks:
                   - value: "Recht op beoordeling binnen redelijke termijn"
                   - value: "Recht op een eerlijk proces: algemeen"
                   - value: "Strafrechtelijk legaliteitsvereiste (geen straf zonder wet)"
+                references:
+                  DPIA:
+                    - id: "16.1.1"
+                      type: pre-view
               - task: Toelichting
                 id: "4.1.1.2"
                 is_official_id: false
@@ -968,6 +1137,9 @@ tasks:
             - id: "5.A.1"
               type: pre-view
 
+          DPIA:
+            - id: "16.1.1"
+              type: pre-view
       - task: Specifieke wetgeving
         id: "4.2"
         type:
@@ -986,6 +1158,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "9.1.1.1"
+                  type: pre-view
           - task: >-
               Maakt het algoritme gebruik van persoonsgegevens en is een DPIA
               verplicht? (Gebruik hiervoor bijvoorbeeld de <a href="#" data-form-link="PRE_SCAN">pre-scan DPIA</a>.) Zo
@@ -997,6 +1173,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "2.1.4"
+                  type: pre-view
           - task: >-
               Levert het algoritme een (direct of indirect) onderscheid of
               potentieel discriminatoir profiel op dat binnen het
@@ -1010,6 +1190,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "9.1.1.1"
+                  type: pre-view
+                - id: "12.4"
+                  type: pre-view
           - task: >-
               Zijn er andere specifieke wettelijke bepalingen van toepassing op
               de grondrechteninbreuk, zoals de Algemene wet bestuursrecht,
@@ -1025,6 +1211,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "9.1.1.1"
+                  type: pre-view
           - task: >-
               Is er specifieke nationale of Europese rechtspraak beschikbaar
               waarin concrete criteria en factoren worden aangereikt om de
@@ -1093,6 +1283,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "16.1.5"
+                  type: pre-view
           - task: >-
               Hoe groot is de verwachte negatieve impact op het (aspect van het)
               grondrecht? Leg uit of het grondrecht heel vergaand wordt
@@ -1107,6 +1301,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "16.1.5"
+                  type: pre-view
           - task: >-
               Hoe 'ernstig' is de verwachte inbreuk op het grondrecht als de
               antwoorden op vragen 4.3.1 en 4.3.2 in onderlinge samenhang worden
@@ -1127,6 +1325,9 @@ tasks:
                 - id: "5.A.2"
                   type: pre-view
 
+              DPIA:
+                - id: "16.1.7"
+                  type: pre-view
       - task: Doeltreffendheid/effectiviteit/geschiktheid
         id: "4.4"
         type:
@@ -1145,6 +1346,9 @@ tasks:
               IAMA:
                 - id: "5.A.5"
                   type: pre-view
+              DPIA:
+                - id: "14.2"
+                  type: pre-view
           - task: >-
               Is het redelijk om het algoritme in te zetten als rekening wordt
               gehouden met:
@@ -1158,6 +1362,10 @@ tasks:
               - open_text
             repeatable: false
 
+            references:
+              DPIA:
+                - id: "14.2"
+                  type: pre-view
       - task: Noodzakelijkheid/subsidiariteit
         id: "4.5"
         type:
@@ -1177,6 +1385,9 @@ tasks:
               IAMA:
                 - id: "5.A.6"
                   type: pre-view
+              DPIA:
+                - id: "14.1"
+                  type: pre-view
           - task: >-
               Kunnen er aanpassingen worden gemaakt aan het algoritme (of de
               inbedding/toepassing ervan) waardoor de inbreuk op het grondrecht
@@ -1185,6 +1396,12 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "14.1"
+                  type: pre-view
+                - id: "17.1.3"
+                  type: pre-view
           - task: >-
               Welke restrisico's blijven er voor het grondrecht over als alle bij
               vraag 4.5.2 bedachte maatregelen doorgevoerd zijn?
@@ -1192,6 +1409,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "17.1.4"
+                  type: pre-view
           - task: "Is het redelijk om het algoritme in te zetten als rekening wordt gehouden met:"
             description: >-
               <ol><li>de noodzaak van de inzet van dit specifieke algoritme, de beschikbare alternatieven en de eventuele aanpassingen (vragen 4.5.1–4.5.3), in samenhang met</li><li>de ernst van de grondrechteninbreuk die het resultaat is van het algoritme (vraag 4.3.3)</li></ol>
@@ -1199,6 +1420,10 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              DPIA:
+                - id: "14.2"
+                  type: pre-view
       - task: Actiepunten Deel 4
         id: "4.actiepunten"
         is_official_id: false
@@ -1287,6 +1512,10 @@ tasks:
                 type:
                   - open_text
                 repeatable: false
+                references:
+                  DPIA:
+                    - id: "14.1"
+                      type: pre-view
           - task: Geschade belangen
             id: "5.A.grp-geschaad"
             is_official_id: false
@@ -1339,3 +1568,7 @@ tasks:
         type:
           - open_text
         repeatable: false
+        references:
+          DPIA:
+            - id: "17.3"
+              type: pre-view

@@ -1,36 +1,64 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { FormType } from '../models/dpia'
-import { usePreScanReferences, type PreScanReference } from '../composables/usePreScanReferences'
-import { useAnswerStore, type AnswerValue } from '../stores/answers'
-import { useTaskStore } from '../stores/tasks'
-import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
+import { usePreScanReferences } from '../composables/usePreScanReferences'
+import { type AnswerValue } from '../stores/answers'
 
 const props = defineProps<{
-  dpiaTaskId: string
+  sectionTaskId: string
 }>()
 
-const answerStore = useAnswerStore()
-const taskStore = useTaskStore()
-
-interface PreScanDataItem {
+interface PreviewItem {
   taskId: string;
   taskTitle: string;
   answer: AnswerValue;
 }
 
-const { getPreviewDataForSection } = usePreScanReferences()
-const preScanAnswers = ref<PreScanDataItem[]>([])
-const hasPreScanData = computed(() => preScanAnswers.value.length > 0)
-
-// Load Pre-scan answers that reference this DPIA section
-const loadPreScanAnswers = () => {
-  preScanAnswers.value = getPreviewDataForSection(props.dpiaTaskId)
+interface PreviewGroup {
+  namespace: FormType;
+  title: string;
+  teaser: string;
+  items: PreviewItem[];
 }
 
+// Wording per source form, so a preview block always names the form the
+// answers were taken from.
+const GROUP_LABELS: Record<FormType, { title: string; teaser: string }> = {
+  [FormType.PRE_SCAN]: {
+    title: 'Informatie uit pre-scan',
+    teaser: 'Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.',
+  },
+  [FormType.DPIA]: {
+    title: 'Informatie uit de DPIA',
+    teaser: 'Je hebt in de DPIA informatie ingevuld die mogelijk relevant is.',
+  },
+  [FormType.IAMA]: {
+    title: 'Informatie uit het IAMA',
+    teaser: 'Je hebt in het IAMA informatie ingevuld die mogelijk relevant is.',
+  },
+}
 
-onMounted(loadPreScanAnswers)
-watch(() => props.dpiaTaskId, loadPreScanAnswers)
+// Source forms are listed in a fixed order so the blocks do not move around
+// when an answer is added or removed.
+const GROUP_ORDER: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]
+
+const { getPreviewDataForSection } = usePreScanReferences()
+const previewGroups = ref<PreviewGroup[]>([])
+const hasPreviewData = computed(() => previewGroups.value.length > 0)
+
+// Load the answers from other forms that reference this section.
+const loadPreviewAnswers = () => {
+  const references = getPreviewDataForSection(props.sectionTaskId)
+  previewGroups.value = GROUP_ORDER.flatMap((namespace) => {
+    const items = references
+      .filter((reference) => reference.sourceNamespace === namespace)
+      .map(({ taskId, taskTitle, answer }) => ({ taskId, taskTitle, answer }))
+    return items.length === 0 ? [] : [{ namespace, ...GROUP_LABELS[namespace], items }]
+  })
+}
+
+onMounted(loadPreviewAnswers)
+watch(() => props.sectionTaskId, loadPreviewAnswers)
 
 // Format answer for display
 const formatAnswer = (answer: AnswerValue): string => {
@@ -56,8 +84,8 @@ const formatAnswer = (answer: AnswerValue): string => {
 }
 </script>
 <template>
-  <div v-if="hasPreScanData" class="rvo-accordion">
-    <details class="rvo-accordion__item" open>
+  <div v-if="hasPreviewData" class="rvo-accordion">
+    <details v-for="group in previewGroups" :key="group.namespace" class="rvo-accordion__item" open>
       <summary class="rvo-accordion__item-summary">
         <div class="rvo-accordion__item-icon">
           <span
@@ -69,16 +97,15 @@ const formatAnswer = (answer: AnswerValue): string => {
         </div>
         <div class="rvo-accordion__item-title-container">
           <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-            Informatie uit pre-scan
+            {{ group.title }}
           </h3>
-          <div class="rvo-accordion-teaser">Je hebt in de pre-scan informatie ingevuld die mogelijk
-            relevant is.</div>
+          <div class="rvo-accordion-teaser">{{ group.teaser }}</div>
         </div>
       </summary>
       <div class="rvo-accordion__content">
-        <div v-for="item in preScanAnswers" :key="item.taskId">
+        <div v-for="item in group.items" :key="item.taskId">
           <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
-          <!-- Pre-scan answers are user input; render as text to prevent stored XSS. -->
+          <!-- Answers from another form are user input; render as text to prevent stored XSS. -->
           <p>{{ formatAnswer(item.answer) }}</p>
         </div>
       </div>

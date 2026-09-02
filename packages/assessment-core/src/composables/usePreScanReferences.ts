@@ -38,12 +38,13 @@ export function usePreScanReferences() {
     return findReferences(dpiaTaskId, { matchBySection })
       .filter(({ scope }) => scope === 'cross')
       .filter(({ reference }) => typesToMatch.length === 0 || typesToMatch.includes(reference.type))
-      .map(({ sourceTask, reference, answer }) => ({
+      .map(({ sourceNamespace, sourceTask, reference, answer }) => ({
         taskId: sourceTask.id,
         taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
         answer,
         referenceType: reference.type,
         dpiaTaskId: reference.id,
+        sourceNamespace,
       }))
   }
 

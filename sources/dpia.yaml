@@ -42,6 +42,10 @@ tasks:
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "1.1.1"
+                type: pre-view
         - task: Afbeeldingen
           description: Afbeeldingen
           id: "1.2"
@@ -87,6 +91,12 @@ tasks:
               type:
                 - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "2.3.1"
+                    type: many-to-many
+                  - id: "4.2.2"
+                    type: many-to-many
             - task: Categorie betrokkene
               id: "2.1.2"
               type:
@@ -97,6 +107,10 @@ tasks:
               type:
                 - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "2.3.1"
+                    type: many-to-many
             - task: Type persoonsgegeven
               id: "2.1.4"
               type:
@@ -108,6 +122,10 @@ tasks:
                 - value: strafrechtelijk
                 - value: nationaal identificatienummer
               repeatable: false
+              references:
+                IAMA:
+                  - id: "4.2.2"
+                    type: many-to-many
             - task: Oorspronkelijk verwerkingsdoeleinde
               id: "2.1.5"
               type:
@@ -195,6 +213,10 @@ tasks:
               type:
                - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "3.1.1"
+                    type: pre-view
             - task: Persoonsgegevens
               id: "3.1.3"
               type:
@@ -244,6 +266,18 @@ tasks:
    type:
       - open_text
    repeatable: false
+   references:
+     IAMA:
+       - id: "2.1.1.1"
+         type: pre-view
+       - id: "2.1.2"
+         type: pre-view
+       - id: "2.2A.1"
+         type: pre-view
+       - id: "3.2.1"
+         type: pre-view
+       - id: "3.2.2"
+         type: pre-view
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
    id: "5"
@@ -271,6 +305,10 @@ tasks:
           type:
             - open_text
           repeatable: true
+          references:
+            IAMA:
+              - id: "1.1.2"
+                type: many-to-many
     - task: Aanvullende informatie over de verwerkingsdoeleinden
       description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
       id: "5.2"
@@ -312,6 +350,16 @@ tasks:
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.1.1"
+                  type: many-to-many
+                - id: "1.4.1.2"
+                  type: many-to-many
+                - id: "1.4.1.3"
+                  type: many-to-many
+                - id: "1.4.2"
+                  type: many-to-many
           - task: Partij rol
             id: "6.1.1.2"
             description: >-
@@ -335,11 +383,19 @@ tasks:
               - value: Ontvanger
                 label: Ontvanger
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.2"
+                  type: many-to-many
           - task: Functies/afdelingen
             id: "6.1.1.3"
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "2.5.3"
+                  type: many-to-many
           - task: Persoonsgegevens
             id: "6.1.1.4"
             type:
@@ -402,6 +458,12 @@ tasks:
                 - open_text
               repeatable: true
               item_name: belang
+              references:
+                IAMA:
+                  - id: "1.2.1"
+                    type: many-to-many
+                  - id: "1.2.2"
+                    type: many-to-many
         - task: Aanvullende informatie over de belangen
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "7.2"
@@ -1026,6 +1088,10 @@ tasks:
           type:
            - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "3.4.4"
+                type: pre-view
  - task: >-
       Noodzaak en evenredigheid
    description: |
@@ -1044,12 +1110,34 @@ tasks:
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "2.1.2"
+                type: pre-view
+              - id: "4.5.1"
+                type: pre-view
+              - id: "4.5.2"
+                type: pre-view
+              - id: "5.A.6"
+                type: pre-view
         - task: De beoordeling van de proportionaliteit
           id: "14.2"
           description: "Staat de inbreuk op de persoonlijke levenssfeer en de bescherming van de persoonsgegevens van de betrokkenen in evenredige verhouding tot de verwerkingsdoeleinden?"
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "2.2A.3"
+                type: pre-view
+              - id: "2.2B.4"
+                type: pre-view
+              - id: "4.4.1"
+                type: pre-view
+              - id: "4.4.2"
+                type: pre-view
+              - id: "4.5.4"
+                type: pre-view
  - task: >-
      Rechten van de betrokkenen
    description: >-
@@ -1363,6 +1451,12 @@ tasks:
                   operator: equals
                   value: true
                 action: show
+            references:
+              IAMA:
+                - id: "3.2.1"
+                  type: pre-view
+                - id: "3.2.2"
+                  type: pre-view
           - task: Beperking op grond van wettelijke uitzondering
             id: "15.6.3"
             type:
@@ -1417,6 +1511,12 @@ tasks:
                   operator: equals
                   value: true
                 action: show
+            references:
+              IAMA:
+                - id: "3.4.3"
+                  type: pre-view
+                - id: "3.5.5"
+                  type: pre-view
           - task: Beperking op grond van wettelijke uitzondering
             id: "15.7.3"
             type:
@@ -1471,6 +1571,18 @@ tasks:
                   operator: equals
                   value: true
                 action: show
+            references:
+              IAMA:
+                - id: "3.3.1"
+                  type: pre-view
+                - id: "3.3.2"
+                  type: pre-view
+                - id: "3.3.3"
+                  type: pre-view
+                - id: "3.3.4"
+                  type: pre-view
+                - id: "3.5.4"
+                  type: pre-view
           - task: Beperking op grond van wettelijke uitzondering
             id: "15.8.3"
             type:
@@ -1530,11 +1642,47 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "3.5.2"
+                  type: many-to-many
+                - id: "3.5.6"
+                  type: many-to-many
+                - id: "3.5.7"
+                  type: many-to-many
+                - id: "4.1.1.1"
+                  type: many-to-many
+                - id: "4.1.3"
+                  type: many-to-many
+                - id: "4.3.1"
+                  type: many-to-many
+                - id: "4.3.2"
+                  type: many-to-many
+                - id: "4.3.3"
+                  type: many-to-many
           - task: Oorsprong
             id: "16.1.2"
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "2.2A.2"
+                  type: many-to-many
+                - id: "2.2B.2"
+                  type: many-to-many
+                - id: "2.2B.3"
+                  type: many-to-many
+                - id: "2.3.2"
+                  type: many-to-many
+                - id: "2.3.3"
+                  type: many-to-many
+                - id: "2.4.2"
+                  type: many-to-many
+                - id: "3.2.3"
+                  type: many-to-many
+                - id: "3.5.1"
+                  type: many-to-many
           - task: Kans
             id: "16.1.3"
             type:
@@ -1626,6 +1774,18 @@ tasks:
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.3"
+                  type: many-to-many
+                - id: "2.5.2"
+                  type: many-to-many
+                - id: "2.5.3"
+                  type: many-to-many
+                - id: "3.1.5"
+                  type: many-to-many
+                - id: "4.5.2"
+                  type: many-to-many
           - task: Resterend risico en de risicoinschatting
             id: "17.1.4"
             type:
@@ -1635,6 +1795,12 @@ tasks:
               - value: midden
               - value: hoog
             repeatable: false
+            references:
+              IAMA:
+                - id: "4.5.3"
+                  type: many-to-many
+                - id: "5.C"
+                  type: many-to-many
           - task: Voeg een verwijzing of beschrijving van het advies AP toe
             id: "17.1.5"
             repeatable: false
@@ -1677,6 +1843,10 @@ tasks:
         type:
           - open_text
         repeatable: false
+        references:
+          IAMA:
+            - id: "5.C"
+              type: many-to-many
  - task: >-
     Managementsamenvatting
    id: "18"
