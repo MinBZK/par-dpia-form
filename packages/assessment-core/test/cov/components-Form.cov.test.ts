@@ -88,7 +88,15 @@ function makePersistence(opts: PersistenceOptions = {}) {
 }
 
 const stubs = {
-  Banner: { name: 'Banner', template: '<div class="stub-banner" />' },
+  // No props declared, so the back-text binding falls through as an attribute
+  // on the stub root and stays assertable.
+  // Renders the utility slot so the document actions Form puts in the top
+  // navigation bar stay assertable.
+  Banner: {
+    name: 'Banner',
+    emits: ['back'],
+    template: '<div class="stub-banner"><slot name="utility" /></div>',
+  },
   ProgressTracker: {
     name: 'ProgressTracker',
     props: ['disabled', 'navigable'],
@@ -96,6 +104,7 @@ const stubs = {
   },
   ExportMenu: {
     name: 'ExportMenu',
+    props: ['split', 'menuBar'],
     emits: ['export'],
     template:
       '<div class="stub-exportmenu"><button class="em-pdf" @click="$emit(\'export\', \'pdf\')">Exporteer als PDF</button><button class="em-json" @click="$emit(\'export\', \'json\')">Exporteer als JSON</button><button class="em-markdown" @click="$emit(\'export\', \'markdown\')">Exporteer als Markdown</button></div>',
@@ -105,39 +114,12 @@ const stubs = {
     props: ['taskId'],
     template: '<div class="stub-tasksection" :data-task-id="taskId" />',
   },
-  NavHeader: {
-    name: 'NavHeader',
-    props: ['navigation'],
-    // Render the default slot so the file-action buttons (reset + ExportMenu)
-    // that Form places in the NavHeader slot are visible to assertions.
-    template: '<div class="stub-navheader"><slot /></div>',
-  },
   FileUploadPage: {
     name: 'FileUploadPage',
     emits: ['start'],
     template: '<div class="stub-fileupload"><button class="fu-start" @click="$emit(\'start\')" /></div>',
   },
   LiveResults: { name: 'LiveResults', template: '<div class="stub-liveresults" />' },
-  // Native <dialog>.showModal does not exist in jsdom; the stub exposes the two
-  // outcomes so a test can confirm or cancel.
-  ConfirmDialog: {
-    name: 'ConfirmDialog',
-    props: ['open', 'title', 'confirmLabel'],
-    emits: ['confirm', 'cancel'],
-    template:
-      '<div v-if="open" class="stub-confirm-dialog" :data-title="title">' +
-      '<slot />' +
-      '<button class="cd-confirm" @click="$emit(\'confirm\')" />' +
-      '<button class="cd-cancel" @click="$emit(\'cancel\')" />' +
-      '</div>',
-  },
-  UiButton: {
-    name: 'UiButton',
-    props: ['variant', 'label', 'icon', 'size', 'showIconAfter'],
-    emits: ['click'],
-    template:
-      '<button class="stub-uibutton" :data-label="label" :data-variant="variant" @click="$emit(\'click\', $event)">{{ label }}</button>',
-  },
 }
 
 interface MountOptions {
@@ -147,6 +129,7 @@ interface MountOptions {
   showNavHeader?: boolean
   showFileActions?: boolean
   autoStart?: boolean
+  contentInert?: boolean
   persistence?: PersistenceProvider
 }
 
@@ -162,6 +145,7 @@ async function mountForm(opts: MountOptions = {}) {
       ...(opts.showNavHeader !== undefined ? { showNavHeader: opts.showNavHeader } : {}),
       ...(opts.showFileActions !== undefined ? { showFileActions: opts.showFileActions } : {}),
       ...(opts.autoStart !== undefined ? { autoStart: opts.autoStart } : {}),
+      ...(opts.contentInert !== undefined ? { contentInert: opts.contentInert } : {}),
     },
     global: {
       provide: { [PERSISTENCE_KEY as symbol]: persistence },
@@ -173,8 +157,12 @@ async function mountForm(opts: MountOptions = {}) {
   return { wrapper, persistence, navigation }
 }
 
-function uiButtonByLabel(wrapper: ReturnType<typeof mount>, label: string) {
-  return wrapper.findAll('.stub-uibutton').find((b) => b.attributes('data-label') === label)
+function buttonByText(wrapper: ReturnType<typeof mount>, text: string) {
+  return wrapper.findAll('nldd-button').find((b) => b.attributes('text') === text)
+}
+
+function menuBarItemByText(wrapper: ReturnType<typeof mount>, text: string) {
+  return wrapper.findAll('nldd-menu-bar-item').find((b) => b.attributes('text') === text)
 }
 
 beforeEach(() => {
@@ -204,14 +192,31 @@ describe('Form.vue onMounted initialization', () => {
       global: { provide: { [PERSISTENCE_KEY as symbol]: persistence }, stubs },
     })
 
-    expect(wrapper.text()).toContain('Ophalen van taken...')
+    const loading = wrapper.find('nldd-inline-dialog[variant="loading"]')
+    expect(loading.exists()).toBe(true)
+    expect(loading.attributes('text')).toBe('Ophalen van taken...')
 
     resolveLoad(null)
     await flushPromises()
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.text()).not.toContain('Ophalen van taken...')
+    expect(wrapper.find('nldd-inline-dialog').exists()).toBe(false)
     expect(wrapper.find('.stub-progress').exists()).toBe(true)
+  })
+
+  it('rendert de sidebar-layout: ProgressTracker in het sidebar-nav en het form-content-gebied', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+
+    const sidebarSection = wrapper.find('nldd-sidebar-section')
+    expect(sidebarSection.exists()).toBe(true)
+    expect(sidebarSection.attributes('sidebar-label')).toBe('Stappen navigatie')
+
+    const nav = wrapper.find('nav[slot="sidebar"]')
+    expect(nav.attributes('aria-label')).toBe('Stappen navigatie')
+    expect(nav.find('.stub-progress').exists()).toBe(true)
+
+    const content = wrapper.find('[role="form"]')
+    expect(content.attributes('aria-labelledby')).toBe('current-section-heading')
   })
 
   it('sets an error message and stops loading when validData is null', async () => {
@@ -314,9 +319,11 @@ describe('Form.vue autoStart', () => {
 })
 
 describe('Form.vue prop-driven template branches', () => {
-  it('renders the Banner when showBanner is true (default)', async () => {
+  it('renders the Banner with the back link to the overview when showBanner is true (default)', async () => {
     const { wrapper } = await mountForm({})
-    expect(wrapper.find('.stub-banner').exists()).toBe(true)
+    const banner = wrapper.find('.stub-banner')
+    expect(banner.exists()).toBe(true)
+    expect(banner.attributes('back-text')).toBe('Overzicht')
   })
 
   it('hides the Banner when showBanner is false', async () => {
@@ -324,14 +331,36 @@ describe('Form.vue prop-driven template branches', () => {
     expect(wrapper.find('.stub-banner').exists()).toBe(false)
   })
 
-  it('renders NavHeader when showNavHeader is true (default)', async () => {
-    const { wrapper } = await mountForm({})
-    expect(wrapper.find('.stub-navheader').exists()).toBe(true)
+  it('navigates to the landing page when the Banner emits back', async () => {
+    const { wrapper, navigation } = await mountForm({})
+
+    wrapper.findComponent({ name: 'Banner' }).vm.$emit('back')
+    await wrapper.vm.$nextTick()
+
+    expect(navigation.goToLanding).toHaveBeenCalledTimes(1)
   })
 
-  it('hides NavHeader when showNavHeader is false', async () => {
-    const { wrapper } = await mountForm({ showNavHeader: false })
-    expect(wrapper.find('.stub-navheader').exists()).toBe(false)
+  it('puts the document actions in the utility menu bar once the form has started', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const bar = wrapper.find('nldd-menu-bar')
+    expect(bar.exists()).toBe(true)
+    expect(bar.attributes('slot')).toBe('utility')
+    expect(bar.attributes('accessible-label')).toBe('Acties voor dit formulier')
+  })
+
+  it('leaves the menu bar out when showNavHeader is false', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, showNavHeader: false })
+    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
+  })
+
+  it('leaves the menu bar out before the form has started', async () => {
+    const { wrapper } = await mountForm({ autoStart: false })
+    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
+  })
+
+  it('leaves the menu bar out when showFileActions is false', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, showFileActions: false })
+    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
   })
 
   it('marks ProgressTracker navigable for DPIA', async () => {
@@ -344,70 +373,71 @@ describe('Form.vue prop-driven template branches', () => {
     expect(wrapper.find('.stub-progress').attributes('data-navigable')).toBe('true')
   })
 
-  it('shows the file-action buttons only when started and showFileActions is true', async () => {
-    // File actions moved into the NavHeader slot: the reset UiButton + ExportMenu.
+  it('shows the document actions only when started and showFileActions is true', async () => {
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: true })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
+    expect(menuBarItemByText(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
     expect(wrapper.findAll('.stub-exportmenu').length).toBeGreaterThan(0)
   })
 
-  it('hides the file-action buttons when showFileActions is false', async () => {
+  it('hides the document actions when showFileActions is false', async () => {
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: false })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeFalsy()
+    expect(menuBarItemByText(wrapper, 'Begin nieuwe DPIA')).toBeFalsy()
   })
 
   it('labels the reset button "Begin nieuwe DPIA" for the DPIA namespace', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.DPIA, autoStart: true })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
+    expect(menuBarItemByText(wrapper, 'Begin nieuwe DPIA')).toBeTruthy()
   })
 
   it('labels the reset button "Begin nieuwe Pre-scan" for the PRE_SCAN namespace', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.PRE_SCAN, autoStart: true })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe Pre-scan')).toBeTruthy()
+    expect(menuBarItemByText(wrapper, 'Begin nieuwe Pre-scan')).toBeTruthy()
   })
 
   it('labels the reset button "Begin nieuwe IAMA" for the IAMA namespace', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.IAMA, autoStart: true })
-    expect(uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')).toBeTruthy()
+    expect(menuBarItemByText(wrapper, 'Begin nieuwe IAMA')).toBeTruthy()
   })
 })
 
 describe('Form.vue navigation buttons', () => {
   it('on the first (non-last) section: shows "Volgende stap" and the completed checkbox, hides "Vorige stap"', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
-    expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeFalsy()
-    expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeTruthy()
-    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true)
+    expect(buttonByText(wrapper, 'Vorige stap')).toBeFalsy()
+    expect(buttonByText(wrapper, 'Volgende stap')).toBeTruthy()
+    expect(wrapper.find('nldd-checkbox-field.step-complete').exists()).toBe(true)
     // No last-section ExportMenu in the content area on a non-last section.
-    expect(wrapper.find('.rvo-layout-margin-vertical--xl .stub-exportmenu').exists()).toBe(false)
+    expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(false)
   })
 
   it('goToNext flushes saves and advances; the last section shows "Vorige stap" + the content ExportMenu', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
     const taskStore = useTaskStore()
 
-    await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
+    await buttonByText(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(persistence.flushSave).toHaveBeenCalled()
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('1')
 
-    expect(uiButtonByLabel(wrapper, 'Vorige stap')).toBeTruthy()
-    // The last section renders the shared ExportMenu (with a real PDF export button).
+    expect(buttonByText(wrapper, 'Vorige stap')).toBeTruthy()
+    // The last section renders the shared ExportMenu (with a real PDF export
+    // button) inside the navigation button group.
+    expect(wrapper.find('.step-actions .stub-exportmenu').exists()).toBe(true)
     expect(wrapper.findAll('.em-pdf').length).toBeGreaterThan(0)
-    expect(uiButtonByLabel(wrapper, 'Volgende stap')).toBeFalsy()
-    expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false)
+    expect(buttonByText(wrapper, 'Volgende stap')).toBeFalsy()
+    expect(wrapper.find('nldd-checkbox-field').exists()).toBe(false)
   })
 
   it('goToPrevious flushes saves and goes back a section', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
     const taskStore = useTaskStore()
 
-    await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
+    await buttonByText(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
     ;(persistence.flushSave as ReturnType<typeof vi.fn>).mockClear()
 
-    await uiButtonByLabel(wrapper, 'Vorige stap')!.trigger('click')
+    await buttonByText(wrapper, 'Vorige stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(persistence.flushSave).toHaveBeenCalled()
@@ -419,7 +449,7 @@ describe('Form.vue navigation buttons', () => {
     const { wrapper } = await mountForm({ autoStart: true, persistence })
     const taskStore = useTaskStore()
 
-    await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
+    await buttonByText(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(taskStore.currentRootTaskId[FormType.DPIA]).toBe('1')
@@ -430,11 +460,36 @@ describe('Form.vue navigation buttons', () => {
     const taskStore = useTaskStore()
     ;(persistence.flushSave as ReturnType<typeof vi.fn>).mockClear()
 
-    const checkbox = wrapper.find('input[type="checkbox"]')
-    await checkbox.trigger('change')
+    // The field reports the new state in the change detail.
+    const checkbox = wrapper.find('nldd-checkbox-field')
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
     expect(taskStore.isRootTaskCompleted('0')).toBe(true)
     expect(persistence.flushSave).toHaveBeenCalled()
+  })
+
+  it('ignores the duplicate change the inner checkbox re-emits through the shadow boundary', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const taskStore = useTaskStore()
+    const checkbox = wrapper.find('nldd-checkbox-field')
+
+    // One click arrives twice: nldd-checkbox emits composed: true and the field
+    // emits its own. Both carry the same state, so the second must not undo it.
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
+
+    expect(taskStore.isRootTaskCompleted('0')).toBe(true)
+  })
+
+  it('ignores a change event without a checked flag', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const taskStore = useTaskStore()
+
+    await wrapper.find('nldd-checkbox-field').trigger('change')
+
+    expect(taskStore.isRootTaskCompleted('0')).toBe(false)
   })
 })
 
@@ -442,7 +497,7 @@ describe('Form.vue export handlers', () => {
   it('handleExport(pdf) calls exportToPdf from the last-section ExportMenu', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
 
-    await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
+    await buttonByText(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     await wrapper.findAll('.em-pdf')[0].trigger('click')
@@ -456,7 +511,7 @@ describe('Form.vue export handlers', () => {
     exportToPdfMock.mockRejectedValueOnce(new Error('pdf failed'))
 
     const { wrapper } = await mountForm({ autoStart: true })
-    await uiButtonByLabel(wrapper, 'Volgende stap')!.trigger('click')
+    await buttonByText(wrapper, 'Volgende stap')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     await wrapper.findAll('.em-pdf')[0].trigger('click')
@@ -523,14 +578,15 @@ describe('Form.vue handleReset', () => {
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['0'])
 
-    await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
     await wrapper.vm.$nextTick()
 
     // The button only asks; the reset happens on confirm.
     expect(persistence.clearSavedState).not.toHaveBeenCalled()
-    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('1 ingevuld antwoord')
+    expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
+      .toContain('1 ingevuld antwoord')
 
-    await wrapper.find('.cd-confirm').trigger('click')
+    await buttonByText(wrapper, 'Ja, begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(persistence.clearSavedState).toHaveBeenCalledWith(FormType.DPIA)
@@ -543,17 +599,17 @@ describe('Form.vue handleReset', () => {
   it('cancels without clearing, and phrases the warning without a count', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
 
-    await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
     await wrapper.vm.$nextTick()
 
     // Nothing answered yet, so there is no number worth naming.
-    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('De opgeslagen DPIA wordt definitief gewist')
+    expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
+      .toContain('De opgeslagen DPIA wordt definitief gewist')
 
-    await wrapper.find('.cd-cancel').trigger('click')
+    await buttonByText(wrapper, 'Annuleren')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(persistence.clearSavedState).not.toHaveBeenCalled()
-    expect(wrapper.find('.stub-confirm-dialog').exists()).toBe(false)
   })
 
   it('pluralises the warning for more than one answer', async () => {
@@ -561,10 +617,11 @@ describe('Form.vue handleReset', () => {
     const answerStore = useAnswerStore()
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'a' }, '0.2': { value: 'b' } }
 
-    await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('.stub-confirm-dialog').text()).toContain('2 ingevulde antwoorden')
+    expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
+      .toContain('2 ingevulde antwoorden')
   })
 
   it('uses the rootTaskIds fallback "0" and skips re-init when validData is null', async () => {
@@ -651,5 +708,73 @@ describe('Form.vue isSigningTask computed', () => {
     taskStore.setRootTask('1')
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.stub-liveresults').exists()).toBe(false)
+  })
+})
+
+describe('Form.vue header slot', () => {
+  it('renders a consumer header inside the section, above the two columns', async () => {
+    const persistence = makePersistence()
+    const wrapper = mount(Form, {
+      props: { navigation: makeNavigation(), namespace: FormType.DPIA, validData: makeValidData(), autoStart: true },
+      slots: { header: '<h1 class="consumer-title">Mijn assessment</h1>' },
+      global: { provide: { [PERSISTENCE_KEY as symbol]: persistence }, stubs },
+    })
+    await flushPromises()
+
+    const header = wrapper.find('[slot="header"]')
+    expect(header.exists()).toBe(true)
+    expect(header.find('h1.consumer-title').text()).toBe('Mijn assessment')
+  })
+
+  it('leaves the header slot out when the consumer fills nothing', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    expect(wrapper.find('[slot="header"]').exists()).toBe(false)
+  })
+})
+
+describe('Form.vue reset confirmation dialog', () => {
+  it('closes on the modal\'s own close event (Esc / backdrop)', async () => {
+    const { wrapper, persistence } = await mountForm({ autoStart: true })
+
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await wrapper.vm.$nextTick()
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    await wrapper.vm.$nextTick()
+
+    expect(persistence.clearSavedState).not.toHaveBeenCalled()
+    expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
+      .toContain('De opgeslagen DPIA wordt definitief gewist')
+  })
+
+  it('drives show() and hide() on the upgraded custom element', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }
+    host.show = vi.fn()
+    host.hide = vi.fn()
+
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await wrapper.vm.$nextTick()
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    await buttonByText(wrapper, 'Annuleren')!.trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(host.hide).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Form.vue read-only role', () => {
+  it('makes the completion checkbox inert and leaves the rest of the page alone', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, contentInert: true })
+    expect(wrapper.find('nldd-checkbox-field.step-complete').attributes('inert')).toBeDefined()
+    expect(wrapper.find('div[role="form"]').attributes('inert')).toBeUndefined()
+  })
+
+  it('leaves the completion checkbox interactive for an editor', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+    expect(wrapper.find('nldd-checkbox-field.step-complete').attributes('inert')).toBeUndefined()
   })
 })

@@ -31,6 +31,7 @@ vi.mock('../../src/views/StatusPage.vue', () => stub('StatusPage'))
 vi.mock('../../src/views/NotFound.vue', () => stub('NotFound'))
 
 let router: typeof import('../../src/router').router
+let previousPage: typeof import('../../src/router').previousPage
 
 beforeEach(async () => {
   vi.resetModules()
@@ -39,6 +40,7 @@ beforeEach(async () => {
   mockLogin.mockResolvedValue(undefined)
   const mod = await import('../../src/router')
   router = mod.router
+  previousPage = mod.previousPage
 })
 
 function records(): RouteRecordRaw[] {
@@ -142,5 +144,66 @@ describe('router beforeEach guard', () => {
     expect(mockLogin).toHaveBeenCalledTimes(1)
     expect(router.currentRoute.value.name).not.toBe('projects')
     expect(failure).toBeTruthy()
+  })
+})
+
+describe('previousPage', () => {
+  it('remembers the page the reader leaves, named by its route', async () => {
+    mockIsAuthenticated.value = true
+    previousPage.value = null
+
+    await router.push('/projecten')
+    await router.push('/over')
+
+    expect(previousPage.value).toEqual({ text: 'Projecten', to: '/projecten' })
+  })
+
+  it('falls back to a generic name for a route without a label', async () => {
+    mockIsAuthenticated.value = true
+    previousPage.value = null
+
+    await router.push('/bestaat-niet')
+    await router.push('/over')
+
+    expect(previousPage.value).toEqual({ text: 'Vorige pagina', to: '/bestaat-niet' })
+  })
+
+  it('does not let one informational page become the way back from another', async () => {
+    mockIsAuthenticated.value = true
+    await router.push('/projecten')
+    await router.push('/over')
+    expect(previousPage.value).toEqual({ text: 'Projecten', to: '/projecten' })
+
+    await router.push('/toegankelijkheid')
+
+    // Still the last working page, not the page just left.
+    expect(previousPage.value).toEqual({ text: 'Projecten', to: '/projecten' })
+  })
+
+  it('stays put on a navigation to the same path', async () => {
+    mockIsAuthenticated.value = true
+    await router.push('/over')
+    previousPage.value = null
+
+    await router.push('/over')
+
+    expect(previousPage.value).toBeNull()
+  })
+})
+
+describe('scroll behaviour', () => {
+  const scroll = () =>
+    router.options.scrollBehavior as (
+      to: unknown,
+      from: unknown,
+      saved: { left: number; top: number } | null,
+    ) => unknown
+
+  it('opens a new page at the top', () => {
+    expect(scroll()({}, {}, null)).toEqual({ top: 0 })
+  })
+
+  it('restores the reader\u2019s place on back and forward', () => {
+    expect(scroll()({}, {}, { left: 0, top: 640 })).toEqual({ left: 0, top: 640 })
   })
 })

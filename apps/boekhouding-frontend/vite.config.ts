@@ -16,7 +16,17 @@ const allowedHosts: true | string[] | undefined = allowedHostsEnv === 'all'
     : undefined
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          // @nldd/design-system web components; without this Vue tries to
+          // resolve nldd-* tags as Vue components.
+          isCustomElement: (tag) => tag.startsWith('nldd-'),
+        },
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@overheid-assessment/core': fileURLToPath(new URL('../../packages/assessment-core/src/index.ts', import.meta.url)),

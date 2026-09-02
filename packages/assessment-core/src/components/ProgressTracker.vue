@@ -2,18 +2,33 @@
 import { computed, inject } from 'vue'
 import { useTaskNavigation } from '../composables/useTaskNavigation'
 import { type FlatTask, useTaskStore, taskIsOfTaskType } from '../stores/tasks'
+import { useAnswerStore } from '../stores/answers'
 import { PERSISTENCE_KEY } from '../persistence'
+import '@nldd/design-system/icon-cell'
+import '@nldd/design-system/list'
+import '@nldd/design-system/list-item'
+import '@nldd/design-system/text'
+import '@nldd/design-system/text-cell'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   disabled?: boolean
   navigable?: boolean
-}>()
+  // Root task ids with unresolved comments (boekhouding only; the standalone
+  // has no comments and simply passes nothing).
+  commentedTaskIds?: string[]
+}>(), {
+  commentedTaskIds: () => [],
+})
 
 const taskStore = useTaskStore()
+const answerStore = useAnswerStore()
 const { currentRootTaskId, rootTasks, goToTask: rawGoToTask } = useTaskNavigation()
 const persistence = inject(PERSISTENCE_KEY)
 
-const goToTask = (taskId: string) => {
+const isNavigable = computed(() => !props.disabled && props.navigable === true)
+
+const goToTask = (taskId: string | null) => {
+  if (!isNavigable.value || taskId === null) return
   if (persistence?.flushSave) persistence.flushSave()
   rawGoToTask(taskId)
 }
@@ -26,77 +41,116 @@ const conclusionTask = computed(() =>
   rootTasks.value.find(t => t.type?.includes('signing'))
 )
 
-function displayTitle(task: FlatTask): string {
-  const shouldSkipIdPrefix = !task.is_official_id || (task.type && (task.type.includes('signing') || task.type.includes('informational')))
-
-  return shouldSkipIdPrefix
-    ? task.task
-    : `${task.id}. ${task.task}`;
-}
-
 function isInformational(task: FlatTask): boolean {
   return taskIsOfTaskType(task, 'informational')
 }
+
+// The number lives in a muted, tabular span before the title. Informational,
+// signing and non-official-id steps carry no number (same rule as the title).
+function stepParts(task: FlatTask): { num: string | null; title: string } {
+  const skipNum = !task.is_official_id || (task.type && (task.type.includes('signing') || task.type.includes('informational')))
+  return skipNum ? { num: null, title: task.task } : { num: String(task.id), title: task.task }
+}
+
+function isNonEmpty(value: unknown): boolean {
+  if (value == null) return false
+  if (typeof value === 'string') return value.trim() !== ''
+  if (Array.isArray(value)) return value.length > 0
+  return true
+}
+
+// Root task ids that already have at least one non-empty answer somewhere in
+// their subtree. Answer keys are "<rootId>.<...>", so the first segment is the
+// root task id (repeatable instance keys share that prefix).
+const answeredRoots = computed(() => {
+  const map = answerStore.answers[taskStore.activeNamespace]
+  const roots = new Set<string>()
+  for (const key in map) {
+    if (isNonEmpty(map[key].value)) roots.add(key.split('.')[0])
+  }
+  return roots
+})
+
+type Node = 'done' | 'current' | 'progress' | 'open'
+interface Step {
+  key: string
+  id: string | null
+  title: string
+  label: string
+  node: Node
+  current: boolean
+  done: boolean
+  comment: boolean
+  // The marker always carries the chapter number; its fill carries the state
+  // (done, current, started, untouched).
+  markerText: string | null
+  navigable: boolean
+}
+
+function describe(task: FlatTask): Step {
+  const { num, title } = stepParts(task)
+  // While the form is still disabled (preview before start) nothing reads as
+  // done, in-progress or current - it is a plain, muted outline.
+  const done = !props.disabled && !isInformational(task) && taskStore.isRootTaskCompleted(task.id)
+  const current = !props.disabled && task.id === currentRootTaskId.value
+  const progress = !props.disabled && !done && !current && answeredRoots.value.has(task.id)
+  const node: Node = done ? 'done' : current ? 'current' : progress ? 'progress' : 'open'
+  return {
+    key: task.id,
+    id: task.id,
+    title,
+    // Number and title on one line: as an overline it would cost a second line
+    // per row, and the DPIA already runs to 22 chapters.
+    label: num ? `${num}. ${title}` : title,
+    node,
+    current,
+    done,
+    comment: props.commentedTaskIds.includes(task.id),
+    markerText: num,
+    navigable: isNavigable.value,
+  }
+}
+
+const steps = computed<Step[]>(() => {
+  const out = regularTasks.value.map(describe)
+  if (conclusionTask.value) {
+    out.push(describe(conclusionTask.value))
+  } else {
+    out.push({
+      key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid',
+      node: 'open', current: false, done: false, comment: false,
+      markerText: null, navigable: false,
+    })
+  }
+  return out
+})
 </script>
 
 <template>
-  <div class="rvo-progress-tracker">
-    <div
-      class="rvo-progress-tracker__step rvo-progress-tracker__step--md rvo-progress-tracker__step--start rvo-image-bg-progress-tracker-start-end-md--after rvo-progress-tracker__step--straight rvo-image-bg-progress-tracker-line-straight--before"
-    >
-      Inhoudsopgave
-    </div>
-    <div v-for="task in regularTasks" :key="task.id">
-      <div
-        :class="[
-          'rvo-progress-tracker__step',
-          'rvo-progress-tracker__step--md',
-          isInformational(task)
-            ? 'rvo-progress-tracker__step--informational rvo-image-bg-progress-tracker-start-end-md--after'
-            : disabled
-            ? 'rvo-progress-tracker__step--disabled rvo-image-bg-progress-tracker-incomplete-md--after'
-            : taskStore.isRootTaskCompleted(task.id)
-              ? 'rvo-progress-tracker__step--completed rvo-image-bg-progress-tracker-completed-md--after'
-              : task.id === currentRootTaskId
-                ? 'rvo-progress-tracker__step--doing rvo-image-bg-progress-tracker-doing-md--after'
-                : 'rvo-progress-tracker__step--incomplete rvo-image-bg-progress-tracker-incomplete-md--after',
-          'rvo-progress-tracker__step--straight',
-          'rvo-image-bg-progress-tracker-line-straight--before',
-        ]"
-      >
-        <div v-if="disabled || !navigable" class="small-text">
-          {{ displayTitle(task) }}
-        </div>
-        <a
-          v-else
-          class="rvo-link rvo-progress-tracker__step-link small-text"
-          @click="goToTask(task.id)"
-        >
-          {{ displayTitle(task) }}
-        </a>
-      </div>
-    </div>
-    <!-- Conclusion task as end step (small dot) -->
-    <div
-      v-if="conclusionTask"
-      class="rvo-progress-tracker__step rvo-progress-tracker__step--sm rvo-progress-tracker__step--end rvo-image-bg-progress-tracker-start-end-sm--after"
-    >
-      <a
-        v-if="!disabled && navigable"
-        class="rvo-link rvo-progress-tracker__step-link small-text"
-        @click="goToTask(conclusionTask.id)"
-      >
-        {{ conclusionTask.task }}
-      </a>
-      <div v-else class="small-text">
-        {{ conclusionTask.task }}
-      </div>
-    </div>
-    <div
-      v-else
-      class="rvo-progress-tracker__step rvo-progress-tracker__step--sm rvo-progress-tracker__step--end rvo-image-bg-progress-tracker-start-end-sm--after"
-    >
-      Proces voltooid
-    </div>
+  <div class="progress-tracker">
+    <nldd-text class="progress-tracker__title" weight="bold">Inhoudsopgave</nldd-text>
+    <!-- A plain list: nldd-list owns hover, focus and arrow-key navigation, and
+         the row carries its own state. The chapter number rides along as the
+         cell's overline; a check mark at the end says the step is done. -->
+    <nldd-list variant="simple" dividers="never" accessible-label="Inhoudsopgave">
+      <nldd-list-item v-for="step in steps" :key="step.key"
+        class="toc-item" :class="`toc-item--${step.node}`"
+        :button="step.navigable || undefined"
+        :current="step.current || undefined"
+        @click="goToTask(step.id)">
+        <nldd-text-cell class="toc-title" :text="step.label"></nldd-text-cell>
+        <nldd-icon-cell v-if="step.comment" class="toc-comment"
+          icon="comment" size="16" color="accent"></nldd-icon-cell>
+        <nldd-icon-cell v-if="step.done" class="toc-done"
+          icon="check-mark" size="16" color="success"></nldd-icon-cell>
+        <!-- Started but not finished: a small filled dot, the state the
+             timeline marker used to carry in its core. -->
+        <nldd-icon-cell v-else-if="step.node === 'progress'" class="toc-progress"
+          icon="circle-filled-small" size="16" color="accent"></nldd-icon-cell>
+        <span v-if="step.done" class="sr-only">, voltooid</span>
+        <span v-if="step.node === 'progress'" class="sr-only">, deels ingevuld</span>
+        <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>
+      </nldd-list-item>
+    </nldd-list>
   </div>
 </template>

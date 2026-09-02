@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
-import { autoGrowTextarea } from '@overheid-assessment/core'
 import type { CommentThread } from '../api'
-import { IconX, IconMessage, IconTrash, IconCheck, IconArrowBackUp } from '@tabler/icons-vue'
+import '@nldd/design-system/button'
+import '@nldd/design-system/inline-dialog'
+import '@nldd/design-system/card'
+import '@nldd/design-system/toolbar'
+import '@nldd/design-system/checkbox-field'
+import '@nldd/design-system/container'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/icon-button'
+import '@nldd/design-system/multi-line-text-field'
 
 const props = defineProps<{
   role: string
@@ -16,6 +23,14 @@ const emit = defineEmits<{ close: []; 'deactivate-field': [] }>()
 const commentStore = useCollaborationStore()
 
 const showResolved = ref(false)
+
+// nldd-checkbox-field reports the new state in the change detail; the inner
+// checkbox re-emits across the shadow boundary, so read the value rather than
+// toggling to keep the duplicate harmless.
+const handleResolvedToggle = (event: Event) => {
+  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
+  if (checked !== undefined) showResolved.value = checked
+}
 const panelBodyRef = ref<HTMLElement | null>(null)
 
 // New comment state
@@ -59,7 +74,7 @@ function updateFieldPositions() {
     if (parts.length < 2) continue
     const fieldId = parts.slice(1).join('-')
     positions.set(fieldId, label.getBoundingClientRect().top - bodyRect.top)
-    const titleEl = label.querySelector('.rvo-form-field__label > :first-child')
+    const titleEl = label.querySelector('.form-field__label > :first-child')
     let text: string | undefined
     if (titleEl) {
       // Exclude any begrip-definition tooltip text nested in the title.
@@ -186,17 +201,17 @@ onUnmounted(() => {
   if (updateTimer) clearTimeout(updateTimer)
 })
 
-// Focus the textarea when a field is activated
+// Focus the field when it is activated
 watch(() => props.activeFieldId, async (fieldId) => {
   if (!fieldId || !canComment.value) return
   newCommentBody.value = ''
   await nextTick()
   updateFieldPositions()
   await nextTick()
-  const textarea = panelBodyRef.value?.querySelector<HTMLTextAreaElement>(
-    `[data-field-group="${CSS.escape(fieldId)}"] .comment-inline-form textarea`,
+  const field = panelBodyRef.value?.querySelector<HTMLElement>(
+    `[data-field-group="${CSS.escape(fieldId)}"] .comment-inline-form nldd-multi-line-text-field`,
   )
-  textarea?.focus()
+  field?.focus()
 })
 
 function scrollToField(fieldId: string) {
@@ -259,21 +274,20 @@ function cancelReply() {
   replyBody.value = ''
 }
 
-function autoResize(event: Event) {
-  autoGrowTextarea(event.target as HTMLTextAreaElement)
+// NLDD fields carry their value in event.detail; a plain input event falls back
+// to the host's own value.
+function readFieldValue(event: Event): string {
+  return (event as CustomEvent).detail?.value ?? (event.target as HTMLTextAreaElement).value
 }
 
 async function startEdit(id: string, currentBody: string) {
   editingId.value = id
   editBody.value = currentBody
   await nextTick()
-  const textarea = panelBodyRef.value?.querySelector<HTMLTextAreaElement>(
-    `.comment-item__edit textarea`,
+  const field = panelBodyRef.value?.querySelector<HTMLElement>(
+    `.comment-item__edit nldd-multi-line-text-field`,
   )
-  if (textarea) {
-    autoGrowTextarea(textarea)
-    textarea.focus()
-  }
+  field?.focus()
 }
 
 function cancelEdit() {
@@ -309,29 +323,35 @@ async function handleReopen(commentId: string) {
     role="complementary"
     aria-label="Opmerkingen"
   >
-    <div class="comment-panel__header">
-      <h2 class="comment-panel__title">Opmerkingen</h2>
-      <div class="comment-panel__actions">
-        <label class="comment-panel__toggle">
-          <input v-model="showResolved" type="checkbox" />
-          Opgeloste tonen
-        </label>
-        <button
+    <!-- The header is a toolbar: the title at the start, the filter and the
+         close button at the end, spacing and alignment from the design system
+         instead of a hand-rolled flex row. -->
+    <nldd-toolbar class="comment-panel__header" size="sm" label="Opmerkingen">
+      <nldd-toolbar-title slot="start" text="Opmerkingen"></nldd-toolbar-title>
+      <nldd-toolbar-item slot="end">
+        <nldd-checkbox-field class="comment-panel__toggle" label="Opgeloste tonen"
+          :checked="showResolved || undefined"
+          @change="handleResolvedToggle"></nldd-checkbox-field>
+      </nldd-toolbar-item>
+      <nldd-toolbar-item slot="end">
+        <nldd-icon-button
           class="comment-panel__close"
-          aria-label="Sluiten"
+          size="sm"
+          icon="dismiss"
+          text="Sluiten"
+          variant="neutral-transparent"
           @click="emit('close')"
-        >
-          <IconX :size="20" aria-hidden="true" />
-        </button>
-      </div>
-    </div>
+        ></nldd-icon-button>
+      </nldd-toolbar-item>
+    </nldd-toolbar>
 
     <div class="comment-panel__body" ref="panelBodyRef">
       <!-- Empty state -->
       <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <p v-else-if="stackedEntries.length === 0" class="comment-panel__empty">
-        Er zijn nog geen opmerkingen bij deze stap. Klik op "Opmerking" bij een vraag om er een te plaatsen.
-      </p>
+      <nldd-inline-dialog v-else-if="stackedEntries.length === 0" class="comment-panel__empty"
+        icon="comment" icon-color="secondary"
+        text="Nog geen opmerkingen"
+        supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
 
       <!-- Positioned comment groups (Google Docs style) -->
       <div
@@ -349,12 +369,14 @@ async function handleReopen(commentId: string) {
         >Opmerking voor: {{ fieldLabels.get(entry.fieldId) }}</button>
 
         <!-- Threads -->
-        <div
+        <nldd-card
           v-for="thread in entry.threads"
           :key="thread.id"
           class="comment-thread"
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
+          :background="thread.resolvedAt ? 'tinted' : 'base'"
         >
+          <nldd-container padding="8">
           <p v-if="thread.resolvedAt && hasOpenInput(thread)" class="comment-thread__resolved-label" role="status">
             Opgelost door {{ thread.resolvedByName || 'een collega' }} terwijl je hier aan het schrijven was.
           </p>
@@ -367,18 +389,18 @@ async function handleReopen(commentId: string) {
             </div>
 
             <div v-if="editingId === thread.id" class="comment-item__edit">
-              <textarea
-                v-model="editBody"
-                class="comment-input"
-                aria-label="Opmerking bewerken"
-                rows="1"
-                @input="autoResize"
+              <nldd-multi-line-text-field
+                accessible-label="Opmerking bewerken"
+                rows="2"
+                resize="auto"
+                :value="editBody"
+                @input="editBody = readFieldValue($event)"
                 @keydown.enter.meta="submitEdit"
                 @keydown.escape="cancelEdit"
-              />
+              ></nldd-multi-line-text-field>
               <div class="comment-item__edit-actions">
-                <button class="comment-btn comment-btn--primary" @click="submitEdit">Opslaan</button>
-                <button class="comment-action-btn" @click="cancelEdit">Annuleer</button>
+                <nldd-button size="xs" variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelEdit"></nldd-button>
               </div>
             </div>
             <p
@@ -393,19 +415,39 @@ async function handleReopen(commentId: string) {
             >{{ thread.body }}</p>
 
             <div v-if="editingId !== thread.id" class="comment-item__footer">
-              <button v-if="canComment && !thread.resolvedAt" class="comment-action-btn" @click="startReply(thread.id)">
-                <IconMessage :size="14" aria-hidden="true" /> Reageren
-              </button>
-              <button v-if="canDeleteComment(thread.authorId)" class="comment-action-btn comment-action-btn--danger" @click="handleDelete(thread.id)">
-                <IconTrash :size="14" aria-hidden="true" /> Verwijderen
-              </button>
+              <nldd-button
+                v-if="canComment && !thread.resolvedAt"
+                size="xs"
+                variant="neutral-transparent"
+                start-icon="comment"
+                text="Reageren"
+                @click="startReply(thread.id)"
+              ></nldd-button>
+              <nldd-button
+                v-if="canDeleteComment(thread.authorId)"
+                size="xs"
+                variant="critical-transparent"
+                start-icon="trash"
+                text="Verwijderen"
+                @click="handleDelete(thread.id)"
+              ></nldd-button>
               <div class="comment-item__spacer"></div>
-              <button v-if="canResolve && !thread.resolvedAt" class="comment-action-btn comment-action-btn--resolve" @click="handleResolve(thread.id)">
-                <IconCheck :size="14" aria-hidden="true" /> Oplossen
-              </button>
-              <button v-if="canResolve && thread.resolvedAt" class="comment-action-btn" @click="handleReopen(thread.id)">
-                <IconArrowBackUp :size="14" aria-hidden="true" /> Heropenen
-              </button>
+              <nldd-button
+                v-if="canResolve && !thread.resolvedAt"
+                size="xs"
+                variant="accent-transparent"
+                start-icon="check-mark"
+                text="Oplossen"
+                @click="handleResolve(thread.id)"
+              ></nldd-button>
+              <nldd-button
+                v-if="canResolve && thread.resolvedAt"
+                size="xs"
+                variant="neutral-transparent"
+                start-icon="undo"
+                text="Heropenen"
+                @click="handleReopen(thread.id)"
+              ></nldd-button>
             </div>
 
           </div>
@@ -419,18 +461,18 @@ async function handleReopen(commentId: string) {
               </div>
 
               <div v-if="editingId === reply.id" class="comment-item__edit">
-                <textarea
-                  v-model="editBody"
-                  class="comment-input"
-                  aria-label="Reactie bewerken"
-                  rows="1"
-                  @input="autoResize"
+                <nldd-multi-line-text-field
+                  accessible-label="Reactie bewerken"
+                  rows="2"
+                  resize="auto"
+                  :value="editBody"
+                  @input="editBody = readFieldValue($event)"
                   @keydown.enter.meta="submitEdit"
                   @keydown.escape="cancelEdit"
-                />
+                ></nldd-multi-line-text-field>
                 <div class="comment-item__edit-actions">
-                  <button class="comment-btn comment-btn--primary" @click="submitEdit">Opslaan</button>
-                  <button class="comment-action-btn" @click="cancelEdit">Annuleer</button>
+                  <nldd-button size="xs" variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                  <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelEdit"></nldd-button>
                 </div>
               </div>
               <p
@@ -445,51 +487,64 @@ async function handleReopen(commentId: string) {
               >{{ reply.body }}</p>
 
               <div v-if="editingId !== reply.id && canComment" class="comment-item__footer">
-                <button v-if="canDeleteComment(reply.authorId)" class="comment-action-btn comment-action-btn--danger" @click="handleDelete(reply.id)">
-                  <IconTrash :size="14" aria-hidden="true" /> Verwijderen
-                </button>
+                <nldd-button
+                  v-if="canDeleteComment(reply.authorId)"
+                  size="xs"
+                  variant="critical-transparent"
+                  start-icon="trash"
+                  text="Verwijderen"
+                  @click="handleDelete(reply.id)"
+                ></nldd-button>
               </div>
             </div>
           </div>
 
           <!-- Reply form -->
           <div v-if="replyingTo === thread.id" class="comment-reply-form">
-            <textarea
-              v-model="replyBody"
-              class="comment-input"
-              aria-label="Reactie schrijven"
-              rows="1"
+            <nldd-multi-line-text-field
+              accessible-label="Reactie schrijven"
+              rows="2"
+              resize="auto"
               placeholder="Schrijf een reactie..."
-              @input="autoResize"
+              :value="replyBody"
+              @input="replyBody = readFieldValue($event)"
               @keydown.enter.meta="submitReply(thread.id, thread.fieldId)"
               @keydown.escape="cancelReply"
-            />
+            ></nldd-multi-line-text-field>
             <div class="comment-reply-form__actions">
-              <button class="comment-btn comment-btn--primary" @click="submitReply(thread.id, thread.fieldId)">Reageer</button>
-              <button class="comment-action-btn" @click="cancelReply">Annuleer</button>
+              <nldd-button size="xs" variant="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
+              <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelReply"></nldd-button>
             </div>
           </div>
-        </div>
+          </nldd-container>
+        </nldd-card>
 
         <!-- Inline new comment form (appears when this field is active) -->
         <div v-if="activeFieldId === entry.fieldId && canComment" class="comment-inline-form">
-          <textarea
-            v-model="newCommentBody"
-            class="comment-input"
-            aria-label="Nieuwe opmerking schrijven"
-            rows="1"
+          <nldd-multi-line-text-field
+            accessible-label="Nieuwe opmerking schrijven"
+            rows="2"
+            resize="auto"
             placeholder="Schrijf een opmerking..."
-            @input="autoResize"
+            :value="newCommentBody"
+            @input="newCommentBody = readFieldValue($event)"
             @keydown.enter.meta="submitComment(entry.fieldId)"
             @keydown.escape="newCommentBody = ''; emit('deactivate-field')"
-          />
+          ></nldd-multi-line-text-field>
           <div class="comment-inline-form__actions">
-            <button
-              class="comment-btn comment-btn--primary"
-              :disabled="!newCommentBody.trim()"
+            <nldd-button
+              size="sm"
+              variant="primary"
+              text="Plaatsen"
+              :disabled="!newCommentBody.trim() || undefined"
               @click="submitComment(entry.fieldId)"
-            >Plaatsen</button>
-            <button class="comment-action-btn" @click="newCommentBody = ''; emit('deactivate-field')">Annuleer</button>
+            ></nldd-button>
+            <nldd-button
+              size="sm"
+              variant="neutral-transparent"
+              text="Annuleer"
+              @click="newCommentBody = ''; emit('deactivate-field')"
+            ></nldd-button>
           </div>
         </div>
       </div>

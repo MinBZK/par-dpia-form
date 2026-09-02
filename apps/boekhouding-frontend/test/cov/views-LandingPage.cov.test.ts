@@ -34,7 +34,6 @@ const mountPage = () =>
   mount(LandingPage, {
     global: {
       stubs: {
-        AppHeader: { template: '<header class="app-header-stub" />' },
         RouterLink: {
           name: 'RouterLink',
           props: ['to'],
@@ -44,8 +43,13 @@ const mountPage = () =>
     },
   })
 
-const standaloneLinks = (wrapper: ReturnType<typeof mountPage>) =>
-  wrapper.findAll('a').filter((a) => a.attributes('href') === '/zonder-account/')
+const standaloneButtons = (wrapper: ReturnType<typeof mountPage>) =>
+  wrapper.findAll('nldd-button').filter((b) => b.attributes('href') === '/zonder-account/')
+
+// The samenwerken action is the only nldd-button without an href (it navigates
+// via the goToProjects click handler instead of a link).
+const samenwerkenButton = (wrapper: ReturnType<typeof mountPage>) =>
+  wrapper.findAll('nldd-button').find((b) => b.attributes('href') === undefined)!
 
 beforeEach(() => {
   routerPush.mockClear()
@@ -64,7 +68,7 @@ describe('LandingPage', () => {
 
     it('introduces the pre-scan as the starting point and the ways of working, with no en/em-dash', () => {
       const wrapper = mountPage()
-      const lead = wrapper.find('.landing-hero__lead').text()
+      const lead = wrapper.find("[aria-labelledby='landing-hero-title'] nldd-text").text()
       expect(lead).toContain('Begin met de pre-scan')
       expect(lead).toContain('zonder account')
       // Project rule: use a normal hyphen "-", never an en/em-dash.
@@ -73,18 +77,19 @@ describe('LandingPage', () => {
 
     it('has no buttons or links in the hero (the choice lives in the block below)', () => {
       const wrapper = mountPage()
-      const hero = wrapper.find('.landing-hero')
+      const hero = wrapper.find("[aria-labelledby='landing-hero-title']")
       expect(hero.findAll('a')).toHaveLength(0)
       expect(hero.findAll('button')).toHaveLength(0)
+      expect(hero.findAll('nldd-button')).toHaveLength(0)
     })
   })
 
   describe('standalone link from getConfig().standaloneUrl', () => {
     it('renders the standalone link once, in the zelfstandig card', () => {
       const wrapper = mountPage()
-      const links = standaloneLinks(wrapper)
-      expect(links).toHaveLength(1)
-      expect(links[0].text()).toBe('Start zonder account')
+      const buttons = standaloneButtons(wrapper)
+      expect(buttons).toHaveLength(1)
+      expect(buttons[0].attributes('text')).toBe('Start zonder account')
     })
   })
 
@@ -105,10 +110,10 @@ describe('LandingPage', () => {
       expect(text).toContain('opmerkingen')
     })
 
-    it('makes the login button primary (blue), like the start button', () => {
+    it('makes both path buttons primary (blue)', () => {
       const wrapper = mountPage()
-      const button = wrapper.find('button.rvo-button')
-      expect(button.classes()).toContain('rvo-button--primary')
+      expect(samenwerkenButton(wrapper).attributes('variant')).toBe('primary')
+      expect(standaloneButtons(wrapper)[0].attributes('variant')).toBe('primary')
     })
   })
 
@@ -136,13 +141,13 @@ describe('LandingPage', () => {
     it('labels the button "Inloggen" when not authenticated', () => {
       authenticated.value = false
       const wrapper = mountPage()
-      expect(wrapper.find('button.rvo-button').text()).toBe('Inloggen')
+      expect(samenwerkenButton(wrapper).attributes('text')).toBe('Inloggen')
     })
 
     it('labels the button "Naar projecten" when authenticated', () => {
       authenticated.value = true
       const wrapper = mountPage()
-      expect(wrapper.find('button.rvo-button').text()).toBe('Naar projecten')
+      expect(samenwerkenButton(wrapper).attributes('text')).toBe('Naar projecten')
     })
   })
 
@@ -150,7 +155,7 @@ describe('LandingPage', () => {
     it('navigates to /projecten when authenticated and does not call login', async () => {
       authenticated.value = true
       const wrapper = mountPage()
-      await wrapper.find('button.rvo-button').trigger('click')
+      await samenwerkenButton(wrapper).trigger('click')
       await flushPromises()
       expect(routerPush).toHaveBeenCalledWith('/projecten')
       expect(login).not.toHaveBeenCalled()
@@ -159,7 +164,7 @@ describe('LandingPage', () => {
     it('awaits login() when not authenticated and does not navigate', async () => {
       authenticated.value = false
       const wrapper = mountPage()
-      await wrapper.find('button.rvo-button').trigger('click')
+      await samenwerkenButton(wrapper).trigger('click')
       await flushPromises()
       expect(login).toHaveBeenCalledTimes(1)
       expect(routerPush).not.toHaveBeenCalled()
@@ -174,14 +179,29 @@ describe('LandingPage', () => {
       expect(heading.text()).toBe('Voor de overheid, door de overheid')
     })
 
-    it('renders four pillars whose icons are all decorative', () => {
+    it('renders four pillars as icon rows in a collection grid', () => {
       const wrapper = mountPage()
-      expect(wrapper.findAll('.landing-pillar')).toHaveLength(4)
-      const icons = wrapper.findAll('.landing-pillar__icon')
-      expect(icons).toHaveLength(4)
+      const section = wrapper.find('[aria-labelledby="landing-pillars-title"]')
+      const grid = section.find('nldd-collection')
+      expect(grid.attributes('layout')).toBe('grid')
+      expect(grid.attributes('item-width')).toBe('20rem')
+      const pillars = grid.findAll('nldd-container[layout="row"]')
+      expect(pillars).toHaveLength(4)
+      for (const pillar of pillars) {
+        expect(pillar.attributes('vertical-alignment')).toBe('top')
+        expect(pillar.find('nldd-title > h3').exists()).toBe(true)
+        expect(pillar.find('nldd-text').exists()).toBe(true)
+      }
+      const icons = grid.findAll('nldd-icon')
+      expect(icons.map((icon) => icon.attributes('name'))).toEqual([
+        'foundation',
+        'square-grid-2x2',
+        'seal-check-mark',
+        'numbered-list',
+      ])
       for (const icon of icons) {
-        expect(icon.attributes('aria-hidden')).toBe('true')
-        expect(icon.attributes('focusable')).toBe('false')
+        expect(icon.attributes('size')).toBe('24')
+        expect(icon.attributes('color')).toBe('donkerblauw')
       }
     })
 
@@ -208,7 +228,7 @@ describe('LandingPage', () => {
       const wrapper = mountPage()
       const section = wrapper.find('#assessments')
       expect(section.exists()).toBe(true)
-      expect(section.findAll('.rvo-card')).toHaveLength(3)
+      expect(section.findAll('nldd-card')).toHaveLength(3)
       expect(section.findAll('h3').map((h) => h.text())).toEqual([
         'Pre-scan',
         'Data Protection Impact Assessment (DPIA)',

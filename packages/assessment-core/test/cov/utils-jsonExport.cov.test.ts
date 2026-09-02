@@ -48,7 +48,7 @@ describe('importFromJson', () => {
     })
 
     await expect(importFromJson(file)).rejects.toThrow(
-      'Bestand mist metadata of answers — geen geldig assessment-bestand',
+      'Bestand mist metadata of answers: geen geldig assessment-bestand',
     )
   })
 })

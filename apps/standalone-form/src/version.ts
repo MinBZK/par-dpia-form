@@ -11,7 +11,8 @@
 // version lives in the <meta> tag (not the CSP-hashed inline script), so the
 // sed does not invalidate the standalone's script hash.
 export function formatBuildVersion(tag: string, commit: string): string {
-  if (tag !== 'dev') return tag
+  // The git tag carries the v (vYYYY.M.D); the reading version does not.
+  if (tag !== 'dev') return tag.replace(/^v/, '')
   if (commit !== 'dev') return `ontwikkel (commit ${commit})`
   return 'ontwikkel (lokaal)'
 }

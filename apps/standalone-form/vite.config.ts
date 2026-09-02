@@ -68,7 +68,14 @@ function inlineFavicon(): Plugin {
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [
-    vue(),
+    vue({
+      template: {
+        compilerOptions: {
+          // @nldd/design-system web components; keep in sync with vitest.config.ts.
+          isCustomElement: (tag) => tag.startsWith('nldd-'),
+        },
+      },
+    }),
     mode === 'development' && vueDevTools(),
     injectVersionMeta(appVersion),
     inlineFavicon(),

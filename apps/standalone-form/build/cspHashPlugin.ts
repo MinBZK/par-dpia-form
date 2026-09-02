@@ -5,12 +5,14 @@ import type { Plugin } from 'vite'
 // nginx header. `font-src`/`img-src` allow `data:` because the single-file build
 // inlines the favicon and some assets as data URIs.
 // `trusted-types` must allowlist every policy name actually created at runtime:
-// `default` (our DOMPurify catch-all), `vue` (Vue's own v-html policy) and
-// `dompurify` (DOMPurify's internal policy).
+// `default` (our DOMPurify catch-all), `vue` (Vue's own v-html policy),
+// `dompurify` (DOMPurify's internal policy) and `lit-html` (created at module
+// load by lit, which powers the @nldd/design-system web components; without it
+// the whole bundle fails during evaluation).
 const SHARED_DIRECTIVES =
   "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; " +
   "base-uri 'self'; form-action 'self'; require-trusted-types-for 'script'; " +
-  'trusted-types default vue dompurify;'
+  'trusted-types default vue dompurify lit-html;'
 
 function sha256(content: string): string {
   return `'sha256-${createHash('sha256').update(content, 'utf8').digest('base64')}'`

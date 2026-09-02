@@ -31,8 +31,8 @@ description:
       applicatie die zonder installatie of server in de browser draait, en als
       samenwerkomgeving waarin meerdere personen met rollen (eigenaar, bewerker, commentator,
       lezer) samen aan dezelfde assessments werken. De assessments volgen het Rijksmodel DPIA
-      en het IAMA van de Nederlandse overheid en zijn gebouwd met het
-      NL Design System / RVO-componentenbibliotheek.
+      en het IAMA-kader van de Nederlandse overheid en zijn gebouwd met het
+      NLDD Design System van de Nederlandse Digitale Dienst.
     documentation: "https://github.com/MinBZK/par-dpia-form/blob/main/README.md"
     features:
       - Pre-scan invullen

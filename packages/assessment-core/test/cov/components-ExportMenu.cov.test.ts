@@ -1,180 +1,122 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import ExportMenu from '../../src/components/ExportMenu.vue'
 
-// The outside-click listener is registered via setTimeout(..., 0); use fake
-// timers where needed so we can flush that deferred registration deterministically.
-afterEach(() => {
-  vi.useRealTimers()
-  vi.restoreAllMocks()
+// The nldd-* custom elements are not registered in jsdom (every
+// @nldd/design-system import resolves to an empty stub), so the hosts render
+// as inert elements: tests assert on host attributes and slot nesting and
+// simulate the NLDD events (action-click) with dispatched events.
+
+// Under a trigger that already says "Exporteer" the items only name the format;
+// the split button's menu hangs off the chevron, so there they spell it out.
+const MENU_ITEM_TEXTS = ['PDF', 'JSON', 'Markdown']
+const SPLIT_ITEM_TEXTS = ['Exporteer als PDF', 'Exporteer als JSON', 'Exporteer als Markdown']
+
+// nldd-menu-item fires `select` (not a bare click) when it is activated.
+const select = (item: { element: Element }) =>
+  item.element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
+
+describe('ExportMenu.vue compacte variant (zonder split)', () => {
+  it('rendert een expandable "Exporteer"-knop met het menu in de popup-slot', () => {
+    const wrapper = mount(ExportMenu, { attachTo: document.body })
+
+    const button = wrapper.find('nldd-button')
+    expect(button.exists()).toBe(true)
+    expect(button.attributes('text')).toBe('Exporteer')
+    expect(button.attributes('variant')).toBe('accent-transparent')
+    expect(button.attributes('size')).toBe('xs')
+    expect(button.attributes('expandable')).toBeDefined()
+    expect(button.attributes('popup-type')).toBe('menu')
+    // Anchoring, toggling and `expanded` are the button's job for a slotted
+    // menu: no manual id/anchor/popovertarget wiring remains.
+    expect(button.attributes('id')).toBeUndefined()
+    expect(button.attributes('expanded')).toBeUndefined()
+
+    const menu = button.find('nldd-menu')
+    expect(menu.exists()).toBe(true)
+    expect(menu.attributes('slot')).toBe('popup')
+    expect(menu.attributes('anchor')).toBeUndefined()
+    // nldd-menu has no accessible-label; the menu takes its name from the
+    // button that opens it, so setting one here would be silently ignored.
+    expect(menu.attributes('accessible-label')).toBeUndefined()
+    const items = menu.findAll('nldd-menu-item')
+    expect(items.map((item) => item.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
+
+    expect(wrapper.find('nldd-split-button').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('emit export met het gekozen formaat per menu-item (menu sluit zichzelf via light-dismiss)', async () => {
+    const wrapper = mount(ExportMenu, { attachTo: document.body })
+
+    const items = wrapper.findAll('nldd-menu-item')
+    items.forEach(select)
+    await nextTick()
+
+    expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
+    wrapper.unmount()
+  })
 })
 
-function mountMenu() {
-  // attachTo document so focus() and dispatched document events behave realistically.
-  return mount(ExportMenu, { attachTo: document.body })
-}
+describe('ExportMenu.vue split-variant', () => {
+  it('rendert een secondary split-button met het menu als slot-inhoud, zonder aparte knop', () => {
+    const wrapper = mount(ExportMenu, { props: { split: true } })
 
-describe('ExportMenu.vue', () => {
-  it('renders the trigger collapsed with aria-expanded=false and no panel', () => {
-    const wrapper = mountMenu()
-    const trigger = wrapper.find('button')
-    expect(trigger.text()).toContain('Exporteer')
-    expect(trigger.attributes('aria-expanded')).toBe('false')
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-    wrapper.unmount()
+    const splitButton = wrapper.find('nldd-split-button')
+    expect(splitButton.exists()).toBe(true)
+    expect(splitButton.attributes('variant')).toBe('secondary')
+    expect(splitButton.attributes('text')).toBe('Exporteer als PDF')
+
+    expect(splitButton.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
+    const items = splitButton.findAll('nldd-menu-item')
+    expect(items.map((item) => item.attributes('text'))).toEqual(SPLIT_ITEM_TEXTS)
+
+    // The compact standalone button is not rendered in split mode.
+    expect(wrapper.find('nldd-button').exists()).toBe(false)
   })
 
-  it('opens the panel and sets aria-expanded=true when the trigger is clicked', async () => {
-    const wrapper = mountMenu()
-    await wrapper.find('button').trigger('click')
+  it('emit export "pdf" bij het action-click-event van de hoofdknop', async () => {
+    const wrapper = mount(ExportMenu, { props: { split: true } })
 
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
-    expect(wrapper.find('button[aria-expanded]').attributes('aria-expanded')).toBe('true')
-    expect(wrapper.findAll('.export-menu__item')).toHaveLength(3)
-    wrapper.unmount()
+    wrapper.find('nldd-split-button').element.dispatchEvent(new CustomEvent('action-click'))
+    await nextTick()
+
+    expect(wrapper.emitted('export')).toEqual([['pdf']])
   })
 
-  it('toggles closed again on a second trigger click', async () => {
-    const wrapper = mountMenu()
-    const trigger = wrapper.find('button')
+  it('emit per menu-item het bijbehorende formaat in de split-variant', async () => {
+    const wrapper = mount(ExportMenu, { props: { split: true } })
 
-    await trigger.trigger('click')
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
+    const items = wrapper.findAll('nldd-menu-item')
+    items.forEach(select)
+    await nextTick()
 
-    await trigger.trigger('click')
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-    expect(trigger.attributes('aria-expanded')).toBe('false')
-    wrapper.unmount()
+    expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
 
-  it('emits "export" with the chosen format and closes the panel', async () => {
-    const wrapper = mountMenu()
-    await wrapper.find('button').trigger('click')
+  it('rendert als item in de utility menu-balk met dezelfde exportopties', () => {
+    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
 
-    const items = wrapper.findAll('.export-menu__item')
-    await items[0].trigger('click') // pdf
-    expect(wrapper.emitted('export')![0]).toEqual(['pdf'])
-    // choosing closes the menu
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
+    const item = wrapper.find('nldd-menu-bar-item')
+    expect(item.attributes('text')).toBe('Exporteer')
+    expect(item.attributes('icon')).toBe('download')
+    expect(item.attributes('expandable')).toBeDefined()
+    expect(item.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
+    expect(item.findAll('nldd-menu-item').map((i) => i.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
 
-    await wrapper.find('button').trigger('click')
-    await wrapper.findAll('.export-menu__item')[1].trigger('click') // json
-    expect(wrapper.emitted('export')![1]).toEqual(['json'])
-
-    await wrapper.find('button').trigger('click')
-    await wrapper.findAll('.export-menu__item')[2].trigger('click') // markdown
-    expect(wrapper.emitted('export')![2]).toEqual(['markdown'])
-    wrapper.unmount()
+    // Neither of the other two hosts renders alongside it.
+    expect(wrapper.find('nldd-split-button').exists()).toBe(false)
+    expect(wrapper.find('nldd-button').exists()).toBe(false)
   })
 
-  it('closes on Escape and returns focus to the trigger', async () => {
-    const wrapper = mountMenu()
-    const trigger = wrapper.find('button')
-    await trigger.trigger('click')
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
+  it('emit per menu-item het bijbehorende formaat in de menu-balk-variant', async () => {
+    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
 
-    await wrapper.find('.export-menu').trigger('keydown.escape')
+    const items = wrapper.findAll('nldd-menu-item')
+    items.forEach(select)
+    await nextTick()
 
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-    expect(document.activeElement).toBe(trigger.element)
-    wrapper.unmount()
-  })
-
-  it('ignores Escape when the menu is already closed (early return)', async () => {
-    const wrapper = mountMenu()
-    await wrapper.find('.export-menu').trigger('keydown.escape')
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-    expect(wrapper.emitted('export')).toBeUndefined()
-    wrapper.unmount()
-  })
-
-  it('closes when a click lands outside the menu container', async () => {
-    vi.useFakeTimers()
-    const wrapper = mountMenu()
-    await wrapper.find('button').trigger('click')
-    // Flush the deferred addOutsideListener so the document listener is active.
-    vi.runAllTimers()
-
-    const outside = document.createElement('div')
-    document.body.appendChild(outside)
-    outside.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-    outside.remove()
-    wrapper.unmount()
-  })
-
-  it('does NOT close when a click lands inside the menu container', async () => {
-    vi.useFakeTimers()
-    const wrapper = mountMenu()
-    await wrapper.find('button').trigger('click')
-    vi.runAllTimers()
-
-    // A click whose target is inside containerRef must not close the menu.
-    // Use the panel container (non-interactive) so we exercise the
-    // contains()-true branch without triggering an item's choose() handler.
-    const panel = wrapper.find('.export-menu__panel').element as HTMLElement
-    panel.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
-    wrapper.unmount()
-  })
-
-  it('handleDocumentClick is a no-op once the container ref is gone after unmount', async () => {
-    vi.useFakeTimers()
-    const wrapper = mountMenu()
-    await wrapper.find('button').trigger('click')
-    vi.runAllTimers()
-
-    const removeSpy = vi.spyOn(document, 'removeEventListener')
-    wrapper.unmount()
-    // onBeforeUnmount removes the listener.
-    expect(removeSpy).toHaveBeenCalledWith('click', expect.any(Function))
-  })
-
-  describe('split mode', () => {
-    function mountSplit() {
-      return mount(ExportMenu, { props: { split: true }, attachTo: document.body })
-    }
-
-    it('renders a main "Exporteer als PDF" button and a chevron toggle', () => {
-      const wrapper = mountSplit()
-      const main = wrapper.find('.export-menu__split-main')
-      const toggle = wrapper.find('.export-menu__split-toggle')
-      expect(main.exists()).toBe(true)
-      expect(main.text()).toBe('Exporteer als PDF')
-      expect(toggle.exists()).toBe(true)
-      expect(toggle.attributes('aria-expanded')).toBe('false')
-      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-      wrapper.unmount()
-    })
-
-    it('exports PDF directly from the main button without opening the panel', async () => {
-      const wrapper = mountSplit()
-      await wrapper.find('.export-menu__split-main').trigger('click')
-
-      expect(wrapper.emitted('export')![0]).toEqual(['pdf'])
-      // The panel was never opened: choose() -> close() short-circuits on the
-      // already-closed state.
-      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-      expect(wrapper.find('.export-menu__split-toggle').attributes('aria-expanded')).toBe('false')
-      wrapper.unmount()
-    })
-
-    it('opens all export options via the chevron toggle', async () => {
-      const wrapper = mountSplit()
-      await wrapper.find('.export-menu__split-toggle').trigger('click')
-
-      expect(wrapper.find('.export-menu__panel').exists()).toBe(true)
-      const items = wrapper.findAll('.export-menu__item')
-      expect(items).toHaveLength(3)
-
-      await items[1].trigger('click') // json
-      expect(wrapper.emitted('export')![0]).toEqual(['json'])
-      expect(wrapper.find('.export-menu__panel').exists()).toBe(false)
-      wrapper.unmount()
-    })
+    expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
 })

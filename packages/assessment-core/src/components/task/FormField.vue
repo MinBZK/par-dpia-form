@@ -8,9 +8,23 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { renderMarkdownToHtml } from '../../utils/markdown'
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
+import { CONTENT_READONLY_KEY } from '../../injectionKeys'
+import { computed, inject, ref, nextTick, watch } from 'vue'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/dropdown'
+import '@nldd/design-system/date-field'
+import '@nldd/design-system/segmented-control'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/rich-text'
+import '@nldd/design-system/inline-dialog'
+import '@nldd/design-system/radio-button-group'
+import '@nldd/design-system/radio-button-field'
+import '@nldd/design-system/checkbox-field'
+import '@nldd/design-system/checkbox'
+import '@nldd/design-system/radio-button'
 
 const props = defineProps<{
   task: FlatTask
@@ -18,6 +32,10 @@ const props = defineProps<{
   label?: string
   description?: string
 }>()
+
+// Read-only role: only the inputs go inert, so the term tooltips in the label
+// and the description stay hoverable.
+const readonly = inject(CONTENT_READONLY_KEY, ref(false))
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
@@ -33,6 +51,12 @@ const displayLabel = computed(() => {
   }
   return props.label
 })
+
+// Shadow-DOM inputs cannot reference the light-DOM label via aria-labelledby;
+// they get the plain label text as accessible-label instead.
+const accessibleLabel = computed(() =>
+  props.label ? getPlainTextWithoutDefinitions(displayLabel.value) : undefined,
+)
 
 function getSourceTaskId(task: FlatTask): string {
   const sourceIdWithPath = getDependencySourceTaskId.value(task);
@@ -50,6 +74,16 @@ const dependencyTaskName = computed(() => {
     return '';
   }
 });
+
+// Sections 0 and 18-20 carry no number the reader would recognise, so those
+// are named without one.
+const dependencyMessage = computed(() => {
+  const id = getSourceTaskId(props.task)
+  return ['0', '18', '19', '20'].includes(id)
+    ? `Vul eerst sectie "${dependencyTaskName.value}" in.`
+    : `Vul eerst sectie ${id} "${dependencyTaskName.value}" in.`
+})
+
 
 
 function convertStringValue(value: string | null, typeSpec: string): null | string | boolean {
@@ -118,7 +152,11 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
 
-const textareaRef = ref<HTMLTextAreaElement | null>(null)
+// focus() is optional: it only exists once the custom element is upgraded
+// (not in jsdom unit tests).
+type TextAreaElement = HTMLElement & { focus?: (options?: FocusOptions) => void }
+
+const textareaRef = ref<TextAreaElement | null>(null)
 const showPreview = ref(false)
 
 const renderedHtml = computed(() => {
@@ -126,44 +164,27 @@ const renderedHtml = computed(() => {
   return renderMarkdownToHtml(String(currentValue.value ?? ''))
 })
 
-// Re-trigger auto-grow and restore focus when switching back from preview to edit
+// Restore focus to the textarea when switching back from preview to edit
 watch(showPreview, (preview) => {
   if (!preview) {
     nextTick(() => {
-      /* istanbul ignore else @preserve -- unreachable: when showPreview turns
-         false the textarea (v-if="!showPreview") is always re-rendered before
-         this nextTick callback runs, so textareaRef is guaranteed to be set. */
-      if (textareaRef.value) {
-        autoGrowTextarea(textareaRef.value)
-        textareaRef.value.focus()
-      }
+      textareaRef.value?.focus?.()
     })
   }
 })
 
-onMounted(() => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-watch(currentValue, () => {
-  nextTick(() => {
-    if (textareaRef.value) {
-      autoGrowTextarea(textareaRef.value)
-    }
-  })
-})
-
-// Text input and textarea handler
+// Text input and textarea handler (NLDD fields deliver the value in
+// event.detail; fall back to target.value for native inputs)
 const handleTextInput = (event: Event) => {
+  const detail = (event as CustomEvent<{ value?: string }>).detail
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
-  answerStore.setAnswer(props.instanceId, target.value)
-  if (target instanceof HTMLTextAreaElement) {
-    autoGrowTextarea(target)
-  }
+  answerStore.setAnswer(props.instanceId, detail?.value ?? target.value)
+}
+
+// The segmented control reports which of the two modes is now chosen.
+const handlePreviewToggle = (event: Event) => {
+  const detail = (event as CustomEvent<{ value?: string }>).detail
+  if (detail?.value) showPreview.value = detail.value === 'lezen'
 }
 
 // Select handler
@@ -173,54 +194,58 @@ const handleSelectInput = (event: Event) => {
 }
 
 // Radio handler
-const handleRadioInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  answerStore.setAnswer(props.instanceId, target.value)
+// The bare radio reports its own state; only the newly checked one matters.
+const handleRadioButtonChange = (event: Event, value: unknown) => {
+  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
+  if (checked) answerStore.setAnswer(props.instanceId, value as string)
 }
 
-// Checkbox handler
-const handleCheckboxInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  const value = target.value
-  const isChecked = target.checked
-  let selectedValues = Array.isArray(currentValue.value)
-    ? [...(currentValue.value as string[])]
-    : []
-
-  if (isChecked && value !== null && !selectedValues.includes(value)) {
-    selectedValues.push(value)
-  } else if (!isChecked && value !== null && selectedValues.includes(value)) {
-    selectedValues = selectedValues.filter((item) => item != value)
-  }
-  answerStore.setAnswer(props.instanceId, selectedValues)
+// nldd-checkbox-field reports the new state in the change detail; the inner
+// nldd-checkbox re-emits through the shadow boundary, so setting the state from
+// the payload (rather than toggling) keeps the duplicate harmless.
+const handleCheckboxFieldChange = (event: Event, value: string) => {
+  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
+  if (checked === undefined) return
+  const current = Array.isArray(currentValue.value) ? [...(currentValue.value as string[])] : []
+  const next = checked
+    ? (current.includes(value) ? current : [...current, value])
+    : current.filter((v) => v !== value)
+  answerStore.setAnswer(props.instanceId, next)
 }
+
+// A definition tooltip in a choice label is markup, and markup cannot cross the
+// shadow-DOM boundary of nldd-radio-button-field, which takes plain text only.
+// Options without it -- every yes/no question -- get the design system's group,
+// which brings arrow-key navigation and mutual exclusion of its own.
+const plainRadioOptions = computed(() =>
+  (props.task.options ?? []).every((option) => !optionLabel(option).includes('<')),
+)
+
+// The group re-emits the field's change, so one click arrives twice; reading
+// the value (rather than toggling) makes the duplicate harmless.
+const handleRadioGroupChange = (event: Event) => {
+  const value = (event as CustomEvent<{ value?: string }>).detail?.value
+  if (value !== undefined) answerStore.setAnswer(props.instanceId, value)
+}
+
 </script>
 
 <template>
-  <div v-if="label" class="rvo-form-field__label rvo-margin-block-end--xs">
-    <label class="rvo-label" :id="`label-${task.id}-${instanceId}`">
+  <div v-if="label" class="form-field__label">
+    <label :id="`label-${task.id}-${instanceId}`">
       <span v-html="displayLabel"></span>
     </label>
     <!-- FRIA tag is a link (interactive content) so it must NOT live inside the
          <label> (invalid HTML + pollutes the field's accessible name). Kept as a
-         sibling within the same rvo-form-field__label wrapper for visual adjacency. -->
-    <a v-if="task.in_fria" class="rvo-tag rvo-tag--info rvo-tag--with-icon form-field__fria-tag"
+         sibling within the same form-field__label wrapper for visual adjacency. -->
+    <a v-if="task.in_fria" class="form-field__fria-tag"
       href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_27"
       target="_blank" rel="noopener noreferrer"
       title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening">
       art. 27 AI-verordening
-      <span class="utrecht-icon rvo-icon rvo-icon-externe-link rvo-icon--sm" role="img" aria-label="Opent in nieuw tabblad"></span>
+      <nldd-icon name="square-arrow-right-top" size="16" aria-hidden="false" aria-label="Opent in nieuw tabblad"></nldd-icon>
     </a>
-    <button v-if="hasType('open_text')" type="button"
-      class="open-text-field__toggle"
-      :aria-pressed="showPreview"
-      :aria-label="showPreview ? 'Bewerken' : 'Lezen'"
-      @click="showPreview = !showPreview">
-      <span class="utrecht-icon rvo-icon rvo-icon--sm"
-        :class="showPreview ? 'rvo-icon-document-met-potlood' : 'rvo-icon-oog'"></span>
-      {{ showPreview ? 'Bewerken' : 'Lezen' }}
-    </button>
-    <div v-if="description" class="utrecht-form-field-description" :id="`description-${task.id}-${instanceId}`">
+    <div v-if="description" class="form-field__description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
     </div>
   </div>
@@ -230,38 +255,63 @@ const handleCheckboxInput = (event: Event) => {
   <ReferenceSuggestions :task="task" />
 
   <!-- Text input field -->
-  <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="text"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--lg" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+  <div v-if="hasType('text_input')" class="field-group" :inert="readonly || undefined">
+    <nldd-text-field :input-id="`field-${task.id}-${instanceId}`" dir="auto"
+      :accessible-label="accessibleLabel" :value="currentValue"
+      @input="handleTextInput"></nldd-text-field>
   </div>
 
   <!-- Text area with markdown support -->
-  <div v-if="hasType('open_text')" class="open-text-field rvo-margin-block-end--md">
-    <textarea v-if="!showPreview" ref="textareaRef" :id="`field-${task.id}-${instanceId}`"
-      class="utrecht-textarea utrecht-textarea--html-textarea" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" rows="5"
-      :value="currentValue as string | number | readonly string[] | null | undefined"
-      @input="handleTextInput"></textarea>
+  <div v-if="hasType('open_text')" class="open-text-field field-group">
+    <!-- The switch belongs to the box it changes, so it sits on top of it
+         rather than at the far end of the question. -->
+    <div class="open-text-field__bar">
+      <nldd-segmented-control size="sm" width="fit-content" variant="icon-and-text"
+        class="open-text-field__toggle" accessible-label="Weergave van dit veld"
+        :value="showPreview ? 'lezen' : 'bewerken'"
+        @change="handlePreviewToggle">
+        <nldd-segmented-control-item value="bewerken" text="Bewerken"
+          icon="pencil-on-square"></nldd-segmented-control-item>
+        <nldd-segmented-control-item value="lezen" text="Lezen"
+          icon="eye"></nldd-segmented-control-item>
+      </nldd-segmented-control>
+    </div>
+    <nldd-multi-line-text-field v-if="!showPreview" ref="textareaRef"
+      :inert="readonly || undefined"
+      :input-id="`field-${task.id}-${instanceId}`" dir="auto"
+      :accessible-label="accessibleLabel" rows="5" resize="auto"
+      :value="safeString(currentValue as string | boolean | null)"
+      @input="handleTextInput"></nldd-multi-line-text-field>
 
-    <div v-else
+    <!-- nldd-rich-text is light DOM, so rich-text.css styles the markdown
+         that v-html drops in here. -->
+    <nldd-rich-text v-else spacing="tight"
       class="markdown-preview" dir="auto"
       role="region"
       :aria-label="'Voorbeeld van de opmaak'"
       v-html="renderedHtml">
-    </div>
+    </nldd-rich-text>
   </div>
 
   <!-- Select radio -->
-  <div v-else-if="hasType('radio_option')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('radio_option')" class="field-group" :inert="readonly || undefined">
     <div>
-      <div class="rvo-radio-button__group">
-        <label v-for="option in task.options!" :key="String(option.value || '')" class="rvo-radio-button"
-          :for="`${task.id}-${instanceId}-${option.value}`">
-          <input :id="`${task.id}-${instanceId}-${option.value}`" :value="option.value"
-            :checked="currentValue === option.value" :name="`group-${task.id}-${instanceId}`" type="radio"
-            class="utrecht-radio-button" @change="handleRadioInput" />
+      <nldd-radio-button-group v-if="plainRadioOptions" :name="`group-${task.id}-${instanceId}`"
+        :accessible-labeled-by="label ? `label-${task.id}-${instanceId}` : undefined"
+        @change="handleRadioGroupChange">
+        <nldd-radio-button-field v-for="option in task.options!" :key="String(option.value || '')"
+          :value="safeString(option.value)" :label="optionLabel(option)"
+          :checked="currentValue === option.value || undefined"></nldd-radio-button-field>
+      </nldd-radio-button-group>
+      <div v-else class="form-field__choices" role="radiogroup" :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined">
+        <!-- Same split as the checkboxes: the design system draws the control,
+             the label stays in light DOM because it carries definition markup. -->
+        <label v-for="option in task.options!" :key="String(option.value || '')" class="form-field__choice">
+          <nldd-radio-button :value="safeString(option.value)"
+            :name="`group-${task.id}-${instanceId}`"
+            :accessible-label="getPlainTextWithoutDefinitions(optionLabel(option))"
+            :checked="currentValue === option.value || undefined"
+            @change="handleRadioButtonChange($event, option.value)"></nldd-radio-button>
           <span v-html="optionLabel(option)"></span>
         </label>
       </div>
@@ -269,9 +319,9 @@ const handleCheckboxInput = (event: Event) => {
   </div>
 
   <!-- Select dropdown -->
-  <div v-else-if="hasType('select_option')" class="field-group rvo-margin-block-end--md">
-    <div class="rvo-select-wrapper">
-      <select :id="`field-${task.id}-${instanceId}`" class="utrecht-select utrecht-select--html-select"
+  <div v-else-if="hasType('select_option')" class="field-group" :inert="readonly || undefined">
+    <nldd-dropdown>
+      <select :id="`field-${task.id}-${instanceId}`"
         :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
         @input="handleSelectInput">
         <option value="" disabled selected>Selecteer een optie</option>
@@ -279,21 +329,18 @@ const handleCheckboxInput = (event: Event) => {
           v-html="option.value">
         </option>
       </select>
-    </div>
+    </nldd-dropdown>
   </div>
 
   <!-- Multi-select checkboxes in scrollable container -->
-  <div v-else-if="hasType('multiselect_scrollable')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('multiselect_scrollable')" class="field-group" :inert="readonly || undefined">
     <div class="multiselect-scrollable">
-      <div class="rvo-checkbox__group">
-        <label v-for="option in task.options!" :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked multiselect-scrollable__option" :for="`${task.id}-${instanceId}-ms-${safeString(option.value)}`">
-          <input :id="`${task.id}-${instanceId}-ms-${safeString(option.value)}`" :value="option.value"
-            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
-          <span>{{ option.value }}</span>
-        </label>
+      <div class="form-field__choices">
+        <nldd-checkbox-field v-for="option in task.options!" :key="safeString(option.value)"
+          class="multiselect-scrollable__option" :label="safeString(option.value)"
+          :value="safeString(option.value)" :name="`group-${task.id}-${instanceId}`"
+          :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value)) || undefined"
+          @change="handleCheckboxFieldChange($event, safeString(option.value))"></nldd-checkbox-field>
       </div>
     </div>
   </div>
@@ -301,50 +348,51 @@ const handleCheckboxInput = (event: Event) => {
   <!-- Select checkbox -->
   <!-- TODO: this now always assumes the options come from a source via a dependency. We need to
   refactor.-->
-  <div v-else-if="hasType('checkbox_option')" class="field-group rvo-margin-block-end--md">
+  <div v-else-if="hasType('checkbox_option')" class="field-group" :inert="readonly || undefined">
     <div v-if="getSourceOptions(task).length > 0">
-      <div class="rvo-checkbox__group">
-        <label v-for="option in getSourceOptions(task)" :key="option" class="rvo-checkbox rvo-checkbox--not-checked"
-          :for="`${task.id}-${instanceId}-${option}`">
-          <input :id="`${task.id}-${instanceId}-${option}`" :value="option"
-            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option)"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
-          <!-- option is a user free-text answer (getSourceOptions): render as text, not v-html. -->
-          <span>{{ option }}</span>
-        </label>
+      <div class="form-field__choices">
+        <!-- option is a user free-text answer (getSourceOptions), so it is plain
+             text and the design system's field can carry it. -->
+        <nldd-checkbox-field v-for="option in getSourceOptions(task)" :key="option"
+          :label="option" :value="option" :name="`group-${task.id}-${instanceId}`"
+          :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(option) || undefined"
+          @change="handleCheckboxFieldChange($event, option)"></nldd-checkbox-field>
       </div>
     </div>
     <div v-else-if="task.options && task.options.length > 0">
-      <div class="rvo-checkbox__group">
+      <div class="form-field__choices">
+        <!-- The box is the design system's; the label stays in light DOM because
+             it carries definition markup, which cannot cross the shadow-DOM
+             boundary. accessible-label gives the control the plain text. -->
         <label v-for="option in task.options!" :key="safeString(option.value)"
-          class="rvo-checkbox rvo-checkbox--not-checked" :for="`${task.id}-${instanceId}-${safeString(option.value)}`">
-          <input :id="`${task.id}-${instanceId}-${safeString(option.value)}`" :value="option.value"
-            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value))"
-            :name="`group-${task.id}-${instanceId}`" @change="handleCheckboxInput" class="rvo-checkbox__input"
-            type="checkbox" />
+          class="form-field__choice">
+          <nldd-checkbox :value="safeString(option.value)"
+            :name="`group-${task.id}-${instanceId}`"
+            :accessible-label="getPlainTextWithoutDefinitions(optionLabel(option))"
+            :checked="Array.isArray(currentValue) && (currentValue as string[]).includes(safeString(option.value)) || undefined"
+            @change="handleCheckboxFieldChange($event, safeString(option.value))"></nldd-checkbox>
           <span v-html="optionLabel(option)"></span>
         </label>
       </div>
     </div>
-    <div v-else class="rvo-text--error">
-      <div v-if="!['0', '18', '19', '20'].includes(getSourceTaskId(task))">
-        Vul eerst sectie {{ getSourceTaskId(task) }} "{{ dependencyTaskName }}" in.
-      </div>
-      <div v-else>
-        Vul eerst sectie "{{ dependencyTaskName }}" in.
-      </div>
-    </div>
+    <!-- Not an error the reader made: this field simply has nothing to show
+         until another section is filled in. An inline dialog says that as a
+         status, with the icon and the announcement that plain red text lacks. -->
+    <nldd-inline-dialog v-else class="form-field__dependency"
+      icon="arrow-up" icon-color="secondary"
+      text="Deze vraag wacht op een eerdere sectie"
+      :supporting-text="dependencyMessage"></nldd-inline-dialog>
   </div>
 
 
 
-  <!-- Date input -->
-  <div v-else-if="hasType('date')" class="field-group rvo-margin-block-end--md">
-    <input :id="`field-${task.id}-${instanceId}`" type="date"
-      class="utrecht-textbox utrecht-textbox--html-input utrecht-textbox--md" dir="auto"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined" :value="currentValue"
-      @input="handleTextInput" />
+  <!-- Date input: value is ISO yyyy-mm-dd both ways. Bound to change, not
+       input: the calendar picker only emits change, and input would write ''
+       to the store on every partial keystroke. -->
+  <div v-else-if="hasType('date')" class="field-group" :inert="readonly || undefined">
+    <nldd-date-field :input-id="`field-${task.id}-${instanceId}`"
+      :accessible-label="accessibleLabel" :value="currentValue"
+      @change="handleTextInput"></nldd-date-field>
   </div>
 
   <!-- Image upload -->

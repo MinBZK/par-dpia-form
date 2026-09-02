@@ -1,197 +1,15 @@
-/* Kebab menu */
-.kebab-menu {
-  position: relative;
-}
-
-.kebab-menu__trigger {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  color: var(--rvo-color-hemelblauw);
-}
-
-.kebab-menu__trigger:hover {
-  background-color: var(--rvo-color-grijs-100);
-}
-
-.kebab-menu__trigger:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: -2px;
-}
-
-.kebab-menu__dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  z-index: 10;
-  background: white;
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  min-width: 14rem;
-  padding: 0.25rem 0;
-}
-
-.kebab-menu__item {
-  display: block;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  text-align: left;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--rvo-font-size-md, 1rem);
-  color: var(--rvo-color-zwart);
-}
-
-.kebab-menu__item:hover {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
-}
-
-.kebab-menu__item:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: -2px;
-}
-
-.kebab-menu__item--danger {
-  color: var(--rvo-color-rood, #d52b1e);
-}
-
-.kebab-menu__divider {
-  height: 1px;
-  background-color: var(--rvo-color-grijs-200, #e0e0e0);
-  margin: 0.25rem 0;
-}
-
-/* Confirmation dialog (uses native showModal() for focus trap and ::backdrop) */
-.confirm-dialog {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: auto;
-  max-width: 100%;
-  max-height: 100%;
-}
-
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.confirm-dialog__content {
-  position: relative;
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  max-width: 36rem;
-  width: 90vw;
-  max-height: 80vh;
-  max-height: 80dvh;
-  overflow-y: auto;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-}
-
+/* Confirmation dialog (nldd-modal-dialog) */
 .confirm-dialog__label {
   display: block;
   margin-top: 1rem;
-  font-size: var(--rvo-font-size-md, 1rem);
+  font-size: var(--primitives-font-size-90, 1rem);
 }
 
 .confirm-dialog__input {
   margin-top: 0.5rem;
 }
 
-.confirm-dialog__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-}
-
-.confirm-dialog__delete {
-  background-color: var(--rvo-color-rood, #d52b1e);
-  border-color: var(--rvo-color-rood, #d52b1e);
-}
-
-.confirm-dialog__actions .rvo-button--secondary:hover {
-  background-color: var(--rvo-color-hemelblauw);
-  border-color: var(--rvo-color-hemelblauw);
-  color: var(--rvo-color-wit, #fff);
-}
-
-.confirm-dialog__delete:hover:not(:disabled) {
-  background-color: var(--rvo-color-hemelblauw);
-  border-color: var(--rvo-color-hemelblauw);
-}
-
-.confirm-dialog__delete.confirm-dialog__delete--disabled {
-  background-color: var(--rvo-color-grijs-300, #ccc);
-  border-color: var(--rvo-color-grijs-300, #ccc);
-  color: var(--rvo-color-grijs-500, #666);
-  cursor: not-allowed;
-}
-
-.confirm-dialog__delete.confirm-dialog__delete--disabled:disabled {
-  background-color: var(--rvo-color-grijs-300, #ccc);
-  border-color: var(--rvo-color-grijs-300, #ccc);
-  color: var(--rvo-color-grijs-500, #666);
-}
-
-.rvo-alert .rvo-button:hover {
-  text-decoration: none;
-}
-
-/* Fix anchor elements styled as buttons (RVO button classes don't fully reset anchor defaults) */
-a.rvo-button {
-  text-decoration: none;
-  color: var(--rvo-button-color);
-}
-
-a.card-link {
-  text-decoration: none;
-  color: inherit;
-}
-
-a.card-link {
-  display: block;
-}
-
-a.card-link * {
-  text-decoration: none;
-  color: inherit;
-}
-
-a.card-link:hover {
-  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
-}
-
-/* Flex layout for card content to push button to bottom */
-.card-content-flex {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.card-content-flex > :last-child {
-  margin-top: auto;
-}
-
-/* Equal-height cards in grid layouts */
-.rvo-layout-grid > .rvo-card {
-  height: 100%;
-}
-
 /* Text truncation for card listings */
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .text-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -211,111 +29,72 @@ a.card-link:hover {
   white-space: pre-line;
 }
 
-/* Skip-link: hidden until focused (WCAG 2.4.1 Bypass Blocks). */
-.skip-link {
-  position: absolute;
-  left: 0.5rem;
-  top: -3rem;
-  z-index: 200;
-  padding: 0.5rem 1rem;
-  background: var(--rvo-color-hemelblauw, #007bc7);
-  color: #fff;
-  border-radius: 0 0 4px 4px;
-  text-decoration: none;
-  transition: top 0.15s ease;
+.app-main h1 {
+  font-size: var(--primitives-font-size-500, 2rem);
+  line-height: 1.25;
 }
 
-.skip-link:focus {
-  top: 0;
+.app-main h2 {
+  font-size: var(--primitives-font-size-300, 1.5rem);
+  line-height: 1.3;
 }
 
-/* App layout: sticky footer */
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: 100dvh;
+.app-main h3 {
+  font-size: var(--primitives-font-size-200, 1.25rem);
+  line-height: 1.4;
 }
 
-.app-main {
-  flex: 1;
+/* Cards get their spacing from nldd-container gaps; neutralize UA margins. */
+nldd-card h2,
+nldd-card h3,
+nldd-card p {
+  margin-block: 0;
 }
 
-/* Application footer */
-.app-footer {
-  padding: 1.5rem 0;
-  border-top: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-  text-align: center;
+.project-grid,
+.member-list {
+  margin-block-end: var(--primitives-space-24, 1.5rem);
 }
 
-.app-footer__link {
-  color: var(--rvo-color-hemelblauw, #007bc7);
-  text-decoration: none;
+.project-create-form {
+  margin-block-start: var(--primitives-space-16, 1rem);
 }
 
-.app-footer__link:hover {
-  text-decoration: underline;
+
+/* SPA-internal content link (router-link): the same roles the design system
+   gives a real link. */
+.content-link {
+  color: var(--semantics-links-color);
 }
 
-.app-footer__separator {
-  margin: 0 0.5rem;
-  color: var(--rvo-color-grijs-400, #999);
+.content-link:hover {
+  color: var(--semantics-links-is-hovered-color);
 }
 
-/* AppHeader */
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-block-end: var(--rvo-space-md, 1rem);
+.version-list {
+  margin-block-end: var(--primitives-space-32, 2rem);
 }
 
-.app-header__left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  flex-wrap: wrap;
+/* Assessment editor: the header rows and the form column share one centred
+   column so their left/right edges line up. It is wide enough (> 1008px) that
+   the form's sidebar-section keeps the ToC as an expanded sidebar rather than
+   collapsing it into its narrow-screen sheet. */
+.assessment-editor {
+  /* Wide enough that the question column lands around 750px next to the 320px
+     table of contents, and that the sidebar-section keeps its two-column form
+     (its sheet kicks in below 1008px). */
+  --editor-col: 76rem;
 }
 
-.app-header__right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-  flex-wrap: wrap;
+/* nldd-collection's own `gap` spaces the items inside it; the design system
+   leaves the space below the collection to the page. A spacer element per
+   collection would be six extra nodes for one value, so it lives here. */
+.app-main nldd-collection {
+  margin-block-end: var(--primitives-space-24, 1.5rem);
 }
 
-.app-header__back {
-  margin-inline-start: -12px;
-}
-
-.app-header__user {
-  white-space: nowrap;
-}
-
-/* Keep the username visible (truncated) on phones, not hidden — hiding it
-   drops the logged-in identity for screen-reader users. */
-@media (max-width: 480px) {
-  .app-header {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .app-header__left,
-  .app-header__right {
-    gap: 0.5rem;
-  }
-
-  .app-header__user {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 18ch;
-  }
-}
-
+/* App layout: sticky footer inside the nldd-page scroll container (percentage
+   resolves against the scroller, so 100% here equals the old 100dvh). */
 /* ProjectDetail */
 .editable-field {
   cursor: pointer;
@@ -325,36 +104,17 @@ a.card-link:hover {
 }
 
 .editable-field:hover {
-  background-color: var(--rvo-color-grijs-100);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .editable-field:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: 2px;
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
+/* The button sits where the description would be; only the pull-left is ours. */
 .description-add {
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin-left: -4px;
-}
-
-.description-add__label {
-  color: var(--rvo-color-grijs-400);
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-  visibility: hidden;
-}
-
-.description-add:hover .description-add__label,
-.description-add:focus-visible .description-add__label {
-  visibility: visible;
-  color: var(--rvo-color-hemelblauw);
-}
-
-.description-add:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: 2px;
+  margin-inline-start: -4px;
 }
 
 .editable-field-group {
@@ -366,36 +126,8 @@ a.card-link:hover {
 }
 
 .editable-field-input--title {
-  font-size: var(--utrecht-heading-1-font-size, 2rem);
-  font-weight: var(--utrecht-heading-1-font-weight, 700);
-}
-
-.editable-field-input--autosize {
-  overflow: hidden;
-  resize: none;
-}
-
-.editable-field-actions {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.start-dialog {
-  border: none;
-  border-radius: 8px;
-  padding: 0;
-  max-width: 36rem;
-  width: 90vw;
-}
-
-.start-dialog__content {
-  background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  max-height: 80vh;
-  max-height: 80dvh;
-  overflow-y: auto;
+  font-size: var(--primitives-font-size-500, 2rem);
+  font-weight: 700;
 }
 
 .start-dialog__fieldset {
@@ -417,27 +149,18 @@ a.card-link:hover {
   margin-top: 0.2em;
 }
 
-.start-dialog__option-label {
-  font-size: var(--rvo-font-size-md, 1rem);
-}
-
 .start-dialog__option-hint {
   display: block;
-  color: var(--rvo-color-grijs-400);
-  font-size: var(--rvo-font-size-sm, 0.875rem);
+  /* Text you have to read to pick an option, so it keeps the text colour; the
+     smaller size carries the hierarchy. */
+  font-size: var(--primitives-font-size-90, 1rem);
 }
 
 .start-dialog__sub-options {
   margin-left: 1.5rem;
   padding: 0.5rem 0;
-  border-left: 2px solid var(--rvo-color-grijs-200, #e0e0e0);
+  border-left: 2px solid var(--semantics-dividers-color);
   padding-left: 1rem;
-}
-
-.start-dialog__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
 .project-actions {
@@ -445,48 +168,6 @@ a.card-link:hover {
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
-}
-
-/* ProjectMembers */
-.member-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-}
-
-.member-row--header {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
-  font-weight: 700;
-}
-
-.member-col--who {
-  flex: 1;
-  min-width: 0;
-}
-
-.member-col--role {
-  width: 10rem;
-}
-
-.member-col--action {
-  width: 8rem;
-}
-
-.member-select {
-  width: 100%;
-  height: 2rem;
-  padding: 0 2rem 0 0.5rem;
-  min-height: 0;
-}
-
-.member-delete {
-  height: 2rem;
-  padding: 0 0.75rem;
-  min-height: 0;
-  white-space: nowrap;
-  font-size: var(--rvo-font-size-sm, 0.875rem);
 }
 
 /* AssessmentEditor */
@@ -499,7 +180,7 @@ a.card-link:hover {
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  margin-block-end: var(--rvo-space-md, 1rem);
+  margin-block-end: var(--primitives-space-16, 1rem);
 }
 
 .form-subheader__left {
@@ -527,7 +208,7 @@ a.card-link:hover {
 }
 
 .form-name {
-  font-size: var(--utrecht-heading-2-font-size, 1.5rem);
+  font-size: var(--primitives-font-size-300, 1.5rem);
 }
 
 .form-name--editable {
@@ -538,12 +219,12 @@ a.card-link:hover {
 }
 
 .form-name--editable:hover {
-  background-color: var(--rvo-color-grijs-100);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .form-name--editable:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: 2px;
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
 }
 
 .form-name-edit {
@@ -553,13 +234,13 @@ a.card-link:hover {
 }
 
 .form-name-prefix {
-  font-size: var(--utrecht-heading-2-font-size, 1.5rem);
+  font-size: var(--primitives-font-size-300, 1.5rem);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .form-name-input {
-  font-size: var(--utrecht-heading-2-font-size, 1.5rem);
+  font-size: var(--primitives-font-size-300, 1.5rem);
   font-weight: 700;
   flex: 1;
 }
@@ -568,32 +249,25 @@ a.card-link:hover {
   opacity: 0.85;
 }
 
-.assessment-editor .rvo-sidebar-layout {
-  margin-block-start: 0;
-
-  --rvo-sidebar-layout-sm-padding-block-start: 0px;
-  --rvo-sidebar-layout-md-padding-block-start: 0px;
-  --rvo-sidebar-layout-lg-padding-block-start: 0px;
-  --rvo-sidebar-layout-sm-padding-inline-start: var(--rvo-space-md);
-  --rvo-sidebar-layout-md-padding-inline-start: var(--rvo-space-md);
-  --rvo-sidebar-layout-lg-padding-inline-start: var(--rvo-space-md);
-  --rvo-sidebar-layout-sm-padding-inline-end: var(--rvo-space-md);
-  --rvo-sidebar-layout-md-padding-inline-end: var(--rvo-space-md);
-  --rvo-sidebar-layout-lg-padding-inline-end: var(--rvo-space-md);
-}
-
-
 /* VersionHistory */
+/* Same rhythm as an nldd-list-item row (its md block padding) so this list and
+   the member list breathe alike. */
 .version-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 0.5rem;
-  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  gap: var(--primitives-space-12, 0.75rem);
+  padding: var(--primitives-space-10, 0.625rem) var(--primitives-space-8, 0.5rem);
+  border-bottom: 1px solid var(--semantics-dividers-color, #e0e0e0);
 }
 
+/* Sticky so the column names stay in view while scrolling a long list. It
+   carries the page surface, not a tint: without an opaque background the rows
+   would scroll through the text. */
 .version-row--header {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--semantics-surfaces-base-background-color);
   font-weight: 700;
 }
 
@@ -604,32 +278,6 @@ a.card-link:hover {
 .version-col--toggle {
   width: 1.5rem;
   text-align: center;
-}
-
-.toggle-btn {
-  background: none;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0;
-  line-height: 1;
-  color: var(--rvo-color-hemelblauw, #007bc7);
-}
-
-.toggle-btn:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.toggle-icon {
-  display: inline-block;
-  transition: transform 0.15s ease;
-}
-
-.toggle-icon--open {
-  transform: rotate(90deg);
 }
 
 .version-col--nr {
@@ -662,7 +310,7 @@ a.card-link:hover {
 .version-list__error {
   margin: 0.75rem 0 0;
   text-align: center;
-  color: var(--rvo-color-rood, #d52b1e);
+  color: var(--semantics-content-critical-color, #b62c20);
 }
 
 .desc-edit-btn {
@@ -677,7 +325,7 @@ a.card-link:hover {
 
 .desc-edit-btn:hover,
 .desc-edit-btn:focus-visible {
-  color: var(--rvo-color-hemelblauw, #007bc7);
+  color: var(--semantics-content-accent-color);
   text-decoration: underline;
 }
 
@@ -694,73 +342,78 @@ a.card-link:hover {
 }
 
 .diff-panel {
-  background-color: var(--rvo-color-grijs-100, #f8f8f8);
-  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  background-color: var(--semantics-surfaces-tinted-background-color);
+  border-bottom: 1px solid var(--semantics-dividers-color);
   padding: 0.25rem 0.5rem 0.5rem;
 }
 
 .diff-description {
   margin: 0 0 0.75rem;
-  font-size: 0.875rem;
+  font-size: var(--primitives-font-size-80, 0.875rem);
 }
 
 .diff-description p {
   white-space: pre-line;
   margin: 0.25rem 0 0;
-  color: var(--rvo-color-grijs-700, #444);
+  color: var(--semantics-content-color);
 }
 
 .diff-loading,
 .diff-empty {
-  color: var(--rvo-color-grijs-600, #666);
+  color: var(--semantics-content-secondary-color);
   font-style: italic;
 }
 
-.diff-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  font-size: 0.875rem;
+/* Per changed field a "Was"/"Wordt" pair; nldd-box draws the two surfaces and
+   nldd-container's auto-fit grid decides side by side or stacked. */
+.diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--primitives-space-16, 1rem);
+  font-size: var(--primitives-font-size-80, 0.875rem);
 }
 
-.diff-table col.diff-col--field { width: 30%; }
-.diff-table col.diff-col--old { width: 35%; }
-.diff-table col.diff-col--new { width: 35%; }
-
-.diff-table th {
-  text-align: left;
-  padding: 0.25rem 0.5rem;
-  border-bottom: 2px solid var(--rvo-color-grijs-300, #ccc);
+.diff-field {
+  margin: 0 0 var(--primitives-space-4, 0.25rem);
   font-weight: 600;
-}
-
-.diff-table td {
-  padding: 0.25rem 0.5rem;
-  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-  vertical-align: top;
-  word-break: break-word;
 }
 
 .diff-field__group {
   display: block;
-  font-size: 0.8125rem;
-  color: #666;
-  height: 1px; /* allows inner flex div to stretch to full cell height */
+  font-weight: 400;
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  color: var(--semantics-content-secondary-color);
+}
+
+.diff-value {
+  word-break: break-word;
+}
+
+/* Was/wordt keep the familiar red/green reading. NLDD has no diff surface and
+   its critical box means "danger zone", so tint nldd-box through its own
+   component tokens rather than overriding what it paints. */
+/* nldd-box paints an inner div that does not fill the host, so two boxes side
+   by side end up unequal. A grid host makes that inner div fill its cell.
+   nldd-card does stretch by itself; box does not. */
+.diff-old,
+.diff-new {
+  display: grid;
 }
 
 .diff-old {
-  background-color: #fde8e8;
-  height: 1px; /* allows inner flex div to stretch to full cell height */
-}
-
-.diff-old-inner {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
+  --components-box-background-color: var(--primitives-color-critical-50);
+  --components-box-border-color: var(--primitives-color-critical-200);
 }
 
 .diff-new {
-  background-color: #e6f4ea;
+  --components-box-background-color: var(--primitives-color-success-50);
+  --components-box-border-color: var(--primitives-color-success-200);
+}
+
+.diff-value__label {
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  font-weight: 600;
+  color: var(--semantics-content-secondary-color);
 }
 
 .diff-old-footer {
@@ -771,8 +424,8 @@ a.card-link:hover {
 }
 
 .diff-timestamp {
-  color: #666;
-  font-size: 0.8125rem;
+  color: var(--semantics-content-secondary-color);
+  font-size: var(--primitives-font-size-70, 0.8rem);
 }
 
 .diff-kebab {
@@ -792,61 +445,36 @@ a.card-link:hover {
   line-height: 1.4;
 }
 
-.desc-textarea {
-  width: 100%;
-  resize: none;
-  overflow: hidden;
-  min-height: 2.5rem;
-}
-
-.confirm-dialog__content--wide {
-  max-width: 56rem;
-}
-
-/* ConflictResolutionDialog */
-.conflict-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-  margin: 1rem 0;
-}
-
-.conflict-table th {
-  text-align: left;
-  padding: 0.5rem;
-  border-bottom: 2px solid var(--rvo-color-grijs-300, #ccc);
-  font-weight: 600;
-}
-
-.conflict-table td {
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-  vertical-align: top;
-}
-
-.conflict-field {
-  font-weight: 500;
-  width: 30%;
-}
-
-.conflict-value {
-  width: 35%;
-}
-
-.conflict-value--selected {
-  background-color: #e6f4ea;
-}
-
-.conflict-radio {
+/* ConflictResolutionDialog: widen the modal body for the comparison table. */
+/* ConflictResolutionDialog: one choice per field, the value itself as the
+   option label. nldd-form-section draws the fieldset and its legend. */
+.conflict-choices {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: var(--primitives-space-4, 0.25rem);
+}
+
+.conflict-option {
+  display: flex;
+  gap: var(--primitives-space-8, 0.5rem);
   align-items: flex-start;
+  padding: var(--primitives-space-8, 0.5rem);
+  border-radius: var(--semantics-surfaces-corner-radius);
   cursor: pointer;
 }
 
-.conflict-radio input[type="radio"] {
+.conflict-option input[type="radio"] {
   flex-shrink: 0;
   margin-top: 0.2em;
+}
+
+.conflict-option--selected {
+  background-color: var(--primitives-color-success-100);
+}
+
+.conflict-option__label {
+  display: block;
+  font-weight: 600;
 }
 
 /* ───────────────────────────────────────────────
@@ -861,125 +489,50 @@ a.card-link:hover {
 .assessment-editor__form {
   flex: 1;
   min-width: 0;
+  /* Align the form column (ToC + task content) with the header above it: both
+     sit in one centred column (--editor-col). The width stays wide enough that
+     the sidebar-section keeps the ToC as an expanded sidebar (its sheet kicks
+     in below 1008px). When the comment panel opens the form goes flush-left so
+     the panel can pin to the right viewport edge. */
+  max-width: var(--editor-col);
+  margin-inline: auto;
 }
 
-/* Comment badge (header button) */
-.comment-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  color: var(--rvo-color-hemelblauw);
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-}
-
-.comment-badge:hover {
-  background-color: var(--rvo-color-grijs-100);
-}
-
-.comment-badge:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: 2px;
-}
-
-.comment-badge--active {
-  background-color: var(--rvo-color-hemelblauw);
-  color: white;
-}
-
-.comment-badge--active:hover {
-  background-color: var(--rvo-color-hemelblauw);
-}
-
-.comment-badge__label {
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-}
-
-.comment-badge__count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.25rem;
-  border-radius: 10px;
-  background-color: var(--rvo-color-hemelblauw, #007bc7);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.comment-badge--active .comment-badge__count {
-  background-color: white;
-  color: var(--rvo-color-hemelblauw, #007bc7);
+.assessment-editor__content--panel-open .assessment-editor__form {
+  max-width: none;
+  margin-inline: 0;
 }
 
 /* Comment panel (Google Docs style — scrolls with form, no own scroll) */
 .comment-panel {
   width: clamp(20rem, 20vw, 30rem);
   flex-shrink: 0;
-  background: white;
+  /* Start where the page content starts, not against the navigation bar: the
+     section above sets the same top padding. */
+  padding-block-start: var(--primitives-space-24, 1.5rem);
+  background: var(--semantics-surfaces-base-background-color);
   display: flex;
   flex-direction: column;
   transform: translateX(min(calc((100vw - clamp(20rem, 20vw, 30rem) - 1280px) / -2), 0px));
 }
 
+/* nldd-toolbar lays the row out; what stays is the panel's own behaviour:
+   the header rides along while the comments scroll under it. */
 .comment-panel__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 1;
-  background: white;
-}
-
-.comment-panel__title {
-  font-size: var(--rvo-font-size-md, 1rem);
-  font-weight: 700;
-  margin: 0;
-}
-
-.comment-panel__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  background: var(--semantics-surfaces-base-background-color);
 }
 
 .comment-panel__toggle {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: var(--rvo-font-size-sm, 0.875rem);
+  font-size: var(--primitives-font-size-80, 0.875rem);
   cursor: pointer;
   white-space: nowrap;
-}
-
-.comment-panel__close {
-  display: flex;
-  align-items: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  color: var(--rvo-color-grijs-600, #666);
-}
-
-.comment-panel__close:hover {
-  background-color: var(--rvo-color-grijs-100);
-}
-
-.comment-panel__close:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: 2px;
 }
 
 .comment-panel__body {
@@ -989,9 +542,9 @@ a.card-link:hover {
 }
 
 .comment-panel__empty {
-  color: var(--rvo-color-grijs-500, #666);
+  color: var(--semantics-content-secondary-color);
   font-style: italic;
-  font-size: var(--rvo-font-size-sm, 0.875rem);
+  font-size: var(--primitives-font-size-80, 0.875rem);
   padding: 1rem;
 }
 
@@ -1014,8 +567,8 @@ a.card-link:hover {
   border: none;
   padding: 0 0 0.25rem 0.75rem;
   font: inherit;
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-  color: var(--rvo-color-hemelblauw, #007bc7);
+  font-size: var(--primitives-font-size-80, 0.875rem);
+  color: var(--semantics-content-accent-color);
   cursor: pointer;
   text-align: left;
 }
@@ -1024,26 +577,14 @@ a.card-link:hover {
   text-decoration: underline;
 }
 
-/* Threads (card-style like Google Docs) */
+/* Threads: nldd-card draws the surface; only the stacking gap and the resolved
+   cue are ours. The card's own tint carries the rest of that state. */
 .comment-thread {
   margin-bottom: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .comment-thread--resolved {
-  border-left: 3px solid var(--rvo-color-grijs-300, #ccc);
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
-}
-
-.comment-thread__resolved-label {
-  font-size: 0.75rem;
-  color: var(--rvo-color-groen, #39870c);
-  font-weight: 600;
-  margin-top: 0.25rem;
+  border-left: 3px solid var(--semantics-content-secondary-color);
 }
 
 /* Comment items */
@@ -1054,7 +595,7 @@ a.card-link:hover {
 .comment-item--reply {
   margin-left: 0.75rem;
   padding-left: 0.5rem;
-  border-left: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+  border-left: 1px solid var(--semantics-dividers-color);
 }
 
 .comment-item__header {
@@ -1065,17 +606,17 @@ a.card-link:hover {
 }
 
 .comment-item__author {
-  font-size: var(--rvo-font-size-sm, 0.875rem);
+  font-size: var(--primitives-font-size-80, 0.875rem);
 }
 
 .comment-item__time {
-  font-size: 0.75rem;
-  color: var(--rvo-color-grijs-600, #666);
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  color: var(--semantics-content-secondary-color);
   white-space: nowrap;
 }
 
 .comment-item__body {
-  font-size: var(--rvo-font-size-sm, 0.875rem);
+  font-size: var(--primitives-font-size-80, 0.875rem);
   margin: 0.125rem 0 0.25rem;
   white-space: pre-line;
   line-height: 1.4;
@@ -1089,7 +630,7 @@ a.card-link:hover {
 }
 
 .comment-item__body--editable:hover {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
+  background-color: var(--semantics-surfaces-tinted-background-color);
 }
 
 .comment-item__footer {
@@ -1132,127 +673,21 @@ a.card-link:hover {
 
 /* Inline new comment form (appears at field level) */
 .comment-inline-form {
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 2px solid var(--rvo-color-hemelblauw, #007bc7);
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: var(--primitives-space-12, 0.75rem);
+  border-radius: var(--semantics-surfaces-corner-radius);
+  border: var(--semantics-surfaces-border-width, 1px) solid var(--semantics-content-accent-color);
+  background: var(--semantics-surfaces-base-background-color);
+  box-shadow: var(--primitives-box-shadows-level-1);
 }
 
 .comment-inline-form__actions {
   display: flex;
-  gap: 0.25rem;
-  margin-top: 0.375rem;
+  gap: var(--primitives-space-8, 0.5rem);
+  margin-top: var(--primitives-space-8, 0.5rem);
 }
 
-/* Shared input/button styles */
-.comment-input {
-  width: 100%;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: var(--rvo-font-size-sm, 0.875rem);
-  resize: none;
-  overflow: hidden;
-}
-
-.comment-input:focus {
-  outline: 2px solid var(--rvo-color-hemelblauw, #007bc7);
-  outline-offset: -1px;
-  border-color: var(--rvo-color-hemelblauw, #007bc7);
-}
-
-
-.comment-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  background: none;
-  cursor: pointer;
-  font-size: 0.8125rem;
-  font-family: inherit;
-  color: var(--rvo-color-grijs-600, #666);
-}
-
-.comment-btn:hover {
-  background-color: var(--rvo-color-grijs-100, #f3f3f3);
-}
-
-.comment-btn:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: -1px;
-}
-
-.comment-btn--primary {
-  background-color: var(--rvo-color-hemelblauw, #007bc7);
-  color: white;
-}
-
-.comment-btn--primary:hover {
-  background-color: #005fa3;
-}
-
-.comment-btn--primary:disabled {
-  background-color: var(--rvo-color-grijs-300, #ccc);
-  color: var(--rvo-color-grijs-500, #666);
-  cursor: not-allowed;
-}
-
-/* Action buttons in comment threads (outline style) */
-.comment-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.125rem 0.375rem;
-  border: 1px solid var(--rvo-color-grijs-300, #ccc);
-  border-radius: 3px;
-  background: none;
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.75rem;
-  line-height: 1;
-  color: var(--rvo-color-grijs-600, #666);
-}
-
-.comment-action-btn:hover {
-  background-color: var(--rvo-color-hemelblauw, #007bc7);
-  border-color: var(--rvo-color-hemelblauw, #007bc7);
-  color: white;
-}
-
-.comment-action-btn:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: -1px;
-}
-
-.comment-action-btn--danger {
-  color: var(--rvo-color-rood, #d52b1e);
-  border-color: var(--rvo-color-rood, #d52b1e);
-}
-
-.comment-action-btn--danger:hover {
-  background-color: var(--rvo-color-rood, #d52b1e);
-  border-color: var(--rvo-color-rood, #d52b1e);
-  color: white;
-}
-
-.comment-action-btn--resolve {
-  color: var(--rvo-color-groen, #39870c);
-  border-color: var(--rvo-color-groen, #39870c);
-}
-
-.comment-action-btn--resolve:hover {
-  background-color: var(--rvo-color-groen, #39870c);
-  border-color: var(--rvo-color-groen, #39870c);
-  color: white;
-}
-
-
-/* Field comment buttons (injected by useFieldCommentIndicators) */
+/* Field comment buttons (injected by useFieldCommentIndicators): only the
+   layout hooks that place the nldd-button in core's light-DOM label row. */
 
 /* Make non-open_text label containers flex so the button aligns right */
 .comment-field-label--flex {
@@ -1262,51 +697,13 @@ a.card-link:hover {
   align-items: center !important;
 }
 
-.comment-field-label--flex .utrecht-form-field-description {
+.comment-field-label--flex .form-field__description {
   flex-basis: 100%;
 }
 
-/* The comment button — identical styling to the open-text Lezen/Bewerken toggle */
-.comment-field-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid var(--rvo-color-hemelblauw);
-  border-radius: 3px;
-  background: none;
-  color: var(--rvo-color-hemelblauw);
-  font: inherit;
-  font-size: 0.8rem;
-  line-height: 1;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
 /* When placed in the label row, push to the right */
-.comment-field-btn--in-label-row {
+.comment-field-label__btn {
   margin-inline-start: auto;
-}
-
-/* When comment button is BEFORE the toggle, group them together on the right:
-   comment button takes the auto margin, toggle loses its auto margin */
-.comment-field-btn--in-label-row + .open-text-field__toggle {
-  margin-inline-start: 0.25rem !important;
-}
-
-.comment-field-btn svg {
-  width: 0.8em;
-  height: 0.8em;
-}
-
-.comment-field-btn:hover {
-  border-color: var(--rvo-color-hemelblauw, #007bc7);
-  color: var(--rvo-color-hemelblauw, #007bc7);
-}
-
-.comment-field-btn:focus-visible {
-  outline: 2px solid var(--rvo-color-hemelblauw);
-  outline-offset: -1px;
 }
 
 /* On phones the comment panel becomes a bottom-sheet, closed with its X button. */
@@ -1323,7 +720,7 @@ a.card-link:hover {
     overflow-y: auto;
     z-index: 90;
     transform: none;
-    border-top: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
+    border-top: 1px solid var(--semantics-dividers-color);
     border-radius: 12px 12px 0 0;
     /* sheet elevation + dim scrim over the rest of the screen */
     box-shadow:
@@ -1355,132 +752,17 @@ a.card-link:hover {
     transform: translateY(0);
   }
 }
-@media (max-width: 560px) {
-  .rvo-form-fieldset,
-  fieldset.rvo-form-fieldset {
-    padding-inline: var(--rvo-space-sm, 12px);
-    padding-block: var(--rvo-space-md, 16px);
-    margin-inline-start: 0;
-  }
-
-  .kebab-menu__trigger,
-  .comment-badge,
-  .comment-panel__close,
-  .app-header__left .rvo-button,
-  .app-header__right .rvo-button {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .comment-panel__close {
-    justify-content: center;
-  }
-}
-
-/* Sync toast (collaboration notifications) */
-
-.sync-toast {
-  position: fixed;
-  bottom: 1.5rem;
-  /* Centred by auto margins, not by left:50% + translateX: with only `left` set,
-     the shrink-to-fit width is capped at viewport minus that offset, so the box
-     could never exceed half the screen and wrapped its text with room to spare. */
-  left: 0;
-  right: 0;
-  margin-inline: auto;
-  width: max-content;
-  max-width: min(48rem, calc(100vw - 2rem));
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: var(--rvo-color-hemelblauw);
-  color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* The comment panel is a bottom-sheet on phones, so a toast pinned to the bottom
-   would sit on top of it; move it out of the way instead of stacking above it. */
-@media (max-width: 768px) {
-  .sync-toast--raised {
-    top: 1rem;
-    bottom: auto;
-  }
-}
-
-.sync-toast__action {
-  white-space: nowrap;
-  background-color: #fff;
-  color: var(--rvo-color-hemelblauw);
-  border: none;
-  border-radius: 4px;
-  padding: 0.375rem 0.875rem;
-  font-size: var(--rvo-font-size-md, 1rem);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.sync-toast__action:hover,
-.sync-toast__action:focus-visible {
-  background-color: var(--rvo-color-donkerblauw);
-  color: #fff;
-  outline: none;
-}
-
-.sync-toast-enter-active,
-.sync-toast-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.sync-toast-enter-from,
-.sync-toast-leave-to {
-  opacity: 0;
-}
-
 /* ───────────────────────────────────────────────
    Landing page
    ─────────────────────────────────────────────── */
 
-.landing-hero {
-  margin-block-start: var(--rvo-space-xl, 2rem);
-}
-
-.landing-hero__lead {
-  max-width: 42rem;
-  margin-block-start: var(--rvo-space-md, 1rem);
-  font-size: var(--rvo-font-size-lg, 1.125rem);
-  color: var(--rvo-color-grijs-700, #4f4f4f);
-}
-
-.landing-section {
-  margin-block-start: var(--rvo-space-xl, 2rem);
-}
-
-.landing-pillars {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-  gap: var(--rvo-space-lg, 1.5rem);
-}
-
-.landing-pillar {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.landing-pillar__icon {
-  flex-shrink: 0;
-  color: var(--rvo-color-donkerblauw, #01689b);
-}
-
 .project-detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--primitives-space-16, 1rem);
   justify-content: space-between;
   align-items: baseline;
-  margin-block-end: var(--rvo-space-2xs);
+  margin-block-end: var(--primitives-space-4, 0.25rem);
 }
 
 .project-detail-description {
@@ -1493,72 +775,10 @@ a.card-link:hover {
 }
 
 /* At end of file so these phone overrides win over the base rules they target
-   by source order (e.g. .sync-toast). */
-@media (max-width: 560px) {
-  .kebab-menu__dropdown {
-    min-width: auto;
-    max-width: calc(100vw - 1rem);
-  }
-
-  .member-select,
-  .member-delete {
-    height: 2.75rem;
-  }
-
-  .member-delete {
-    white-space: normal;
-  }
-
-  .sync-toast__action {
-    min-height: 44px;
-    white-space: normal;
-  }
-
-  .project-actions .rvo-button {
-    min-height: 44px;
-  }
-
-  .sync-toast {
-    flex-direction: column;
-    align-items: stretch;
-    max-width: calc(100vw - 1rem);
-  }
-
-  .confirm-dialog__content,
-  .start-dialog__content {
-    padding: 1.25rem;
-  }
-}
-
+   by source order. */
 /* Data tables reflow to cards on phones; the column header row is hidden, so
    each value carries its label in a ::before. */
 @media (max-width: 560px) {
-  .member-row--header {
-    display: none;
-  }
-
-  .member-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.75rem;
-  }
-
-  .member-col--who {
-    font-weight: 600;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-  }
-
-  .member-col--role,
-  .member-col--action {
-    width: 100%;
-  }
-
-  .member-delete {
-    width: 100%;
-  }
-
   .version-row--header {
     display: none;
   }
@@ -1584,8 +804,8 @@ a.card-link:hover {
   .version-col--date,
   .version-col--who {
     width: auto;
-    font-size: 0.875rem;
-    color: var(--rvo-color-grijs-600, #666);
+    font-size: var(--primitives-font-size-80, 0.875rem);
+    color: var(--semantics-content-secondary-color);
   }
 
   .version-col--who::before {
@@ -1600,152 +820,13 @@ a.card-link:hover {
     flex-basis: 100%;
     min-width: 0;
   }
-
-  .diff-table,
-  .diff-table tbody,
-  .diff-table tr,
-  .diff-table td {
-    display: block;
-    width: auto;
-  }
-
-  .diff-table colgroup,
-  .diff-table thead {
-    display: none;
-  }
-
-  .diff-table tr {
-    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-    border-radius: 6px;
-    margin-bottom: 0.75rem;
-    overflow: hidden;
-  }
-
-  .diff-table td {
-    border-bottom: none;
-  }
-
-  .diff-field__group,
-  .diff-old,
-  .diff-new {
-    height: auto;
-  }
-
-  .diff-old::before,
-  .diff-new::before {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--rvo-color-grijs-600, #666);
-    margin-bottom: 0.25rem;
-  }
-
-  .diff-old::before {
-    content: "Was";
-  }
-
-  .diff-new::before {
-    content: "Wordt";
-  }
-
-  .conflict-table,
-  .conflict-table tbody,
-  .conflict-table tr,
-  .conflict-table td {
-    display: block;
-    width: auto;
-  }
-
-  .conflict-table thead {
-    display: none;
-  }
-
-  .conflict-table tr {
-    border: 1px solid var(--rvo-color-grijs-200, #e0e0e0);
-    border-radius: 8px;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-  }
-
-  .conflict-table td {
-    border-bottom: none;
-    padding: 0.25rem 0;
-  }
-
-  .conflict-field {
-    font-weight: 600;
-  }
-
-  .conflict-value--mine,
-  .conflict-value--theirs {
-    border-radius: 6px;
-    padding: 0.5rem;
-  }
-
-  .conflict-value--mine {
-    background-color: rgba(0, 123, 199, 0.08);
-  }
-
-  .conflict-value--theirs {
-    background-color: rgba(224, 134, 0, 0.08);
-  }
-
-  .conflict-value--mine::before,
-  .conflict-value--theirs::before {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-
-  .conflict-value--mine::before {
-    content: "Jouw waarde";
-    color: #007bc7;
-  }
-
-  .conflict-value--theirs::before {
-    content: "Andere waarde";
-    color: #b35a00;
-  }
-
-  .conflict-value--selected {
-    background-color: #e6f4ea;
-  }
 }
 
 /* Status page (/status) */
 .status-card__title {
   display: flex;
   align-items: center;
-  gap: var(--rvo-space-2xs, 0.5rem);
-}
-
-.status-card__tag {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-}
-
-.status-spin {
-  animation: status-rotate 1s linear infinite;
-}
-
-@keyframes status-rotate {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .status-spin {
-    animation: none;
-  }
-}
-
-.version-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--rvo-space-md, 1rem);
+  gap: var(--primitives-space-4, 0.5rem);
 }
 
 .version-card__line {

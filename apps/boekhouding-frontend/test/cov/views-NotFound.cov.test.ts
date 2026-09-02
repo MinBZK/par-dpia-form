@@ -6,28 +6,20 @@ import { mount } from '@vue/test-utils'
 
 import NotFound from '../../src/views/NotFound.vue'
 
-const routerLinkStub = {
-  props: ['to'],
-  template: '<a class="router-link-stub" :href="to"><slot /></a>',
-}
-
-function mountNotFound() {
-  return mount(NotFound, {
-    global: { stubs: { 'router-link': routerLinkStub } },
-  })
-}
-
 describe('NotFound.vue', () => {
   it('renders the 404 heading and explanation', () => {
-    const wrapper = mountNotFound()
+    const wrapper = mount(NotFound)
     expect(wrapper.find('h1').text()).toBe('Pagina niet gevonden')
     expect(wrapper.text()).toContain('bestaat niet')
   })
 
-  it('links back to the start page', () => {
-    const wrapper = mountNotFound()
-    const link = wrapper.find('.router-link-stub')
-    expect(link.attributes('href')).toBe('/')
-    expect(link.text()).toBe('Naar de startpagina')
+  it('links back to the start page via an nldd-button with href', () => {
+    const wrapper = mount(NotFound)
+    const button = wrapper.find('nldd-button')
+    expect(button.exists()).toBe(true)
+    expect(button.attributes('href')).toBe('/')
+    expect(button.attributes('text')).toBe('Naar de startpagina')
+    expect(button.attributes('variant')).toBe('primary')
+    expect(button.attributes('size')).toBe('md')
   })
 })

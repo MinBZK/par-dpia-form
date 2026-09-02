@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import FormField from './FormField.vue'
-import UiButton from '../ui/UiButton.vue'
 import ConfirmDeleteDialog from '../ConfirmDeleteDialog.vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/box'
+import '@nldd/design-system/button'
+import '@nldd/design-system/container'
+import '@nldd/design-system/spacer'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
@@ -9,18 +13,27 @@ import { useAnswerStore } from '../../stores/answers'
 import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { renderInstanceLabel } from '../../utils/taskUtils'
 import { findImpactedByDelete, summariseImpact, type ImpactSummary } from '../../utils/impactedAnswers'
-import { computed, nextTick, ref } from 'vue'
+import { computed, inject, nextTick, ref } from 'vue'
+import { CONTENT_READONLY_KEY } from '../../injectionKeys'
 
 const props = defineProps<{
   taskId: string
   instanceId: string
+  nestedInBox?: boolean
 }>()
+
+// Read-only role: the add and delete controls go inert, the rows stay readable.
+const readonly = inject(CONTENT_READONLY_KEY, ref(false))
 
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
 const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
+
+// A box inside a tinted box needs the base surface, otherwise the two rings
+// sit on the same fill and the nesting stops reading.
+const boxBackground = computed(() => (props.nestedInBox ? 'base' : 'tinted'))
 
 const prefixQuestionIds = usePrefixQuestionIds()
 
@@ -138,30 +151,24 @@ const cancelPendingDelete = () => {
 </script>
 
 <template>
-  <div class="utrecht-form-fieldset rvo-form-fieldset">
+  <div class="task-fieldset">
     <fieldset
-      class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs"
+      class="task-fieldset__fieldset"
       :aria-labelledby="`group-${taskId}-${instanceId}-legend`">
       <legend
         :class="isNestedGroup && prefixQuestionIds
-          ? 'rvo-label rvo-margin-block-end--xs'
-          : 'utrecht-form-fieldset__legend utrecht-form-fieldset__legend--html-legend'"
+          ? 'task-fieldset__legend--sub'
+          : 'task-fieldset__legend'"
         :id="`group-${taskId}-${instanceId}-legend`" v-html="instanceLabel"></legend>
 
       <!-- Group-level description: an IAMA addition (gated on prefixQuestionIds, which only
            IAMA sets). DPIA/pre-scan never showed group descriptions, so keep them hidden there. -->
-      <div v-if="task.description && prefixQuestionIds" class="utrecht-form-field-description rvo-margin-block-end--sm"
+      <div v-if="task.description && prefixQuestionIds" class="task-fieldset__description"
         v-html="task.description"></div>
 
       <div role="group" :aria-labelledby="`group-${taskId}-${instanceId}-legend`"
-        class="utrecht-form-field utrecht-form-field--text rvo-form-field">
-        <div v-if="missingSourceMessage" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
-          <div class="rvo-alert__container">
-            <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing"
-              role="img" aria-label="Waarschuwing"></span>
-            <div class="rvo-alert-text">{{ missingSourceMessage }}</div>
-          </div>
-        </div>
+        class="task-fieldset__content">
+        <nldd-banner v-if="missingSourceMessage" variant="warning" :text="missingSourceMessage"></nldd-banner>
         <template v-if="!missingSourceMessage">
         <!-- Children rendered in original YAML order -->
         <template v-for="childId in task.childrenIds" :key="childId">
@@ -181,24 +188,25 @@ const cancelPendingDelete = () => {
               <!-- Repeatable simple fields -->
               <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
                 :key="`simple-rep-${childInstanceId}`">
-                <div v-if="shouldShowTask(childId, childInstanceId)">
+                <div v-if="shouldShowTask(childId, childInstanceId)" class="task-fieldset__repeatable">
                   <FormField :task="taskStore.taskById(childId)" :instanceId="childInstanceId"
                     :label="taskStore.taskById(childId).task" :description="taskStore.taskById(childId).description" />
 
                   <!-- Only show delete button for repeatable children instances -->
-                  <UiButton v-if="
+                  <nldd-button :inert="readonly || undefined" v-if="
                     canUserCreateInstances(childId) &&
                     hasMoreThanOneInstance(childId, props.instanceId)
-                  " variant="warning" icon="verwijderen" label="Verwijder veld" @click="handleDelete(childInstanceId)" />
+                  " variant="destructive" start-icon="trash" text="Verwijder veld" @click="handleDelete(childInstanceId)"></nldd-button>
                 </div>
               </div>
 
               <!-- Add button for repeatable field -->
-              <div v-if="canUserCreateInstances(childId)" class="rvo-layout-margin-vertical--md">
-                <UiButton variant="tertiary" icon="plus"
-                  :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                  @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
-              </div>
+              <template v-if="canUserCreateInstances(childId)">
+                <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
+                  :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+                  @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
+                <nldd-spacer size="16"></nldd-spacer>
+              </template>
             </template>
           </template>
 
@@ -217,19 +225,24 @@ const cancelPendingDelete = () => {
               <!-- Repeatable task groups -->
               <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
                 :key="`complex-rep-${childInstanceId}`">
-                <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-margin-block-end--md">
-                  <TaskGroup :taskId="childId" :instanceId="childInstanceId"
-                    class="rvo-margin-block-end--md background-grijs-200" />
+                <div v-if="shouldShowTask(childId, childInstanceId)" class="task-fieldset__repeatable">
+                  <nldd-box :background="boxBackground">
+                    <nldd-container padding="16">
+                      <TaskGroup :taskId="childId" :instanceId="childInstanceId" nested-in-box />
+                    </nldd-container>
+                  </nldd-box>
                 </div>
               </div>
 
               <!-- Add button for repeatable task group (outside the loop) -->
-              <div v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
-                class="rvo-card background-grijs-200 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-                <UiButton variant="tertiary" icon="plus"
-                  :label="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
-                  @click="taskStore.addRepeatableTaskInstance(childId, instanceId)" />
-              </div>
+              <nldd-box v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
+                :background="boxBackground">
+                <nldd-container padding="16">
+                  <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
+                    :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
+                    @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
+                </nldd-container>
+              </nldd-box>
             </template>
           </template>
 
@@ -241,10 +254,10 @@ const cancelPendingDelete = () => {
         :summary="pendingDelete.summary" @confirm="confirmPendingDelete" @cancel="cancelPendingDelete" />
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
-      <UiButton v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
-        variant="warning" icon="verwijderen"
-        :label="`Verwijder ${task.item_name || getPlainTextWithoutDefinitions(task.task.toLowerCase())}`"
-        @click="handleDelete(props.instanceId)" />
+      <nldd-button :inert="readonly || undefined" v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
+        variant="destructive" start-icon="trash"
+        :text="`Verwijder ${task.item_name || getPlainTextWithoutDefinitions(task.task.toLowerCase())}`"
+        @click="handleDelete(props.instanceId)"></nldd-button>
     </fieldset>
   </div>
 </template>

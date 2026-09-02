@@ -2,11 +2,17 @@
 import ActionPointsOverview from '../ActionPointsOverview.vue'
 import TaskGroup from './TaskGroup.vue'
 import TaskItem from './TaskItem.vue'
-import UiButton from '../ui/UiButton.vue'
+import UiAccordion from '../ui/UiAccordion.vue'
 import Results from '../Results.vue'
 import PreScanPreview from '../PreScanPreview.vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/box'
+import '@nldd/design-system/button'
+import '@nldd/design-system/container'
+import '@nldd/design-system/title'
 import { FormType } from '../../models/dpia'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
+import { tidyDescriptionHtml } from '../../utils/descriptionHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { type FlatTask, taskIsOfTaskType, useTaskStore } from '../../stores/tasks'
 import { computed } from 'vue'
@@ -218,118 +224,107 @@ function shouldSkipTask(taskId: string): boolean {
 </script>
 
 <template>
-  <div class="rvo-layout-margin-vertical--s">
+  <div class="task-section">
     <!-- Task header -->
-    <h1 class="utrecht-heading-1">{{ taskDisplayTitle(task) }}</h1>
+    <h1>{{ taskDisplayTitle(task) }}</h1>
 
-    <div v-if="isSigningTask" class="rvo-layout-column rvo-layout-gap--2xl">
-      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset
-          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
-        </fieldset>
+    <nldd-container v-if="isSigningTask" gap="32">
+      <div v-if="task.description" class="task-section__description">
+        <div class="preserve-whitespace" v-html="tidyDescriptionHtml(task.description)"></div>
       </div>
 
       <Results v-if="activeNamespace === FormType.PRE_SCAN" />
-    </div>
+    </nldd-container>
 
-    <div v-else class="rvo-layout-column rvo-layout-gap--2xl">
+    <nldd-container v-else gap="32">
 
       <!-- Show consolidated warnings for tasks that need to be filled in -->
-      <div v-if="missingSourceDependencies.length > 0" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm">
-        <div class="rvo-alert__container">
-          <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
-            aria-label="Waarschuwing"></span>
-          <div class="rvo-alert-text">
-            <span>Voor deze sectie is het nodig eerst de volgende secties in te vullen:</span>
-            <ul class="utrecht-unordered-list">
-              <li v-for="dep in missingSourceDependencies" :key="dep.sourceId" class="utrecht-unordered-list__item">
-                <template v-if="dep.hasOfficialId">Sectie {{ dep.sectionNumber }}: </template>{{ dep.sectionName }}
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
+      <nldd-banner v-if="missingSourceDependencies.length > 0" variant="warning"
+        text="Voor deze sectie is het nodig eerst de volgende secties in te vullen:">
+        <ul class="task-section__dependency-list">
+          <li v-for="dep in missingSourceDependencies" :key="dep.sourceId">
+            <template v-if="dep.hasOfficialId">Sectie {{ dep.sectionNumber }}: </template>{{ dep.sectionName }}
+          </li>
+        </ul>
+      </nldd-banner>
 
       <!-- Description section (if available) -->
-      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
-        <fieldset
-          class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
-          <template v-if="task.sources">
-            <template v-for="source in task.sources" :key="source">
-              <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
-                :alt="source.description" class="task-section__source-image" />
-            </template>
+      <div v-if="task.description" class="task-section__description">
+        <div class="preserve-whitespace" v-html="tidyDescriptionHtml(task.description)"></div>
+        <template v-if="task.sources">
+          <template v-for="source in task.sources" :key="source">
+            <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+              :alt="source.description" class="task-section__source-image" />
           </template>
-        </fieldset>
+        </template>
       </div>
 
       <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
-      <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
+      <nldd-container v-if="shouldShowChildren" gap="32">
         <template v-for="(group, groupIdx) in childGroups" :key="groupIdx">
           <!-- Run of consecutive info-only children: render as a single accordion group -->
-          <div v-if="group.type === 'accordion'" class="rvo-accordion">
-            <details v-for="childId in group.ids" :key="childId" class="rvo-accordion__item"
+          <div v-if="group.type === 'accordion'" class="task-section__accordions">
+            <UiAccordion v-for="childId in group.ids" :key="childId"
               :open="isInformationalTask && childId === firstAccordionChildId">
-              <summary class="rvo-accordion__item-summary">
-                <div class="rvo-accordion__item-icon">
-                  <span
-                    class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
-                    role="img" aria-label="Uitklappen"></span>
-                  <span
-                    class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
-                    role="img" aria-label="Inklappen"></span>
-                </div>
-                <div class="rvo-accordion__item-title-container">
-                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-                    {{ taskStore.taskById(childId).task }}
-                  </h3>
-                </div>
-              </summary>
-              <div class="rvo-accordion__content">
-                <p class="utrecht-paragraph preserve-whitespace" v-html="taskStore.taskById(childId).description"></p>
-                <template v-if="taskStore.taskById(childId).sources">
-                  <template v-for="source in taskStore.taskById(childId).sources" :key="source.source">
-                    <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
-                      :alt="source.description" class="task-section__source-image" />
-                  </template>
+              <template #title>
+                <nldd-title size="5">
+                  <h3>{{ taskStore.taskById(childId).task }}</h3>
+                </nldd-title>
+              </template>
+              <div class="preserve-whitespace" v-html="tidyDescriptionHtml(taskStore.taskById(childId).description)"></div>
+              <template v-if="taskStore.taskById(childId).sources">
+                <template v-for="source in taskStore.taskById(childId).sources" :key="source.source">
+                  <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
+                    :alt="source.description" class="task-section__source-image" />
                 </template>
-              </div>
-            </details>
+              </template>
+            </UiAccordion>
           </div>
 
           <template v-else>
             <template v-for="instanceId in taskStore.getInstanceIdsForTask(group.id)" :key="instanceId">
               <template v-if="shouldShowTask(group.id, instanceId)">
-                <!--Single task (no children): render the task itself -->
-                <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
-                  :instanceId="instanceId" :showDescription="true" />
+                <!-- One question per box: nldd-box is the design system's way of
+                     marking off a region that belongs together, and the tint
+                     makes the question boundaries scannable in a long section. -->
+                <nldd-box>
+                  <nldd-container padding="16">
+                    <!--Single task (no children): render the task itself -->
+                    <TaskItem v-if="!taskStore.taskById(group.id).childrenIds.length" :taskId="group.id"
+                      :instanceId="instanceId" :showDescription="true" />
 
-                <!-- Nested task group (has children): render children as TaskGroup -->
-                <template v-else>
-                  <TaskGroup :taskId="group.id" :instanceId="instanceId" />
-                </template>
+                    <!-- Nested task group (has children): render children as TaskGroup -->
+                    <template v-else>
+                      <TaskGroup :taskId="group.id" :instanceId="instanceId" />
+                    </template>
+                  </nldd-container>
+                </nldd-box>
               </template>
             </template>
 
-            <div v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)"
-              class="rvo-card background-grijs-100 rvo-padding-block-start--xs rvo-padding-block-end--xs">
-              <UiButton variant="tertiary" icon="plus"
-                :label="`Voeg extra ${taskStore.taskById(group.id).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
-                @click="handleAddRepeatableTask(group.id)" />
-            </div>
+            <nldd-box v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)">
+              <nldd-container padding="16">
+                <nldd-button variant="secondary" start-icon="plus"
+                  :text="`Voeg extra ${taskStore.taskById(group.id).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
+                  @click="handleAddRepeatableTask(group.id)"></nldd-button>
+              </nldd-container>
+            </nldd-box>
           </template>
         </template>
 
         <!-- Actiepunten-samenvatting: onderaan de sectie, na alle subsecties -->
         <ActionPointsOverview v-if="showActiepuntenOverview" />
-      </div>
+      </nldd-container>
 
-      <!-- Single task: render the task itself -->
-      <TaskItem v-else-if="!taskIsOfTaskType(task, 'task_group')" :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
-    </div>
+      <!-- Single task: render the task itself, in the same box as the
+           questions of a grouped section. -->
+      <nldd-box v-else-if="!taskIsOfTaskType(task, 'task_group')">
+        <nldd-container padding="16">
+          <TaskItem :taskId="taskId" :instanceId="taskStore.getInstanceIdsForTask(taskId)[0] || ''" />
+        </nldd-container>
+      </nldd-box>
+    </nldd-container>
   </div>
 </template>

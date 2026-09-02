@@ -15,6 +15,163 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Gewijzigd
+
+* Invulhulpen heeft een eigen tabbladpictogram: een document met een pen op
+  het Rijksblauw, in plaats van het blauwe vlak van eerder.
+* Een selectievakje staat weer op één lijn met de eerste regel van zijn label.
+* De verwijzing naar art. 27 AI-verordening is weer een label ter grootte van
+  zijn tekst, in plaats van een balk over de volle kolombreedte, en leest een
+  maat groter.
+* De hele interface is overgezet naar het NLDD Design System van de
+  Nederlandse Digitale Dienst. De vormgeving is vernieuwd (Rijkshuisstijl
+  blijft), met onder meer een inhoudsopgave die op smalle schermen inklapt,
+  duidelijker statuslabels bij de pre-scan-uitkomst en toegankelijkere
+  menu's en dialogen. Alle functionaliteit werkt zoals voorheen.
+* Het exportmenu noemt onder de knop "Exporteer" alleen nog het formaat
+  ("PDF", "JSON", "Markdown") in plaats van drie keer "Exporteer als ...".
+* De melding dat Invulhulpen in ontwikkeling is, staat nu als smalle
+  statusbalk boven aan het scherm in plaats van als blok in de pagina.
+* De terugkoppeling naar het overzicht of het project staat nu als
+  terugknop in de bovenbalk, niet meer als losse link in de pagina. De
+  knop noemt de bestemming ("Projecten", "Assessment"), niet "Terug
+  naar ...", zodat hij ook op een smal scherm past.
+* Onder aan elke pagina staat een voettekst met de verwijzingen naar de
+  privacyverklaring, de toegankelijkheidsverklaring en de uitleg.
+* De interface volgt standaard de donker- of lichtstand van je apparaat.
+  Wil je daarvan afwijken, dan kies je dat onder Weergave in het
+  accountmenu; die keuze wordt onthouden.
+* Lopende tekst is groter en rustiger gezet, en tekstpagina's zoals de
+  uitleg, de privacyverklaring en de toegankelijkheidsverklaring hebben
+  een beperkte regelbreedte zodat ze prettiger lezen.
+* Meldingen tijdens het samenwerken, zoals wijzigingen van anderen,
+  verschijnen nu rechtsboven in beeld en op smalle schermen boven aan.
+* Project- en assessmentkaarten zijn nu echte links: je kunt ze met het
+  toetsenbord bereiken, ze krijgen een zichtbare focusring en je kunt ze
+  met ctrl- of cmd-klik in een nieuw tabblad openen. Ze lichten niet meer
+  op bij hover; de muisaanwijzer wijst de link aan.
+* De sluitknop van het opmerkingenpaneel is nu overal groot genoeg om op
+  een aanraakscherm te raken.
+* De ledenlijst is een lijst geworden in plaats van een tabel: de naam
+  staat boven het e-mailadres, de kolomkoppen zijn verdwenen en de rijen
+  passen zich vanzelf aan smalle schermen aan.
+* Bij een bewerkingsconflict kies je nu per vraag tussen twee duidelijk
+  benoemde opties ("Jouw waarde" en "Andere waarde") in plaats van in een
+  tabel met drie kolommen. Het venster is daardoor ook niet meer extra
+  breed.
+* De wijzigingen tussen twee versies staan nu per vraag als een paar
+  "Was" en "Wordt", naast elkaar waar het past en onder elkaar waar het
+  niet past, met de vertrouwde rode en groene achtergrond en even hoge
+  vlakken.
+* In de ledenlijst staan de rolkeuzes onder elkaar uitgelijnd. De knop
+  "Verwijderen" staat bij elk lid, maar is uitgeschakeld bij de laatste
+  eigenaar, net als diens rolkeuze. Het formulier om iemand toe te voegen
+  is niet langer zo breed als de pagina.
+* De kolomkoppen in de versiegeschiedenis blijven staan tijdens het
+  scrollen, en de regels staan iets dichter op elkaar.
+* De drie puntjes van een actiemenu staan nu rechtop.
+* "Leden beheren" staat bij de projectacties achter dezelfde drie puntjes
+  als "Project verwijderen", in plaats van als losse knop ernaast.
+* De inhoudsopgave is een echte lijst geworden: de hele regel licht op
+  als je erover beweegt of hem met het toetsenbord bereikt, je loopt er
+  met de pijltjestoetsen doorheen, de regels staan compacter en nog niet
+  bezochte hoofdstukken hebben de gewone tekstkleur; het bolletje geeft
+  de status al aan.
+* De inhoudsopgave heeft geen eigen schuifbalk meer maar scrollt mee met
+  de pagina.
+* In de inhoudsopgave blijft het hoofdstuknummer staan als een hoofdstuk is
+  afgevinkt; de gevulde stip geeft aan dat het klaar is, zonder tweede vinkje.
+* De toelichting onder een vraag staat in de gewone tekstkleur; het is tekst
+  die je moet lezen, geen bijschrift.
+* De knop "Lezen" staat bij het tekstvak waar hij bij hoort, niet meer
+  rechtsboven bij de vraag.
+* De uitleg bij een begrip leest op dezelfde tekstgrootte als de rest van de
+  pagina en blijft binnen beeld, ook bij een begrip aan de rand.
+* De uitleg bij een begrip is nu ook zonder muis te openen: je bereikt een
+  begrip met de tab-toets en de uitleg verschijnt zodra het de focus heeft.
+  De muisaanwijzer is de gewone pijl, net als bij de andere onderdelen van
+  het ontwerpsysteem; de stippellijn onder het begrip geeft aan dat er
+  uitleg is.
+* Selectievakjes en keuzerondjes staan weer op één lijn met hun label.
+* De vragen staan op een vaste leesbreedte in plaats van de volle
+  paginabreedte.
+* Bij het standalone formulier staan "Begin nieuwe ..." en "Exporteer" in de
+  bovenbalk, zodat de pagina zelf alleen nog inhoud bevat.
+* De versie leest zonder de "v" van de tag: "2026.8.24" in plaats van
+  "v2026.8.24".
+* Een hoofdstuk waar je in bezig bent houdt zijn nummer in de inhoudsopgave;
+  de kleur van de stip geeft aan dat je ermee bezig bent.
+* De blokken op de startpagina van het standalone formulier staan verder uit
+  elkaar.
+* De tussenresultaten van de pre-scan hebben echte kopjes per assessment, meer
+  ruimte boven dan onder een kopje, en geen extra lijnen meer in de kaart.
+* Onder aan een stap staat "Markeer als voltooid" op zijn eigen regel boven de
+  knoppen, op elke schermbreedte hetzelfde.
+* De titelbalk van een assessment (naam, opmerkingen, menu) lijnt uit met de
+  inhoudsopgave en de vragen eronder, in plaats van met een eigen kolom.
+* De toelichting onder een startkeuze leest in de gewone tekstkleur.
+* De uitleg- en verklaringpagina's staan in het midden van het scherm, op een
+  leesbare regelbreedte.
+* De terugknop noemt de pagina waar je vandaan komt, in plaats van "Terug".
+* Op de statuspagina is de uitkomst per onderdeel een gekleurd vlak in plaats
+  van een klein labeltje, en het icoon voor de achterkant is een server.
+* Elke pagina gebruikt dezelfde paginabreedte en marges van het design system,
+  zodat koppen, kaarten en tekst overal op dezelfde lijn beginnen.
+* De startpagina en de statuspagina staan weer op een leesbare breedte in
+  plaats van schermbreed, en er zit minder lucht tussen de bovenbalk en de
+  eerste inhoud.
+* Tussen een paginakop en de kaarten eronder zit meer ruimte.
+* De terugknop op een uitleg- of verklaringpagina brengt je terug naar de
+  pagina waar je aan het werk was, ook als je eerst nog een andere uitlegpagina
+  opende.
+* Onder aan elke pagina staat nu ook wie de invulhulp uitgeeft.
+* In het opmerkingenpaneel is de sluitknop kleiner, staat de kop op één regel
+  met de knoppen, en lijnt het paneel uit met de inhoud ernaast. De knoppen
+  onder een nieuwe opmerking zijn beter aanklikbaar.
+* De datum onder de toegankelijkheidsverklaring leest als gewone (cursieve)
+  tekst.
+* Als je alleen mag lezen of alleen mag reageren, kun je nog steeds door
+  de inhoudsopgave navigeren. Eerder lag de hele kolom vast.
+* De vragen krijgen meer ruimte: de kolom is breder en de inhoudsopgave
+  staat verder naar links.
+* De uitleg bij een begrip heeft niet langer een bijna zwarte achtergrond
+  in donker thema, maar dezelfde als een kaart op de pagina.
+* Bij het uploaden van een eerder bestand stond het label "Optioneel"
+  midden in de vraagzin; dat is weggehaald.
+* Het e-mailadres bij "Lid toevoegen" wordt gecontroleerd voor het
+  versturen, met de melding onder het veld in plaats van een
+  browservenstertje.
+* De hoofdnavigatie toont niet langer een knop "Projecten" naast de
+  terugknop; het logo brengt je naar het projectoverzicht.
+
+### Opgelost
+
+* Op smalle schermen kon de pagina horizontaal meeschuiven; dat is
+  verholpen, tot en met een schermbreedte van 320 pixels.
+* Wie een assessment alleen mag lezen of becommentariëren, kon de
+  toelichting bij een begrip niet meer openen en de knoppen onder de vragen
+  niet gebruiken. Alleen de invoervelden staan nu op slot.
+* De inhoudsopgave had een eigen, onzichtbare schuifbalk waardoor de laatste
+  hoofdstukken buiten beeld bleven; hij schuift nu gewoon met de pagina mee.
+* Bij de pre-scan verschoof de pagina zijwaarts bij elke volgende stap: korte
+  stappen passen op het scherm en lange niet, waardoor de schuifbalk steeds
+  verscheen en verdween. De ruimte voor de schuifbalk blijft nu gereserveerd,
+  zodat de vragen en de inhoudsopgave op hun plek blijven staan.
+
+### Onder de motorkap
+
+* De RVO component library (`@nl-rvo/*`) is volledig vervangen door
+  `@nldd/design-system` (Lit web components). De styling gebruikt nu de
+  NLDD design-tokens; de Trusted-Types-CSP staat de `lit-html`-policy toe.
+  Het standalone single-file formulier is hierdoor fors kleiner (de losse
+  RVO-CSS met fonts en iconenset verviel).
+* Het formulier "Nieuw project" gebruikt nu `nldd-form` voor zijn
+  velduitlijning in plaats van eigen marges, zodat het ritme meebeweegt met
+  het design system.
+* De valkuilen van het design system die de NLDD-plugin niet dekt, staan nu
+  in `.claude/rules/nldd-integration.md` (namen verifiëren tegen het
+  package, foutmeldingen koppelen, eigen CSS verantwoorden).
+
 ## [2026.8.25]
 
 ### Gewijzigd
@@ -52,6 +209,7 @@ build) staan kort onder "Onder de motorkap".
   geschreven kan worden. Bij het bijwerken van beveiligingspatches werd nginx
   zelf vervangen door de Alpine-variant, die bij het opstarten een ander,
   onbereikbaar logpad probeerde te openen.
+
 
 ## [2026.8.24]
 

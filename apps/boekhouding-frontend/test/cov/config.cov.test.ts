@@ -83,7 +83,7 @@ describe('config', () => {
     it('throws when loadConfig() has not run yet', async () => {
       const { getConfig } = await freshModule()
 
-      expect(() => getConfig()).toThrow('Config not loaded — call loadConfig() first')
+      expect(() => getConfig()).toThrow('Config not loaded: call loadConfig() first')
     })
 
     it('returns the cached config after loadConfig() has run', async () => {

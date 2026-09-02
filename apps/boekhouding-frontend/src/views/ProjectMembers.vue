@@ -1,12 +1,30 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { members as membersApi, type Member } from '../api'
 import { usePaginatedList } from '../composables/usePaginatedList'
-import AppHeader from '../components/AppHeader.vue'
+import { useBackLink } from '../composables/useBackLink'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/button'
+import '@nldd/design-system/cell'
+import '@nldd/design-system/container'
+import '@nldd/design-system/dropdown'
+import '@nldd/design-system/form'
+import '@nldd/design-system/form-actions'
+import '@nldd/design-system/form-field'
+import '@nldd/design-system/list'
+import '@nldd/design-system/list-item'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/spacer-cell'
+import '@nldd/design-system/text-cell'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/title'
 
 const props = defineProps<{ projectId: string }>()
 const router = useRouter()
+
+useBackLink().set({ text: 'Project', to: `/project/${props.projectId}` })
 
 const {
   items: memberList, loadingMore, loadError, loadStatus, statusRef,
@@ -14,6 +32,7 @@ const {
 } = usePaginatedList<Member>((page, pageSize) => membersApi.list(props.projectId, page, pageSize), (m) => m.userId)
 const loading = ref(true)
 const inviteEmail = ref('')
+const inviteEmailError = ref('')
 const inviteRole = ref<'owner' | 'editor' | 'commenter' | 'viewer'>('editor')
 const error = ref<string | null>(null)
 
@@ -31,12 +50,30 @@ onMounted(async () => {
   }
 })
 
+// NLDD fields deliver their value in event.detail; plain inputs on the target.
+function fieldValue(event: Event): string {
+  return (event as CustomEvent).detail?.value ?? (event.target as HTMLInputElement).value
+}
+
+// Own rules, DS presentation: nldd-form carries novalidate so the browser does
+// not intercept with its own bubble before this runs.
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 const handleInvite = async () => {
   error.value = null
-  if (!inviteEmail.value) return
+  const address = inviteEmail.value.trim()
+  if (!address) {
+    inviteEmailError.value = 'Vul een e-mailadres in.'
+    return
+  }
+  if (!EMAIL_SHAPE.test(address)) {
+    inviteEmailError.value = 'Vul een geldig e-mailadres in, bijvoorbeeld naam@organisatie.nl.'
+    return
+  }
+  inviteEmailError.value = ''
 
   try {
-    await membersApi.add(props.projectId, inviteEmail.value, inviteRole.value)
+    await membersApi.add(props.projectId, address, inviteRole.value)
     await loadFirst()
     inviteEmail.value = ''
   } catch (e: any) {
@@ -54,17 +91,18 @@ const handleRoleChange = async (member: Member, newRole: string) => {
   }
 }
 
-// Delete confirmation modal
-const deleteDialogRef = ref<HTMLDialogElement | null>(null)
+// Delete confirmation modal. show/hide are optional: they only exist once the
+// custom element is upgraded (not in jsdom unit tests).
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+
+const deleteDialogRef = ref<ModalDialogElement | null>(null)
 const deleteModalOpen = ref(false)
 const memberToDelete = ref<Member | null>(null)
 
 watch(deleteModalOpen, (open) => {
-  if (open) {
-    deleteDialogRef.value?.showModal()
-  } else {
-    deleteDialogRef.value?.close()
-  }
+  if (!deleteDialogRef.value) return
+  if (open) deleteDialogRef.value.show?.()
+  else deleteDialogRef.value.hide?.()
 })
 
 const openDeleteModal = (member: Member) => {
@@ -76,6 +114,16 @@ const closeDeleteModal = () => {
   deleteModalOpen.value = false
   memberToDelete.value = null
 }
+
+// The modal closes itself on Esc and fires `close`; route that through the
+// shared open-state so the watch performs the single hide() (no hide loop).
+const onDialogClose = () => {
+  if (deleteModalOpen.value) closeDeleteModal()
+}
+
+onBeforeUnmount(() => {
+  deleteDialogRef.value?.hide?.()
+})
 
 const confirmRemove = async () => {
   if (!memberToDelete.value) return
@@ -91,110 +139,131 @@ const confirmRemove = async () => {
   }
 }
 
-const whoLabel = (member: Member) => {
-  const isPlaceholder = member.displayName === member.email
-  if (isPlaceholder) return member.email
-  return `${member.displayName} (${member.email})`
-}
+// An invited member has no display name until they first sign in; the API fills
+// it with the email, so name and email would otherwise read twice.
+const isPlaceholderName = (member: Member) => member.displayName === member.email
+
+const whoLabel = (member: Member) =>
+  isPlaceholderName(member) ? member.email : `${member.displayName} (${member.email})`
 </script>
 
 <template>
   <div>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader backLabel="Terug naar project" :backRoute="`/project/${projectId}`" />
-
-    <h1 class="utrecht-heading-1">Leden beheren</h1>
+  <nldd-simple-section width="52rem" padding-top="24">
+    <nldd-title size="3"><h1>Leden beheren</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>
 
     <template v-else>
-      <div v-if="error" class="rvo-alert rvo-alert--error rvo-margin-block-end--md" role="alert">
-        <p>{{ error }}</p>
-      </div>
+      <nldd-banner v-if="error" variant="critical" :text="error"></nldd-banner>
 
-      <div class="member-list rvo-margin-block-end--lg">
-        <div class="member-row member-row--header">
-          <span class="member-col--who">Wie</span>
-          <span class="member-col--role">Rol</span>
-          <span class="member-col--action"></span>
-        </div>
-        <div v-for="member in memberList" :key="member.userId" class="member-row">
-          <span class="member-col--who">{{ whoLabel(member) }}</span>
-          <span class="member-col--role">
-            <select
-              :value="member.role"
-              :disabled="isOnlyOwner(member)"
-              :aria-label="`Rol van ${whoLabel(member)}`"
-              class="utrecht-select utrecht-select--html-select member-select"
-              @change="handleRoleChange(member, ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="owner">Project eigenaar</option>
-              <option value="editor">Bewerker</option>
-              <option value="commenter">Commentator</option>
-              <option value="viewer">Lezer</option>
-            </select>
-          </span>
-          <span class="member-col--action">
-            <button
-              v-if="!isOnlyOwner(member)"
-              class="rvo-button rvo-button--primary confirm-dialog__delete member-delete"
+      <nldd-list class="member-list" accessible-label="Projectleden">
+        <nldd-list-item v-for="member in memberList" :key="member.userId" class="member-row">
+          <nldd-text-cell
+            class="member-col--who"
+            :text="isPlaceholderName(member) ? member.email : member.displayName"
+            :supporting-text="isPlaceholderName(member) ? undefined : member.email"
+          ></nldd-text-cell>
+          <!-- Fixed width so the dropdowns line up: a fit-content cell would size
+               to its own label and "Project eigenaar" is wider than "Bewerker". -->
+          <nldd-cell class="member-col--role" width="12.5rem">
+            <nldd-dropdown :disabled="isOnlyOwner(member) || undefined">
+              <select
+                :value="member.role"
+                :disabled="isOnlyOwner(member)"
+                :aria-label="`Rol van ${whoLabel(member)}`"
+                class="member-select"
+                @change="handleRoleChange(member, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="owner">Project eigenaar</option>
+                <option value="editor">Bewerker</option>
+                <option value="commenter">Commentator</option>
+                <option value="viewer">Lezer</option>
+              </select>
+            </nldd-dropdown>
+          </nldd-cell>
+          <nldd-spacer-cell size="8"></nldd-spacer-cell>
+          <!-- Fixed width so the role dropdowns line up down the list. The
+               sole owner cannot be removed: the button is disabled rather than
+               hidden, the same way their role select is. -->
+          <nldd-cell class="member-col--action" width="8.5rem" horizontal-alignment="right">
+            <nldd-button
+              variant="destructive"
+              text="Verwijderen"
+              class="member-delete"
+              :disabled="isOnlyOwner(member) || undefined"
+              :accessible-label="isOnlyOwner(member)
+                ? `${whoLabel(member)} is de enige eigenaar en kan niet worden verwijderd`
+                : `${whoLabel(member)} verwijderen uit dit project`"
               @click="openDeleteModal(member)"
-            >
-              Verwijderen
-            </button>
-          </span>
-        </div>
-      </div>
+            ></nldd-button>
+          </nldd-cell>
+        </nldd-list-item>
+      </nldd-list>
 
       <div v-if="hasMore" class="version-list__more">
-        <button
-          class="rvo-button rvo-button--secondary rvo-button--size-sm"
-          :disabled="loadingMore"
+        <nldd-button
+          variant="neutral-tinted"
+          size="sm"
+          :disabled="loadingMore || undefined"
+          :text="`Laad de volgende ${nextBatchSize} leden`"
           @click="loadMore"
-        >
-          Laad de volgende {{ nextBatchSize }} leden
-        </button>
+        ></nldd-button>
       </div>
       <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
       <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
-      <h2 class="utrecht-heading-2">Lid toevoegen</h2>
+      <h2>Lid toevoegen</h2>
 
-      <form @submit.prevent="handleInvite">
-        <div class="rvo-form-field rvo-margin-block-end--md">
-          <label class="rvo-form-field__label" for="inviteEmail">E-mailadres</label>
-          <input id="inviteEmail" v-model="inviteEmail" type="email" class="utrecht-textbox utrecht-textbox--html-input" required />
-        </div>
-        <div class="rvo-form-field rvo-margin-block-end--md">
-          <label class="rvo-form-field__label" for="inviteRole">Rol</label>
-          <select id="inviteRole" v-model="inviteRole" class="utrecht-select utrecht-select--html-select">
-            <option value="owner">Project eigenaar</option>
-            <option value="editor">Bewerker</option>
-            <option value="viewer">Lezer</option>
-          </select>
-        </div>
-        <button class="rvo-button rvo-button--primary rvo-button--size-md" type="submit">Toevoegen</button>
-      </form>
+      <nldd-container max-width="32rem">
+      <nldd-form novalidate>
+        <!-- Own <form> as direct child: that is the framework-friendly mode, so
+             the component mirrors attributes instead of migrating Vue's nodes. -->
+        <form @submit.prevent="handleInvite">
+        <nldd-form-field label="E-mailadres">
+          <nldd-text-field
+            input-id="inviteEmail"
+            type="email"
+            required
+            :value="inviteEmail"
+            :invalid="inviteEmailError ? true : undefined"
+            error-message="inviteEmailError"
+            @input="inviteEmail = fieldValue($event); inviteEmailError = ''"
+          ></nldd-text-field>
+          <nldd-form-field-error-text id="inviteEmailError">
+            {{ inviteEmailError }}
+          </nldd-form-field-error-text>
+        </nldd-form-field>
+        <nldd-form-field label="Rol">
+          <nldd-dropdown>
+            <select id="inviteRole" v-model="inviteRole" aria-label="Rol">
+              <option value="owner">Project eigenaar</option>
+              <option value="editor">Bewerker</option>
+              <option value="viewer">Lezer</option>
+            </select>
+          </nldd-dropdown>
+        </nldd-form-field>
+        <nldd-form-actions>
+          <nldd-button variant="primary" size="md" type="submit" text="Toevoegen"></nldd-button>
+        </nldd-form-actions>
+        </form>
+      </nldd-form>
+      </nldd-container>
     </template>
-  </div>
+  </nldd-simple-section>
 
   <!-- Delete member confirmation modal -->
-  <dialog ref="deleteDialogRef" class="confirm-dialog" @close="closeDeleteModal">
-    <div class="confirm-dialog__content">
-      <h2 class="utrecht-heading-2">Lid verwijderen</h2>
-      <p>Weet je zeker dat je <strong>{{ memberToDelete ? whoLabel(memberToDelete) : '' }}</strong> wilt verwijderen uit dit project?</p>
-      <div class="confirm-dialog__actions">
-        <button
-          class="rvo-button rvo-button--primary rvo-button--size-md confirm-dialog__delete"
-          @click="confirmRemove"
-        >
-          Verwijderen
-        </button>
-        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="closeDeleteModal">
-          Annuleer
-        </button>
-      </div>
-    </div>
-  </dialog>
+  <nldd-modal-dialog
+    ref="deleteDialogRef"
+    variant="alert"
+    text="Lid verwijderen"
+    @close="onDialogClose"
+  >
+    <p>Weet je zeker dat je <strong>{{ memberToDelete ? whoLabel(memberToDelete) : '' }}</strong> wilt verwijderen uit dit project?</p>
+    <!-- The safe way out is the primary action; the destructive action is the
+         secondary one (NLDD design guideline). -->
+    <nldd-button slot="actions" variant="primary" text="Annuleer" @click="closeDeleteModal"></nldd-button>
+    <nldd-button slot="actions" variant="destructive" text="Verwijderen" @click="confirmRemove"></nldd-button>
+  </nldd-modal-dialog>
   </div>
 </template>

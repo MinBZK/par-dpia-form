@@ -27,13 +27,6 @@ function thread(id: string, resolvedAt: string | null): CommentThread {
 function mountBadge(open: boolean) {
   return mount(CommentBadge, {
     props: { open },
-    global: {
-      stubs: {
-        IconMessage: {
-          template: '<svg class="icon-message-stub"></svg>',
-        },
-      },
-    },
   })
 }
 
@@ -43,36 +36,37 @@ describe('CommentBadge', () => {
   })
 
   describe('open prop', () => {
-    it('renders the inactive (closed) state', () => {
+    it('renders the inactive (closed) state as a transparent accent button', () => {
       const wrapper = mountBadge(false)
-      const button = wrapper.get('button.comment-badge')
+      const button = wrapper.get('nldd-button')
 
-      expect(button.classes()).not.toContain('comment-badge--active')
-      expect(button.attributes('aria-expanded')).toBe('false')
-      expect(button.attributes('aria-controls')).toBeUndefined()
-      expect(wrapper.get('.comment-badge__label').text()).toBe('Opmerkingen')
+      expect(button.attributes('variant')).toBe('accent-transparent')
+      expect(button.attributes('size')).toBe('sm')
+      expect(button.attributes('start-icon')).toBe('comment')
+      expect(button.attributes('expanded')).toBeUndefined()
+      expect(button.attributes('accessible-label')).toBe('Opmerkingen')
+      expect(wrapper.get('[slot="text"]').text()).toBe('Opmerkingen')
     })
 
-    it('renders the active (open) state', () => {
+    it('renders the active (open) state as a filled accent button', () => {
       const wrapper = mountBadge(true)
-      const button = wrapper.get('button.comment-badge')
+      const button = wrapper.get('nldd-button')
 
-      expect(button.classes()).toContain('comment-badge--active')
-      expect(button.attributes('aria-expanded')).toBe('true')
-      expect(button.attributes('aria-controls')).toBe('comment-panel')
+      expect(button.attributes('variant')).toBe('accent-filled')
+      expect(button.attributes('expanded')).toBe('true')
     })
   })
 
   describe('unresolved count', () => {
-    it('hides the count when there are no unresolved threads', () => {
+    it('hides the badge when there are no unresolved threads', () => {
       const wrapper = mountBadge(false)
       const store = useCollaborationStore()
 
       expect(store.totalUnresolvedCount).toBe(0)
-      expect(wrapper.find('.comment-badge__count').exists()).toBe(false)
+      expect(wrapper.find('nldd-badge').exists()).toBe(false)
     })
 
-    it('hides the count when all threads are resolved', async () => {
+    it('hides the badge when all threads are resolved', async () => {
       const wrapper = mountBadge(false)
       const store = useCollaborationStore()
 
@@ -80,11 +74,11 @@ describe('CommentBadge', () => {
       await wrapper.vm.$nextTick()
 
       expect(store.totalUnresolvedCount).toBe(0)
-      expect(wrapper.find('.comment-badge__count').exists()).toBe(false)
+      expect(wrapper.find('nldd-badge').exists()).toBe(false)
     })
 
-    it('shows the unresolved count when there are unresolved threads', async () => {
-      const wrapper = mountBadge(true)
+    it('shows the unresolved count as a decorative badge and in the accessible name', async () => {
+      const wrapper = mountBadge(false)
       const store = useCollaborationStore()
 
       store.threads = [
@@ -95,8 +89,21 @@ describe('CommentBadge', () => {
       await wrapper.vm.$nextTick()
 
       expect(store.totalUnresolvedCount).toBe(2)
-      const count = wrapper.get('.comment-badge__count')
-      expect(count.text()).toBe('2')
+      const badge = wrapper.get('nldd-badge')
+      expect(badge.attributes('number')).toBe('2')
+      expect(badge.attributes('color')).toBe('accent')
+      expect(badge.attributes('decorative')).toBeDefined()
+      expect(wrapper.get('nldd-button').attributes('accessible-label')).toBe('Opmerkingen, 2 onopgelost')
+    })
+
+    it('inverts the badge color on the filled (open) button', async () => {
+      const wrapper = mountBadge(true)
+      const store = useCollaborationStore()
+
+      store.threads = [thread('a', null)]
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.get('nldd-badge').attributes('color')).toBe('inherit')
     })
   })
 
@@ -104,7 +111,7 @@ describe('CommentBadge', () => {
     it('emits toggle when the button is clicked', async () => {
       const wrapper = mountBadge(false)
 
-      await wrapper.get('button.comment-badge').trigger('click')
+      await wrapper.get('nldd-button').trigger('click')
 
       expect(wrapper.emitted('toggle')).toHaveLength(1)
       expect(wrapper.emitted('toggle')![0]).toEqual([])

@@ -17,25 +17,19 @@ vi.mock('../../src/probe', () => ({
 }))
 
 import StatusPage from '../../src/views/StatusPage.vue'
+import { useBackLink } from '../../src/composables/useBackLink'
+import { previousPage } from '../../src/router'
 
 const REPO = 'https://github.com/MinBZK/par-dpia-form'
 
-const AppHeaderStub = {
-  name: 'AppHeader',
-  props: ['backLabel', 'backRoute', 'showBack'],
-  template:
-    '<header class="app-header-stub" ' +
-    ':data-back-label="backLabel" ' +
-    ":data-back-route=\"backRoute === undefined ? '__undefined__' : backRoute\" " +
-    ':data-show-back="String(showBack)"></header>',
-}
+const { backLink, set: setBackLink } = useBackLink()
 
 function jsonResponse(body: unknown): Response {
   return { json: () => Promise.resolve(body) } as unknown as Response
 }
 
 function mountStatus() {
-  return mount(StatusPage, { global: { stubs: { AppHeader: AppHeaderStub } } })
+  return mount(StatusPage)
 }
 
 let writeText: ReturnType<typeof vi.fn>
@@ -53,39 +47,54 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks()
+  setBackLink(null)
   window.history.replaceState(null, '', window.location.href)
 })
 
 describe('StatusPage', () => {
-  describe('hasHistory computed', () => {
-    it('uses "Ga naar home" when history.state is null', () => {
-      window.history.replaceState(null, '', window.location.href)
-      const header = mountStatus().find('.app-header-stub')
-      expect(header.attributes('data-back-label')).toBe('Ga naar home')
-      expect(header.attributes('data-back-route')).toBe('/')
-      expect(header.attributes('data-show-back')).toBe('false')
+  describe('back link', () => {
+    it('names the page the reader came from', () => {
+      previousPage.value = { text: 'Assessment', to: '/assessment/abc' }
+
+      mountStatus()
+
+      expect(backLink.value).toEqual({ text: 'Assessment', to: '/assessment/abc' })
+      previousPage.value = null
     })
 
-    it('uses "Ga naar home" when history.state has no back entry', () => {
-      window.history.replaceState({ other: 1 }, '', window.location.href)
-      const header = mountStatus().find('.app-header-stub')
-      expect(header.attributes('data-back-label')).toBe('Ga naar home')
-    })
+    it('falls back to the start page when there is no previous page', () => {
+      previousPage.value = null
 
-    it('uses "Terug" when history.state.back is set', () => {
-      window.history.replaceState({ back: '/projecten' }, '', window.location.href)
-      const header = mountStatus().find('.app-header-stub')
-      expect(header.attributes('data-back-label')).toBe('Terug')
-      expect(header.attributes('data-back-route')).toBe('__undefined__')
-      expect(header.attributes('data-show-back')).toBe('true')
+      mountStatus()
+
+      expect(backLink.value).toEqual({ text: 'Startpagina', to: '/' })
     })
   })
 
-  it('shows the loading state before the probes resolve', () => {
+  it('shows the loading state (neutral banner with activity indicator) before the probes resolve', () => {
     probe.mockReturnValue(new Promise(() => {})) // never resolves
     const wrapper = mountStatus()
-    expect(wrapper.get('[data-test="backend-state"]').text()).toBe('Controleren')
-    expect(wrapper.get('[data-test="keycloak-state"]').text()).toBe('Controleren')
+    const backend = wrapper.get('[data-test="backend-state"]')
+    expect(backend.attributes('text')).toBe('Controleren')
+    expect(backend.attributes('variant')).toBe('neutral')
+    expect(backend.find('nldd-activity-indicator').exists()).toBe(true)
+    expect(backend.find('nldd-icon').exists()).toBe(false)
+    const keycloak = wrapper.get('[data-test="keycloak-state"]')
+    expect(keycloak.attributes('text')).toBe('Controleren')
+    expect(keycloak.attributes('variant')).toBe('neutral')
+    expect(keycloak.find('nldd-activity-indicator').exists()).toBe(true)
+  })
+
+  it('renders the status cards with small description text and the state as a banner in the footer', () => {
+    probe.mockReturnValue(new Promise(() => {}))
+    const wrapper = mountStatus()
+    const cards = wrapper.findAll('nldd-card').slice(0, 2)
+    expect(cards).toHaveLength(2)
+    for (const card of cards) {
+      expect(card.get('nldd-text').attributes('size')).toBe('xs')
+      const footer = card.get('nldd-container[slot="footer"]')
+      expect(footer.get('[role="status"]').find('nldd-banner').exists()).toBe(true)
+    }
   })
 
   it('reports both services reachable and shows only the release version (no commit)', async () => {
@@ -94,9 +103,13 @@ describe('StatusPage', () => {
     const wrapper = mountStatus()
     await flushPromises()
 
-    expect(wrapper.get('[data-test="backend-state"]').text()).toBe('Alles werkt')
-    expect(wrapper.get('[data-test="keycloak-state"]').text()).toBe('Alles werkt')
-    expect(wrapper.get('[data-test="version"]').text()).toBe('v2026.6.14')
+    const backend = wrapper.get('[data-test="backend-state"]')
+    expect(backend.attributes('text')).toBe('Alles werkt')
+    expect(backend.attributes('variant')).toBe('success')
+    expect(backend.find('nldd-activity-indicator').exists()).toBe(false)
+    expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
+    // The git tag carries the v; the reading version does not.
+    expect(wrapper.get('[data-test="version"]').text()).toBe('2026.6.14')
     expect(wrapper.find('[data-test="build"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('op commit')
     expect(wrapper.get('[data-test="github-link"]').attributes('href')).toBe(`${REPO}/commit/abc1234`)
@@ -134,11 +147,13 @@ describe('StatusPage', () => {
     const wrapper = mountStatus()
     await flushPromises()
 
+    // target="_blank" makes nldd-button render an anchor that announces
+    // "opent in nieuw tabblad" for screen readers and defaults rel to
+    // "noopener noreferrer" inside its shadow DOM.
     const link = wrapper.get('[data-test="github-link"]')
     expect(link.attributes('target')).toBe('_blank')
-    expect(link.attributes('rel')).toContain('noopener')
-    expect(link.find('[data-test="external-icon"]').exists()).toBe(true)
-    expect(link.text()).toContain('nieuw tabblad')
+    expect(link.attributes('text')).toBe('Open op GitHub')
+    expect(link.attributes('end-icon')).toBe('external-link')
   })
 
   it('reports de achterkant not reachable on a network error', async () => {
@@ -150,8 +165,10 @@ describe('StatusPage', () => {
     const wrapper = mountStatus()
     await flushPromises()
 
-    expect(wrapper.get('[data-test="backend-state"]').text()).toBe('Er werkt iets niet')
-    expect(wrapper.get('[data-test="keycloak-state"]').text()).toBe('Alles werkt')
+    const backend = wrapper.get('[data-test="backend-state"]')
+    expect(backend.attributes('text')).toBe('Er werkt iets niet')
+    expect(backend.attributes('variant')).toBe('critical')
+    expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
   })
 
   it('reports a time-out when de achterkant probe times out', async () => {
@@ -163,7 +180,9 @@ describe('StatusPage', () => {
     const wrapper = mountStatus()
     await flushPromises()
 
-    expect(wrapper.get('[data-test="backend-state"]').text()).toBe('Reageert traag')
+    const backend = wrapper.get('[data-test="backend-state"]')
+    expect(backend.attributes('text')).toBe('Reageert traag')
+    expect(backend.attributes('variant')).toBe('warning')
   })
 
   it('reports de aanmeldvoorziening not reachable when the Keycloak probe fails', async () => {
@@ -175,7 +194,9 @@ describe('StatusPage', () => {
     const wrapper = mountStatus()
     await flushPromises()
 
-    expect(wrapper.get('[data-test="keycloak-state"]').text()).toBe('Er werkt iets niet')
+    const keycloak = wrapper.get('[data-test="keycloak-state"]')
+    expect(keycloak.attributes('text')).toBe('Er werkt iets niet')
+    expect(keycloak.attributes('variant')).toBe('critical')
   })
 
   describe('kopieer versie-informatie', () => {
@@ -198,8 +219,10 @@ describe('StatusPage', () => {
       loadVersion.mockResolvedValue({ version: 'v2026.6.14', commit: 'abc1234', channel: 'productie' })
       const wrapper = await mountAndCopy()
 
-      expect(writeText).toHaveBeenCalledWith('Invulhulpen versie v2026.6.14')
-      expect(wrapper.get('[data-test="copy-version"]').text()).toContain('Gekopieerd')
+      expect(writeText).toHaveBeenCalledWith('Invulhulpen versie 2026.6.14')
+      const button = wrapper.get('[data-test="copy-version"]')
+      expect(button.attributes('text')).toBe('Gekopieerd')
+      expect(button.attributes('start-icon')).toBe('check-mark')
       expect(wrapper.get('[data-test="copy-feedback"]').text()).toContain('Gekopieerd')
     })
 
@@ -218,18 +241,22 @@ describe('StatusPage', () => {
 
     it('restores the button label after the confirmation delay', async () => {
       const wrapper = await mountAndCopy()
-      expect(wrapper.get('[data-test="copy-version"]').text()).toContain('Gekopieerd')
+      expect(wrapper.get('[data-test="copy-version"]').attributes('text')).toBe('Gekopieerd')
 
       await vi.advanceTimersByTimeAsync(3000)
 
-      expect(wrapper.get('[data-test="copy-version"]').text()).toContain('Kopieer versie-informatie')
+      const button = wrapper.get('[data-test="copy-version"]')
+      expect(button.attributes('text')).toBe('Kopieer versie-informatie')
+      expect(button.attributes('start-icon')).toBe('copy')
     })
 
     it('shows an error on the button when copying to the clipboard fails', async () => {
       writeText.mockRejectedValue(new Error('clipboard blocked'))
       const wrapper = await mountAndCopy()
 
-      expect(wrapper.get('[data-test="copy-version"]').text()).toContain('mislukt')
+      const button = wrapper.get('[data-test="copy-version"]')
+      expect(button.attributes('text')).toBe('Kopiëren mislukt')
+      expect(button.attributes('start-icon')).toBe('exclamation-triangle')
       expect(wrapper.get('[data-test="copy-feedback"]').text()).toContain('lukte niet')
     })
   })

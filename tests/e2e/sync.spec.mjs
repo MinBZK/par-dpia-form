@@ -35,11 +35,14 @@ async function openDpiaAssessment(page) {
   // Navigeer via /projecten (mocht landing andere state hebben)
   await page.goto(`${FRONTEND_URL}/projecten`)
   await page.waitForLoadState('networkidle')
-  await page.getByText(/Cameratoezicht Stationsgebied/).first().click()
+  // Klik de kaart, niet de tekst erin: nldd-card[href] legt een anchor over zijn
+  // inhoud, dus een klik op de heading wordt door die overlay onderschept.
+  await page.locator('nldd-card:has-text("Cameratoezicht Stationsgebied")').first().click()
   await page.waitForLoadState('networkidle')
-  // Wacht tot het project detail laadt, klik dan op de DPIA-assessment link/row
-  // De assessment-lijst toont items met de naam (bv. "DPIA: ...")
-  const dpiaItem = page.locator('a:has-text("DPIA"), [role="link"]:has-text("DPIA")').first()
+  // Wacht tot het project detail laadt, klik dan op de DPIA-assessment kaart.
+  // De kaart is zelf de link: nldd-card[href] legt een anchor over zijn inhoud,
+  // dus een klik op de heading landt op die overlay en bubbelt composed omhoog.
+  const dpiaItem = page.locator('nldd-card[href^="/assessment/"]:has-text("DPIA")').first()
   await dpiaItem.waitFor({ state: 'visible', timeout: 10_000 })
   await dpiaItem.click()
   // Wacht tot URL naar /assessment/ navigeert
@@ -138,7 +141,7 @@ async function runTests() {
 
       // De nieuwe toast zou WEL moeten tonen (auto-dismiss of persistent)
       // Óf de wijziging is al zichtbaar in Sam's veld (stille merge)
-      const toast = samPage.locator('.sync-toast')
+      const toast = samPage.locator('nldd-notification')
       const samTextboxValue = await samPage.locator('input[type="text"]:visible, textarea:visible').first().inputValue().catch(() => '')
 
       const toastVisible = await toast.isVisible().catch(() => false)

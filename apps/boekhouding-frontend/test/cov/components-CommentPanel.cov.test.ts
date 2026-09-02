@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { mount } from '@vue/test-utils'
+import { mount, type DOMWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import CommentPanel from '../../src/components/CommentPanel.vue'
 import { useCollaborationStore } from '../../src/stores/collaboration'
@@ -88,7 +88,7 @@ function thread(
 function buildFormContainer(
   specs: Array<{
     id: string
-    rvoLabel?: string
+    fieldLabel?: string
     textLabel?: string
     aivLabel?: { title: string; term: string; definition: string }
   }>,
@@ -97,16 +97,16 @@ function buildFormContainer(
   for (const spec of specs) {
     const label = document.createElement('div')
     label.id = spec.id
-    if (spec.rvoLabel !== undefined) {
+    if (spec.fieldLabel !== undefined) {
       const wrap = document.createElement('div')
-      wrap.className = 'rvo-form-field__label'
+      wrap.className = 'form-field__label'
       const span = document.createElement('span')
-      span.textContent = spec.rvoLabel
+      span.textContent = spec.fieldLabel
       wrap.appendChild(span)
       label.appendChild(wrap)
     } else if (spec.aivLabel !== undefined) {
       const wrap = document.createElement('div')
-      wrap.className = 'rvo-form-field__label'
+      wrap.className = 'form-field__label'
       const span = document.createElement('span')
       span.textContent = `${spec.aivLabel.title} `
       const aiv = document.createElement('span')
@@ -152,14 +152,6 @@ function mountPanel(opts: {
     reopenThread: vi.spyOn(store, 'reopenThread').mockResolvedValue(undefined),
   }
 
-  const stubs = {
-    IconX: { template: '<i class="icon-x" />' },
-    IconMessage: { template: '<i class="icon-message" />' },
-    IconTrash: { template: '<i class="icon-trash" />' },
-    IconCheck: { template: '<i class="icon-check" />' },
-    IconArrowBackUp: { template: '<i class="icon-arrow" />' },
-  }
-
   const wrapper = mount(CommentPanel, {
     attachTo: document.body,
     props: {
@@ -167,11 +159,17 @@ function mountPanel(opts: {
       activeFieldId: opts.activeFieldId ?? null,
       formContainerRef: opts.formContainerRef ?? null,
     },
-    global: { stubs },
   })
   mountedWrappers.push(wrapper)
 
   return { wrapper, store, spies }
+}
+
+// NLDD fields deliver their value in event.detail, which is what the panel
+// reads; setValue() would only touch a native textarea that isn't there.
+function setFieldValue(field: DOMWrapper<Element>, value: string): Promise<void> {
+  field.element.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+  return nextTick()
 }
 
 // Run pending requestAnimationFrame callbacks (onMounted schedules one).
@@ -183,7 +181,10 @@ describe('CommentPanel', () => {
   describe('header & basic rendering', () => {
     it('emits close when the close button is clicked', async () => {
       const { wrapper } = mountPanel()
-      await wrapper.get('.comment-panel__close').trigger('click')
+      const closeBtn = wrapper.get('.comment-panel__close')
+      expect(closeBtn.attributes('icon')).toBe('dismiss')
+      expect(closeBtn.attributes('text')).toBe('Sluiten')
+      await closeBtn.trigger('click')
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
@@ -197,14 +198,22 @@ describe('CommentPanel', () => {
     it('shows the empty state when there are no positioned entries', () => {
       const { wrapper } = mountPanel({ loading: false })
       const empty = wrapper.get('.comment-panel__empty')
-      expect(empty.text()).toContain('Er zijn nog geen opmerkingen bij deze stap')
+      expect(empty.attributes('text')).toBe('Nog geen opmerkingen')
     })
 
     it('toggles showResolved via the checkbox', async () => {
       const { wrapper } = mountPanel()
-      const checkbox = wrapper.get('.comment-panel__toggle input')
-      await checkbox.setValue(true)
-      expect((checkbox.element as HTMLInputElement).checked).toBe(true)
+      const checkbox = wrapper.get('.comment-panel__toggle')
+      expect(checkbox.attributes('checked')).toBeUndefined()
+
+      // The field reports its new state in the change detail.
+      checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
+      expect(checkbox.attributes('checked')).toBeDefined()
+
+      // A change without a payload says nothing, so the toggle stays as it was.
+      await checkbox.trigger('change')
+      expect(checkbox.attributes('checked')).toBeDefined()
     })
   })
 
@@ -215,7 +224,7 @@ describe('CommentPanel', () => {
       ['owner', true, true],
       ['viewer', false, false],
     ])('role %s → canComment=%s canResolve=%s', async (role, canComment) => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'root', fieldId: '1.1' })
       const { wrapper } = mountPanel({
         role,
@@ -241,9 +250,9 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await wrapper.findAll('.comment-item__footer nldd-button').find((b) => b.attributes('text') === 'Reageren')!.trigger('click')
       await nextTick()
-      await wrapper.get('.comment-reply-form textarea').setValue('Half getypte reactie')
+      await setFieldValue(wrapper.get('.comment-reply-form nldd-multi-line-text-field'), 'Half getypte reactie')
       return { wrapper, store }
     }
 
@@ -256,7 +265,7 @@ describe('CommentPanel', () => {
       await nextTick()
 
       expect(wrapper.find('.comment-thread').exists()).toBe(true)
-      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-reply-form nldd-multi-line-text-field').attributes('value'))
         .toBe('Half getypte reactie')
     })
 
@@ -289,8 +298,8 @@ describe('CommentPanel', () => {
       await nextTick()
       expect(wrapper.find('.comment-thread').exists()).toBe(true)
 
-      const cancel = wrapper.findAll('.comment-reply-form .comment-action-btn')
-        .find((b) => b.text().includes('Annuleer'))!
+      const cancel = wrapper.findAll('.comment-reply-form nldd-button')
+        .find((b) => b.attributes('text') === 'Annuleer')!
       await cancel.trigger('click')
       await nextTick()
 
@@ -433,7 +442,7 @@ describe('CommentPanel', () => {
 
   describe('updateFieldPositions / positionedEntries', () => {
     it('positions threads using the rvo label text', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Naam van veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Naam van veld' }])
       const t = thread({ id: 'root', fieldId: '1.1' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
@@ -488,7 +497,7 @@ describe('CommentPanel', () => {
     })
 
     it('skips label ids with fewer than two segments', async () => {
-      const form = buildFormContainer([{ id: 'label-single', rvoLabel: 'genegeerd' }])
+      const form = buildFormContainer([{ id: 'label-single', fieldLabel: 'genegeerd' }])
       const t = thread({ id: 'root', fieldId: 'single' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
@@ -499,7 +508,7 @@ describe('CommentPanel', () => {
     })
 
     it('drops threads whose field has no resolved position (top undefined)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const present = thread({ id: 'a', fieldId: '1.1' })
       const orphan = thread({ id: 'b', fieldId: '9.9' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [present, orphan] })
@@ -512,7 +521,7 @@ describe('CommentPanel', () => {
     })
 
     it('hides resolved threads unless showResolved is on', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const resolved = thread({ id: 'a', fieldId: '1.1', resolvedAt: '2026-04-13T00:00:00Z' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [resolved] })
       await flushRaf()
@@ -520,13 +529,15 @@ describe('CommentPanel', () => {
 
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
 
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
       expect(wrapper.find('.comment-thread--resolved').exists()).toBe(true)
     })
 
     it('keeps an entry for the active field even when all its threads are filtered out', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const resolved = thread({ id: 'a', fieldId: '1.1', resolvedAt: '2026-04-13T00:00:00Z' })
       const { wrapper } = mountPanel({
         formContainerRef: form,
@@ -541,7 +552,7 @@ describe('CommentPanel', () => {
     })
 
     it('adds an entry for an active field that has no existing comments', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-4.4', rvoLabel: 'Nieuw veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-4.4', fieldLabel: 'Nieuw veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [], activeFieldId: '4.4' })
       await flushRaf()
       await nextTick()
@@ -553,7 +564,7 @@ describe('CommentPanel', () => {
     })
 
     it('does not add an entry for an active field with no resolved position', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [], activeFieldId: '5.5' })
       await flushRaf()
       await nextTick()
@@ -564,8 +575,8 @@ describe('CommentPanel', () => {
 
     it('sorts entries by their top position', async () => {
       const form = buildFormContainer([
-        { id: 'label-dpia-1.1', rvoLabel: 'Eerste' },
-        { id: 'label-dpia-2.2', rvoLabel: 'Tweede' },
+        { id: 'label-dpia-1.1', fieldLabel: 'Eerste' },
+        { id: 'label-dpia-2.2', fieldLabel: 'Tweede' },
       ])
       const t1 = thread({ id: 'a', fieldId: '1.1' })
       const t2 = thread({ id: 'b', fieldId: '2.2' })
@@ -587,7 +598,7 @@ describe('CommentPanel', () => {
 
   describe('observers & scheduled updates', () => {
     it('observes the form container on mount and reacts to a resize', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [thread({ id: 'a', fieldId: '1.1' })] })
       await flushRaf()
       await nextTick()
@@ -607,7 +618,7 @@ describe('CommentPanel', () => {
 
     it('reacts to mutation observer callbacks via schedulePositionUpdate', async () => {
       vi.useFakeTimers()
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [thread({ id: 'a', fieldId: '1.1' })] })
       const extra = document.createElement('div')
       extra.id = 'label-dpia-2.2'
@@ -623,7 +634,7 @@ describe('CommentPanel', () => {
 
     it('cleans up observers and a pending timer on unmount', async () => {
       vi.useFakeTimers()
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ formContainerRef: form })
       // Schedule an update so updateTimer is non-null at unmount time.
       lastResizeCallback?.()
@@ -640,8 +651,8 @@ describe('CommentPanel', () => {
   })
 
   describe('watch activeFieldId', () => {
-    it('focuses the inline textarea when a field becomes active and the user can comment', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+    it('focuses the inline field when a field becomes active and the user can comment', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, threads: [], activeFieldId: null })
       await flushRaf()
       await nextTick()
@@ -652,12 +663,12 @@ describe('CommentPanel', () => {
       await nextTick()
       await nextTick()
 
-      const textarea = wrapper.find('[data-field-group="1.1"] .comment-inline-form textarea')
-      expect(textarea.exists()).toBe(true)
+      const field = wrapper.find('[data-field-group="1.1"] .comment-inline-form nldd-multi-line-text-field')
+      expect(field.exists()).toBe(true)
     })
 
     it('does nothing when the new field id is null', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, activeFieldId: '1.1' })
       await flushRaf()
       await nextTick()
@@ -668,7 +679,7 @@ describe('CommentPanel', () => {
     })
 
     it('does nothing when the user cannot comment', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ role: 'viewer', formContainerRef: form, activeFieldId: null })
       await flushRaf()
       await nextTick()
@@ -679,8 +690,8 @@ describe('CommentPanel', () => {
       expect(wrapper.find('.comment-inline-form').exists()).toBe(false)
     })
 
-    it('handles a field that has no inline textarea (no element to focus)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+    it('handles a field that has no inline field (no element to focus)', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, activeFieldId: null })
       await flushRaf()
       await nextTick()
@@ -695,7 +706,7 @@ describe('CommentPanel', () => {
 
   describe('scrollToField', () => {
     it('scrolls the matching label into view when the label button is clicked', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const labelEl = document.getElementById('label-dpia-1.1') as HTMLElement
       const scrollSpy = vi.fn()
       labelEl.scrollIntoView = scrollSpy
@@ -710,7 +721,7 @@ describe('CommentPanel', () => {
     })
 
     it('does nothing when no matching label exists', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
@@ -725,7 +736,7 @@ describe('CommentPanel', () => {
 
   describe('formatDate', () => {
     it('renders a localized Dutch date in the time element', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', createdAt: '2026-04-12T10:00:00Z' })
       const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
       await flushRaf()
@@ -739,7 +750,7 @@ describe('CommentPanel', () => {
 
   describe('footer actions: reply, delete, resolve, reopen', () => {
     it('renders reply/delete/resolve buttons for an owner on an unresolved own thread', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -750,19 +761,24 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.text()).toContain('Reageren')
-      expect(wrapper.text()).toContain('Verwijderen')
-      expect(wrapper.text()).toContain('Oplossen')
+      const footerButtons = wrapper
+        .findAll('.comment-item__footer nldd-button')
+        .map((b) => [b.attributes('text'), b.attributes('start-icon'), b.attributes('variant'), b.attributes('size')])
+      expect(footerButtons).toEqual([
+        ['Reageren', 'comment', 'neutral-transparent', 'xs'],
+        ['Verwijderen', 'trash', 'critical-transparent', 'xs'],
+        ['Oplossen', 'check-mark', 'accent-transparent', 'xs'],
+      ])
 
-      await wrapper.get('.comment-action-btn--danger').trigger('click')
+      await wrapper.get('nldd-button[variant="critical-transparent"]').trigger('click')
       expect(spies.deleteComment).toHaveBeenCalledWith('a')
 
-      await wrapper.get('.comment-action-btn--resolve').trigger('click')
+      await wrapper.get('nldd-button[variant="accent-transparent"]').trigger('click')
       expect(spies.resolveThread).toHaveBeenCalledWith('a')
     })
 
     it('shows the reopen button for a resolved thread when the user can resolve', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', resolvedAt: '2026-04-13T00:00:00Z' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -772,22 +788,23 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
 
-      expect(wrapper.text()).toContain('Heropenen')
-      expect(wrapper.text()).not.toContain('Reageren')
-      expect(wrapper.text()).not.toContain('Oplossen')
+      const footerButtons = wrapper.findAll('.comment-item__footer nldd-button')
+      expect(footerButtons.map((b) => b.attributes('text'))).toEqual(['Verwijderen', 'Heropenen'])
 
-      const reopenBtn = wrapper
-        .findAll('button.comment-action-btn')
-        .find((b) => b.text().includes('Heropenen'))!
+      const reopenBtn = footerButtons[1]
+      expect(reopenBtn.attributes('start-icon')).toBe('undo')
+      expect(reopenBtn.attributes('variant')).toBe('neutral-transparent')
       await reopenBtn.trigger('click')
       expect(spies.reopenThread).toHaveBeenCalledWith('a')
     })
 
     it('does not render delete for someone else\'s comment when not owner', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'someone-else' })
       const { wrapper } = mountPanel({
         role: 'editor',
@@ -798,13 +815,13 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.find('.comment-action-btn--danger').exists()).toBe(false)
-      expect(wrapper.text()).toContain('Reageren')
-      expect(wrapper.text()).toContain('Oplossen')
+      expect(wrapper.find('nldd-button[variant="critical-transparent"]').exists()).toBe(false)
+      const texts = wrapper.findAll('.comment-item__footer nldd-button').map((b) => b.attributes('text'))
+      expect(texts).toEqual(['Reageren', 'Oplossen'])
     })
 
     it('does not render resolve/reply controls for a commenter (canResolve false)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'someone-else' })
       const { wrapper } = mountPanel({
         role: 'commenter',
@@ -815,15 +832,15 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.text()).toContain('Reageren')
-      expect(wrapper.text()).not.toContain('Oplossen')
-      expect(wrapper.find('.comment-action-btn--danger').exists()).toBe(false)
+      const texts = wrapper.findAll('.comment-item__footer nldd-button').map((b) => b.attributes('text'))
+      expect(texts).toEqual(['Reageren'])
+      expect(wrapper.find('nldd-button[variant="critical-transparent"]').exists()).toBe(false)
     })
   })
 
   describe('reply flow', () => {
     it('opens the reply form, submits a reply, then closes via cancel', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper, spies } = mountPanel({
         role: 'editor',
@@ -833,82 +850,80 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
+      const replyBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Reageren')!
       await replyBtn.trigger('click')
       await nextTick()
 
       const replyForm = wrapper.get('.comment-reply-form')
-      const textarea = replyForm.get('textarea')
-      await textarea.setValue('Mijn reactie')
-      await textarea.trigger('input')
+      await setFieldValue(replyForm.get('nldd-multi-line-text-field'), 'Mijn reactie')
 
-      await replyForm.get('.comment-btn--primary').trigger('click')
+      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
       expect(spies.createReply).toHaveBeenCalledWith('a', '1.1', 'Mijn reactie')
       await nextTick()
       expect(wrapper.find('.comment-reply-form').exists()).toBe(false)
     })
 
     it('does not submit a reply when the body is empty (only whitespace)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper, spies } = mountPanel({ role: 'editor', formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
+      const replyBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Reageren')!
       await replyBtn.trigger('click')
       await nextTick()
 
       const replyForm = wrapper.get('.comment-reply-form')
-      await replyForm.get('textarea').setValue('   ')
-      await replyForm.get('.comment-btn--primary').trigger('click')
+      await setFieldValue(replyForm.get('nldd-multi-line-text-field'), '   ')
+      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
       expect(spies.createReply).not.toHaveBeenCalled()
     })
 
     it('cancels the reply form via the cancel button', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
+      const replyBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Reageren')!
       await replyBtn.trigger('click')
       await nextTick()
-      const cancel = wrapper.findAll('.comment-reply-form .comment-action-btn').find((b) => b.text().includes('Annuleer'))!
+      const cancel = wrapper.findAll('.comment-reply-form nldd-button').find((b) => b.attributes('text') === 'Annuleer')!
       await cancel.trigger('click')
       await nextTick()
       expect(wrapper.find('.comment-reply-form').exists()).toBe(false)
     })
 
     it('submits a reply via meta+enter keydown', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper, spies } = mountPanel({ role: 'editor', formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
+      const replyBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Reageren')!
       await replyBtn.trigger('click')
       await nextTick()
 
-      const textarea = wrapper.get('.comment-reply-form textarea')
-      await textarea.setValue('Via toetsenbord')
-      await textarea.trigger('keydown.enter.meta')
+      const field = wrapper.get('.comment-reply-form nldd-multi-line-text-field')
+      await setFieldValue(field, 'Via toetsenbord')
+      await field.trigger('keydown.enter.meta')
       expect(spies.createReply).toHaveBeenCalledWith('a', '1.1', 'Via toetsenbord')
     })
 
     it('cancels the reply form via the escape key', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1' })
       const { wrapper } = mountPanel({ role: 'editor', formContainerRef: form, threads: [t] })
       await flushRaf()
       await nextTick()
 
-      const replyBtn = wrapper.findAll('button.comment-action-btn').find((b) => b.text().includes('Reageren'))!
+      const replyBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Reageren')!
       await replyBtn.trigger('click')
       await nextTick()
-      await wrapper.get('.comment-reply-form textarea').trigger('keydown.escape')
+      await wrapper.get('.comment-reply-form nldd-multi-line-text-field').trigger('keydown.escape')
       await nextTick()
       expect(wrapper.find('.comment-reply-form').exists()).toBe(false)
     })
@@ -916,7 +931,7 @@ describe('CommentPanel', () => {
 
   describe('inline new comment flow', () => {
     it('submits a new comment via the Plaatsen button', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper, spies } = mountPanel({
         role: 'owner',
         formContainerRef: form,
@@ -927,12 +942,11 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const inline = wrapper.get('.comment-inline-form')
-      const textarea = inline.get('textarea')
-      await textarea.setValue('Een nieuwe opmerking')
-      await textarea.trigger('input')
+      await setFieldValue(inline.get('nldd-multi-line-text-field'), 'Een nieuwe opmerking')
 
-      const submit = inline.get('.comment-btn--primary')
-      expect((submit.element as HTMLButtonElement).disabled).toBe(false)
+      const submit = inline.get('nldd-button[variant="primary"]')
+      expect(submit.attributes('text')).toBe('Plaatsen')
+      expect(submit.attributes('disabled')).toBeUndefined()
       await submit.trigger('click')
       expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Een nieuwe opmerking')
     })
@@ -951,13 +965,12 @@ describe('CommentPanel', () => {
       spies.createComment.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const inline = wrapper.get('.comment-inline-form')
-      const textarea = inline.get('textarea')
-      await textarea.setValue('Kostbare tekst')
-      await textarea.trigger('input')
-      await inline.get('.comment-btn--primary').trigger('click')
+      const textarea = inline.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'Kostbare tekst')
+      await inline.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
-      expect((textarea.element as HTMLTextAreaElement).value).toBe('Kostbare tekst')
+      expect(textarea.attributes('value')).toBe('Kostbare tekst')
     })
 
     it('keeps the reply text when posting the reply fails', async () => {
@@ -970,25 +983,24 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      await wrapper.get('.comment-item__footer .comment-action-btn').trigger('click')
+      await wrapper.findAll('.comment-item__footer nldd-button').find((b) => b.attributes('text') === 'Reageren')!.trigger('click')
       await nextTick()
 
       spies.createReply.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const replyForm = wrapper.get('.comment-reply-form')
-      const textarea = replyForm.get('textarea')
-      await textarea.setValue('Mijn reactie')
-      await textarea.trigger('input')
-      await replyForm.get('.comment-btn--primary').trigger('click')
+      const textarea = replyForm.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'Mijn reactie')
+      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-reply-form').exists()).toBe(true)
-      expect((wrapper.get('.comment-reply-form textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-reply-form nldd-multi-line-text-field').attributes('value'))
         .toBe('Mijn reactie')
     })
 
     it('disables the Plaatsen button while the body is empty', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper, spies } = mountPanel({
         role: 'owner',
         formContainerRef: form,
@@ -999,15 +1011,15 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const inline = wrapper.get('.comment-inline-form')
-      const submit = inline.get('.comment-btn--primary')
-      expect((submit.element as HTMLButtonElement).disabled).toBe(true)
+      const submit = inline.get('nldd-button[variant="primary"]')
+      expect(submit.attributes('disabled')).toBeDefined()
 
       await submit.trigger('click')
       expect(spies.createComment).not.toHaveBeenCalled()
     })
 
     it('submits a new comment via meta+enter keydown', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper, spies } = mountPanel({
         role: 'owner',
         formContainerRef: form,
@@ -1017,14 +1029,14 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      const textarea = wrapper.get('.comment-inline-form textarea')
-      await textarea.setValue('Toetsenbord opmerking')
-      await textarea.trigger('keydown.enter.meta')
+      const field = wrapper.get('.comment-inline-form nldd-multi-line-text-field')
+      await setFieldValue(field, 'Toetsenbord opmerking')
+      await field.trigger('keydown.enter.meta')
       expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Toetsenbord opmerking')
     })
 
     it('clears the body and emits deactivate-field on escape', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({
         role: 'owner',
         formContainerRef: form,
@@ -1034,14 +1046,14 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      const textarea = wrapper.get('.comment-inline-form textarea')
-      await textarea.setValue('iets')
-      await textarea.trigger('keydown.escape')
+      const field = wrapper.get('.comment-inline-form nldd-multi-line-text-field')
+      await setFieldValue(field, 'iets')
+      await field.trigger('keydown.escape')
       expect(wrapper.emitted('deactivate-field')).toHaveLength(1)
     })
 
     it('clears the body and emits deactivate-field via the Annuleer button', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const { wrapper } = mountPanel({
         role: 'owner',
         formContainerRef: form,
@@ -1052,7 +1064,7 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const inline = wrapper.get('.comment-inline-form')
-      const cancel = inline.findAll('.comment-action-btn').find((b) => b.text().includes('Annuleer'))!
+      const cancel = inline.findAll('nldd-button').find((b) => b.attributes('text') === 'Annuleer')!
       await cancel.trigger('click')
       expect(wrapper.emitted('deactivate-field')).toHaveLength(1)
     })
@@ -1060,7 +1072,7 @@ describe('CommentPanel', () => {
 
   describe('edit flow (own comment)', () => {
     it('starts editing on body click and submits the edit', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -1079,12 +1091,11 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const editBox = wrapper.get('.comment-item__edit')
-      const textarea = editBox.get('textarea')
-      expect((textarea.element as HTMLTextAreaElement).value).toBe('origineel')
-      await textarea.setValue('aangepast')
-      await textarea.trigger('input')
+      const field = editBox.get('nldd-multi-line-text-field')
+      expect(field.attributes('value')).toBe('origineel')
+      await setFieldValue(field, 'aangepast')
 
-      await editBox.get('.comment-btn--primary').trigger('click')
+      await editBox.get('nldd-button[variant="primary"]').trigger('click')
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'aangepast')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
@@ -1109,19 +1120,18 @@ describe('CommentPanel', () => {
       spies.updateComment.mockRejectedValueOnce(new Error('netwerkfout'))
 
       const editBox = wrapper.get('.comment-item__edit')
-      const textarea = editBox.get('textarea')
-      await textarea.setValue('aangepast')
-      await textarea.trigger('input')
-      await editBox.get('.comment-btn--primary').trigger('click')
+      const textarea = editBox.get('nldd-multi-line-text-field')
+      await setFieldValue(textarea, 'aangepast')
+      await editBox.get('nldd-button[variant="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
-      expect((wrapper.get('.comment-item__edit textarea').element as HTMLTextAreaElement).value)
+      expect(wrapper.get('.comment-item__edit nldd-multi-line-text-field').attributes('value'))
         .toBe('aangepast')
     })
 
     it('starts editing via the enter key on the body', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
       const { wrapper } = mountPanel({
         role: 'owner',
@@ -1139,7 +1149,7 @@ describe('CommentPanel', () => {
     })
 
     it('does not submit the edit when the body is empty', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -1155,13 +1165,13 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const editBox = wrapper.get('.comment-item__edit')
-      await editBox.get('textarea').setValue('   ')
-      await editBox.get('.comment-btn--primary').trigger('click')
+      await setFieldValue(editBox.get('nldd-multi-line-text-field'), '   ')
+      await editBox.get('nldd-button[variant="primary"]').trigger('click')
       expect(spies.updateComment).not.toHaveBeenCalled()
     })
 
     it('cancels editing via the Annuleer button', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1' })
       const { wrapper } = mountPanel({
         role: 'owner',
@@ -1176,14 +1186,14 @@ describe('CommentPanel', () => {
       await nextTick()
       await nextTick()
 
-      const cancel = wrapper.findAll('.comment-item__edit .comment-action-btn').find((b) => b.text().includes('Annuleer'))!
+      const cancel = wrapper.findAll('.comment-item__edit nldd-button').find((b) => b.attributes('text') === 'Annuleer')!
       await cancel.trigger('click')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
     })
 
     it('submits the edit via meta+enter and cancels via escape', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'user-1', body: 'origineel' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -1198,22 +1208,22 @@ describe('CommentPanel', () => {
       await nextTick()
       await nextTick()
 
-      const textarea = wrapper.get('.comment-item__edit textarea')
-      await textarea.setValue('via meta enter')
-      await textarea.trigger('keydown.enter.meta')
+      const field = wrapper.get('.comment-item__edit nldd-multi-line-text-field')
+      await setFieldValue(field, 'via meta enter')
+      await field.trigger('keydown.enter.meta')
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'via meta enter')
 
       await nextTick()
       await wrapper.get('.comment-item__body').trigger('click')
       await nextTick()
       await nextTick()
-      await wrapper.get('.comment-item__edit textarea').trigger('keydown.escape')
+      await wrapper.get('.comment-item__edit nldd-multi-line-text-field').trigger('keydown.escape')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
     })
 
     it('does not allow editing a foreign comment (non-editable body)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const t = thread({ id: 'a', fieldId: '1.1', authorId: 'someone-else' })
       const { wrapper, spies } = mountPanel({
         role: 'owner',
@@ -1238,7 +1248,7 @@ describe('CommentPanel', () => {
 
   describe('replies rendering & deletion', () => {
     it('renders replies and allows deleting an own reply', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const r = reply('r1', 'user-1', 'Sam')
       const t = thread({ id: 'root', fieldId: '1.1', replies: [r] })
       const { wrapper, spies } = mountPanel({
@@ -1257,13 +1267,13 @@ describe('CommentPanel', () => {
       const replyBody = replies[0].get('.comment-item__body')
       expect(replyBody.classes()).toContain('comment-item__body--editable')
 
-      const del = replies[0].findAll('.comment-action-btn--danger')[0]
+      const del = replies[0].findAll('nldd-button[variant="critical-transparent"]')[0]
       await del.trigger('click')
       expect(spies.deleteComment).toHaveBeenCalledWith('r1')
     })
 
     it('edits a reply via clicking its body', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const r = reply('r1', 'user-1', 'Sam')
       const t = thread({ id: 'root', fieldId: '1.1', replies: [r] })
       const { wrapper, spies } = mountPanel({
@@ -1280,13 +1290,13 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const editBox = wrapper.get('.comment-item--reply .comment-item__edit')
-      await editBox.get('textarea').setValue('reactie aangepast')
-      await editBox.get('.comment-btn--primary').trigger('click')
+      await setFieldValue(editBox.get('nldd-multi-line-text-field'), 'reactie aangepast')
+      await editBox.get('nldd-button[variant="primary"]').trigger('click')
       expect(spies.updateComment).toHaveBeenCalledWith('r1', 'reactie aangepast')
     })
 
     it('edits a reply via the enter key on its body', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const r = reply('r1', 'user-1', 'Sam')
       const t = thread({ id: 'root', fieldId: '1.1', replies: [r] })
       const { wrapper } = mountPanel({
@@ -1305,7 +1315,7 @@ describe('CommentPanel', () => {
     })
 
     it('does not render a reply footer when the user cannot comment', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const r = reply('r1', 'user-1', 'Sam')
       const t = thread({ id: 'root', fieldId: '1.1', replies: [r], resolvedAt: '2026-04-13T00:00:00Z' })
       const { wrapper } = mountPanel({
@@ -1317,7 +1327,9 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      await wrapper.get('.comment-panel__toggle input').setValue(true)
+      wrapper.get('.comment-panel__toggle').element
+        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      await wrapper.vm.$nextTick()
       await nextTick()
 
       const replyItem = wrapper.get('.comment-item--reply')
@@ -1325,7 +1337,7 @@ describe('CommentPanel', () => {
     })
 
     it('does not allow editing a foreign reply', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
       const r = reply('r1', 'other-user', 'Iemand')
       const t = thread({ id: 'root', fieldId: '1.1', replies: [r] })
       const { wrapper } = mountPanel({
@@ -1380,7 +1392,7 @@ describe('CommentPanel', () => {
       expect(spies.updateComment).not.toHaveBeenCalled()
     })
 
-    it('startEdit handles the case where no edit textarea is in the DOM', async () => {
+    it('startEdit handles the case where no edit field is in the DOM', async () => {
       const { wrapper } = mountPanel({ formContainerRef: null, threads: [] })
       const setup = setupOf(wrapper)
       await setup.startEdit('missing', 'tekst')
@@ -1405,10 +1417,10 @@ describe('CommentPanel', () => {
     })
   })
 
-  describe('autoResize', () => {
-    it('grows the textarea height on input', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', rvoLabel: 'Veld' }])
-      const { wrapper } = mountPanel({
+  describe('readFieldValue', () => {
+    it('falls back to the host value when the input event carries no detail', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
+      const { wrapper, spies } = mountPanel({
         role: 'owner',
         formContainerRef: form,
         threads: [],
@@ -1417,13 +1429,14 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      const textarea = wrapper.get('.comment-inline-form textarea')
-      const el = textarea.element as HTMLTextAreaElement
-      // jsdom reports scrollHeight 0; override it so the resize handler has a value.
-      Object.defineProperty(el, 'scrollHeight', { configurable: true, value: 42 })
-      await textarea.trigger('input')
-      expect(el.classList.contains('autogrow-textarea')).toBe(true)
-      expect(el.style.getPropertyValue('--autogrow-height')).toBe('42px')
+      const field = wrapper.get('.comment-inline-form nldd-multi-line-text-field')
+      const host = field.element as HTMLElement & { value?: string }
+      host.value = 'Zonder detail'
+      host.dispatchEvent(new Event('input'))
+      await nextTick()
+
+      await wrapper.get('.comment-inline-form nldd-button[variant="primary"]').trigger('click')
+      expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Zonder detail')
     })
   })
 })

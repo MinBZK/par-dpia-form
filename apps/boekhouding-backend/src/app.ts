@@ -81,7 +81,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         description: 'REST API voor het beheren van assessments en projecten waarin assessments gegroepeerd kunnen worden.',
         version: API_VERSION,
         contact: {
-          name: 'Invulhulpen — MinBZK',
+          name: 'Invulhulpen - MinBZK',
           url: config.publicUrl,
           email: 'digigilde@rijksoverheid.nl',
         },
