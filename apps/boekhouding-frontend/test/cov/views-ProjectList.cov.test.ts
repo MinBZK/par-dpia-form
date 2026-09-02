@@ -180,7 +180,8 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      expect(wrapper.find('form').exists()).toBe(false)
+      // The form lives in a dialog now, so it is in the DOM but not shown.
+      expect(wrapper.find('[data-test="create-project-dialog"]').exists()).toBe(true)
       const trigger = wrapper.find('nldd-button[text="Nieuw project"]')
       expect(trigger.exists()).toBe(true)
       expect(trigger.attributes('variant')).toBe('primary')
@@ -195,7 +196,8 @@ describe('ProjectList', () => {
       await openCreateForm(wrapper)
 
       expect(wrapper.find('form').exists()).toBe(true)
-      expect(wrapper.find('nldd-button[text="Nieuw project"]').exists()).toBe(false)
+      // The trigger stays put: the dialog opens on top of the page.
+      expect(wrapper.find('nldd-button[text="Nieuw project"]').exists()).toBe(true)
     })
 
     it('hides the form again when "Annuleren" is clicked', async () => {
@@ -203,12 +205,46 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+        .element as HTMLElement & { show?: () => void; hide?: () => void }
+      const hide = vi.fn()
+      dialog.hide = hide
       await openCreateForm(wrapper)
-      expect(wrapper.find('form').exists()).toBe(true)
 
       const cancel = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Annuleren')!
       await cancel.trigger('click')
-      expect(wrapper.find('form').exists()).toBe(false)
+      expect(hide).toHaveBeenCalled()
+    })
+
+    it('opens the dialog when the trigger is clicked', async () => {
+      listMock.mockResolvedValue([])
+      const wrapper = mountList()
+      await flushPromises()
+
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+        .element as HTMLElement & { show?: () => void }
+      const show = vi.fn()
+      dialog.show = show
+
+      await openCreateForm(wrapper)
+      expect(show).toHaveBeenCalled()
+    })
+
+    it('resets the open state when the dialog closes itself (Esc, close button)', async () => {
+      listMock.mockResolvedValue([])
+      const wrapper = mountList()
+      await flushPromises()
+
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+      const el = dialog.element as HTMLElement & { show?: () => void; hide?: () => void }
+      el.show = vi.fn()
+      const hide = vi.fn()
+      el.hide = hide
+      await openCreateForm(wrapper)
+
+      // Esc and the dialog's own close button fire `close`, not our buttons.
+      await dialog.trigger('close')
+      expect(hide).toHaveBeenCalled()
     })
 
     it('labels the fields via nldd-form-field, with the description marked optional', async () => {
@@ -220,9 +256,9 @@ describe('ProjectList', () => {
 
       const fields = wrapper.findAll('nldd-form-field')
       expect(fields).toHaveLength(2)
-      const actions = wrapper.get('form nldd-button-group')
-      expect(actions.attributes('orientation')).toBe('horizontal')
-      expect(actions.findAll('nldd-button').map((b) => b.attributes('text'))).toEqual([
+      // The dialog owns the actions; they sit in its actions slot.
+      const actions = wrapper.findAll('nldd-button[slot="actions"]')
+      expect(actions.map((b) => b.attributes('text'))).toEqual([
         'Project toevoegen',
         'Annuleren',
       ])
