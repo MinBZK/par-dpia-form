@@ -5,6 +5,7 @@ import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
 import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/card'
+import '@nldd/design-system/toolbar'
 import '@nldd/design-system/checkbox-field'
 import '@nldd/design-system/container'
 import '@nldd/design-system/icon'
@@ -322,12 +323,17 @@ async function handleReopen(commentId: string) {
     role="complementary"
     aria-label="Opmerkingen"
   >
-    <div class="comment-panel__header">
-      <h2 class="comment-panel__title">Opmerkingen</h2>
-      <div class="comment-panel__actions">
+    <!-- The header is a toolbar: the title at the start, the filter and the
+         close button at the end, spacing and alignment from the design system
+         instead of a hand-rolled flex row. -->
+    <nldd-toolbar class="comment-panel__header" size="sm" label="Opmerkingen">
+      <nldd-toolbar-title slot="start" text="Opmerkingen"></nldd-toolbar-title>
+      <nldd-toolbar-item slot="end">
         <nldd-checkbox-field class="comment-panel__toggle" label="Opgeloste tonen"
           :checked="showResolved || undefined"
           @change="handleResolvedToggle"></nldd-checkbox-field>
+      </nldd-toolbar-item>
+      <nldd-toolbar-item slot="end">
         <nldd-icon-button
           class="comment-panel__close"
           size="sm"
@@ -336,8 +342,8 @@ async function handleReopen(commentId: string) {
           variant="neutral-transparent"
           @click="emit('close')"
         ></nldd-icon-button>
-      </div>
-    </div>
+      </nldd-toolbar-item>
+    </nldd-toolbar>
 
     <div class="comment-panel__body" ref="panelBodyRef">
       <!-- Empty state -->

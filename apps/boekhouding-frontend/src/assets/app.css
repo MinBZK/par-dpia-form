@@ -516,34 +516,14 @@ nldd-card p {
   transform: translateX(min(calc((100vw - clamp(20rem, 20vw, 30rem) - 1280px) / -2), 0px));
 }
 
+/* nldd-toolbar lays the row out; what stays is the panel's own behaviour:
+   the header rides along while the comments scroll under it. */
 .comment-panel__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--primitives-space-8, 0.5rem);
-  padding: 0.75rem 1rem;
   flex-shrink: 0;
   position: sticky;
   top: 0;
   z-index: 1;
   background: var(--semantics-surfaces-base-background-color);
-}
-
-.comment-panel__title {
-  font-size: var(--primitives-font-size-90, 1rem);
-  font-weight: 700;
-  margin: 0;
-  /* Shrink before the actions do, so the row never breaks in two. */
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.comment-panel__actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .comment-panel__toggle {
