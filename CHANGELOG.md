@@ -52,6 +52,30 @@ build) staan kort onder "Onder de motorkap".
   op bij hover; de muisaanwijzer wijst de link aan.
 * De sluitknop van het opmerkingenpaneel is nu overal groot genoeg om op
   een aanraakscherm te raken.
+* De inhoudsopgave heeft haar tijdlijn terug: elke stap is een bolletje,
+  verbonden door een doorlopende lijn. Een afgeronde stap krijgt een vinkje,
+  een stap waar je mee bezig bent een gevuld rondje met "Mee bezig" eronder, en
+  de stap waar je nu bent licht op. Het hoofdstuknummer staat weer voor de
+  titel.
+* Open tekstvelden tonen de opmaak terwijl je typt: vet is vet, een kop is
+  groter. De schakelaar tussen bewerken en lezen is daarmee overbodig en
+  verdwenen — de tekst blijft gewoon markdown, dus de PDF-export verandert niet.
+* Het opmerkingenpaneel is een zijpaneel geworden dat vanaf rechts inschuift.
+  Het formulier houdt zijn volle breedte en blijft bruikbaar terwijl het paneel
+  openstaat: je leest een opmerking en past het antwoord ernaast aan. Sluiten
+  kan met Escape — ook als je net in het formulier aan het typen was — of met
+  de sluitknop.
+* Opmerkingen staan niet langer op de hoogte van hun vraag te zweven, maar
+  onder elkaar in de volgorde van het formulier, met de vraag erboven als link
+  ernaartoe. Bij lange antwoorden of een klein scherm vielen ze voorheen buiten
+  beeld; dat kan nu niet meer.
+* Het paneel toont wat je aanklikt: vanuit de knop bij een vraag zie je die
+  vraag, vanuit het aantal in de kop zie je alle opmerkingen van het hele
+  assessment. Twee filters bovenin verbreden de lijst naar alle opmerkingen of
+  voegen de opgeloste toe.
+* De knop "Opmerking" staat bij elke vraag op dezelfde plek: op een eigen regel
+  onder het veld, altijd zichtbaar en met het aantal erbij als er opmerkingen
+  zijn.
 * De ledenlijst is een lijst geworden in plaats van een tabel: de naam
   staat boven het e-mailadres, de kolomkoppen zijn verdwenen en de rijen
   passen zich vanzelf aan smalle schermen aan.
@@ -146,6 +170,14 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Op een smal scherm klapte de inhoudsopgave weg zonder knop om haar terug te
+  halen: je kon dan niet meer tussen de stappen navigeren. Er staat nu een
+  knop "Stappen" die haar opent, en die verschijnt ook wanneer het
+  opmerkingenpaneel de inhoudsopgave op een breed scherm wegdrukt. Wordt de
+  balk te smal, dan schuiven "Stappen" en "Opmerkingen" mee het menu achter de
+  drie puntjes in, bij de andere assessmentacties.
+* Op een smal scherm gebeurde er niets als je op "Opmerkingen" klikte. Het
+  paneel opent daar nu als vensterlade over het scherm.
 * Op smalle schermen kon de pagina horizontaal meeschuiven; dat is
   verholpen, tot en met een schermbreedte van 320 pixels.
 * Wie een assessment alleen mag lezen of becommentariëren, kon de
@@ -160,6 +192,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* `@nldd/design-system` van 0.8.83 naar 0.8.85. Die release haalt
+  `nldd-form-field-error-text` weg (foutmeldingen lopen nu via
+  `nldd-validation-list`) en hernoemt de varianten van
+  `nldd-timeline-track-cell`; beide zijn meegenomen.
 * De RVO component library (`@nl-rvo/*`) is volledig vervangen door
   `@nldd/design-system` (Lit web components). De styling gebruikt nu de
   NLDD design-tokens; de Trusted-Types-CSP staat de `lit-html`-policy toe.

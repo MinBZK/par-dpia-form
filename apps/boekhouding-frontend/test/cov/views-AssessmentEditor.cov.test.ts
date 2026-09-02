@@ -100,6 +100,7 @@ const {
     syncFailing: false,
     commentActionError: null as { message: string; retryable: boolean } | null,
     unresolvedCountByField: new Map<string, number>(),
+    totalUnresolvedCount: 0,
     load: vi.fn().mockResolvedValue(undefined),
     startPolling: vi.fn(),
     reset: vi.fn(),
@@ -147,13 +148,22 @@ const { sanitizeAnswers } = vi.hoisted(() => ({
   })),
 }))
 
+// Drives the header slot props the real Form passes down.
+const formStubState = { tocCollapsed: false, toggleToc: vi.fn() }
+
 vi.mock('@overheid-assessment/core', () => ({
   Form: {
     name: 'Form',
     props: ['navigation', 'namespace', 'validData', 'showBanner', 'showNavHeader', 'showFileActions', 'autoStart', 'commentedRootTaskIds'],
     // The editor puts its title bar in Form's header slot, where the section
-    // lines it up with the two columns; render it so it stays assertable.
-    template: '<div class="form-stub" :data-namespace="namespace"><slot name="header" /></div>',
+    // lines it up with the two columns; render it so it stays assertable. The
+    // real Form hands down the folded-away state of the table of contents and
+    // the toggle for it, so the stub does too — tocCollapsed is driven from the
+    // test via formStubState.
+    data: () => ({ formStubState }),
+    template: '<div class="form-stub" :data-namespace="namespace">'
+      + '<slot name="header" :tocCollapsed="formStubState.tocCollapsed" :toggleToc="formStubState.toggleToc" />'
+      + '</div>',
   },
   FormType: FormTypeMock,
   useSchemaStore: () => schemaStore,
@@ -299,6 +309,9 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.useRealTimers()
+  // The comment sheet is teleported to the body, so an unmounted editor can
+  // still leave its nodes behind for the next test to find.
+  document.body.innerHTML = ''
 })
 
 describe('AssessmentEditor — loading and error states', () => {
@@ -582,7 +595,7 @@ describe('AssessmentEditor — role-based access', () => {
     const wrapper = await mountEditor()
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').attributes('data-role')).toBe('viewer')
+    expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-role')).toBe('viewer')
     wrapper.unmount()
   })
 
@@ -601,19 +614,162 @@ describe('AssessmentEditor — role-based access', () => {
 })
 
 describe('AssessmentEditor — comment panel', () => {
+  // The panel lives in a sheet teleported to the body, so it is not inside the
+  // wrapper's tree; these read the document instead.
+  function panelStub() {
+    return document.querySelector('.comment-panel-stub')
+  }
+
+  function sheetEl() {
+    return document.querySelector('nldd-sheet') as (HTMLElement & {
+      show?: () => void
+      hide?: () => void
+    }) | null
+  }
+
   it('toggles the comment panel open and closed via the badge', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    expect(wrapper.find('.comment-panel-stub').exists()).toBe(false)
+    expect(panelStub()).toBeNull()
 
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').exists()).toBe(true)
-    expect(wrapper.find('.assessment-editor__content').classes()).toContain('assessment-editor__content--panel-open')
+    expect(panelStub()).not.toBeNull()
+
+    // A right-hand side panel that leaves the form usable: no backdrop, no
+    // focus lock, so you can read a comment and edit the answer beside it.
+    const sheet = sheetEl()!
+    expect(sheet.getAttribute('placement')).toBe('right')
+    expect(sheet.hasAttribute('modeless')).toBe(true)
+    expect(sheet.getAttribute('accessible-label')).toBe('Opmerkingen')
 
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').exists()).toBe(false)
+    expect(panelStub()).toBeNull()
+    wrapper.unmount()
+  })
+
+  // nldd-sidebar-section folds the contents into a sheet and leaves the trigger
+  // to us; this app hides the banner, so there is no toolbar to put it in and it
+  // goes next to the comment badge instead.
+  it('offers a way back to the folded-away table of contents', async () => {
+    schemaStore.isInitialized = true
+    formStubState.tocCollapsed = false
+    let wrapper = await mountEditor()
+    expect(wrapper.findAll('nldd-button').some((b) => b.attributes('text') === 'Stappen'))
+      .toBe(false)
+    wrapper.unmount()
+
+    formStubState.tocCollapsed = true
+    wrapper = await mountEditor()
+    const button = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Stappen')!
+    expect(button).toBeDefined()
+    expect(button.attributes('start-icon')).toBe('bullet-list')
+    expect(button.attributes('aria-haspopup')).toBe('dialog')
+
+    await button.trigger('click')
+    expect(formStubState.toggleToc).toHaveBeenCalled()
+
+    formStubState.tocCollapsed = false
+    wrapper.unmount()
+  })
+
+  // Mirrored onto the element rather than mounted and unmounted, so the sheet
+  // keeps its slide-in.
+  it('drives show() and hide() on the upgraded sheet', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    const sheet = sheetEl()!
+    sheet.show = vi.fn()
+    sheet.hide = vi.fn()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(sheet.show).toHaveBeenCalledTimes(1)
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    expect(sheet.hide).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  // A modeless sheet is a non-modal dialog: the browser routes Escape to it only
+  // while focus is inside, so clicking back into the form would take it away.
+  it('closes on Escape from anywhere on the page', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    expect(panelStub()).not.toBeNull()
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    await nextTick()
+    expect(panelStub()).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('leaves Escape to whatever is cancelling an edit', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+
+    // What @keydown.escape.stop does inside the panel: the event never reaches
+    // the document, so the panel stays open.
+    const held = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+    document.addEventListener('keydown', (e) => e.stopImmediatePropagation(), { once: true, capture: true })
+    document.dispatchEvent(held)
+    await nextTick()
+    expect(panelStub()).not.toBeNull()
+
+    // Another key is not ours either.
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }))
+    await nextTick()
+    expect(panelStub()).not.toBeNull()
+    wrapper.unmount()
+  })
+
+  it('ignores Escape while the panel is closed', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    expect(() => document.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+    )).not.toThrow()
+    expect(panelStub()).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('survives a sheet that has not been upgraded yet', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    // jsdom upgrades no custom elements, so neither method exists; the optional
+    // calls have to swallow that rather than throw.
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(panelStub()).not.toBeNull()
+    wrapper.unmount()
+  })
+
+  // The sheet closes itself on Esc and on a click outside; routing that back
+  // through the state keeps the button in step.
+  it('closes the panel when the sheet closes itself', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    expect(panelStub()).not.toBeNull()
+
+    sheetEl()!.dispatchEvent(new CustomEvent('close'))
+    await nextTick()
+    expect(panelStub()).toBeNull()
     wrapper.unmount()
   })
 
@@ -623,9 +779,9 @@ describe('AssessmentEditor — comment panel', () => {
     expect(fieldClickHolder.fn).toBeTypeOf('function')
     fieldClickHolder.fn!('2.1')
     await nextTick()
-    const panel = wrapper.find('.comment-panel-stub')
-    expect(panel.exists()).toBe(true)
-    expect(panel.attributes('data-field')).toBe('2.1')
+    const panel = document.querySelector('.comment-panel-stub')
+    expect(panel).not.toBeNull()
+    expect(panel?.getAttribute('data-field')).toBe('2.1')
     wrapper.unmount()
   })
 
@@ -634,10 +790,10 @@ describe('AssessmentEditor — comment panel', () => {
     const wrapper = await mountEditor()
     fieldClickHolder.fn!('3.3')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').attributes('data-field')).toBe('3.3')
+    expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-field')).toBe('3.3')
     await wrapper.findComponent({ name: 'CommentPanel' }).vm.$emit('deactivate-field')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').attributes('data-field')).toBeUndefined()
+    expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-field')).toBeNull()
     wrapper.unmount()
   })
 
@@ -648,7 +804,7 @@ describe('AssessmentEditor — comment panel', () => {
     await nextTick()
     await wrapper.findComponent({ name: 'CommentPanel' }).vm.$emit('close')
     await nextTick()
-    expect(wrapper.find('.comment-panel-stub').exists()).toBe(false)
+    expect(document.querySelector('.comment-panel-stub')).toBeNull()
     wrapper.unmount()
   })
 })
@@ -814,26 +970,52 @@ describe('AssessmentEditor — inline name editing', () => {
   })
 })
 
-describe('AssessmentEditor — kebab menu', () => {
-  // The shared KebabMenu renders its slotted items in the light DOM; jsdom does
-  // not enforce popover visibility, so the items are directly interactable.
+describe('AssessmentEditor — overflow menu', () => {
+  // The assessment actions sit in the toolbar's own overflow slot, in the light
+  // DOM; jsdom does not enforce popover visibility, so they are interactable.
   function menuItem(wrapper: Awaited<ReturnType<typeof mountEditor>>, text: string) {
     return wrapper.findAll('nldd-menu-item').find((i) => i.attributes('text') === text)
   }
 
-  it('renders the shared kebab menu with the assessment-actions label', async () => {
+  function select(item: { element: Element }) {
+    item.element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
+  }
+
+  // The badge shows the count as a badge; the overflow entry has no room for one
+  // and says it in words instead.
+  it('names the comment count in the overflow entry, and only when there is one', async () => {
+    schemaStore.isInitialized = true
+    let wrapper = await mountEditor()
+    expect(menuItem(wrapper, 'Opmerkingen')).toBeDefined()
+    wrapper.unmount()
+
+    collaborationStore.totalUnresolvedCount = 3
+    wrapper = await mountEditor()
+    expect(menuItem(wrapper, 'Opmerkingen (3)')).toBeDefined()
+
+    // And it opens the panel, like the badge does.
+    select(menuItem(wrapper, 'Opmerkingen (3)')!)
+    await nextTick()
+    expect(document.querySelector('.comment-panel-stub')).not.toBeNull()
+
+    collaborationStore.totalUnresolvedCount = 0
+    wrapper.unmount()
+  })
+
+  it('names the toolbar that carries the assessment actions', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    expect(wrapper.find('nldd-icon-button').attributes('text')).toBe('Assessmentacties')
-    // The name lives on the trigger: nldd-menu ignores accessible-label.
-    expect(wrapper.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
+    // The toolbar draws its own ellipsis button, so the row no longer needs a
+    // kebab of its own; the name sits on the toolbar.
+    expect(wrapper.find('nldd-toolbar').attributes('label')).toBe('Assessmentacties')
     wrapper.unmount()
   })
 
   it('navigates to version history', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
-    await menuItem(wrapper, 'Versiegeschiedenis')!.trigger('click')
+    select(menuItem(wrapper, 'Versiegeschiedenis')!)
+    await nextTick()
     expect(routerPush).toHaveBeenCalledWith('/assessment/a1/versies')
     wrapper.unmount()
   })
@@ -842,15 +1024,15 @@ describe('AssessmentEditor — kebab menu', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
 
-    await menuItem(wrapper, 'Download als PDF')!.trigger('click')
+    select(menuItem(wrapper, 'Download als PDF')!)
     await flushPromises()
     expect(exportToPdf).toHaveBeenCalledWith(taskStore, answerStore, calculationStore)
 
-    await menuItem(wrapper, 'Download als JSON')!.trigger('click')
+    select(menuItem(wrapper, 'Download als JSON')!)
     await flushPromises()
     expect(exportToJson).toHaveBeenCalledWith(taskStore, answerStore)
 
-    await menuItem(wrapper, 'Download als Markdown')!.trigger('click')
+    select(menuItem(wrapper, 'Download als Markdown')!)
     await flushPromises()
     expect(exportToMarkdown).toHaveBeenCalledWith(taskStore, answerStore)
     wrapper.unmount()
@@ -877,10 +1059,10 @@ describe('AssessmentEditor — kebab menu', () => {
 
 describe('AssessmentEditor — delete flow', () => {
   async function openDeleteModal(wrapper: Awaited<ReturnType<typeof mountEditor>>) {
-    await wrapper
+    wrapper
       .findAll('nldd-menu-item')
       .find((i) => i.attributes('text') === 'Assessment verwijderen')!
-      .trigger('click')
+      .element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
     await nextTick()
   }
 

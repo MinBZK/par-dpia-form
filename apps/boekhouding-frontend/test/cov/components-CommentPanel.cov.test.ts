@@ -9,6 +9,47 @@ import CommentPanel from '../../src/components/CommentPanel.vue'
 import { useCollaborationStore } from '../../src/stores/collaboration'
 import type { CommentThread, CommentReply } from '../../src/api'
 
+// The panel scopes its list to the chapter on screen and folds the rest away.
+// Tests set currentRootTaskId to the chapter their fixtures live in; '1'
+// matches the default fixture field ids.
+const defaultRootTasks = [
+  { id: '1', task: 'Deel 1 – Waarom?' },
+  { id: '2', task: 'Deel 2 – Wat?' },
+  { id: '3', task: 'Deel 3 – Hoe?' },
+]
+
+const taskStoreMock = {
+  currentRootTaskId: { value: '1' },
+  rootTasks: { value: defaultRootTasks },
+  goToTask: vi.fn(),
+}
+
+// Task ids are display numbers, not a hierarchy, so the chapter of a field is
+// walked up the real parent chain. Fixtures use ids like "1.1" and "2.1.3";
+// their parent is the first dot-segment, which is what the form's data does too.
+// Overrides for shapes the dotted default cannot express, such as the IAMA's
+// "1.0" chapter holding 1.1.
+const parentChain: Record<string, string> = {}
+
+const parentOf = (taskId: string): string | null => {
+  if (taskId in parentChain) return parentChain[taskId]
+  const cut = taskId.lastIndexOf('.')
+  return cut === -1 ? null : taskId.slice(0, cut)
+}
+
+vi.mock('@overheid-assessment/core', () => ({
+  // The real one strips the definition panels a term carries; the panel uses it
+  // so the question, not its explanation, heads the group.
+  getPlainTextWithoutDefinitions: (html: string) => {
+    const el = document.createElement('div')
+    el.innerHTML = html
+    el.querySelectorAll('span.aiv-definition-text').forEach((n) => n.remove())
+    return el.textContent ?? ''
+  },
+  useTaskStore: () => ({ getParentTaskId: parentOf }),
+  useTaskNavigation: () => taskStoreMock,
+}))
+
 // jsdom lacks CSS.escape and ResizeObserver; the component relies on both, so
 // we provide minimal stand-ins (test-environment only).
 const observedTargets: HTMLElement[] = []
@@ -31,6 +72,10 @@ class StubResizeObserver {
 
 beforeEach(() => {
   setActivePinia(createPinia())
+  taskStoreMock.currentRootTaskId.value = '1'
+  taskStoreMock.rootTasks.value = defaultRootTasks
+  taskStoreMock.goToTask.mockClear()
+  for (const key of Object.keys(parentChain)) delete parentChain[key]
   observedTargets.length = 0
   lastResizeCallback = null
   resizeCallbacks.length = 0
@@ -95,34 +140,35 @@ function buildFormContainer(
 ): HTMLElement {
   const form = document.createElement('div')
   for (const spec of specs) {
-    const label = document.createElement('div')
+    // As FormField renders it: div.form-field__label wraps the <label> that
+    // carries the id, not the other way round.
+    const wrap = document.createElement('div')
+    wrap.className = 'form-field__label'
+    const label = document.createElement('label')
     label.id = spec.id
+    wrap.appendChild(label)
+
     if (spec.fieldLabel !== undefined) {
-      const wrap = document.createElement('div')
-      wrap.className = 'form-field__label'
       const span = document.createElement('span')
       span.textContent = spec.fieldLabel
-      wrap.appendChild(span)
-      label.appendChild(wrap)
+      label.appendChild(span)
     } else if (spec.aivLabel !== undefined) {
-      const wrap = document.createElement('div')
-      wrap.className = 'form-field__label'
       const span = document.createElement('span')
       span.textContent = `${spec.aivLabel.title} `
       const aiv = document.createElement('span')
       aiv.className = 'aiv-definition'
       aiv.textContent = spec.aivLabel.term
+      // Hidden on screen, but part of the label's textContent.
       const def = document.createElement('span')
       def.className = 'aiv-definition-text'
       def.textContent = spec.aivLabel.definition
       aiv.appendChild(def)
       span.appendChild(aiv)
-      wrap.appendChild(span)
-      label.appendChild(wrap)
+      label.appendChild(span)
     } else if (spec.textLabel !== undefined) {
       label.textContent = spec.textLabel
     }
-    form.appendChild(label)
+    form.appendChild(wrap)
   }
   document.body.appendChild(form)
   return form
@@ -177,14 +223,30 @@ function flushRaf(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()))
 }
 
+// The "Opgeloste tonen" filter is one switch, so it is a button that stays
+// pressed rather than a menu: nldd-menu has a 280px minimum and would cover
+// nearly the whole 320px column for a single choice.
+function filterButton(wrapper: { get: (s: string) => { element: Element; attributes: (a: string) => string | undefined } }) {
+  return wrapper.get('.comment-panel__filter')
+}
+
+function toggleResolved(wrapper: { get: (s: string) => { element: Element; attributes: (a: string) => string | undefined } }, selected = true) {
+  filterButton(wrapper).element.dispatchEvent(
+    new CustomEvent('change', { detail: { selected } }),
+  )
+}
+
 describe('CommentPanel', () => {
   describe('header & basic rendering', () => {
-    it('emits close when the close button is clicked', async () => {
+    it('closes on the title bar\'s own dismiss button', async () => {
       const { wrapper } = mountPanel()
-      const closeBtn = wrapper.get('.comment-panel__close')
-      expect(closeBtn.attributes('icon')).toBe('dismiss')
-      expect(closeBtn.attributes('text')).toBe('Sluiten')
-      await closeBtn.trigger('click')
+      // nldd-top-title-bar draws that button itself and reports it as `dismiss`.
+      const bar = wrapper.get('.comment-panel__header')
+      expect(bar.attributes('text')).toBe('Opmerkingen')
+      expect(bar.attributes('dismiss-text')).toBe('Sluiten')
+
+      bar.element.dispatchEvent(new CustomEvent('dismiss'))
+      await wrapper.vm.$nextTick()
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
@@ -198,22 +260,43 @@ describe('CommentPanel', () => {
     it('shows the empty state when there are no positioned entries', () => {
       const { wrapper } = mountPanel({ loading: false })
       const empty = wrapper.get('.comment-panel__empty')
-      expect(empty.attributes('text')).toBe('Nog geen opmerkingen')
+      expect(empty.attributes('text')).toBe('Nog geen opmerkingen op deze pagina')
     })
 
-    it('toggles showResolved via the checkbox', async () => {
+    it('labels the filter and gives it checkbox semantics', () => {
       const { wrapper } = mountPanel()
-      const checkbox = wrapper.get('.comment-panel__toggle')
-      expect(checkbox.attributes('checked')).toBeUndefined()
+      const button = filterButton(wrapper)
+      // An icon alone cannot say which comments are meant, so it carries the
+      // word; no accessible-label beside it, which would rename the visible
+      // text and break "click Opgelost" for voice control.
+      expect(button.attributes('text')).toBe('Opgeloste opmerkingen')
+      expect(button.attributes('accessible-label')).toBeUndefined()
+      expect(button.attributes('icon')).toBe('check-mark-circle')
+      // A filter is on or off, not an action: checkbox, not button.
+      expect(button.attributes('type')).toBe('checkbox')
+    })
 
-      // The field reports its new state in the change detail.
-      checkbox.element.dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    it('toggles showResolved from the filter button', async () => {
+      const { wrapper } = mountPanel()
+      expect(filterButton(wrapper).attributes('selected')).toBeUndefined()
+
+      toggleResolved(wrapper)
       await wrapper.vm.$nextTick()
-      expect(checkbox.attributes('checked')).toBeDefined()
+      expect(filterButton(wrapper).attributes('selected')).toBeDefined()
 
-      // A change without a payload says nothing, so the toggle stays as it was.
-      await checkbox.trigger('change')
-      expect(checkbox.attributes('checked')).toBeDefined()
+      toggleResolved(wrapper, false)
+      await wrapper.vm.$nextTick()
+      expect(filterButton(wrapper).attributes('selected')).toBeUndefined()
+    })
+
+    it('ignores a change that carries no state', async () => {
+      const { wrapper } = mountPanel()
+      toggleResolved(wrapper)
+      await wrapper.vm.$nextTick()
+
+      filterButton(wrapper).element.dispatchEvent(new CustomEvent('change'))
+      await wrapper.vm.$nextTick()
+      expect(filterButton(wrapper).attributes('selected')).toBeDefined()
     })
   })
 
@@ -350,270 +433,453 @@ describe('CommentPanel', () => {
     })
   })
 
-  describe('stackedEntries — cards never cover each other', () => {
-    // Fields sit 97px apart in the form while a card with a few lines of text is far taller,
-    // so without stacking the cards overlap and hide each other's text and buttons.
-    const FIELD_TOPS = [0, 97, 194]
-    const CARD_HEIGHTS = [247, 107, 167]
-
-    function stubTop(el: HTMLElement, top: number) {
-      el.getBoundingClientRect = () => ({ top, bottom: top, left: 0, right: 0, width: 0, height: 0, x: 0, y: top, toJSON: () => ({}) }) as DOMRect
-    }
-
-    async function mountThreeCards() {
-      const form = buildFormContainer([
-        { id: 'label-dpia-2.1.1', rvoLabel: 'Persoonsgegeven' },
-        { id: 'label-dpia-2.1.2', rvoLabel: 'Categorie' },
-        { id: 'label-dpia-2.1.3', rvoLabel: 'Herkomst' },
-      ])
-      form.querySelectorAll<HTMLElement>('[id^="label-"]').forEach((el, i) => stubTop(el, FIELD_TOPS[i]))
-
-      const { wrapper } = mountPanel({
-        formContainerRef: form,
-        threads: [
-          thread({ id: 'a', fieldId: '2.1.1' }),
-          thread({ id: 'b', fieldId: '2.1.2' }),
-          thread({ id: 'c', fieldId: '2.1.3' }),
-        ],
-      })
-      await flushRaf()
-      await nextTick()
-      await nextTick()
-
-      // jsdom has no layout, so the rendered cards report their real heights only once stubbed.
-      wrapper.findAll('[data-field-group]').forEach((g, i) => {
-        Object.defineProperty(g.element, 'offsetHeight', { get: () => CARD_HEIGHTS[i], configurable: true })
-      })
-      for (const cb of resizeCallbacks) cb()
-      await nextTick()
-
-      return wrapper
-    }
-
-    function topsOf(wrapper: { findAll: (s: string) => Array<{ element: Element }> }): number[] {
-      return wrapper.findAll('[data-field-group]').map(g =>
-        Number.parseFloat((g.element as HTMLElement).style.getPropertyValue('--comment-top')),
-      )
-    }
-
-    it('pushes each card below the previous one instead of letting them overlap', async () => {
-      const wrapper = await mountThreeCards()
-      const tops = topsOf(wrapper)
-
-      expect(tops).toEqual([0, 255, 370])
-      for (let i = 1; i < tops.length; i++) {
-        expect(tops[i]).toBeGreaterThanOrEqual(tops[i - 1] + CARD_HEIGHTS[i - 1])
-      }
-    })
-
-    it('survives a resize notification that arrives after the panel is unmounted', async () => {
-      const wrapper = await mountThreeCards()
-      const callbacks = [...resizeCallbacks]
-      wrapper.unmount()
-
-      expect(() => { for (const cb of callbacks) cb() }).not.toThrow()
-    })
-
-    it('leaves a card at its own field when there is room above it', async () => {
-      const form = buildFormContainer([
-        { id: 'label-dpia-3.1', rvoLabel: 'Eerste' },
-        { id: 'label-dpia-3.2', rvoLabel: 'Tweede' },
-      ])
-      const tops = [0, 900]
-      form.querySelectorAll<HTMLElement>('[id^="label-"]').forEach((el, i) => stubTop(el, tops[i]))
-
-      const { wrapper } = mountPanel({
-        formContainerRef: form,
-        threads: [thread({ id: 'a', fieldId: '3.1' }), thread({ id: 'b', fieldId: '3.2' })],
-      })
-      await flushRaf()
-      await nextTick()
-      await nextTick()
-
-      wrapper.findAll('[data-field-group]').forEach((g) => {
-        Object.defineProperty(g.element, 'offsetHeight', { get: () => 120, configurable: true })
-      })
-      for (const cb of resizeCallbacks) cb()
-      await nextTick()
-
-      expect(topsOf(wrapper)).toEqual([0, 900])
-    })
-  })
-
-  describe('updateFieldPositions / positionedEntries', () => {
-    it('positions threads using the rvo label text', async () => {
+  // The list is a plain list in the order of the form, scoped to the chapter on
+  // screen. No geometry: nothing measures the form or the pane.
+  describe('entries — one group per question, chapter-scoped', () => {
+    it('labels each group with the question text', async () => {
       const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Naam van veld' }])
-      const t = thread({ id: 'root', fieldId: '1.1' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'root', fieldId: '1.1' })],
+      })
       await flushRaf()
       await nextTick()
 
       const group = wrapper.get('.comment-field-group')
       expect(group.attributes('data-field-group')).toBe('1.1')
-      expect(group.get('.comment-field-group__label').text()).toBe(
-        'Opmerking voor: Naam van veld',
-      )
+      expect(group.get('.comment-field-group__label').text()).toBe('Naam van veld')
+      // No inline offset any more: the group sits where the list puts it.
+      expect(group.attributes('style')).toBeUndefined()
     })
 
-    it('excludes the begrip-definition tooltip text from the field label', async () => {
-      const form = buildFormContainer([{
-        id: 'label-dpia-1.1',
-        aivLabel: {
-          title: 'Aanvullende informatie over de',
-          term: 'verwerkingsdoeleinden',
-          definition: 'Het verwerkingsdoeleinde is het resultaat dat wordt beoogd.',
+    it('excludes the begrip-definition tooltip text from the label', async () => {
+      const form = buildFormContainer([
+        {
+          id: 'label-dpia-1.1',
+          aivLabel: { title: 'Wat is een', term: 'algoritme', definition: 'uitleg van het begrip' },
         },
-      }])
-      const t = thread({ id: 'root', fieldId: '1.1' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
-      await flushRaf()
-      await nextTick()
-
-      expect(wrapper.get('.comment-field-group__label').text()).toBe(
-        'Opmerking voor: Aanvullende informatie over de verwerkingsdoeleinden',
-      )
-    })
-
-    it('falls back to label.textContent when no rvo label is present', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-2.2', textLabel: 'Platte tekst\ntweede regel' }])
-      const t = thread({ id: 'root', fieldId: '2.2' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
-      await flushRaf()
-      await nextTick()
-
-      expect(wrapper.get('.comment-field-group__label').text()).toBe(
-        'Opmerking voor: Platte tekst',
-      )
-    })
-
-    it('falls back to the fieldId when the label has no text', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-3.3' }])
-      const t = thread({ id: 'root', fieldId: '3.3' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
-      await flushRaf()
-      await nextTick()
-
-      expect(wrapper.get('.comment-field-group__label').text()).toBe('Opmerking voor: 3.3')
-    })
-
-    it('skips label ids with fewer than two segments', async () => {
-      const form = buildFormContainer([{ id: 'label-single', fieldLabel: 'genegeerd' }])
-      const t = thread({ id: 'root', fieldId: 'single' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t] })
-      await flushRaf()
-      await nextTick()
-
-      expect(wrapper.find('.comment-field-group').exists()).toBe(false)
-      expect(wrapper.get('.comment-panel__empty').exists()).toBe(true)
-    })
-
-    it('drops threads whose field has no resolved position (top undefined)', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
-      const present = thread({ id: 'a', fieldId: '1.1' })
-      const orphan = thread({ id: 'b', fieldId: '9.9' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [present, orphan] })
-      await flushRaf()
-      await nextTick()
-
-      const groups = wrapper.findAll('.comment-field-group')
-      expect(groups).toHaveLength(1)
-      expect(groups[0].attributes('data-field-group')).toBe('1.1')
-    })
-
-    it('hides resolved threads unless showResolved is on', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
-      const resolved = thread({ id: 'a', fieldId: '1.1', resolvedAt: '2026-04-13T00:00:00Z' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [resolved] })
-      await flushRaf()
-      await nextTick()
-
-      expect(wrapper.find('.comment-field-group').exists()).toBe(false)
-
-      wrapper.get('.comment-panel__toggle').element
-        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
-      await wrapper.vm.$nextTick()
-      await nextTick()
-      expect(wrapper.find('.comment-thread--resolved').exists()).toBe(true)
-    })
-
-    it('keeps an entry for the active field even when all its threads are filtered out', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
-      const resolved = thread({ id: 'a', fieldId: '1.1', resolvedAt: '2026-04-13T00:00:00Z' })
+      ])
       const { wrapper } = mountPanel({
         formContainerRef: form,
-        threads: [resolved],
-        activeFieldId: '1.1',
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
       })
       await flushRaf()
       await nextTick()
 
-      const group = wrapper.get('.comment-field-group')
-      expect(group.classes()).toContain('comment-field-group--active')
+      // The term stays part of the question; only its tooltip text is dropped.
+      expect(wrapper.get('.comment-field-group__label').text()).toBe('Wat is een algoritme')
     })
 
-    it('adds an entry for an active field that has no existing comments', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-4.4', fieldLabel: 'Nieuw veld' }])
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [], activeFieldId: '4.4' })
+    it('falls back to the field id when the label carries no text', async () => {
+      const bare = document.createElement('div')
+      const empty = document.createElement('div')
+      empty.id = 'label-dpia-1.1'
+      bare.appendChild(empty)
+
+      const { wrapper } = mountPanel({
+        formContainerRef: bare,
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
       await flushRaf()
       await nextTick()
 
-      const group = wrapper.get('.comment-field-group')
-      expect(group.attributes('data-field-group')).toBe('4.4')
-      expect(group.findAll('.comment-thread')).toHaveLength(0)
-      expect(group.find('.comment-inline-form').exists()).toBe(true)
+      expect(wrapper.get('.comment-field-group__label').text()).toBe('1.1')
     })
 
-    it('does not add an entry for an active field with no resolved position', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [], activeFieldId: '5.5' })
+    it('renders a group without a label button when the field is not in the form', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.find('.comment-field-group').exists()).toBe(false)
-      expect(wrapper.get('.comment-panel__empty').exists()).toBe(true)
+      // The comment still shows: a question scrolled out of the DOM must not
+      // take its comments with it.
+      expect(wrapper.find('.comment-field-group').exists()).toBe(true)
+      expect(wrapper.find('.comment-field-group__label').exists()).toBe(false)
     })
 
-    it('sorts entries by their top position', async () => {
+    it('orders the groups the way the form does, not the way the map does', async () => {
       const form = buildFormContainer([
-        { id: 'label-dpia-1.1', fieldLabel: 'Eerste' },
-        { id: 'label-dpia-2.2', fieldLabel: 'Tweede' },
+        { id: 'label-dpia-1.10', fieldLabel: 'Tiende' },
+        { id: 'label-dpia-1.2', fieldLabel: 'Tweede' },
       ])
-      const t1 = thread({ id: 'a', fieldId: '1.1' })
-      const t2 = thread({ id: 'b', fieldId: '2.2' })
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [t1, t2] })
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        // Inserted 1.10 first, so map order alone would put it on top; as text
+        // "1.10" also sorts before "1.2".
+        threads: [thread({ id: 'a', fieldId: '1.10' }), thread({ id: 'b', fieldId: '1.2' })],
+      })
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.findAll('.comment-field-group')).toHaveLength(2)
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.2', '1.10'])
     })
 
-    it('does nothing in updateFieldPositions when there is no form container', async () => {
-      const t = thread({ id: 'root', fieldId: '1.1' })
-      const { wrapper } = mountPanel({ formContainerRef: null, threads: [t] })
+    it('sorts a non-numeric field id after the numbered ones', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [
+          thread({ id: 'a', fieldId: '1.los' }),
+          thread({ id: 'b', fieldId: '1.2' }),
+          thread({ id: 'c', fieldId: '1.ook' }),
+        ],
+      })
       await flushRaf()
       await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.2', '1.los', '1.ook'])
+    })
+
+    it('treats a deeper field id as coming after its shorter prefix', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '1.2.1' }), thread({ id: 'b', fieldId: '1.2' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.2', '1.2.1'])
+    })
+
+    // Where it was opened from decides how it starts: the header badge counts
+    // the whole assessment, so clicking a "3" and being shown one comment reads
+    // as a bug.
+    it('shows the whole form when opened from the header badge', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          thread({ id: 'b', fieldId: '2.1' }),
+          thread({ id: 'c', fieldId: '3.4' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1', '2.1', '3.4'])
+      expect(wrapper.get('.comment-panel__show-all').attributes('selected')).toBeDefined()
+    })
+
+    it('narrows to one step when a question is opened while it is wide', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        role: 'editor',
+        threads: [thread({ id: 'a', fieldId: '1.1' }), thread({ id: 'b', fieldId: '2.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+      expect(wrapper.findAll('.comment-field-group').length).toBe(2)
+
+      await wrapper.setProps({ activeFieldId: '1.1' })
+      await nextTick()
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1'])
+
+      // Cancelling a new comment clears the field too; that must not widen it.
+      await wrapper.setProps({ activeFieldId: null })
+      await nextTick()
+      expect(wrapper.findAll('.comment-field-group').length).toBe(1)
+    })
+
+    // Opened from a question's own button: that question, not the whole step.
+    it('shows one question when opened from its own button', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        activeFieldId: '1.1',
+        role: 'editor',
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          // Same step, different question: not what you clicked.
+          thread({ id: 'b', fieldId: '1.2' }),
+          thread({ id: 'c', fieldId: '2.1' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1'])
+
+      // And the way back to everything is there, whatever else the form holds.
+      wrapper.get('.comment-panel__show-all').element
+        .dispatchEvent(new CustomEvent('change', { detail: { selected: true } }))
+      await nextTick()
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1', '1.2', '2.1'])
+    })
+
+    // Narrowed to a step rather than a question: what you get after cancelling
+    // a new comment, which clears the active field without widening the list.
+    it('falls back to the step you are on once the question is cleared', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        activeFieldId: '1.1',
+        role: 'editor',
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          thread({ id: 'd', fieldId: '1.2' }),
+          thread({ id: 'b', fieldId: '2.1' }),
+          // A chapter's completion checkbox counts as part of that chapter.
+          thread({ id: 'c', fieldId: 'completed.2' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      // The question you clicked, first.
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1'])
+
+      // Clearing it falls back to the step, not to the whole form.
+      await wrapper.setProps({ activeFieldId: null })
+      await nextTick()
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1', '1.2'])
+    })
+
+    // One list with a filter, not two lists: switching it on widens the same
+    // list to every step instead of opening a read-only one underneath.
+    it('widens the list to the whole form when the filter is switched on', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        // Opened from a question, so the list starts on that question's step.
+        activeFieldId: '1.1',
+        role: 'editor',
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          thread({ id: 'b', fieldId: '2.1' }),
+          thread({ id: 'c', fieldId: '3.4' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      // This step only, and no step heading: there is nothing to tell apart.
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1'])
+      expect(wrapper.find('.comment-chapter__title').exists()).toBe(false)
+
+      const filter = wrapper.get('.comment-panel__show-all')
+      expect(filter.attributes('text')).toBe('Alle opmerkingen')
+
+      filter.element.dispatchEvent(new CustomEvent('change', { detail: { selected: true } }))
+      await nextTick()
+
+      // Every step now, each under its own title, all in the one list.
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1', '2.1', '3.4'])
+      expect(wrapper.findAll('.comment-chapter__title').map(t => t.text()))
+        .toEqual(['Deel 1 – Waarom?', 'Deel 2 – Wat?', 'Deel 3 – Hoe?'])
+    })
+
+    it('takes you to the step a heading names', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'b', fieldId: '2.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      wrapper.get('.comment-panel__show-all').element
+        .dispatchEvent(new CustomEvent('change', { detail: { selected: true } }))
+      await nextTick()
+
+      await wrapper.get('.comment-chapter__title').trigger('click')
+      expect(taskStoreMock.goToTask).toHaveBeenCalledWith('2')
+    })
+
+    it('ignores a change that carries no state', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'b', fieldId: '2.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      wrapper.get('.comment-panel__show-all').element.dispatchEvent(new CustomEvent('change'))
+      await nextTick()
+      // Opened from the header, so it stays on every step: a change without a
+      // payload says nothing and must not narrow it.
+      expect(wrapper.findAll('.comment-field-group').length).toBe(1)
+    })
+
+
+
+    // The IAMA's second chapter has id "1.0" and holds 1.1 and 1.actiepunten:
+    // neither the first dot-segment nor a prefix match puts those in it, so the
+    // whole chapter's comments read as "elsewhere".
+    it('places a field under its real chapter, not its number', async () => {
+      const form = buildFormContainer([])
+      taskStoreMock.currentRootTaskId.value = '1.0'
+      taskStoreMock.rootTasks.value = [
+        { id: '0', task: 'Inleiding' },
+        { id: '1.0', task: 'Deel 1 – Waarom?' },
+      ]
+      parentChain['1.1'] = '1.0'
+      parentChain['1.1.1'] = '1.1'
+      parentChain['1.actiepunten'] = '1.0'
+      // '1.0' is a root: the default would walk it up to '1'.
+      parentChain['1.0'] = ''
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [
+          thread({ id: 'a', fieldId: '1.1.1' }),
+          thread({ id: 'b', fieldId: '1.actiepunten' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').map(g => g.attributes('data-field-group')))
+        .toEqual(['1.1.1', '1.actiepunten'])
+      expect(wrapper.find('.comment-panel__elsewhere').exists()).toBe(false)
+
+      wrapper.unmount()
+    })
+
+    // "completed.3" is not a task, so the parent chain has nothing to walk;
+    // the same holds for every field while the schema is still loading.
+    it('places a field with no parent chain by its number instead', async () => {
+      const form = buildFormContainer([])
+      // No entries in parentChain and no dotted default that resolves: these
+      // ids have to fall back to the root they start with.
+      parentChain['1.1'] = ''
+      parentChain['completed.1'] = ''
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          thread({ id: 'b', fieldId: 'completed.1' }),
+        ],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').length).toBe(2)
+      expect(wrapper.find('.comment-panel__elsewhere').exists()).toBe(false)
+    })
+
+    it('falls back to the first segment for an id under no known chapter', async () => {
+      const form = buildFormContainer([])
+      taskStoreMock.currentRootTaskId.value = '9'
+      taskStoreMock.rootTasks.value = [{ id: '9', task: 'Los' }]
+      parentChain['9.1'] = ''
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '9.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.findAll('.comment-field-group').length).toBe(1)
+      wrapper.unmount()
+    })
+
+
+    it('ignores a label id that carries no field id', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
+      // No prefix-dash, so there is nothing to read a field id from.
+      const malformed = document.createElement('div')
+      malformed.id = 'label-zonderveld'
+      malformed.textContent = 'Genegeerd'
+      form.appendChild(malformed)
+
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.get('.comment-field-group__label').text()).toBe('Veld')
+    })
+
+
+    it('says nothing about elsewhere when there is nothing there', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.find('.comment-panel__elsewhere').exists()).toBe(false)
+    })
+
+    it('adds an empty group for an active field that has no comments yet', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [],
+        activeFieldId: '1.1',
+        role: 'editor',
+      })
+      await flushRaf()
+      await nextTick()
+
+      expect(wrapper.get('.comment-field-group').attributes('data-field-group')).toBe('1.1')
+    })
+
+    it('ignores an active field from another chapter', async () => {
+      const form = buildFormContainer([{ id: 'label-dpia-9.1', fieldLabel: 'Elders' }])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [],
+        activeFieldId: '9.1',
+        role: 'editor',
+      })
+      await flushRaf()
+      await nextTick()
+
       expect(wrapper.find('.comment-field-group').exists()).toBe(false)
     })
   })
 
   describe('observers & scheduled updates', () => {
-    it('observes the form container on mount and reacts to a resize', async () => {
-      const form = buildFormContainer([{ id: 'label-dpia-1.1', fieldLabel: 'Veld' }])
-      const { wrapper } = mountPanel({ formContainerRef: form, threads: [thread({ id: 'a', fieldId: '1.1' })] })
-      await flushRaf()
-      await nextTick()
-
-      expect(observedTargets).toContain(form)
-
-      // Fire the resize callback twice so schedulePositionUpdate hits its
-      // clearTimeout branch (a timer is already pending).
+    it('picks up a question that appears after mount', async () => {
+      // Only the labels are read now, so a size change is nothing to react to;
+      // new questions arriving in the form still are.
       vi.useFakeTimers()
-      lastResizeCallback?.()
-      lastResizeCallback?.()
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
+
+      const label = document.createElement('div')
+      label.id = 'label-dpia-1.1'
+      label.textContent = 'Later toegevoegd'
+      form.appendChild(label)
+
+      // Twice, so scheduleLabelUpdate hits its clearTimeout branch.
+      await Promise.resolve()
+      form.appendChild(document.createElement('span'))
+      await Promise.resolve()
       vi.advanceTimersByTime(60)
       vi.useRealTimers()
+      await nextTick()
 
-      expect(wrapper.find('.comment-field-group').exists()).toBe(true)
+      expect(wrapper.get('.comment-field-group__label').text()).toBe('Later toegevoegd')
     })
 
     it('reacts to mutation observer callbacks via schedulePositionUpdate', async () => {
@@ -742,7 +1008,8 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      const time = wrapper.get('.comment-item__time')
+      // nldd-text wraps the <time>; the machine-readable value stays on it.
+      const time = wrapper.get('.comment-item__time time')
       expect(time.attributes('datetime')).toBe('2026-04-12T10:00:00Z')
       expect(time.text().length).toBeGreaterThan(0)
     })
@@ -788,8 +1055,7 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      wrapper.get('.comment-panel__toggle').element
-        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      toggleResolved(wrapper)
       await wrapper.vm.$nextTick()
       await nextTick()
 
@@ -1327,8 +1593,7 @@ describe('CommentPanel', () => {
       })
       await flushRaf()
       await nextTick()
-      wrapper.get('.comment-panel__toggle').element
-        .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+      toggleResolved(wrapper)
       await wrapper.vm.$nextTick()
       await nextTick()
 
@@ -1400,21 +1665,6 @@ describe('CommentPanel', () => {
       expect(setup.editingId).toBe('missing')
     })
 
-    it('renders an entry without a label button when the field has no label', async () => {
-      const { wrapper } = mountPanel({ formContainerRef: null })
-      const setup = setupOf(wrapper)
-      const t = thread({ id: 'z', fieldId: 'z.z' })
-      ;(setup.commentStore as { threads: CommentThread[] }).threads = [t]
-      // A position but deliberately no label. The setupState proxy unwraps refs,
-      // so assigning through it re-wraps the new Map.
-      setup.fieldPositions = new Map([['z.z', 0]])
-      setup.fieldLabels = new Map()
-      await nextTick()
-
-      const group = wrapper.get('.comment-field-group')
-      expect(group.attributes('data-field-group')).toBe('z.z')
-      expect(group.find('.comment-field-group__label').exists()).toBe(false)
-    })
   })
 
   describe('readFieldValue', () => {

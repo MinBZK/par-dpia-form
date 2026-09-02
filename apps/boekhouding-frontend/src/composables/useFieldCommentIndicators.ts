@@ -18,6 +18,10 @@ export function useFieldCommentIndicators(
   let observer: MutationObserver | null = null
   let isInjecting = false
 
+  // In a toolbar the button is an icon-button like the ones beside it: same
+  // square footprint, same flat ground, so the row reads as one control strip
+  // rather than a text button parked next to a switch. Elsewhere it keeps its
+  // label, because there it stands alone under a question.
   function createButton(fieldId: string, count: number): HTMLElement {
     const btn = document.createElement('nldd-button')
     btn.setAttribute('size', 'xs')
@@ -41,6 +45,24 @@ export function useFieldCommentIndicators(
       btn.setAttribute('accessible-label', 'Opmerking toevoegen bij deze vraag')
     }
   }
+
+
+  // FormField renders the label block and the field itself as siblings with no
+  // wrapper around the pair, so a question is a label plus everything up to and
+  // including the first field after it. Anything past that is the next question.
+  function fieldRegionOf(labelContainer: Element): Element[] {
+    const region: Element[] = [labelContainer]
+    let el = labelContainer.nextElementSibling
+    while (el) {
+      // Another label means we walked into the next question.
+      if (el.classList.contains('form-field__label')) break
+      region.push(el)
+      if (el.classList.contains('field-group')) break
+      el = el.nextElementSibling
+    }
+    return region
+  }
+
 
   function scanAndInject() {
     const container = containerRef.value
@@ -82,29 +104,23 @@ export function useFieldCommentIndicators(
         continue
       }
 
-      // Create new button
-      btn = createButton(fieldId, count)
-
-      // Find the label container (parent div.form-field__label)
+      // One place for every question: on its own line under the field. The
+      // button used to sit in the label row, and in an open-text field's own
+      // toolbar — two placements, and in a task group the row of labels ended up
+      // carrying controls that belong to the answer below them.
       const labelContainer = label.closest('.form-field__label')
-      if (!labelContainer) {
-        // Fallback: insert after the label element
-        label.parentElement?.insertBefore(btn, label.nextSibling)
-        injectedElements.set(fieldId, btn)
-        continue
-      }
-
-      // Make the label container flex and add the button
-      labelContainer.classList.add('comment-field-label--flex')
+      btn = createButton(fieldId, count)
       btn.classList.add('comment-field-label__btn')
 
-      // Insert before the description (if any) or at the end
-      const description = labelContainer.querySelector('.form-field__description')
-      if (description) {
-        labelContainer.insertBefore(btn, description)
-      } else {
-        labelContainer.appendChild(btn)
-      }
+      const row = document.createElement('div')
+      row.className = 'comment-field-row'
+      row.appendChild(btn)
+
+      // After the field that belongs to this label; without a label container
+      // there is nothing to walk from, so it goes straight after the label.
+      const field = labelContainer && fieldRegionOf(labelContainer).at(-1)
+      if (field) field.after(row)
+      else label.after(row)
 
       injectedElements.set(fieldId, btn)
     }

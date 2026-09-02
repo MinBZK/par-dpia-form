@@ -64,6 +64,14 @@ function makeLabel(opts: {
   withToggle?: boolean
   withDescription?: boolean
   detached?: boolean
+  // Renders the sibling an open_text field gets: a bar holding the edit/read
+  // switch, which the comment button joins instead of sitting under the label.
+  withOpenTextBar?: boolean
+  // A plain field sibling instead, to prove the walk stops at the next question.
+  withPlainField?: boolean
+  // FormField renders ReferenceSuggestions between the label and the field, so
+  // the walk has to step over elements it does not recognise.
+  withInterloper?: boolean
 }): { container: HTMLElement; label: HTMLElement } {
   const container = document.createElement('div')
   const label = document.createElement('label')
@@ -88,6 +96,28 @@ function makeLabel(opts: {
       labelContainer.appendChild(desc)
     }
     container.appendChild(labelContainer)
+
+    if (opts.withInterloper) {
+      container.appendChild(document.createElement('div'))
+    }
+
+    if (opts.withOpenTextBar) {
+      const field = document.createElement('div')
+      field.className = 'open-text-field field-group'
+      // As FormField renders it: a row that right-aligns, holding the toolbar
+      // the controls actually sit in.
+      const bar = document.createElement('div')
+      bar.className = 'open-text-field__bar'
+      const toolbar = document.createElement('div')
+      toolbar.className = 'open-text-field__toolbar'
+      bar.appendChild(toolbar)
+      field.appendChild(bar)
+      container.appendChild(field)
+    } else if (opts.withPlainField) {
+      const field = document.createElement('div')
+      field.className = 'field-group'
+      container.appendChild(field)
+    }
   } else {
     container.appendChild(label)
   }
@@ -147,6 +177,9 @@ describe('useFieldCommentIndicators', () => {
   })
 
   describe('button rendering by comment count', () => {
+    // An open-text toolbar shows or hides as a whole, so a comment count keeps
+    // the whole row in view rather than one button in it.
+
     it('renders the no-comment variant when count is 0 and user can comment', () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
@@ -155,7 +188,9 @@ describe('useFieldCommentIndicators', () => {
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn).not.toBeNull()
-      expect(btn.className).toBe('comment-field-label__btn')
+      // Always visible: one button per question, on its own row under the
+      // field, whether or not it already carries a comment.
+      expect(btn.classList.contains('comment-field-label__btn')).toBe(true)
       expect(btn.getAttribute('size')).toBe('xs')
       expect(btn.getAttribute('variant')).toBe('accent-transparent')
       expect(btn.getAttribute('start-icon')).toBe('comment')
@@ -278,62 +313,58 @@ describe('useFieldCommentIndicators', () => {
   })
 
   describe('injection placement', () => {
-    it('places the button in the label row of an open_text field too', () => {
+    // An open_text field already has a bar for its edit/read switch; both are
+    // controls for the same field, so they share one row.
+    it('puts the button on its own row under the field, whatever the field is', () => {
+      for (const opts of [{ withOpenTextBar: true }, { withPlainField: true }]) {
+        document.body.innerHTML = ''
+        const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true, ...opts })
+        document.body.appendChild(container)
+        mountHarness({ container })
+
+        const field = container.querySelector('.field-group')!
+        const row = field.nextElementSibling!
+        expect(row.className).toBe('comment-field-row')
+        expect(row.querySelector('nldd-button')).toBeTruthy()
+        // Not in the label row any more, and not in the field's own toolbar.
+        expect(container.querySelector('.form-field__label nldd-button')).toBeNull()
+      }
+    })
+
+    it('steps over what sits between the label and the field', () => {
       const { container } = makeLabel({
         id: 'label-x-1.1',
         withLabelContainer: true,
-        withToggle: true,
+        withInterloper: true,
+        withPlainField: true,
       })
       document.body.appendChild(container)
 
       mountHarness({ container })
 
-      // The read/edit switch moved to the field itself, so the label row holds
-      // nothing but the label and this button.
-      const labelContainer = container.querySelector('.form-field__label')!
-      expect(labelContainer.querySelector('nldd-button')).toBeTruthy()
-      expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
+      // FormField puts ReferenceSuggestions in that gap; the row still lands
+      // after the field, not after the interloper.
+      const field = container.querySelector('.field-group')!
+      expect(field.nextElementSibling?.className).toBe('comment-field-row')
     })
 
-    it('inserts before the description for non-open_text fields with a description', () => {
-      const { container } = makeLabel({
-        id: 'label-x-1.1',
-        withLabelContainer: true,
-        withDescription: true,
-      })
+    it('falls back to just after the label when there is no label container', () => {
+      const { container, label } = makeLabel({ id: 'label-x-1.1' })
       document.body.appendChild(container)
 
       mountHarness({ container })
 
-      const labelContainer = container.querySelector('.form-field__label')!
-      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
-      const desc = labelContainer.querySelector('.form-field__description')!
-      expect(btn.nextElementSibling).toBe(desc)
-      expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
+      expect(label.nextElementSibling?.className).toBe('comment-field-row')
     })
 
-    it('appends to the label container for non-open_text fields without a description', () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
-      document.body.appendChild(container)
 
-      mountHarness({ container })
 
-      const labelContainer = container.querySelector('.form-field__label')!
-      const btn = labelContainer.querySelector<HTMLElement>('nldd-button')!
-      expect(labelContainer.lastElementChild).toBe(btn)
-      expect(labelContainer.classList.contains('comment-field-label--flex')).toBe(true)
-    })
 
-    it('falls back to inserting after the label when there is no label container', () => {
-      const { container, label } = makeLabel({ id: 'label-x-1.1', withLabelContainer: false })
-      document.body.appendChild(container)
 
-      mountHarness({ container })
 
-      const btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn).not.toBeNull()
-      expect(label.nextElementSibling).toBe(btn)
-    })
+
+
+
 
     it('does nothing for a label with no parent element (fallback insert is a no-op)', () => {
       // The null-parent branch is unreachable: querySelectorAll only finds

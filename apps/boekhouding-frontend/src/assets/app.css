@@ -183,29 +183,26 @@ nldd-card p {
   margin-block-end: var(--primitives-space-16, 1rem);
 }
 
+/* The title gives way first: it can wrap, the buttons beside it cannot. */
 .form-subheader__left {
   min-width: 0;
-  flex: 1;
+  flex: 1 1 auto;
 }
 
+/* nldd-toolbar decides what still fits by comparing its content width to the
+   width it has been given (scrollWidth vs clientWidth). Its host is display:
+   block, so on a basis of 0 it would measure almost nothing and push every
+   button into the overflow menu at once. Basis auto starts it at the width its
+   buttons actually need; shrinking from there is what makes them move into the
+   menu one at a time, widest-first. */
 .form-subheader__right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
-@media (max-width: 560px) {
-  .form-subheader {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-  }
-
-  .form-subheader__right {
-    justify-content: flex-end;
-  }
-}
+/* No stacking breakpoint of its own: the toolbar folds its buttons into the
+   overflow menu as the row narrows, which is what a media query here would
+   pre-empt. The title wraps; the bar keeps its place beside it. */
 
 .form-name {
   font-size: var(--primitives-font-size-300, 1.5rem);
@@ -481,64 +478,33 @@ nldd-card p {
    Comment system
    ─────────────────────────────────────────────── */
 
-/* Layout: form + panel side by side */
-.assessment-editor__content {
-  display: flex;
-}
-
+/* The comment panel is a sheet over the page, so the form keeps the full width
+   to itself: align the column (ToC + task content) with the header above it,
+   both in one centred column (--editor-col). It stays wide enough that the
+   sidebar-section keeps the ToC expanded (its sheet kicks in below 1008px). */
 .assessment-editor__form {
-  flex: 1;
   min-width: 0;
-  /* Align the form column (ToC + task content) with the header above it: both
-     sit in one centred column (--editor-col). The width stays wide enough that
-     the sidebar-section keeps the ToC as an expanded sidebar (its sheet kicks
-     in below 1008px). When the comment panel opens the form goes flush-left so
-     the panel can pin to the right viewport edge. */
   max-width: var(--editor-col);
   margin-inline: auto;
 }
 
-.assessment-editor__content--panel-open .assessment-editor__form {
-  max-width: none;
-  margin-inline: 0;
-}
-
-/* Comment panel (Google Docs style — scrolls with form, no own scroll) */
-.comment-panel {
-  width: clamp(20rem, 20vw, 30rem);
-  flex-shrink: 0;
-  /* Start where the page content starts, not against the navigation bar: the
-     section above sets the same top padding. */
-  padding-block-start: var(--primitives-space-24, 1.5rem);
-  background: var(--semantics-surfaces-base-background-color);
-  display: flex;
-  flex-direction: column;
-  transform: translateX(min(calc((100vw - clamp(20rem, 20vw, 30rem) - 1280px) / -2), 0px));
-}
-
-/* nldd-toolbar lays the row out; what stays is the panel's own behaviour:
-   the header rides along while the comments scroll under it. */
-.comment-panel__header {
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--semantics-surfaces-base-background-color);
-}
-
-.comment-panel__toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: var(--primitives-font-size-80, 0.875rem);
-  cursor: pointer;
-  white-space: nowrap;
+/* Comment panel (Google Docs style — scrolls with form, no own scroll).
+   The inspector pane sizes and places the panel; what stays is the column
+   itself: the threads are absolutely positioned against this box, so it has to
+   be the containing block and fill the pane's height. */
+/* The panel is the content of an nldd-page inside the sheet: the page holds the
+   title bar in its header slot and scrolls the list itself, so neither needs a
+   height, a sticky rule or a background here. */
+/* The filter row under the title. nldd-container lays it out; only the rule
+   that closes it off from the list below is ours. */
+.comment-panel__filters {
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--semantics-dividers-color);
+  margin-block-end: 0.75rem;
 }
 
 .comment-panel__body {
-  position: relative;
-  flex: 1;
-  padding: 0;
+  padding-inline: 0.75rem;
 }
 
 .comment-panel__empty {
@@ -548,33 +514,57 @@ nldd-card p {
   padding: 1rem;
 }
 
-/* Field groups (positioned at field level, Google Docs style) */
 .comment-field-group {
-  position: absolute;
-  left: 0.75rem;
-  right: 0.75rem;
-  top: var(--comment-top, 0);
+  margin-bottom: 1rem;
 }
 
-.comment-field-group--active {
-  z-index: 1;
-}
-
-/* Field label link (mobile only — on desktop position provides context) */
-.comment-field-group__label {
-  display: none;
+/* The step a group belongs to, shown as a heading only when the list spans
+   more than one step, and a way to jump there. */
+.comment-chapter__title {
+  display: block;
+  width: 100%;
   background: none;
   border: none;
-  padding: 0 0 0.25rem 0.75rem;
+  padding: 0.5rem 0 0.25rem;
   font: inherit;
-  font-size: var(--primitives-font-size-80, 0.875rem);
+  font-weight: 600;
   color: var(--semantics-content-accent-color);
+  cursor: pointer;
+  text-align: left;
+}
+
+.comment-chapter__title:hover {
+  text-decoration: underline;
+}
+
+.comment-field-group__label {
+  /* -webkit-box, not block: that is what line-clamp needs to cap it at two
+     lines. Still a full-width block, so the whole caption is the click target. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0 0 0.25rem;
+  font: inherit;
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  line-height: 1.35;
+  color: var(--semantics-content-secondary-color);
   cursor: pointer;
   text-align: left;
 }
 
 .comment-field-group__label:hover {
   text-decoration: underline;
+}
+
+/* The group you just opened from the form: the question in the normal text
+   colour, so it stands out from the other captions without shouting. */
+.comment-field-group--active .comment-field-group__label {
+  color: var(--semantics-content-color);
+  font-weight: 600;
 }
 
 /* Threads: nldd-card draws the surface; only the stacking gap and the resolved
@@ -605,13 +595,8 @@ nldd-card p {
   gap: 0.5rem;
 }
 
-.comment-item__author {
-  font-size: var(--primitives-font-size-80, 0.875rem);
-}
-
+/* nldd-text carries size and colour; the timestamp must not wrap. */
 .comment-item__time {
-  font-size: var(--primitives-font-size-70, 0.8rem);
-  color: var(--semantics-content-secondary-color);
   white-space: nowrap;
 }
 
@@ -648,10 +633,11 @@ nldd-card p {
   margin-top: 0.25rem;
 }
 
-.comment-item__edit-actions {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
+/* nldd-button-group lays the pair out; only the gap to the field above it is
+   ours, and that is a margin the group itself has no say over. */
+.comment-item__edit-actions,
+.comment-reply-form__actions {
+  margin-top: var(--primitives-space-8, 0.5rem);
 }
 
 /* Replies area */
@@ -665,93 +651,29 @@ nldd-card p {
   margin-left: 0.75rem;
 }
 
-.comment-reply-form__actions {
-  display: flex;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
-}
-
-/* Inline new comment form (appears at field level) */
+/* nldd-card draws the surface and nldd-container the padding; the tint is what
+   sets the form you are writing in apart from the comments above it. This used
+   to be a plain div with its own border, radius, background and shadow — five
+   rules redrawing what the card already does, and the reason it looked unlike
+   the rest of the panel. */
 .comment-inline-form {
-  padding: var(--primitives-space-12, 0.75rem);
-  border-radius: var(--semantics-surfaces-corner-radius);
-  border: var(--semantics-surfaces-border-width, 1px) solid var(--semantics-content-accent-color);
-  background: var(--semantics-surfaces-base-background-color);
-  box-shadow: var(--primitives-box-shadows-level-1);
-}
-
-.comment-inline-form__actions {
-  display: flex;
-  gap: var(--primitives-space-8, 0.5rem);
-  margin-top: var(--primitives-space-8, 0.5rem);
+  display: block;
 }
 
 /* Field comment buttons (injected by useFieldCommentIndicators): only the
    layout hooks that place the nldd-button in core's light-DOM label row. */
 
-/* Make non-open_text label containers flex so the button aligns right */
-.comment-field-label--flex {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
+/* Its own row under the field, the same for every question. It used to sit in
+   core's label row (which needed !important to make that row a flex line) and,
+   for an open-text field, in that field's own toolbar — two placements, and in
+   a task group the labels ended up carrying controls belonging to the answers
+   below them. */
+.comment-field-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: var(--primitives-space-4, 0.25rem);
 }
 
-.comment-field-label--flex .form-field__description {
-  flex-basis: 100%;
-}
-
-/* When placed in the label row, push to the right */
-.comment-field-label__btn {
-  margin-inline-start: auto;
-}
-
-/* On phones the comment panel becomes a bottom-sheet, closed with its X button. */
-@media (max-width: 768px) {
-  .comment-panel {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    max-width: 100%;
-    max-height: 75vh;
-    max-height: 75dvh;
-    overflow-y: auto;
-    z-index: 90;
-    transform: none;
-    border-top: 1px solid var(--semantics-dividers-color);
-    border-radius: 12px 12px 0 0;
-    /* sheet elevation + dim scrim over the rest of the screen */
-    box-shadow:
-      0 -2px 12px rgba(0, 0, 0, 0.2),
-      0 0 0 100vmax rgba(0, 0, 0, 0.4);
-    animation: comment-sheet-up 0.2s ease-out;
-  }
-
-  .comment-panel__body {
-    position: static;
-  }
-
-  .comment-field-group {
-    position: static;
-    margin-bottom: 1rem;
-  }
-
-  .comment-field-group__label {
-    display: block;
-  }
-}
-
-@keyframes comment-sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-
-  to {
-    transform: translateY(0);
-  }
-}
 /* ───────────────────────────────────────────────
    Landing page
    ─────────────────────────────────────────────── */
