@@ -339,26 +339,20 @@ nldd-sidebar-section {
   }
 }
 
+/* The row above an open text field. It used to hold the read/edit switch as
+   well; nldd-text-editor shows the formatting inline, so the switch is gone and
+   what is left is whatever a consumer adds — the comment button in the
+   boekhouding app, which brings its own show-on-hover rule. */
 .open-text-field__bar {
   display: flex;
   justify-content: flex-end;
   margin-block-end: var(--primitives-space-4, 0.25rem);
 }
 
-/* Frame around the markdown read mode; the content itself is styled by
-   nldd-rich-text (rich-text.css), which the host carries. */
-.markdown-preview {
-  min-height: 8rem;
-  padding: var(--primitives-space-12, 0.75rem);
-  background: var(--semantics-surfaces-tinted-background-color);
-  border: var(--semantics-surfaces-border-width, 1px) solid var(--semantics-surfaces-tinted-border-color);
-  border-radius: var(--semantics-surfaces-corner-radius, 8px);
-}
-
-/* GFM task list items: rich-text has no rule for the marker-less variant. */
-.markdown-preview .task-list-item {
-  list-style: none;
-  margin-inline-start: -1rem;
+.open-text-field__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--primitives-space-2, 0.125rem);
 }
 
 /* Image field */
