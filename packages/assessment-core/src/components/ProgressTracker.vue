@@ -7,8 +7,10 @@ import { PERSISTENCE_KEY } from '../persistence'
 import '@nldd/design-system/icon-cell'
 import '@nldd/design-system/list'
 import '@nldd/design-system/list-item'
+import '@nldd/design-system/spacer-cell'
 import '@nldd/design-system/text'
 import '@nldd/design-system/text-cell'
+import '@nldd/design-system/timeline-track-cell'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
@@ -84,6 +86,17 @@ interface Step {
   // The marker always carries the chapter number; its fill carries the state
   // (done, current, started, untouched).
   markerText: string | null
+  // What the marker draws: a check for a finished step, a filled dot for one
+  // someone has worked in, nothing for the rest.
+  markerIcon: string | undefined
+  // The state in words, under the title, only where nothing else says it. The
+  // check mark carries done and the tinted row carries current, so the one that
+  // is left is a chapter someone has begun. An untouched one says nothing:
+  // "nog niet begonnen" under every other chapter is noise.
+  stateLabel: string | undefined
+  // What the track draws in the dot: the same three values nldd-step-indicator
+  // uses. A started-but-unfinished step is 'future' with a filled core.
+  status: 'past' | 'current' | 'future'
   navigable: boolean
 }
 
@@ -107,6 +120,13 @@ function describe(task: FlatTask): Step {
     done,
     comment: props.commentedTaskIds.includes(task.id),
     markerText: num,
+    markerIcon: done ? 'check-mark' : progress ? 'circle-filled-small' : undefined,
+    stateLabel: !done && !current && progress ? 'Mee bezig' : undefined,
+    // 'past' fills the marker from the track colour, which is what a finished
+    // step should look like. It would normally darken the line above it too,
+    // but line="none" on the cell keeps both halves pale, so the track stays
+    // one colour whatever order the chapters are finished in.
+    status: done ? 'past' : current ? 'current' : 'future',
     navigable: isNavigable.value,
   }
 }
@@ -119,36 +139,64 @@ const steps = computed<Step[]>(() => {
     out.push({
       key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid',
       node: 'open', current: false, done: false, comment: false,
-      markerText: null, navigable: false,
+      markerText: null, markerIcon: undefined, stateLabel: undefined,
+      status: 'future', navigable: false,
     })
   }
   return out
 })
+
+// Where the line runs: above the dot, below it, or both. A single step gets a
+// line on neither side — a track of one dot leads nowhere.
+function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
+  if (steps.value.length === 1) return 'only'
+  if (index === 0) return 'first'
+  if (index === steps.value.length - 1) return 'last'
+  return 'between'
+}
 </script>
 
 <template>
   <div class="progress-tracker">
     <nldd-text class="progress-tracker__title" weight="bold">Inhoudsopgave</nldd-text>
-    <!-- A plain list: nldd-list owns hover, focus and arrow-key navigation, and
-         the row carries its own state. The chapter number rides along as the
-         cell's overline; a check mark at the end says the step is done. -->
+    <!-- nldd-list owns the row: hover, focus, the current marker and arrow-key
+         navigation. dividers="never" keeps the timeline the only vertical line.
+         The chapter number rides in the dot, so the title stands on its own. -->
     <nldd-list variant="simple" dividers="never" accessible-label="Inhoudsopgave">
-      <nldd-list-item v-for="step in steps" :key="step.key"
+      <!-- `selected`, not `current`: both mark the row, but current takes the
+           highlighted fill (a dark bar) while focus is in it, which buries the
+           marker and the line under it. Selected is a light tint that leaves
+           both readable. Neither sets aria-current in a list that is not a
+           `navigation` parent, so the state is announced below instead. -->
+      <nldd-list-item v-for="(step, i) in steps" :key="step.key"
         class="toc-item" :class="`toc-item--${step.node}`"
         :button="step.navigable || undefined"
-        :current="step.current || undefined"
+        :selected="step.current || undefined"
         @click="goToTask(step.id)">
-        <nldd-text-cell class="toc-title" :text="step.label"></nldd-text-cell>
+        <!-- The marker carries the state, the number rides with the title:
+             a finished step shows a check mark instead of its number, which is
+             the one thing a number cannot say. -->
+        <!-- line="none": no half of the track counts as covered, so the line
+             is one colour the whole way down. A table of contents can be
+             finished in any order, and the design system's default would paint
+             dark stretches between arbitrary chapters. The markers carry the
+             state. -->
+        <nldd-timeline-track-cell class="toc-track-cell" variant="major" size="md" line="none"
+          :status="step.status" :position="positionOf(i)"
+          :icon="step.markerIcon"></nldd-timeline-track-cell>
+        <nldd-spacer-cell size="12"></nldd-spacer-cell>
+        <!-- The state in words under the title: an icon in a dot asks to be
+             decoded, and this reads the same for everyone. It replaces the
+             screen-reader-only spans that used to say it. -->
+        <nldd-text-cell class="toc-title" :text="step.label"
+          :supporting-text="step.stateLabel"></nldd-text-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
           icon="comment" size="16" color="accent"></nldd-icon-cell>
-        <nldd-icon-cell v-if="step.done" class="toc-done"
-          icon="check-mark" size="16" color="success"></nldd-icon-cell>
-        <!-- Started but not finished: a small filled dot, the state the
-             timeline marker used to carry in its core. -->
-        <nldd-icon-cell v-else-if="step.node === 'progress'" class="toc-progress"
-          icon="circle-filled-small" size="16" color="accent"></nldd-icon-cell>
+        <!-- What only a colour or an icon says on screen still has to be said
+             out loud: this list is not a `navigation` parent, so nldd-list-item
+             sets no aria-current either. -->
+        <span v-if="step.current" class="sr-only">, huidige stap</span>
         <span v-if="step.done" class="sr-only">, voltooid</span>
-        <span v-if="step.node === 'progress'" class="sr-only">, deels ingevuld</span>
         <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>
       </nldd-list-item>
     </nldd-list>
