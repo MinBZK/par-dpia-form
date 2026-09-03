@@ -25,14 +25,14 @@
     "ajv-formats": "^3.0.1",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.12.1",
-    "jose": "^6.2.9",
+    "jose": "^6.2.10",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@vitest/coverage-istanbul": "^4.1.11",
     "drizzle-kit": "^0.31.10",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.13",
     "typescript": "~5.9.3",
     "vitest": "^4.1.11"
   }
