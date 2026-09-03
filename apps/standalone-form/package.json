@@ -20,19 +20,19 @@
     "@overheid-assessment/core": "workspace:*",
     "pdfmake": "^0.3.11",
     "pinia": "^4.0.3",
-    "vue": "^3.5.41"
+    "vue": "^3.5.42"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.6",
     "@types/jexl": "^2.3.4",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.4.0",
     "@vitejs/plugin-vue": "^6.0.8",
     "@vitest/coverage-istanbul": "^4.1.11",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.9.0",
-    "@vue/test-utils": "^2.4.6",
+    "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.1",
     "eslint-plugin-vue": "^10.10.0",
     "jiti": "^2.7.0",
     "jsdom": "^30.0.1",
@@ -43,6 +43,6 @@
     "vite-plugin-singlefile": "^2.3.3",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vitest": "^4.1.11",
-    "vue-tsc": "^3.3.10"
+    "vue-tsc": "^3.3.11"
   }
 }
