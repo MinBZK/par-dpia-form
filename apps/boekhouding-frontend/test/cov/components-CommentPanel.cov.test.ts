@@ -188,6 +188,16 @@ describe('CommentPanel', () => {
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
+    it('names the panel with a real heading, not a toolbar title', () => {
+      const { wrapper } = mountPanel()
+      // nldd-toolbar-title renders a <p>; a screenreader would lose the heading.
+      const heading = wrapper.get('h2.comment-panel__title')
+      expect(heading.text()).toBe('Opmerkingen')
+      expect(heading.attributes('slot')).toBe('start')
+      // The region around it already carries the name, so the toolbar has none.
+      expect(wrapper.get('nldd-toolbar').attributes('label')).toBeUndefined()
+    })
+
     it('shows the loading state when the store is loading', () => {
       const { wrapper } = mountPanel({ loading: true })
       const empty = wrapper.get('.comment-panel__empty')
