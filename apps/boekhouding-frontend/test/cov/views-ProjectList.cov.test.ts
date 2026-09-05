@@ -256,12 +256,13 @@ describe('ProjectList', () => {
 
       const fields = wrapper.findAll('nldd-form-field')
       expect(fields).toHaveLength(2)
-      // The dialog owns the actions; they sit in its actions slot.
-      const actions = wrapper.findAll('nldd-button[slot="actions"]')
+      // The actions sit inside the form, so the submit button reaches it.
+      const actions = wrapper.findAll('form nldd-button')
       expect(actions.map((b) => b.attributes('text'))).toEqual([
         'Project toevoegen',
         'Annuleren',
       ])
+      expect(actions[0].attributes('type')).toBe('submit')
       expect(fields[0].attributes('label')).toBe('Naam')
       expect(fields[0].find('nldd-text-field[input-id="projectName"]').exists()).toBe(true)
       expect(fields[1].attributes('label')).toBe('Beschrijving')
