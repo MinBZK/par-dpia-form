@@ -325,9 +325,12 @@ async function handleReopen(commentId: string) {
   >
     <!-- The header is a toolbar: the title at the start, the filter and the
          close button at the end, spacing and alignment from the design system
-         instead of a hand-rolled flex row. -->
-    <nldd-toolbar class="comment-panel__header" size="sm" label="Opmerkingen">
-      <nldd-toolbar-title slot="start" text="Opmerkingen"></nldd-toolbar-title>
+         instead of a hand-rolled flex row. The title stays a real <h2> --
+         nldd-toolbar-title renders a <p>, and the panel would lose its heading.
+         No label on the toolbar either: the region around it already carries
+         the name "Opmerkingen". -->
+    <nldd-toolbar class="comment-panel__header" size="sm">
+      <h2 slot="start" class="comment-panel__title">Opmerkingen</h2>
       <nldd-toolbar-item slot="end">
         <nldd-checkbox-field class="comment-panel__toggle" label="Opgeloste tonen"
           :checked="showResolved || undefined"

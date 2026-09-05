@@ -8,7 +8,7 @@ import '@nldd/design-system/banner'
 import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/simple-section'
 import '@nldd/design-system/button'
-import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/sheet'
 import '@nldd/design-system/button-group'
 import '@nldd/design-system/card'
 import '@nldd/design-system/collection'
@@ -27,13 +27,13 @@ const {
 } = usePaginatedList<Project>((page, pageSize) => projectsApi.list(page, pageSize), (p) => p.id)
 const loading = ref(true)
 const error = ref<string | null>(null)
-type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
-const createDialogRef = ref<ModalDialogElement | null>(null)
+type SheetElement = HTMLElement & { show?: () => void; hide?: () => void }
+const createSheetRef = ref<SheetElement | null>(null)
 const showCreateForm = ref(false)
 
 watch(showCreateForm, (open) => {
-  if (open) createDialogRef.value?.show?.()
-  else createDialogRef.value?.hide?.()
+  if (open) createSheetRef.value?.show?.()
+  else createSheetRef.value?.hide?.()
 })
 const newProjectName = ref('')
 const newProjectDescription = ref('')
@@ -127,37 +127,43 @@ const handleCreate = async () => {
     </nldd-container>
   </nldd-simple-section>
 
-  <!-- The form lives in a dialog: inline it pushed the page around and sat
-       under the "no projects yet" notice while you were typing. -->
-  <nldd-modal-dialog ref="createDialogRef" data-test="create-project-dialog"
-    text="Nieuw project" @close="showCreateForm = false">
-    <nldd-form>
-      <!-- Own <form> as direct child: that is the framework-friendly mode, so
-           the component mirrors attributes instead of migrating Vue's nodes. -->
-      <form id="createProjectForm" @submit.prevent="handleCreate">
-      <nldd-form-field label="Naam">
-        <nldd-text-field
-          input-id="projectName"
-          type="text"
-          required
-          :value="newProjectName"
-          @input="newProjectName = fieldValue($event)"
-        ></nldd-text-field>
-      </nldd-form-field>
-      <nldd-form-field label="Beschrijving" optional>
-        <nldd-multi-line-text-field
-          input-id="projectDesc"
-          rows="2"
-          resize="auto"
-          :value="newProjectDescription"
-          @input="newProjectDescription = fieldValue($event)"
-        ></nldd-multi-line-text-field>
-      </nldd-form-field>
-      </form>
-    </nldd-form>
-    <nldd-button slot="actions" variant="primary" text="Project toevoegen"
-      @click="handleCreate"></nldd-button>
-    <nldd-button slot="actions" variant="secondary" text="Annuleren"
-      @click="showCreateForm = false"></nldd-button>
-  </nldd-modal-dialog>
+  <!-- A sheet, not a modal: this is data entry that keeps the page in view.
+       The design system reserves the modal for an irreversible action. -->
+  <nldd-sheet ref="createSheetRef" data-test="create-project-dialog"
+    accessible-label="Nieuw project" width="30rem" @close="showCreateForm = false">
+    <nldd-container padding="24" gap="16">
+      <nldd-title size="4"><h2>Nieuw project</h2></nldd-title>
+      <nldd-form>
+        <!-- Own <form> as direct child: that is the framework-friendly mode, so
+             the component mirrors attributes instead of migrating Vue's nodes. -->
+        <form @submit.prevent="handleCreate">
+        <nldd-form-field label="Naam">
+          <nldd-text-field
+            input-id="projectName"
+            type="text"
+            required
+            :value="newProjectName"
+            @input="newProjectName = fieldValue($event)"
+          ></nldd-text-field>
+        </nldd-form-field>
+        <nldd-form-field label="Beschrijving" optional>
+          <nldd-multi-line-text-field
+            input-id="projectDesc"
+            rows="2"
+            resize="auto"
+            :value="newProjectDescription"
+            @input="newProjectDescription = fieldValue($event)"
+          ></nldd-multi-line-text-field>
+        </nldd-form-field>
+        <nldd-button-group orientation="horizontal">
+          <!-- type="submit": the component calls form.requestSubmit() itself, so
+               the form's own required-check runs and Enter works in the field. -->
+          <nldd-button variant="primary" type="submit" text="Project toevoegen"></nldd-button>
+          <nldd-button variant="secondary" text="Annuleren"
+            @click="showCreateForm = false"></nldd-button>
+        </nldd-button-group>
+        </form>
+      </nldd-form>
+    </nldd-container>
+  </nldd-sheet>
 </template>
