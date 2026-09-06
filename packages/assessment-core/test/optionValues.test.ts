@@ -115,18 +115,24 @@ describe('DPIA 13.1.1.6 follow-up question', () => {
 })
 
 describe('pre-scan weighted scores', () => {
-  it('counts a weighted option towards its risk score', async () => {
+  let taskStore: ReturnType<typeof useTaskStore>
+  let answerStore: ReturnType<typeof useAnswerStore>
+  let calculationStore: ReturnType<typeof useCalculationStore>
+
+  beforeEach(() => {
     setActivePinia(createPinia())
-    const taskStore = useTaskStore()
-    const answerStore = useAnswerStore()
+    taskStore = useTaskStore()
+    answerStore = useAnswerStore()
+    calculationStore = useCalculationStore()
     const schemaStore = useSchemaStore()
-    const calculationStore = useCalculationStore()
 
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     schemaStore.init({ dpia: dpiaSchema, preScan: prescanSchema })
     taskStore.init((prescanSchema as { tasks: Task[] }).tasks, true)
+  })
 
+  it('counts a weighted option towards its risk score', async () => {
     const instanceId = taskStore.getInstanceIdsForTask('5.1.2')[0]
     // 'Basisregistratie Inkomen (BRI)' carries weight 1 in the expression.
     answerStore.setAnswer(instanceId, [optionValuesOf(taskStore.taskById('5.1.2'))[1]])
@@ -135,5 +141,33 @@ describe('pre-scan weighted scores', () => {
     await calculationStore.runCalculations()
 
     expect(calculationStore.calculatedScores['basisregistratie']).toBe(1)
+  })
+
+  it('turns the weighted scores into a "DPIA verplicht" verdict', async () => {
+    // 7 special categories (score 2), children under 16 plus another vulnerable
+    // group (weights 3 + 3 -> score 2) and Basisregistratie Inkomen (score 1):
+    // 5 in total, so the riskscore criterion (sum > 4) fires and nothing else.
+    answerStore.setAnswer(taskStore.getInstanceIdsForTask('1.2.1')[0], true)
+    answerStore.setAnswer(
+      taskStore.getInstanceIdsForTask('1.2.2')[0],
+      optionValuesOf(taskStore.taskById('1.2.2')).slice(0, 7),
+    )
+    answerStore.setAnswer(
+      taskStore.getInstanceIdsForTask('1.4.1')[0],
+      optionValuesOf(taskStore.taskById('1.4.1')).slice(2, 4),
+    )
+    answerStore.setAnswer(taskStore.getInstanceIdsForTask('5.1.1')[0], true)
+    answerStore.setAnswer(
+      taskStore.getInstanceIdsForTask('5.1.2')[0],
+      [optionValuesOf(taskStore.taskById('5.1.2'))[1]],
+    )
+
+    calculationStore.init()
+    await calculationStore.runCalculations()
+
+    const dpia = calculationStore.assessmentResults.find(result => result.id === 'DPIA')
+
+    expect(dpia?.result).toBe('DPIA verplicht')
+    expect(dpia?.criteria?.map(criterion => criterion.id)).toEqual(['riskscore'])
   })
 })

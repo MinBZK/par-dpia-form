@@ -17,11 +17,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
-* In de pre-scan telden de vragen over categorieën betrokkenen en
-  basisregistraties niet mee in de risicoscore: welke vakjes je ook aanvinkte,
-  het gewicht bleef nul. Beide tellen nu mee zoals bedoeld. Let op: hierdoor kan
-  de pre-scan tot een andere uitkomst komen dan voorheen, bijvoorbeeld "DPIA
-  verplicht" waar eerder geen verplichting uit kwam.
+* De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
+  weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
+  antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
+  verplichting volgde.
+
 ## [2026.8.25]
 
 ### Gewijzigd
