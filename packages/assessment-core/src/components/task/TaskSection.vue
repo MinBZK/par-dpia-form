@@ -257,7 +257,7 @@ function shouldSkipTask(taskId: string): boolean {
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
           <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
-            <template v-for="source in task.sources" :key="source">
+            <template v-for="source in task.sources" :key="source.source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
                 :alt="source.description" class="task-section__source-image" />
             </template>
