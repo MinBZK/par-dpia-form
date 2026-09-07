@@ -63,6 +63,10 @@ build) staan kort onder "Onder de motorkap".
 * De opmaaktekens zelf verdwijnen ook uit beeld: de `#` voor een kop en de
   sterretjes om vet staan er alleen nog op de regel waar je cursor staat, zodat
   je ze kunt bewerken. De rest van je antwoord leest als gewone tekst.
+* Onder elk open tekstveld staat een balk met opmaakknoppen: kop of gewone
+  tekst, vet, cursief, doorhalen, een opsomming of genummerde lijst, een citaat
+  en een link. Markdown intypen blijft werken. Op een smal scherm schuiven de
+  minst gebruikte knoppen naar een "..."-menu.
 * Het opmerkingenpaneel is een zijpaneel geworden dat vanaf rechts inschuift.
   Het formulier houdt zijn volle breedte en blijft bruikbaar terwijl het paneel
   openstaat: je leest een opmerking en past het antwoord ernaast aan. Sluiten

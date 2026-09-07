@@ -8,9 +8,11 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
+import OpenTextToolbar from './OpenTextToolbar.vue'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { CONTENT_READONLY_KEY } from '../../injectionKeys'
 import { computed, inject, ref } from 'vue'
+import '@nldd/design-system/container'
 import '@nldd/design-system/text-field'
 import './editor/AssessmentTextEditor'
 import '@nldd/design-system/dropdown'
@@ -53,6 +55,15 @@ const displayLabel = computed(() => {
 // they get the plain label text as accessible-label instead.
 const accessibleLabel = computed(() =>
   props.label ? getPlainTextWithoutDefinitions(displayLabel.value) : undefined,
+)
+
+// The nldd-text-editor element, handed to the formatting toolbar: its commands
+// are methods on the element itself.
+const textEditor = ref<HTMLElement | null>(null)
+
+// A field without a label still needs the toolbar named for assistive tech.
+const toolbarLabel = computed(() =>
+  accessibleLabel.value ? `Opmaak voor ${accessibleLabel.value}` : 'Opmaak',
 )
 
 function getSourceTaskId(task: FlatTask): string {
@@ -233,17 +244,27 @@ const handleRadioGroupChange = (event: Event) => {
 
   <!-- Text area with markdown support -->
   <div v-if="hasType('open_text')" class="open-text-field field-group">
+    <!-- Editor and toolbar share one frame, so they read as a single control
+         rather than a field with something loose beneath it. That means the
+         editor runs bare (variant="simple") and the wrapper draws the border,
+         radius, background and focus ring — in the design system's own
+         input-field tokens, so it stays in step with every other field and with
+         both themes. -->
     <!-- nldd-text-editor shows the markdown formatted while you type — bold
          reads as bold, a heading is larger — with the syntax markers still
          there, only dimmed. That leaves nothing to preview, so there is no
          read/edit switch and no second rendering of the same text: the value
          stays plain markdown, which is what the PDF export reads. -->
-    <assessment-text-editor variant="input-field"
+    <assessment-text-editor ref="textEditor" variant="simple"
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
       :accessible-label="accessibleLabel" rows="5" resize="auto"
       :value="safeString(currentValue as string | boolean | null)"
       @input="handleTextInput"></assessment-text-editor>
+    <!-- Inside the frame, under the text: the buttons act on what you are
+         looking at. Not while read-only — there is nothing to format. -->
+    <OpenTextToolbar v-if="!readonly" :editor="textEditor"
+      :accessible-label="toolbarLabel" />
   </div>
 
   <!-- Select radio -->

@@ -173,6 +173,26 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   DS-site; dat is smaak en geen gat, maar het is wel een signaal dat de
   voorbeelden zwaarder aanzetten dan in een formulier prettig is.
 
+- **`nldd-text-editor`: na een inline-commando blijft de tekst geselecteerd,
+  binnen de nieuwe markers.** `toggleBold` op een selectie `woord` levert
+  `**woord**` op met de selectie op `woord` (van 2 tot 7) -- dus binnen de
+  sterretjes. De volgende toetsaanslag vervangt die selectie: Enter maakt er
+  `**\n**` van en het woord is weg. Getypte tekst overschrijft het net vet
+  gemaakte woord.
+
+  Gemeten op een kale `nldd-text-editor` zonder onze extensies, dus het zit in
+  het component zelf. Geldt voor `toggleBold`, `toggleItalic` en
+  `toggleStrikethrough`; de regelcommando's (`setList`, `toggleQuote`) hebben er
+  geen last van.
+
+  Wij zetten de cursor nu zelf voorbij de sluitende markers, na elk
+  inline-commando. Dat vraagt toegang tot `view` op het element, wat toevallig
+  publiek is maar niet als API gedocumenteerd staat.
+
+  Gevraagd: laat de commando's de selectie zelf inklappen voorbij de markers,
+  zoals elke editor doet na het toepassen van een opmaak. Dan hoeft een
+  consument niet aan de CodeMirror-view te komen.
+
 ## Bespreekpunten met het team
 
 Geen issues voor NLDD, maar keuzes die we met het team (en de inhoudelijke

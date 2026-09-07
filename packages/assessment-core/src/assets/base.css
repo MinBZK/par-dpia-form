@@ -358,6 +358,46 @@ nldd-sidebar-section {
    well; nldd-text-editor shows the formatting inline, so the switch is gone and
    what is left is whatever a consumer adds — the comment button in the
    boekhouding app, which brings its own show-on-hover rule. */
+/* Editor and formatting toolbar as one control.
+
+   The design system has no component for a field that contains its own toolbar
+   (nldd-text-editor's input-field variant frames the text alone), so the frame
+   is drawn here. Every value is the token the input-field variant uses itself,
+   so this tracks the design system rather than freezing a copy of it: same
+   border, same radius, same focus ring, in both themes. The editor runs
+   variant="simple" inside, which is flush by design for exactly this case. */
+.open-text-field {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--primitives-corner-radius-lg);
+  box-shadow: inset 0 0 0 var(--semantics-input-fields-border-width)
+    var(--semantics-input-fields-border-color);
+  background-color: var(--semantics-input-fields-background-color);
+}
+
+/* The whole control takes the focus ring, not just the text area. */
+.open-text-field:focus-within {
+  outline: var(--semantics-focus-ring-outline);
+  outline-offset: var(--semantics-focus-ring-outline-offset);
+  box-shadow: var(--semantics-focus-ring-box-shadow),
+    inset 0 0 0 var(--semantics-input-fields-border-width)
+    var(--semantics-input-fields-border-color);
+}
+
+/* variant="simple" is flush by design — the composition owns the chrome — so
+   the padding the input-field variant would have added comes from here, in the
+   same token. The toolbar carries the same inline padding, so the first button
+   lines up with the first character. */
+.open-text-field > assessment-text-editor {
+  padding: var(--semantics-controls-md-inline-padding);
+  padding-block-end: 0;
+}
+
+.open-text-field > nldd-toolbar {
+  padding-inline: var(--semantics-controls-md-inline-padding);
+  padding-block-end: var(--semantics-controls-md-inline-padding);
+}
+
 .open-text-field__bar {
   display: flex;
   justify-content: flex-end;
