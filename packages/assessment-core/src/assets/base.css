@@ -259,11 +259,26 @@ nldd-sidebar-section {
   );
 }
 
-.toc-comment,
-.toc-done,
-.toc-progress {
+.toc-track-cell,
+.toc-comment {
   flex-shrink: 0;
 }
+
+/* One track, one colour: every step is 'future' so the line never changes, and
+   the marker alone says what a step is. A finished one is a filled dot with a
+   white check mark, which is what the component draws for 'future' once its
+   fill is the full track colour. */
+/* The unclosed circle of a started chapter, in the track's own dark blue rather
+   than the secondary grey the component writes marker content in: measured
+   (canvas, sRGB) 7.22:1 against the grey dot against 4.59:1, and it ties the
+   state to the same accent the check mark and the current ring use. That colour
+   comes from --semantics-content-secondary-color, so it is set there, scoped to
+   this cell so the row's own text keeps its colour. */
+.toc-item--progress .toc-track-cell {
+  --semantics-content-secondary-color: var(--components-timeline-track-cell-color);
+}
+
+
 
 
 .aiv-definition {
