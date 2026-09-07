@@ -18,14 +18,16 @@ import {
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import '@nldd/design-system/button'
+import '@nldd/design-system/sheet'
+import '@nldd/design-system/page'
 import '@nldd/design-system/simple-section'
 import '@nldd/design-system/text-field'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/banner'
 import '@nldd/design-system/spacer'
 import '@nldd/design-system/menu'
+import '@nldd/design-system/toolbar'
 import '@nldd/design-system/notification'
-import KebabMenu from '../components/KebabMenu.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
 import CommentBadge from '../components/CommentBadge.vue'
 import CommentPanel from '../components/CommentPanel.vue'
@@ -78,6 +80,54 @@ useFieldCommentIndicators(formContainerRef, (fieldId) => {
   activeCommentFieldId.value = fieldId
   commentPanelOpen.value = true
 }, canComment)
+
+// nldd-sheet exposes show()/hide(); they exist once the custom element has
+// upgraded (not in jsdom), hence the optional calls. Mirroring the state onto
+// them rather than mounting and unmounting the sheet keeps its slide-in.
+type SheetElement = HTMLElement & { show?: () => void; hide?: () => void }
+
+const commentSheet = ref<SheetElement | null>(null)
+
+watch(commentPanelOpen, async (open) => {
+  if (!open) {
+    commentSheet.value?.hide?.()
+    return
+  }
+  await nextTick()
+  commentSheet.value?.show?.()
+})
+
+// The sheet emits close for its own routes out (its dismiss button, Escape
+// while focus is inside it). Routing that back through the state keeps the
+// button in step, and the watch above then performs no second hide() because
+// the sheet is already closed.
+const onCommentSheetClose = () => {
+  commentPanelOpen.value = false
+  activeCommentFieldId.value = null
+}
+
+// A modeless sheet is a non-modal dialog, so the browser only routes Escape to
+// it while focus is inside. That is the point of modeless — the form stays
+// usable — but it means clicking back into a question takes Escape away from
+// the panel. Listening on the document gives it back.
+const onDocumentKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Escape' || !commentPanelOpen.value) return
+  // Escape belongs to the innermost thing that can use it: cancelling an edit,
+  // a reply or a new comment. Those handlers stop the event, so anything still
+  // travelling up landed on nothing and closes the panel.
+  commentPanelOpen.value = false
+  activeCommentFieldId.value = null
+}
+
+onMounted(() => document.addEventListener('keydown', onDocumentKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onDocumentKeydown))
+
+// The badge shows the count as a badge; a menu item has no room for one, so the
+// overflow entry says it in words.
+const commentOverflowText = computed(() => {
+  const count = collaborationStore.totalUnresolvedCount
+  return count > 0 ? `Opmerkingen (${count})` : 'Opmerkingen'
+})
 
 function toggleCommentPanel() {
   commentPanelOpen.value = !commentPanelOpen.value
@@ -410,7 +460,7 @@ const saveName = async () => {
   editingName.value = false
 }
 
-// Kebab menu actions (the shared KebabMenu closes itself on item activation)
+// Overflow-menu actions (nldd-menu closes itself on item activation)
 const handleVersionHistory = () => {
   router.push(`/assessment/${props.assessmentId}/versies`)
 }
@@ -460,8 +510,8 @@ const confirmDelete = async () => {
   </nldd-simple-section>
 
   <template v-else-if="assessment">
-    <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">
-      <div ref="formContainerRef" class="assessment-editor__form" :class="{ 'form-readonly': isReadonly }">
+    <div ref="formContainerRef" class="assessment-editor__form"
+      :class="{ 'form-readonly': isReadonly }">
         <Form
           :navigation="navigationFunctions"
           :contentInert="isReadonly"
@@ -473,7 +523,7 @@ const confirmDelete = async () => {
           :autoStart="true"
           :commentedRootTaskIds="commentedRootTaskIds"
         >
-          <template #header>
+          <template #header="{ tocCollapsed, toggleToc }">
           <!-- Form name + versiegeschiedenis + download -->
           <div class="form-header form-subheader">
             <div class="form-subheader__left">
@@ -496,26 +546,53 @@ const confirmDelete = async () => {
                   :value="editName"
                   @input="onEditNameInput"
                   @keydown.enter="saveName"
-                  @keydown.escape="cancelName"
+                  @keydown.escape.stop="cancelName"
                 ></nldd-text-field>
                 <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
                 <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
               </div>
             </div>
-            <div class="form-subheader__right">
-              <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
-              <KebabMenu label="Assessmentacties">
-                <nldd-menu-item text="Versiegeschiedenis" @click="handleVersionHistory"></nldd-menu-item>
-                <nldd-menu-divider></nldd-menu-divider>
-                <nldd-menu-item text="Download als PDF" @click="handleDownloadPdf"></nldd-menu-item>
-                <nldd-menu-item text="Download als JSON" @click="handleDownloadJson"></nldd-menu-item>
-                <nldd-menu-item text="Download als Markdown" @click="handleDownloadMarkdown"></nldd-menu-item>
-                <template v-if="isOwner">
-                  <nldd-menu-divider></nldd-menu-divider>
-                  <nldd-menu-item text="Assessment verwijderen" destructive @click="openDeleteModal"></nldd-menu-item>
-                </template>
-              </KebabMenu>
-            </div>
+            <!-- A toolbar, so the buttons shed into the overflow menu once the
+                 row runs out of room instead of crowding the title. That menu is
+                 the ellipsis button the toolbar draws itself, which is why the
+                 assessment actions are plain overflow items here rather than a
+                 kebab of their own: two ellipsis menus side by side would be one
+                 too many. -->
+            <nldd-toolbar class="form-subheader__right" size="sm" label="Assessmentacties">
+              <!-- Only while the contents are folded into their sheet is there
+                   something to open; with the sidebar in view this would open
+                   what is already open. The item is mounted as a whole or not at
+                   all, so the toolbar can move it into the overflow menu when the
+                   row runs out of room. Lowest priority: first to give up its
+                   place in the row. -->
+              <nldd-toolbar-item v-if="tocCollapsed" slot="end" priority="1">
+                <nldd-button
+                  variant="accent-transparent"
+                  size="sm"
+                  start-icon="bullet-list"
+                  text="Stappen"
+                  aria-haspopup="dialog"
+                  @click="toggleToc"
+                ></nldd-button>
+                <nldd-menu-item slot="overflow" icon="bullet-list" text="Stappen"
+                  @select="toggleToc"></nldd-menu-item>
+              </nldd-toolbar-item>
+              <nldd-toolbar-item slot="end" priority="2">
+                <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
+                <nldd-menu-item slot="overflow" icon="comment"
+                  :text="commentOverflowText" @select="toggleCommentPanel"></nldd-menu-item>
+              </nldd-toolbar-item>
+
+              <nldd-menu-item slot="overflow" text="Versiegeschiedenis" @select="handleVersionHistory"></nldd-menu-item>
+              <nldd-menu-divider slot="overflow"></nldd-menu-divider>
+              <nldd-menu-item slot="overflow" text="Download als PDF" @select="handleDownloadPdf"></nldd-menu-item>
+              <nldd-menu-item slot="overflow" text="Download als JSON" @select="handleDownloadJson"></nldd-menu-item>
+              <nldd-menu-item slot="overflow" text="Download als Markdown" @select="handleDownloadMarkdown"></nldd-menu-item>
+              <template v-if="isOwner">
+                <nldd-menu-divider slot="overflow"></nldd-menu-divider>
+                <nldd-menu-item slot="overflow" text="Assessment verwijderen" destructive @select="openDeleteModal"></nldd-menu-item>
+              </template>
+            </nldd-toolbar>
           </div>
 
           <template v-if="assessment.role === 'viewer' || assessment.role === 'commenter'">
@@ -530,17 +607,30 @@ const confirmDelete = async () => {
 
           </template>
         </Form>
-      </div>
-
-      <CommentPanel
-        v-if="commentPanelOpen"
-        :role="assessment.role || 'viewer'"
-        :activeFieldId="activeCommentFieldId"
-        :formContainerRef="formContainerRef"
-        @close="commentPanelOpen = false; activeCommentFieldId = null"
-        @deactivate-field="activeCommentFieldId = null"
-      />
     </div>
+
+    <!-- A side panel, the way the rest of the family does it: a right-hand
+         sheet that slides in over the page. Teleported to the body because a
+         sheet must sit at the document root, and modeless so the form stays
+         usable with it open — you read a comment and edit the answer beside it.
+         The sheet owns Esc and the click outside; @close is the single way the
+         state comes back down. -->
+    <Teleport to="body">
+      <nldd-sheet ref="commentSheet" placement="right" width="480px" modeless
+        accessible-label="Opmerkingen" @close="onCommentSheetClose">
+        <!-- sticky-header keeps the title bar in place while the list scrolls. -->
+        <nldd-page sticky-header>
+          <CommentPanel
+            v-if="commentPanelOpen"
+            :role="assessment.role || 'viewer'"
+            :activeFieldId="activeCommentFieldId"
+            :formContainerRef="formContainerRef"
+            @close="commentPanelOpen = false"
+            @deactivate-field="activeCommentFieldId = null"
+          />
+        </nldd-page>
+      </nldd-sheet>
+    </Teleport>
   </template>
 
   <!-- Conflict resolution modal -->

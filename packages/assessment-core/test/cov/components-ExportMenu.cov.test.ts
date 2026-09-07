@@ -95,28 +95,39 @@ describe('ExportMenu.vue split-variant', () => {
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
 
-  it('rendert als item in de utility menu-balk met dezelfde exportopties', () => {
-    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
+  it('rendert als knop in de toolbar, met dezelfde opties in het overflow-menu', () => {
+    const wrapper = mount(ExportMenu, { props: { toolbar: true } })
 
-    const item = wrapper.find('nldd-menu-bar-item')
-    expect(item.attributes('text')).toBe('Exporteer')
-    expect(item.attributes('icon')).toBe('download')
-    expect(item.attributes('expandable')).toBeDefined()
-    expect(item.find('nldd-menu').attributes('accessible-label')).toBeUndefined()
-    expect(item.findAll('nldd-menu-item').map((i) => i.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
+    const item = wrapper.find('nldd-toolbar-item')
+    expect(item.attributes('slot')).toBe('end')
 
-    // Neither of the other two hosts renders alongside it.
+    // The button keeps its label while the toolbar has room for it.
+    const button = item.find('nldd-button')
+    expect(button.attributes('text')).toBe('Exporteer')
+    expect(button.attributes('start-icon')).toBe('download')
+    expect(button.attributes('popup-type')).toBe('menu')
+    expect(button.findAll('nldd-menu-item').map((i) => i.attributes('text'))).toEqual(MENU_ITEM_TEXTS)
+
+    // And a matching set for when the toolbar pushes the item into overflow.
+    const overflow = item.findAll('nldd-menu-item[slot="overflow"]')
+    expect(overflow.map((i) => i.attributes('text'))).toEqual(SPLIT_ITEM_TEXTS)
+
     expect(wrapper.find('nldd-split-button').exists()).toBe(false)
-    expect(wrapper.find('nldd-button').exists()).toBe(false)
   })
 
-  it('emit per menu-item het bijbehorende formaat in de menu-balk-variant', async () => {
-    const wrapper = mount(ExportMenu, { props: { menuBar: true } })
+  it('emit per menu-item het bijbehorende formaat in de toolbar-variant', async () => {
+    const wrapper = mount(ExportMenu, { props: { toolbar: true } })
 
-    const items = wrapper.findAll('nldd-menu-item')
-    items.forEach(select)
+    wrapper.findAll('nldd-menu-item:not([slot="overflow"])').forEach(select)
     await nextTick()
+    expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
+  })
 
+  it('emit ook vanuit de overflow-items', async () => {
+    const wrapper = mount(ExportMenu, { props: { toolbar: true } })
+
+    wrapper.findAll('nldd-menu-item[slot="overflow"]').forEach(select)
+    await nextTick()
     expect(wrapper.emitted('export')).toEqual([['pdf'], ['json'], ['markdown']])
   })
 })

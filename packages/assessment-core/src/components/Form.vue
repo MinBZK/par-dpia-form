@@ -27,8 +27,7 @@ import { computed, inject, onMounted, onBeforeUnmount, provide, ref, toRef, watc
 import '@nldd/design-system/button'
 import '@nldd/design-system/checkbox-field'
 import '@nldd/design-system/divider'
-import '@nldd/design-system/menu-bar'
-import '@nldd/design-system/menu-bar-item'
+import '@nldd/design-system/toolbar'
 import '@nldd/design-system/modal-dialog'
 import '@nldd/design-system/sidebar-section'
 import '@nldd/design-system/inline-dialog'
@@ -245,6 +244,46 @@ type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
 
 const resetDialog = ref<ModalDialogElement | null>(null)
 
+// nldd-sidebar-section folds the table of contents into a sheet once it is
+// narrower than the design system's lg breakpoint, but leaves the trigger to the
+// consumer: without one the contents are collapsed with no way back. It measures
+// its own width, not the viewport, so this also fires on a wide screen when the
+// comment panel takes part of the row.
+type SidebarSectionElement = HTMLElement & { toggle?: () => void }
+
+const tocSection = ref<SidebarSectionElement | null>(null)
+const tocCollapsed = ref(false)
+
+const onTocCollapseChange = (event: Event) => {
+  tocCollapsed.value = (event as CustomEvent<{ collapsed?: boolean }>).detail?.collapsed ?? false
+}
+
+// collapse-change only fires when the state flips, and the component seeds its
+// first value with announce=false. Loading straight into a narrow window would
+// therefore leave the contents folded away with no trigger, so the initial state
+// is read off the reflected attribute instead. An observer rather than a single
+// read: the attribute appears when the element upgrades, which is after this
+// runs, and it keeps the two in step if an event is ever missed.
+// The observer only runs while it is observing one element, so it reads that
+// element rather than the ref.
+const collapsedObserver = new MutationObserver((records) => {
+  tocCollapsed.value = (records[0].target as HTMLElement).hasAttribute('collapsed')
+})
+
+// The section only renders once the tasks are in, so the ref is still empty at
+// mount; watching it picks the element up the moment it appears.
+watch(tocSection, (el) => {
+  collapsedObserver.disconnect()
+  if (!el) return
+  tocCollapsed.value = el.hasAttribute('collapsed')
+  collapsedObserver.observe(el, { attributes: true, attributeFilter: ['collapsed'] })
+}, { immediate: true })
+
+onBeforeUnmount(() => collapsedObserver.disconnect())
+
+// toggle() only exists once the custom element is upgraded (not in jsdom).
+const toggleToc = () => tocSection.value?.toggle?.()
+
 const resetSupportingText = computed(() => {
   const lost = filledAnswerCount.value > 0
     ? `Je ${resetLabel.value} met ${filledAnswerCount.value} ingevuld${filledAnswerCount.value === 1 ? '' : 'e'} antwoord${filledAnswerCount.value === 1 ? '' : 'en'} wordt definitief gewist.`
@@ -299,15 +338,26 @@ const completeAnnouncement = computed(() => {
   <Banner v-if="showBanner" :title="bannerTitle"
     back-text="Overzicht" @back="navigation.goToLanding">
     <template v-if="showNavHeader && formStarted && showFileActions" #utility>
-      <nldd-menu-bar slot="utility" accessible-label="Acties voor dit formulier">
-        <!-- content-priority: when the bar runs out of room it drops the label
-             and keeps the icon, rather than pushing the whole item into the
-             overflow menu. "Begin nieuwe Pre-scan" alone is 209px wide. -->
-        <nldd-menu-bar-item icon="arrow-clockwise" content-priority="icon"
-          :text="`Begin nieuwe ${resetLabel}`"
-          @select="resetOpen = true"></nldd-menu-bar-item>
-        <ExportMenu menu-bar @export="handleExport" />
-      </nldd-menu-bar>
+      <!-- A toolbar of buttons: they keep their labels while there is room and
+           move into the overflow menu whole once there is not, rather than
+           shedding their text first. -->
+      <nldd-toolbar slot="utility" size="sm" label="Acties voor dit formulier">
+        <!-- Only while the contents are folded away: with the sidebar in view
+             this would open what is already open. -->
+        <nldd-toolbar-item v-if="tocCollapsed" slot="start" priority="2">
+          <nldd-button variant="accent-transparent" size="sm" start-icon="bullet-list"
+            text="Stappen" aria-haspopup="dialog" @click="toggleToc"></nldd-button>
+          <nldd-menu-item slot="overflow" icon="bullet-list" text="Stappen"
+            @select="toggleToc"></nldd-menu-item>
+        </nldd-toolbar-item>
+        <nldd-toolbar-item slot="end">
+          <nldd-button variant="accent-transparent" size="sm" start-icon="arrow-clockwise"
+            :text="`Begin nieuwe ${resetLabel}`" @click="resetOpen = true"></nldd-button>
+          <nldd-menu-item slot="overflow" icon="arrow-clockwise"
+            :text="`Begin nieuwe ${resetLabel}`" @select="resetOpen = true"></nldd-menu-item>
+        </nldd-toolbar-item>
+        <ExportMenu toolbar @export="handleExport" />
+      </nldd-toolbar>
     </template>
   </Banner>
   <nldd-inline-dialog v-if="isLoading" variant="loading" text="Ophalen van taken..."></nldd-inline-dialog>
@@ -328,12 +378,16 @@ const completeAnnouncement = computed(() => {
          has no attribute to opt out of sticky, so the insets are the only way
          in through its public API; with these the panel simply scrolls along
          with the page. -->
-    <nldd-sidebar-section sidebar-label="Stappen navigatie" padding-top="24"
-      sticky-top="-200dvh" sticky-bottom="-200dvh">
+    <nldd-sidebar-section ref="tocSection" sidebar-label="Stappen navigatie" padding-top="24"
+      sticky-top="-200dvh" sticky-bottom="-200dvh"
+      @collapse-change="onTocCollapseChange">
       <!-- Page header inside the section, so a consumer's title bar lines up
            with the two columns instead of with its own container. -->
       <div v-if="$slots.header" slot="header">
-        <slot name="header" />
+        <!-- A consumer that hides the banner (and with it the toolbar above) has
+             nowhere else to put the trigger for the collapsed contents, so it
+             gets the state and the toggle to place one itself. -->
+        <slot name="header" :tocCollapsed="tocCollapsed" :toggleToc="toggleToc" />
       </div>
 
       <nav slot="sidebar" aria-label="Stappen navigatie">

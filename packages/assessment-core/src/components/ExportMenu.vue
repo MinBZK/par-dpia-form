@@ -2,7 +2,7 @@
 import '@nldd/design-system/split-button'
 import '@nldd/design-system/button'
 import '@nldd/design-system/menu'
-import '@nldd/design-system/menu-bar-item'
+import '@nldd/design-system/toolbar'
 
 export type ExportFormat = 'pdf' | 'json' | 'markdown'
 
@@ -20,10 +20,10 @@ const emit = defineEmits<{
 }>()
 
 // Three hosts for the same menu: `split` exports PDF straight from the main
-// button, `menuBar` sits in the utility menu bar of the top navigation, and the
-// default is a compact button. All three anchor, toggle and sync `expanded` for
+// button, `toolbar` is a button in the page toolbar (with its own overflow
+// entries), and the default is a compact button. All three anchor, toggle and sync `expanded` for
 // a slotted nldd-menu themselves.
-defineProps<{ split?: boolean; menuBar?: boolean }>()
+defineProps<{ split?: boolean; toolbar?: boolean }>()
 
 function choose(format: ExportFormat) {
   emit('export', format)
@@ -41,14 +41,19 @@ function choose(format: ExportFormat) {
     </nldd-menu>
   </nldd-split-button>
 
-  <!-- Item in the utility menu bar of the top navigation. -->
-  <nldd-menu-bar-item v-else-if="menuBar" text="Exporteer" icon="download"
-    content-priority="icon" expandable>
-    <nldd-menu width="10rem">
-      <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
-        @select="choose(f.format)"></nldd-menu-item>
-    </nldd-menu>
-  </nldd-menu-bar-item>
+  <!-- In the page toolbar: a button that keeps its label while there is room,
+       and a matching menu item for when the toolbar pushes it into overflow. -->
+  <nldd-toolbar-item v-else-if="toolbar" slot="end">
+    <nldd-button variant="accent-transparent" size="sm" start-icon="download"
+      text="Exporteer" expandable popup-type="menu">
+      <nldd-menu slot="popup" width="10rem">
+        <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
+          @select="choose(f.format)"></nldd-menu-item>
+      </nldd-menu>
+    </nldd-button>
+    <nldd-menu-item v-for="f in FORMATS" :key="`ov-${f.format}`" slot="overflow"
+      :text="`Exporteer als ${f.label}`" @select="choose(f.format)"></nldd-menu-item>
+  </nldd-toolbar-item>
 
   <!-- Compact button with the menu in its popup slot. -->
   <nldd-button v-else variant="accent-transparent" size="xs" text="Exporteer"

@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
+import { getPlainTextWithoutDefinitions, useTaskNavigation, useTaskStore } from '@overheid-assessment/core'
 import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
 import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/card'
-import '@nldd/design-system/toolbar'
-import '@nldd/design-system/checkbox-field'
+import '@nldd/design-system/top-title-bar'
+import '@nldd/design-system/toggle-button'
+import '@nldd/design-system/text'
 import '@nldd/design-system/container'
-import '@nldd/design-system/icon'
-import '@nldd/design-system/icon-button'
+import '@nldd/design-system/button-group'
 import '@nldd/design-system/multi-line-text-field'
 
 const props = defineProps<{
@@ -21,16 +22,26 @@ const props = defineProps<{
 const emit = defineEmits<{ close: []; 'deactivate-field': [] }>()
 
 const commentStore = useCollaborationStore()
+// currentRootTaskId on the store is keyed by namespace; this composable is the
+// accessor that resolves it, the same one Form uses.
+const taskStore = useTaskStore()
+const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
+const rootIds = computed(() => new Set(rootTasks.value.map(t => t.id)))
 
 const showResolved = ref(false)
 
-// nldd-checkbox-field reports the new state in the change detail; the inner
-// checkbox re-emits across the shadow boundary, so read the value rather than
-// toggling to keep the duplicate harmless.
+// nldd-toggle-button reports the new state in the change detail.
 const handleResolvedToggle = (event: Event) => {
-  const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked
-  if (checked !== undefined) showResolved.value = checked
+  const selected = (event as CustomEvent<{ selected?: boolean }>).detail?.selected
+  if (selected !== undefined) showResolved.value = selected
 }
+
+// nldd-toggle-button reports the new state in the change detail.
+const handleShowAllToggle = (event: Event) => {
+  const selected = (event as CustomEvent<{ selected?: boolean }>).detail?.selected
+  if (selected !== undefined) showAll.value = selected
+}
+
 const panelBodyRef = ref<HTMLElement | null>(null)
 
 // New comment state
@@ -52,46 +63,38 @@ const canResolve = computed(() =>
   props.role === 'editor' || props.role === 'owner',
 )
 
-const fieldPositions = ref(new Map<string, number>())
 const fieldLabels = ref(new Map<string, string>())
-const groupHeights = ref(new Map<string, number>())
 let formObserver: MutationObserver | null = null
-let resizeObserver: ResizeObserver | null = null
-const groupObserver = new ResizeObserver(() => measureGroups())
 let updateTimer: ReturnType<typeof setTimeout> | null = null
 
-function updateFieldPositions() {
+// Only the question text, to head each group. The panel no longer lines its
+// comments up with the fields, so nothing here measures geometry.
+function updateFieldLabels() {
   const formEl = props.formContainerRef
-  const bodyEl = panelBodyRef.value
-  if (!formEl || !bodyEl) return
+  if (!formEl) return
 
-  const bodyRect = bodyEl.getBoundingClientRect()
-  const positions = new Map<string, number>()
   const labels = new Map<string, string>()
-
   for (const label of formEl.querySelectorAll<HTMLElement>('[id^="label-"]')) {
     const parts = label.id.replace('label-', '').split('-')
     if (parts.length < 2) continue
     const fieldId = parts.slice(1).join('-')
-    positions.set(fieldId, label.getBoundingClientRect().top - bodyRect.top)
-    const titleEl = label.querySelector('.form-field__label > :first-child')
-    let text: string | undefined
-    if (titleEl) {
-      // Exclude any begrip-definition tooltip text nested in the title.
-      const clone = titleEl.cloneNode(true) as HTMLElement
-      clone.querySelectorAll('.aiv-definition-text').forEach((el) => el.remove())
-      text = clone.textContent?.trim()
-    }
-    labels.set(fieldId, text || label.textContent?.trim().split('\n')[0]?.trim() || fieldId)
+    // The question itself, without the explanation panels a defined term
+    // carries: those are hidden on screen but sit in the label's textContent,
+    // so a whole definition would bury the question under it. Read from the
+    // label element itself — it carries the id, and .form-field__label is its
+    // parent rather than a descendant.
+    const text = getPlainTextWithoutDefinitions(label.innerHTML)
+      .replace(/\s+/g, ' ')
+      .trim()
+    labels.set(fieldId, text || fieldId)
   }
 
-  fieldPositions.value = positions
   fieldLabels.value = labels
 }
 
-function schedulePositionUpdate() {
+function scheduleLabelUpdate() {
   if (updateTimer) clearTimeout(updateTimer)
-  updateTimer = setTimeout(() => updateFieldPositions(), 50)
+  updateTimer = setTimeout(() => updateFieldLabels(), 50)
 }
 
 // A thread you are writing in must not vanish when a colleague resolves it mid-sentence: that
@@ -102,15 +105,64 @@ function hasOpenInput(thread: CommentThread): boolean {
     || thread.replies.some(r => r.id === editingId.value)
 }
 
-// Entries positioned at their field's vertical offset
-const positionedEntries = computed(() => {
-  const positions = fieldPositions.value
-  const entries: Array<{ fieldId: string; threads: CommentThread[]; top: number }> = []
+// The chapter a field belongs to, walked up the real parent chain. Task ids are
+// display numbers, not a hierarchy: the IAMA's second chapter is "1.0" and holds
+// 1.1 and 1.actiepunten, so neither the first dot-segment nor a prefix match
+// gets it right. A field id can carry a repeat index ("2.1.3[0]"), which the
+// task itself does not have.
+function rootTaskIdOf(fieldId: string): string {
+  const base = fieldId.startsWith('completed.') ? fieldId.slice('completed.'.length) : fieldId
+  const taskId = base.split('[')[0]
+
+  let current = taskId
+  const guard = new Set<string>()
+  for (;;) {
+    const parent = taskStore.getParentTaskId(current)
+    if (!parent || guard.has(parent)) break
+    guard.add(parent)
+    current = parent
+  }
+  if (rootIds.value.has(current)) return current
+
+  // Not a task we know: a completion id ("completed.3"), or the schema has not
+  // loaded yet so the parent chain is still empty. Fall back to the longest root
+  // id the field id starts with, and only then to its first segment.
+  let best = ''
+  for (const id of rootIds.value) {
+    if ((taskId === id || taskId.startsWith(`${id}.`)) && id.length > best.length) best = id
+  }
+  return best || taskId.split('.')[0]
+}
+
+// Field ids are dotted numbers ("1.1", "2.1.3", "2.1.3[0]"), so comparing them
+// segment by segment as numbers puts them in the order of the form itself.
+// Anything non-numeric sorts on its text, after the numbered ones. A segment
+// pads to a sortable key rather than being compared in place: the ids come from
+// a map, so no two are equal and there is no tie left to break at the end.
+function fieldSortKey(fieldId: string): string {
+  return fieldId
+    .split('.')
+    .map((segment) => {
+      const n = Number.parseInt(segment, 10)
+      // "0" before the padded number, "1" before the text: numbers first.
+      return Number.isNaN(n) ? `1${segment}` : `0${String(n).padStart(6, '0')}`
+    })
+    .join('.')
+}
+
+// One group per field, in the order of the form, for the chapter on screen.
+// Scoped to the chapter because that is the unit the form works in: you fill in
+// one step at a time, and the dots in the table of contents say where else
+// something is waiting.
+type Entry = { fieldId: string; threads: CommentThread[] }
+
+// The visible groups for one chapter, in the order of the form.
+function entriesForRoot(root: string): Entry[] {
+  const result: Entry[] = []
   const seen = new Set<string>()
 
   for (const [fieldId, fieldThreads] of commentStore.threadsByField) {
-    const top = positions.get(fieldId)
-    if (top === undefined) continue
+    if (rootTaskIdOf(fieldId) !== root) continue
     seen.add(fieldId)
 
     const visible = showResolved.value
@@ -118,100 +170,98 @@ const positionedEntries = computed(() => {
       : fieldThreads.filter(t => !t.resolvedAt || hasOpenInput(t))
 
     if (visible.length > 0 || fieldId === props.activeFieldId) {
-      entries.push({ fieldId, threads: visible, top })
+      result.push({ fieldId, threads: visible })
     }
   }
 
-  // Active field with no existing comments
-  if (props.activeFieldId && !seen.has(props.activeFieldId)) {
-    const top = positions.get(props.activeFieldId)
-    if (top !== undefined) {
-      entries.push({ fieldId: props.activeFieldId, threads: [], top })
-    }
+  // Active field with no existing comments: the empty group is where the new
+  // comment gets typed.
+  if (props.activeFieldId && !seen.has(props.activeFieldId)
+    && rootTaskIdOf(props.activeFieldId) === root) {
+    result.push({ fieldId: props.activeFieldId, threads: [] })
   }
 
-  entries.sort((a, b) => a.top - b.top)
-  return entries
-})
-
-// Groups are absolutely positioned at their field's offset, so a group taller than the gap to
-// the next field would cover it — hiding text and action buttons. Walking top to bottom and
-// keeping each group below the previous one trades exact field alignment for readability, the
-// way Google Docs does. Heights are measured, so this only settles once the groups are laid
-// out; moving a group does not change its height, so measuring cannot loop.
-const GROUP_GAP_PX = 8
-
-const stackedEntries = computed(() => {
-  let previousBottom = Number.NEGATIVE_INFINITY
-
-  return positionedEntries.value.map((entry) => {
-    const top = Math.max(entry.top, previousBottom)
-    previousBottom = top + (groupHeights.value.get(entry.fieldId) ?? 0) + GROUP_GAP_PX
-    return { ...entry, top }
-  })
-})
-
-// A queued resize notification can still arrive after the panel is gone, hence the guard here
-// but not in observeGroups, which only ever runs while mounted.
-function measureGroups() {
-  const bodyEl = panelBodyRef.value
-  if (!bodyEl) return
-
-  const heights = new Map<string, number>()
-  for (const el of bodyEl.querySelectorAll<HTMLElement>('[data-field-group]')) {
-    heights.set(el.dataset.fieldGroup!, el.offsetHeight)
-  }
-  groupHeights.value = heights
+  result.sort((a, b) => fieldSortKey(a.fieldId).localeCompare(fieldSortKey(b.fieldId)))
+  return result
 }
 
-function observeGroups() {
-  groupObserver.disconnect()
-  for (const el of panelBodyRef.value!.querySelectorAll<HTMLElement>('[data-field-group]')) {
-    groupObserver.observe(el)
-  }
-}
+// showAll widens the same list to the whole form rather than opening a second
+// one beside it. Where the panel was opened from decides how it starts: the
+// badge in the header counts the whole assessment, so clicking a "3" and being
+// shown one comment reads as a bug; the button at a question is about that
+// question, so there the list opens on the step it belongs to.
+const showAll = ref(!props.activeFieldId)
 
-// A group's height changes when its text reflows or an edit/reply form opens, which shifts
-// everything below it.
-watch(positionedEntries, async () => {
-  await nextTick()
-  observeGroups()
-  measureGroups()
+// Clicking a question narrows the list back to the step that question is in.
+// Only on a field arriving, never on one leaving: cancelling a new comment
+// clears activeFieldId too, and that must not silently widen the list.
+watch(() => props.activeFieldId, (fieldId) => { if (fieldId) showAll.value = false })
+
+// The steps the list covers, in the order of the form, each with its title so a
+// list spanning more than one step says where things belong. Three widths, from
+// where the panel was opened: one question (its own button), the whole form (the
+// badge in the header, which counts the whole assessment), and everything in
+// between is the filter's job.
+const chapters = computed(() => {
+  const visible = showAll.value
+    ? rootTasks.value
+    : rootTasks.value.filter(task => task.id === currentRootTaskId.value)
+  return visible
+    .map(task => ({
+      id: task.id,
+      title: task.task,
+      entries: entriesForRoot(task.id)
+        // Opened from a question and not widened: that question only.
+        .filter(entry => showAll.value || !props.activeFieldId
+          || entry.fieldId === props.activeFieldId),
+    }))
+    .filter(chapter => chapter.entries.length > 0)
 })
+
+const elsewhereCount = computed(() =>
+  rootTasks.value
+    .filter(task => task.id !== currentRootTaskId.value)
+    .reduce((total, task) => total
+      + entriesForRoot(task.id).reduce((n, e) => n + e.threads.length, 0), 0),
+)
+
+// The list is empty when this step has nothing and the filter is still on.
+const entries = computed(() => chapters.value.flatMap(c => c.entries))
 
 onMounted(() => {
-  requestAnimationFrame(() => updateFieldPositions())
-
-  observeGroups()
-  measureGroups()
+  updateFieldLabels()
 
   if (props.formContainerRef) {
-    formObserver = new MutationObserver(schedulePositionUpdate)
+    formObserver = new MutationObserver(scheduleLabelUpdate)
     formObserver.observe(props.formContainerRef, { childList: true, subtree: true })
-
-    resizeObserver = new ResizeObserver(schedulePositionUpdate)
-    resizeObserver.observe(props.formContainerRef)
   }
 })
 
 onUnmounted(() => {
   formObserver?.disconnect()
-  resizeObserver?.disconnect()
-  groupObserver.disconnect()
   if (updateTimer) clearTimeout(updateTimer)
 })
 
-// Focus the field when it is activated
+// Bring the group for the activated field into view. The list is no longer
+// aligned with the form, so opening a comment from a question has to say where
+// it landed: focusing the new-comment box does that by itself, and a field that
+// already has comments has no box to focus, so that group is scrolled to.
 watch(() => props.activeFieldId, async (fieldId) => {
-  if (!fieldId || !canComment.value) return
+  if (!fieldId) return
   newCommentBody.value = ''
   await nextTick()
-  updateFieldPositions()
-  await nextTick()
-  const field = panelBodyRef.value?.querySelector<HTMLElement>(
-    `[data-field-group="${CSS.escape(fieldId)}"] .comment-inline-form nldd-multi-line-text-field`,
+
+  const group = panelBodyRef.value?.querySelector<HTMLElement>(
+    `[data-field-group="${CSS.escape(fieldId)}"]`,
   )
-  field?.focus()
+  const input = group?.querySelector<HTMLElement>(
+    '.comment-inline-form nldd-multi-line-text-field',
+  )
+  if (input && canComment.value) {
+    input.focus()
+    return
+  }
+  group?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 })
 
 function scrollToField(fieldId: string) {
@@ -317,56 +367,63 @@ async function handleReopen(commentId: string) {
 </script>
 
 <template>
-  <aside
-    id="comment-panel"
-    class="comment-panel"
-    role="complementary"
-    aria-label="Opmerkingen"
-  >
-    <!-- The header is a toolbar: the title at the start, the filter and the
-         close button at the end, spacing and alignment from the design system
-         instead of a hand-rolled flex row. -->
-    <nldd-toolbar class="comment-panel__header" size="sm" label="Opmerkingen">
-      <nldd-toolbar-title slot="start" text="Opmerkingen"></nldd-toolbar-title>
-      <nldd-toolbar-item slot="end">
-        <nldd-checkbox-field class="comment-panel__toggle" label="Opgeloste tonen"
-          :checked="showResolved || undefined"
-          @change="handleResolvedToggle"></nldd-checkbox-field>
-      </nldd-toolbar-item>
-      <nldd-toolbar-item slot="end">
-        <nldd-icon-button
-          class="comment-panel__close"
-          size="sm"
-          icon="dismiss"
-          text="Sluiten"
-          variant="neutral-transparent"
-          @click="emit('close')"
-        ></nldd-icon-button>
-      </nldd-toolbar-item>
-    </nldd-toolbar>
+  <!-- A fragment, not a wrapper: these are the direct children of the
+       nldd-page inside the sheet, so the title bar reaches its `header` slot
+       and the list is the page's own scrolling content. The bar renders the
+       title as a real heading (the panel had none) and draws the close button
+       itself. -->
+  <nldd-top-title-bar slot="header" class="comment-panel__header" text="Opmerkingen"
+    dismiss-text="Sluiten" @dismiss="emit('close')"></nldd-top-title-bar>
 
-    <div class="comment-panel__body" ref="panelBodyRef">
+  <nldd-container class="comment-panel__body" ref="panelBodyRef"
+    role="complementary" aria-label="Opmerkingen">
+      <!-- Their own line under the title: beside it, even two short labels
+           squeezed "Opmerkingen" down to "Opme...". Each button names the
+           comments it brings into the list, so it reads as what you get rather
+           than as a setting you operate. -->
+      <nldd-container class="comment-panel__filters" layout="wrap" gap="4"
+        vertical-alignment="center">
+        <!-- Always there once the list is narrowed to one question or one step:
+             it is the only way back to the whole form, and hiding it would leave
+             a reader stuck on what they clicked. -->
+        <nldd-toggle-button v-if="elsewhereCount > 0 || showAll || activeFieldId"
+          class="comment-panel__show-all"
+          type="checkbox" size="sm" icon="bullet-list" text="Alle opmerkingen"
+          :selected="showAll || undefined"
+          @change="handleShowAllToggle"></nldd-toggle-button>
+        <nldd-toggle-button class="comment-panel__filter"
+          type="checkbox" size="sm" icon="check-mark-circle" text="Opgeloste opmerkingen"
+          :selected="showResolved || undefined"
+          @change="handleResolvedToggle"></nldd-toggle-button>
+      </nldd-container>
+
       <!-- Empty state -->
       <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <nldd-inline-dialog v-else-if="stackedEntries.length === 0" class="comment-panel__empty"
+      <nldd-inline-dialog v-else-if="entries.length === 0" class="comment-panel__empty"
         icon="comment" icon-color="secondary"
-        text="Nog geen opmerkingen"
+        text="Nog geen opmerkingen op deze pagina"
         supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
 
-      <!-- Positioned comment groups (Google Docs style) -->
+      <!-- One group per question, in the order of the form. With the filter off
+           the list spans every step, so each gets its title above it; with one
+           step there is nothing to tell apart and the heading would be noise. -->
+      <template v-for="chapter in chapters" :key="chapter.id">
+      <button v-if="showAll" class="comment-chapter__title" @click="goToTask(chapter.id)">
+        {{ chapter.title }}
+      </button>
       <div
-        v-for="entry in stackedEntries"
+        v-for="entry in chapter.entries"
         :key="entry.fieldId"
         :data-field-group="entry.fieldId"
         class="comment-field-group"
         :class="{ 'comment-field-group--active': activeFieldId === entry.fieldId }"
-        :style="{ '--comment-top': entry.top + 'px' }"
       >
+        <!-- The question this belongs to, and the way back to it in the form. -->
         <button
           v-if="fieldLabels.get(entry.fieldId)"
           class="comment-field-group__label"
           @click="scrollToField(entry.fieldId)"
-        >Opmerking voor: {{ fieldLabels.get(entry.fieldId) }}</button>
+        >{{ fieldLabels.get(entry.fieldId) }}</button>
 
         <!-- Threads -->
         <nldd-card
@@ -376,7 +433,7 @@ async function handleReopen(commentId: string) {
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
           :background="thread.resolvedAt ? 'tinted' : 'base'"
         >
-          <nldd-container padding="8">
+          <nldd-container padding="12">
           <p v-if="thread.resolvedAt && hasOpenInput(thread)" class="comment-thread__resolved-label" role="status">
             Opgelost door {{ thread.resolvedByName || 'een collega' }} terwijl je hier aan het schrijven was.
           </p>
@@ -384,8 +441,10 @@ async function handleReopen(commentId: string) {
           <!-- Root comment -->
           <div class="comment-item">
             <div class="comment-item__header">
-              <strong class="comment-item__author">{{ thread.authorName }}</strong>
-              <time class="comment-item__time" :datetime="thread.createdAt">{{ formatDate(thread.createdAt) }}</time>
+              <nldd-text class="comment-item__author" size="sm" weight="bold">{{ thread.authorName }}</nldd-text>
+              <nldd-text class="comment-item__time" size="xs" color="secondary">
+                <time :datetime="thread.createdAt">{{ formatDate(thread.createdAt) }}</time>
+              </nldd-text>
             </div>
 
             <div v-if="editingId === thread.id" class="comment-item__edit">
@@ -396,12 +455,12 @@ async function handleReopen(commentId: string) {
                 :value="editBody"
                 @input="editBody = readFieldValue($event)"
                 @keydown.enter.meta="submitEdit"
-                @keydown.escape="cancelEdit"
+                @keydown.escape.stop="cancelEdit"
               ></nldd-multi-line-text-field>
-              <div class="comment-item__edit-actions">
-                <nldd-button size="xs" variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
-                <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelEdit"></nldd-button>
-              </div>
+              <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
+                <nldd-button variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
+              </nldd-button-group>
             </div>
             <p
               v-else
@@ -456,8 +515,10 @@ async function handleReopen(commentId: string) {
           <div v-if="thread.replies.length > 0" class="comment-replies">
             <div v-for="reply in thread.replies" :key="reply.id" class="comment-item comment-item--reply">
               <div class="comment-item__header">
-                <strong class="comment-item__author">{{ reply.authorName }}</strong>
-                <time class="comment-item__time" :datetime="reply.createdAt">{{ formatDate(reply.createdAt) }}</time>
+                <nldd-text class="comment-item__author" size="sm" weight="bold">{{ reply.authorName }}</nldd-text>
+                <nldd-text class="comment-item__time" size="xs" color="secondary">
+                  <time :datetime="reply.createdAt">{{ formatDate(reply.createdAt) }}</time>
+                </nldd-text>
               </div>
 
               <div v-if="editingId === reply.id" class="comment-item__edit">
@@ -468,12 +529,12 @@ async function handleReopen(commentId: string) {
                   :value="editBody"
                   @input="editBody = readFieldValue($event)"
                   @keydown.enter.meta="submitEdit"
-                  @keydown.escape="cancelEdit"
+                  @keydown.escape.stop="cancelEdit"
                 ></nldd-multi-line-text-field>
-                <div class="comment-item__edit-actions">
-                  <nldd-button size="xs" variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
-                  <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelEdit"></nldd-button>
-                </div>
+                <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
+                  <nldd-button variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                  <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
+                </nldd-button-group>
               </div>
               <p
                 v-else
@@ -509,45 +570,48 @@ async function handleReopen(commentId: string) {
               :value="replyBody"
               @input="replyBody = readFieldValue($event)"
               @keydown.enter.meta="submitReply(thread.id, thread.fieldId)"
-              @keydown.escape="cancelReply"
+              @keydown.escape.stop="cancelReply"
             ></nldd-multi-line-text-field>
-            <div class="comment-reply-form__actions">
-              <nldd-button size="xs" variant="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
-              <nldd-button size="xs" variant="neutral-transparent" text="Annuleer" @click="cancelReply"></nldd-button>
-            </div>
+            <nldd-button-group orientation="horizontal" class="comment-reply-form__actions" size="xs">
+              <nldd-button variant="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
+              <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelReply"></nldd-button>
+            </nldd-button-group>
           </div>
           </nldd-container>
         </nldd-card>
 
         <!-- Inline new comment form (appears when this field is active) -->
-        <div v-if="activeFieldId === entry.fieldId && canComment" class="comment-inline-form">
-          <nldd-multi-line-text-field
-            accessible-label="Nieuwe opmerking schrijven"
-            rows="2"
-            resize="auto"
-            placeholder="Schrijf een opmerking..."
-            :value="newCommentBody"
-            @input="newCommentBody = readFieldValue($event)"
-            @keydown.enter.meta="submitComment(entry.fieldId)"
-            @keydown.escape="newCommentBody = ''; emit('deactivate-field')"
-          ></nldd-multi-line-text-field>
-          <div class="comment-inline-form__actions">
-            <nldd-button
-              size="sm"
-              variant="primary"
-              text="Plaatsen"
-              :disabled="!newCommentBody.trim() || undefined"
-              @click="submitComment(entry.fieldId)"
-            ></nldd-button>
-            <nldd-button
-              size="sm"
-              variant="neutral-transparent"
-              text="Annuleer"
-              @click="newCommentBody = ''; emit('deactivate-field')"
-            ></nldd-button>
-          </div>
-        </div>
+        <nldd-card v-if="activeFieldId === entry.fieldId && canComment"
+          class="comment-inline-form" background="tinted">
+          <nldd-container padding="12" gap="8">
+            <nldd-multi-line-text-field
+              accessible-label="Nieuwe opmerking schrijven"
+              rows="2"
+              resize="auto"
+              placeholder="Schrijf een opmerking..."
+              :value="newCommentBody"
+              @input="newCommentBody = readFieldValue($event)"
+              @keydown.enter.meta="submitComment(entry.fieldId)"
+              @keydown.escape.stop="newCommentBody = ''; emit('deactivate-field')"
+            ></nldd-multi-line-text-field>
+            <nldd-button-group orientation="horizontal" size="xs">
+              <nldd-button
+                variant="primary"
+                text="Plaatsen"
+                :disabled="!newCommentBody.trim() || undefined"
+                @click="submitComment(entry.fieldId)"
+              ></nldd-button>
+              <nldd-button
+                variant="neutral-tinted"
+                text="Annuleer"
+                @click="newCommentBody = ''; emit('deactivate-field')"
+              ></nldd-button>
+            </nldd-button-group>
+          </nldd-container>
+        </nldd-card>
       </div>
-    </div>
-  </aside>
+
+      </template>
+
+  </nldd-container>
 </template>

@@ -161,8 +161,9 @@ function buttonByText(wrapper: ReturnType<typeof mount>, text: string) {
   return wrapper.findAll('nldd-button').find((b) => b.attributes('text') === text)
 }
 
+// The utility bar holds buttons now, with a matching menu item for overflow.
 function menuBarItemByText(wrapper: ReturnType<typeof mount>, text: string) {
-  return wrapper.findAll('nldd-menu-bar-item').find((b) => b.attributes('text') === text)
+  return wrapper.findAll('nldd-toolbar-item nldd-button').find((b) => b.attributes('text') === text)
 }
 
 beforeEach(() => {
@@ -217,6 +218,117 @@ describe('Form.vue onMounted initialization', () => {
 
     const content = wrapper.find('[role="form"]')
     expect(content.attributes('aria-labelledby')).toBe('current-section-heading')
+  })
+
+  // nldd-sidebar-section folds the contents into a sheet below its lg breakpoint
+  // but leaves the trigger to the consumer: without one they are gone for good.
+  describe('inhoudsopgave-sheet', () => {
+    it('toont pas een knop zodra de inhoudsopgave is ingeklapt', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      expect(buttonByText(wrapper, 'Stappen')).toBeUndefined()
+
+      wrapper.find('nldd-sidebar-section').element.dispatchEvent(
+        new CustomEvent('collapse-change', { detail: { collapsed: true } }),
+      )
+      await wrapper.vm.$nextTick()
+
+      const button = buttonByText(wrapper, 'Stappen')
+      expect(button).toBeDefined()
+      expect(button!.attributes('start-icon')).toBe('bullet-list')
+      expect(button!.attributes('aria-haspopup')).toBe('dialog')
+    })
+
+    it('verbergt de knop weer zodra de inhoudsopgave terugkomt', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      const section = wrapper.find('nldd-sidebar-section').element
+
+      section.dispatchEvent(new CustomEvent('collapse-change', { detail: { collapsed: true } }))
+      await wrapper.vm.$nextTick()
+      expect(buttonByText(wrapper, 'Stappen')).toBeDefined()
+
+      section.dispatchEvent(new CustomEvent('collapse-change', { detail: { collapsed: false } }))
+      await wrapper.vm.$nextTick()
+      expect(buttonByText(wrapper, 'Stappen')).toBeUndefined()
+    })
+
+    // collapse-change fires only on a flip, and the component seeds its first
+    // value silently. Opening straight into a narrow window would otherwise hide
+    // the contents with no way back, so the attribute is watched as well.
+    it('volgt het collapsed-attribuut, ook zonder event', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      const section = wrapper.find('nldd-sidebar-section').element
+      expect(buttonByText(wrapper, 'Stappen')).toBeUndefined()
+
+      section.setAttribute('collapsed', '')
+      // MutationObserver callbacks are queued as a microtask.
+      await Promise.resolve()
+      await wrapper.vm.$nextTick()
+      expect(buttonByText(wrapper, 'Stappen')).toBeDefined()
+
+      section.removeAttribute('collapsed')
+      await Promise.resolve()
+      await wrapper.vm.$nextTick()
+      expect(buttonByText(wrapper, 'Stappen')).toBeUndefined()
+    })
+
+    it('laat de observer los zodra de sectie verdwijnt', async () => {
+      const { wrapper, persistence } = await mountForm({ autoStart: true })
+      const section = wrapper.find('nldd-sidebar-section').element
+
+      // Back to the loading state unmounts the section and clears the ref.
+      persistence.load = vi.fn(() => new Promise(() => {}))
+      await wrapper.setProps({ validData: null })
+      await wrapper.vm.$nextTick()
+
+      // A late attribute change on the detached element must not throw or
+      // resurrect the button.
+      expect(() => section.setAttribute('collapsed', '')).not.toThrow()
+    })
+
+    it('leest een collapse-change zonder payload als uitgeklapt', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      const section = wrapper.find('nldd-sidebar-section').element
+
+      section.dispatchEvent(new CustomEvent('collapse-change', { detail: { collapsed: true } }))
+      await wrapper.vm.$nextTick()
+      section.dispatchEvent(new CustomEvent('collapse-change'))
+      await wrapper.vm.$nextTick()
+
+      expect(buttonByText(wrapper, 'Stappen')).toBeUndefined()
+    })
+
+    it('opent de sheet via het component zelf, ook vanuit het overflow-menu', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      const section = wrapper.find('nldd-sidebar-section')
+      const host = section.element as HTMLElement & { toggle?: () => void }
+      host.toggle = vi.fn()
+
+      section.element.dispatchEvent(
+        new CustomEvent('collapse-change', { detail: { collapsed: true } }),
+      )
+      await wrapper.vm.$nextTick()
+
+      await buttonByText(wrapper, 'Stappen')!.trigger('click')
+      expect(host.toggle).toHaveBeenCalledTimes(1)
+
+      const overflow = wrapper.findAll('nldd-menu-item[slot="overflow"]')
+        .find((i) => i.attributes('text') === 'Stappen')!
+      overflow.element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
+      await wrapper.vm.$nextTick()
+      expect(host.toggle).toHaveBeenCalledTimes(2)
+    })
+
+    it('doet niets als het element nog niet is opgewaardeerd', async () => {
+      const { wrapper } = await mountForm({ autoStart: true })
+      wrapper.find('nldd-sidebar-section').element.dispatchEvent(
+        new CustomEvent('collapse-change', { detail: { collapsed: true } }),
+      )
+      await wrapper.vm.$nextTick()
+
+      // jsdom upgrades nothing, so toggle() is absent: the optional call has to
+      // swallow that rather than throw.
+      expect(() => buttonByText(wrapper, 'Stappen')!.trigger('click')).not.toThrow()
+    })
   })
 
   it('sets an error message and stops loading when validData is null', async () => {
@@ -342,25 +454,25 @@ describe('Form.vue prop-driven template branches', () => {
 
   it('puts the document actions in the utility menu bar once the form has started', async () => {
     const { wrapper } = await mountForm({ autoStart: true })
-    const bar = wrapper.find('nldd-menu-bar')
+    const bar = wrapper.find('nldd-toolbar')
     expect(bar.exists()).toBe(true)
     expect(bar.attributes('slot')).toBe('utility')
-    expect(bar.attributes('accessible-label')).toBe('Acties voor dit formulier')
+    expect(bar.attributes('label')).toBe('Acties voor dit formulier')
   })
 
   it('leaves the menu bar out when showNavHeader is false', async () => {
     const { wrapper } = await mountForm({ autoStart: true, showNavHeader: false })
-    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
+    expect(wrapper.find('nldd-toolbar').exists()).toBe(false)
   })
 
   it('leaves the menu bar out before the form has started', async () => {
     const { wrapper } = await mountForm({ autoStart: false })
-    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
+    expect(wrapper.find('nldd-toolbar').exists()).toBe(false)
   })
 
   it('leaves the menu bar out when showFileActions is false', async () => {
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: false })
-    expect(wrapper.find('nldd-menu-bar').exists()).toBe(false)
+    expect(wrapper.find('nldd-toolbar').exists()).toBe(false)
   })
 
   it('marks ProgressTracker navigable for DPIA', async () => {
@@ -578,7 +690,7 @@ describe('Form.vue handleReset', () => {
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['0'])
 
-    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     // The button only asks; the reset happens on confirm.
@@ -599,7 +711,7 @@ describe('Form.vue handleReset', () => {
   it('cancels without clearing, and phrases the warning without a count', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
 
-    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     // Nothing answered yet, so there is no number worth naming.
@@ -617,7 +729,7 @@ describe('Form.vue handleReset', () => {
     const answerStore = useAnswerStore()
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'a' }, '0.2': { value: 'b' } }
 
-    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
@@ -736,7 +848,7 @@ describe('Form.vue reset confirmation dialog', () => {
   it('closes on the modal\'s own close event (Esc / backdrop)', async () => {
     const { wrapper, persistence } = await mountForm({ autoStart: true })
 
-    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
 
     wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
@@ -745,6 +857,19 @@ describe('Form.vue reset confirmation dialog', () => {
     expect(persistence.clearSavedState).not.toHaveBeenCalled()
     expect(wrapper.find('nldd-modal-dialog').attributes('supporting-text'))
       .toContain('De opgeslagen DPIA wordt definitief gewist')
+  })
+
+  it('opens the reset dialog from the overflow menu as well', async () => {
+    const { wrapper } = await mountForm({ autoStart: true })
+
+    // Once the toolbar runs out of room the button moves into the overflow
+    // menu; that entry has to do the same thing.
+    const item = wrapper.findAll('nldd-menu-item[slot="overflow"]')
+      .find((i) => i.attributes('text') === 'Begin nieuwe DPIA')!
+    item.element.dispatchEvent(new CustomEvent('select', { bubbles: true }))
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('nldd-modal-dialog').attributes('text')).toBe('Nieuwe DPIA beginnen?')
   })
 
   it('drives show() and hide() on the upgraded custom element', async () => {
@@ -756,7 +881,7 @@ describe('Form.vue reset confirmation dialog', () => {
     host.show = vi.fn()
     host.hide = vi.fn()
 
-    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('select')
+    await menuBarItemByText(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
     await wrapper.vm.$nextTick()
     expect(host.show).toHaveBeenCalledTimes(1)
 

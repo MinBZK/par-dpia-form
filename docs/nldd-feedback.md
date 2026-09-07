@@ -90,6 +90,59 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   wel degelijk een correct paar (contrast 6.2 in licht, 9.9 in donker), maar
   dat staat nergens; je moet het uitproberen. Gevraagd: in de documentatie
   benoemen welke tokens los van hun component gebruikt mogen worden.
+- **`nldd-navigation-split-view` meldt niet dat zijn inspector-sheet sluit.**
+  De sheet is een native `<dialog>` in de shadow root. Sluit de gebruiker hem
+  met Esc of een klik op de achtergrond, dan roept het component intern
+  `hideInspectorSheet()` aan, maar er komt geen event naar buiten: `close` van
+  een `<dialog>` bubbelt niet en passeert de shadow-grens dus niet. De
+  consument die zelf bijhoudt of het paneel open is (nodig, want
+  `showInspectorSheet()` moet je zelf aanroepen) loopt daardoor uit de pas:
+  onze knop bleef "open" wijzen terwijl de sheet al weg was. We binden nu een
+  listener rechtstreeks op de dialog in de shadow root - precies wat de
+  richtlijn afraadt, maar er is geen andere weg. Gevraagd: een `close`- (en
+  `open`-) event op de host, zoals `nldd-sidebar-section` die wel heeft.
+- **`nldd-sidebar-section` laat de trigger aan de consument, maar zonder
+  trigger is de inhoud onbereikbaar.** Onder de lg-grens vouwt de sidebar in
+  een sheet; wie geen knop bouwt, heeft een inhoudsopgave die weg is en niet
+  meer terugkomt. Dat is een makkelijke fout om te maken (wij maakten hem) en
+  hij is stil: er is geen waarschuwing. Gevraagd: overwegen of het component
+  bij een ontbrekende trigger zelf iets kan tonen, of anders in de
+  documentatie expliciet waarschuwen dat de consument die knop *moet* leveren.
+- **`nldd-button-bar` kan geen tweewegschakelaar bevatten, en kent maar twee
+  varianten.** Wij wilden een opmerkingenknop en een bewerken/lezen-schakelaar
+  als één werkbalkje. De bar tekent een eigen ondergrond met vaste hoogte en
+  geeft `size`/`variant` alleen door aan `nldd-button` en `nldd-icon-button`.
+  Een `nldd-segmented-control` erin houdt zijn eigen ondergrond én zijn
+  geselecteerde vlak, wat als twee gestapelde oppervlakken leest; en
+  `nldd-icon-button` heeft geen ingedrukte staat (alleen `expanded`, voor
+  popups), dus de schakelaar kan ook niet uit losse knoppen bestaan. Daarbij
+  styelt `button-bar.styles.js` alleen `accent-filled`/`primary` en
+  `neutral-base`: een `variant="neutral-transparent"` wordt stil genegeerd en
+  laat de divider in de verkeerde kleur staan. Wij tekenen die rij nu zelf.
+  Gevraagd: ofwel een ingedrukte staat op `nldd-icon-button`, ofwel
+  `nldd-segmented-control` als erkend kind van de bar (zonder eigen ondergrond),
+  en documenteren welke varianten de bar echt ondersteunt.
+- **`nldd-timeline-track-cell` in een gemarkeerde `nldd-list-item`: de ring en
+  het nummer vechten om één token.** Een inhoudsopgave is een tijdlijn waarin
+  één stap de huidige is, dus de rij krijgt `current` (donkere balk) en de cel
+  `status="current"`. Twee botsingen: (1) de marker tekent zijn ring in
+  `--context-parent-background-color`, die terugvalt op de paginakleur, dus op de
+  donkere balk snijdt hij er een lichte halo uit — op te lossen door die token op
+  de rij te zetten, maar dat moet je zelf bedenken; (2) de lijn en het cijfer ín
+  de marker delen `--components-timeline-track-cell-color`, en die twee kunnen
+  hier niet dezelfde waarde hebben. Gemeten (canvas, sRGB): de standaardwaarde
+  geeft 7.76:1 op de markervulling maar 1.00:1 op de balk (lijn onzichtbaar);
+  wit geeft 9.76:1 op de balk maar 1.26:1 op de vulling (cijfer onzichtbaar).
+  Wij laten de lijn nu wegvallen achter de balk. Gevraagd: een eigen token voor
+  de lijnkleur, los van de tekst in de marker — en overwegen of de cel
+  `--context-parent-background-color` zelf van zijn rij kan overnemen.
+  (3) De marker van de huidige stap is niet bij te sturen: zijn vulling komt uit
+  `--_current-fill-color` en zijn cijfer uit `--_marker-content-color`, allebei
+  private locals zonder `--components-*` erachter, en er zijn geen `part`-
+  attributen in de template. Op een donkere rij zou wit logischer zijn dan het
+  lichte accent — gemeten 9.76:1 tegen de balk versus 7.76:1 — maar dat kan
+  alleen door die locals te overschrijven. Gevraagd: publieke tokens voor de
+  vulling en de tekst van de marker, of `part`-attributen op marker en lijnen.
 
 ## Bespreekpunten met het team
 
