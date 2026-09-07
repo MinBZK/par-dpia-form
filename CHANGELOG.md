@@ -60,6 +60,9 @@ build) staan kort onder "Onder de motorkap".
 * Open tekstvelden tonen de opmaak terwijl je typt: vet is vet, een kop is
   groter. De schakelaar tussen bewerken en lezen is daarmee overbodig en
   verdwenen — de tekst blijft gewoon markdown, dus de PDF-export verandert niet.
+* De opmaaktekens zelf verdwijnen ook uit beeld: de `#` voor een kop en de
+  sterretjes om vet staan er alleen nog op de regel waar je cursor staat, zodat
+  je ze kunt bewerken. De rest van je antwoord leest als gewone tekst.
 * Het opmerkingenpaneel is een zijpaneel geworden dat vanaf rechts inschuift.
   Het formulier houdt zijn volle breedte en blijft bruikbaar terwijl het paneel
   openstaat: je leest een opmerking en past het antwoord ernaast aan. Sluiten

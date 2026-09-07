@@ -96,9 +96,9 @@ describe('FormField.vue', () => {
         label: 'Toelichting',
       })
 
-      // nldd-text-editor shows the formatting while you type, so there is no
+      // The editor shows the formatting while you type, so there is no
       // read/edit switch and no second rendering of the same text.
-      const editor = wrapper.find('nldd-text-editor')
+      const editor = wrapper.find('assessment-text-editor')
       expect(editor.exists()).toBe(true)
       expect(editor.attributes('variant')).toBe('input-field')
       expect(editor.attributes('rows')).toBe('5')
@@ -116,7 +116,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1',
         label: 'Naam',
       })
-      expect(wrapper.find('nldd-text-editor').exists()).toBe(false)
+      expect(wrapper.find('assessment-text-editor').exists()).toBe(false)
     })
   })
 
@@ -150,7 +150,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const field = wrapper.find('nldd-text-editor')
+      const field = wrapper.find('assessment-text-editor')
       expect(field.exists()).toBe(true)
       expect(field.attributes('input-id')).toBe('field-1.1-1.1[0]')
       expect(field.attributes('dir')).toBe('auto')
@@ -171,7 +171,7 @@ describe('FormField.vue', () => {
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const field = wrapper.find('nldd-text-editor')
+      const field = wrapper.find('assessment-text-editor')
       expect(field.attributes('value')).toBe('')
 
       answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
@@ -734,7 +734,7 @@ describe('FormField.vue', () => {
       })
       expect(wrapper.find('div.form-field__label label').exists()).toBe(true)
       expect(wrapper.find('nldd-text-field').exists()).toBe(false)
-      expect(wrapper.find('nldd-text-editor').exists()).toBe(false)
+      expect(wrapper.find('assessment-text-editor').exists()).toBe(false)
       expect(wrapper.find('input').exists()).toBe(false)
       expect(wrapper.find('select').exists()).toBe(false)
     })
@@ -815,7 +815,7 @@ describe('FormField.vue', () => {
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.find('nldd-text-editor').attributes('accessible-label')).toBeUndefined()
+      expect(wrapper.find('assessment-text-editor').attributes('accessible-label')).toBeUndefined()
     })
 
     it('date field has no accessible-label when there is no label', () => {
@@ -1061,7 +1061,7 @@ describe('FormField.vue', () => {
         { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]' },
         true,
       )
-      expect(wrapper.find('nldd-text-editor').attributes('inert')).toBeDefined()
+      expect(wrapper.find('assessment-text-editor').attributes('inert')).toBeDefined()
     })
   })
 })

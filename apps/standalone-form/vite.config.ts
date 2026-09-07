@@ -72,7 +72,7 @@ export default defineConfig(({ mode }) => ({
       template: {
         compilerOptions: {
           // @nldd/design-system web components; keep in sync with vitest.config.ts.
-          isCustomElement: (tag) => tag.startsWith('nldd-'),
+          isCustomElement: (tag) => tag.startsWith('nldd-') || tag.startsWith('assessment-'),
         },
       },
     }),

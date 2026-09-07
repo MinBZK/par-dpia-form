@@ -144,6 +144,35 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
   alleen door die locals te overschrijven. Gevraagd: publieke tokens voor de
   vulling en de tekst van de marker, of `part`-attributen op marker en lijnen.
 
+- **`nldd-text-editor` dimt de markdown-tekens maar kan ze niet verbergen.**
+  De editor toont opmaak tijdens het typen, maar de syntaxtekens blijven staan:
+  een `#` voor elke kop, `**` om elk vet woord, op elke regel, altijd. Ze zijn
+  gedimd (`Decoration.mark({ class: 'cm-md-mark' })`), en er is geen attribuut
+  om ze weg te laten. In een antwoord van een paar alinea's is dat veel ruis
+  voor iets wat de lezer op dat moment niet bewerkt.
+
+  Wat we willen is wat Obsidian's live preview doet: de tekens weg, behalve op
+  de constructie waar de cursor in staat, zodat de syntax bewerkbaar blijft.
+  Dat kan nu alleen door `NLDDTextEditor` te subclassen en via de
+  `buildExtensions()`-seam een eigen CodeMirror-extensie toe te voegen die
+  `Decoration.replace` over dezelfde ranges legt.
+
+  Dit is de derde keer dat dit langskomt: Waggle
+  ([code.overheid.nl/robbertbos/waggle](https://code.overheid.nl/robbertbos/waggle))
+  heeft de extensie geschreven, Tim heeft het eerder aangekaart, en wij nemen
+  hem nu over (`packages/assessment-core/src/components/task/editor/`, EUPL-1.2
+  met bronvermelding). Drie apps met dezelfde subclass om hetzelfde gat.
+
+  Gevraagd: een attribuut op het component, bijvoorbeeld
+  `hide-markers` of een `markers="dim" | "hide"`, zodat consumenten hier geen
+  subclass en geen directe CodeMirror-afhankelijkheid voor nodig hebben. Zolang
+  dat er niet is, hangen wij aan een `protected` methode en aan lezer-nodenamen
+  (`EmphasisMark`, `CodeMark`) die bij een DS-bump stil kunnen veranderen.
+
+  Robbert heeft ook de opmaakknoppen subtieler gemaakt dan de voorbeelden op de
+  DS-site; dat is smaak en geen gat, maar het is wel een signaal dat de
+  voorbeelden zwaarder aanzetten dan in een formulier prettig is.
+
 ## Bespreekpunten met het team
 
 Geen issues voor NLDD, maar keuzes die we met het team (en de inhoudelijke

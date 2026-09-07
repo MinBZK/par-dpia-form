@@ -12,7 +12,7 @@ import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { CONTENT_READONLY_KEY } from '../../injectionKeys'
 import { computed, inject, ref } from 'vue'
 import '@nldd/design-system/text-field'
-import '@nldd/design-system/text-editor'
+import './editor/AssessmentTextEditor'
 import '@nldd/design-system/dropdown'
 import '@nldd/design-system/date-field'
 import '@nldd/design-system/icon'
@@ -238,12 +238,12 @@ const handleRadioGroupChange = (event: Event) => {
          there, only dimmed. That leaves nothing to preview, so there is no
          read/edit switch and no second rendering of the same text: the value
          stays plain markdown, which is what the PDF export reads. -->
-    <nldd-text-editor variant="input-field"
+    <assessment-text-editor variant="input-field"
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
       :accessible-label="accessibleLabel" rows="5" resize="auto"
       :value="safeString(currentValue as string | boolean | null)"
-      @input="handleTextInput"></nldd-text-editor>
+      @input="handleTextInput"></assessment-text-editor>
   </div>
 
   <!-- Select radio -->

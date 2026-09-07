@@ -8,7 +8,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // @nldd/design-system web components; keep in sync with the app vite configs.
-          isCustomElement: (tag) => tag.startsWith('nldd-'),
+          isCustomElement: (tag) => tag.startsWith('nldd-') || tag.startsWith('assessment-'),
         },
       },
     }),

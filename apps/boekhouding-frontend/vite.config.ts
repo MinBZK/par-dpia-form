@@ -22,7 +22,7 @@ export default defineConfig({
         compilerOptions: {
           // @nldd/design-system web components; without this Vue tries to
           // resolve nldd-* tags as Vue components.
-          isCustomElement: (tag) => tag.startsWith('nldd-'),
+          isCustomElement: (tag) => tag.startsWith('nldd-') || tag.startsWith('assessment-'),
         },
       },
     }),
