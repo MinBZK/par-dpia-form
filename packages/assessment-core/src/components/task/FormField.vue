@@ -8,17 +8,14 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import { renderMarkdownToHtml } from '../../utils/markdown'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { CONTENT_READONLY_KEY } from '../../injectionKeys'
-import { computed, inject, ref, nextTick, watch } from 'vue'
+import { computed, inject, ref } from 'vue'
 import '@nldd/design-system/text-field'
-import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/text-editor'
 import '@nldd/design-system/dropdown'
 import '@nldd/design-system/date-field'
-import '@nldd/design-system/segmented-control'
 import '@nldd/design-system/icon'
-import '@nldd/design-system/rich-text'
 import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/radio-button-group'
 import '@nldd/design-system/radio-button-field'
@@ -152,39 +149,12 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
   return props.task.type?.includes(typeToCheck) || false
 }
 
-// focus() is optional: it only exists once the custom element is upgraded
-// (not in jsdom unit tests).
-type TextAreaElement = HTMLElement & { focus?: (options?: FocusOptions) => void }
-
-const textareaRef = ref<TextAreaElement | null>(null)
-const showPreview = ref(false)
-
-const renderedHtml = computed(() => {
-  if (!showPreview.value) return ''
-  return renderMarkdownToHtml(String(currentValue.value ?? ''))
-})
-
-// Restore focus to the textarea when switching back from preview to edit
-watch(showPreview, (preview) => {
-  if (!preview) {
-    nextTick(() => {
-      textareaRef.value?.focus?.()
-    })
-  }
-})
-
 // Text input and textarea handler (NLDD fields deliver the value in
 // event.detail; fall back to target.value for native inputs)
 const handleTextInput = (event: Event) => {
   const detail = (event as CustomEvent<{ value?: string }>).detail
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
   answerStore.setAnswer(props.instanceId, detail?.value ?? target.value)
-}
-
-// The segmented control reports which of the two modes is now chosen.
-const handlePreviewToggle = (event: Event) => {
-  const detail = (event as CustomEvent<{ value?: string }>).detail
-  if (detail?.value) showPreview.value = detail.value === 'lezen'
 }
 
 // Select handler
@@ -263,34 +233,17 @@ const handleRadioGroupChange = (event: Event) => {
 
   <!-- Text area with markdown support -->
   <div v-if="hasType('open_text')" class="open-text-field field-group">
-    <!-- The switch belongs to the box it changes, so it sits on top of it
-         rather than at the far end of the question. -->
-    <div class="open-text-field__bar">
-      <nldd-segmented-control size="sm" width="fit-content" variant="icon-and-text"
-        class="open-text-field__toggle" accessible-label="Weergave van dit veld"
-        :value="showPreview ? 'lezen' : 'bewerken'"
-        @change="handlePreviewToggle">
-        <nldd-segmented-control-item value="bewerken" text="Bewerken"
-          icon="pencil-on-square"></nldd-segmented-control-item>
-        <nldd-segmented-control-item value="lezen" text="Lezen"
-          icon="eye"></nldd-segmented-control-item>
-      </nldd-segmented-control>
-    </div>
-    <nldd-multi-line-text-field v-if="!showPreview" ref="textareaRef"
+    <!-- nldd-text-editor shows the markdown formatted while you type — bold
+         reads as bold, a heading is larger — with the syntax markers still
+         there, only dimmed. That leaves nothing to preview, so there is no
+         read/edit switch and no second rendering of the same text: the value
+         stays plain markdown, which is what the PDF export reads. -->
+    <nldd-text-editor variant="input-field"
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
       :accessible-label="accessibleLabel" rows="5" resize="auto"
       :value="safeString(currentValue as string | boolean | null)"
-      @input="handleTextInput"></nldd-multi-line-text-field>
-
-    <!-- nldd-rich-text is light DOM, so rich-text.css styles the markdown
-         that v-html drops in here. -->
-    <nldd-rich-text v-else spacing="tight"
-      class="markdown-preview" dir="auto"
-      role="region"
-      :aria-label="'Voorbeeld van de opmaak'"
-      v-html="renderedHtml">
-    </nldd-rich-text>
+      @input="handleTextInput"></nldd-text-editor>
   </div>
 
   <!-- Select radio -->

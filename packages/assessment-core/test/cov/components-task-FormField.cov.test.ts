@@ -89,151 +89,34 @@ describe('FormField.vue', () => {
       expect(wrapper.find('nldd-text-field').attributes('accessible-label')).toBeUndefined()
     })
 
-    it('renders the open_text read/edit toggle and switches preview on change', async () => {
+    it('renders the open_text field as a text editor, with nothing to preview', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      // The class must stay on the host: the comment indicators look it up.
-      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
-      expect(toggle.exists()).toBe(true)
-      expect(toggle.attributes('size')).toBe('sm')
-      expect(toggle.attributes('variant')).toBe('icon-and-text')
-      // Both modes are named; `value` marks which one is current.
-      expect(toggle.attributes('value')).toBe('bewerken')
-      const items = toggle.findAll('nldd-segmented-control-item')
-      expect(items.map((i) => i.attributes('text'))).toEqual(['Bewerken', 'Lezen'])
-      expect(items.map((i) => i.attributes('icon'))).toEqual(['pencil-on-square', 'eye'])
-      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
 
-      chooseMode(toggle.element, true)
-      await nextTick()
-      expect(toggle.attributes('value')).toBe('lezen')
-      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(false)
-      const preview = wrapper.find('.markdown-preview')
-      expect(preview.exists()).toBe(true)
-      // The markdown itself is styled by rich-text.css on this light-DOM host.
-      expect(preview.element.tagName.toLowerCase()).toBe('nldd-rich-text')
-      expect(preview.attributes('spacing')).toBe('tight')
-      expect(preview.attributes('role')).toBe('region')
-      expect(preview.attributes('aria-label')).toBe('Voorbeeld van de opmaak')
+      // nldd-text-editor shows the formatting while you type, so there is no
+      // read/edit switch and no second rendering of the same text.
+      const editor = wrapper.find('nldd-text-editor')
+      expect(editor.exists()).toBe(true)
+      expect(editor.attributes('variant')).toBe('input-field')
+      expect(editor.attributes('rows')).toBe('5')
+      expect(editor.attributes('resize')).toBe('auto')
+      expect(editor.attributes('dir')).toBe('auto')
+      expect(editor.attributes('input-id')).toBe('field-1.1-1.1[0]')
+
+      expect(wrapper.find('nldd-segmented-control').exists()).toBe(false)
+      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
     })
 
-    it('keeps the current mode when the change event carries no value', async () => {
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
-
-      // A change without a value says nothing about which mode was chosen.
-      await toggle.trigger('change')
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
-
-      chooseMode(toggle.element, true)
-      await nextTick()
-      expect(wrapper.find('.markdown-preview').exists()).toBe(true)
-    })
-
-    it('does not render the toggle button when the field is not open_text', () => {
+    it('does not render an editor when the field is not open_text', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['text_input'] }),
-        instanceId: '1.1[0]',
+        instanceId: '1.1',
         label: 'Naam',
       })
-      expect(wrapper.find('nldd-segmented-control.open-text-field__toggle').exists()).toBe(false)
-    })
-  })
-
-  describe('renderedHtml and preview watcher', () => {
-    it('renders markdown to HTML in the preview and restores the multiline field on switch back', async () => {
-      answerStore.setAnswer('1.1[0]', '**vet** tekst')
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
-
-      chooseMode(toggle.element, true)
-      await nextTick()
-      const preview = wrapper.find('.markdown-preview')
-      expect(preview.element.innerHTML).toContain('<strong>vet</strong>')
-
-      chooseMode(toggle.element, false)
-      await nextTick()
-      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
-    })
-
-    it('renders an empty preview when there is no value', async () => {
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: 'empty[0]',
-        label: 'Toelichting',
-      })
-      chooseMode(wrapper.find('nldd-segmented-control.open-text-field__toggle').element, true)
-      await nextTick()
-      expect(wrapper.find('.markdown-preview').element.innerHTML.trim()).toBe('')
-    })
-
-    it('renderedHtml yields an empty string while not in preview mode', async () => {
-      answerStore.setAnswer('1.1[0]', '**vet** tekst')
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
-      expect(wrapper.find('.markdown-preview').exists()).toBe(false)
-      // Read the computed through the instance: no preview region exists to assert against.
-      const setupState = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
-      expect(setupState.renderedHtml).toBe('')
-    })
-  })
-
-  describe('focus restore when leaving the preview', () => {
-    // The multiline host is recreated when the preview closes, so focus is
-    // stubbed on the prototype: that catches the call regardless of which
-    // element instance the watcher's nextTick callback sees.
-    async function mountAndToggleTwice() {
-      const wrapper = mountField({
-        task: flatTask({ type: ['open_text'] }),
-        instanceId: '1.1[0]',
-        label: 'Toelichting',
-      })
-      const toggle = wrapper.find('nldd-segmented-control.open-text-field__toggle')
-      chooseMode(toggle.element, true)
-      await nextTick()
-      chooseMode(toggle.element, false)
-      await nextTick()
-      return wrapper
-    }
-
-    it('restores focus to the multiline host after switching back from the preview', async () => {
-      const focusSpy = vi
-        .spyOn(window.HTMLElement.prototype, 'focus')
-        .mockImplementation(() => {})
-      try {
-        await mountAndToggleTwice()
-        expect(focusSpy).toHaveBeenCalledTimes(1)
-      } finally {
-        focusSpy.mockRestore()
-      }
-    })
-
-    it('does not crash when the unupgraded host has no focus()', async () => {
-      const proto = window.HTMLElement.prototype as HTMLElement & { focus?: () => void }
-      const originalFocus = proto.focus
-      delete proto.focus
-      try {
-        const wrapper = await mountAndToggleTwice()
-        expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(true)
-      } finally {
-        proto.focus = originalFocus
-      }
+      expect(wrapper.find('nldd-text-editor').exists()).toBe(false)
     })
   })
 
@@ -260,14 +143,14 @@ describe('FormField.vue', () => {
     })
   })
 
-  describe('open_text multiline input', () => {
-    it('renders the NLDD multiline attributes and writes input back to the store', async () => {
+  describe('open_text editor input', () => {
+    it('renders the editor attributes and writes input back to the store', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const field = wrapper.find('nldd-multi-line-text-field')
+      const field = wrapper.find('nldd-text-editor')
       expect(field.exists()).toBe(true)
       expect(field.attributes('input-id')).toBe('field-1.1-1.1[0]')
       expect(field.attributes('dir')).toBe('auto')
@@ -282,13 +165,13 @@ describe('FormField.vue', () => {
       expect(field.attributes('value')).toBe('regel een\nregel twee')
     })
 
-    it('keeps the multiline value attribute in sync with the store', async () => {
+    it('keeps the editor value attribute in sync with the store', async () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
         label: 'Toelichting',
       })
-      const field = wrapper.find('nldd-multi-line-text-field')
+      const field = wrapper.find('nldd-text-editor')
       expect(field.attributes('value')).toBe('')
 
       answerStore.setAnswer('1.1[0]', 'nieuwe inhoud')
@@ -851,7 +734,7 @@ describe('FormField.vue', () => {
       })
       expect(wrapper.find('div.form-field__label label').exists()).toBe(true)
       expect(wrapper.find('nldd-text-field').exists()).toBe(false)
-      expect(wrapper.find('nldd-multi-line-text-field').exists()).toBe(false)
+      expect(wrapper.find('nldd-text-editor').exists()).toBe(false)
       expect(wrapper.find('input').exists()).toBe(false)
       expect(wrapper.find('select').exists()).toBe(false)
     })
@@ -927,12 +810,12 @@ describe('FormField.vue', () => {
   })
 
   describe('accessible naming without a label', () => {
-    it('multiline field has no accessible-label when there is no label', () => {
+    it('editor has no accessible-label when there is no label', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['open_text'] }),
         instanceId: '1.1[0]',
       })
-      expect(wrapper.find('nldd-multi-line-text-field').attributes('accessible-label')).toBeUndefined()
+      expect(wrapper.find('nldd-text-editor').attributes('accessible-label')).toBeUndefined()
     })
 
     it('date field has no accessible-label when there is no label', () => {
@@ -1178,7 +1061,7 @@ describe('FormField.vue', () => {
         { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]' },
         true,
       )
-      expect(wrapper.find('nldd-multi-line-text-field').attributes('inert')).toBeDefined()
+      expect(wrapper.find('nldd-text-editor').attributes('inert')).toBeDefined()
     })
   })
 })
