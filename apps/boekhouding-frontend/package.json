@@ -13,7 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@nldd/design-system": "0.8.83",
+    "@nldd/design-system": "0.8.85",
     "@overheid-assessment/core": "workspace:*",
     "keycloak-js": "^26.2.4",
     "pdfmake": "^0.3.11",

@@ -215,7 +215,7 @@ describe('ProjectMembers', () => {
       expect(membersAdd).not.toHaveBeenCalled()
       const field = wrapper.find('[input-id="inviteEmail"]')
       expect(field.attributes('invalid')).toBe('true')
-      expect(wrapper.find('nldd-form-field-error-text').text()).toBe('Vul een e-mailadres in.')
+      expect(wrapper.find('nldd-validation-item').text()).toBe('Vul een e-mailadres in.')
     })
 
     it('rejects an address that is not shaped like an email', async () => {
@@ -225,7 +225,7 @@ describe('ProjectMembers', () => {
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
       expect(membersAdd).not.toHaveBeenCalled()
-      expect(wrapper.find('nldd-form-field-error-text').text())
+      expect(wrapper.find('nldd-validation-item').text())
         .toBe('Vul een geldig e-mailadres in, bijvoorbeeld naam@organisatie.nl.')
     })
 
@@ -233,12 +233,14 @@ describe('ProjectMembers', () => {
       const wrapper = await mountPage()
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
-      expect(wrapper.find('nldd-form-field-error-text').text()).not.toBe('')
+      expect(wrapper.find('nldd-validation-item').text()).not.toBe('')
 
       wrapper.find('[input-id="inviteEmail"]').element
         .dispatchEvent(new CustomEvent('input', { detail: { value: 'a@b.nl' } }))
       await flushPromises()
-      expect(wrapper.find('nldd-form-field-error-text').text()).toBe('')
+      // The list is only rendered while there is something to say, so editing
+      // the field takes it away rather than leaving an empty one behind.
+      expect(wrapper.find('nldd-validation-item').exists()).toBe(false)
       expect(wrapper.find('[input-id="inviteEmail"]').attributes('invalid')).toBeUndefined()
     })
 
