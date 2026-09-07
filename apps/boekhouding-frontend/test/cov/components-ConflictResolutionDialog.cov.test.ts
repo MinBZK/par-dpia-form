@@ -1,23 +1,12 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeAll, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ConflictResolutionDialog, {
   type ConflictField,
 } from '../../src/components/ConflictResolutionDialog.vue'
-
-// jsdom does not implement HTMLDialogElement.showModal()/close(); the watcher calls them on a bound ref so they must exist. Polyfill with spies.
-const showModal = vi.fn()
-const close = vi.fn()
-
-beforeAll(() => {
-  // @ts-expect-error -- augment jsdom prototype for the test environment
-  HTMLDialogElement.prototype.showModal = showModal
-  // @ts-expect-error -- augment jsdom prototype for the test environment
-  HTMLDialogElement.prototype.close = close
-})
 
 function makeField(overrides: Partial<ConflictField> = {}): ConflictField {
   return {
@@ -31,18 +20,37 @@ function makeField(overrides: Partial<ConflictField> = {}): ConflictField {
   }
 }
 
+// The nldd-modal-dialog custom element is not registered in jsdom; its
+// imperative API is stubbed per test on the host element.
+function stubModal(wrapper: ReturnType<typeof mount>) {
+  const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+    show?: () => void
+    hide?: () => void
+  }
+  host.show = vi.fn()
+  host.hide = vi.fn()
+  return host
+}
+
+const resolveButton = (wrapper: ReturnType<typeof mount>) =>
+  wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Toepassen')!
+
+// One nldd-form-section per conflicting field; inside it the two choices in
+// source order: index 0 is "mine", index 1 is "theirs".
+const sections = (wrapper: VueWrapper) => wrapper.findAll('nldd-form-section')
+const options = (wrapper: VueWrapper, field = 0) => sections(wrapper)[field].findAll('.conflict-option')
+
 describe('ConflictResolutionDialog', () => {
   it('renders the heading, intro text and table headers', () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields: [] },
     })
 
-    expect(wrapper.find('h2.utrecht-heading-2').text()).toBe('Bewerkingsconflict')
+    expect(wrapper.find('nldd-modal-dialog').attributes('text')).toBe('Bewerkingsconflict')
     expect(wrapper.find('p').text()).toContain(
       'Een andere gebruiker heeft dezelfde velden gewijzigd.',
     )
-    const headers = wrapper.findAll('thead th').map((th) => th.text())
-    expect(headers).toEqual(['Vraag', 'Mijn waarde', 'Andere waarde'])
+    expect(sections(wrapper)).toHaveLength(0)
   })
 
   it('renders one row per field with label and v-html formatted values', () => {
@@ -54,58 +62,97 @@ describe('ConflictResolutionDialog', () => {
       props: { active: false, fields },
     })
 
-    const rows = wrapper.findAll('tbody tr')
-    expect(rows).toHaveLength(2)
-    expect(rows[0].find('.conflict-field').text()).toBe('Veld A')
-    expect(rows[0].html()).toContain('<strong>mijn</strong>')
-    expect(rows[0].html()).toContain('<em>hun</em>')
+    const found = sections(wrapper)
+    expect(found).toHaveLength(2)
+    expect(found[0].attributes('text')).toBe('Veld A')
+    expect(found[1].attributes('text')).toBe('Veld B')
+    expect(found[0].html()).toContain('<strong>mijn</strong>')
+    expect(found[0].html()).toContain('<em>hun</em>')
+    expect(options(wrapper)[0].text()).toContain('Jouw waarde')
+    expect(options(wrapper)[1].text()).toContain('Andere waarde')
   })
 
-  it('opens the dialog and defaults every field to "mine" when active becomes true', async () => {
-    showModal.mockClear()
-    close.mockClear()
+  it('opens the modal and defaults every field to "mine" when active becomes true', async () => {
     const fields = [makeField({ fieldId: 'a' }), makeField({ fieldId: 'b' })]
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields },
     })
+    const host = stubModal(wrapper)
 
     await wrapper.setProps({ active: true })
 
-    expect(showModal).toHaveBeenCalledTimes(1)
-    expect(close).not.toHaveBeenCalled()
+    expect(host.show).toHaveBeenCalledTimes(1)
+    expect(host.hide).not.toHaveBeenCalled()
 
-    const mineCells = wrapper.findAll('tbody tr td:nth-child(2)')
-    expect(mineCells[0].classes()).toContain('conflict-value--selected')
-    expect(mineCells[1].classes()).toContain('conflict-value--selected')
+    expect(options(wrapper, 0)[0].classes()).toContain('conflict-option--selected')
+    expect(options(wrapper, 1)[0].classes()).toContain('conflict-option--selected')
+    expect(options(wrapper, 0)[1].classes()).not.toContain('conflict-option--selected')
 
-    const theirCells = wrapper.findAll('tbody tr td:nth-child(3)')
-    expect(theirCells[0].classes()).not.toContain('conflict-value--selected')
+    // The design system draws the control; the label keeps its formatted value.
+    expect(options(wrapper, 0)[0].find('nldd-radio-button').attributes('checked')).toBeDefined()
+    expect(options(wrapper, 0)[1].find('nldd-radio-button').attributes('checked')).toBeUndefined()
 
-    const mineRadio = mineCells[0].find('input[type="radio"]')
-      .element as HTMLInputElement
-    const theirRadio = theirCells[0].find('input[type="radio"]')
-      .element as HTMLInputElement
-    expect(mineRadio.checked).toBe(true)
-    expect(theirRadio.checked).toBe(false)
+    wrapper.unmount()
   })
 
-  it('closes the dialog when active becomes false', async () => {
+  it('hides the modal when active becomes false', async () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: true, fields: [makeField()] },
     })
+    const host = stubModal(wrapper)
     // Mounting with active:true does not fire the watcher (only changes do); toggle to exercise both branches.
     await wrapper.setProps({ active: false })
-    close.mockClear()
+    ;(host.hide as ReturnType<typeof vi.fn>).mockClear()
     await wrapper.setProps({ active: true })
     await wrapper.setProps({ active: false })
 
-    expect(close).toHaveBeenCalled()
+    expect(host.hide).toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  it('reopens the modal when dismissed while the conflict is still active (non-dismissable)', async () => {
+    const wrapper = mount(ConflictResolutionDialog, {
+      props: { active: false, fields: [makeField()] },
+    })
+    const host = stubModal(wrapper)
+    await wrapper.setProps({ active: true })
+    ;(host.show as ReturnType<typeof vi.fn>).mockClear()
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    wrapper.unmount()
+  })
+
+  it('does not reopen on close once the conflict is resolved (active false)', () => {
+    const wrapper = mount(ConflictResolutionDialog, {
+      props: { active: false, fields: [makeField()] },
+    })
+    const host = stubModal(wrapper)
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    expect(host.show).not.toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  it('mounts and toggles without crashing while the element is not upgraded', async () => {
+    const wrapper = mount(ConflictResolutionDialog, {
+      props: { active: false, fields: [makeField()] },
+    })
+    await wrapper.setProps({ active: true })
+    await wrapper.setProps({ active: false })
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    wrapper.unmount()
+    expect(true).toBe(true)
   })
 
   it('clears stale selections from a previous open when reopened with new fields', async () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields: [makeField({ fieldId: 'old' })] },
     })
+    stubModal(wrapper)
 
     await wrapper.setProps({ active: true })
     await wrapper.setProps({ active: false })
@@ -115,66 +162,72 @@ describe('ConflictResolutionDialog', () => {
     })
     await wrapper.setProps({ active: true })
 
-    const wrapper2Rows = wrapper.findAll('tbody tr')
-    expect(wrapper2Rows).toHaveLength(1)
-    expect(wrapper2Rows[0].find('.conflict-field').text()).toBe('Nieuw veld')
+    const found = sections(wrapper)
+    expect(found).toHaveLength(1)
+    expect(found[0].attributes('text')).toBe('Nieuw veld')
 
-    await wrapper.find('button.rvo-button').trigger('click')
+    await resolveButton(wrapper).trigger('click')
     const resolved = wrapper.emitted('resolve')![0][0] as Map<string, string>
     expect([...resolved.keys()]).toEqual(['new'])
+
+    wrapper.unmount()
   })
 
   it('selecting "theirs" via the radio updates the selection and class binding', async () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields: [makeField({ fieldId: 'a' })] },
     })
+    stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    const theirCell = wrapper.find('tbody tr td:nth-child(3)')
-    await theirCell.find('input[type="radio"]').trigger('change')
+    options(wrapper)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
-    expect(theirCell.classes()).toContain('conflict-value--selected')
-    expect(
-      wrapper.find('tbody tr td:nth-child(2)').classes(),
-    ).not.toContain('conflict-value--selected')
+    // The outgoing option fires a change as well; only the checked one counts.
+    options(wrapper)[0].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: false } }))
+    await wrapper.vm.$nextTick()
+
+    expect(options(wrapper)[1].classes()).toContain('conflict-option--selected')
+    expect(options(wrapper)[0].classes()).not.toContain('conflict-option--selected')
+
+    wrapper.unmount()
   })
 
   it('selecting "mine" via the radio updates the selection back to mine', async () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields: [makeField({ fieldId: 'a' })] },
     })
+    stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    await wrapper
-      .find('tbody tr td:nth-child(3) input[type="radio"]')
-      .trigger('change')
-    await wrapper
-      .find('tbody tr td:nth-child(2) input[type="radio"]')
-      .trigger('change')
+    options(wrapper)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
+    options(wrapper)[0].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
-    expect(
-      wrapper.find('tbody tr td:nth-child(2)').classes(),
-    ).toContain('conflict-value--selected')
-    expect(
-      wrapper.find('tbody tr td:nth-child(3)').classes(),
-    ).not.toContain('conflict-value--selected')
+    expect(options(wrapper)[0].classes()).toContain('conflict-option--selected')
+    expect(options(wrapper)[1].classes()).not.toContain('conflict-option--selected')
+
+    wrapper.unmount()
   })
 
-  it('handleResolve closes the dialog and emits the current selections map', async () => {
+  it('handleResolve emits the current selections map', async () => {
     const fields = [makeField({ fieldId: 'a' }), makeField({ fieldId: 'b' })]
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields },
     })
+    stubModal(wrapper)
     await wrapper.setProps({ active: true })
 
-    await wrapper
-      .find('tbody tr:nth-child(2) td:nth-child(3) input[type="radio"]')
-      .trigger('change')
+    options(wrapper, 1)[1].find('nldd-radio-button').element
+      .dispatchEvent(new CustomEvent('change', { detail: { checked: true } }))
+    await wrapper.vm.$nextTick()
 
-    close.mockClear()
-    await wrapper.find('button.rvo-button').trigger('click')
-
-    expect(close).toHaveBeenCalledTimes(1)
+    await resolveButton(wrapper).trigger('click')
 
     const emitted = wrapper.emitted('resolve')
     expect(emitted).toHaveLength(1)
@@ -182,32 +235,22 @@ describe('ConflictResolutionDialog', () => {
     expect(map).toBeInstanceOf(Map)
     expect(map.get('a')).toBe('mine')
     expect(map.get('b')).toBe('theirs')
+
+    wrapper.unmount()
   })
 
   it('emits an empty map when there are no fields', async () => {
     const wrapper = mount(ConflictResolutionDialog, {
       props: { active: false, fields: [] },
     })
+    stubModal(wrapper)
     await wrapper.setProps({ active: true })
     await nextTick()
 
-    await wrapper.find('button.rvo-button').trigger('click')
+    await resolveButton(wrapper).trigger('click')
 
     const map = wrapper.emitted('resolve')![0][0] as Map<string, string>
     expect(map.size).toBe(0)
-  })
-
-  it('prevents the default on the dialog cancel event (Escape key)', async () => {
-    const wrapper = mount(ConflictResolutionDialog, {
-      props: { active: false, fields: [makeField()] },
-      attachTo: document.body,
-    })
-
-    const dialogEl = wrapper.find('dialog').element
-    const event = new Event('cancel', { cancelable: true })
-    dialogEl.dispatchEvent(event)
-
-    expect(event.defaultPrevented).toBe(true)
 
     wrapper.unmount()
   })

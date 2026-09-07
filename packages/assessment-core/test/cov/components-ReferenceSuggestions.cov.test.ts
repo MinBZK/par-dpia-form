@@ -48,38 +48,39 @@ describe('ReferenceSuggestions.vue', () => {
     const task = taskStore.getTasksFromNamespace(FormType.DPIA)['1.1']
 
     const wrapper = mountFor(task)
-    expect(wrapper.find('.rvo-alert').exists()).toBe(false)
+    expect(wrapper.find('nldd-banner').exists()).toBe(false)
   })
 
-  it('renders a suggestion alert with the source task id, title and answer', () => {
+  it('renders a warning banner with the source task id, title and answer', () => {
     const target = seedSuggestionForTarget('Eerder antwoord')
 
     const wrapper = mountFor(target)
-    const alert = wrapper.find('.rvo-alert--warning')
-    expect(alert.exists()).toBe(true)
-    expect(wrapper.text()).toContain('Suggestie uit antwoord op vraag 3.2 – Bron')
-    expect(wrapper.text()).toContain('Eerder antwoord')
+    const banner = wrapper.find('nldd-banner')
+    expect(banner.exists()).toBe(true)
+    expect(banner.attributes('variant')).toBe('warning')
+    expect(banner.attributes('text')).toBe('Suggestie uit antwoord op vraag 3.2 - Bron:')
+    expect(banner.attributes('supporting-text')).toBe('Eerder antwoord')
   })
 
   it('formats an array answer as a comma-separated string', () => {
     const target = seedSuggestionForTarget(['Optie A', 'Optie B'])
 
     const wrapper = mountFor(target)
-    expect(wrapper.text()).toContain('Optie A, Optie B')
+    expect(wrapper.find('nldd-banner').attributes('supporting-text')).toBe('Optie A, Optie B')
   })
 
   it('formats the string "true" as "Ja"', () => {
     const target = seedSuggestionForTarget('true')
 
     const wrapper = mountFor(target)
-    expect(wrapper.text()).toContain('Ja')
+    expect(wrapper.find('nldd-banner').attributes('supporting-text')).toBe('Ja')
   })
 
   it('formats the string "false" as "Nee"', () => {
     const target = seedSuggestionForTarget('false')
 
     const wrapper = mountFor(target)
-    expect(wrapper.text()).toContain('Nee')
+    expect(wrapper.find('nldd-banner').attributes('supporting-text')).toBe('Nee')
   })
 
   it('formats a non-string, non-array answer (image object) as an empty string', () => {
@@ -87,9 +88,9 @@ describe('ReferenceSuggestions.vue', () => {
     const target = seedSuggestionForTarget({ data: 'data:image/png;base64,AAA', title: 'foto' })
 
     const wrapper = mountFor(target)
-    // The alert still renders (there is a suggestion), but the answer line is empty.
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(true)
-    const paragraphs = wrapper.findAll('.rvo-alert-text p')
-    expect(paragraphs[1].text()).toBe('')
+    // The banner still renders (there is a suggestion), but the answer text is empty.
+    const banner = wrapper.find('nldd-banner')
+    expect(banner.exists()).toBe(true)
+    expect(banner.attributes('supporting-text')).toBe('')
   })
 })

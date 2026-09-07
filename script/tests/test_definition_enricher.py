@@ -70,10 +70,10 @@ def test_inject_terms_wraps_known_term_once():
 
     result = inject_terms("Dit is een persoonsgegeven hier.", term_map)
 
-    assert '<span class="aiv-definition">persoonsgegeven' in result
+    assert '<span class="aiv-definition" tabindex="0">persoonsgegeven' in result
     assert "een gegeven" in result
     # Exactly one enrichment span was added.
-    assert result.count('<span class="aiv-definition">') == 1
+    assert result.count('<span class="aiv-definition" tabindex="0">') == 1
 
 
 def test_inject_terms_is_case_insensitive_for_normal_terms():
@@ -82,7 +82,7 @@ def test_inject_terms_is_case_insensitive_for_normal_terms():
     result = inject_terms("Het PERSOONSGEGEVEN telt.", term_map)
 
     # Matched even though the casing differs, and the original casing is kept.
-    assert '<span class="aiv-definition">PERSOONSGEGEVEN' in result
+    assert '<span class="aiv-definition" tabindex="0">PERSOONSGEGEVEN' in result
 
 
 def test_inject_terms_leaves_unknown_text_untouched():
@@ -100,7 +100,7 @@ def test_uppercase_term_only_matches_uppercase():
 
     # Uppercase occurrence IS enriched.
     upper = inject_terms("Wij gebruiken DAT systeem.", term_map)
-    assert '<span class="aiv-definition">DAT' in upper
+    assert '<span class="aiv-definition" tabindex="0">DAT' in upper
 
     # The common Dutch word "dat" is NOT enriched.
     lower = inject_terms("Wij weten dat dit werkt.", term_map)
@@ -131,8 +131,10 @@ def test_inject_terms_does_not_double_wrap_existing_definition_span():
     )
     result = inject_terms(pre_enriched, term_map)
 
-    # No additional nested span was introduced.
-    assert result.count('<span class="aiv-definition">') == 1
+    # Already-enriched markup is left exactly as it was: no second wrap, and
+    # no rewrite of spans that predate the tabindex.
+    assert result == pre_enriched
+    assert result.count("aiv-definition-text") == 1
 
 
 def test_inject_terms_escapes_html_in_definition_fields():
@@ -157,7 +159,7 @@ def test_inject_terms_escapes_html_in_definition_fields():
     result = inject_terms("Wij gebruiken de cloud.", term_map)
 
     # The tooltip markup itself is still produced...
-    assert '<span class="aiv-definition">cloud' in result
+    assert '<span class="aiv-definition" tabindex="0">cloud' in result
     # ...but the externally sourced fields are escaped, not raw HTML.
     assert "<img" not in result
     assert "<script>" not in result

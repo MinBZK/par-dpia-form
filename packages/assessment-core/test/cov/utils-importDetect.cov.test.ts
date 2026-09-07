@@ -29,13 +29,13 @@ describe('parseAndValidateImport', () => {
 
   it('throws when metadata is missing', () => {
     expect(() => parseAndValidateImport(JSON.stringify({ answers: { '1.1': { value: 'x' } } }))).toThrow(
-      'Bestand mist metadata of answers — geen geldig assessment-bestand',
+      'Bestand mist metadata of answers: geen geldig assessment-bestand',
     )
   })
 
   it('throws when answers is missing', () => {
     expect(() => parseAndValidateImport(JSON.stringify({ metadata: { urn: 'urn:nl:dpia:3.0' } }))).toThrow(
-      'Bestand mist metadata of answers — geen geldig assessment-bestand',
+      'Bestand mist metadata of answers: geen geldig assessment-bestand',
     )
   })
 

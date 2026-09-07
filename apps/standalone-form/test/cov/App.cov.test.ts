@@ -51,6 +51,8 @@ describe('App.vue', () => {
   it('renders the LandingView by default and not the Form', () => {
     const wrapper = mountApp()
 
+    expect(wrapper.find('nldd-app-view').exists()).toBe(true)
+    expect(wrapper.find('nldd-page').exists()).toBe(true)
     expect(wrapper.findComponent(LandingStub).exists()).toBe(true)
     expect(wrapper.findComponent(FormStub).exists()).toBe(false)
 

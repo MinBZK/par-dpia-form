@@ -19,7 +19,7 @@ export function parseAndValidateImport(rawText: string): AssessmentState {
   }
 
   if (!json.metadata || !json.answers) {
-    throw new Error('Bestand mist metadata of answers — geen geldig assessment-bestand')
+    throw new Error('Bestand mist metadata of answers: geen geldig assessment-bestand')
   }
 
   const detectedType = detectImportType(json)

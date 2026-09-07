@@ -1,6 +1,6 @@
 # Invulhulpen voor pre-scan, DPIA en IAMA
 
-Pre-scan-, DPIA- en IAMA-assessment-applicatie voor de overheid, gebouwd op het RVO component library.
+Pre-scan-, DPIA- en IAMA-assessment-applicatie voor de overheid, gebouwd op het NLDD Design System (`@nldd/design-system`, Lit web components van de Nederlandse Digitale Dienst).
 
 ## Structuur
 
@@ -17,7 +17,7 @@ pnpm monorepo met workspaces:
 
 - Taal: code in het Engels, UI-teksten en foutmeldingen in het Nederlands
 - Comments in code: Engels
-- Styling: RVO component library CSS (`@nl-rvo/component-library-css`), geen `<style scoped>` in Vue-componenten
+- Styling: NLDD Design System (`@nldd/design-system`, Lit web components met `nldd-*` tags), geen `<style scoped>` in Vue-componenten. Vue moet `nldd-*` als custom elements herkennen (`isCustomElement` in de vite- en vitest-configs).
 - Package scope: `@overheid-assessment/*`
 - Node 22, pnpm (via `corepack enable`)
 - Transitive dependencies van `assessment-core` (zoals `pdfmake`) moeten ook in de consumerende app staan als Vite ze niet resolved via de workspace-link. In de container-omgeving worden ze automatisch mee-geïnstalleerd via `pnpm install`.
@@ -88,8 +88,54 @@ De tsconfigs in `apps/*` en `packages/*` erven gedeelde instellingen via `extend
 - Auth: `keycloak-js` met `onLoad: 'check-sso'` (publieke pagina's zonder login, router guard voor beschermde routes)
 - API-calls via `api.ts` naar `/api/v1/`, Bearer token via `useAuth().getToken()`
 - Gedeelde componenten komen uit `@overheid-assessment/core`
-- Dialogen: native `<dialog>` met `showModal()` (focus trap automatisch, `::backdrop` voor overlay). Geen handmatige backdrop-divs of `.open` property.
-- RVO buttons: `rvo-button rvo-button--primary rvo-button--size-md`. Varianten: `--primary`, `--secondary`, `--tertiary`, `--quaternary`, `--warning`. Sizes: `--size-xs`, `--size-sm`, `--size-md`. Icon-positie: `--icon-before` / `--icon-after`. Volle breedte: `--full-width`. (Sinds `@nl-rvo/component-library-css` 4.16 is Button van `utrecht-button*` naar `rvo-button*` gemigreerd; `utrecht-button` bestaat niet meer.)
+- Dialogen: `nldd-modal-dialog` via het show()/hide()-spiegelpatroon (ref op de host, `watch(open)` → `show?.()`/`hide?.()`, `@close` → emit; voor non-dismissable dialogen heropenen-op-close). Veilige actie is de primary, destructieve de `destructive`-variant (NLDD-richtlijn).
+- Knoppen: direct `nldd-button` met `variant` (`primary`/`secondary`/`accent-transparent`/`neutral-transparent`/`destructive`), `size` (`xs`/`sm`/`md`), `start-icon`/`end-icon`. Iconen: `nldd-icon name="..."` (namen uit de NLDD-registry). Kebab-menu's: gedeeld `KebabMenu` (nldd-icon-button met een `nldd-menu` in het `popup`-slot; de knop ankert en togglet de menu zelf). Let op: `nldd-menu` is zelf de popover (niet nesten in `nldd-popover`).
+- NLDD-componenten renderen in shadow DOM: aria-labelledby/for koppelt niet over de grens, gebruik `accessible-label` (plain text). Veld-labels met schema-HTML (begrippen-tooltips) en radio/checkbox-opties blijven native inputs in light DOM. NLDD-velden leveren hun waarde in `event.detail` - lees `event.detail?.value ?? event.target.value`.
+
+## NLDD-plugin voor Claude Code
+
+Het NLDD-team publiceert een Claude Code-plugin met de componentreferentie, de
+changelog per versie en de ontwerprichtlijnen van het design system. Gebruik die
+bij elke UI-wijziging: hij zegt welke attributen, slots en tokens een component
+echt heeft, in plaats van dat je het gokt.
+
+Draait de plugin nog niet, installeer hem dan zo (de marketplace is de
+Storybook-repo van het design system zelf):
+
+```
+/plugin marketplace add MinBZK/storybook
+/plugin install nldd@nldd-plugins
+```
+
+Daarna is de skill `nldd` beschikbaar. Wat erin zit: `reference.md` (alle
+`nldd-*`-elementen met attributen, slots en events), `changelog.md` (leidend bij
+een versiebump: lees elke `Breaking`-sectie tussen jouw versie en de doelversie),
+`design-guidelines.md` (de ontwerpkeuzes: invoer, navigatie, feedback, microcopy)
+en werkende voorbeelden. Houd de plugin-versie gelijk aan de
+`@nldd/design-system`-versie in `package.json`; de referentie hoort bij precies
+die release.
+
+Kom je iets tegen dat niet via attributen of tokens kan, noteer het dan in
+[`docs/nldd-feedback.md`](../docs/nldd-feedback.md). Die lijst gaat voor de merge
+langs het NLDD-team.
+
+Wat de plugin niet dekt — de valkuilen die we in *deze* repo tegenkwamen
+(importeren per component, namen verifiëren tegen het package, foutmeldingen
+koppelen, eigen CSS verantwoorden): `rules/nldd-integration.md`.
+
+## Ontwerpinstructies
+
+Deze regels komen steeds terug bij review; houd je eraan voordat je een scherm oplevert.
+
+**Tekstkleur.** Lopende tekst, labels, koppen en waarden krijgen de gewone tekstkleur. Grijs (`--semantics-content-secondary-color`) is alleen voor tekst die echt ondergeschikt is: een veldtoelichting, een tijdstempel, een bijschrift. Nooit voor een alinea die iemand moet lezen, nooit voor een label bij een invoerveld. Zet nooit zelf een grijstint op iets dat de gebruiker als inhoud leest. Rendert een NLDD-component zijn eigen tekst grijs (bijvoorbeeld de `supporting-text` van `nldd-text-cell`), dan is dat de keuze van het design system en laat je die staan - maar meld het als je twijfelt of die tekst daar wel ondergeschikt is.
+
+**Stuur componenten via attributen en tokens, niet via overrides.** Wil je een NLDD-component er anders uit laten zien, gebruik dan eerst zijn eigen attributen, daarna zijn `--components-<naam>-*`-tokens (die lees je op de host, ze cascaderen de shadow DOM in). Grijp nooit in de shadow DOM en overschrijf nooit wat een component zelf tekent. Kan het niet via die weg, koppel dat dan terug in plaats van er stil omheen te werken; vaak is het een gat in het design system dat een issue verdient.
+
+**Bouw niet na wat het DS al heeft.** Voor je eigen CSS schrijft: bestaat er een component of een layout-primitive voor? Lijsten en tabellen (`nldd-list`, `nldd-table`, de cellen), formulierritme (`nldd-form`, `nldd-form-section`, `nldd-form-actions`), afstand en kolommen (`nldd-container`, `nldd-spacer`, `nldd-box`). Een eigen media query voor een mobiele variant is bijna altijd een teken dat je het verkeerde component gebruikt: `nldd-container layout="grid"` vouwt zelf om, een lijstrij past zich zelf aan.
+
+**Controleer in beide thema's.** Alle `--primitives-color-*` en `--semantics-*` zijn `light-dark()`-paren; alleen `--primitives-color-reference-*` staat vast. Een hardcoded hex of een reference-token ziet er in donker thema fout uit. Meet contrast met een canvas-rasterisatie, niet met een regex op `rgb()`: het DS levert `oklch()` en een regex meet dan stilletjes niets.
+
+**Chroom verdient zijn plek.** Twee navigatie-ingangen naast elkaar die hetzelfde doen (een terugknop en een menu-item naar dezelfde plek) is er een te veel. Het logo linkt al naar de startpagina.
 
 ## Database
 

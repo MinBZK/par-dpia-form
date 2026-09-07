@@ -1,15 +1,23 @@
+<script setup lang="ts">
+import '@nldd/design-system/button'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/title'
+</script>
+
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <h1 class="utrecht-heading-1">Pagina niet gevonden</h1>
+  <nldd-simple-section width="45rem" padding-top="24">
+    <nldd-title size="3"><h1>Pagina niet gevonden</h1></nldd-title>
     <p>
       De pagina die je zoekt bestaat niet (meer). Controleer de link, of ga
       terug naar het overzicht.
     </p>
     <p>
-      <router-link
-        to="/"
-        class="rvo-button rvo-button--primary rvo-button--size-md"
-      >Naar de startpagina</router-link>
+      <nldd-button
+        variant="primary"
+        size="md"
+        href="/"
+        text="Naar de startpagina"
+      ></nldd-button>
     </p>
-  </div>
+  </nldd-simple-section>
 </template>

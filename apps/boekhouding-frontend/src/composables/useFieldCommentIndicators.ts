@@ -1,40 +1,12 @@
 import { onUnmounted, watch, type Ref } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
-
-const SVG_NS = 'http://www.w3.org/2000/svg'
-
-/** Creates an SVG icon matching tabler IconMessage (same as header badge). */
-function createMessageIcon(): SVGSVGElement {
-  const svg = document.createElementNS(SVG_NS, 'svg')
-  svg.setAttribute('width', '16')
-  svg.setAttribute('height', '16')
-  svg.setAttribute('viewBox', '0 0 24 24')
-  svg.setAttribute('fill', 'none')
-  svg.setAttribute('stroke', 'currentColor')
-  svg.setAttribute('stroke-width', '2')
-  svg.setAttribute('stroke-linecap', 'round')
-  svg.setAttribute('stroke-linejoin', 'round')
-  svg.setAttribute('aria-hidden', 'true')
-
-  const path1 = document.createElementNS(SVG_NS, 'path')
-  path1.setAttribute('d', 'M8 9h8')
-  const path2 = document.createElementNS(SVG_NS, 'path')
-  path2.setAttribute('d', 'M8 13h6')
-  const path3 = document.createElementNS(SVG_NS, 'path')
-  path3.setAttribute('d', 'M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z')
-
-  svg.append(path1, path2, path3)
-  return svg
-}
+import '@nldd/design-system/button'
 
 /**
  * Observes the DOM for field labels and injects comment buttons.
  *
- * For open_text fields (which have an .open-text-field__toggle button),
- * the comment button is placed next to the toggle in the same flex row.
- *
- * For other fields, the label container gets flex styling so the button
- * appears on the right side of the label.
+ * The label container gets flex styling so the button sits at the right of the
+ * label row, before the description.
  */
 export function useFieldCommentIndicators(
   containerRef: Ref<HTMLElement | null>,
@@ -42,13 +14,19 @@ export function useFieldCommentIndicators(
   canComment: Ref<boolean>,
 ) {
   const commentStore = useCollaborationStore()
-  const injectedElements = new Map<string, HTMLButtonElement>()
+  const injectedElements = new Map<string, HTMLElement>()
   let observer: MutationObserver | null = null
   let isInjecting = false
 
-  function createButton(fieldId: string, count: number): HTMLButtonElement {
-    const btn = document.createElement('button')
-    btn.type = 'button'
+  // In a toolbar the button is an icon-button like the ones beside it: same
+  // square footprint, same flat ground, so the row reads as one control strip
+  // rather than a text button parked next to a switch. Elsewhere it keeps its
+  // label, because there it stands alone under a question.
+  function createButton(fieldId: string, count: number): HTMLElement {
+    const btn = document.createElement('nldd-button')
+    btn.setAttribute('size', 'xs')
+    btn.setAttribute('variant', 'accent-transparent')
+    btn.setAttribute('start-icon', 'comment')
     btn.addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
@@ -58,27 +36,33 @@ export function useFieldCommentIndicators(
     return btn
   }
 
-  function updateButton(btn: HTMLButtonElement, count: number) {
-    // Preserve layout classes that are added separately by scanAndInject
-    const wasInLabelRow = btn.classList.contains('comment-field-btn--in-label-row')
-
-    btn.textContent = ''
-    btn.appendChild(createMessageIcon())
-
-    const label = document.createElement('span')
+  function updateButton(btn: HTMLElement, count: number) {
     if (count > 0) {
-      btn.className = 'comment-field-btn comment-field-btn--has-comments'
-      label.textContent = `Opmerking (${count})`
-      btn.setAttribute('aria-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
+      btn.setAttribute('text', `Opmerking (${count})`)
+      btn.setAttribute('accessible-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
     } else {
-      btn.className = 'comment-field-btn'
-      label.textContent = 'Opmerking'
-      btn.setAttribute('aria-label', 'Opmerking toevoegen bij deze vraag')
+      btn.setAttribute('text', 'Opmerking')
+      btn.setAttribute('accessible-label', 'Opmerking toevoegen bij deze vraag')
     }
-    btn.appendChild(label)
-
-    if (wasInLabelRow) btn.classList.add('comment-field-btn--in-label-row')
   }
+
+
+  // FormField renders the label block and the field itself as siblings with no
+  // wrapper around the pair, so a question is a label plus everything up to and
+  // including the first field after it. Anything past that is the next question.
+  function fieldRegionOf(labelContainer: Element): Element[] {
+    const region: Element[] = [labelContainer]
+    let el = labelContainer.nextElementSibling
+    while (el) {
+      // Another label means we walked into the next question.
+      if (el.classList.contains('form-field__label')) break
+      region.push(el)
+      if (el.classList.contains('field-group')) break
+      el = el.nextElementSibling
+    }
+    return region
+  }
+
 
   function scanAndInject() {
     const container = containerRef.value
@@ -120,39 +104,23 @@ export function useFieldCommentIndicators(
         continue
       }
 
-      // Create new button
+      // One place for every question: on its own line under the field. The
+      // button used to sit in the label row, and in an open-text field's own
+      // toolbar — two placements, and in a task group the row of labels ended up
+      // carrying controls that belong to the answer below them.
+      const labelContainer = label.closest('.form-field__label')
       btn = createButton(fieldId, count)
+      btn.classList.add('comment-field-label__btn')
 
-      // Find the label container (parent div.rvo-form-field__label)
-      const labelContainer = label.closest('.rvo-form-field__label')
-      if (!labelContainer) {
-        // Fallback: insert after the label element
-        label.parentElement?.insertBefore(btn, label.nextSibling)
-        injectedElements.set(fieldId, btn)
-        continue
-      }
+      const row = document.createElement('div')
+      row.className = 'comment-field-row'
+      row.appendChild(btn)
 
-      // Check if this is an open_text field (has toggle button)
-      const toggle = labelContainer.querySelector('.open-text-field__toggle')
-
-      if (toggle) {
-        // Insert BEFORE the toggle — then move margin-auto to our button
-        // so both buttons group on the right
-        btn.classList.add('comment-field-btn--in-label-row')
-        labelContainer.insertBefore(btn, toggle)
-      } else {
-        // Non-open_text: make the label container flex and add the button
-        labelContainer.classList.add('comment-field-label--flex')
-        btn.classList.add('comment-field-btn--in-label-row')
-
-        // Insert before the description (if any) or at the end
-        const description = labelContainer.querySelector('.utrecht-form-field-description')
-        if (description) {
-          labelContainer.insertBefore(btn, description)
-        } else {
-          labelContainer.appendChild(btn)
-        }
-      }
+      // After the field that belongs to this label; without a label container
+      // there is nothing to walk from, so it goes straight after the label.
+      const field = labelContainer && fieldRegionOf(labelContainer).at(-1)
+      if (field) field.after(row)
+      else label.after(row)
 
       injectedElements.set(fieldId, btn)
     }

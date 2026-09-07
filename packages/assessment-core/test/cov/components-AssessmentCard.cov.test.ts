@@ -23,31 +23,36 @@ function baseProps(overrides: Partial<{
   }
 }
 
+function statusTag(wrapper: ReturnType<typeof mount>) {
+  return wrapper.find('nldd-tag')
+}
+
 describe('AssessmentCard rendering basics', () => {
   it('always renders the title and definition in the heading', () => {
     const wrapper = mount(AssessmentCard, { props: baseProps() })
 
-    const heading = wrapper.find('h2.utrecht-heading-2')
+    const heading = wrapper.find('nldd-title h2')
     expect(heading.exists()).toBe(true)
     expect(heading.text()).toContain('Data Protection Impact Assessment')
     expect(wrapper.find('.aiv-definition-text').text()).toContain(
       'Een beoordeling van privacyrisicos.',
     )
+    expect(wrapper.find('nldd-card').exists()).toBe(true)
   })
 })
 
 describe('AssessmentCard isCalculating branch', () => {
-  it('shows the loading text and nothing else when isCalculating is true', () => {
+  it('shows the loading text and no status tag while calculating', () => {
     const wrapper = mount(AssessmentCard, {
       props: baseProps({ isCalculating: true, result: undefined }),
     })
 
     expect(wrapper.text()).toContain('Berekenen...')
-    expect(wrapper.text()).not.toContain('Niet verplicht')
+    expect(statusTag(wrapper).exists()).toBe(false)
     expect(wrapper.findAll('ul')).toHaveLength(0)
   })
 
-  it('shows "Niet verplicht" with a result while calculating only after calculation ends', () => {
+  it('hides the result content while still calculating', () => {
     const result: AssessmentResult = {
       id: 'DPIA',
       level: 'required',
@@ -60,24 +65,19 @@ describe('AssessmentCard isCalculating branch', () => {
     })
     expect(wrapper.text()).toContain('Berekenen...')
     expect(wrapper.text()).not.toContain('Verplicht.')
+    expect(statusTag(wrapper).exists()).toBe(false)
   })
 })
 
 describe('AssessmentCard no-result branch', () => {
-  it('renders "Niet verplicht" and grijs styling when no result and not calculating', () => {
+  it('shows the neutral "Niet verplicht" tag when no result and not calculating', () => {
     const wrapper = mount(AssessmentCard, {
       props: baseProps({ isCalculating: false, result: undefined }),
     })
 
-    expect(wrapper.text()).toContain('Niet verplicht')
-
-    const card = wrapper.find('.rvo-card')
-    expect(card.classes()).toContain('rvo-card--full-colour--grijs-100')
-    expect(card.classes()).not.toContain('rvo-card--full-colour--hemelblauw')
-
-    const heading = wrapper.find('h2')
-    expect(heading.classes()).toContain('font-hemelblauw')
-    expect(heading.classes()).not.toContain('font-white')
+    const tag = statusTag(wrapper)
+    expect(tag.attributes('text')).toBe('Niet verplicht')
+    expect(tag.attributes('color')).toBe('neutral')
 
     // introText never renders in this branch; read it directly to cover the `return ''` path.
     expect((wrapper.vm as unknown as { introText: string }).introText).toBe('')
@@ -85,7 +85,7 @@ describe('AssessmentCard no-result branch', () => {
 })
 
 describe('AssessmentCard non-required result branch', () => {
-  it('renders "Niet verplicht" (v-else) when result exists but is not required/recommended', () => {
+  it('shows the neutral tag when result exists but is not required/recommended', () => {
     const result: AssessmentResult = {
       id: 'DPIA',
       level: 'not_required',
@@ -97,17 +97,16 @@ describe('AssessmentCard non-required result branch', () => {
       props: baseProps({ result }),
     })
 
-    expect(wrapper.text()).toContain('Niet verplicht')
+    const tag = statusTag(wrapper)
+    expect(tag.attributes('text')).toBe('Niet verplicht')
+    expect(tag.attributes('color')).toBe('neutral')
     expect(wrapper.findAll('ul')).toHaveLength(0)
     expect(wrapper.text()).not.toContain('Geen DPIA nodig.')
-
-    const card = wrapper.find('.rvo-card')
-    expect(card.classes()).toContain('rvo-card--full-colour--grijs-100')
   })
 })
 
 describe('AssessmentCard required with criteria branch', () => {
-  it('renders the verplicht intro text and a criteria list with white font', () => {
+  it('renders the verplicht intro text, the accent tag and a criteria list', () => {
     const result: AssessmentResult = {
       id: 'DPIA',
       level: 'required',
@@ -130,19 +129,16 @@ describe('AssessmentCard required with criteria branch', () => {
     expect(items[0].text()).toContain('Het verwerkt bijzondere persoonsgegevens.')
     expect(items[1].text()).toContain('Het betreft grootschalige verwerking.')
 
-    const card = wrapper.find('.rvo-card')
-    expect(card.classes()).toContain('rvo-card--full-colour--hemelblauw')
-
-    expect(wrapper.find('h2').classes()).toContain('font-white')
-    const block = wrapper.find('ul').element.parentElement as HTMLElement
-    expect(block.classList.contains('font-white')).toBe(true)
+    const tag = statusTag(wrapper)
+    expect(tag.attributes('text')).toBe('Verplicht')
+    expect(tag.attributes('color')).toBe('accent')
 
     expect(wrapper.text()).not.toContain('Fallback uitleg.')
   })
 })
 
 describe('AssessmentCard recommended with criteria branch', () => {
-  it('renders the aanbevolen intro text when required and level is recommended', () => {
+  it('renders the aanbevolen intro text and warning tag when required and level is recommended', () => {
     const result: AssessmentResult = {
       id: 'DPIA',
       level: 'recommended',
@@ -161,8 +157,9 @@ describe('AssessmentCard recommended with criteria branch', () => {
     expect(items).toHaveLength(1)
     expect(items[0].text()).toContain('Verwerking met privacyrisico.')
 
-    expect(wrapper.find('.rvo-card').classes()).toContain('rvo-card--full-colour--hemelblauw')
-    expect(wrapper.find('h2').classes()).toContain('font-white')
+    const tag = statusTag(wrapper)
+    expect(tag.attributes('text')).toBe('Aanbevolen')
+    expect(tag.attributes('color')).toBe('warning')
   })
 })
 
@@ -181,12 +178,7 @@ describe('AssessmentCard required without criteria (fallback) branch', () => {
 
     expect(wrapper.text()).toContain('Een DPIA is verplicht op grond van de wet.')
     expect(wrapper.findAll('ul')).toHaveLength(0)
-    expect(wrapper.text()).not.toContain('Niet verplicht')
-
-    const paras = wrapper.findAll('.rvo-card__content > p')
-    const fallback = paras.find((p) => p.text().includes('Een DPIA is verplicht op grond van de wet.'))
-    expect(fallback).toBeDefined()
-    expect(fallback!.classes()).toContain('font-white')
+    expect(statusTag(wrapper).attributes('text')).toBe('Verplicht')
   })
 
   it('renders the fallback explanation when required and criteria is an empty array (length 0)', () => {
@@ -220,6 +212,7 @@ describe('AssessmentCard required without criteria (fallback) branch', () => {
 
     expect(wrapper.text()).toContain('Aanbevolen, geen criteria.')
     expect(wrapper.findAll('ul')).toHaveLength(0)
+    expect(statusTag(wrapper).attributes('text')).toBe('Aanbevolen')
   })
 })
 
@@ -236,9 +229,10 @@ describe('AssessmentCard isRecommended branch (required false short-circuit)', (
       props: baseProps({ result }),
     })
 
-    expect(wrapper.text()).toContain('Niet verplicht')
+    const tag = statusTag(wrapper)
+    expect(tag.attributes('text')).toBe('Niet verplicht')
+    expect(tag.attributes('color')).toBe('neutral')
     expect(wrapper.text()).not.toContain('aanbevolen')
-    expect(wrapper.find('.rvo-card').classes()).toContain('rvo-card--full-colour--grijs-100')
   })
 
   it('is required but not recommended when required true and level is not recommended', () => {
@@ -255,11 +249,12 @@ describe('AssessmentCard isRecommended branch (required false short-circuit)', (
 
     expect(wrapper.text()).toContain('Verplicht zonder aanbeveling.')
     expect(wrapper.text()).not.toContain('aanbevolen')
+    expect(statusTag(wrapper).attributes('text')).toBe('Verplicht')
   })
 })
 
 describe('AssessmentCard hasCriteria with non-required result', () => {
-  it('ignores criteria for a non-required result and shows "Niet verplicht"', () => {
+  it('ignores criteria for a non-required result and shows the neutral tag', () => {
     const result: AssessmentResult = {
       id: 'DPIA',
       level: 'not_required',
@@ -272,7 +267,7 @@ describe('AssessmentCard hasCriteria with non-required result', () => {
       props: baseProps({ result }),
     })
 
-    expect(wrapper.text()).toContain('Niet verplicht')
+    expect(statusTag(wrapper).attributes('text')).toBe('Niet verplicht')
     expect(wrapper.findAll('ul')).toHaveLength(0)
     expect(wrapper.text()).not.toContain('Wordt genegeerd.')
   })

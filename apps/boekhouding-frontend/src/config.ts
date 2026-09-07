@@ -24,6 +24,6 @@ export async function loadConfig(): Promise<AppConfig> {
 }
 
 export function getConfig(): AppConfig {
-  if (!config) throw new Error('Config not loaded — call loadConfig() first')
+  if (!config) throw new Error('Config not loaded: call loadConfig() first')
   return config
 }

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AssessmentResult, CriterionResult } from '../stores/calculations';
+import '@nldd/design-system/card'
+import '@nldd/design-system/container'
+import '@nldd/design-system/tag'
+import '@nldd/design-system/title'
+import type { AssessmentResult } from '../stores/calculations';
 
 const props = defineProps<{
   id: string
@@ -22,24 +26,29 @@ const introText = computed(() => {
   }
   return '';
 });
+
+const statusTag = computed(() => {
+  if (isRecommended.value) return { color: 'warning', text: 'Aanbevolen' }
+  if (isRequired.value) return { color: 'accent', text: 'Verplicht' }
+  return { color: 'neutral', text: 'Niet verplicht' }
+})
 </script>
 
 <template>
-  <div :class="[
-    'rvo-card',
-    'rvo-card--outline',
-    'rvo-card--padding-md',
-    isRequired
-      ? 'rvo-card--full-colour--hemelblauw'
-      : 'rvo-card--full-colour--grijs-100'
-  ]">
-    <div class="rvo-card__content card-content-flex">
+  <nldd-card class="assessment-card">
+    <nldd-container padding="16" gap="8">
       <!-- Card Title with Definition -->
-      <h2 class="utrecht-heading-2" :class="isRequired ? 'font-white' : 'font-hemelblauw'">
-        <span class="aiv-definition">{{ title }}
-          <span class="aiv-definition-text">{{ definition }}</span>
-        </span>
-      </h2>
+      <nldd-title size="3">
+        <h2>
+          <span class="aiv-definition">{{ title }}
+            <span class="aiv-definition-text">{{ definition }}</span>
+          </span>
+        </h2>
+      </nldd-title>
+
+      <div v-if="!isCalculating">
+        <nldd-tag :color="statusTag.color" :text="statusTag.text"></nldd-tag>
+      </div>
 
       <!-- Loading State -->
       <p v-if="isCalculating">Berekenen...</p>
@@ -47,7 +56,7 @@ const introText = computed(() => {
       <!-- Results with Criteria -->
       <template v-else-if="result">
         <!-- For required assessments with criteria -->
-        <div v-if="(isRequired || isRecommended) && hasCriteria" :class="{ 'font-white': isRequired }">
+        <div v-if="(isRequired || isRecommended) && hasCriteria">
           <p>{{ introText }}</p>
           <ul>
             <li v-for="criterion in result.criteria" :key="criterion.id">
@@ -57,16 +66,10 @@ const introText = computed(() => {
         </div>
 
         <!-- For required assessments without criteria (fallback) -->
-        <p v-else-if="isRequired || isRecommended" :class="{ 'font-white': isRequired }">
+        <p v-else-if="isRequired || isRecommended">
           {{ result.explanation }}
         </p>
-
-        <!-- For non-required assessments -->
-        <p v-else>Niet verplicht</p>
       </template>
-
-      <!-- No results state -->
-      <p v-else>Niet verplicht</p>
-    </div>
-  </div>
+    </nldd-container>
+  </nldd-card>
 </template>

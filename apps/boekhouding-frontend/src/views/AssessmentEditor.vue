@@ -17,12 +17,22 @@ import {
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
-import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
-import AppHeader from '../components/AppHeader.vue'
+import '@nldd/design-system/button'
+import '@nldd/design-system/sheet'
+import '@nldd/design-system/page'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/spacer'
+import '@nldd/design-system/menu'
+import '@nldd/design-system/toolbar'
+import '@nldd/design-system/notification'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
 import CommentBadge from '../components/CommentBadge.vue'
 import CommentPanel from '../components/CommentPanel.vue'
 import { useCollaborationStore } from '../stores/collaboration'
+import { useBackLink } from '../composables/useBackLink'
 import { useFieldCommentIndicators } from '../composables/useFieldCommentIndicators'
 
 const props = defineProps<{
@@ -51,10 +61,73 @@ const canComment = computed(() =>
   assessment.value?.role === 'commenter' || assessment.value?.role === 'editor' || assessment.value?.role === 'owner',
 )
 
+// Root task ids that have unresolved comments, so the table of contents can
+// flag them. Comment field ids are instance ids ("2.1.3", "2.1.3[0]") or
+// section-completion ids ("completed.2"); the root section is the first
+// dot-segment.
+const commentedRootTaskIds = computed(() => {
+  const roots = new Set<string>()
+  for (const [fieldId, count] of collaborationStore.unresolvedCountByField) {
+    if (count > 0) {
+      const base = fieldId.startsWith('completed.') ? fieldId.slice('completed.'.length) : fieldId
+      roots.add(base.split('.')[0])
+    }
+  }
+  return [...roots]
+})
+
 useFieldCommentIndicators(formContainerRef, (fieldId) => {
   activeCommentFieldId.value = fieldId
   commentPanelOpen.value = true
 }, canComment)
+
+// nldd-sheet exposes show()/hide(); they exist once the custom element has
+// upgraded (not in jsdom), hence the optional calls. Mirroring the state onto
+// them rather than mounting and unmounting the sheet keeps its slide-in.
+type SheetElement = HTMLElement & { show?: () => void; hide?: () => void }
+
+const commentSheet = ref<SheetElement | null>(null)
+
+watch(commentPanelOpen, async (open) => {
+  if (!open) {
+    commentSheet.value?.hide?.()
+    return
+  }
+  await nextTick()
+  commentSheet.value?.show?.()
+})
+
+// The sheet emits close for its own routes out (its dismiss button, Escape
+// while focus is inside it). Routing that back through the state keeps the
+// button in step, and the watch above then performs no second hide() because
+// the sheet is already closed.
+const onCommentSheetClose = () => {
+  commentPanelOpen.value = false
+  activeCommentFieldId.value = null
+}
+
+// A modeless sheet is a non-modal dialog, so the browser only routes Escape to
+// it while focus is inside. That is the point of modeless — the form stays
+// usable — but it means clicking back into a question takes Escape away from
+// the panel. Listening on the document gives it back.
+const onDocumentKeydown = (event: KeyboardEvent) => {
+  if (event.key !== 'Escape' || !commentPanelOpen.value) return
+  // Escape belongs to the innermost thing that can use it: cancelling an edit,
+  // a reply or a new comment. Those handlers stop the event, so anything still
+  // travelling up landed on nothing and closes the panel.
+  commentPanelOpen.value = false
+  activeCommentFieldId.value = null
+}
+
+onMounted(() => document.addEventListener('keydown', onDocumentKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onDocumentKeydown))
+
+// The badge shows the count as a badge; a menu item has no room for one, so the
+// overflow entry says it in words.
+const commentOverflowText = computed(() => {
+  const count = collaborationStore.totalUnresolvedCount
+  return count > 0 ? `Opmerkingen (${count})` : 'Opmerkingen'
+})
 
 function toggleCommentPanel() {
   commentPanelOpen.value = !commentPanelOpen.value
@@ -63,28 +136,22 @@ function toggleCommentPanel() {
   }
 }
 
-// Sync toast state
+// Sync toast state. A plain notice leaves on the notification's own clock,
+// which pauses while it is hovered or focused. A failure describes a state that
+// persists, so it stays up until that state clears.
 interface SyncToast {
   message: string
   action?: () => void
   actionLabel?: string
-  // Failure toasts describe a state that persists, so they stay up until it
-  // clears instead of vanishing after three seconds.
   kind?: 'failure'
 }
 const syncToast = ref<SyncToast | null>(null)
-let syncToastTimer: ReturnType<typeof setTimeout> | null = null
 
 function showSyncToast(message: string, action?: () => void, options: Omit<SyncToast, 'message' | 'action'> = {}) {
-  if (syncToastTimer) clearTimeout(syncToastTimer)
   syncToast.value = { message, action, ...options }
-  if (!action && !options.kind) {
-    syncToastTimer = setTimeout(() => { syncToast.value = null }, 3000)
-  }
 }
 
 function dismissSyncToast() {
-  if (syncToastTimer) clearTimeout(syncToastTimer)
   syncToast.value = null
 }
 
@@ -111,21 +178,32 @@ function formatBackgroundMessage(sectionLabels: string[]): string {
 // Inline name editing
 const editingName = ref(false)
 const editName = ref('')
-const nameInput = ref<HTMLInputElement | null>(null)
+// focus() on the host delegates to the inner input (public NLDD API); select()
+// has no host equivalent, so it reaches into the shadow root defensively.
+const nameInput = ref<HTMLElement | null>(null)
 
-// Kebab menu
-const menuOpen = ref(false)
+function onEditNameInput(event: Event) {
+  editName.value = (event as CustomEvent).detail?.value ?? (event.target as HTMLInputElement).value
+}
 
 // Delete confirmation modal
 const deleteModalOpen = ref(false)
 const deleteConfirmInput = ref('')
-const deleteDialogRef = ref<HTMLDialogElement | null>(null)
+
+function onDeleteConfirmInput(event: Event) {
+  deleteConfirmInput.value = (event as CustomEvent).detail?.value ?? (event.target as HTMLInputElement).value
+}
+
+// show/hide are optional: they only exist once the custom element is upgraded
+// (not in jsdom unit tests).
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+const deleteDialogRef = ref<ModalDialogElement | null>(null)
 
 watch(deleteModalOpen, (open) => {
   if (open) {
-    deleteDialogRef.value?.showModal()
+    deleteDialogRef.value?.show?.()
   } else {
-    deleteDialogRef.value?.close()
+    deleteDialogRef.value?.hide?.()
   }
 })
 
@@ -223,6 +301,8 @@ onMounted(async () => {
     calculationStore.reset()
 
     assessment.value = await assessmentsApi.get(props.assessmentId)
+    // The back target is only known once the assessment (and its projectId) loads.
+    useBackLink().set({ text: 'Project', to: `/project/${assessment.value.projectId}` })
 
     if (!schemaStore.isInitialized) {
       const [preScanModule, dpiaModule, iamaModule] = await Promise.all([
@@ -360,7 +440,7 @@ const startEditName = async () => {
   editingName.value = true
   await nextTick()
   nameInput.value?.focus()
-  nameInput.value?.select()
+  nameInput.value?.shadowRoot?.querySelector('input')?.select()
 }
 
 const cancelName = () => {
@@ -380,39 +460,26 @@ const saveName = async () => {
   editingName.value = false
 }
 
-// Kebab menu actions
-const toggleMenu = () => {
-  menuOpen.value = !menuOpen.value
-}
-
-const closeMenu = () => {
-  menuOpen.value = false
-}
-
+// Overflow-menu actions (nldd-menu closes itself on item activation)
 const handleVersionHistory = () => {
-  menuOpen.value = false
   router.push(`/assessment/${props.assessmentId}/versies`)
 }
 
 const handleDownloadPdf = async () => {
-  menuOpen.value = false
   await exportToPdf(taskStore, answerStore, calculationStore)
 }
 
 const handleDownloadJson = async () => {
-  menuOpen.value = false
   await exportToJson(taskStore, answerStore)
 }
 
 const handleDownloadMarkdown = async () => {
-  menuOpen.value = false
   await exportToMarkdown(taskStore, answerStore)
 }
 
 const isOwner = computed(() => assessment.value?.role === 'owner')
 
 const openDeleteModal = () => {
-  menuOpen.value = false
   deleteModalOpen.value = true
 }
 
@@ -426,110 +493,144 @@ const confirmDelete = async () => {
 
 <template>
   <div class="assessment-editor">
-  <div v-if="loading" class="rvo-max-width-layout rvo-max-width-layout--md">
+  <nldd-simple-section v-if="loading">
     <p>Assessment laden...</p>
-  </div>
+  </nldd-simple-section>
 
-  <div v-else-if="error" class="rvo-max-width-layout rvo-max-width-layout--md" role="alert">
-    <h2 class="utrecht-heading-2">Foutmelding</h2>
+  <nldd-simple-section v-else-if="error"  role="alert">
+    <h2>Foutmelding</h2>
     <p>{{ error }}</p>
-    <button class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before" @click="assessment ? router.push(`/project/${assessment.projectId}`) : router.push('/projecten')">
-      <IconArrowLeft :size="16" /> Terug naar project
-    </button>
-  </div>
+    <nldd-button
+      variant="accent-transparent"
+      size="xs"
+      start-icon="arrow-left"
+      text="Terug naar project"
+      @click="assessment ? router.push(`/project/${assessment.projectId}`) : router.push('/projecten')"
+    ></nldd-button>
+  </nldd-simple-section>
 
   <template v-else-if="assessment">
-    <div class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md">
-      <!-- Row 1: Back + user/logout -->
-      <div class="form-header">
-        <AppHeader backLabel="Terug naar project" :backRoute="`/project/${assessment.projectId}`" />
-      </div>
-
-      <!-- Row 2: Form name + versiegeschiedenis + download -->
-      <div class="form-header form-subheader">
-        <div class="form-subheader__left">
-          <h1
-            v-if="!editingName"
-            class="utrecht-heading-1 rvo-heading--no-margins form-name"
-            :class="{ 'form-name--editable': canEdit }"
-            :role="canEdit ? 'button' : undefined"
-            :tabindex="canEdit ? 0 : undefined"
-            :aria-label="canEdit ? 'Klik om naam te bewerken' : undefined"
-            @click="startEditName"
-            @keydown.enter="startEditName"
-          >{{ displayName }}</h1>
-          <div v-else class="form-name-edit">
-            <span class="form-name-prefix">{{ assessmentTypeLabel }}:</span>
-            <input
-              ref="nameInput"
-              v-model="editName"
-              class="utrecht-textbox utrecht-textbox--html-input form-name-input"
-              aria-label="Naam"
-              @keydown.enter="saveName"
-              @keydown.escape="cancelName"
-            />
-            <button class="rvo-button rvo-button--primary rvo-button--size-xs" @click="saveName">Opslaan</button>
-            <button class="rvo-button rvo-button--tertiary rvo-button--size-xs" @click="cancelName">Annuleer</button>
-          </div>
-        </div>
-        <div class="form-subheader__right">
-          <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
-          <div class="kebab-menu" @focusout="closeMenu">
-            <button
-              class="kebab-menu__trigger"
-              aria-haspopup="true"
-              :aria-expanded="menuOpen"
-              aria-label="Acties"
-              @click="toggleMenu"
-            >
-              <IconDotsVertical :size="20" />
-            </button>
-            <div v-if="menuOpen" class="kebab-menu__dropdown" role="menu">
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleVersionHistory">Versiegeschiedenis</button>
-              <div class="kebab-menu__divider"></div>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadPdf">Download als PDF</button>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadJson">Download als JSON</button>
-              <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadMarkdown">Download als Markdown</button>
-              <template v-if="isOwner">
-                <div class="kebab-menu__divider"></div>
-                <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="openDeleteModal">Assessment verwijderen</button>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="assessment.role === 'viewer'" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
-        Je hebt alleen leesrechten op deze assessment.
-      </div>
-      <div v-else-if="assessment.role === 'commenter'" class="rvo-alert rvo-alert--info rvo-alert--padding-sm rvo-margin-block-end--md" role="status">
-        Je kunt opmerkingen plaatsen maar niet het formulier bewerken.
-      </div>
-
-    </div>
-
-    <div class="assessment-editor__content" :class="{ 'assessment-editor__content--panel-open': commentPanelOpen }">
-      <div ref="formContainerRef" :inert="isReadonly || undefined" class="assessment-editor__form" :class="{ 'form-readonly': isReadonly }">
+    <div ref="formContainerRef" class="assessment-editor__form"
+      :class="{ 'form-readonly': isReadonly }">
         <Form
           :navigation="navigationFunctions"
+          :contentInert="isReadonly"
           :namespace="namespace"
           :validData="schemaStore.getSchema(namespace)"
           :showBanner="false"
           :showNavHeader="false"
           :showFileActions="false"
           :autoStart="true"
-        />
-      </div>
+          :commentedRootTaskIds="commentedRootTaskIds"
+        >
+          <template #header="{ tocCollapsed, toggleToc }">
+          <!-- Form name + versiegeschiedenis + download -->
+          <div class="form-header form-subheader">
+            <div class="form-subheader__left">
+              <h1
+                v-if="!editingName"
+                class="form-name"
+                :class="{ 'form-name--editable': canEdit }"
+                :role="canEdit ? 'button' : undefined"
+                :tabindex="canEdit ? 0 : undefined"
+                :aria-label="canEdit ? 'Klik om naam te bewerken' : undefined"
+                @click="startEditName"
+                @keydown.enter="startEditName"
+              >{{ displayName }}</h1>
+              <div v-else class="form-name-edit">
+                <span class="form-name-prefix">{{ assessmentTypeLabel }}:</span>
+                <nldd-text-field
+                  ref="nameInput"
+                  class="form-name-input"
+                  accessible-label="Naam"
+                  :value="editName"
+                  @input="onEditNameInput"
+                  @keydown.enter="saveName"
+                  @keydown.escape.stop="cancelName"
+                ></nldd-text-field>
+                <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
+                <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
+              </div>
+            </div>
+            <!-- A toolbar, so the buttons shed into the overflow menu once the
+                 row runs out of room instead of crowding the title. That menu is
+                 the ellipsis button the toolbar draws itself, which is why the
+                 assessment actions are plain overflow items here rather than a
+                 kebab of their own: two ellipsis menus side by side would be one
+                 too many. -->
+            <nldd-toolbar class="form-subheader__right" size="sm" label="Assessmentacties">
+              <!-- Only while the contents are folded into their sheet is there
+                   something to open; with the sidebar in view this would open
+                   what is already open. The item is mounted as a whole or not at
+                   all, so the toolbar can move it into the overflow menu when the
+                   row runs out of room. Lowest priority: first to give up its
+                   place in the row. -->
+              <nldd-toolbar-item v-if="tocCollapsed" slot="end" priority="1">
+                <nldd-button
+                  variant="accent-transparent"
+                  size="sm"
+                  start-icon="bullet-list"
+                  text="Stappen"
+                  aria-haspopup="dialog"
+                  @click="toggleToc"
+                ></nldd-button>
+                <nldd-menu-item slot="overflow" icon="bullet-list" text="Stappen"
+                  @select="toggleToc"></nldd-menu-item>
+              </nldd-toolbar-item>
+              <nldd-toolbar-item slot="end" priority="2">
+                <CommentBadge :open="commentPanelOpen" @toggle="toggleCommentPanel" />
+                <nldd-menu-item slot="overflow" icon="comment"
+                  :text="commentOverflowText" @select="toggleCommentPanel"></nldd-menu-item>
+              </nldd-toolbar-item>
 
-      <CommentPanel
-        v-if="commentPanelOpen"
-        :role="assessment.role || 'viewer'"
-        :activeFieldId="activeCommentFieldId"
-        :formContainerRef="formContainerRef"
-        @close="commentPanelOpen = false; activeCommentFieldId = null"
-        @deactivate-field="activeCommentFieldId = null"
-      />
+              <nldd-menu-item slot="overflow" text="Versiegeschiedenis" @select="handleVersionHistory"></nldd-menu-item>
+              <nldd-menu-divider slot="overflow"></nldd-menu-divider>
+              <nldd-menu-item slot="overflow" text="Download als PDF" @select="handleDownloadPdf"></nldd-menu-item>
+              <nldd-menu-item slot="overflow" text="Download als JSON" @select="handleDownloadJson"></nldd-menu-item>
+              <nldd-menu-item slot="overflow" text="Download als Markdown" @select="handleDownloadMarkdown"></nldd-menu-item>
+              <template v-if="isOwner">
+                <nldd-menu-divider slot="overflow"></nldd-menu-divider>
+                <nldd-menu-item slot="overflow" text="Assessment verwijderen" destructive @select="openDeleteModal"></nldd-menu-item>
+              </template>
+            </nldd-toolbar>
+          </div>
+
+          <template v-if="assessment.role === 'viewer' || assessment.role === 'commenter'">
+            <nldd-banner
+              variant="accent"
+              :text="assessment.role === 'viewer'
+                ? 'Je hebt alleen leesrechten op deze assessment.'
+                : 'Je kunt opmerkingen plaatsen maar niet het formulier bewerken.'"
+            ></nldd-banner>
+            <nldd-spacer size="16"></nldd-spacer>
+          </template>
+
+          </template>
+        </Form>
     </div>
+
+    <!-- A side panel, the way the rest of the family does it: a right-hand
+         sheet that slides in over the page. Teleported to the body because a
+         sheet must sit at the document root, and modeless so the form stays
+         usable with it open — you read a comment and edit the answer beside it.
+         The sheet owns Esc and the click outside; @close is the single way the
+         state comes back down. -->
+    <Teleport to="body">
+      <nldd-sheet ref="commentSheet" placement="right" width="480px" modeless
+        accessible-label="Opmerkingen" @close="onCommentSheetClose">
+        <!-- sticky-header keeps the title bar in place while the list scrolls. -->
+        <nldd-page sticky-header>
+          <CommentPanel
+            v-if="commentPanelOpen"
+            :role="assessment.role || 'viewer'"
+            :activeFieldId="activeCommentFieldId"
+            :formContainerRef="formContainerRef"
+            @close="commentPanelOpen = false"
+            @deactivate-field="activeCommentFieldId = null"
+          />
+        </nldd-page>
+      </nldd-sheet>
+    </Teleport>
   </template>
 
   <!-- Conflict resolution modal -->
@@ -540,44 +641,45 @@ const confirmDelete = async () => {
   />
 
   <!-- Delete confirmation modal -->
-  <dialog ref="deleteDialogRef" class="confirm-dialog" @close="deleteModalOpen = false; deleteConfirmInput = ''">
-    <div class="confirm-dialog__content">
-      <h2 class="utrecht-heading-2">Weet je zeker dat je deze assessment wilt verwijderen?</h2>
-      <p>De assessment <strong>{{ displayName }}</strong> wordt permanent verwijderd. Alle ingevulde antwoorden en versiegeschiedenis gaan verloren. Deze actie kan niet ongedaan worden gemaakt.</p>
-      <label class="confirm-dialog__label">
-        Typ <strong>VERWIJDEREN</strong> om te bevestigen
-        <input
-          v-model="deleteConfirmInput"
-          class="utrecht-textbox utrecht-textbox--html-input confirm-dialog__input"
-        />
-      </label>
-      <div class="confirm-dialog__actions">
-        <button
-          class="rvo-button rvo-button--size-md confirm-dialog__delete"
-          :class="deleteConfirmInput === 'VERWIJDEREN' ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
-          :disabled="deleteConfirmInput !== 'VERWIJDEREN'"
-          @click="confirmDelete"
-        >
-          Assessment verwijderen
-        </button>
-        <button class="rvo-button rvo-button--secondary rvo-button--size-md" @click="deleteModalOpen = false; deleteConfirmInput = ''">
-          Annuleer
-        </button>
-      </div>
-    </div>
-  </dialog>
+  <nldd-modal-dialog
+    ref="deleteDialogRef"
+    variant="alert"
+    text="Weet je zeker dat je deze assessment wilt verwijderen?"
+    @close="deleteModalOpen = false; deleteConfirmInput = ''"
+  >
+    <p>De assessment <strong>{{ displayName }}</strong> wordt permanent verwijderd. Alle ingevulde antwoorden en versiegeschiedenis gaan verloren. Deze actie kan niet ongedaan worden gemaakt.</p>
+    <p>Typ <strong>VERWIJDEREN</strong> om te bevestigen</p>
+    <nldd-text-field
+      accessible-label="Typ VERWIJDEREN om te bevestigen"
+      :value="deleteConfirmInput"
+      @input="onDeleteConfirmInput"
+    ></nldd-text-field>
 
-  <!-- Sync toast -->
-  <Transition name="sync-toast">
-    <div
-      v-if="syncToast"
-      class="sync-toast rvo-alert--padding-sm"
-      :class="{ 'sync-toast--raised': commentPanelOpen }"
-      role="status"
-    >
-      <span>{{ syncToast.message }}</span>
-      <button v-if="syncToast.action" class="sync-toast__action" @click="syncToast.action">{{ syncToast.actionLabel ?? 'Bijwerken' }}</button>
-    </div>
-  </Transition>
+    <!-- The safe way out is the primary action; the destructive action is the
+         secondary one (NLDD design guideline). -->
+    <nldd-button slot="actions" variant="primary" text="Annuleer"
+      @click="deleteModalOpen = false; deleteConfirmInput = ''"></nldd-button>
+    <nldd-button slot="actions" variant="destructive" text="Assessment verwijderen"
+      :disabled="deleteConfirmInput !== 'VERWIJDEREN' || undefined"
+      @click="confirmDelete"></nldd-button>
+  </nldd-modal-dialog>
+
+  <!-- Sync toast: the notification places itself in the shared region. A
+       failure keeps its own duration of 0, so it stays until the state clears. -->
+  <nldd-notification
+    v-if="syncToast"
+    :variant="syncToast.kind === 'failure' ? 'critical' : 'accent'"
+    :duration="syncToast.action || syncToast.kind ? 0 : 3000"
+    :text="syncToast.message"
+    @dismiss="dismissSyncToast"
+  >
+    <nldd-button
+      v-if="syncToast.action"
+      slot="actions"
+      size="sm"
+      :text="syncToast.actionLabel ?? 'Bijwerken'"
+      @click="syncToast.action"
+    ></nldd-button>
+  </nldd-notification>
   </div>
 </template>

@@ -1,34 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, type Component } from 'vue'
-import {
-  IconServer,
-  IconKey,
-  IconCircleCheck,
-  IconCircleX,
-  IconAlertTriangle,
-  IconLoader2,
-  IconCopy,
-  IconCheck,
-  IconBrandGithub,
-  IconExternalLink,
-} from '@tabler/icons-vue'
-import AppHeader from '../components/AppHeader.vue'
+import { ref, computed, onMounted } from 'vue'
+import { useBackLink } from '../composables/useBackLink'
+import { previousPage } from '../router'
 import { getConfig } from '../config'
 import { loadVersion, type VersionInfo } from '../version'
 import { probe, TimeoutError } from '../probe'
+import '@nldd/design-system/activity-indicator'
+import '@nldd/design-system/button'
+import '@nldd/design-system/card'
+import '@nldd/design-system/collection'
+import '@nldd/design-system/container'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/text'
+import '@nldd/design-system/title'
 
 const REPO = 'https://github.com/MinBZK/par-dpia-form'
 
 type ProbeState = 'loading' | 'ok' | 'error' | 'timeout'
 interface StatusMeta {
   label: string
-  tagClass: string
-  icon: Component
+  variant: 'neutral' | 'success' | 'warning' | 'critical'
 }
 
-const hasHistory = computed(() => !!window.history.state?.back)
+// Name where the reader goes back to, rather than a bare "Terug".
+useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 
 const frontend = ref<VersionInfo>({ version: 'dev', commit: 'dev', channel: 'dev' })
+
+// The git tag carries the v (vYYYY.M.D); the reading version does not.
+const displayVersion = computed(() => frontend.value.version.replace(/^v/, ''))
 const backendState = ref<ProbeState>('loading')
 const keycloakState = ref<ProbeState>('loading')
 const copyState = ref<'idle' | 'done' | 'error'>('idle')
@@ -53,18 +55,20 @@ const copyLabel = computed(() =>
       : 'Kopieer versie-informatie',
 )
 const copyIcon = computed(() =>
-  copyState.value === 'done' ? IconCheck : copyState.value === 'error' ? IconAlertTriangle : IconCopy,
+  copyState.value === 'done' ? 'check-mark' : copyState.value === 'error' ? 'exclamation-triangle' : 'copy',
 )
 
 function statusMeta(state: ProbeState): StatusMeta {
-  if (state === 'ok') return { label: 'Alles werkt', tagClass: 'rvo-tag--success', icon: IconCircleCheck }
-  if (state === 'timeout') return { label: 'Reageert traag', tagClass: 'rvo-tag--warning', icon: IconAlertTriangle }
-  if (state === 'error') return { label: 'Er werkt iets niet', tagClass: 'rvo-tag--error', icon: IconCircleX }
-  return { label: 'Controleren', tagClass: 'rvo-tag--default', icon: IconLoader2 }
+  // The banner picks its own icon per variant; only the checking state needs
+  // one of its own (an activity indicator in the icon slot).
+  if (state === 'ok') return { label: 'Alles werkt', variant: 'success' }
+  if (state === 'timeout') return { label: 'Reageert traag', variant: 'warning' }
+  if (state === 'error') return { label: 'Er werkt iets niet', variant: 'critical' }
+  return { label: 'Controleren', variant: 'neutral' }
 }
 
 function buildVersionText(): string {
-  if (frontend.value.version !== 'dev') return `Invulhulpen versie ${frontend.value.version}`
+  if (frontend.value.version !== 'dev') return `Invulhulpen versie ${displayVersion.value}`
   const commit = hasCommit.value ? ` op commit ${frontend.value.commit}` : ''
   return `Invulhulpen ontwikkelversie${commit}`
 }
@@ -113,125 +117,122 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader
-      :backLabel="hasHistory ? 'Terug' : 'Ga naar home'"
-      :backRoute="hasHistory ? undefined : '/'"
-      :showBack="hasHistory"
-    />
+  <nldd-simple-section width="60rem" padding-top="24">
+    <nldd-container gap="32">
+      <nldd-container gap="16">
+        <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
+        <nldd-text>
+          Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
+          zie je dat hieronder, met een korte uitleg.
+        </nldd-text>
+      </nldd-container>
 
-    <h1 class="utrecht-heading-1">Status van Invulhulpen</h1>
-    <p>
-      Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
-      zie je dat hieronder, met een korte uitleg.
-    </p>
+    <section aria-labelledby="status-onderdelen">
+      <nldd-container gap="16">
+      <nldd-title size="4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
+      <nldd-collection layout="grid" item-width="380px" gap="16px">
 
-    <section class="landing-section" aria-labelledby="status-onderdelen">
-      <h2 id="status-onderdelen" class="utrecht-heading-2">Onderdelen die Invulhulpen nodig heeft</h2>
-      <div class="rvo-layout-grid-container">
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two">
-
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md">
-            <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3 rvo-margin--none status-card__title">
-                <IconServer :size="22" aria-hidden="true" focusable="false" />
-                De achterkant
-              </h3>
-              <p class="rvo-text--sm">
-                Dit onderdeel bewaart je antwoorden en haalt ze weer op. Is de achterkant niet
-                bereikbaar, dan kun je tijdelijk niets openen of opslaan.
-              </p>
-              <p class="rvo-margin--none" role="status" aria-live="polite">
-                <span class="sr-only">Status van de achterkant: </span>
-                <span
-                  class="rvo-tag rvo-tag--with-icon status-card__tag"
-                  :class="statusMeta(backendState).tagClass"
-                  data-test="backend-state"
-                >
-                  <component
-                    :is="statusMeta(backendState).icon"
-                    :size="16"
-                    :class="{ 'status-spin': backendState === 'loading' }"
-                    aria-hidden="true"
-                    focusable="false"
-                  />
-                  {{ statusMeta(backendState).label }}
-                </span>
-              </p>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <h3 class="status-card__title">
+              <nldd-icon name="rack-server" size="20"></nldd-icon>
+              De achterkant
+            </h3>
+            <nldd-text size="xs">
+              Dit onderdeel bewaart je antwoorden en haalt ze weer op. Is de achterkant niet
+              bereikbaar, dan kun je tijdelijk niets openen of opslaan.
+            </nldd-text>
+          </nldd-container>
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <!-- The state is what this card is for, so it fills the footer as a
+                 banner instead of hiding in a small tag. -->
+            <div role="status" aria-live="polite">
+              <span class="sr-only">Status van de achterkant: </span>
+              <nldd-banner
+                :variant="statusMeta(backendState).variant"
+                :text="statusMeta(backendState).label"
+                data-test="backend-state"
+              >
+                <nldd-activity-indicator
+                  v-if="backendState === 'loading'"
+                  slot="icon"
+                  size="20"
+                ></nldd-activity-indicator>
+              </nldd-banner>
             </div>
-          </div>
+          </nldd-container>
+        </nldd-card>
 
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md">
-            <div class="rvo-card__content card-content-flex">
-              <h3 class="utrecht-heading-3 rvo-margin--none status-card__title">
-                <IconKey :size="22" aria-hidden="true" focusable="false" />
-                De aanmeldvoorziening
-              </h3>
-              <p class="rvo-text--sm">
-                Hiermee log je veilig in. Werkt dit onderdeel niet, dan lukt het mogelijk niet om
-                in te loggen of ingelogd te blijven.
-              </p>
-              <p class="rvo-margin--none" role="status" aria-live="polite">
-                <span class="sr-only">Status van de aanmeldvoorziening: </span>
-                <span
-                  class="rvo-tag rvo-tag--with-icon status-card__tag"
-                  :class="statusMeta(keycloakState).tagClass"
-                  data-test="keycloak-state"
-                >
-                  <component
-                    :is="statusMeta(keycloakState).icon"
-                    :size="16"
-                    :class="{ 'status-spin': keycloakState === 'loading' }"
-                    aria-hidden="true"
-                    focusable="false"
-                  />
-                  {{ statusMeta(keycloakState).label }}
-                </span>
-              </p>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <h3 class="status-card__title">
+              <nldd-icon name="key" size="20"></nldd-icon>
+              De aanmeldvoorziening
+            </h3>
+            <nldd-text size="xs">
+              Hiermee log je veilig in. Werkt dit onderdeel niet, dan lukt het mogelijk niet om
+              in te loggen of ingelogd te blijven.
+            </nldd-text>
+          </nldd-container>
+          <nldd-container slot="footer" padding="16" padding-top="0">
+            <!-- The state is what this card is for, so it fills the footer as a
+                 banner instead of hiding in a small tag. -->
+            <div role="status" aria-live="polite">
+              <span class="sr-only">Status van de aanmeldvoorziening: </span>
+              <nldd-banner
+                :variant="statusMeta(keycloakState).variant"
+                :text="statusMeta(keycloakState).label"
+                data-test="keycloak-state"
+              >
+                <nldd-activity-indicator
+                  v-if="keycloakState === 'loading'"
+                  slot="icon"
+                  size="20"
+                ></nldd-activity-indicator>
+              </nldd-banner>
             </div>
-          </div>
+          </nldd-container>
+        </nldd-card>
 
-        </div>
-      </div>
+      </nldd-collection>
+      </nldd-container>
     </section>
 
-    <section class="landing-section" aria-labelledby="status-versie">
-      <h2 id="status-versie" class="utrecht-heading-2">Welke versie draait er?</h2>
-      <p>
+    <section aria-labelledby="status-versie">
+      <nldd-container gap="16">
+      <nldd-title size="4"><h2 id="status-versie">Welke versie draait er?</h2></nldd-title>
+      <nldd-text>
         Handig om mee te sturen als je een probleem meldt. Je kunt de versie kopiëren of de
         broncode op GitHub bekijken.
-      </p>
-      <div class="rvo-layout-grid-container">
-        <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--one">
-          <div class="rvo-card rvo-card--outline rvo-card--padding-md">
-            <div class="rvo-card__content version-card">
-              <p class="rvo-margin--none version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ frontend.version }}</span></template></p>
-              <div class="rvo-action-group version-card__actions">
-                <button
-                  type="button"
-                  class="rvo-button rvo-button--secondary rvo-button--size-md rvo-button--icon-before"
-                  data-test="copy-version"
-                  @click="copyVersion"
-                >
-                  <component :is="copyIcon" :size="20" aria-hidden="true" focusable="false" /> {{ copyLabel }}
-                </button>
-                <a
-                  class="rvo-button rvo-button--secondary rvo-button--size-md rvo-button--icon-before"
-                  :href="githubUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-test="github-link"
-                >
-                  <IconBrandGithub :size="20" aria-hidden="true" focusable="false" /> Open op GitHub
-                  <IconExternalLink :size="16" aria-hidden="true" focusable="false" data-test="external-icon" />
-                  <span class="sr-only">(opent in een nieuw tabblad)</span>
-                </a>
-              </div>
-              <span class="sr-only" role="status" aria-live="polite" data-test="copy-feedback">{{ copyFeedback }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      </nldd-text>
+      <nldd-card>
+        <nldd-container padding="16" gap="16">
+          <p class="version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ displayVersion }}</span></template></p>
+          <nldd-container layout="wrap" gap="8" class="version-card__actions">
+            <nldd-button
+              variant="secondary"
+              size="md"
+              :start-icon="copyIcon"
+              :text="copyLabel"
+              data-test="copy-version"
+              @click="copyVersion"
+            ></nldd-button>
+            <nldd-button
+              variant="secondary"
+              size="md"
+              :href="githubUrl"
+              target="_blank"
+              text="Open op GitHub"
+              start-icon="git-branch"
+              end-icon="external-link"
+              data-test="github-link"
+            ></nldd-button>
+          </nldd-container>
+          <span class="sr-only" role="status" aria-live="polite" data-test="copy-feedback">{{ copyFeedback }}</span>
+        </nldd-container>
+      </nldd-card>
+      </nldd-container>
     </section>
-  </div>
+    </nldd-container>
+  </nldd-simple-section>
 </template>

@@ -32,36 +32,17 @@ vi.mock('vue-router', () => ({
   useRouter: () => ({ push: routerPush }),
 }))
 
-const autoGrowTextarea = vi.fn()
-vi.mock('@overheid-assessment/core', () => ({
-  UiButton: {
-    name: 'UiButton',
-    props: ['variant', 'type', 'label'],
-    emits: ['click'],
-    template:
-      '<button :type="type || \'button\'" class="ui-button" :data-variant="variant" @click="$emit(\'click\', $event)">{{ label }}</button>',
-  },
-  autoGrowTextarea: (...args: unknown[]) => autoGrowTextarea(...args),
-}))
-
 import ProjectList from '../../src/views/ProjectList.vue'
-
-const AppHeaderStub = {
-  name: 'AppHeader',
-  template: '<header class="app-header-stub"><slot name="left" /></header>',
-}
 
 function mountList() {
   return mount(ProjectList, {
     global: {
       stubs: {
-        AppHeader: AppHeaderStub,
         RouterLink: {
           name: 'RouterLink',
           props: ['to'],
           template: '<a class="router-link" :href="to"><slot /></a>',
         },
-        IconPlus: { name: 'IconPlus', template: '<span class="icon-plus" />' },
       },
     },
   })
@@ -78,11 +59,20 @@ function makeProject(overrides: Partial<Project> = {}): Project {
   }
 }
 
+// The nldd-* custom elements are not registered in jsdom, so field values are
+// simulated as NLDD CustomEvents carrying detail.value.
+function dispatchFieldInput(wrapper: ReturnType<typeof mountList>, selector: string, value: string) {
+  wrapper.find(selector).element.dispatchEvent(new CustomEvent('input', { detail: { value } }))
+}
+
+async function openCreateForm(wrapper: ReturnType<typeof mountList>) {
+  await wrapper.find('nldd-button[text="Nieuw project"]').trigger('click')
+}
+
 beforeEach(() => {
   listMock.mockReset()
   createMock.mockReset()
   routerPush.mockReset()
-  autoGrowTextarea.mockReset()
 })
 
 describe('ProjectList', () => {
@@ -100,18 +90,19 @@ describe('ProjectList', () => {
       await flushPromises()
 
       expect(wrapper.text()).not.toContain('Projecten laden...')
-      expect(wrapper.text()).toContain('Je hebt nog geen projecten. Maak er een aan om te beginnen.')
+      expect(wrapper.find('nldd-inline-dialog').attributes('text')).toBe('Nog geen projecten')
     })
 
-    it('sets the error message when projects.list() rejects (catch branch)', async () => {
+    it('shows a warning banner when projects.list() rejects (catch branch)', async () => {
       listMock.mockRejectedValue(new Error('network down'))
       const wrapper = mountList()
       await flushPromises()
 
-      const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
-      expect(wrapper.text()).not.toContain('Je hebt nog geen projecten')
+      const banner = wrapper.find('nldd-banner')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('variant')).toBe('warning')
+      expect(banner.attributes('text')).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
+      expect(wrapper.find('nldd-inline-dialog').exists()).toBe(false)
     })
 
     it('shows the server message on a 403 instead of advising a retry', async () => {
@@ -119,8 +110,8 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
-      expect(alert.text()).toBe('Je e-mailadres is niet geverifieerd.')
+      const banner = wrapper.find('nldd-banner[variant="warning"]')
+      expect(banner.attributes('text')).toBe('Je e-mailadres is niet geverifieerd.')
     })
 
     it('keeps the generic message for a non-403 ApiError', async () => {
@@ -128,13 +119,13 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      const alert = wrapper.find('.rvo-alert.rvo-alert--warning')
-      expect(alert.text()).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
+      const banner = wrapper.find('nldd-banner[variant="warning"]')
+      expect(banner.attributes('text')).toBe('Kan projecten niet laden. Probeer het later opnieuw.')
     })
   })
 
   describe('project cards', () => {
-    it('renders a card per project with a link to its detail route', async () => {
+    it('renders a card per project in a grid collection with a link to its detail route', async () => {
       listMock.mockResolvedValue([
         makeProject({ id: 'a', name: 'Alpha' }),
         makeProject({ id: 'b', name: 'Beta' }),
@@ -142,10 +133,18 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      const links = wrapper.findAll('.router-link')
-      expect(links).toHaveLength(2)
-      expect(links[0].attributes('href')).toBe('/project/a')
-      expect(links[1].attributes('href')).toBe('/project/b')
+      const grid = wrapper.find('nldd-collection')
+      expect(grid.attributes('layout')).toBe('grid')
+      expect(grid.attributes('item-width')).toBe('380px')
+      expect(grid.attributes('gap')).toBe('16px')
+      expect(grid.attributes('max-items')).toBe('2')
+
+      const cards = wrapper.findAll('nldd-collection > nldd-card')
+      expect(cards).toHaveLength(2)
+      expect(cards[0].attributes('href')).toBe('/project/a')
+      expect(cards[1].attributes('href')).toBe('/project/b')
+      expect(cards[0].attributes('accessible-label')).toBe('Open project Alpha')
+      expect(cards[0].find('nldd-container').exists()).toBe(true)
       expect(wrapper.text()).toContain('Alpha')
       expect(wrapper.text()).toContain('Beta')
     })
@@ -158,11 +157,21 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      const cards = wrapper.findAll('.router-link')
+      const cards = wrapper.findAll('nldd-collection > nldd-card')
       expect(cards[0].find('.text-clamp-3').exists()).toBe(true)
       expect(cards[0].find('.text-clamp-3').text()).toBe('Een omschrijving')
       expect(cards[1].find('.text-clamp-3').exists()).toBe(false)
     })
+  })
+
+  it('renders the page title as an h1 inside nldd-title', async () => {
+    listMock.mockResolvedValue([])
+    const wrapper = mountList()
+    await flushPromises()
+
+    const title = wrapper.get('nldd-title')
+    expect(title.attributes('size')).toBe('3')
+    expect(title.get('h1').text()).toBe('Projecten')
   })
 
   describe('create form toggle', () => {
@@ -171,9 +180,12 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      expect(wrapper.find('form').exists()).toBe(false)
-      const trigger = wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))
-      expect(trigger).toBeTruthy()
+      // The form lives in a dialog now, so it is in the DOM but not shown.
+      expect(wrapper.find('[data-test="create-project-dialog"]').exists()).toBe(true)
+      const trigger = wrapper.find('nldd-button[text="Nieuw project"]')
+      expect(trigger.exists()).toBe(true)
+      expect(trigger.attributes('variant')).toBe('primary')
+      expect(trigger.attributes('start-icon')).toBe('plus')
     })
 
     it('reveals the form when the "Nieuw project" button is clicked', async () => {
@@ -181,11 +193,11 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      const trigger = wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!
-      await trigger.trigger('click')
+      await openCreateForm(wrapper)
 
       expect(wrapper.find('form').exists()).toBe(true)
-      expect(wrapper.findAll('button').some((b) => b.text().includes('Nieuw project'))).toBe(false)
+      // The trigger stays put: the dialog opens on top of the page.
+      expect(wrapper.find('nldd-button[text="Nieuw project"]').exists()).toBe(true)
     })
 
     it('hides the form again when "Annuleren" is clicked', async () => {
@@ -193,29 +205,101 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
-      expect(wrapper.find('form').exists()).toBe(true)
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+        .element as HTMLElement & { show?: () => void; hide?: () => void }
+      const hide = vi.fn()
+      dialog.hide = hide
+      await openCreateForm(wrapper)
 
-      const cancel = wrapper.findAll('button').find((b) => b.text() === 'Annuleren')!
+      const cancel = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Annuleren')!
       await cancel.trigger('click')
-      expect(wrapper.find('form').exists()).toBe(false)
+      expect(hide).toHaveBeenCalled()
     })
-  })
 
-  describe('autoGrowTextarea on description input', () => {
-    it('calls autoGrowTextarea with the textarea element on input', async () => {
+    it('opens the dialog when the trigger is clicked', async () => {
       listMock.mockResolvedValue([])
       const wrapper = mountList()
       await flushPromises()
 
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+        .element as HTMLElement & { show?: () => void }
+      const show = vi.fn()
+      dialog.show = show
 
-      const textarea = wrapper.find('#projectDesc')
-      await textarea.setValue('lange beschrijving')
-      await textarea.trigger('input')
+      await openCreateForm(wrapper)
+      expect(show).toHaveBeenCalled()
+    })
 
-      expect(autoGrowTextarea).toHaveBeenCalled()
-      expect(autoGrowTextarea.mock.calls[0][0]).toBe(textarea.element)
+    it('resets the open state when the dialog closes itself (Esc, close button)', async () => {
+      listMock.mockResolvedValue([])
+      const wrapper = mountList()
+      await flushPromises()
+
+      const dialog = wrapper.find('[data-test="create-project-dialog"]')
+      const el = dialog.element as HTMLElement & { show?: () => void; hide?: () => void }
+      el.show = vi.fn()
+      const hide = vi.fn()
+      el.hide = hide
+      await openCreateForm(wrapper)
+
+      // Esc and the dialog's own close button fire `close`, not our buttons.
+      await dialog.trigger('close')
+      expect(hide).toHaveBeenCalled()
+    })
+
+    it('labels the fields via nldd-form-field, with the description marked optional', async () => {
+      listMock.mockResolvedValue([])
+      const wrapper = mountList()
+      await flushPromises()
+
+      await openCreateForm(wrapper)
+
+      const fields = wrapper.findAll('nldd-form-field')
+      expect(fields).toHaveLength(2)
+      // The dialog owns the actions; they sit in its actions slot.
+      const actions = wrapper.findAll('nldd-button[slot="actions"]')
+      expect(actions.map((b) => b.attributes('text'))).toEqual([
+        'Project toevoegen',
+        'Annuleren',
+      ])
+      expect(fields[0].attributes('label')).toBe('Naam')
+      expect(fields[0].find('nldd-text-field[input-id="projectName"]').exists()).toBe(true)
+      expect(fields[1].attributes('label')).toBe('Beschrijving')
+      expect(fields[1].attributes('optional')).toBeDefined()
+      const desc = fields[1].find('nldd-multi-line-text-field[input-id="projectDesc"]')
+      expect(desc.attributes('resize')).toBe('auto')
+      expect(desc.attributes('rows')).toBe('2')
+    })
+  })
+
+  describe('fieldValue (NLDD field events)', () => {
+    it('reads the value from event.detail and mirrors it back into the value binding', async () => {
+      listMock.mockResolvedValue([])
+      const wrapper = mountList()
+      await flushPromises()
+
+      await openCreateForm(wrapper)
+      dispatchFieldInput(wrapper, '[input-id="projectName"]', 'Detail naam')
+      await flushPromises()
+
+      expect(wrapper.find('[input-id="projectName"]').attributes('value')).toBe('Detail naam')
+    })
+
+    it('falls back to target.value when the event carries no detail', async () => {
+      listMock.mockResolvedValue([])
+      createMock.mockResolvedValue(makeProject({ id: 'f', name: 'Fallback naam' }))
+      const wrapper = mountList()
+      await flushPromises()
+
+      await openCreateForm(wrapper)
+      const host = wrapper.find('[input-id="projectName"]').element as HTMLElement & { value?: string }
+      host.value = 'Fallback naam'
+      host.dispatchEvent(new CustomEvent('input'))
+
+      await wrapper.find('form').trigger('submit.prevent')
+      await flushPromises()
+
+      expect(createMock).toHaveBeenCalledWith('Fallback naam', '')
     })
   })
 
@@ -225,7 +309,7 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
+      await openCreateForm(wrapper)
 
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
@@ -240,10 +324,10 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
+      await openCreateForm(wrapper)
 
-      await wrapper.find('#projectName').setValue('Mijn project')
-      await wrapper.find('#projectDesc').setValue('Met beschrijving')
+      dispatchFieldInput(wrapper, '[input-id="projectName"]', 'Mijn project')
+      dispatchFieldInput(wrapper, '[input-id="projectDesc"]', 'Met beschrijving')
 
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
@@ -258,8 +342,8 @@ describe('ProjectList', () => {
       const wrapper = mountList()
       await flushPromises()
 
-      await wrapper.findAll('button').find((b) => b.text().includes('Nieuw project'))!.trigger('click')
-      await wrapper.find('#projectName').setValue('Alleen naam')
+      await openCreateForm(wrapper)
+      dispatchFieldInput(wrapper, '[input-id="projectName"]', 'Alleen naam')
 
       await wrapper.find('form').trigger('submit.prevent')
       await flushPromises()
@@ -277,12 +361,12 @@ describe('ProjectList — load more', () => {
       .mockResolvedValueOnce({ items: [{ id: 'p3', name: 'C' }], total: 3 })
     const wrapper = mountList()
     await flushPromises()
-    const more = wrapper.find('.version-list__more button')
+    const more = wrapper.find('nldd-button[slot="footer"]')
     expect(more.exists()).toBe(true)
-    expect(more.text()).toContain('projecten')
+    expect(more.attributes('text')).toContain('projecten')
     await more.trigger('click')
     await flushPromises()
-    expect(wrapper.find('.version-list__more').exists()).toBe(false)
+    expect(wrapper.find('nldd-button[slot="footer"]').exists()).toBe(false)
   })
 
   it('shows an error when loading more fails', async () => {
@@ -291,7 +375,7 @@ describe('ProjectList — load more', () => {
       .mockRejectedValueOnce(new Error('netwerk'))
     const wrapper = mountList()
     await flushPromises()
-    await wrapper.find('.version-list__more button').trigger('click')
+    await wrapper.find('nldd-button[slot="footer"]').trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
   })

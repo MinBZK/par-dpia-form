@@ -2,9 +2,21 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
-import { IconDotsVertical } from '@tabler/icons-vue'
-import AppHeader from '../components/AppHeader.vue'
+import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
+import '@nldd/design-system/box'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/button'
+import '@nldd/design-system/container'
+import '@nldd/design-system/form-field'
+import '@nldd/design-system/icon'
+import '@nldd/design-system/icon-button'
+import '@nldd/design-system/menu'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/title'
+import KebabMenu from '../components/KebabMenu.vue'
+import { useBackLink } from '../composables/useBackLink'
 import { escapeHtml, stripHtml } from '../utils/html'
 
 const props = defineProps<{
@@ -15,6 +27,8 @@ const router = useRouter()
 const schemaStore = useSchemaStore()
 const taskStore = useTaskStore()
 const answerStore = useAnswerStore()
+
+useBackLink().set({ text: 'Assessment', to: `/assessment/${props.assessmentId}` })
 
 // Reset stores on unmount so the assessment editor starts with a clean slate
 onUnmounted(() => {
@@ -47,24 +61,26 @@ const expandedVersion = ref<number | null>(null)
 const diffLoading = ref(false)
 const diffFields = ref<Array<{ fieldId: string; label: string; groupLabel?: string; editType?: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }>>([])
 
+// show/hide are optional: they only exist once the custom element is upgraded
+// (not in jsdom unit tests).
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+
 // Description modal
-const descDialogRef = ref<HTMLDialogElement | null>(null)
-const descTextarea = ref<HTMLTextAreaElement | null>(null)
+const descDialogRef = ref<ModalDialogElement | null>(null)
 const descModalOpen = ref(false)
 const descModalVersion = ref<number | null>(null)
 const descModalText = ref('')
 
-// Kebab menu
-const openMenuVersion = ref<number | null>(null)
+function onDescInput(event: Event) {
+  descModalText.value = (event as CustomEvent).detail?.value ?? (event.target as HTMLTextAreaElement).value
+}
 
-// Field-level kebab menu and restore
-const openMenuField = ref<string | null>(null)
-const fieldRestoreDialogRef = ref<HTMLDialogElement | null>(null)
+// Field-level restore
+const fieldRestoreDialogRef = ref<ModalDialogElement | null>(null)
 const fieldRestoreModalOpen = ref(false)
-const fieldRestoreTarget = ref<{ fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number } | null>(null)
+const fieldRestoreTarget = ref<{ fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number; editType?: string } | null>(null)
 
-function openFieldRestoreModal(field: { fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number }) {
-  openMenuField.value = null
+function openFieldRestoreModal(field: { fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number; editType?: string }) {
   fieldRestoreTarget.value = field
   fieldRestoreModalOpen.value = true
 }
@@ -203,33 +219,37 @@ async function handleFieldRestore() {
 }
 
 // Restore modal
-const restoreDialogRef = ref<HTMLDialogElement | null>(null)
+const restoreDialogRef = ref<ModalDialogElement | null>(null)
 const restoreModalOpen = ref(false)
 const restoreModalVersion = ref<number | null>(null)
 const restoreConfirmText = ref('')
 const restoreConfirmWord = 'HERSTELLEN'
 
+function onRestoreConfirmInput(event: Event) {
+  restoreConfirmText.value = (event as CustomEvent).detail?.value ?? (event.target as HTMLInputElement).value
+}
+
 watch(descModalOpen, (open) => {
   if (open) {
-    descDialogRef.value?.showModal()
+    descDialogRef.value?.show?.()
   } else {
-    descDialogRef.value?.close()
+    descDialogRef.value?.hide?.()
   }
 })
 
 watch(restoreModalOpen, (open) => {
   if (open) {
-    restoreDialogRef.value?.showModal()
+    restoreDialogRef.value?.show?.()
   } else {
-    restoreDialogRef.value?.close()
+    restoreDialogRef.value?.hide?.()
   }
 })
 
 watch(fieldRestoreModalOpen, (open) => {
   if (open) {
-    fieldRestoreDialogRef.value?.showModal()
+    fieldRestoreDialogRef.value?.show?.()
   } else {
-    fieldRestoreDialogRef.value?.close()
+    fieldRestoreDialogRef.value?.hide?.()
   }
 })
 
@@ -316,11 +336,6 @@ function openDescModal(version: number, current: string | null) {
   descModalVersion.value = version
   descModalText.value = current || ''
   descModalOpen.value = true
-  nextTick(() => autoResize())
-}
-
-function autoResize() {
-  if (descTextarea.value) autoGrowTextarea(descTextarea.value)
 }
 
 async function saveDescription() {
@@ -643,7 +658,7 @@ function mapEditsToDiffFields(
     }
   }
 
-  const result: Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
+  const result: Array<{ fieldId: string; label: string; groupLabel?: string; editType?: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
 
   for (const [dotId, edit] of collapsed) {
     // Instance added/removed: both values are null, so handle before the no-change check
@@ -713,10 +728,8 @@ function mapEditsToDiffFields(
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader backLabel="Terug naar assessment" :backRoute="`/assessment/${assessmentId}`" />
-
-    <h1 class="utrecht-heading-1">Versiegeschiedenis</h1>
+  <nldd-simple-section padding-top="24">
+    <nldd-title size="3"><h1>Versiegeschiedenis</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>
 
@@ -725,7 +738,7 @@ function mapEditsToDiffFields(
         <p>Geen versies gevonden.</p>
       </div>
 
-      <div v-else class="version-list rvo-margin-block-end--lg" :aria-busy="loadingMore">
+      <div v-else class="version-list" :aria-busy="loadingMore">
         <div class="version-row version-row--header">
           <span class="version-col--toggle"></span>
           <span class="version-col--nr">Versie</span>
@@ -738,15 +751,15 @@ function mapEditsToDiffFields(
         <template v-for="version in versions" :key="version.id">
           <div class="version-row" :class="{ 'version-row--expanded': expandedVersion === version.version }">
             <span class="version-col--toggle">
-              <button
+              <nldd-icon-button
                 v-if="version.version > 1"
-                class="toggle-btn"
-                :aria-label="expandedVersion === version.version ? 'Verschillen inklappen' : 'Verschillen tonen'"
-                :aria-expanded="expandedVersion === version.version"
+                size="xs"
+                variant="neutral-transparent"
+                :icon="expandedVersion === version.version ? 'chevron-down' : 'chevron-right'"
+                :expanded="expandedVersion === version.version || undefined"
+                :text="expandedVersion === version.version ? 'Verschillen inklappen' : 'Verschillen tonen'"
                 @click="toggleDiff(version.version)"
-              >
-                <span class="toggle-icon" :class="{ 'toggle-icon--open': expandedVersion === version.version }">&gt;</span>
-              </button>
+              ></nldd-icon-button>
             </span>
             <span class="version-col--nr">{{ version.version }}</span>
             <span class="version-col--date">{{ formatDate(version.updatedAt) }}</span>
@@ -758,34 +771,26 @@ function mapEditsToDiffFields(
                 @click="openDescModal(version.version, version.changeDescription)"
               >
                 {{ version.changeDescription.split('\n')[0] }}<span v-if="version.changeDescription.includes('\n')">...</span>
-                <span class="sr-only">— beschrijving bewerken</span>
+                <span class="sr-only">- beschrijving bewerken</span>
               </button>
               <span v-else-if="version.changeDescription">{{ version.changeDescription.split('\n')[0] }}<span v-if="version.changeDescription.includes('\n')">...</span></span>
               <span v-else></span>
             </span>
             <span v-if="canEdit" class="version-col--action">
-              <div class="kebab-menu" @focusout="openMenuVersion = null">
-                <button
-                  class="kebab-menu__trigger"
-                  aria-haspopup="true"
-                  :aria-expanded="openMenuVersion === version.version"
-                  aria-label="Acties"
-                  @click="openMenuVersion = openMenuVersion === version.version ? null : version.version"
-                >
-                  <IconDotsVertical :size="18" />
-                </button>
-                <div v-if="openMenuVersion === version.version" class="kebab-menu__dropdown" role="menu">
-                  <button class="kebab-menu__item" role="menuitem" @mousedown="openMenuVersion = null; openDescModal(version.version, version.changeDescription)">
-                    {{ version.changeDescription ? 'Beschrijving bewerken' : 'Beschrijving toevoegen' }}
-                  </button>
-                  <template v-if="canRestore">
-                    <div class="kebab-menu__divider"></div>
-                    <button class="kebab-menu__item kebab-menu__item--danger" role="menuitem" @mousedown="openMenuVersion = null; openRestoreModal(version.version)">
-                      Herstellen naar deze versie
-                    </button>
-                  </template>
-                </div>
-              </div>
+              <KebabMenu :label="`Acties voor versie ${version.version}`">
+                <nldd-menu-item
+                  :text="version.changeDescription ? 'Beschrijving bewerken' : 'Beschrijving toevoegen'"
+                  @click="openDescModal(version.version, version.changeDescription)"
+                ></nldd-menu-item>
+                <template v-if="canRestore">
+                  <nldd-menu-divider></nldd-menu-divider>
+                  <nldd-menu-item
+                    text="Herstellen naar deze versie"
+                    destructive
+                    @click="openRestoreModal(version.version)"
+                  ></nldd-menu-item>
+                </template>
+              </KebabMenu>
             </span>
           </div>
 
@@ -796,68 +801,51 @@ function mapEditsToDiffFields(
               <p>{{ version.changeDescription }}</p>
             </div>
             <div v-if="diffLoading" class="diff-loading">Verschillen laden...</div>
-            <div v-else-if="version.version <= 1" class="diff-empty">Eerste versie — geen vorige versie om mee te vergelijken.</div>
+            <div v-else-if="version.version <= 1" class="diff-empty">Eerste versie - geen vorige versie om mee te vergelijken.</div>
             <div v-else-if="diffFields.length === 0" class="diff-empty">Geen inhoudelijke wijzigingen gevonden.</div>
-            <table v-else class="diff-table">
-              <colgroup>
-                <col class="diff-col--field" />
-                <col class="diff-col--old" />
-                <col class="diff-col--new" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Vraag</th>
-                  <th>Was</th>
-                  <th>Wordt</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="field in diffFields" :key="field.fieldId" class="diff-row">
-                  <td class="diff-field">
-                    {{ field.label }}
-                    <span v-if="field.groupLabel" class="diff-field__group">{{ field.groupLabel }}</span>
-                  </td>
-                  <td class="diff-old diff-value">
-                    <div class="diff-old-inner">
+            <div v-else class="diff-list">
+              <div v-for="field in diffFields" :key="field.fieldId" class="diff-row">
+                <p class="diff-field">
+                  {{ field.label }}
+                  <span v-if="field.groupLabel" class="diff-field__group">{{ field.groupLabel }}</span>
+                </p>
+                <!-- grid auto-fits at 280px per column: two side by side where
+                     there is room, stacked where there is not. -->
+                <nldd-container layout="grid" gap="8">
+                  <nldd-box class="diff-old">
+                    <nldd-container padding="8" gap="4" class="diff-value">
+                      <span class="diff-value__label">Was</span>
                       <span v-html="field.oldValue.replace(/\n/g, '<br>')"></span>
                       <div v-if="field.canRestore" class="diff-old-footer">
                         <em class="diff-timestamp">
                           <template v-if="field.oldTimestamp">{{ field.oldTimestamp }} · </template>versie {{ field.originVersion ?? (expandedVersion! - 1) }}
                         </em>
-                        <div v-if="canRestore" class="kebab-menu diff-kebab" @focusout="openMenuField = null">
-                          <button
-                            class="kebab-menu__trigger"
-                            aria-haspopup="true"
-                            :aria-expanded="openMenuField === field.fieldId"
-                            aria-label="Acties"
-                            @click="openMenuField = openMenuField === field.fieldId ? null : field.fieldId"
-                          >
-                            <IconDotsVertical :size="16" />
-                          </button>
-                          <div v-if="openMenuField === field.fieldId" class="kebab-menu__dropdown" role="menu">
-                            <button class="kebab-menu__item" role="menuitem" @mousedown="openFieldRestoreModal(field)">
-                              Herstel dit antwoord
-                            </button>
-                          </div>
-                        </div>
+                        <KebabMenu v-if="canRestore" class="diff-kebab" label="Acties voor dit antwoord">
+                          <nldd-menu-item text="Herstel dit antwoord" @click="openFieldRestoreModal(field)"></nldd-menu-item>
+                        </KebabMenu>
                       </div>
-                    </div>
-                  </td>
-                  <td class="diff-new diff-value" v-html="field.newValue.replace(/\n/g, '<br>')"></td>
-                </tr>
-              </tbody>
-            </table>
+                    </nldd-container>
+                  </nldd-box>
+                  <nldd-box class="diff-new">
+                    <nldd-container padding="8" gap="4" class="diff-value">
+                      <span class="diff-value__label">Wordt</span>
+                      <span v-html="field.newValue.replace(/\n/g, '<br>')"></span>
+                    </nldd-container>
+                  </nldd-box>
+                </nldd-container>
+              </div>
+            </div>
           </div>
         </template>
 
         <div v-if="hasMoreVersions" class="version-list__more">
-          <button
-            class="rvo-button rvo-button--secondary rvo-button--size-sm"
-            :disabled="loadingMore"
+          <nldd-button
+            variant="neutral-tinted"
+            size="sm"
+            :disabled="loadingMore || undefined"
+            :text="loadMoreLabel"
             @click="loadMoreVersions"
-          >
-            {{ loadMoreLabel }}
-          </button>
+          ></nldd-button>
         </div>
 
         <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
@@ -866,82 +854,64 @@ function mapEditsToDiffFields(
     </template>
 
     <!-- Description modal -->
-    <dialog ref="descDialogRef" class="confirm-dialog" @close="descModalOpen = false">
-      <div class="confirm-dialog__content">
-        <h2 class="utrecht-heading-2">Beschrijving versie {{ descModalVersion }} bewerken</h2>
-        <label class="confirm-dialog__label" for="desc-input">Beschrijving</label>
-        <textarea
-          id="desc-input"
-          ref="descTextarea"
-          v-model="descModalText"
-          class="utrecht-textarea desc-textarea"
+    <nldd-modal-dialog
+      ref="descDialogRef"
+      :text="`Beschrijving versie ${descModalVersion} bewerken`"
+      @close="descModalOpen = false"
+    >
+      <nldd-form-field label="Beschrijving">
+        <nldd-multi-line-text-field
+          resize="auto"
           rows="1"
-          @input="autoResize"
-        ></textarea>
-        <div class="confirm-dialog__actions">
-          <button
-            class="rvo-button rvo-button--primary rvo-button--size-md"
-            @click="saveDescription"
-          >Opslaan</button>
-          <button
-            class="rvo-button rvo-button--secondary rvo-button--size-md"
-            @click="descModalOpen = false"
-          >Annuleren</button>
-        </div>
-      </div>
-    </dialog>
+          :value="descModalText"
+          @input="onDescInput"
+        ></nldd-multi-line-text-field>
+      </nldd-form-field>
+      <nldd-button slot="actions" variant="primary" text="Opslaan" @click="saveDescription"></nldd-button>
+      <nldd-button slot="actions" variant="secondary" text="Annuleren" @click="descModalOpen = false"></nldd-button>
+    </nldd-modal-dialog>
 
     <!-- Restore confirmation modal -->
-    <dialog ref="restoreDialogRef" class="confirm-dialog" @close="restoreModalOpen = false; restoreConfirmText = ''">
-      <div class="confirm-dialog__content">
-        <h2 class="utrecht-heading-2">Versie herstellen</h2>
-        <p>
-          Dit overschrijft de huidige versie van het assessment met de gegevens uit
-          <strong>versie {{ restoreModalVersion }}</strong>.
-        </p>
-        <label class="confirm-dialog__label">
-          Typ <strong>{{ restoreConfirmWord }}</strong> om te bevestigen
-          <input
-            v-model="restoreConfirmText"
-            class="utrecht-textbox utrecht-textbox--html-input confirm-dialog__input"
-            :placeholder="restoreConfirmWord"
-            @keyup.enter="restoreConfirmed && handleRestore()"
-          />
-        </label>
-        <div class="confirm-dialog__actions">
-          <button
-            class="rvo-button rvo-button--size-md confirm-dialog__delete"
-            :class="restoreConfirmed ? 'rvo-button--primary' : 'confirm-dialog__delete--disabled'"
-            :disabled="!restoreConfirmed"
-            @click="handleRestore"
-          >Herstellen</button>
-          <button
-            class="rvo-button rvo-button--secondary rvo-button--size-md"
-            @click="restoreModalOpen = false; restoreConfirmText = ''"
-          >Annuleren</button>
-        </div>
-      </div>
-    </dialog>
+    <nldd-modal-dialog
+      ref="restoreDialogRef"
+      variant="alert"
+      text="Versie herstellen"
+      @close="restoreModalOpen = false; restoreConfirmText = ''"
+    >
+      <p>
+        Dit overschrijft de huidige versie van het assessment met de gegevens uit
+        <strong>versie {{ restoreModalVersion }}</strong>.
+      </p>
+      <p>Typ <strong>{{ restoreConfirmWord }}</strong> om te bevestigen</p>
+      <nldd-text-field
+        :accessible-label="`Typ ${restoreConfirmWord} om te bevestigen`"
+        :placeholder="restoreConfirmWord"
+        :value="restoreConfirmText"
+        @input="onRestoreConfirmInput"
+        @keyup.enter="restoreConfirmed && handleRestore()"
+      ></nldd-text-field>
+
+      <!-- The safe way out is the primary action; the destructive action is the
+           secondary one (NLDD design guideline). -->
+      <nldd-button slot="actions" variant="primary" text="Annuleren"
+        @click="restoreModalOpen = false; restoreConfirmText = ''"></nldd-button>
+      <nldd-button slot="actions" variant="destructive" text="Herstellen"
+        :disabled="!restoreConfirmed || undefined"
+        @click="handleRestore"></nldd-button>
+    </nldd-modal-dialog>
 
     <!-- Field restore confirmation modal -->
-    <dialog ref="fieldRestoreDialogRef" class="confirm-dialog" @close="fieldRestoreModalOpen = false; fieldRestoreTarget = null">
-      <div class="confirm-dialog__content">
-        <h2 class="utrecht-heading-2">Antwoord herstellen</h2>
-        <p>
-          Weet je zeker dat je <strong>"{{ fieldRestoreTarget?.label }}"</strong>
-          wilt herstellen naar de waarde uit versie {{ fieldRestoreTarget?.originVersion ?? (expandedVersion! - 1) }}?
-        </p>
-        <div class="confirm-dialog__actions">
-          <button
-            class="rvo-button rvo-button--primary rvo-button--size-md"
-            @click="handleFieldRestore"
-          >Herstellen</button>
-          <button
-            class="rvo-button rvo-button--secondary rvo-button--size-md"
-            @click="fieldRestoreModalOpen = false"
-          >Annuleren</button>
-        </div>
-      </div>
-    </dialog>
-  </div>
+    <nldd-modal-dialog
+      ref="fieldRestoreDialogRef"
+      text="Antwoord herstellen"
+      @close="fieldRestoreModalOpen = false; fieldRestoreTarget = null"
+    >
+      <p>
+        Weet je zeker dat je <strong>"{{ fieldRestoreTarget?.label }}"</strong>
+        wilt herstellen naar de waarde uit versie {{ fieldRestoreTarget?.originVersion ?? (expandedVersion! - 1) }}?
+      </p>
+      <nldd-button slot="actions" variant="primary" text="Herstellen" @click="handleFieldRestore"></nldd-button>
+      <nldd-button slot="actions" variant="secondary" text="Annuleren" @click="fieldRestoreModalOpen = false"></nldd-button>
+    </nldd-modal-dialog>
+  </nldd-simple-section>
 </template>

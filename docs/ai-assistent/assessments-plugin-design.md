@@ -2,7 +2,7 @@
 
 ## Doel
 
-Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over Pre-scan-, DPIA- en IAMA-assessments, het begrippenkader, RVO-styling en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
+Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over Pre-scan-, DPIA- en IAMA-assessments, het begrippenkader en de assessment YAML-schema's. De plugin helpt ontwikkelaars die werken aan assessment-applicaties gebouwd op het PAR-assessment framework.
 
 ## Structuur
 
@@ -15,8 +15,6 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 │   │   └── SKILL.md
 │   ├── begrippenkader-schema-yaml/
 │   │   └── SKILL.md
-│   ├── rvo-styling/
-│   │   └── SKILL.md
 │   └── dpia-kennis/
 │       └── SKILL.md
 └── agents/
@@ -28,7 +26,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 ### plugin.json
 
 - **name**: `par-assessment`
-- **description**: Pre-scan-, DPIA- en IAMA-assessment domeinkennis, schema-validatie en RVO-styling voor de overheid
+- **description**: Pre-scan-, DPIA- en IAMA-assessment domeinkennis en schema-validatie voor de overheid
 - **version**: 1.0.0
 - **author**: PAR (Privacy Adviseurs Rijk)
 
@@ -89,37 +87,6 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 - IAMA-begrippenkader (`sources/begrippenkader_iama.yaml`, 95 definities): **gegenereerd** uit het Algoritmekader via `script/convert_definitions_from_algoritmekader.py`, niet handmatig bewerkt. Simpeler platte structuur — `definitions[]` met alleen `term` en `definition` (geen `id`, `category`, `metadata`, `urn` of `owners`). Verrijkt `sources/iama.yaml` met de `--definitions-once-per-page` vlag (elke term-tooltip max. één keer per "deel")
 - Definition enricher (`script/definition_enricher.py`) injecteert definities als HTML-spans in de assessment YAML bij export naar JSON
 
-### Skill 3: rvo-styling
-
-**Triggert bij**: schrijven van Vue-componenten, CSS/styling vragen, button-klassen, werken met RVO component library.
-
-**Inhoud**:
-- Button-patronen:
-  - Basis: `utrecht-button utrecht-button--<variant>-action utrecht-button--rvo-<size>`
-  - **FOUT**: `utrecht-button--rvo-primary-action` (bestaat niet)
-  - **GOED**: `utrecht-button--primary-action` (zonder `rvo-` prefix voor de variant)
-  - Varianten: `--primary-action`, `--secondary-action`, `--rvo-tertiary-action` (tertiary heeft wél `rvo-` prefix)
-  - Sizes: `--rvo-xs`, `--rvo-md`
-  - Warning variant: `utrecht-button--primary-action utrecht-button--warning`
-  - Full width: `utrecht-button--rvo-full-width`
-  - Referentie-implementatie: `packages/assessment-core/src/components/ui/UiButton.vue`
-- Design tokens:
-  - Kleuren: `--rvo-color-hemelblauw`, `--rvo-color-grijs-100`, `--rvo-color-grijs-200`, `--rvo-color-wit`, `--rvo-color-zwart`
-  - Spacing: `--rvo-space-sm`, `--rvo-space-md`, `--rvo-space-lg`, `--rvo-space-xl`, `--rvo-space-3xl`
-  - Font sizes: `--rvo-font-size-xs`
-  - Border: `--rvo-border-radius-xl`
-  - Margins: `rvo-margin-block-end--md` (utility class)
-- Vue-conventies:
-  - Geen `<style scoped>` in Vue-componenten — gebruik RVO utility classes en globale CSS
-  - Globale stijlen in `packages/assessment-core/src/assets/base.css`
-  - Alle custom CSS onder `.rvo-theme` selector
-  - Button groups: `<div class="utrecht-button-group" role="group" aria-label="...">`
-- Layout:
-  - Sidebar: `.rvo-sidebar-layout`
-  - Max width: `.rvo-max-width-layout`
-  - Achtergrondkleuren: `.background-grijs-100`, `.background-grijs-200`
-- Accordion: `.rvo-accordion__item-summary`, `.rvo-accordion__item-icon`
-- Icons met spacing: `.rvo-icon--with-spacing-right`, `.rvo-icon--with-spacing-left`
 
 ### Skill 4: dpia-kennis
 
@@ -203,7 +170,7 @@ Een Claude Code plugin voor de overheidsmarketplace die domeinkennis biedt over 
 ## Afbakening
 
 **Wel:**
-- Domeinkennis over assessment-schema's, begrippenkader, RVO-styling, DPIA-logica
+- Domeinkennis over assessment-schema's, begrippenkader, DPIA-logica
 - Aanroepen van bestaande Python-scripts voor validatie
 - Cross-referentie checks die de scripts niet doen
 

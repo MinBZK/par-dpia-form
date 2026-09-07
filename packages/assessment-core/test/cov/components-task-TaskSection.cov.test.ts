@@ -30,12 +30,6 @@ const STUBS = {
     props: ['dpiaTaskId'],
     template: '<div class="stub-prescan-preview" :data-dpia-task-id="dpiaTaskId" />',
   },
-  UiButton: {
-    name: 'UiButton',
-    props: ['variant', 'icon', 'label'],
-    emits: ['click'],
-    template: '<button class="stub-ui-button" @click="$emit(\'click\')">{{ label }}</button>',
-  },
 }
 
 function mountSection(taskId: string) {
@@ -84,7 +78,7 @@ describe('TaskSection signing task', () => {
     expect(wrapper.findComponent({ name: 'TaskItem' }).exists()).toBe(false)
   })
 
-  it('renders no description fieldset and no Results when signing task lacks description in DPIA', () => {
+  it('renders no description block and no Results when signing task lacks description in DPIA', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.setActiveNamespace(FormType.DPIA)
 
@@ -100,7 +94,7 @@ describe('TaskSection signing task', () => {
     const wrapper = mountSection('0')
 
     expect(wrapper.find('h1').text()).toBe('Ondertekening')
-    expect(wrapper.find('.utrecht-paragraph').exists()).toBe(false)
+    expect(wrapper.find('.task-section__description').exists()).toBe(false)
     expect(wrapper.findComponent({ name: 'Results' }).exists()).toBe(false)
     expect(wrapper.findComponent({ name: 'TaskItem' }).exists()).toBe(false)
   })
@@ -416,9 +410,14 @@ describe('TaskSection repeatable add-button', () => {
     taskStore.init(repeatableTree('persoonsgegeven'), true)
 
     const wrapper = mountSection('2')
-    const button = wrapper.findComponent({ name: 'UiButton' })
+    const box = wrapper.find('nldd-box')
+    expect(box.exists()).toBe(true)
+    // Default surface: the section page is plain, so the box stays tinted.
+    expect(box.attributes('background')).toBeUndefined()
+    expect(box.find('nldd-container').attributes('padding')).toBe('16')
+    const button = wrapper.find('nldd-button')
     expect(button.exists()).toBe(true)
-    expect(button.props('label')).toBe('Voeg extra persoonsgegeven toe')
+    expect(button.attributes('text')).toBe('Voeg extra persoonsgegeven toe')
 
     expect(taskStore.getInstanceIdsForTask('2.1')).toEqual(['2.1[0]'])
 
@@ -431,8 +430,8 @@ describe('TaskSection repeatable add-button', () => {
     taskStore.init(repeatableTree(), true)
 
     const wrapper = mountSection('2')
-    const button = wrapper.findComponent({ name: 'UiButton' })
-    expect(button.props('label')).toBe('Voeg extra persoonsgegeven toe')
+    const button = wrapper.find('nldd-button')
+    expect(button.attributes('text')).toBe('Voeg extra persoonsgegeven toe')
   })
 
   it('logs error and warning and still adds an instance when the root has not exactly one instance', async () => {
@@ -452,7 +451,7 @@ describe('TaskSection repeatable add-button', () => {
     }
 
     const wrapper = mountSection('2')
-    const button = wrapper.findComponent({ name: 'UiButton' })
+    const button = wrapper.find('nldd-button')
     await button.trigger('click')
 
     expect(errorSpy).toHaveBeenCalledTimes(1)
@@ -496,7 +495,7 @@ describe('TaskSection repeatable add-button', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('2')
-    expect(wrapper.findComponent({ name: 'UiButton' }).exists()).toBe(false)
+    expect(wrapper.find('nldd-button').exists()).toBe(false)
   })
 
   it('hides the add button when the child is not repeatable (isRepeatable false)', () => {
@@ -519,7 +518,7 @@ describe('TaskSection repeatable add-button', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('2')
-    expect(wrapper.findComponent({ name: 'UiButton' }).exists()).toBe(false)
+    expect(wrapper.find('nldd-button').exists()).toBe(false)
   })
 })
 
@@ -644,10 +643,14 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    const alert = wrapper.find('.rvo-alert--warning')
+    const alert = wrapper.find('nldd-banner[variant="warning"]')
     expect(alert.exists()).toBe(true)
-    expect(alert.text()).toContain('Voor deze sectie is het nodig eerst de volgende secties in te vullen:')
-    const listItem = wrapper.find('.utrecht-unordered-list__item')
+    // The intro sentence lives in the banner's text attribute, not in the
+    // light-DOM slot, so it never shows up in wrapper.text().
+    expect(alert.attributes('text')).toBe(
+      'Voor deze sectie is het nodig eerst de volgende secties in te vullen:',
+    )
+    const listItem = wrapper.find('.task-section__dependency-list li')
     expect(listItem.text()).toContain('Sectie 6:')
     expect(listItem.text()).toContain('Bronsectie')
   })
@@ -681,7 +684,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    const listItem = wrapper.find('.utrecht-unordered-list__item')
+    const listItem = wrapper.find('.task-section__dependency-list li')
     expect(listItem.exists()).toBe(true)
     expect(listItem.text()).not.toContain('Sectie 6:')
     expect(listItem.text()).toContain('Bronsectie zonder id')
@@ -717,7 +720,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     answerStore.answers[FormType.DPIA]['6.1'] = { value: 'ingevuld', lastEditedAt: '2024-01-01' }
 
     const wrapper = mountSection('8')
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 
   it('does not warn for a dependency that points back to the current section', () => {
@@ -743,7 +746,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 
   it('uses the bare section number as the name when the source main task is missing', () => {
@@ -775,7 +778,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    const listItem = wrapper.find('.utrecht-unordered-list__item')
+    const listItem = wrapper.find('.task-section__dependency-list li')
     expect(listItem.text()).toContain('Bestaande bron')
   })
 
@@ -815,12 +818,12 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
     // Break the source field's parent chain: 6.5.1 -> 6.5 -> (missing). When
     // resolveRootSectionId('6.5.1') walks to 6.5 and then looks up its parent,
-    // the parent is absent and the loop breaks (line 126).
+    // the parent is absent and the loop breaks.
     taskStore.flatTasks[FormType.DPIA]['6.5'].parentId = 'ontbrekend'
 
     const wrapper = mountSection('8')
     // The warning still renders; the section name falls back to the resolved id.
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(true)
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(true)
   })
 
   it('collects dependencies declared on intermediate task groups (recursive descendants)', () => {
@@ -854,8 +857,8 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(true)
-    expect(wrapper.find('.utrecht-unordered-list__item').text()).toContain('Bron')
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(true)
+    expect(wrapper.find('.task-section__dependency-list li').text()).toContain('Bron')
   })
 
   it('returns no warning when the section task has no children (missingSourceDependencies early return)', () => {
@@ -865,7 +868,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     taskStore.init(tasks, true)
 
     const wrapper = mountSection('8')
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 
   it('returns no dependencies and no warning when the section task has undefined childrenIds (defensive guard)', () => {
@@ -887,7 +890,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     const wrapper = mountSection('8')
     const ss = (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
     expect(ss.missingSourceDependencies as unknown[]).toEqual([])
-    expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+    expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(false)
   })
 
   it('skips descendants whose childrenIds are undefined during recursive collection (defensive guard)', () => {
@@ -968,7 +971,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
     })
 
     const wrapper = mountSection('8')
-    const listItem = wrapper.find('.utrecht-unordered-list__item')
+    const listItem = wrapper.find('.task-section__dependency-list li')
     expect(listItem.exists()).toBe(true)
     expect(listItem.text()).toContain('6')
     expect(listItem.text()).not.toContain('Bron')
@@ -1012,7 +1015,7 @@ describe('TaskSection missingSourceDependencies warning', () => {
 
     const wrapper = mountSection('8')
     await nextTick()
-    const items = wrapper.findAll('.utrecht-unordered-list__item')
+    const items = wrapper.findAll('.task-section__dependency-list li')
     expect(items).toHaveLength(1)
   })
 })
@@ -1130,7 +1133,7 @@ describe('TaskSection accordion grouping of info-only children', () => {
       tasks: [
         { id: '4.1', task: 'Toelichting A', type: ['task_group'], description: 'Uitleg A' },
         { id: '4.2', task: 'Toelichting B', type: ['task_group'], description: 'Uitleg B' },
-        // Non-info child flushes the accordion run (lines 49-50).
+        // Non-info child flushes the accordion run.
         { id: '4.3', task: 'Echte vraag', type: ['text_input'] },
         // A trailing info-only child forms a second accordion run (flushed at end).
         { id: '4.4', task: 'Toelichting C', type: ['task_group'], description: 'Uitleg C' },
@@ -1144,12 +1147,14 @@ describe('TaskSection accordion grouping of info-only children', () => {
     const wrapper = mountSection('4')
 
     // Two accordion groups: the leading run [4.1, 4.2] and the trailing [4.4].
-    const accordions = wrapper.findAll('.rvo-accordion')
+    const accordions = wrapper.findAll('.task-section__accordions')
     expect(accordions).toHaveLength(2)
 
-    // First accordion holds the two leading info-only children.
-    const firstItems = accordions[0].findAll('details.rvo-accordion__item')
+    // First accordion group holds the two leading info-only children.
+    const firstItems = accordions[0].findAll('details.ui-accordion')
     expect(firstItems).toHaveLength(2)
+    expect(firstItems[0].find('.ui-accordion__title h3').text()).toBe('Toelichting A')
+    expect(firstItems[1].find('.ui-accordion__title h3').text()).toBe('Toelichting B')
 
     // The normal child (4.3, a leaf field) renders as a single TaskItem between
     // the two accordion runs.
@@ -1163,8 +1168,8 @@ describe('TaskSection accordion grouping of info-only children', () => {
     taskStore.init(tree, true)
 
     const wrapper = mountSection('4')
-    const firstAccordion = wrapper.find('.rvo-accordion')
-    const items = firstAccordion.findAll('details.rvo-accordion__item')
+    const firstAccordion = wrapper.find('.task-section__accordions')
+    const items = firstAccordion.findAll('details.ui-accordion')
     // isInformationalTask && childId === firstAccordionChildId -> first item open.
     expect((items[0].element as HTMLDetailsElement).open).toBe(true)
     expect((items[1].element as HTMLDetailsElement).open).toBe(false)
@@ -1196,7 +1201,7 @@ describe('TaskSection accordion grouping of info-only children', () => {
     )
 
     const wrapper = mountSection('4')
-    const imgs = wrapper.findAll('.rvo-accordion__content img')
+    const imgs = wrapper.findAll('.ui-accordion__content img')
     // Only the known image (risico_matrix.png) renders; the unknown source is skipped.
     expect(imgs).toHaveLength(1)
     expect(imgs[0].attributes('alt')).toBe('Risico-matrix')

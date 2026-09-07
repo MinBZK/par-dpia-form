@@ -1,20 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useAnswerStore, type ImageValue } from '../../src/stores/answers'
 import { type FlatTask } from '../../src/stores/tasks'
 import ImageField from '../../src/components/task/ImageField.vue'
+import { CONTENT_READONLY_KEY } from '../../src/injectionKeys'
 
 // resizeImageToDataUri touches canvas/Image APIs that jsdom does not implement; mock it.
 const resizeMock = vi.fn<(file: File) => Promise<string>>()
 vi.mock('../../src/utils/imageResize', () => ({
   resizeImageToDataUri: (file: File) => resizeMock(file),
-}))
-
-const autoGrowMock = vi.fn()
-vi.mock('../../src/utils/autoGrowTextarea', () => ({
-  autoGrowTextarea: (el: HTMLTextAreaElement) => autoGrowMock(el),
 }))
 
 const RASTER_DATA_URI = 'data:image/webp;base64,UklGRiQAAABXRUJQ'
@@ -27,8 +23,9 @@ const task: FlatTask = {
   childrenIds: [],
 }
 
-function mountField(props: Partial<{ instanceId: string; label: string; description: string }> = {}) {
+function mountField(props: Partial<{ instanceId: string; label: string; description: string }> = {}, readonly = false) {
   return mount(ImageField, {
+    global: { provide: { [CONTENT_READONLY_KEY as symbol]: ref(readonly) } },
     props: {
       task,
       instanceId: props.instanceId ?? 'img-1',
@@ -46,6 +43,11 @@ function setImageAnswer(store: ReturnType<typeof useAnswerStore>, instanceId: st
   store.setAnswer(instanceId, value)
 }
 
+// NLDD fields commit their value via a change CustomEvent carrying event.detail.value.
+function dispatchNlddChange(el: Element, value: string) {
+  el.dispatchEvent(new CustomEvent('change', { detail: { value } }))
+}
+
 describe('ImageField.vue', () => {
   let store: ReturnType<typeof useAnswerStore>
 
@@ -54,7 +56,6 @@ describe('ImageField.vue', () => {
     store = useAnswerStore()
     resizeMock.mockReset()
     resizeMock.mockResolvedValue(RASTER_DATA_URI)
-    autoGrowMock.mockReset()
   })
 
   describe('empty state (no answer)', () => {
@@ -63,7 +64,7 @@ describe('ImageField.vue', () => {
       expect(wrapper.find('.image-dropzone').exists()).toBe(true)
       expect(wrapper.text()).toContain('Sleep een afbeelding hierheen of klik om te uploaden')
       expect(wrapper.find('.image-preview').exists()).toBe(false)
-      expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+      expect(wrapper.find('nldd-banner').exists()).toBe(false)
       expect(wrapper.find('[role="status"]').exists()).toBe(false)
     })
 
@@ -88,18 +89,19 @@ describe('ImageField.vue', () => {
     it('renders a plain-text legacy reference (non-URL) inside a span', () => {
       store.setAnswer('img-1', 'Projectplan v3 in SharePoint')
       const wrapper = mountField()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Bestaande referentie:')
-      expect(alert.text()).toContain('Projectplan v3 in SharePoint')
-      expect(alert.find('a').exists()).toBe(false)
-      expect(alert.find('span').text()).toBe('Projectplan v3 in SharePoint')
+      const banner = wrapper.find('nldd-banner[variant="warning"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.text()).toContain('Bestaande referentie:')
+      expect(banner.text()).toContain('Projectplan v3 in SharePoint')
+      expect(banner.text()).toContain('Upload een afbeelding om deze referentie te vervangen.')
+      expect(banner.find('a').exists()).toBe(false)
+      expect(banner.find('span').text()).toBe('Projectplan v3 in SharePoint')
     })
 
     it('renders a legacy URL reference as a link', () => {
       store.setAnswer('img-1', 'https://example.com/diagram.png')
       const wrapper = mountField()
-      const link = wrapper.find('.rvo-alert--warning a')
+      const link = wrapper.find('nldd-banner[variant="warning"] a')
       expect(link.exists()).toBe(true)
       expect(link.attributes('href')).toBe('https://example.com/diagram.png')
       expect(link.attributes('target')).toBe('_blank')
@@ -108,23 +110,23 @@ describe('ImageField.vue', () => {
     it('treats an invalid URL string as a non-URL (catch branch in legacyIsUrl)', () => {
       store.setAnswer('img-1', 'not a url::::')
       const wrapper = mountField()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.find('a').exists()).toBe(false)
+      const banner = wrapper.find('nldd-banner[variant="warning"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.find('a').exists()).toBe(false)
     })
 
     it('treats a non-http protocol URL as a non-URL', () => {
       store.setAnswer('img-1', 'ftp://example.com/file')
       const wrapper = mountField()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.find('a').exists()).toBe(false)
+      const banner = wrapper.find('nldd-banner[variant="warning"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.find('a').exists()).toBe(false)
     })
 
     it('does not treat a data:image/ string as a legacy value', () => {
       store.setAnswer('img-1', 'data:image/png;base64,AAAA')
       const wrapper = mountField()
-      expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+      expect(wrapper.find('nldd-banner[variant="warning"]').exists()).toBe(false)
     })
   })
 
@@ -143,12 +145,9 @@ describe('ImageField.vue', () => {
       const wrapper = mountField()
       const img = wrapper.find('img.image-preview')
       expect(img.attributes('alt')).toBe(task.task)
-      const titleInput = wrapper.find(`#image-title-img-1`).element as HTMLInputElement
-      expect(titleInput.value).toBe('')
-      const descTa = wrapper.find(`#image-description-img-1`).element as HTMLTextAreaElement
-      expect(descTa.value).toBe('')
-      const sourceInput = wrapper.find(`#image-source-img-1`).element as HTMLInputElement
-      expect(sourceInput.value).toBe('')
+      expect(wrapper.find('nldd-text-field[input-id="image-title-img-1"]').attributes('value')).toBe('')
+      expect(wrapper.find('nldd-multi-line-text-field[input-id="image-description-img-1"]').attributes('value')).toBe('')
+      expect(wrapper.find('nldd-text-field[input-id="image-source-img-1"]').attributes('value')).toBe('')
     })
 
     it('prefills metadata fields from the stored image value', () => {
@@ -159,9 +158,11 @@ describe('ImageField.vue', () => {
         source: 'S',
       })
       const wrapper = mountField()
-      expect((wrapper.find(`#image-title-img-1`).element as HTMLInputElement).value).toBe('T')
-      expect((wrapper.find(`#image-description-img-1`).element as HTMLTextAreaElement).value).toBe('D')
-      expect((wrapper.find(`#image-source-img-1`).element as HTMLInputElement).value).toBe('S')
+      const labels = wrapper.findAll('nldd-form-field').map((f) => f.attributes('label'))
+      expect(labels).toEqual(['Titel', 'Omschrijving', 'Bron'])
+      expect(wrapper.find('nldd-text-field[input-id="image-title-img-1"]').attributes('value')).toBe('T')
+      expect(wrapper.find('nldd-multi-line-text-field[input-id="image-description-img-1"]').attributes('value')).toBe('D')
+      expect(wrapper.find('nldd-text-field[input-id="image-source-img-1"]').attributes('value')).toBe('S')
     })
   })
 
@@ -169,30 +170,38 @@ describe('ImageField.vue', () => {
     it('sets a trimmed title and persists it', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
       const wrapper = mountField()
-      const input = wrapper.find(`#image-title-img-1`)
-      ;(input.element as HTMLInputElement).value = '  Nieuwe titel  '
-      await input.trigger('change')
+      const field = wrapper.find('nldd-text-field[input-id="image-title-img-1"]')
+      dispatchNlddChange(field.element, '  Nieuwe titel  ')
+      await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, title: 'Nieuwe titel' })
     })
 
     it('removes the field when the trimmed value is empty', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, source: 'oude bron' })
       const wrapper = mountField()
-      const input = wrapper.find(`#image-source-img-1`)
-      ;(input.element as HTMLInputElement).value = '   '
-      await input.trigger('change')
+      const field = wrapper.find('nldd-text-field[input-id="image-source-img-1"]')
+      dispatchNlddChange(field.element, '   ')
+      await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
     })
 
-    it('updates the description and triggers autoGrow on @input', async () => {
+    it('updates the description from the change event detail', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
       const wrapper = mountField()
-      const ta = wrapper.find(`#image-description-img-1`)
-      ;(ta.element as HTMLTextAreaElement).value = 'Beschrijving'
-      await ta.trigger('input')
-      expect(autoGrowMock).toHaveBeenCalled()
-      await ta.trigger('change')
+      const field = wrapper.find('nldd-multi-line-text-field[input-id="image-description-img-1"]')
+      dispatchNlddChange(field.element, 'Beschrijving')
+      await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, description: 'Beschrijving' })
+    })
+
+    it('falls back to target.value when the change event carries no detail', async () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
+      const wrapper = mountField()
+      const field = wrapper.find('nldd-text-field[input-id="image-title-img-1"]')
+      ;(field.element as HTMLInputElement).value = 'Native titel'
+      field.element.dispatchEvent(new Event('change'))
+      await nextTick()
+      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, title: 'Native titel' })
     })
   })
 
@@ -237,9 +246,9 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await flushPromises()
       await nextTick()
-      const alert = wrapper.find('[role="alert"]')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Bestand te groot')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toBe('Bestand te groot')
     })
 
     it('shows a generic message when resize rejects with a non-Error', async () => {
@@ -251,7 +260,7 @@ describe('ImageField.vue', () => {
       await fileInput.trigger('change')
       await flushPromises()
       await nextTick()
-      expect(wrapper.find('[role="alert"]').text()).toContain('Er is een fout opgetreden.')
+      expect(wrapper.find('nldd-banner[variant="critical"]').attributes('text')).toBe('Er is een fout opgetreden.')
     })
 
     it('does nothing when no file is selected (handleFileSelect early return)', async () => {
@@ -269,7 +278,7 @@ describe('ImageField.vue', () => {
     it('keeps the existing image source when replacing the image', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, source: 'bestaande bron' })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))
+      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')
       expect(replaceBtn).toBeDefined()
       await replaceBtn!.trigger('click')
       const fileInput = wrapper.find('input[type="file"]')
@@ -306,7 +315,7 @@ describe('ImageField.vue', () => {
         source: 'Bron',
       })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))!
+      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
       await replaceBtn.trigger('click')
       const fileInput = wrapper.find('input[type="file"]')
       const el = fileInput.element as HTMLInputElement
@@ -325,7 +334,7 @@ describe('ImageField.vue', () => {
     it('evaluates current?.source when replacing an image that has no source', async () => {
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Alleen titel' })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))!
+      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
       await replaceBtn.trigger('click')
       const fileInput = wrapper.find('input[type="file"]')
       const el = fileInput.element as HTMLInputElement
@@ -340,7 +349,7 @@ describe('ImageField.vue', () => {
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Behoud' })
       const wrapper = mountField()
       resizeMock.mockResolvedValue(undefined as unknown as string)
-      const replaceBtn = wrapper.findAll('button').find((b) => b.text().includes('Vervang afbeelding'))!
+      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
       await replaceBtn.trigger('click')
       const fileInput = wrapper.find('input[type="file"]')
       const el = fileInput.element as HTMLInputElement
@@ -364,29 +373,17 @@ describe('ImageField.vue', () => {
     })
   })
 
-  describe('imageData becoming null at handler/watcher time', () => {
+  describe('imageData becoming null at handler time', () => {
     it('returns early from updateMetadata when the image was removed (no current)', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, title: 'Titel' })
       const wrapper = mountField()
-      const input = wrapper.find(`#image-title-img-1`)
+      const field = wrapper.find('nldd-text-field[input-id="image-title-img-1"]')
       // Remove the answer (imageData -> null) without awaiting re-render: the DOM
-      // input still exists and its @change fires updateMetadata while imageData is null.
+      // field still exists and its @change fires updateMetadata while imageData is null.
       store.removeAnswer('img-1')
-      ;(input.element as HTMLInputElement).value = 'genegeerd'
-      await input.trigger('change')
+      dispatchNlddChange(field.element, 'genegeerd')
+      await nextTick()
       expect(store.getAnswer('img-1')).toBeNull()
-    })
-
-    it('skips autoGrow when the description changes but no textarea is rendered', async () => {
-      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, description: 'Begin' })
-      const wrapper = mountField()
-      autoGrowMock.mockClear()
-      store.setAnswer('img-1', null)
-      await nextTick()
-      await nextTick()
-      await flushPromises()
-      expect(autoGrowMock).not.toHaveBeenCalled()
-      wrapper.unmount()
     })
   })
 
@@ -467,17 +464,13 @@ describe('ImageField.vue', () => {
     })
   })
 
-  describe('description watcher / autoGrow', () => {
-    it('calls autoGrowTextarea when the stored description changes and a textarea exists', async () => {
-      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
-      const wrapper = mountField()
-      autoGrowMock.mockClear()
-      store.setAnswer('img-1', { data: RASTER_DATA_URI, description: 'Nieuw' })
-      await nextTick()
-      await nextTick()
-      await flushPromises()
-      expect(autoGrowMock).toHaveBeenCalled()
-      wrapper.unmount()
+  describe('read-only role', () => {
+    it('makes the upload controls inert', () => {
+      expect(mountField({}, true).find('.field-group').attributes('inert')).toBeDefined()
+    })
+
+    it('leaves them interactive for an editor', () => {
+      expect(mountField().find('.field-group').attributes('inert')).toBeUndefined()
     })
   })
 })

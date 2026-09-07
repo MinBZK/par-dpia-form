@@ -49,11 +49,7 @@ vi.mock('pinia', async (importOriginal) => {
 })
 
 // CSS asset imports carry no logic but must still resolve.
-vi.mock('@nl-rvo/assets/fonts/index.css', () => ({}))
-vi.mock('@nl-rvo/assets/icons/index.css', () => ({}))
-vi.mock('@nl-rvo/assets/images/index.css', () => ({}))
-vi.mock('@nl-rvo/component-library-css/dist/index.css', () => ({}))
-vi.mock('@nl-rvo/design-tokens/dist/index.css', () => ({}))
+vi.mock('@nldd/design-system/styles', () => ({}))
 vi.mock('../../src/assets/app.css', () => ({}))
 
 let hrefSetter: ((v: string) => void) | undefined

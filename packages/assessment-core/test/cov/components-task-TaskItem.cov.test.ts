@@ -46,12 +46,12 @@ describe('TaskItem.vue', () => {
     taskStore.init(taskTree, true)
   })
 
-  it('renders the RVO fieldset wrapper around the form field', () => {
+  it('renders the task fieldset wrapper around the form field', () => {
     const wrapper = mountTaskItem({ taskId: '1.1', instanceId: '1.1[0]' })
 
-    expect(wrapper.find('.utrecht-form-fieldset.rvo-form-fieldset').exists()).toBe(true)
-    expect(wrapper.find('fieldset.utrecht-form-fieldset__fieldset').exists()).toBe(true)
-    expect(wrapper.find('div[role="group"].utrecht-form-field').exists()).toBe(true)
+    expect(wrapper.find('.task-fieldset').exists()).toBe(true)
+    expect(wrapper.find('fieldset.task-fieldset__fieldset').exists()).toBe(true)
+    expect(wrapper.find('div[role="group"].task-fieldset__content').exists()).toBe(true)
     expect(wrapper.findComponent(FormFieldStub).exists()).toBe(true)
   })
 

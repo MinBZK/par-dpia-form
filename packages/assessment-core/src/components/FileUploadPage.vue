@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import UiButton from './ui/UiButton.vue'
 import ExportPdfInfo from './ExportPdfInfo.vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/button'
+import '@nldd/design-system/container'
+import '@nldd/design-system/title'
+import '@nldd/design-system/rich-text'
+import '@nldd/design-system/file-field'
+import '@nldd/design-system/spacer'
+import '@nldd/design-system/text'
 import { type AssessmentState } from '../models/assessmentState'
 import { importFromJson } from '../utils/jsonExport'
 import { importFromPdf } from '../utils/pdfImport'
@@ -22,28 +29,33 @@ const introText = computed(() => {
   if (taskStore.activeNamespace === FormType.DPIA) {
     return "Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA. De rapportage voldoet aan de eisen uit de AVG en het model DPIA Rijksdienst, en is geschikt voor verwerking in het verwerkingsregister.";
   } else if (taskStore.activeNamespace === FormType.IAMA) {
-    return 'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een IAMA. Het Impact Assessment Mensenrechten en Algoritmes helpt bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden.<br /><br /> <div class="rvo-alert rvo-alert--info content-alert--flex"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Het IAMA is een groepsproces en is niet bedoeld om individueel te doorlopen. Een gezamenlijke uitvoering zorgt voor betere en zorgvuldigere besluitvorming en een bredere borging. Informatie over groepssamenstelling en andere praktische tips zijn te vinden in de Inleiding en het <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument</a>.</div></div>';
+    return 'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een IAMA. Het Impact Assessment Mensenrechten en Algoritmes helpt bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden.';
   } else {
     return 'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst die helpt bij het inschatten van risicos en geeft op basis daarvan advies over het uitvoeren van een assessment.';
   }
 })
 
-const uploadText = computed(() => {
+const isGroupAssessment = computed(() => taskStore.activeNamespace === FormType.IAMA)
+
+// A heading, not a sentence: nldd-title caps its text at 40ch, so anything
+// longer wraps to two lines. The question itself moved to the line below,
+// which is where the full sentence belongs anyway.
+const uploadText = 'Verdergaan met een eerder bestand'
+
+const uploadHint = computed(() => {
   if (taskStore.activeNamespace === FormType.DPIA) {
-    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand om verder te werken.';
   } else if (taskStore.activeNamespace === FormType.IAMA) {
-    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand om verder te werken.';
   } else {
-    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand om verder te werken.';
   }
 })
 
 const handleFileSelect = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    uploadedFile.value = target.files[0]
-    fileUploadError.value = null
-  }
+  const files = (event as CustomEvent<{ files?: File[] }>).detail?.files ?? []
+  uploadedFile.value = files[0] ?? null
+  fileUploadError.value = null
 }
 
 const startDpia = async () => {
@@ -95,40 +107,53 @@ const formTypeArticle = computed(() => {
 </script>
 
 <template>
-  <h1 class="utrecht-heading-1">Start {{ formTypeArticle }} {{ formTypeLabel }}</h1>
+  <div class="task-section">
+    <h1>Start {{ formTypeArticle }} {{ formTypeLabel }}</h1>
 
-  <div class="utrecht-form-fieldset rvo-form-fieldset">
-    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-      <div class="utrecht-form-field-description" id="file-upload-helper" v-html="introText"></div>
-      <div class="rvo-layout-margin-vertical--lg">
+    <nldd-container gap="32">
+      <div class="task-section__description" id="file-upload-helper">
+        <p>{{ introText }}</p>
+        <nldd-banner v-if="isGroupAssessment" variant="accent">
+          <nldd-rich-text>
+            <p>
+              Het IAMA is een groepsproces en is niet bedoeld om individueel te doorlopen. Een gezamenlijke uitvoering
+              zorgt voor betere en zorgvuldigere besluitvorming en een bredere borging. Informatie over
+              groepssamenstelling en andere praktische tips zijn te vinden in de Inleiding en het
+              <a
+                href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes"
+                target="_blank"
+                rel="noopener noreferrer"
+              >IAMA-toelichtingsdocument</a>.
+            </p>
+          </nldd-rich-text>
+        </nldd-banner>
       </div>
-    </fieldset>
-    <fieldset class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset">
-      <div class="rvo-layout-margin-vertical--lg">
-        <div role="group" aria-labelledby="file-upload-label"
-          class="utrecht-form-field utrecht-form-field--text rvo-form-field">
-          <div class="rvo-form-field__label">
-            <label class="rvo-label" id="file-upload-label" for="file-upload-field">
-              {{ uploadText }}
-            </label>
-          </div>
-          <input id="file-upload-field" type="file" class="rvo-file-input" accept=".json,.pdf"
-            @change="handleFileSelect" />
-          <div class="rvo-layout-margin-vertical--md">
-            <ExportPdfInfo />
-          </div>
-        </div>
+
+      <!-- A heading of its own, so the upload step reads as a step instead of
+           a third paragraph. Not nldd-form-section: that draws a rule above and
+           below, which is meant for a stack of sections sharing their lines --
+           a single one between other content just adds two stray rules. -->
+      <div>
+        <nldd-title size="5">
+          <h2>{{ uploadText }}</h2>
+        </nldd-title>
+        <nldd-spacer size="8"></nldd-spacer>
+        <nldd-text>{{ uploadHint }}</nldd-text>
+        <nldd-spacer size="12"></nldd-spacer>
+        <nldd-file-field accept=".json,.pdf"
+          accessible-label="Eerder opgeslagen PDF- of JSON-bestand"
+          @change="handleFileSelect"></nldd-file-field>
+        <nldd-spacer size="16"></nldd-spacer>
+        <ExportPdfInfo />
       </div>
-    </fieldset>
-  </div>
 
-  <div class="rvo-layout-margin-vertical--xl">
-    <UiButton variant="primary" :icon="isProcessing ? 'refresh' : undefined"
-      :label="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
-      :disabled="isProcessing" @click="startDpia" />
-  </div>
+      <nldd-container layout="wrap" gap="16">
+        <nldd-button variant="primary" :start-icon="isProcessing ? 'arrow-clockwise' : undefined"
+          :text="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
+          :disabled="isProcessing || undefined" @click="startDpia"></nldd-button>
+      </nldd-container>
 
-  <p v-if="fileUploadError" class="rvo-alert rvo-alert--warning">
-    {{ fileUploadError }}
-  </p>
+      <nldd-banner v-if="fileUploadError" variant="critical" :text="fileUploadError"></nldd-banner>
+    </nldd-container>
+  </div>
 </template>

@@ -21,93 +21,115 @@ let SessionExpiredDialog: typeof import('../../src/components/SessionExpiredDial
 beforeEach(async () => {
   vi.clearAllMocks()
   sessionExpired.value = false
-  // jsdom's HTMLDialogElement does not implement showModal/close — stub them.
-  if (!HTMLDialogElement.prototype.showModal) {
-    HTMLDialogElement.prototype.showModal = function () {
-      this.open = true
-    }
-  }
-  if (!HTMLDialogElement.prototype.close) {
-    HTMLDialogElement.prototype.close = function () {
-      this.open = false
-    }
-  }
   const mod = await import('../../src/components/SessionExpiredDialog.vue')
   SessionExpiredDialog = mod.default
 })
 
+// The nldd-modal-dialog custom element is not registered in jsdom; its
+// imperative API is stubbed per test on the host element.
+function stubModal(wrapper: ReturnType<typeof mount>) {
+  const host = wrapper.find('nldd-modal-dialog').element as HTMLElement & {
+    show?: () => void
+    hide?: () => void
+  }
+  host.show = vi.fn()
+  host.hide = vi.fn()
+  return host
+}
+
 describe('SessionExpiredDialog', () => {
-  it('renders the Dutch logout heading and message inside a dialog', () => {
+  it('renders the Dutch logout heading and message in an alert modal', () => {
     const wrapper = mount(SessionExpiredDialog)
 
-    expect(wrapper.find('#session-expired-title').text()).toBe('Je bent uitgelogd')
-    expect(wrapper.text()).toContain(
+    const modal = wrapper.find('nldd-modal-dialog')
+    expect(modal.attributes('text')).toBe('Je bent uitgelogd')
+    expect(modal.attributes('variant')).toBe('alert')
+    expect(modal.attributes('supporting-text')).toContain(
       'Je bent automatisch uitgelogd omdat je langere tijd niet actief was.',
     )
-    expect(wrapper.find('button').text()).toBe('Opnieuw inloggen')
+    expect(wrapper.find('nldd-button').attributes('text')).toBe('Opnieuw inloggen')
 
     wrapper.unmount()
   })
 
-  it('does not open the dialog while the session is still valid', async () => {
-    const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
+  it('does not open the modal while the session is still valid', async () => {
     const wrapper = mount(SessionExpiredDialog)
+    const host = stubModal(wrapper)
 
     sessionExpired.value = false
     await wrapper.vm.$nextTick()
 
-    expect(showModal).not.toHaveBeenCalled()
+    expect(host.show).not.toHaveBeenCalled()
 
     wrapper.unmount()
-    showModal.mockRestore()
   })
 
-  it('opens the dialog when the session expires (truthy branch)', async () => {
-    const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
+  it('opens the modal when the session expires (truthy branch)', async () => {
     const wrapper = mount(SessionExpiredDialog)
+    const host = stubModal(wrapper)
 
     sessionExpired.value = true
     await wrapper.vm.$nextTick()
 
-    expect(showModal).toHaveBeenCalledTimes(1)
+    expect(host.show).toHaveBeenCalledTimes(1)
 
     wrapper.unmount()
-    showModal.mockRestore()
   })
 
-  it('takes the falsy branch of the watcher when the session is reset to false', async () => {
-    const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal')
+  it('does not re-open on the watcher when the session is reset to false', async () => {
     const wrapper = mount(SessionExpiredDialog)
+    const host = stubModal(wrapper)
 
     sessionExpired.value = true
     await wrapper.vm.$nextTick()
-    expect(showModal).toHaveBeenCalledTimes(1)
+    expect(host.show).toHaveBeenCalledTimes(1)
 
     sessionExpired.value = false
     await wrapper.vm.$nextTick()
-    expect(showModal).toHaveBeenCalledTimes(1)
+    expect(host.show).toHaveBeenCalledTimes(1)
 
     wrapper.unmount()
-    showModal.mockRestore()
+  })
+
+  it('reopens the modal when dismissed while the session is still expired (non-dismissable)', async () => {
+    const wrapper = mount(SessionExpiredDialog)
+    const host = stubModal(wrapper)
+
+    sessionExpired.value = true
+    await wrapper.vm.$nextTick()
+    expect(host.show).toHaveBeenCalledTimes(1)
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    expect(host.show).toHaveBeenCalledTimes(2)
+
+    wrapper.unmount()
+  })
+
+  it('does not reopen on close once the session is valid again', () => {
+    const wrapper = mount(SessionExpiredDialog)
+    const host = stubModal(wrapper)
+
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    expect(host.show).not.toHaveBeenCalled()
+
+    wrapper.unmount()
+  })
+
+  it('mounts and toggles without crashing while the element is not upgraded', async () => {
+    const wrapper = mount(SessionExpiredDialog)
+    sessionExpired.value = true
+    await wrapper.vm.$nextTick()
+    wrapper.find('nldd-modal-dialog').element.dispatchEvent(new CustomEvent('close'))
+    wrapper.unmount()
+    expect(true).toBe(true)
   })
 
   it('calls relogin() when the "Opnieuw inloggen" button is clicked', async () => {
     const wrapper = mount(SessionExpiredDialog)
 
-    await wrapper.find('button').trigger('click')
+    await wrapper.find('nldd-button').trigger('click')
 
     expect(relogin).toHaveBeenCalledTimes(1)
-
-    wrapper.unmount()
-  })
-
-  it('prevents the default cancel behaviour (Escape key) on the dialog', async () => {
-    const wrapper = mount(SessionExpiredDialog)
-
-    const event = new Event('cancel', { cancelable: true })
-    await wrapper.find('dialog').element.dispatchEvent(event)
-
-    expect(event.defaultPrevented).toBe(true)
 
     wrapper.unmount()
   })

@@ -5,76 +5,45 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 import AboutAssessments from '../../src/views/AboutAssessments.vue'
+import { useBackLink } from '../../src/composables/useBackLink'
+import { previousPage } from '../../src/router'
 
-// Stub AppHeader to avoid pulling in vue-router + useAuth; the marker template
-// re-exposes the bound props so the ternary branches can be asserted.
-const AppHeaderStub = {
-  name: 'AppHeader',
-  props: ['backLabel', 'backRoute', 'showBack'],
-  template:
-    '<header class="app-header-stub" ' +
-    ':data-back-label="backLabel" ' +
-    ":data-back-route=\"backRoute === undefined ? '__undefined__' : backRoute\" " +
-    ':data-show-back="String(showBack)"></header>',
-}
-
-function mountAbout() {
-  return mount(AboutAssessments, {
-    global: { stubs: { AppHeader: AppHeaderStub } },
-  })
-}
+const { backLink, set } = useBackLink()
 
 afterEach(() => {
+  set(null)
+  previousPage.value = null
   window.history.replaceState(null, '', window.location.href)
 })
 
 describe('AboutAssessments', () => {
-  describe('hasHistory computed (window.history.state?.back)', () => {
-    it('is falsy when history.state is null (optional chaining short-circuits)', () => {
-      window.history.replaceState(null, '', window.location.href)
+  describe('back link', () => {
+    it('names the page the reader came from', () => {
+      previousPage.value = { text: 'Projecten', to: '/projecten' }
 
-      const wrapper = mountAbout()
-      const header = wrapper.find('.app-header-stub')
+      mount(AboutAssessments)
 
-      expect(header.attributes('data-back-label')).toBe('Ga naar home')
-      expect(header.attributes('data-back-route')).toBe('/')
-      expect(header.attributes('data-show-back')).toBe('false')
+      expect(backLink.value).toEqual({ text: 'Projecten', to: '/projecten' })
     })
 
-    it('is falsy when history.state exists but has no back entry', () => {
-      window.history.replaceState({ other: 'value' }, '', window.location.href)
+    it('falls back to the start page when there is no previous page', () => {
+      previousPage.value = null
 
-      const wrapper = mountAbout()
-      const header = wrapper.find('.app-header-stub')
+      mount(AboutAssessments)
 
-      expect(header.attributes('data-back-label')).toBe('Ga naar home')
-      expect(header.attributes('data-back-route')).toBe('/')
-      expect(header.attributes('data-show-back')).toBe('false')
-    })
-
-    it('is truthy when history.state.back is set', () => {
-      window.history.replaceState({ back: '/projecten' }, '', window.location.href)
-
-      const wrapper = mountAbout()
-      const header = wrapper.find('.app-header-stub')
-
-      expect(header.attributes('data-back-label')).toBe('Terug')
-      expect(header.attributes('data-back-route')).toBe('__undefined__')
-      expect(header.attributes('data-show-back')).toBe('true')
+      expect(backLink.value).toEqual({ text: 'Startpagina', to: '/' })
     })
   })
 
   describe('static informational content', () => {
     it('renders the page heading', () => {
-      window.history.replaceState({ back: '/' }, '', window.location.href)
+      const wrapper = mount(AboutAssessments)
 
-      const wrapper = mountAbout()
-
-      expect(wrapper.find('h1.utrecht-heading-1').text()).toBe('Over Invulhulpen')
+      expect(wrapper.find('h1').text()).toBe('Over Invulhulpen')
     })
 
     it('renders the key section headings explaining pre-scan, DPIA and IAMA', () => {
-      const wrapper = mountAbout()
+      const wrapper = mount(AboutAssessments)
       const text = wrapper.text()
 
       expect(text).toContain('Pre-scan')
@@ -87,13 +56,13 @@ describe('AboutAssessments', () => {
     })
 
     it('has parallel version headings: "DPIA versie 3.0" and "IAMA versie 2.0"', () => {
-      const text = mountAbout().text()
+      const text = mount(AboutAssessments).text()
       expect(text).toContain('DPIA versie 3.0')
       expect(text).toContain('IAMA versie 2.0')
     })
 
     it('links to the DPIA informational models and reporting model', () => {
-      const wrapper = mountAbout()
+      const wrapper = mount(AboutAssessments)
       const hrefs = wrapper.findAll('a').map((a) => a.attributes('href'))
 
       expect(hrefs).toContain('https://modellen.jenvgegevens.nl/dpia/#IntroPre-scanDPIA')

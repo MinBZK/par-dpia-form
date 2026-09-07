@@ -52,7 +52,7 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
 
     const wrapper = await mountPreview('2.1')
 
-    expect(wrapper.find('.rvo-accordion').exists()).toBe(false)
+    expect(wrapper.find('details.ui-accordion').exists()).toBe(false)
     expect(wrapper.text()).toBe('')
     expect(previewHolder.getPreviewDataForSection).toHaveBeenCalledWith('2.1')
   })
@@ -64,9 +64,11 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
 
     const wrapper = await mountPreview('2.1')
 
-    expect(wrapper.find('.rvo-accordion').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Informatie uit pre-scan')
-    expect(wrapper.text()).toContain(
+    const accordion = wrapper.find('details.ui-accordion')
+    expect(accordion.exists()).toBe(true)
+    expect((accordion.element as HTMLDetailsElement).open).toBe(true)
+    expect(accordion.find('.ui-accordion__title nldd-title h3').text()).toBe('Informatie uit pre-scan')
+    expect(accordion.find('.ui-accordion__title p[slot="subtitle"]').text()).toContain(
       'Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.',
     )
     expect(wrapper.text()).toContain('1.2. Doel van de verwerking')
@@ -80,7 +82,7 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
 
     const wrapper = await mountPreview()
 
-    const entries = wrapper.findAll('.rvo-accordion__content > div')
+    const entries = wrapper.findAll('.ui-accordion__content > div')
     expect(entries).toHaveLength(2)
     expect(entries[0].text()).toContain('1.1. Eerste')
     expect(entries[1].text()).toContain('1.3. Tweede')
@@ -94,8 +96,8 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
-    // paras[0] is the strong title; paras[1] is the v-html answer.
+    const paras = wrapper.findAll('.ui-accordion__content p')
+    // paras[0] is the strong title; paras[1] is the answer rendered as text.
     expect(paras[1].html()).toContain('<p></p>')
   })
 
@@ -105,7 +107,7 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
+    const paras = wrapper.findAll('.ui-accordion__content p')
     expect(paras[1].text()).toBe('')
   })
 
@@ -124,7 +126,7 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
+    const paras = wrapper.findAll('.ui-accordion__content p')
     expect(paras[1].text()).toBe('Ja')
   })
 
@@ -134,7 +136,7 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
+    const paras = wrapper.findAll('.ui-accordion__content p')
     expect(paras[1].text()).toBe('Nee')
   })
 
@@ -145,7 +147,7 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
+    const paras = wrapper.findAll('.ui-accordion__content p')
     expect(paras[1].text()).toBe('')
   })
 
@@ -155,7 +157,7 @@ describe('PreScanPreview formatAnswer branches', () => {
     ])
 
     const wrapper = await mountPreview()
-    const paras = wrapper.findAll('.rvo-accordion__content p')
+    const paras = wrapper.findAll('.ui-accordion__content p')
     expect(paras[1].text()).toBe('Gewone tekst')
   })
 })
@@ -186,11 +188,11 @@ describe('PreScanPreview dpiaTaskId watcher', () => {
     )
 
     const wrapper = await mountPreview('2.1')
-    expect(wrapper.find('.rvo-accordion').exists()).toBe(true)
+    expect(wrapper.find('details.ui-accordion').exists()).toBe(true)
 
     await wrapper.setProps({ dpiaTaskId: '9.9' })
     await nextTick()
 
-    expect(wrapper.find('.rvo-accordion').exists()).toBe(false)
+    expect(wrapper.find('details.ui-accordion').exists()).toBe(false)
   })
 })

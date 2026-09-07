@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import AppHeader from '../components/AppHeader.vue'
+import '@nldd/design-system/container'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/rich-text'
+import '@nldd/design-system/title'
+import { useBackLink } from '../composables/useBackLink'
+import { previousPage } from '../router'
 
-const hasHistory = computed(() => !!window.history.state?.back)
+// Name where the reader goes back to, rather than a bare "Terug".
+useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader
-      :backLabel="hasHistory ? 'Terug' : 'Ga naar home'"
-      :backRoute="hasHistory ? undefined : '/'"
-      :showBack="hasHistory"
-    />
+  <nldd-simple-section width="45rem" padding-top="24">
+    <nldd-container gap="16">
+    <nldd-title size="3"><h1>Privacyverklaring</h1></nldd-title>
 
-    <h1 class="utrecht-heading-1">Privacyverklaring</h1>
-
+    <nldd-rich-text>
     <p>
       Invulhulpen is een applicatie van het Ministerie van Binnenlandse Zaken en
       Koninkrijksrelaties (BZK), bedoeld als hulpmiddel bij het uitvoeren van een pre-scan, DPIA of IAMA. In deze
@@ -22,25 +23,25 @@ const hasHistory = computed(() => !!window.history.state?.back)
       en welke rechten je hebt.
     </p>
 
-    <h2 class="utrecht-heading-2">Welke gegevens verwerken we?</h2>
+    <h2>Welke gegevens verwerken we?</h2>
     <p>Bij het gebruik van Invulhulpen verwerken we de volgende persoonsgegevens:</p>
     <ul>
-      <li><strong>E-mailadres</strong> — verkregen via de inlogvoorziening (SSO Rijk / RIG Keycloak) bij authenticatie</li>
-      <li><strong>Weergavenaam</strong> — verkregen via de inlogvoorziening bij authenticatie</li>
-      <li><strong>Bewerkingsgeschiedenis</strong> — welke gebruiker welke velden heeft gewijzigd en wanneer</li>
-      <li><strong>Projectlidmaatschap</strong> — welke gebruikers lid zijn van welke projecten en hun rol daarin</li>
-      <li><strong>IP-adres en request-metadata</strong> — worden vastgelegd in serverlogboeken ten behoeve van beveiliging en foutopsporing</li>
+      <li><strong>E-mailadres</strong>: verkregen via de inlogvoorziening (SSO Rijk / RIG Keycloak) bij authenticatie</li>
+      <li><strong>Weergavenaam</strong>: verkregen via de inlogvoorziening bij authenticatie</li>
+      <li><strong>Bewerkingsgeschiedenis</strong>: welke gebruiker welke velden heeft gewijzigd en wanneer</li>
+      <li><strong>Projectlidmaatschap</strong>: welke gebruikers lid zijn van welke projecten en hun rol daarin</li>
+      <li><strong>IP-adres en request-metadata</strong>: worden vastgelegd in serverlogboeken ten behoeve van beveiliging en foutopsporing</li>
     </ul>
 
-    <h2 class="utrecht-heading-2">Waarom verwerken we deze gegevens?</h2>
+    <h2>Waarom verwerken we deze gegevens?</h2>
     <p>We verwerken deze gegevens voor de volgende doeleinden:</p>
     <ul>
-      <li><strong>Authenticatie en autorisatie</strong> — om te bepalen wie toegang heeft tot welke projecten</li>
-      <li><strong>Samenwerking</strong> — zodat meerdere gebruikers samen aan een assessment kunnen werken</li>
-      <li><strong>Audit trail</strong> — om een traceerbare historie te bieden van wie wat heeft gewijzigd, ten behoeve van kwaliteitsborging en verantwoording</li>
+      <li><strong>Authenticatie en autorisatie</strong>: om te bepalen wie toegang heeft tot welke projecten</li>
+      <li><strong>Samenwerking</strong>: zodat meerdere gebruikers samen aan een assessment kunnen werken</li>
+      <li><strong>Audit trail</strong>: om een traceerbare historie te bieden van wie wat heeft gewijzigd, ten behoeve van kwaliteitsborging en verantwoording</li>
     </ul>
 
-    <h2 class="utrecht-heading-2">Rechtsgrond</h2>
+    <h2>Rechtsgrond</h2>
     <p>
       De verwerking is gebaseerd op gerechtvaardigd belang
       (<a href="https://eur-lex.europa.eu/legal-content/NL/TXT/?uri=CELEX%3A32016R0679#d1e1883-1-1" target="_blank" rel="noopener noreferrer">artikel 6, lid 1, sub f AVG</a>).
@@ -48,7 +49,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
       in de context van de overheid.
     </p>
 
-    <h2 class="utrecht-heading-2">Bewaartermijnen</h2>
+    <h2>Bewaartermijnen</h2>
     <p>
       Persoonsgegevens worden bewaard zolang een project actief is. Wanneer een project wordt
       verwijderd, worden alle bijbehorende gegevens (inclusief bewerkingsgeschiedenis) permanent
@@ -61,14 +62,14 @@ const hasHistory = computed(() => !!window.history.state?.back)
       kun je contact opnemen om verwijdering van je accountgegevens te verzoeken.
     </p>
 
-    <h2 class="utrecht-heading-2">Ontvangers</h2>
+    <h2>Ontvangers</h2>
     <p>
       Persoonsgegevens worden niet gedeeld met derden en niet doorgegeven aan landen buiten de
       Europese Economische Ruimte (EER). De gegevens zijn uitsluitend toegankelijk voor gebruikers
       die lid zijn van hetzelfde project, en voor systeembeheerders.
     </p>
 
-    <h2 class="utrecht-heading-2">Beveiliging</h2>
+    <h2>Beveiliging</h2>
     <p>
       We nemen passende technische en organisatorische maatregelen om je gegevens te beschermen,
       waaronder:
@@ -80,42 +81,44 @@ const hasHistory = computed(() => !!window.history.state?.back)
       <li>Veld-niveau auditlogging</li>
     </ul>
 
-    <h2 class="utrecht-heading-2">Je rechten</h2>
+    <h2>Je rechten</h2>
     <p>Op grond van de AVG heb je de volgende rechten:</p>
     <ul>
-      <li><strong>Inzage</strong> — je kunt opvragen welke gegevens we van je verwerken</li>
-      <li><strong>Rectificatie</strong> — je kunt onjuiste gegevens laten corrigeren</li>
-      <li><strong>Verwijdering</strong> — je kunt verzoeken om verwijdering van je gegevens</li>
-      <li><strong>Beperking</strong> — je kunt vragen om beperking van de verwerking</li>
-      <li><strong>Bezwaar</strong> — je kunt bezwaar maken tegen de verwerking</li>
+      <li><strong>Inzage</strong>: je kunt opvragen welke gegevens we van je verwerken</li>
+      <li><strong>Rectificatie</strong>: je kunt onjuiste gegevens laten corrigeren</li>
+      <li><strong>Verwijdering</strong>: je kunt verzoeken om verwijdering van je gegevens</li>
+      <li><strong>Beperking</strong>: je kunt vragen om beperking van de verwerking</li>
+      <li><strong>Bezwaar</strong>: je kunt bezwaar maken tegen de verwerking</li>
     </ul>
     <p>
       Voor het uitoefenen van deze rechten kun je contact opnemen via
       <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>.
     </p>
 
-    <h2 class="utrecht-heading-2">Verplicht of vrijwillig</h2>
+    <h2>Verplicht of vrijwillig</h2>
     <p>
       Het verstrekken van je e-mailadres en weergavenaam is noodzakelijk om de applicatie te
       kunnen gebruiken. Deze gegevens worden automatisch verstrekt door de inlogvoorziening.
       Zonder deze gegevens kun je niet inloggen en deelnemen aan projecten.
     </p>
 
-    <h2 class="utrecht-heading-2">Geautomatiseerde besluitvorming</h2>
+    <h2>Geautomatiseerde besluitvorming</h2>
     <p>
       De applicatie maakt geen gebruik van geautomatiseerde besluitvorming of profilering.
     </p>
 
-    <h2 class="utrecht-heading-2">Klacht indienen</h2>
+    <h2>Klacht indienen</h2>
     <p>
       Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen
       bij de <a href="https://www.autoriteitpersoonsgegevens.nl/een-tip-of-klacht-indienen-bij-de-ap" target="_blank" rel="noopener noreferrer">Autoriteit Persoonsgegevens</a>.
     </p>
 
-    <h2 class="utrecht-heading-2">Contact</h2>
+    <h2>Contact</h2>
     <p>
       Ministerie van Binnenlandse Zaken en Koninkrijksrelaties<br />
       E-mail: <a href="mailto:digigilde@rijksoverheid.nl">digigilde@rijksoverheid.nl</a>
     </p>
-  </div>
+    </nldd-rich-text>
+    </nldd-container>
+  </nldd-simple-section>
 </template>

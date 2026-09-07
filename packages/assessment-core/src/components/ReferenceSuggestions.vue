@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/container'
+import '@nldd/design-system/spacer'
 import { useReferences, type ReferenceSuggestion } from '../composables/useReferences'
 import { type FlatTask } from '../stores/tasks'
 import { type AnswerValue } from '../stores/answers'
@@ -22,15 +25,14 @@ const formatAnswer = (answer: AnswerValue): string => {
 </script>
 
 <template>
-  <div v-if="suggestions.length > 0" class="rvo-margin-block-end--md">
-    <div v-for="suggestion in suggestions" :key="suggestion.sourceTaskId"
-      class="rvo-alert rvo-alert--warning reference-suggestions__alert">
-      <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
-        aria-label="Waarschuwing"></span>
-      <div class="rvo-alert-text">
-        <p><strong>Suggestie uit antwoord op vraag {{ suggestion.sourceTaskId }} – {{ suggestion.sourceTaskTitle }}:</strong></p>
-        <p>{{ formatAnswer(suggestion.answer) }}</p>
-      </div>
-    </div>
-  </div>
+  <template v-if="suggestions.length > 0">
+    <nldd-container gap="8">
+      <nldd-banner v-for="suggestion in suggestions" :key="suggestion.sourceTaskId"
+        variant="warning"
+        class="reference-suggestions__alert"
+        :text="`Suggestie uit antwoord op vraag ${suggestion.sourceTaskId} - ${suggestion.sourceTaskTitle}:`"
+        :supporting-text="formatAnswer(suggestion.answer)"></nldd-banner>
+    </nldd-container>
+    <nldd-spacer size="16"></nldd-spacer>
+  </template>
 </template>

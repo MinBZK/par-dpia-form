@@ -79,6 +79,8 @@ services:
       - ../apps/standalone-form/src:/app/apps/standalone-form/src
       - ../apps/standalone-form/index.html:/app/apps/standalone-form/index.html
       - ../apps/standalone-form/vite.config.ts:/app/apps/standalone-form/vite.config.ts
+      # vite.config.ts imports the CSP hash plugin from build/; without this
+      # mount the dev server fails on an unresolved import.
       - ../apps/standalone-form/build:/app/apps/standalone-form/build
       - ../sources:/app/sources
 
@@ -103,6 +105,7 @@ services:
       - ../packages/assessment-core/src:/app/packages/assessment-core/src
       - ../apps/boekhouding-frontend/src:/app/apps/boekhouding-frontend/src
       - ../apps/boekhouding-frontend/index.html:/app/apps/boekhouding-frontend/index.html
+      - ../apps/boekhouding-frontend/public:/app/apps/boekhouding-frontend/public
       - ../apps/boekhouding-frontend/vite.config.ts:/app/apps/boekhouding-frontend/vite.config.ts
       - ../sources:/app/sources
     depends_on:

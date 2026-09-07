@@ -58,10 +58,15 @@ describe('LiveResults.vue', () => {
       const wrapper = mount(LiveResults)
 
       expect(wrapper.find('details').exists()).toBe(false)
-      expect(wrapper.find('.rvo-accordion-teaser').text()).toBe(
+      const card = wrapper.find('nldd-card.assessment-results')
+      expect(card.exists()).toBe(true)
+      expect(card.find('nldd-container').attributes('padding')).toBe('16')
+      const title = card.find('nldd-title')
+      expect(title.attributes('size')).toBe('3')
+      expect(title.find('h3').text()).toBe('Tussenresultaten pre-scan')
+      expect(title.find('p[slot="subtitle"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er geen assessments vereist.',
       )
-      expect(wrapper.text()).toContain('Tussenresultaten pre-scan')
     })
 
     it('renders the expandable accordion when an assessment is required (left side of ||)', () => {
@@ -69,8 +74,11 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.find('details').exists()).toBe(true)
-      expect(wrapper.find('.rvo-accordion-teaser').text()).toBe(
+      const accordion = wrapper.find('nldd-card.assessment-results details.ui-accordion')
+      expect(accordion.exists()).toBe(true)
+      expect((accordion.element as HTMLDetailsElement).open).toBe(true)
+      expect(accordion.find('.ui-accordion__title nldd-title h3').text()).toBe('Tussenresultaten pre-scan')
+      expect(accordion.find('.ui-accordion__title p[slot="subtitle"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.',
       )
     })
@@ -80,7 +88,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.find('details').exists()).toBe(true)
+      expect(wrapper.find('details.ui-accordion').exists()).toBe(true)
     })
   })
 
@@ -91,7 +99,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.find('.rvo-accordion__content').text()).toContain('Berekenen...')
+      expect(wrapper.find('.ui-accordion__content').text()).toContain('Berekenen...')
     })
 
     it('shows results (not the placeholder) when not calculating', () => {
@@ -100,7 +108,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.find('.rvo-accordion__content').text()).not.toContain('Berekenen...')
+      expect(wrapper.find('.ui-accordion__content').text()).not.toContain('Berekenen...')
       expect(wrapper.text()).toContain('DPIA')
     })
   })
@@ -120,7 +128,7 @@ describe('LiveResults.vue', () => {
       const wrapper = mount(LiveResults)
 
       expect(wrapper.text()).toContain('Een IAMA wordt aanbevolen omdat:')
-      const items = wrapper.findAll('.utrecht-unordered-list__item')
+      const items = wrapper.findAll('.ui-accordion__content ul li')
       expect(items).toHaveLength(1)
       expect(items[0].text()).toContain('reden A')
     })
@@ -171,7 +179,7 @@ describe('LiveResults.vue', () => {
       const wrapper = mount(LiveResults)
 
       expect(wrapper.text()).toContain('Een DPIA is verplicht omdat:')
-      const items = wrapper.findAll('.utrecht-unordered-list__item')
+      const items = wrapper.findAll('.ui-accordion__content ul li')
       expect(items).toHaveLength(2)
       expect(items[0].text()).toContain('reden D1')
       expect(items[1].text()).toContain('reden D2')
@@ -191,7 +199,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
+      expect(wrapper.findAll('.ui-accordion__content ul li')).toHaveLength(0)
       const html = wrapper.html()
       expect(html).toContain('Regel 1<br>Regel 2')
     })
@@ -209,7 +217,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
+      expect(wrapper.findAll('.ui-accordion__content ul li')).toHaveLength(0)
       expect(wrapper.text()).toContain('Lege criteria uitleg')
     })
 
@@ -225,7 +233,7 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.findAll('.utrecht-unordered-list__item')).toHaveLength(0)
+      expect(wrapper.findAll('.ui-accordion__content ul li')).toHaveLength(0)
       expect(wrapper.text()).toContain('DPIA')
     })
 
@@ -256,9 +264,10 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      const strongs = wrapper.findAll('strong').map((s) => s.text())
-      expect(strongs).toContain('DPIA')
-      expect(strongs).not.toContain('KIA')
+      // Each assessment is a real heading, one step under the card title.
+      const headings = wrapper.findAll('nldd-rich-text h4').map((h) => h.text())
+      expect(headings).toContain('DPIA')
+      expect(headings).not.toContain('KIA')
     })
   })
 
@@ -269,8 +278,10 @@ describe('LiveResults.vue', () => {
 
       const wrapper = mount(LiveResults)
 
-      expect(wrapper.text()).toContain('Er zijn fouten opgetreden tijdens de berekening:')
-      const errorItems = wrapper.findAll('ul:not(.utrecht-unordered-list) li')
+      expect(wrapper.text()).toContain('Fouten tijdens de berekening')
+      // The assessment has no criteria, so the only list in the content is the
+      // error list.
+      const errorItems = wrapper.findAll('.ui-accordion__content ul li')
       expect(errorItems.map((li) => li.text())).toEqual(['Fout 1', 'Fout 2'])
     })
 

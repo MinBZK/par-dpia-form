@@ -4,7 +4,8 @@ import { FormType } from '../models/dpia'
 import { usePreScanReferences, type PreScanReference } from '../composables/usePreScanReferences'
 import { useAnswerStore, type AnswerValue } from '../stores/answers'
 import { useTaskStore } from '../stores/tasks'
-import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
+import UiAccordion from './ui/UiAccordion.vue'
+import '@nldd/design-system/title'
 
 const props = defineProps<{
   dpiaTaskId: string
@@ -56,32 +57,17 @@ const formatAnswer = (answer: AnswerValue): string => {
 }
 </script>
 <template>
-  <div v-if="hasPreScanData" class="rvo-accordion">
-    <details class="rvo-accordion__item" open>
-      <summary class="rvo-accordion__item-summary">
-        <div class="rvo-accordion__item-icon">
-          <span
-            class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
-            role="img" aria-label="Delta omlaag"></span>
-          <span
-            class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
-            role="img" aria-label="Delta omhoog"></span>
-        </div>
-        <div class="rvo-accordion__item-title-container">
-          <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-            Informatie uit pre-scan
-          </h3>
-          <div class="rvo-accordion-teaser">Je hebt in de pre-scan informatie ingevuld die mogelijk
-            relevant is.</div>
-        </div>
-      </summary>
-      <div class="rvo-accordion__content">
-        <div v-for="item in preScanAnswers" :key="item.taskId">
-          <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
-          <!-- Pre-scan answers are user input; render as text to prevent stored XSS. -->
-          <p>{{ formatAnswer(item.answer) }}</p>
-        </div>
-      </div>
-    </details>
-  </div>
+  <UiAccordion v-if="hasPreScanData" open>
+    <template #title>
+      <nldd-title size="5">
+        <h3>Informatie uit pre-scan</h3>
+        <p slot="subtitle">Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.</p>
+      </nldd-title>
+    </template>
+    <div v-for="item in preScanAnswers" :key="item.taskId">
+      <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
+      <!-- Pre-scan answers are user input; render as text to prevent stored XSS. -->
+      <p>{{ formatAnswer(item.answer) }}</p>
+    </div>
+  </UiAccordion>
 </template>

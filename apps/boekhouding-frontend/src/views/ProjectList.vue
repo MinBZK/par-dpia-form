@@ -1,20 +1,40 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ApiError, projects as projectsApi, type Project } from '../api'
+import { useAnchorNav } from '../composables/useAnchorNav'
 import { usePaginatedList } from '../composables/usePaginatedList'
-import { UiButton, autoGrowTextarea } from '@overheid-assessment/core'
-import { IconPlus } from '@tabler/icons-vue'
-import AppHeader from '../components/AppHeader.vue'
+import '@nldd/design-system/banner'
+import '@nldd/design-system/inline-dialog'
+import '@nldd/design-system/simple-section'
+import '@nldd/design-system/button'
+import '@nldd/design-system/modal-dialog'
+import '@nldd/design-system/button-group'
+import '@nldd/design-system/card'
+import '@nldd/design-system/collection'
+import '@nldd/design-system/container'
+import '@nldd/design-system/form'
+import '@nldd/design-system/form-field'
+import '@nldd/design-system/multi-line-text-field'
+import '@nldd/design-system/text-field'
+import '@nldd/design-system/title'
 
 const router = useRouter()
+const onCardNav = useAnchorNav()
 const {
-  items: projectList, loadingMore, loadError, loadStatus, statusRef,
+  items: projectList, total, loadingMore, loadError, loadStatus, statusRef,
   hasMore, nextBatchSize, loadFirst, loadMore,
 } = usePaginatedList<Project>((page, pageSize) => projectsApi.list(page, pageSize), (p) => p.id)
 const loading = ref(true)
 const error = ref<string | null>(null)
+type ModalDialogElement = HTMLElement & { show?: () => void; hide?: () => void }
+const createDialogRef = ref<ModalDialogElement | null>(null)
 const showCreateForm = ref(false)
+
+watch(showCreateForm, (open) => {
+  if (open) createDialogRef.value?.show?.()
+  else createDialogRef.value?.hide?.()
+})
 const newProjectName = ref('')
 const newProjectDescription = ref('')
 
@@ -33,6 +53,11 @@ onMounted(async () => {
   }
 })
 
+// NLDD fields deliver their value in event.detail; plain inputs on the target.
+function fieldValue(event: Event): string {
+  return (event as CustomEvent).detail?.value ?? (event.target as HTMLInputElement).value
+}
+
 const handleCreate = async () => {
   if (!newProjectName.value) return
   const project = await projectsApi.create(newProjectName.value, newProjectDescription.value)
@@ -42,75 +67,97 @@ const handleCreate = async () => {
 </script>
 
 <template>
-  <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
-    <AppHeader>
-      <template #left>
-        <h1 class="utrecht-heading-1 rvo-heading--no-margins">Projecten</h1>
-      </template>
-    </AppHeader>
+  <nldd-simple-section padding-top="24">
+    <nldd-container gap="24">
+    <nldd-title size="3"><h1>Projecten</h1></nldd-title>
 
     <div v-if="loading">
       <p>Projecten laden...</p>
     </div>
 
-    <div v-else-if="error" class="rvo-alert rvo-alert--warning">
-      {{ error }}
-    </div>
+    <nldd-banner v-else-if="error" variant="warning" :text="error"></nldd-banner>
 
     <template v-else>
-      <div v-if="projectList.length === 0" class="rvo-margin-block-end--lg">
-        <p>Je hebt nog geen projecten. Maak er een aan om te beginnen.</p>
-      </div>
+      <nldd-inline-dialog v-if="projectList.length === 0"
+        icon="folder" icon-color="secondary"
+        text="Nog geen projecten"
+        supporting-text="Een project bundelt de assessments die bij elkaar horen. Maak er een aan om te beginnen."></nldd-inline-dialog>
 
-      <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--two rvo-margin-block-end--lg">
-        <router-link
+      <!-- max-items: the collection hides items past its own cap (24) even
+           without a load-more button. The server pages the list, so the cap is
+           the server total and nothing loaded is ever hidden. -->
+      <nldd-collection layout="grid" item-width="380px" gap="16px" :max-items="total" class="project-grid"
+        @click="onCardNav">
+        <nldd-card
           v-for="project in projectList"
           :key="project.id"
-          :to="`/project/${project.id}`"
-          class="rvo-card rvo-card--outline rvo-card--padding-md rvo-card--full-colour--grijs-100 card-link"
+          :href="`/project/${project.id}`"
+          :accessible-label="`Open project ${project.name}`"
         >
-          <div class="rvo-card__content">
-            <h2 class="utrecht-heading-2 rvo-margin--none text-clamp-2">{{ project.name }}</h2>
+          <nldd-container padding="16">
+            <h2 class="text-clamp-2">{{ project.name }}</h2>
             <p v-if="project.description" class="text-clamp-3">{{ project.description }}</p>
-          </div>
-        </router-link>
-      </div>
+          </nldd-container>
+        </nldd-card>
 
-      <div v-if="hasMore" class="version-list__more">
-        <button
-          class="rvo-button rvo-button--secondary rvo-button--size-sm"
-          :disabled="loadingMore"
+        <nldd-button
+          v-if="hasMore"
+          slot="footer"
+          variant="neutral-tinted"
+          width="full"
+          :disabled="loadingMore || undefined"
+          :text="`Laad de volgende ${nextBatchSize} projecten`"
           @click="loadMore"
-        >
-          Laad de volgende {{ nextBatchSize }} projecten
-        </button>
-      </div>
+        ></nldd-button>
+      </nldd-collection>
+
       <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
       <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
-      <div v-if="!showCreateForm" class="rvo-margin-block-end--2xl">
-        <button class="rvo-button rvo-button--primary rvo-button--size-md rvo-button--icon-before" @click="showCreateForm = true">
-          <IconPlus :size="20" /> Nieuw project
-        </button>
+      <div>
+        <nldd-button
+          variant="primary"
+          size="md"
+          start-icon="plus"
+          text="Nieuw project"
+          @click="showCreateForm = true"
+        ></nldd-button>
       </div>
-
-      <form v-else @submit.prevent="handleCreate" class="rvo-margin-block-start--md rvo-margin-block-end--2xl">
-        <h2 class="utrecht-heading-2">Nieuw project</h2>
-        <div class="rvo-form-field rvo-margin-block-end--md">
-          <label class="rvo-form-field__label" for="projectName">Naam</label>
-          <input id="projectName" v-model="newProjectName" type="text" class="utrecht-textbox utrecht-textbox--html-input" required />
-        </div>
-        <div class="rvo-form-field rvo-margin-block-end--md">
-          <label class="rvo-form-field__label" for="projectDesc">Beschrijving (optioneel)</label>
-          <textarea id="projectDesc" v-model="newProjectDescription" class="utrecht-textarea utrecht-textarea--html-textarea" rows="2"
-            @input="autoGrowTextarea($event.target as HTMLTextAreaElement)"
-          ></textarea>
-        </div>
-        <div class="rvo-action-group">
-          <UiButton variant="primary" type="submit" label="Project toevoegen" />
-          <UiButton variant="secondary" label="Annuleren" @click="showCreateForm = false" />
-        </div>
-      </form>
     </template>
-  </div>
+    </nldd-container>
+  </nldd-simple-section>
+
+  <!-- The form lives in a dialog: inline it pushed the page around and sat
+       under the "no projects yet" notice while you were typing. -->
+  <nldd-modal-dialog ref="createDialogRef" data-test="create-project-dialog"
+    text="Nieuw project" @close="showCreateForm = false">
+    <nldd-form>
+      <!-- Own <form> as direct child: that is the framework-friendly mode, so
+           the component mirrors attributes instead of migrating Vue's nodes. -->
+      <form id="createProjectForm" @submit.prevent="handleCreate">
+      <nldd-form-field label="Naam">
+        <nldd-text-field
+          input-id="projectName"
+          type="text"
+          required
+          :value="newProjectName"
+          @input="newProjectName = fieldValue($event)"
+        ></nldd-text-field>
+      </nldd-form-field>
+      <nldd-form-field label="Beschrijving" optional>
+        <nldd-multi-line-text-field
+          input-id="projectDesc"
+          rows="2"
+          resize="auto"
+          :value="newProjectDescription"
+          @input="newProjectDescription = fieldValue($event)"
+        ></nldd-multi-line-text-field>
+      </nldd-form-field>
+      </form>
+    </nldd-form>
+    <nldd-button slot="actions" variant="primary" text="Project toevoegen"
+      @click="handleCreate"></nldd-button>
+    <nldd-button slot="actions" variant="secondary" text="Annuleren"
+      @click="showCreateForm = false"></nldd-button>
+  </nldd-modal-dialog>
 </template>

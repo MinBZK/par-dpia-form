@@ -16,23 +16,14 @@ vi.mock('../../src/utils/pdfImport', () => ({
   importFromPdf: (...args: unknown[]) => importFromPdf(...args),
 }))
 
-const UiButtonStub = {
-  name: 'UiButton',
-  props: ['variant', 'label', 'icon', 'disabled'],
-  emits: ['click'],
-  template:
-    '<button :data-label="label" :data-icon="icon" :disabled="disabled" @click="$emit(\'click\', $event)">{{ label }}</button>',
-}
-
 function mountPage(onStart?: (fileData?: AssessmentState) => void) {
   return mount(FileUploadPage, {
-    global: { stubs: { UiButton: UiButtonStub } },
     attrs: onStart ? { onStart } : {},
   })
 }
 
-function fileChangeEvent(files: File[] | null): Event {
-  return { target: { files } } as unknown as Event
+function fileChangeEvent(files?: File[]): Event {
+  return { detail: files ? { files } : undefined } as unknown as Event
 }
 
 const sampleState: AssessmentState = {
@@ -58,10 +49,11 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
-      expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.',
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('nldd-text').text()).toContain(
+        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking?',
       )
-      expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de DPIA')
+      expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met de DPIA')
     })
   })
 
@@ -82,10 +74,9 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper a').attributes('href')).toBe(
         'https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes',
       )
-      expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
-      )
-      expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met het IAMA')
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('nldd-text').text()).toContain('Heb je al eerder een IAMA ingevuld?')
+      expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met het IAMA')
     })
   })
 
@@ -100,10 +91,15 @@ describe('FileUploadPage.vue', () => {
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is.',
       )
-      expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking?',
+      // The heading stays short (nldd-title caps at 40ch); the question reads
+      // on the line below it, in the normal text colour rather than as a
+      // subtitle, because it is an instruction and not a caption.
+      expect(wrapper.find('nldd-title h2').text()).toBe('Verdergaan met een eerder bestand')
+      expect(wrapper.find('nldd-text').text()).toBe(
+        'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? ' +
+          'Upload het PDF- of JSON-bestand om verder te werken.',
       )
-      expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de pre-scan')
+      expect(wrapper.find('nldd-button').attributes('text')).toBe('Beginnen met de pre-scan')
     })
   })
 
@@ -124,33 +120,33 @@ describe('FileUploadPage.vue', () => {
       expect(vm.fileUploadError).toBeNull()
     })
 
-    it('ignores the event when there are no files (empty list)', () => {
+    it('clears the stored file when the field is emptied (empty list)', () => {
       const wrapper = mountPage()
       const vm = wrapper.vm as unknown as {
         uploadedFile: File | null
         handleFileSelect: (e: Event) => void
       }
+      vm.uploadedFile = new File(['{}'], 'oud.json', { type: 'application/json' })
 
       vm.handleFileSelect(fileChangeEvent([]))
       expect(vm.uploadedFile).toBeNull()
     })
 
-    it('ignores the event when files is null', () => {
+    it('treats an event without detail as no files', () => {
       const wrapper = mountPage()
       const vm = wrapper.vm as unknown as {
         uploadedFile: File | null
         handleFileSelect: (e: Event) => void
       }
 
-      vm.handleFileSelect(fileChangeEvent(null))
+      vm.handleFileSelect(fileChangeEvent())
       expect(vm.uploadedFile).toBeNull()
     })
 
-    it('reacts to a real change event on the file input', async () => {
+    it('reacts to a real change event on the file field', async () => {
       const wrapper = mountPage()
-      const input = wrapper.find('input#file-upload-field')
-      // jsdom file inputs report an empty FileList, so a real change event hits the no-files branch.
-      await input.trigger('change')
+      // A bare DOM change event carries no detail, so it lands in the no-files branch.
+      await wrapper.find('nldd-file-field').trigger('change')
       const vm = wrapper.vm as unknown as { uploadedFile: File | null }
       expect(vm.uploadedFile).toBeNull()
     })
@@ -161,14 +157,14 @@ describe('FileUploadPage.vue', () => {
       const onStart = vi.fn()
       const wrapper = mountPage(onStart)
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(onStart).toHaveBeenCalledTimes(1)
       expect(onStart.mock.calls[0]).toEqual([])
       expect(importFromJson).not.toHaveBeenCalled()
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
-      expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+      expect(wrapper.find('nldd-banner').exists()).toBe(false)
     })
   })
 
@@ -181,7 +177,7 @@ describe('FileUploadPage.vue', () => {
       const file = new File(['{}'], 'state.json', { type: 'application/json' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(importFromJson).toHaveBeenCalledWith(file)
@@ -198,7 +194,7 @@ describe('FileUploadPage.vue', () => {
       const file = new File([new Uint8Array([1, 2])], 'rapport.PDF', { type: 'application/pdf' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(importFromPdf).toHaveBeenCalledWith(file)
@@ -222,13 +218,13 @@ describe('FileUploadPage.vue', () => {
       const file = new File(['{}'], 'dpia.json', { type: 'application/json' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(onStart).not.toHaveBeenCalled()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Dit bestand bevat geen IAMA-gegevens.')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toContain('Dit bestand bevat geen IAMA-gegevens.')
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
     })
 
@@ -246,12 +242,12 @@ describe('FileUploadPage.vue', () => {
       const file = new File(['{}'], 'prescan.json', { type: 'application/json' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(onStart).toHaveBeenCalledTimes(1)
       expect(onStart.mock.calls[0][0]).toBe(prescanState)
-      expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
+      expect(wrapper.find('nldd-banner').exists()).toBe(false)
     })
   })
 
@@ -264,13 +260,13 @@ describe('FileUploadPage.vue', () => {
       const file = new File(['nope'], 'bad.json', { type: 'application/json' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(onStart).not.toHaveBeenCalled()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Ongeldig JSON-bestand')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toBe('Ongeldig JSON-bestand')
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
     })
 
@@ -282,13 +278,13 @@ describe('FileUploadPage.vue', () => {
       const file = new File(['nope'], 'bad.json', { type: 'application/json' })
       ;(wrapper.vm as unknown as { uploadedFile: File | null }).uploadedFile = file
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
       expect(onStart).not.toHaveBeenCalled()
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Fout bij het uploaden van het bestand')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toBe('Fout bij het uploaden van het bestand')
     })
   })
 
@@ -299,12 +295,12 @@ describe('FileUploadPage.vue', () => {
       })
       const wrapper = mountPage(onStart)
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('handler stuk')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toBe('handler stuk')
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
     })
 
@@ -314,12 +310,12 @@ describe('FileUploadPage.vue', () => {
       })
       const wrapper = mountPage(onStart)
 
-      await wrapper.find('button').trigger('click')
+      await wrapper.find('nldd-button').trigger('click')
       await flushPromises()
 
-      const alert = wrapper.find('.rvo-alert--warning')
-      expect(alert.exists()).toBe(true)
-      expect(alert.text()).toContain('Er is een onbekende fout opgetreden')
+      const banner = wrapper.find('nldd-banner[variant="critical"]')
+      expect(banner.exists()).toBe(true)
+      expect(banner.attributes('text')).toBe('Er is een onbekende fout opgetreden')
       expect((wrapper.vm as unknown as { isProcessing: boolean }).isProcessing).toBe(false)
     })
   })
@@ -330,9 +326,9 @@ describe('FileUploadPage.vue', () => {
       ;(wrapper.vm as unknown as { isProcessing: boolean }).isProcessing = true
       await wrapper.vm.$nextTick()
 
-      const button = wrapper.find('button')
-      expect(button.attributes('data-label')).toBe('Bezig met laden...')
-      expect(button.attributes('data-icon')).toBe('refresh')
+      const button = wrapper.find('nldd-button')
+      expect(button.attributes('text')).toBe('Bezig met laden...')
+      expect(button.attributes('start-icon')).toBe('arrow-clockwise')
       expect(button.attributes('disabled')).toBeDefined()
     })
   })
