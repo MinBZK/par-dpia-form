@@ -177,6 +177,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
+  weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
+  antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
+  verplichting volgde.
 * Op een smal scherm klapte de inhoudsopgave weg zonder knop om haar terug te
   halen: je kon dan niet meer tussen de stappen navigeren. Er staat nu een
   knop "Stappen" die haar opent, en die verschijnt ook wanneer het

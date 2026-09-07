@@ -252,7 +252,9 @@ function shouldSkipTask(taskId: string): boolean {
       <div v-if="task.description" class="task-section__description">
         <div class="preserve-whitespace" v-html="tidyDescriptionHtml(task.description)"></div>
         <template v-if="task.sources">
-          <template v-for="source in task.sources" :key="source">
+          <!-- Keyed on the source path, not the object: main fixed that in
+               2ada35a and the NLDD rewrite must not undo it. -->
+          <template v-for="source in task.sources" :key="source.source">
             <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
               :alt="source.description" class="task-section__source-image" />
           </template>
