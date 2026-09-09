@@ -1,6 +1,8 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://github.com/MinBZK/par-dpia-form/blob/main/schemas/begrippenkader.v1.schema.json",
+    "title": "Begrippenkader",
+    "description": "Lijst met begripsdefinities die de invulhulp in de vraagteksten injecteert. Alleen 'definitions' is verplicht: het IAMA-begrippenkader draagt geen beschrijvende kop.",
     "type": "object",
     "properties": {
         "schema_version": {
@@ -15,7 +17,7 @@
         },
         "urn": {
             "type": "string",
-            "pattern": "^urn:nl:dpia:[\\d\\.]+:begrippenkader:\\d+\\.\\d+$"
+            "pattern": "^urn:nl:[A-Za-z0-9._-]+(:[A-Za-z0-9._-]+)*$"
         },
         "language": {
             "type": "string",
@@ -23,8 +25,13 @@
                 "nl"
             ]
         },
+        "version_date": {
+            "type": "string",
+            "format": "date"
+        },
         "owners": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "properties": {
@@ -47,20 +54,20 @@
                     "name",
                     "email",
                     "role"
-                ]
-            },
-            "minItems": 1
+                ],
+                "additionalProperties": false
+            }
         },
-        "glossary": {
+        "definitions": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string",
-                        "pattern": "^[a-z0-9_]+$"
+                        "$ref": "#/$defs/slug"
                     },
-                    "name": {
+                    "term": {
                         "type": "string"
                     },
                     "category": {
@@ -68,54 +75,78 @@
                     },
                     "definition": {
                         "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "properties": {
+                            "kennisbronnen": {
+                                "$ref": "#/$defs/tekstlijst"
+                            },
+                            "toelichting": {
+                                "type": "string"
+                            },
+                            "redactionele_opmerking": {
+                                "type": "string"
+                            },
+                            "voorbeelden": {
+                                "$ref": "#/$defs/tekstlijst"
+                            },
+                            "meervoudsvormen": {
+                                "$ref": "#/$defs/tekstlijst"
+                            },
+                            "alternatieve_spellingen": {
+                                "$ref": "#/$defs/tekstlijst"
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                },
+                "required": [
+                    "term",
+                    "definition"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "alternative_terms": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/$defs/slug"
+                    },
+                    "term": {
+                        "type": "string"
+                    },
+                    "voorkeur_id": {
+                        "$ref": "#/$defs/slug"
                     }
                 },
                 "required": [
                     "id",
-                    "name",
-                    "category",
-                    "definition"
-                ]
-            },
-            "minItems": 1
-        },
-        "metadata": {
-            "type": "object",
-            "properties": {
-                "version": {
-                    "type": "string",
-                    "pattern": "^\\d+\\.\\d+\\.\\d+$"
-                },
-                "last_updated": {
-                    "type": "string",
-                    "format": "date-time"
-                },
-                "maintainer": {
-                    "type": "string"
-                },
-                "language": {
-                    "type": "string",
-                    "enum": [
-                        "nl"
-                    ]
-                }
-            },
-            "required": [
-                "version",
-                "last_updated",
-                "maintainer",
-                "language"
-            ]
+                    "term",
+                    "voorkeur_id"
+                ],
+                "additionalProperties": false
+            }
         }
     },
     "required": [
-        "schema_version",
-        "name",
-        "description",
-        "urn",
-        "language",
-        "owners",
-        "glossary",
-        "metadata"
-    ]
+        "definitions"
+    ],
+    "additionalProperties": false,
+    "$defs": {
+        "slug": {
+            "description": "Kleine letters, cijfers en leestekens zonder witruimte of hoofdletters; accenten toegestaan.",
+            "type": "string",
+            "pattern": "^[^A-Z\\s]+$"
+        },
+        "tekstlijst": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    }
 }
