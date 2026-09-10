@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@pdfme/pdf-lib": "^6.1.12",
-    "dompurify": "^3.4.14",
+    "dompurify": "^3.4.15",
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
     "jexl": "^2.3.0",
@@ -29,13 +29,13 @@
     "@types/jexl": "^2.3.4",
     "@types/pdfmake": "^0.3.3",
     "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/coverage-istanbul": "^4.1.11",
+    "@vitest/coverage-istanbul": "^5.0.0",
     "@vue/test-utils": "^2.5.0",
     "@vue/tsconfig": "^0.9.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "jsdom": "^30.0.1",
     "typescript": "~5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }

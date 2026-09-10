@@ -24,16 +24,16 @@
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "drizzle-orm": "^0.45.2",
-    "fastify": "^5.12.1",
-    "jose": "^6.2.10",
+    "fastify": "^5.12.3",
+    "jose": "^6.2.12",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@types/node": "^26.4.0",
-    "@vitest/coverage-istanbul": "^4.1.11",
+    "@types/node": "^26.5.0",
+    "@vitest/coverage-istanbul": "^5.0.0",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.13",
     "typescript": "~5.9.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }
