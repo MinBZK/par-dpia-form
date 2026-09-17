@@ -203,16 +203,17 @@ describe('LandingPage', () => {
     })
   })
 
-  describe('de drie assessments', () => {
-    it('renders three cards with the full name and abbreviation as heading', () => {
+  describe('de vier assessments', () => {
+    it('renders four cards with the full name and abbreviation as heading', () => {
       const wrapper = mountPage()
       const section = wrapper.find('#assessments')
       expect(section.exists()).toBe(true)
-      expect(section.findAll('.rvo-card')).toHaveLength(3)
+      expect(section.findAll('.rvo-card')).toHaveLength(4)
       expect(section.findAll('h3').map((h) => h.text())).toEqual([
         'Pre-scan',
         'Data Protection Impact Assessment (DPIA)',
         'Impact Assessment Mensenrechten en Algoritmes (IAMA)',
+        'AI Impact Assessment (AIIA)',
       ])
     })
 
