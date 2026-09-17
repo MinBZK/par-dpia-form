@@ -23,6 +23,14 @@ build) staan kort onder "Onder de motorkap".
   hoog-risicosystemen en generatieve AI. De AIIA werkt in het standalone
   formulier en in een project met account, met dezelfde export en
   versiegeschiedenis als de andere invulhulpen.
+
+### Onder de motorkap
+
+* Onboardingmateriaal voor wie nieuw aan de AIIA meewerkt staat in
+  `docs/onboarding/`: een presentatie, een handleiding over de opbouw van de
+  assessment-definities, de generatiepijplijn en de conventies in deze repo, en
+  een aparte handleiding over git voor wie daar nog weinig mee heeft gewerkt.
+
 ## [2026.8.25]
 
 ### Gewijzigd

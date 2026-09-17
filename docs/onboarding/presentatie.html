@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AIIA in PAR Assessments: onboarding</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@nldd/design-system@0.8.88/dist/css/global.css">
+<script src="https://cdn.jsdelivr.net/npm/@nldd/design-system@0.8.88/dist/nldd.min.js"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; }
+
+  .deck { display: block; }
+
+  .gitgraph { width: 100%; height: auto; }
+  .gitgraph text {
+    font-family: inherit;
+    fill: currentColor;
+    font-size: 15px;
+  }
+  .gitgraph .lane { font-weight: 600; }
+  .gitgraph .note { font-size: 13px; opacity: .72; }
+
+  .slide {
+    display: none;
+    min-height: calc(100dvh - var(--deck-chrome, 120px));
+    box-sizing: border-box;
+  }
+  .slide.is-active { display: block; }
+
+  .slide__inner {
+    max-width: 62rem;
+    margin: 0 auto;
+    padding: clamp(16px, 3vw, 40px) clamp(16px, 4vw, 32px);
+    min-height: calc(100dvh - var(--deck-chrome, 120px));
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px clamp(16px, 4vw, 32px);
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--semantics-border-secondary, rgba(0,0,0,.12));
+    background: var(--semantics-surface-base, canvas);
+  }
+  .bar__progress {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--semantics-border-secondary, rgba(0,0,0,.12));
+    overflow: hidden;
+  }
+  .bar__progress > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--semantics-accent-fill, #154273);
+    transition: width .18s ease-out;
+  }
+  .bar__count { font-variant-numeric: tabular-nums; }
+
+  .grid-2 {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
+  .lede { max-width: 46rem; }
+  .wide { max-width: none; }
+
+  .kicker {
+    display: inline-block;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .scroll-x { overflow-x: auto; }
+
+  .hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    align-items: center;
+  }
+
+  @media print {
+    .slide { display: block !important; page-break-after: always; min-height: 0; }
+    .bar { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bar__progress > span { transition: none; }
+  }
+</style>
+</head>
+<body>
+<nldd-app-view>
+<nldd-page sticky-footer>
+
+<nldd-top-navigation-bar slot="header"
+  logo-title="Invulhulpen"
+  logo-subtitle="Pre-scan, DPIA, IAMA en AIIA"></nldd-top-navigation-bar>
+
+<main class="deck" id="deck">
+
+  <!-- 1 -->
+  <section class="slide slide--title" data-title="Welkom">
+    <div class="slide__inner">
+      <nldd-text class="kicker" size="sm" weight="medium" color="secondary">Onboarding · PAR Assessments</nldd-text>
+      <nldd-spacer size="16"></nldd-spacer>
+      <nldd-title size="1">
+        <h1>Het AI Impact Assessment invulbaar maken</h1>
+        <span slot="subtitle">Vier opdrachten op branch add_aiia</span>
+      </nldd-title>
+      <nldd-spacer size="32"></nldd-spacer>
+      <div class="hint">
+        <nldd-tag color="lintblauw" icon="git-branch">branch add_aiia</nldd-tag>
+        <nldd-tag color="neutral" icon="book">twee handleidingen</nldd-tag>
+      </div>
+      <nldd-spacer size="32"></nldd-spacer>
+      <nldd-text size="sm" color="secondary">Navigeren met de pijltjestoetsen, spatie of de knoppen onderaan.</nldd-text>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide" data-title="Wat je gaat doen">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Wat je gaat doen</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>1 · Het AIIA in het juiste format</h3></nldd-title>
+            <nldd-text size="sm">139 open tekstvakken krijgen het type dat bij de vraag past.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>2 · Overlap IAMA en AIIA</h3></nldd-title>
+            <nldd-text size="sm">Dezelfde vraag niet twee keer laten beantwoorden.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>3 · Nieuwe functionaliteit</h3></nldd-title>
+            <nldd-text size="sm">Wat het AIIA nodig heeft en de engine nog niet kan.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>4 · AI-hulp bij het invullen</h3></nldd-title>
+            <nldd-text size="sm">Onderzoeken waar AI de invuller helpt.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide" data-title="Waarom dit bestaat">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Waarom deze applicatie bestaat</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-rich-text class="lede">
+        <p>Een overheidsorganisatie die persoonsgegevens verwerkt of een algoritme inzet, moet vooraf nadenken over de gevolgen. Een verkeerd ingericht systeem raakt mensen: een onterechte afwijzing, een verkeerde risico-inschatting, een groep die stelselmatig slechter af is.</p>
+        <p>Die verplichting is in de loop van de tijd in vier instrumenten gaan zitten. Deze applicatie maakt ze alle vier invulbaar, en probeert te voorkomen dat je dezelfde vraag vier keer beantwoordt.</p>
+      </nldd-rich-text>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide" data-title="De vier instrumenten">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De vier instrumenten</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-table columns="minmax(110px,0.7fr) minmax(240px,2fr) minmax(160px,1.1fr)">
+        <nldd-table-row slot="header">
+          <nldd-text-cell text="Instrument"></nldd-text-cell>
+          <nldd-text-cell text="Waar het over gaat"></nldd-text-cell>
+          <nldd-text-cell text="Grondslag"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="Pre-scan"></nldd-text-cell>
+          <nldd-text-cell text="Is een DPIA, DTIA, IAMA of KIA nodig?"></nldd-text-cell>
+          <nldd-text-cell text="Rijksmodel DPIA"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="DPIA"></nldd-text-cell>
+          <nldd-text-cell text="Gevolgen van een gegevensverwerking"></nldd-text-cell>
+          <nldd-text-cell text="AVG artikel 35"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="IAMA"></nldd-text-cell>
+          <nldd-text-cell text="Grondrechten bij algoritmegebruik"></nldd-text-cell>
+          <nldd-text-cell text="Rijksbreed instrument"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="AIIA"></nldd-text-cell>
+          <nldd-text-cell text="Verantwoorde inzet van AI"></nldd-text-cell>
+          <nldd-text-cell text="IenW, december 2024"></nldd-text-cell>
+        </nldd-table-row>
+      </nldd-table>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-text color="secondary" class="lede">Ze overlappen bewust. Wie een AI-systeem bouwt dat persoonsgegevens verwerkt, heeft in de praktijk met alle vier te maken.</nldd-text>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide" data-title="De AI-verordening">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De AI-verordening, en twee bijlagen</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-rich-text class="lede">
+        <p>Verordening (EU) 2024/1689 deelt AI-systemen in naar risico: <strong>onaanvaardbaar, hoog, beperkt, minimaal</strong>. Die indeling is absoluut: zij volgt uit het toepassingsgebied en niet uit de ernst van de gevolgen in een concreet geval. Een systeem kan grote privacygevolgen hebben en toch minimaal risico zijn volgens de verordening.</p>
+      </nldd-rich-text>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-box>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Bijlage 1: Toets risicoclassificatie</h3></nldd-title>
+            <nldd-text size="sm">Bepaalt de categorie. Onaanvaardbaar betekent: niet toegestaan, en de rest van het AIIA hoeft niet.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+        <nldd-box>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Bijlage 2: Hoog-risicosystemen</h3></nldd-title>
+            <nldd-text size="sm">Vul je aanvullend in als Bijlage 1 op "hoog" uitkomt.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+      </div>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-banner variant="accent" text="Bijlage 1 en 2" supporting-text="Beide komen terug in opdracht 3."></nldd-banner>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide" data-title="Het centrale idee">
+    <div class="slide__inner">
+      <nldd-text class="kicker" size="sm" weight="medium" color="secondary">Het centrale idee</nldd-text>
+      <nldd-spacer size="12"></nldd-spacer>
+      <nldd-title size="1"><h2>Een formulier is data, geen code</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-rich-text class="lede">
+        <p>Nergens in deze applicatie staat een <code>if</code> die zegt "toon nu vraag 4.1.2". De vragen, hun volgorde, hun type, hun onderlinge afhankelijkheden en hun berekeningen staan in YAML-bestanden in <code>sources/</code>. De applicatie is een engine die zo'n bestand inleest en er een formulier van maakt.</p>
+      </nldd-rich-text>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Gevolg 1</h3></nldd-title>
+            <nldd-text size="sm">Verreweg het meeste van jouw werk is YAML schrijven, geen TypeScript.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Gevolg 2</h3></nldd-title>
+            <nldd-text size="sm">Is iets niet in YAML uit te drukken, dan is dat een tekortkoming van de engine. Dat is opdracht 3.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide" data-title="De pijplijn">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De pijplijn</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-code-viewer wrap no-copy>sources/aiia.yaml                 de bron: vragen, types, logica
+sources/begrippenkader_aiia.yaml  de begrippen met hun tooltips
+        │
+        │  script/run_all.py  (valideert tegen het JSON-schema,
+        │                      voegt begrippen in, genereert docs)
+        ▼
+sources/generated/AIIA.json       wat de applicatie inleest
+docs/questions/questions_AIIA.md  leesbare vragenlijst voor review
+        │
+        ▼
+packages/assessment-core          de engine: rendert, navigeert, valideert
+        │
+        ├── apps/standalone-form       één HTML-bestand, geen backend
+        └── apps/boekhouding-frontend  samenwerken, opslaan, rollen</nldd-code-viewer>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-banner variant="warning" text="Eerst genereren, dan kijken" supporting-text="Verander je iets in sources/, dan moet je ./script/generate_sources.sh draaien voordat je het in de browser ziet."></nldd-banner>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide" data-title="De repository">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De repository</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-table columns="minmax(200px,1.1fr) minmax(220px,1.6fr) minmax(130px,0.7fr)">
+        <nldd-table-row slot="header">
+          <nldd-text-cell text="Pad"></nldd-text-cell>
+          <nldd-text-cell text="Wat het is"></nldd-text-cell>
+          <nldd-text-cell text="Kom je hier?"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="sources/"></nldd-text-cell>
+          <nldd-text-cell text="De assessment-definities in YAML"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="Voortdurend"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="schemas/"></nldd-text-cell>
+          <nldd-text-cell text="Waar die YAML aan moet voldoen"></nldd-text-cell>
+          <nldd-text-cell text="Om te lezen"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="script/"></nldd-text-cell>
+          <nldd-text-cell text="Validatie en generatie, in Python"></nldd-text-cell>
+          <nldd-text-cell text="Om te draaien"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="packages/assessment-core/"></nldd-text-cell>
+          <nldd-text-cell text="De Vue 3-engine"></nldd-text-cell>
+          <nldd-text-cell text="Vanaf opdracht 3"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="apps/standalone-form/"></nldd-text-cell>
+          <nldd-text-cell text="Formulier zonder backend"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="Je dev-omgeving"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="apps/boekhouding-*/"></nldd-text-cell>
+          <nldd-text-cell text="SPA en API: projecten, rollen, opslaan"></nldd-text-cell>
+          <nldd-text-cell color="secondary" text="Zelden"></nldd-text-cell>
+        </nldd-table-row>
+      </nldd-table>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide" data-title="Anatomie van een task">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Anatomie van een task</h2>
+        <span slot="subtitle">Een hoofdstuk, een paragraaf en een vraag zijn alle drie een task</span>
+      </nldd-title>
+      <nldd-spacer size="20"></nldd-spacer>
+      <div class="grid-2">
+        <div>
+          <nldd-text size="sm" weight="medium" color="secondary">De vraag</nldd-text>
+          <nldd-spacer size="8"></nldd-spacer>
+          <nldd-code-viewer language="yaml" wrap no-copy>- task: Is de input(data) relevant en representatief?
+  id: "4.1.2.1"
+  type:
+    - radio_option
+  valueType: boolean
+  options:
+    - value: true
+      label: Ja
+    - value: false
+      label: Nee
+  repeatable: false</nldd-code-viewer>
+        </div>
+        <div>
+          <nldd-text size="sm" weight="medium" color="secondary">De toelichting, alleen bij "nee"</nldd-text>
+          <nldd-spacer size="8"></nldd-spacer>
+          <nldd-code-viewer language="yaml" wrap no-copy>- task: Licht toe
+  id: "4.1.2.1.a"
+  type:
+    - open_text
+  repeatable: false
+  dependencies:
+    - type: conditional
+      condition:
+        id: "4.1.2.1"
+        operator: equals
+        value: false
+      action: show</nldd-code-viewer>
+        </div>
+      </div>
+      <nldd-spacer size="20"></nldd-spacer>
+      <nldd-text color="secondary" class="lede">De toelichting verschijnt bij <strong>nee</strong>. Dat is een inhoudelijke keuze, geen technische.</nldd-text>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide" data-title="Wat de engine kan">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Wat de engine al kan</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>dependencies</h3></nldd-title>
+            <nldd-text size="sm">Een vraag tonen op grond van een eerder antwoord. Operatoren: equals, contains, any.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>calculation</h3></nldd-title>
+            <nldd-text size="sm">Scores en conclusies afleiden uit antwoorden, met JEXL-expressies in de YAML zelf.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>references</h3></nldd-title>
+            <nldd-text size="sm">Een antwoord hergebruiken, binnen een formulier of ertussen. pre-fill vult in, pre-view toont.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>repeatable</h3></nldd-title>
+            <nldd-text size="sm">Dezelfde vraag per verwerking, per systeem of per partij opnieuw.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+      </div>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-text color="secondary" class="lede">Dit staat er allemaal al. Het AIIA gebruikt er bijna niets van.</nldd-text>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide" data-title="De diagnose">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De diagnose</h2>
+        <span slot="subtitle">Het AIIA staat in de repo, grotendeels als open tekstvakken</span>
+      </nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-table columns="minmax(130px,1fr) 110px 110px 110px 130px 130px" sm-columns="minmax(120px,1fr) 90px 90px">
+        <nldd-table-row slot="header">
+          <nldd-text-cell text="Bron"></nldd-text-cell>
+          <nldd-text-cell text="open_text"></nldd-text-cell>
+          <nldd-text-cell text="radio"></nldd-text-cell>
+          <nldd-text-cell text="checkbox" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="dependencies" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="references" hide-below="md"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="dpia.yaml"></nldd-text-cell>
+          <nldd-text-cell text="48"></nldd-text-cell>
+          <nldd-text-cell text="21"></nldd-text-cell>
+          <nldd-text-cell text="19" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="52" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="0" hide-below="md"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="iama.yaml"></nldd-text-cell>
+          <nldd-text-cell text="82"></nldd-text-cell>
+          <nldd-text-cell text="3"></nldd-text-cell>
+          <nldd-text-cell text="0" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="5" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell text="9" hide-below="md"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row selected>
+          <nldd-text-cell color="accent" text="aiia.yaml"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="139"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="19"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="0" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="5" hide-below="md"></nldd-text-cell>
+          <nldd-text-cell color="accent" text="1" hide-below="md"></nldd-text-cell>
+        </nldd-table-row>
+      </nldd-table>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-text color="secondary" class="lede">Het IAMA is bewust open van aard, dus daar zegt die eerste kolom weinig. De DPIA stelt vergelijkbare vragen als het AIIA en heeft er wel een structuur voor.</nldd-text>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide" data-title="Opdracht 1 en 2">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Opdracht 1 en 2</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-card>
+        <nldd-container padding="20" gap="12">
+          <nldd-title size="4"><h3>1 · Het AIIA in het juiste format</h3></nldd-title>
+          <nldd-text size="sm">Per hoofdstuk de vragen langslopen en het type kiezen dat de vraag echt is. Verdeeld over blokken, zodat niet iedereen tegelijk in hetzelfde bestand werkt.</nldd-text>
+          <nldd-text size="sm" weight="medium">Niet elke open vraag moet weg. Verandert het type wat de invuller kan zeggen, dan verandert de inhoud, en die ligt bij het PAR en de AI-functie binnen BZK (pre-scan, DPIA, IAMA) of bij de AI-functie binnen I&amp;W (AIIA).</nldd-text>
+        </nldd-container>
+      </nldd-card>
+      <nldd-spacer size="16"></nldd-spacer>
+      <nldd-card>
+        <nldd-container padding="20" gap="12">
+          <nldd-title size="4"><h3>2 · De overlap tussen IAMA en AIIA</h3></nldd-title>
+          <nldd-text size="sm">Eerst het inhoudelijke werk: de vragenlijsten naast elkaar, en per paar bepalen of het identiek is (pre-fill), context (pre-view), of alleen maar lijkt op elkaar. Die derde categorie kost de meeste afweging.</nldd-text>
+          <nldd-text size="sm" weight="medium">Pas daarna YAML. De machinerie staat er al.</nldd-text>
+        </nldd-container>
+      </nldd-card>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide" data-title="Opdracht 3 en 4">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Opdracht 3 en 4</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-card>
+        <nldd-container padding="20" gap="12">
+          <nldd-title size="4"><h3>3 · Nieuwe functionaliteit</h3></nldd-title>
+          <nldd-text size="sm">Houd vanaf het begin een lijst bij: één regel elke keer dat je denkt "dit zou moeten kunnen en het kan niet". Daar maak je een notitie van, met per punt de vragen die het nodig hebben en de kleinste uitbreiding die het oplost. Kijk eerst hoe de pre-scan, de DPIA en het IAMA vergelijkbare problemen oplossen; daar valt het merendeel af.</nldd-text>
+          <nldd-text size="sm" weight="medium">Een engine-uitbreiding raakt alle vier de assessments, dus die keuze ligt niet bij één persoon. Begin met een PDR.</nldd-text>
+        </nldd-container>
+      </nldd-card>
+      <nldd-spacer size="16"></nldd-spacer>
+      <nldd-card>
+        <nldd-container padding="20" gap="12">
+          <nldd-title size="4"><h3>4 · AI-hulp bij het invullen</h3></nldd-title>
+          <nldd-text size="sm">De grens is al getrokken: de bestaande plugin is nadrukkelijk geen invulassistent voor eindgebruikers. De waarde van een assessment zit in het denkwerk van een multidisciplinair team. Een model dat plausibele antwoorden genereert, levert een ingevuld formulier op zonder dat iemand heeft nagedacht. Dat is slechter dan een leeg formulier, omdat het af oogt.</nldd-text>
+          <nldd-text size="sm" weight="medium">De opdracht is dus: waar helpt AI de invuller wél, zonder het denkwerk over te nemen?</nldd-text>
+        </nldd-container>
+      </nldd-card>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide" data-title="De omgeving opzetten">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>De omgeving opzetten</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-code-viewer language="bash" wrap>git clone https://github.com/MinBZK/par-dpia-form.git
+cd par-dpia-form
+git checkout add_aiia
+
+corepack enable
+pnpm install
+
+pnpm dev                        # standalone formulier op localhost:5175
+./script/generate_sources.sh    # YAML valideren en JSON genereren</nldd-code-viewer>
+      <nldd-spacer size="24"></nldd-spacer>
+      <nldd-text class="lede">Nodig: Node 22+, pnpm en uv. Podman is alleen nodig voor de volledige stack, en die is nu niet aan de orde.</nldd-text>
+      <nldd-spacer size="16"></nldd-spacer>
+      <nldd-banner variant="neutral" size="sm" text="Werk vanaf add_aiia; al het AIIA-werk staat op die branch."></nldd-banner>
+    </div>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide" data-title="Conventies in deze repo">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Conventies in deze repo</h2></nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Branch en PR</h3></nldd-title>
+            <nldd-text size="sm">Vertak van add_aiia, naam <code>aiia/&lt;onderwerp&gt;</code>. Eén hoofdstuk is een prima PR; vier is er één te veel.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Commits</h3></nldd-title>
+            <nldd-text size="sm">Conventional Commits. Een commit die zowel YAML omzet als een bug fixt, is twee commits.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>CI</h3></nldd-title>
+            <nldd-text size="sm">Schema-validatie, linting, link-checker. De testdekking staat op 100% en wordt afgedwongen: één regel TypeScript zonder test laat CI falen.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+        <nldd-card>
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Niet zonder overleg</h3></nldd-title>
+            <nldd-text size="sm">Pushen naar main, dependencies toevoegen, gegenereerde bestanden met de hand bewerken, en wijzigingen aan de inhoud van een vraag. Weeg per PR of de CHANGELOG bij moet.</nldd-text>
+          </nldd-container>
+        </nldd-card>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide" data-title="Branches">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Branches</h2>
+        <span slot="subtitle">add_aiia is de hoofdbranch voor dit werk. Main raak je pas aan als het geheel af is.</span>
+      </nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <svg class="gitgraph" viewBox="0 0 920 300" role="img"
+        aria-label="Drie lijnen onder elkaar. Bovenaan main, daaronder add_aiia die uit main vertakt, en onderaan twee branches met de naam aiia die uit add_aiia vertakken en er weer in teruggaan. Aan het eind gaat add_aiia in één keer terug naar main.">
+        <g fill="none" stroke-width="2.5" stroke-linecap="round">
+          <path d="M120 60 H860" stroke="var(--semantics-border-secondary, rgba(0,0,0,.24))"></path>
+          <path d="M200 60 C 240 60, 240 150, 280 150 H800" stroke="var(--semantics-accent-fill, #154273)"></path>
+          <path d="M800 150 C 840 150, 830 60, 860 60" stroke="var(--semantics-accent-fill, #154273)"></path>
+          <path d="M320 150 C 355 150, 345 240, 380 240 H440" stroke="var(--semantics-border-secondary, rgba(0,0,0,.24))"></path>
+          <path d="M440 240 C 475 240, 465 150, 500 150" stroke="var(--semantics-border-secondary, rgba(0,0,0,.24))"></path>
+          <path d="M500 150 C 535 150, 525 240, 560 240 H620" stroke="var(--semantics-border-secondary, rgba(0,0,0,.24))"></path>
+          <path d="M620 240 C 655 240, 645 150, 680 150" stroke="var(--semantics-border-secondary, rgba(0,0,0,.24))"></path>
+        </g>
+        <g fill="var(--semantics-accent-fill, #154273)">
+          <circle cx="320" cy="150" r="6"></circle>
+          <circle cx="500" cy="150" r="6"></circle>
+          <circle cx="680" cy="150" r="6"></circle>
+          <circle cx="800" cy="150" r="6"></circle>
+        </g>
+        <g fill="var(--semantics-border-secondary, rgba(0,0,0,.24))">
+          <circle cx="200" cy="60" r="6"></circle>
+          <circle cx="860" cy="60" r="6"></circle>
+          <circle cx="380" cy="240" r="6"></circle>
+          <circle cx="440" cy="240" r="6"></circle>
+          <circle cx="560" cy="240" r="6"></circle>
+          <circle cx="620" cy="240" r="6"></circle>
+        </g>
+        <g text-anchor="end">
+          <text class="lane" x="108" y="65">main</text>
+          <text class="lane" x="108" y="155">add_aiia</text>
+          <text class="lane" x="108" y="245">aiia/&lt;onderwerp&gt;</text>
+        </g>
+        <g class="note">
+          <text x="120" y="40">beschermd: alleen via een pull request, met review</text>
+          <text x="380" y="268">één branch per hoofdstuk of onderwerp</text>
+          <text x="700" y="40" text-anchor="middle">als het af is</text>
+        </g>
+      </svg>
+      <nldd-spacer size="20"></nldd-spacer>
+      <nldd-code-viewer language="bash" wrap no-copy>git checkout add_aiia
+git pull
+git checkout -b aiia/hoofdstuk-4-technische-robuustheid</nldd-code-viewer>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide" data-title="Zelf opzoeken en controleren">
+    <div class="slide__inner">
+      <nldd-title size="2"><h2>Zelf opzoeken en controleren</h2>
+        <span slot="subtitle">Voor een groot deel van het werk geeft een script of een bestand het antwoord al.</span>
+      </nldd-title>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="grid-2">
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Mag dit in de YAML?</h3></nldd-title>
+            <nldd-text size="sm"><code>schemas/assessment-definition.v2.schema.json</code>. De <code>yaml-language-server</code>-regel bovenaan de bron laat je editor er live tegen valideren.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Doet de applicatie hier iets mee?</h3></nldd-title>
+            <nldd-text size="sm"><code>packages/assessment-core/src/</code>. Begin bij <code>models/dpia.ts</code> en zoek de term.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Is hier eerder over besloten?</h3></nldd-title>
+            <nldd-text size="sm"><code>docs/pdr/</code>, <code>CHANGELOG.md</code> en de git-historie. <code>git log -S"term"</code> vertelt wanneer iets erin kwam en waarom.</nldd-text>
+          </nldd-container>
+        </nldd-box>
+        <nldd-box background="tinted">
+          <nldd-container padding="16" gap="8">
+            <nldd-title size="5"><h3>Klopt wat ik heb gedaan?</h3></nldd-title>
+            <nldd-text size="sm">Valideert <code>generate_sources.sh</code>, ziet het formulier eruit zoals bedoeld, draaien de tests nog, en leest <code>questions_AIIA.md</code> goed?</nldd-text>
+          </nldd-container>
+        </nldd-box>
+      </div>
+      <nldd-spacer size="20"></nldd-spacer>
+      <nldd-text color="secondary" class="lede">Wat een script niet beoordeelt: of de vraag inhoudelijk klopt en of twee vragen echt hetzelfde vragen. Dat is inhoud, en die ligt bij het PAR en de AI-functie binnen BZK (pre-scan, DPIA, IAMA) of bij de AI-functie binnen I&amp;W (AIIA).</nldd-text>
+    </div>
+  </section>
+
+  <!-- 18 -->
+  <section class="slide" data-title="Je eerste opdracht">
+    <div class="slide__inner">
+      <nldd-text class="kicker" size="sm" weight="medium" color="secondary">Eerste opdracht</nldd-text>
+      <nldd-spacer size="12"></nldd-spacer>
+      <nldd-title size="1"><h2>Opdracht 0</h2></nldd-title>
+      <nldd-spacer size="28"></nldd-spacer>
+      <nldd-table columns="minmax(260px,1.6fr) 120px">
+        <nldd-table-row slot="header">
+          <nldd-text-cell text="Blok"></nldd-text-cell>
+          <nldd-text-cell text="Vragen"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="§4.1.2 en §4.1.3.2, Technische robuustheid"></nldd-text-cell>
+          <nldd-text-cell text="4"></nldd-text-cell>
+        </nldd-table-row>
+        <nldd-table-row>
+          <nldd-text-cell text="§5.2.2.2 t/m §5.2.2.4, Data governance"></nldd-text-cell>
+          <nldd-text-cell text="3"></nldd-text-cell>
+        </nldd-table-row>
+      </nldd-table>
+      <nldd-spacer size="28"></nldd-spacer>
+      <nldd-rich-text class="lede">
+        <p>Kies per vraag het type, schrijf de YAML, voeg waar nodig een toelichting met een dependency toe, draai het generatiescript, bekijk het in de browser, open een PR.</p>
+        <p>Bijlage 1 is al omgezet en dient als voorbeeld.</p>
+      </nldd-rich-text>
+      <nldd-spacer size="24"></nldd-spacer>
+      <div class="hint">
+        <nldd-tag color="groen" icon="book">handleiding-project.md</nldd-tag>
+        <nldd-tag color="groen" icon="book">handleiding-git.md</nldd-tag>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="bar" slot="footer">
+  <nldd-button variant="neutral-transparent" size="sm" id="prev" text="Vorige" start-icon="chevron-left" accessible-label="Vorige slide"></nldd-button>
+  <div class="bar__progress" aria-hidden="true"><span id="progress"></span></div>
+  <nldd-text size="sm" color="secondary" class="bar__count"><span id="count">1 / 18</span></nldd-text>
+  <nldd-button variant="neutral-transparent" size="sm" id="next" text="Volgende" end-icon="chevron-right" accessible-label="Volgende slide"></nldd-button>
+</div>
+
+</nldd-page>
+</nldd-app-view>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var chrome = [document.querySelector('nldd-top-navigation-bar'),
+                document.querySelector('.bar')].filter(Boolean);
+
+  function measureChrome() {
+    var px = chrome.reduce(function (total, el) {
+      return total + el.getBoundingClientRect().height;
+    }, 0);
+    if (px > 0) {
+      document.documentElement.style.setProperty('--deck-chrome', px + 'px');
+    }
+  }
+
+  if (window.ResizeObserver) {
+    var observer = new ResizeObserver(measureChrome);
+    chrome.forEach(function (el) { observer.observe(el); });
+  }
+  window.addEventListener('resize', measureChrome);
+  if (window.customElements) {
+    customElements.whenDefined('nldd-top-navigation-bar').then(measureChrome);
+  }
+  measureChrome();
+  var progress = document.getElementById('progress');
+  var count = document.getElementById('count');
+  var index = 0;
+
+  function clamp(n) { return Math.max(0, Math.min(slides.length - 1, n)); }
+
+  function render() {
+    slides.forEach(function (s, i) {
+      s.classList.toggle('is-active', i === index);
+    });
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    count.textContent = (index + 1) + ' / ' + slides.length;
+    if (location.hash !== '#' + (index + 1)) {
+      history.replaceState(null, '', '#' + (index + 1));
+    }
+    window.scrollTo(0, 0);
+  }
+
+  function go(n) { index = clamp(n); render(); }
+
+  document.getElementById('prev').addEventListener('click', function () { go(index - 1); });
+  document.getElementById('next').addEventListener('click', function () { go(index + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest('input, textarea, [contenteditable="true"]')) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': case ' ': go(index + 1); e.preventDefault(); break;
+      case 'ArrowLeft': case 'PageUp': go(index - 1); e.preventDefault(); break;
+      case 'Home': go(0); e.preventDefault(); break;
+      case 'End': go(slides.length - 1); e.preventDefault(); break;
+    }
+  });
+
+  window.addEventListener('hashchange', function () {
+    var n = parseInt(location.hash.slice(1), 10);
+    if (!isNaN(n)) go(n - 1);
+  });
+
+  var start = parseInt(location.hash.slice(1), 10);
+  go(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>
