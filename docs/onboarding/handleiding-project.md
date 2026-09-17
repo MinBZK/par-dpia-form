@@ -2,9 +2,10 @@
 
 Voor wie meewerkt aan het AI Impact Assessment in PAR Assessments. Deze
 handleiding is de naslag bij het project; de presentatie (`presentatie.html`) is
-de korte versie ervan. Git zelf staat apart, in
-[`handleiding-git.md`](handleiding-git.md): de begrippen, de dagelijkse
-commando's, branches, pull requests en wat te doen als git iets weigert.
+de korte versie ervan. Twee onderwerpen staan apart:
+[`handleiding-git.md`](handleiding-git.md) voor git, en
+[`handleiding-schema.md`](handleiding-schema.md) voor alles wat je in een
+assessment-definitie kunt opschrijven.
 
 Deel 1 tot en met 4 beschrijven het domein, de stack en de opbouw van een
 assessment-definitie. Deel 5 en 6 zijn naslag: de conventies in deze repo en
@@ -554,7 +555,7 @@ pnpm db:seed
 | Vraag | Bestand |
 |---|---|
 | Welke task-types bestaan er? | `packages/assessment-core/src/models/dpia.ts` |
-| Wat mag er in de YAML? | `schemas/assessment-definition.v2.schema.json` |
+| Wat mag er in de YAML? | [`handleiding-schema.md`](handleiding-schema.md) en `schemas/assessment-definition.v2.schema.json` |
 | Hoe werken referenties? | `packages/assessment-core/src/composables/useReferences.ts` |
 | Hoe werken berekeningen? | `packages/assessment-core/src/stores/calculations.ts` |
 | Hoe zien de vragen eruit? | `docs/questions/questions_AIIA.md` |

@@ -35,8 +35,10 @@ build) staan kort onder "Onder de motorkap".
 
 * Onboardingmateriaal voor wie nieuw aan de AIIA meewerkt staat in
   `docs/onboarding/`: een presentatie, een handleiding over de opbouw van de
-  assessment-definities, de generatiepijplijn en de conventies in deze repo, en
-  een aparte handleiding over git voor wie daar nog weinig mee heeft gewerkt.
+  assessment-definities, de generatiepijplijn en de conventies in deze repo, een
+  aparte handleiding over git voor wie daar nog weinig mee heeft gewerkt, en een
+  naslag over het assessment-schema: welke velden er zijn, wat de engine ermee
+  doet en waar schema en engine uit elkaar lopen.
 
 ## [2026.8.25]
 
