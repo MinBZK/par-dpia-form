@@ -139,7 +139,7 @@ export const members = {
 export interface AssessmentInstance {
   id: string
   projectId: string
-  assessmentType: 'dpia' | 'prescan' | 'iama'
+  assessmentType: 'dpia' | 'prescan' | 'iama' | 'aiia'
   name: string
   currentVersion: number
   createdAt: string
@@ -174,7 +174,7 @@ export const assessments = {
     requestPaged<AssessmentInstance>(`/api/v1/projects/${projectId}/assessments?page=${page}&pageSize=${pageSize}`),
   get: (assessmentId: string) =>
     request<AssessmentInstance>(`/api/v1/assessments/${assessmentId}`),
-  create: (projectId: string, assessmentType: 'dpia' | 'prescan' | 'iama', name?: string, state?: unknown) =>
+  create: (projectId: string, assessmentType: 'dpia' | 'prescan' | 'iama' | 'aiia', name?: string, state?: unknown) =>
     request<AssessmentInstance>(`/api/v1/projects/${projectId}/assessments`, {
       method: 'POST',
       body: JSON.stringify({ assessmentType, ...(name && { name }), state }),

@@ -77,6 +77,65 @@ describe('usePreScanReferences.getRootTaskId', () => {
   })
 })
 
+describe('usePreScanReferences — AIIA as reference target', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('resolves a pre-scan reference that points at an AIIA task', () => {
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+
+    const source: FlatTask = {
+      id: 'p1',
+      task: 'Gaat het om een AI-systeem?',
+      type: ['text'],
+      parentId: null,
+      childrenIds: [],
+      references: { AIIA: [{ id: '1.1', type: 'pre-fill' }] },
+    }
+    taskStore.flatTasks[FormType.PRE_SCAN] = { p1: source }
+    taskStore.taskInstances[FormType.PRE_SCAN] = {
+      p1: { id: 'p1', taskId: 'p1', groupId: 'p1_g', parentInstanceId: null, childInstanceIds: [] },
+    }
+    answerStore.answers[FormType.PRE_SCAN]['p1'] = rawAnswer('Ja')
+    taskStore.activeNamespace = FormType.AIIA
+
+    const { findPreScanReferences } = usePreScanReferences()
+    const result = findPreScanReferences('1.1')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].taskId).toBe('p1')
+    expect(result[0].answer).toBe('Ja')
+    expect(result[0].referenceType).toBe('pre-fill')
+  })
+
+  it('resolves an IAMA reference that points at an AIIA task (cross-form between the two)', () => {
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+
+    const source: FlatTask = {
+      id: '4.1',
+      task: 'IAMA deel 4',
+      type: ['text'],
+      parentId: null,
+      childrenIds: [],
+      references: { AIIA: [{ id: '2.1', type: 'pre-view' }] },
+    }
+    taskStore.flatTasks[FormType.IAMA] = { '4.1': source }
+    taskStore.taskInstances[FormType.IAMA] = {
+      '4.1': { id: '4.1', taskId: '4.1', groupId: '4.1_g', parentInstanceId: null, childInstanceIds: [] },
+    }
+    answerStore.answers[FormType.IAMA]['4.1'] = rawAnswer('Mensenrechten')
+    taskStore.activeNamespace = FormType.AIIA
+
+    const { findPreScanReferences } = usePreScanReferences()
+    const result = findPreScanReferences('2.1')
+
+    expect(result).toHaveLength(1)
+    expect(result[0].taskId).toBe('4.1')
+    expect(result[0].answer).toBe('Mensenrechten')
+  })
+})
+
 describe('usePreScanReferences.findPreScanReferences', () => {
   beforeEach(() => setActivePinia(createPinia()))
 

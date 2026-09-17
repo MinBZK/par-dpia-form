@@ -17,11 +17,19 @@ describe('ViewState enum', () => {
     expect(ViewState.PreScanDPIA).toBe('prescan')
   })
 
-  it('exposes the three expected enum values', () => {
+  it('maps IAMA and AIIA to their FormType values', () => {
+    expect(ViewState.IAMA).toBe(FormType.IAMA)
+    expect(ViewState.AIIA).toBe(FormType.AIIA)
+    expect(ViewState.AIIA).toBe('aiia')
+  })
+
+  it('exposes one view per form plus the landing page', () => {
     const values = Object.values(ViewState)
     expect(values).toContain('landing')
     expect(values).toContain('dpia')
     expect(values).toContain('prescan')
+    expect(values).toContain('iama')
+    expect(values).toContain('aiia')
   })
 
   it('supports reverse-style lookup via member access', () => {
@@ -29,8 +37,10 @@ describe('ViewState enum', () => {
       ViewState.Landing,
       ViewState.DPIA,
       ViewState.PreScanDPIA,
+      ViewState.IAMA,
+      ViewState.AIIA,
     ]
-    expect(states).toHaveLength(3)
+    expect(states).toHaveLength(5)
   })
 })
 

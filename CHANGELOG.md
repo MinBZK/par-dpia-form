@@ -15,12 +15,30 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Toegevoegd
+
+* Naast de pre-scan, de DPIA en het IAMA kun je nu ook de AIIA invullen: de AI
+  Impact Assessment 2.0 van het ministerie van Infrastructuur en Waterstaat.
+  Alle 161 vragen zitten erin, inclusief de bijlagen over risicoclassificatie,
+  hoog-risicosystemen en generatieve AI. De AIIA werkt in het standalone
+  formulier en in een project met account, met dezelfde export en
+  versiegeschiedenis als de andere invulhulpen.
+
 ### Opgelost
 
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
   verplichting volgde.
+
+### Onder de motorkap
+
+* Onboardingmateriaal voor wie nieuw aan de AIIA meewerkt staat in
+  `docs/onboarding/`: een presentatie, een handleiding over de opbouw van de
+  assessment-definities, de generatiepijplijn en de conventies in deze repo, een
+  aparte handleiding over git voor wie daar nog weinig mee heeft gewerkt, en een
+  naslag over het assessment-schema: welke velden er zijn, wat de engine ermee
+  doet en waar schema en engine uit elkaar lopen.
 
 ## [2026.8.25]
 

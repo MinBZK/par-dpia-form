@@ -20,9 +20,9 @@ describe('db/schema enums', () => {
     expect(projectRoleEnum.enumValues).toEqual(['owner', 'editor', 'commenter', 'viewer'])
   })
 
-  it('assessmentTypeEnum holds dpia, prescan and iama', () => {
+  it('assessmentTypeEnum holds dpia, prescan, iama and aiia', () => {
     expect(assessmentTypeEnum.enumName).toBe('assessment_type')
-    expect(assessmentTypeEnum.enumValues).toEqual(['dpia', 'prescan', 'iama'])
+    expect(assessmentTypeEnum.enumValues).toEqual(['dpia', 'prescan', 'iama', 'aiia'])
   })
 })
 

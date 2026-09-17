@@ -47,6 +47,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
     [FormType.PRE_SCAN]: {},
     [FormType.DPIA]: {},
     [FormType.IAMA]: {},
+    [FormType.AIIA]: {},
   })
 
   /**
@@ -99,6 +100,7 @@ export const useAnswerStore = defineStore('AnswerStore', () => {
       [FormType.PRE_SCAN]: {},
       [FormType.DPIA]: {},
       [FormType.IAMA]: {},
+    [FormType.AIIA]: {},
     }
   }
 
