@@ -1,0 +1,74 @@
+name: Deploy experiment
+
+# The sandbox for the AIIA AI experiment. Every push to experiment/aiia-ai builds
+# the containers and updates the `experiment` deployment in ZAD project ai-3rt,
+# which is a different project from the one that serves acceptatie and productie
+# (asses-k2n). Nothing here can reach that project: it has its own API key, its
+# own database and its own Keycloak realm.
+
+on:
+  push:
+    branches:
+      - experiment/aiia-ai
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-experiment
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: ai-3rt
+  DEPLOYMENT_NAME: experiment
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/_build-images.yaml
+    with:
+      # A registry path of their own, so an experiment image can never be
+      # mistaken for a release candidate. deploy-productie promotes the images
+      # that deploy-acceptatie pushed; it never looks under experiment/.
+      frontend-image: ghcr.io/minbzk/par-dpia-form/experiment/frontend
+      backend-image: ghcr.io/minbzk/par-dpia-form/experiment/backend
+      tag-prefix: exp-
+      # Deliberately not latest: that tag belongs to acceptatie.
+      tag-latest: false
+      publish: true
+
+  deploy:
+    needs: build
+    # workflow_dispatch can be started from any ref. Without this the sandbox
+    # deployment could be overwritten with a build of main or of a student's
+    # feature branch, which is the one thing this project is meant to prevent.
+    if: github.ref == 'refs/heads/experiment/aiia-ai'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: experiment
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - id: deploy
+        uses: RijksICTGilde/zad-actions/deploy@b844c76eba3502b40a19be868cdf0586e322f4b8 # v4.1.0
+        with:
+          api-key: ${{ secrets.ZAD_AI_3RT_API_KEY }}
+          project-id: ${{ env.PROJECT_ID }}
+          deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          # Off until ai-3rt serves /api/health outside its SSO gate. The
+          # readiness poll in zad-actions only accepts HTTP 200-399, so the 403
+          # of a login page never counts as ready and the run goes red while the
+          # deploy itself succeeded. Turn this on, with health-endpoint
+          # /api/health, once the endpoint answers publicly.
+          wait-for-ready: 'false'
+          components: >-
+            [
+              {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
+              {"name": "api", "image": "${{ needs.build.outputs.backend-image }}"}
+            ]
