@@ -45,7 +45,31 @@ Op component `api` in `ai-3rt`, geen van beide geheim:
 VLAM-project van een ander project wijzen, en een verkeerd ingestelde omgeving
 zou dan stilletjes hun budget opmaken in plaats van te falen.
 
+## Bereikbaarheid van VLAM
+
+VLAM staat achter een IP-slot. Het adres bestaat nog en de server neemt de
+verbinding aan, maar breekt de TLS-handshake af bij een client die er niet op
+staat. Vanaf een willekeurige internetverbinding kom je er dus niet bij.
+
+Dat is voor deze opzet geen belemmering, om twee redenen:
+
+- De aanroep gebeurt **server-side**: de backend praat met VLAM, de browser
+  niet. Alleen de `api`-pod heeft een route nodig, geen enkele student.
+- De uitgaande verbindingen van het ZAD-cluster staan op de allowlist van VLAM.
+
+Er is **geen clientcertificaat** nodig; de Bearer-sleutel in de header volstaat.
+
+Nog niet nagegaan: of VLAM vanuit het cluster ook onder een intern adres te
+bereiken is. Dat zou schelen in latency, maar is geen voorwaarde. Test de route
+één keer vanuit een pod in `ai-3rt` voordat je erop gaat bouwen.
+
 ## Lokaal draaien
+
+**Let op:** een backend die op je eigen machine draait, bereikt VLAM niet zonder
+VPN — ook niet met een geldige sleutel. Je krijgt dan een `502`. Werk aan de
+chat-kant dus op de ZAD-omgeving, of zet de VPN aan. De rest van de applicatie
+draait lokaal gewoon; zonder `CHAT_ENABLED` bestaat de chat-route niet en merk
+je er niets van.
 
 ```bash
 pnpm install
