@@ -17,23 +17,23 @@
     "@nl-rvo/component-library-css": "4.20.3",
     "@nl-rvo/design-tokens": "2.4.2",
     "@overheid-assessment/core": "workspace:*",
-    "@tabler/icons-vue": "^3.46.0",
+    "@tabler/icons-vue": "^3.47.0",
     "keycloak-js": "^26.2.4",
     "pdfmake": "^0.3.11",
     "pinia": "^4.0.3",
-    "vue": "^3.5.42",
-    "vue-router": "^5.3.0"
+    "vue": "^3.5.43",
+    "vue-router": "^5.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.8",
-    "@vitest/coverage-istanbul": "^4.1.11",
-    "@vue/test-utils": "^2.5.0",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vitest/coverage-istanbul": "^5.0.1",
+    "@vue/test-utils": "^2.5.1",
     "@vue/tsconfig": "^0.9.1",
-    "jsdom": "^30.0.1",
+    "jsdom": "^30.1.0",
     "npm-run-all2": "^9.0.3",
     "typescript": "~5.9.3",
-    "vite": "^8.2.2",
-    "vitest": "^4.1.11",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1",
     "vue-tsc": "^3.3.11"
   }
 }
