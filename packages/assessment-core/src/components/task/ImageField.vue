@@ -100,6 +100,16 @@ function handleDrop(event: DragEvent) {
   if (file) processFile(file)
 }
 
+function handlePaste(event: ClipboardEvent) {
+  const files = Array.from(event.clipboardData?.files ?? [])
+  const file = files.find(f => f.type.startsWith('image/'))
+  if (file) {
+    processFile(file)
+  } else {
+    errorMessage.value = 'Het klembord bevat geen afbeelding.'
+  }
+}
+
 function handleDragOver() {
   isDragging.value = true
 }
@@ -160,7 +170,11 @@ watch(() => imageData.value?.description, () => {
       @dragleave.prevent="handleDragLeave"
       @drop.prevent="handleDrop"
     >
-      <div class="image-replace-target">
+      <div class="image-replace-target"
+        tabindex="0"
+        aria-label="Huidige afbeelding. Plak een afbeelding (Ctrl+V / ⌘V) om deze te vervangen."
+        @paste="handlePaste"
+      >
         <img
           :src="imageData!.data"
           :alt="imageData!.title || task.task"
@@ -229,8 +243,9 @@ watch(() => imageData.value?.description, () => {
       :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
       @keydown.enter="triggerFileSelect"
       @keydown.space.prevent="triggerFileSelect"
+      @paste="handlePaste"
     >
-      Sleep een afbeelding hierheen of klik om te uploaden
+      Sleep een afbeelding hierheen of klik om te uploaden, of plak een afbeelding (Ctrl+V / ⌘V)
     </div>
   </div>
 </template>

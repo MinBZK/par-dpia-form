@@ -186,6 +186,12 @@ tasks:
             - value: false
               label: Nee
             repeatable: false
+          - task: Toelichting (optioneel)
+            id: "1.3.1.toelichting"
+            is_official_id: false
+            type:
+              - open_text
+            repeatable: false
           - task: "Stop met de ontwikkeling of implementatie van het AI-systeem en ga terug naar de tekentafel."
             id: "1.3.3"
             type:
@@ -210,6 +216,19 @@ tasks:
               label: Ja
             - value: false
               label: Nee
+            repeatable: false
+            dependencies:
+              - type: conditional
+                condition:
+                  id: "1.3.1"
+                  operator: equals
+                  value: false
+                action: show
+          - task: Toelichting (optioneel)
+            id: "1.3.2.toelichting"
+            is_official_id: false
+            type:
+              - open_text
             repeatable: false
             dependencies:
               - type: conditional
@@ -419,6 +438,23 @@ tasks:
             type:
               - open_text
             repeatable: false
+          - task: Afbeeldingen
+            description: >-
+              Voeg hier optioneel afbeeldingen toe, bijvoorbeeld een overzicht van de gebruikte gegevens.
+            id: "2.2B.4.afbeeldingen"
+            is_official_id: false
+            type:
+              - task_group
+            repeatable: true
+            item_name: afbeelding
+            tasks:
+              - task: Afbeelding (optioneel)
+                description: Upload, sleep of plak een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen.
+                id: "2.2B.4.afbeeldingen.afbeelding"
+                is_official_id: false
+                type:
+                  - image
+                repeatable: false
 
       - task: Inzet algoritme
         description: >-
@@ -552,6 +588,23 @@ tasks:
             type:
               - open_text
             repeatable: false
+          - task: Afbeeldingen
+            description: >-
+              Voeg hier optioneel afbeeldingen toe, bijvoorbeeld een procesplaat.
+            id: "3.1.1.afbeeldingen"
+            is_official_id: false
+            type:
+              - task_group
+            repeatable: true
+            item_name: afbeelding
+            tasks:
+              - task: Afbeelding (optioneel)
+                description: Upload, sleep of plak een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen.
+                id: "3.1.1.afbeeldingen.afbeelding"
+                is_official_id: false
+                type:
+                  - image
+                repeatable: false
           - task: >-
               Tijd/periode: wanneer gaat het algoritme ingezet worden? Hoe lang
               is de periode dat het ingezet wordt?

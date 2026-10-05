@@ -480,4 +480,69 @@ describe('ImageField.vue', () => {
       wrapper.unmount()
     })
   })
+
+  describe('paste from clipboard', () => {
+    function clipboard(files: File[]) {
+      return { clipboardData: { files } }
+    }
+
+    it('processes a pasted image on the dropzone', async () => {
+      const wrapper = mountField()
+      const file = makeFile()
+      await wrapper.find('.image-dropzone').trigger('paste', clipboard([file]))
+      await flushPromises()
+      expect(resizeMock).toHaveBeenCalledWith(file)
+      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
+    })
+
+    it('mentions pasting in the dropzone text', () => {
+      const wrapper = mountField()
+      expect(wrapper.find('.image-dropzone').text()).toContain('plak een afbeelding (Ctrl+V / ⌘V)')
+    })
+
+    it('picks the first image when the clipboard also holds other files', async () => {
+      const wrapper = mountField()
+      const text = new File(['x'], 'notes.txt', { type: 'text/plain' })
+      const image = makeFile()
+      await wrapper.find('.image-dropzone').trigger('paste', clipboard([text, image]))
+      await flushPromises()
+      expect(resizeMock).toHaveBeenCalledWith(image)
+    })
+
+    it('shows an error when the clipboard holds no image', async () => {
+      const wrapper = mountField()
+      await wrapper.find('.image-dropzone').trigger('paste', clipboard([]))
+      await flushPromises()
+      expect(resizeMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[role="alert"]').text()).toContain('Het klembord bevat geen afbeelding.')
+    })
+
+    it('shows an error when the paste event has no clipboard data', async () => {
+      const wrapper = mountField()
+      await wrapper.find('.image-dropzone').trigger('paste')
+      await flushPromises()
+      expect(resizeMock).not.toHaveBeenCalled()
+      expect(wrapper.find('[role="alert"]').text()).toContain('Het klembord bevat geen afbeelding.')
+    })
+
+    it('replaces an existing image when pasting on the focusable preview', async () => {
+      setImageAnswer(store, 'img-1', { data: 'data:image/webp;base64,OUD', title: 'Procesplaat' })
+      const wrapper = mountField()
+      const target = wrapper.find('.image-replace-target')
+      expect(target.attributes('tabindex')).toBe('0')
+      const file = makeFile()
+      await target.trigger('paste', clipboard([file]))
+      await flushPromises()
+      expect(resizeMock).toHaveBeenCalledWith(file)
+      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, title: 'Procesplaat' })
+    })
+
+    it('leaves pasting into the metadata fields alone', async () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
+      const wrapper = mountField()
+      await wrapper.find('#image-title-img-1').trigger('paste', clipboard([makeFile()]))
+      await flushPromises()
+      expect(resizeMock).not.toHaveBeenCalled()
+    })
+  })
 })

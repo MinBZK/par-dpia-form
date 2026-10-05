@@ -15,6 +15,17 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Toegevoegd
+
+* In afbeeldingsvelden kan je nu een afbeelding plakken (Ctrl+V / ⌘V),
+  bijvoorbeeld een schermafbeelding. Klik op het veld en plak; uploaden en
+  slepen werken zoals voorheen.
+* In de IAMA kan je bij vraag 2.2B.4 (dataminimalisatie) en vraag 3.1.1 (het
+  proces rond het algoritme) optioneel afbeeldingen toevoegen, zoals een
+  procesplaat.
+* In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
+  toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
+
 ### Opgelost
 
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
