@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../src/stores/tasks'
 import { useAnswerStore, type Answer, type ImageValue, type AnswerValue } from '../../src/stores/answers'
 import { exportToMarkdown } from '../../src/utils/markdownExport'
-import { FormType } from '../../src/models/dpia'
+import { FormType, type Task } from '../../src/models/dpia'
 
 type StoreSetup = {
   taskStore: ReturnType<typeof useTaskStore>
@@ -548,5 +548,63 @@ describe('exportToMarkdown', () => {
 
     expect(md).toContain('## 1. Groep zonder kinderen')
     expect(md).toContain('*Niet ingevuld*')
+  })
+})
+
+describe('exportToMarkdown text blocks', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('renders task_groups without children as text, not as unanswered questions', async () => {
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.init(
+      [
+        {
+          task: 'Inleiding',
+          id: '0',
+          type: ['task_group'],
+          tasks: [
+            { task: 'Toepassing', id: '0.0', type: ['task_group'], description: 'Het IAMA is een instrument voor dialoog.', tasks: [] },
+            { task: 'Kopje zonder tekst', id: '0.2', type: ['task_group'], tasks: [] },
+            { task: 'Lege vraag', id: '0.1', type: ['open_text'] },
+          ],
+        },
+        {
+          task: 'Deel 1',
+          id: '1',
+          type: ['task_group'],
+          tasks: [
+            {
+              task: 'Wettelijke grondslag',
+              id: '1.3',
+              type: ['task_group'],
+              tasks: [
+                { task: 'Verboden?', id: '1.3.1', type: ['open_text'] },
+                { task: 'Stop met de ontwikkeling.', id: '1.3.3', type: ['task_group'], tasks: [] },
+                { task: 'Instructie', id: '1.3.9', type: ['task_group'], description: 'Lees dit eerst.', tasks: [] },
+              ],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+    answerStore.setAnswer('1.3.1', 'Nee')
+
+    const md = await runExport({ taskStore, answerStore })
+
+    expect(md).toContain('Het IAMA is een instrument voor dialoog.')
+    expect(md).toContain('Stop met de ontwikkeling.')
+    expect(md).toContain('Lees dit eerst.')
+    // Only the real empty question (0.1) keeps the "not answered" marker.
+    expect(md.match(/\*Niet ingevuld\*/g)).toHaveLength(1)
   })
 })

@@ -4,6 +4,7 @@ import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
 import {
   createConclusionTask,
+  isTextBlock,
   removeTemplatePattern,
   renderInstanceLabel,
 } from '../../src/utils/taskUtils'
@@ -100,5 +101,21 @@ describe('renderInstanceLabel', () => {
 
     const result = renderInstanceLabel('2.1[0]', 'Persoonsgegeven: {2.1.1}')
     expect(result).toBe('Persoonsgegeven: E-mailadres')
+  })
+})
+
+describe('isTextBlock', () => {
+  const base = { id: 'x', task: 'X', parentId: null, childrenIds: [] as string[] }
+
+  it('is true for a task_group without children', () => {
+    expect(isTextBlock({ ...base, type: ['task_group'] })).toBe(true)
+  })
+
+  it('is false for a task_group with children', () => {
+    expect(isTextBlock({ ...base, type: ['task_group'], childrenIds: ['x.1'] })).toBe(false)
+  })
+
+  it('is false for a question', () => {
+    expect(isTextBlock({ ...base, type: ['open_text'] })).toBe(false)
   })
 })
