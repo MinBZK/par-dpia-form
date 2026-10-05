@@ -1,6 +1,6 @@
 import { Task } from '../models/dpia'
 import { useAnswerStore } from '../stores/answers'
-import { useTaskStore } from '../stores/tasks'
+import { type FlatTask, useTaskStore } from '../stores/tasks'
 import { escapeHtml } from './escapeHtml'
 
 export function createConclusionTask(
@@ -17,6 +17,12 @@ export function createConclusionTask(
     description: description,
     tasks: [],
   }
+}
+
+// A task_group without child tasks only carries a heading and description
+// (e.g. the IAMA introduction or a "Stop" warning); it is never answered.
+export function isTextBlock(task: FlatTask): boolean {
+  return task.type.includes('task_group') && task.childrenIds.length === 0
 }
 
 export function removeTemplatePattern(input: string): string {

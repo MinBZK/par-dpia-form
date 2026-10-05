@@ -21,6 +21,12 @@ build) staan kort onder "Onder de motorkap".
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
   verplichting volgde.
+* De PDF- en Markdown-export van de IAMA tonen bij de inleiding, de
+  instructies en de inhoudsoverzichten per deel weer de tekst van dat onderdeel.
+  Daar stond "Vraag is niet ingevuld", terwijl er geen vraag te beantwoorden
+  valt ([#560](https://github.com/MinBZK/par-dpia-form/issues/560)).
+* De titelpagina van de PDF noemt de invulhulpen voor pre-scan, DPIA en IAMA,
+  in plaats van de oude naam "DPIA Rapportagemodel Editor".
 
 ## [2026.8.25]
 
