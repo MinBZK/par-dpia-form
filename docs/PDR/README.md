@@ -27,6 +27,7 @@ PDRs helpen ons om:
 | [0006](0006-rechttrekken-rechtsgronden.md) | DPIA & Pre-scan | Rechttrekken van rechtsgronden terminologie datamodel | Voorgesteld | 2025-05-21 |
 | [0007](0007-DPIA-bewaartermijn-opties-toevoegen.md) | DPIA | Bewaartermijn opties toevoegen (zoals in pre-scan) | Voorgesteld | 2025-05-21 |
 | [0008](0008-backend-in-typescript.md) | Architectuur | Backend in TypeScript | Geaccepteerd | 2026-08-22 |
+| [0009](0009-IAMA-afwijkingen-invulhulp-ten-opzichte-van-iama-v2.md) | IAMA | Afwijkingen invulhulp IAMA ten opzichte van IAMA v2 | Voorgesteld | 2026-10-05 |
 
 ## Template
 
