@@ -12,7 +12,7 @@ Op basis van gebruikersonderzoek passen we de invulhulp IAMA op drie punten aan:
 
 1. Bij vraag 2.2B.4 (dataminimalisatie) en vraag 3.1.1 (het proces waar het algoritme onderdeel van is) kan de invuller naast het tekstantwoord optioneel een of meer afbeeldingen toevoegen.
 2. Bij vraag 1.3.1 (verboden AI-systeem) en vraag 1.3.2 (wettelijke taak) komt onder de keuze Ja/Nee een optioneel toelichtingsveld.
-3. In alle afbeeldingsvelden van de invulhulpen kan de invuller een afbeelding plakken vanuit het klembord, naast uploaden en slepen.
+3. In alle afbeeldingsvelden van de invulhulpen kan de invuller een afbeelding verwijderen, naast vervangen.
 
 Punt 1 en 2 wijken af van het IAMA v2-document (versie februari 2026). Daar staan bij deze vragen alleen een tekstvak of alleen de keuze Ja/Nee.
 
@@ -24,7 +24,7 @@ Uit gebruikersonderzoek kwamen de volgende wensen naar voren.
 
 **Toelichting bij 1.3.1 en 1.3.2.** Vraag 1.3.1 en 1.3.2 bieden alleen de keuze Ja of Nee. Een invuller kan daardoor niet vastleggen waarom het antwoord Ja of Nee is (zie [issue #567](https://github.com/MinBZK/par-dpia-form/issues/567)). Alleen bij Ja op 1.3.2 volgt nu een tekstvak (1.3.4, de wettelijke grondslag).
 
-**Plakken van afbeeldingen.** Invullers maken vaak een schermafbeelding van een bestaand schema. Die moesten ze eerst als bestand opslaan om hem te kunnen uploaden. In veel andere toepassingen kan zo'n schermafbeelding direct worden geplakt.
+**Verwijderen van afbeeldingen.** Een geüploade afbeelding kon alleen worden vervangen. Alleen bij twee of meer afbeeldingen in een groep was er een knop om een afbeelding weg te halen; een enkele afbeelding bleef staan.
 
 ## Overweging
 
@@ -46,11 +46,11 @@ In `sources/iama.yaml` komen de volgende velden bij, alle met `is_official_id: f
 
 De afbeeldingsgroepen volgen het patroon van de groep Afbeeldingen in de DPIA (1.2): elke afbeelding krijgt optioneel een titel, omschrijving en bron.
 
-Het plakken werkt als het afbeeldingsveld focus heeft: het upload- en sleepvlak, of de getoonde afbeelding om die te vervangen. Plakken in de tekstvakken voor titel, omschrijving en bron blijft gewoon tekst plakken. Staat er geen afbeelding op het klembord, dan meldt het veld dat.
+Naast "Vervang afbeelding" staat "Verwijder afbeelding". Die haalt de afbeelding met titel, omschrijving en bron weg, waarna het veld weer leeg is. Bij twee of meer afbeeldingen in een groep verschijnt deze knop niet: daar staat al de knop van de groep die het hele item verwijdert, en twee knoppen met dezelfde naam zouden verwarrend zijn.
 
 ## Impact
 
-- Gebruikers: procesplaten en schema's kunnen als afbeelding worden toegevoegd, en een keuze bij 1.3.1 en 1.3.2 kan worden toegelicht. Het plakken geldt voor alle afbeeldingsvelden, ook in de DPIA.
+- Gebruikers: procesplaten en schema's kunnen als afbeelding worden toegevoegd, en een keuze bij 1.3.1 en 1.3.2 kan worden toegelicht. Het verwijderen geldt voor alle afbeeldingsvelden, ook in de DPIA.
 - Datamodel: zes nieuwe vraag-ID's in de IAMA. Bestaande ID's en antwoorden veranderen niet.
 - Export: de nieuwe velden komen mee in de PDF- en JSON-export, net als andere velden.
 - Ontwikkelteam: bij een nieuwe versie van het IAMA-document controleren of deze aanvullingen nog passen.

@@ -17,9 +17,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Toegevoegd
 
-* In afbeeldingsvelden kan je nu een afbeelding plakken (Ctrl+V / ⌘V),
-  bijvoorbeeld een schermafbeelding. Klik op het veld en plak; uploaden en
-  slepen werken zoals voorheen.
+* Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
+  Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
+  die was.
 * In de IAMA kan je bij vraag 2.2B.4 (dataminimalisatie) en vraag 3.1.1 (het
   proces rond het algoritme) optioneel afbeeldingen toevoegen, zoals een
   procesplaat.

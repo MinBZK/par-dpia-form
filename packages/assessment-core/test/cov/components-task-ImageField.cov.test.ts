@@ -3,7 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import { useAnswerStore, type ImageValue } from '../../src/stores/answers'
-import { type FlatTask } from '../../src/stores/tasks'
+import { type FlatTask, useTaskStore } from '../../src/stores/tasks'
+import { FormType, type Task } from '../../src/models/dpia'
 import ImageField from '../../src/components/task/ImageField.vue'
 
 // resizeImageToDataUri touches canvas/Image APIs that jsdom does not implement; mock it.
@@ -61,8 +62,7 @@ describe('ImageField.vue', () => {
     it('shows the dropzone and hides preview/legacy/error/processing', () => {
       const wrapper = mountField()
       expect(wrapper.find('.image-dropzone').exists()).toBe(true)
-      expect(wrapper.find('.image-dropzone button').text()).toBe('Kies een afbeelding')
-      expect(wrapper.find('.image-dropzone').text()).toContain('of sleep of plak hem hier (Ctrl+V / ⌘V)')
+      expect(wrapper.text()).toContain('Sleep een afbeelding hierheen of klik om te uploaden')
       expect(wrapper.find('.image-preview').exists()).toBe(false)
       expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
       expect(wrapper.find('[role="status"]').exists()).toBe(false)
@@ -73,15 +73,15 @@ describe('ImageField.vue', () => {
       const input = wrapper.find('input[type="file"]')
       expect(input.attributes('aria-label')).toBe('Afbeelding uploaden')
       expect(input.attributes('aria-labelledby')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone button').attributes('aria-describedby')).toBeUndefined()
+      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBeUndefined()
     })
 
-    it('sets aria-labelledby on the file input and aria-describedby on the choose button when a label is given', () => {
+    it('sets aria-labelledby on the file input and aria-describedby on dropzone when a label is given', () => {
       const wrapper = mountField({ label: 'Mijn afbeelding' })
       const input = wrapper.find('input[type="file"]')
       expect(input.attributes('aria-labelledby')).toBe(`label-${task.id}-img-1`)
       expect(input.attributes('aria-label')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone button').attributes('aria-describedby')).toBe(`label-${task.id}-img-1`)
+      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBe(`label-${task.id}-img-1`)
     })
   })
 
@@ -448,19 +448,23 @@ describe('ImageField.vue', () => {
     })
   })
 
-  describe('triggerFileSelect via the dropzone', () => {
-    it('clicks the hidden file input when the choose button is clicked', async () => {
+  describe('triggerFileSelect via dropzone interactions', () => {
+    it('clicks the hidden file input when the dropzone is clicked', async () => {
       const wrapper = mountField()
       const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
       const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
-      await wrapper.find('.image-dropzone button').trigger('click')
+      await wrapper.find('.image-dropzone').trigger('click')
       expect(clickSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('is not a button itself, but can take focus on click so a paste lands there', () => {
-      const dropzone = mountField().find('.image-dropzone')
-      expect(dropzone.attributes('role')).toBeUndefined()
-      expect(dropzone.attributes('tabindex')).toBe('-1')
+    it('clicks the hidden file input on Enter and Space keydown', async () => {
+      const wrapper = mountField()
+      const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
+      const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
+      const dropzone = wrapper.find('.image-dropzone')
+      await dropzone.trigger('keydown.enter')
+      await dropzone.trigger('keydown.space')
+      expect(clickSpy).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -478,68 +482,75 @@ describe('ImageField.vue', () => {
     })
   })
 
-  describe('paste from clipboard', () => {
-    function clipboard(files: File[]) {
-      return { clipboardData: { files } }
-    }
-
-    it('processes a pasted image on the dropzone', async () => {
+  describe('remove image', () => {
+    it('removes the image with its title, description and source', async () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, title: 'Procesplaat', description: 'Stappen', source: 'Intranet' })
       const wrapper = mountField()
-      const file = makeFile()
-      await wrapper.find('.image-dropzone').trigger('paste', clipboard([file]))
-      await flushPromises()
-      expect(resizeMock).toHaveBeenCalledWith(file)
-      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
+      const button = wrapper.findAll('button').find((b) => b.text() === 'Verwijder afbeelding')
+      expect(button).toBeDefined()
+      await button!.trigger('click')
+      expect(store.getAnswer('img-1')).toBeNull()
+      expect(wrapper.find('.image-preview').exists()).toBe(false)
+      expect(wrapper.find('.image-dropzone').exists()).toBe(true)
     })
 
-    it('mentions pasting in the dropzone text', () => {
+    it('has no remove button while the field is empty', () => {
       const wrapper = mountField()
-      expect(wrapper.find('.image-dropzone').text()).toContain('plak hem hier (Ctrl+V / ⌘V)')
+      expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
     })
 
-    it('picks the first image when the clipboard also holds other files', async () => {
-      const wrapper = mountField()
-      const text = new File(['x'], 'notes.txt', { type: 'text/plain' })
-      const image = makeFile()
-      await wrapper.find('.image-dropzone').trigger('paste', clipboard([text, image]))
-      await flushPromises()
-      expect(resizeMock).toHaveBeenCalledWith(image)
-    })
+    describe('inside a repeatable group', () => {
+      function setupGroup(instances: number) {
+        const taskStore = useTaskStore()
+        taskStore.setActiveNamespace(FormType.DPIA)
+        store.setActiveNamespace(FormType.DPIA)
+        taskStore.init([
+          {
+            task: 'Voorstel', id: '1', type: ['task_group'], repeatable: false,
+            tasks: [
+              {
+                task: 'Afbeeldingen', id: '1.2', type: ['task_group'], repeatable: true,
+                tasks: [{ task: 'Afbeelding', id: '1.2.1', type: ['image'], repeatable: false }],
+              },
+            ],
+          },
+        ] as unknown as Task[], true)
+        const sectionId = taskStore.getInstanceIdsForTask('1')[0]
+        for (let i = 1; i < instances; i++) taskStore.addRepeatableTaskInstance('1.2', sectionId)
+        const groupId = taskStore.getInstanceIdsForTask('1.2', sectionId)[0]
+        const imageId = taskStore.getInstanceIdsForTask('1.2.1', groupId)[0]
+        store.setAnswer(imageId, { data: RASTER_DATA_URI })
+        return mount(ImageField, { props: { task: taskStore.taskById('1.2.1'), instanceId: imageId } })
+      }
 
-    it('shows an error when the clipboard holds no image', async () => {
-      const wrapper = mountField()
-      await wrapper.find('.image-dropzone').trigger('paste', clipboard([]))
-      await flushPromises()
-      expect(resizeMock).not.toHaveBeenCalled()
-      expect(wrapper.find('[role="alert"]').text()).toContain('Het klembord bevat geen afbeelding.')
-    })
+      it('shows the remove button when the group has one item', () => {
+        const wrapper = setupGroup(1)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(true)
+      })
 
-    it('shows an error when the paste event has no clipboard data', async () => {
-      const wrapper = mountField()
-      await wrapper.find('.image-dropzone').trigger('paste')
-      await flushPromises()
-      expect(resizeMock).not.toHaveBeenCalled()
-      expect(wrapper.find('[role="alert"]').text()).toContain('Het klembord bevat geen afbeelding.')
-    })
+      it('also counts items of a repeatable group at the top level', () => {
+        const taskStore = useTaskStore()
+        taskStore.setActiveNamespace(FormType.DPIA)
+        store.setActiveNamespace(FormType.DPIA)
+        taskStore.init([
+          {
+            task: 'Afbeeldingen', id: '1', type: ['task_group'], repeatable: true,
+            tasks: [{ task: 'Afbeelding', id: '1.1', type: ['image'], repeatable: false }],
+          },
+        ] as unknown as Task[], true)
+        taskStore.addRepeatableTaskInstance('1')
+        const groupId = taskStore.getInstanceIdsForTask('1')[0]
+        const imageId = taskStore.getInstanceIdsForTask('1.1', groupId)[0]
+        store.setAnswer(imageId, { data: RASTER_DATA_URI })
+        const wrapper = mount(ImageField, { props: { task: taskStore.taskById('1.1'), instanceId: imageId } })
+        expect(taskStore.getInstanceIdsForTask('1')).toHaveLength(2)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
+      })
 
-    it('replaces an existing image when pasting on the focusable preview', async () => {
-      setImageAnswer(store, 'img-1', { data: 'data:image/webp;base64,OUD', title: 'Procesplaat' })
-      const wrapper = mountField()
-      const target = wrapper.find('.image-replace-target')
-      expect(target.attributes('tabindex')).toBe('0')
-      const file = makeFile()
-      await target.trigger('paste', clipboard([file]))
-      await flushPromises()
-      expect(resizeMock).toHaveBeenCalledWith(file)
-      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, title: 'Procesplaat' })
-    })
-
-    it('leaves pasting into the metadata fields alone', async () => {
-      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
-      const wrapper = mountField()
-      await wrapper.find('#image-title-img-1').trigger('paste', clipboard([makeFile()]))
-      await flushPromises()
-      expect(resizeMock).not.toHaveBeenCalled()
+      it('leaves removing to the group button when the group has more items', () => {
+        const wrapper = setupGroup(2)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
+      })
     })
   })
 })

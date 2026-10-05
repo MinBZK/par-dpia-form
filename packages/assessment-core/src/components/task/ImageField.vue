@@ -2,7 +2,8 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { useAnswerStore, isImageValue, type ImageValue } from '../../stores/answers'
-import { type FlatTask } from '../../stores/tasks'
+import { type FlatTask, useTaskStore } from '../../stores/tasks'
+import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { resizeImageToDataUri } from '../../utils/imageResize'
 import UiButton from '../ui/UiButton.vue'
 
@@ -14,6 +15,8 @@ const props = defineProps<{
 }>()
 
 const answerStore = useAnswerStore()
+const taskStore = useTaskStore()
+const { canUserCreateInstances } = useTaskDependencies()
 const fileInput = ref<HTMLInputElement | null>(null)
 const isProcessing = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -41,6 +44,21 @@ const legacyIsUrl = computed(() => {
 })
 
 const hasImage = computed(() => imageData.value !== null)
+
+// In a repeatable group with more than one item, TaskGroup already shows
+// "Verwijder <item>" for the whole item; a second button with the same label
+// here would be confusing, so this one only appears for a single item.
+const canRemove = computed(() => {
+  const own = taskStore.getInstanceById(props.instanceId)
+  const group = own?.parentInstanceId ? taskStore.getInstanceById(own.parentInstanceId) : undefined
+  if (!group || !canUserCreateInstances.value(group.taskId)) return true
+  return taskStore.getInstancesForTask(group.taskId, group.parentInstanceId ?? undefined).length <= 1
+})
+
+function removeImage() {
+  answerStore.removeAnswer(props.instanceId)
+  errorMessage.value = null
+}
 
 function saveImageValue(updates: Partial<ImageValue>) {
   const current = imageData.value
@@ -98,16 +116,6 @@ function handleDrop(event: DragEvent) {
   isDragging.value = false
   const file = event.dataTransfer?.files?.[0]
   if (file) processFile(file)
-}
-
-function handlePaste(event: ClipboardEvent) {
-  const files = Array.from(event.clipboardData?.files ?? [])
-  const file = files.find(f => f.type.startsWith('image/'))
-  if (file) {
-    processFile(file)
-  } else {
-    errorMessage.value = 'Het klembord bevat geen afbeelding.'
-  }
 }
 
 function handleDragOver() {
@@ -170,11 +178,7 @@ watch(() => imageData.value?.description, () => {
       @dragleave.prevent="handleDragLeave"
       @drop.prevent="handleDrop"
     >
-      <div class="image-replace-target"
-        tabindex="0"
-        aria-label="Huidige afbeelding. Plak een afbeelding (Ctrl+V / ⌘V) om deze te vervangen."
-        @paste="handlePaste"
-      >
+      <div class="image-replace-target">
         <img
           :src="imageData!.data"
           :alt="imageData!.title || task.task"
@@ -183,7 +187,10 @@ watch(() => imageData.value?.description, () => {
         <div v-if="isDragging" class="image-replace-overlay">Sleep een afbeelding hierheen om de huidige afbeelding te vervangen</div>
       </div>
 
-      <UiButton variant="secondary" label="Vervang afbeelding" class="rvo-margin-block-end--md" @click="triggerFileSelect" />
+      <div class="image-actions rvo-margin-block-end--md">
+        <UiButton variant="secondary" label="Vervang afbeelding" @click="triggerFileSelect" />
+        <UiButton v-if="canRemove" variant="tertiary" icon="verwijderen" label="Verwijder afbeelding" @click="removeImage" />
+      </div>
 
       <!-- Metadata fields (only shown when an image is uploaded) -->
       <div class="rvo-layout-column rvo-layout-gap--xs">
@@ -230,22 +237,21 @@ watch(() => imageData.value?.description, () => {
       </div>
     </div>
 
-    <!-- Upload dropzone (shown when no image). Not a button itself: the
-         choose button inside is. tabindex="-1" lets a click anywhere in the
-         zone focus it, so a following Ctrl+V / ⌘V lands in this field. -->
+    <!-- Upload dropzone (shown when no image) -->
     <div v-if="!hasImage && !isProcessing"
       class="image-dropzone"
       :class="{ 'image-dropzone--active': isDragging }"
-      tabindex="-1"
+      @click="triggerFileSelect"
       @dragover.prevent="handleDragOver"
       @dragleave.prevent="handleDragLeave"
       @drop.prevent="handleDrop"
-      @paste="handlePaste"
+      role="button"
+      tabindex="0"
+      :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
+      @keydown.enter="triggerFileSelect"
+      @keydown.space.prevent="triggerFileSelect"
     >
-      <UiButton variant="secondary" size="sm" label="Kies een afbeelding"
-        :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
-        @click="triggerFileSelect" />
-      <span>of sleep of plak hem hier (Ctrl+V / ⌘V)</span>
+      Sleep een afbeelding hierheen of klik om te uploaden
     </div>
   </div>
 </template>

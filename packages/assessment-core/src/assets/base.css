@@ -365,34 +365,30 @@
 }
 
 /* Image field */
-/* Empty image field: looks like the other RVO form controls (white, regular
-   border), with the choose button inside. Hover only changes the border; the
-   dashed outline is reserved for an actual drag, when it means "drop here". */
 .rvo-theme .image-dropzone {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--rvo-space-sm) var(--rvo-space-md);
-  background-color: var(--utrecht-form-control-background-color);
-  border: var(--utrecht-form-control-border-width) solid var(--utrecht-form-control-border-color);
-  border-radius: var(--utrecht-form-control-border-radius);
-  padding: var(--rvo-space-sm) var(--rvo-space-md);
+  border: 2px dashed var(--rvo-color-grijs-200);
+  border-radius: var(--rvo-border-radius-xl);
+  padding: var(--rvo-space-sm) var(--rvo-space-lg);
+  text-align: center;
+  cursor: pointer;
   transition: border-color 0.15s, background-color 0.15s;
 }
 
 .rvo-theme .image-dropzone:hover,
-.rvo-theme .image-dropzone:focus {
+.rvo-theme .image-dropzone:focus-visible {
   border-color: var(--rvo-color-hemelblauw);
-}
-
-.rvo-theme .image-dropzone:focus {
-  outline: none;
+  background-color: var(--rvo-color-grijs-100);
 }
 
 .rvo-theme .image-dropzone--active {
-  border-style: dashed;
   border-color: var(--rvo-color-hemelblauw);
-  background-color: var(--rvo-color-hemelblauw-150);
+  background-color: var(--rvo-color-grijs-100);
+}
+
+.rvo-theme .image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rvo-space-sm);
 }
 
 .rvo-theme .image-preview {

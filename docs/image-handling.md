@@ -18,17 +18,9 @@ Alle geüploade afbeeldingen worden verwerkt via de [Canvas API](https://develop
 
 Er is geen doorgeefpad voor kleine afbeeldingen. Elke upload gaat door de canvas-pipeline om metadata-verwijdering te garanderen.
 
-## Toevoegen: uploaden, slepen of plakken
+## Verwijderen
 
-Een afbeelding komt op drie manieren in het veld:
-
-- **Uploaden** met de knop "Kies een afbeelding".
-- **Slepen** van een bestand op het veld, of op de getoonde afbeelding om die te vervangen.
-- **Plakken** vanuit het klembord (Ctrl+V / ⌘V), bijvoorbeeld een schermafbeelding. Klik eerst in het veld (of tab naar de knop), of op de getoonde afbeelding om die te vervangen. Het veld neemt het eerste afbeeldingsbestand van het klembord; staat er geen afbeelding op, dan verschijnt een melding. Plakken in de tekstvakken voor titel, omschrijving en bron blijft gewoon tekst plakken.
-
-Het lege veld ziet eruit als de andere formuliervelden: wit met een gewone rand. Alleen tijdens het slepen krijgt het een blauwe stippelrand.
-
-Alle drie de routes lopen via dezelfde verwerking hieronder.
+Naast "Vervang afbeelding" staat "Verwijder afbeelding". Die verwijdert het antwoord (afbeelding, titel, omschrijving en bron) en het veld is weer leeg. Staat het veld in een herhaalbare groep met twee of meer items, dan verschijnt de knop niet: de groep toont daar zelf "Verwijder afbeelding" voor het hele item.
 
 ## Opslagformaat
 
