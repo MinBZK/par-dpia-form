@@ -230,22 +230,22 @@ watch(() => imageData.value?.description, () => {
       </div>
     </div>
 
-    <!-- Upload dropzone (shown when no image) -->
+    <!-- Upload dropzone (shown when no image). Not a button itself: the
+         choose button inside is. tabindex="-1" lets a click anywhere in the
+         zone focus it, so a following Ctrl+V / ⌘V lands in this field. -->
     <div v-if="!hasImage && !isProcessing"
       class="image-dropzone"
       :class="{ 'image-dropzone--active': isDragging }"
-      @click="triggerFileSelect"
+      tabindex="-1"
       @dragover.prevent="handleDragOver"
       @dragleave.prevent="handleDragLeave"
       @drop.prevent="handleDrop"
-      role="button"
-      tabindex="0"
-      :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
-      @keydown.enter="triggerFileSelect"
-      @keydown.space.prevent="triggerFileSelect"
       @paste="handlePaste"
     >
-      Sleep een afbeelding hierheen of klik om te uploaden, of plak een afbeelding (Ctrl+V / ⌘V)
+      <UiButton variant="secondary" size="sm" label="Kies een afbeelding"
+        :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
+        @click="triggerFileSelect" />
+      <span>of sleep of plak hem hier (Ctrl+V / ⌘V)</span>
     </div>
   </div>
 </template>

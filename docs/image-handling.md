@@ -22,9 +22,11 @@ Er is geen doorgeefpad voor kleine afbeeldingen. Elke upload gaat door de canvas
 
 Een afbeelding komt op drie manieren in het veld:
 
-- **Uploaden** via de bestandskiezer (klik op het vlak, of Enter/spatie als het vlak focus heeft).
-- **Slepen** van een bestand op het vlak, of op de getoonde afbeelding om die te vervangen.
-- **Plakken** vanuit het klembord (Ctrl+V / ⌘V), bijvoorbeeld een schermafbeelding. Dit werkt als het upload-vlak of de getoonde afbeelding focus heeft. Het veld neemt het eerste afbeeldingsbestand van het klembord; staat er geen afbeelding op, dan verschijnt een melding. Plakken in de tekstvakken voor titel, omschrijving en bron blijft gewoon tekst plakken.
+- **Uploaden** met de knop "Kies een afbeelding".
+- **Slepen** van een bestand op het veld, of op de getoonde afbeelding om die te vervangen.
+- **Plakken** vanuit het klembord (Ctrl+V / ⌘V), bijvoorbeeld een schermafbeelding. Klik eerst in het veld (of tab naar de knop), of op de getoonde afbeelding om die te vervangen. Het veld neemt het eerste afbeeldingsbestand van het klembord; staat er geen afbeelding op, dan verschijnt een melding. Plakken in de tekstvakken voor titel, omschrijving en bron blijft gewoon tekst plakken.
+
+Het lege veld ziet eruit als de andere formuliervelden: wit met een gewone rand. Alleen tijdens het slepen krijgt het een blauwe stippelrand.
 
 Alle drie de routes lopen via dezelfde verwerking hieronder.
 

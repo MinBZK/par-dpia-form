@@ -61,7 +61,8 @@ describe('ImageField.vue', () => {
     it('shows the dropzone and hides preview/legacy/error/processing', () => {
       const wrapper = mountField()
       expect(wrapper.find('.image-dropzone').exists()).toBe(true)
-      expect(wrapper.text()).toContain('Sleep een afbeelding hierheen of klik om te uploaden')
+      expect(wrapper.find('.image-dropzone button').text()).toBe('Kies een afbeelding')
+      expect(wrapper.find('.image-dropzone').text()).toContain('of sleep of plak hem hier (Ctrl+V / ⌘V)')
       expect(wrapper.find('.image-preview').exists()).toBe(false)
       expect(wrapper.find('.rvo-alert--warning').exists()).toBe(false)
       expect(wrapper.find('[role="status"]').exists()).toBe(false)
@@ -72,15 +73,15 @@ describe('ImageField.vue', () => {
       const input = wrapper.find('input[type="file"]')
       expect(input.attributes('aria-label')).toBe('Afbeelding uploaden')
       expect(input.attributes('aria-labelledby')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBeUndefined()
+      expect(wrapper.find('.image-dropzone button').attributes('aria-describedby')).toBeUndefined()
     })
 
-    it('sets aria-labelledby on the file input and aria-describedby on dropzone when a label is given', () => {
+    it('sets aria-labelledby on the file input and aria-describedby on the choose button when a label is given', () => {
       const wrapper = mountField({ label: 'Mijn afbeelding' })
       const input = wrapper.find('input[type="file"]')
       expect(input.attributes('aria-labelledby')).toBe(`label-${task.id}-img-1`)
       expect(input.attributes('aria-label')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBe(`label-${task.id}-img-1`)
+      expect(wrapper.find('.image-dropzone button').attributes('aria-describedby')).toBe(`label-${task.id}-img-1`)
     })
   })
 
@@ -447,23 +448,19 @@ describe('ImageField.vue', () => {
     })
   })
 
-  describe('triggerFileSelect via dropzone interactions', () => {
-    it('clicks the hidden file input when the dropzone is clicked', async () => {
+  describe('triggerFileSelect via the dropzone', () => {
+    it('clicks the hidden file input when the choose button is clicked', async () => {
       const wrapper = mountField()
       const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
       const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
-      await wrapper.find('.image-dropzone').trigger('click')
+      await wrapper.find('.image-dropzone button').trigger('click')
       expect(clickSpy).toHaveBeenCalledTimes(1)
     })
 
-    it('clicks the hidden file input on Enter and Space keydown', async () => {
-      const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
-      const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
-      const dropzone = wrapper.find('.image-dropzone')
-      await dropzone.trigger('keydown.enter')
-      await dropzone.trigger('keydown.space')
-      expect(clickSpy).toHaveBeenCalledTimes(2)
+    it('is not a button itself, but can take focus on click so a paste lands there', () => {
+      const dropzone = mountField().find('.image-dropzone')
+      expect(dropzone.attributes('role')).toBeUndefined()
+      expect(dropzone.attributes('tabindex')).toBe('-1')
     })
   })
 
@@ -497,7 +494,7 @@ describe('ImageField.vue', () => {
 
     it('mentions pasting in the dropzone text', () => {
       const wrapper = mountField()
-      expect(wrapper.find('.image-dropzone').text()).toContain('plak een afbeelding (Ctrl+V / ⌘V)')
+      expect(wrapper.find('.image-dropzone').text()).toContain('plak hem hier (Ctrl+V / ⌘V)')
     })
 
     it('picks the first image when the clipboard also holds other files', async () => {

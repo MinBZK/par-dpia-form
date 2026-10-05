@@ -440,7 +440,7 @@ tasks:
             repeatable: false
           - task: Afbeeldingen
             description: >-
-              Voeg hier optioneel afbeeldingen toe, bijvoorbeeld een overzicht van de gebruikte gegevens.
+              Voeg optioneel afbeeldingen toe, bijvoorbeeld een overzicht van de gebruikte gegevens.
             id: "2.2B.4.afbeeldingen"
             is_official_id: false
             type:
@@ -448,8 +448,7 @@ tasks:
             repeatable: true
             item_name: afbeelding
             tasks:
-              - task: Afbeelding (optioneel)
-                description: Upload, sleep of plak een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen.
+              - task: Afbeelding
                 id: "2.2B.4.afbeeldingen.afbeelding"
                 is_official_id: false
                 type:
@@ -590,7 +589,7 @@ tasks:
             repeatable: false
           - task: Afbeeldingen
             description: >-
-              Voeg hier optioneel afbeeldingen toe, bijvoorbeeld een procesplaat.
+              Voeg optioneel afbeeldingen toe, bijvoorbeeld een procesplaat.
             id: "3.1.1.afbeeldingen"
             is_official_id: false
             type:
@@ -598,8 +597,7 @@ tasks:
             repeatable: true
             item_name: afbeelding
             tasks:
-              - task: Afbeelding (optioneel)
-                description: Upload, sleep of plak een afbeelding. Optioneel kan je een titel, omschrijving en bron toevoegen.
+              - task: Afbeelding
                 id: "3.1.1.afbeeldingen.afbeelding"
                 is_official_id: false
                 type:
