@@ -26,6 +26,12 @@ build) staan kort onder "Onder de motorkap".
 * In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
   toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
 
+### Beveiliging
+
+* Bekende kwetsbaarheden in onderdelen van de server en de invulhulp zijn
+  verholpen door die onderdelen bij te werken (onder meer Fastify, dat
+  kwetsbaar was voor het omzeilen van aanmelding en validatie).
+
 ### Opgelost
 
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
