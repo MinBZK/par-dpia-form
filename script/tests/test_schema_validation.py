@@ -101,3 +101,38 @@ def test_validator_rejects_task_id_the_output_schema_would_drop(tmp_path):
 
     assert is_valid is False
     assert errors
+
+
+def _with_sources(sources: list) -> dict:
+    data = dict(VALID_SOURCE)
+    data["tasks"] = [dict(VALID_SOURCE["tasks"][0], sources=sources)]
+    return data
+
+
+def test_validator_accepts_source_with_description(tmp_path):
+    yaml_path = _write_yaml(
+        tmp_path, _with_sources([{"source": "schema.png", "description": "Stroomschema"}])
+    )
+
+    is_valid, errors, _ = SchemaValidator(REPO_ROOT).validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is True, errors
+
+
+def test_validator_rejects_source_without_description(tmp_path):
+    # The description is the alt text of a source image (#555).
+    yaml_path = _write_yaml(tmp_path, _with_sources([{"source": "schema.png"}]))
+
+    is_valid, errors, _ = SchemaValidator(REPO_ROOT).validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is False
+    assert errors
+
+
+def test_validator_rejects_source_with_empty_description(tmp_path):
+    yaml_path = _write_yaml(tmp_path, _with_sources([{"source": "schema.png", "description": ""}]))
+
+    is_valid, errors, _ = SchemaValidator(REPO_ROOT).validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is False
+    assert errors

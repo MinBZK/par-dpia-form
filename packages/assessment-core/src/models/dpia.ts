@@ -21,16 +21,12 @@ export const TaskTypeValue = t.union([
 ])
 export type TaskTypeValue = t.TypeOf<typeof TaskTypeValue>
 
-export const Source = t.intersection([
-  // Required properties
-  t.type({
-    source: t.string,
-  }),
-  // Optional properties
-  t.partial({
-    description: t.string,
-  }),
-])
+// `description` doubles as the alt text of a source image, so it is required
+// (#555); the definition schema also rejects an empty one.
+export const Source = t.type({
+  source: t.string,
+  description: t.string,
+})
 export type Source = t.TypeOf<typeof Source>
 
 export const Option = t.intersection([
