@@ -3,7 +3,8 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import { useAnswerStore, type ImageValue } from '../../src/stores/answers'
-import { type FlatTask } from '../../src/stores/tasks'
+import { type FlatTask, useTaskStore } from '../../src/stores/tasks'
+import { FormType, type Task } from '../../src/models/dpia'
 import ImageField from '../../src/components/task/ImageField.vue'
 
 // resizeImageToDataUri touches canvas/Image APIs that jsdom does not implement; mock it.
@@ -478,6 +479,78 @@ describe('ImageField.vue', () => {
       await flushPromises()
       expect(autoGrowMock).toHaveBeenCalled()
       wrapper.unmount()
+    })
+  })
+
+  describe('remove image', () => {
+    it('removes the image with its title, description and source', async () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, title: 'Procesplaat', description: 'Stappen', source: 'Intranet' })
+      const wrapper = mountField()
+      const button = wrapper.findAll('button').find((b) => b.text() === 'Verwijder afbeelding')
+      expect(button).toBeDefined()
+      await button!.trigger('click')
+      expect(store.getAnswer('img-1')).toBeNull()
+      expect(wrapper.find('.image-preview').exists()).toBe(false)
+      expect(wrapper.find('.image-dropzone').exists()).toBe(true)
+    })
+
+    it('has no remove button while the field is empty', () => {
+      const wrapper = mountField()
+      expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
+    })
+
+    describe('inside a repeatable group', () => {
+      function setupGroup(instances: number) {
+        const taskStore = useTaskStore()
+        taskStore.setActiveNamespace(FormType.DPIA)
+        store.setActiveNamespace(FormType.DPIA)
+        taskStore.init([
+          {
+            task: 'Voorstel', id: '1', type: ['task_group'], repeatable: false,
+            tasks: [
+              {
+                task: 'Afbeeldingen', id: '1.2', type: ['task_group'], repeatable: true,
+                tasks: [{ task: 'Afbeelding', id: '1.2.1', type: ['image'], repeatable: false }],
+              },
+            ],
+          },
+        ] as unknown as Task[], true)
+        const sectionId = taskStore.getInstanceIdsForTask('1')[0]
+        for (let i = 1; i < instances; i++) taskStore.addRepeatableTaskInstance('1.2', sectionId)
+        const groupId = taskStore.getInstanceIdsForTask('1.2', sectionId)[0]
+        const imageId = taskStore.getInstanceIdsForTask('1.2.1', groupId)[0]
+        store.setAnswer(imageId, { data: RASTER_DATA_URI })
+        return mount(ImageField, { props: { task: taskStore.taskById('1.2.1'), instanceId: imageId } })
+      }
+
+      it('shows the remove button when the group has one item', () => {
+        const wrapper = setupGroup(1)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(true)
+      })
+
+      it('also counts items of a repeatable group at the top level', () => {
+        const taskStore = useTaskStore()
+        taskStore.setActiveNamespace(FormType.DPIA)
+        store.setActiveNamespace(FormType.DPIA)
+        taskStore.init([
+          {
+            task: 'Afbeeldingen', id: '1', type: ['task_group'], repeatable: true,
+            tasks: [{ task: 'Afbeelding', id: '1.1', type: ['image'], repeatable: false }],
+          },
+        ] as unknown as Task[], true)
+        taskStore.addRepeatableTaskInstance('1')
+        const groupId = taskStore.getInstanceIdsForTask('1')[0]
+        const imageId = taskStore.getInstanceIdsForTask('1.1', groupId)[0]
+        store.setAnswer(imageId, { data: RASTER_DATA_URI })
+        const wrapper = mount(ImageField, { props: { task: taskStore.taskById('1.1'), instanceId: imageId } })
+        expect(taskStore.getInstanceIdsForTask('1')).toHaveLength(2)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
+      })
+
+      it('leaves removing to the group button when the group has more items', () => {
+        const wrapper = setupGroup(2)
+        expect(wrapper.findAll('button').some((b) => b.text() === 'Verwijder afbeelding')).toBe(false)
+      })
     })
   })
 })
