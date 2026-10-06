@@ -89,6 +89,24 @@ describe('FileUploadPage.vue', () => {
     })
   })
 
+  describe('namespace-driven computed text (aiia branch)', () => {
+    it('renders AIIA label, intro and upload text when activeNamespace is aiia', () => {
+      const taskStore = useTaskStore()
+      taskStore.activeNamespace = FormType.AIIA
+
+      const wrapper = mountPage()
+
+      expect(wrapper.find('h1').text()).toBe('Start de AIIA')
+      expect(wrapper.find('#file-upload-helper').html()).toContain(
+        'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een AIIA.',
+      )
+      expect(wrapper.find('label#file-upload-label').text()).toContain(
+        'Heb je al eerder een AIIA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
+      )
+      expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met het AIIA')
+    })
+  })
+
   describe('namespace-driven computed text (pre-scan branch)', () => {
     it('renders pre-scan label, intro and upload text when activeNamespace is prescan', () => {
       const taskStore = useTaskStore()
