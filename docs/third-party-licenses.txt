@@ -769,7 +769,7 @@ sonic-boom@4.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-source-map-js@1.2.1 [license(s): BSD-3-Clause]
+source-map-js@1.2.2 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
