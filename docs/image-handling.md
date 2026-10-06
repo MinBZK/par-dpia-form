@@ -18,6 +18,10 @@ Alle geüploade afbeeldingen worden verwerkt via de [Canvas API](https://develop
 
 Er is geen doorgeefpad voor kleine afbeeldingen. Elke upload gaat door de canvas-pipeline om metadata-verwijdering te garanderen.
 
+## Verwijderen
+
+Naast "Vervang afbeelding" staat "Verwijder afbeelding". Die verwijdert het antwoord (afbeelding, titel, omschrijving en bron) en het veld is weer leeg. Staat het veld in een herhaalbare groep met twee of meer items, dan verschijnt de knop niet: de groep toont daar zelf "Verwijder afbeelding" voor het hele item.
+
 ## Opslagformaat
 
 Een afbeelding-antwoord wordt opgeslagen als een `ImageValue` object:

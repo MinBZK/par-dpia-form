@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@pdfme/pdf-lib": "^6.2.1",
+    "@pdfme/pdf-lib": "^6.1.12",
     "dompurify": "^3.4.16",
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
