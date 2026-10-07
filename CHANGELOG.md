@@ -24,6 +24,12 @@ build) staan kort onder "Onder de motorkap".
   formulier en in een project met account, met dezelfde export en
   versiegeschiedenis als de andere invulhulpen.
 
+* Een vraag kan nu ook antwoorden uit de DPIA, het IAMA of het AIIA als
+  achtergrond tonen, net zoals de DPIA dat al deed met de pre-scan. In een
+  project met account komen die antwoorden uit de meest recent bijgewerkte
+  invulhulp van dat type in hetzelfde project. Welke vragen aan elkaar
+  gekoppeld zijn, wordt nog ingevuld.
+
 ### Opgelost
 
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties

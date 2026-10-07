@@ -8,7 +8,7 @@ import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
 // lives in: when DPIA is active we look at `references.DPIA`, when IAMA is
 // active at `references.IAMA`, and so on. Pre-scan tasks are only ever sources,
 // never targets, so PRE_SCAN has no reference key.
-const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA' | 'AIIA'>> = {
+export const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA' | 'AIIA'>> = {
   [FormType.DPIA]: 'DPIA',
   [FormType.IAMA]: 'IAMA',
   [FormType.AIIA]: 'AIIA',
