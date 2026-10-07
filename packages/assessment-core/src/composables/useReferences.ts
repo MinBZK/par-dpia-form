@@ -42,6 +42,7 @@ export interface PreScanReference {
   answer: AnswerValue
   referenceType: string
   dpiaTaskId: string
+  sourceNamespace: FormType
 }
 
 export interface ReferenceSuggestion {
@@ -125,16 +126,18 @@ export function useReferences() {
   }
 
   // Cross-form preview data for a whole section: preview-type references coming
-  // from another form (e.g. pre-scan answers shown read-only inside the DPIA).
+  // from another form (pre-scan answers inside the DPIA, DPIA or IAMA answers
+  // inside the AIIA, and so on).
   const getPreviewDataForSection = (sectionTaskId: string): PreScanReference[] => {
     return findReferences(sectionTaskId, { matchBySection: true })
       .filter(({ scope, reference }) => scope === 'cross' && PREVIEW_TYPES.includes(reference.type))
-      .map(({ sourceTask, reference, answer }) => ({
+      .map(({ sourceNamespace, sourceTask, reference, answer }) => ({
         taskId: sourceTask.id,
         taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
         answer,
         referenceType: reference.type,
         dpiaTaskId: reference.id,
+        sourceNamespace,
       }))
   }
 
