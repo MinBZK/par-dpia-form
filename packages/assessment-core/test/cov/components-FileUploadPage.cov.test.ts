@@ -96,7 +96,7 @@ describe('FileUploadPage.vue', () => {
 
       const wrapper = mountPage()
 
-      expect(wrapper.find('h1').text()).toBe('Start de AIIA')
+      expect(wrapper.find('h1').text()).toBe('Start het AIIA')
       expect(wrapper.find('#file-upload-helper').html()).toContain(
         'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een AIIA.',
       )
