@@ -188,6 +188,7 @@ const resetOpen = ref(false)
 const resetLabel = computed(() =>
   taskStore.activeNamespace === FormType.DPIA ? 'DPIA'
   : taskStore.activeNamespace === FormType.IAMA ? 'IAMA'
+  : taskStore.activeNamespace === FormType.AIIA ? 'AIIA'
   : 'Pre-scan')
 
 // Counted from the store rather than storage: this is what the user is about to

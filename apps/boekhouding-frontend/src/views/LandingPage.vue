@@ -57,6 +57,11 @@ const assessments = [
     oneLiner:
       'Beoordeel de impact van algoritmes op mensenrechten en publieke waarden, voorafgaand aan de ontwikkeling of inzet van een algoritme.',
   },
+  {
+    title: 'AI Impact Assessment (AIIA)',
+    oneLiner:
+      'Beoordeel de inzet van een AI-systeem: doel en noodzaak, data, techniek en de afspraken eromheen.',
+  },
 ]
 </script>
 
@@ -140,7 +145,7 @@ const assessments = [
     </section>
 
     <section id="assessments" class="landing-section" aria-labelledby="landing-assessments-title">
-      <h2 id="landing-assessments-title" class="utrecht-heading-2">De drie assessments</h2>
+      <h2 id="landing-assessments-title" class="utrecht-heading-2">De vier assessments</h2>
       <div class="rvo-layout-grid-container">
         <div class="rvo-layout-grid rvo-layout-gap--md rvo-layout-grid-columns--three">
           <div

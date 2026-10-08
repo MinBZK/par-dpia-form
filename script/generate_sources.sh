@@ -25,3 +25,11 @@ uv run --frozen --no-dev python script/run_all.py \
   --begrippen-yaml sources/begrippenkader_iama.yaml \
   --output-json sources/generated/IAMA.json \
   --definitions-once-per-page
+
+uv run --frozen --no-dev python script/run_all.py \
+  --schema schemas/assessment-definition.v2.schema.json \
+  --source sources/aiia.yaml \
+  --begrippen-yaml sources/begrippenkader_aiia.yaml \
+  --output-json sources/generated/AIIA.json \
+  --output-md docs/questions/questions_AIIA.md \
+  --definitions-once-per-page

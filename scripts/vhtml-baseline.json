@@ -3,7 +3,7 @@
   "apps/boekhouding-frontend/src/components/ConflictResolutionDialog.vue::v-html::field.theirFormatted",
   "apps/boekhouding-frontend/src/views/VersionHistory.vue::v-html::field.newValue.replace(/\\n/g, '<br>')",
   "apps/boekhouding-frontend/src/views/VersionHistory.vue::v-html::field.oldValue.replace(/\\n/g, '<br>')",
-  "packages/assessment-core/src/components/FileUploadPage.vue::v-html::introText::body:cb947b902738",
+  "packages/assessment-core/src/components/FileUploadPage.vue::v-html::introText::body:057772725294",
   "packages/assessment-core/src/components/LiveResults.vue::v-html::renderAssessmentExplanation(assessment).text.replace(/\\n/g, '<br>')",
   "packages/assessment-core/src/components/task/FormField.vue::v-html::description",
   "packages/assessment-core/src/components/task/FormField.vue::v-html::displayLabel::body:5673db2f1d0a",
