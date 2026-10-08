@@ -370,6 +370,11 @@ describe('Form.vue prop-driven template branches', () => {
     const { wrapper } = await mountForm({ namespace: FormType.IAMA, autoStart: true })
     expect(uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')).toBeTruthy()
   })
+
+  it('labels the reset button "Begin nieuwe AIIA" for the AIIA namespace', async () => {
+    const { wrapper } = await mountForm({ namespace: FormType.AIIA, autoStart: true })
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe AIIA')).toBeTruthy()
+  })
 })
 
 describe('Form.vue navigation buttons', () => {
