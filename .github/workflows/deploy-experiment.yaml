@@ -51,6 +51,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+      pull-requests: write
     environment:
       name: experiment
       url: ${{ steps.deploy.outputs.url }}
@@ -72,3 +73,33 @@ jobs:
               {"name": "frontend", "image": "${{ needs.build.outputs.frontend-image }}"},
               {"name": "api", "image": "${{ needs.build.outputs.backend-image }}"}
             ]
+
+      # The deploy runs on push, where zad-actions has no pull request to comment
+      # on. Post the URL on the open PR of this branch instead, and keep that one
+      # comment up to date on every deploy. A second, pull_request-triggered
+      # deploy would build the merge commit with the base branch, which is not
+      # what runs here.
+      - name: Comment the experiment URL on the open PR
+        if: steps.deploy.outputs.url != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.url }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          marker='<!-- deploy-experiment -->'
+          body="${marker}
+          ### Experiment-omgeving
+
+          Uitgerold naar deployment \`${DEPLOYMENT_NAME}\` in ZAD-project \`${PROJECT_ID}\`: ${URL}
+
+          Commit: ${SHA}"
+          for pr in $(gh pr list -R "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[].number'); do
+            id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${pr}/comments" --paginate \
+              --jq ".[] | select(.body | startswith(\"${marker}\")) | .id" | head -n1)
+            if [ -n "$id" ]; then
+              gh api -X PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${id}" -f body="$body" > /dev/null
+            else
+              gh api "repos/${GITHUB_REPOSITORY}/issues/${pr}/comments" -f body="$body" > /dev/null
+            fi
+          done
