@@ -7,39 +7,41 @@ Keycloak-realm, eigen budget.
 
 ## Chat-endpoint
 
-`POST /api/v1/chat`, alleen aanwezig als `CHAT_ENABLED=true`. De backend zet het
-gesprek door naar VLAM (de rijksbrede LLM-gateway, Mistral via UbiOps) en geeft
-het antwoord terug.
+`POST /api/v1/chat`. De backend zet het gesprek door naar VLAM (de rijksbrede
+LLM-gateway, Mistral via UbiOps) en geeft het antwoord terug.
 
 ```bash
 curl -X POST https://<host>/api/v1/chat \
   -H "Authorization: Bearer <keycloak-token>" \
-  -H "x-vlam-api-key: <je eigen VLAM-sleutel>" \
   -H "content-type: application/json" \
   -d '{"messages":[{"role":"user","content":"Wat vraagt het AIIA bij 4.1.2?"}]}'
 ```
 
 Antwoord: `{ "reply": "...", "model": "..." }`.
 
-**De sleutel komt per verzoek mee in de header, niet uit de omgeving.** Er staat
-dus geen LLM-sleutel op de deployment: niets te roteren, niets te lekken bij een
-verkeerd gezette variabele, en geen gedeelde pot die leeggetrokken kan worden.
-Iedereen brengt zijn eigen sleutel mee en betaalt zijn eigen gebruik. De server
-bewaart de sleutel niet en logt hem niet; hij leeft precies één verzoek.
+**De VLAM-sleutel staat als geheim op de deployment.** Wie de omgeving kan
+bereiken, kan dus het VLAM-budget van dit project gebruiken. Daarom staat de
+ZAD-SSO-poort voor `ai-3rt`, en vraagt de route daarnaast om de gewone login.
+De server logt de sleutel niet en geeft hem in geen enkele foutmelding terug.
 
-Foutcodes: `400` ontbrekende of misvormde sleutel, `503` omgeving zonder VLAM,
-`502` VLAM gaf een fout, `504` VLAM antwoordde niet binnen `VLAM_TIMEOUT`.
+Foutcodes: `401` niet ingelogd, `503` omgeving zonder volledige
+VLAM-instellingen, `502` VLAM gaf een fout, `504` VLAM antwoordde niet binnen
+`VLAM_TIMEOUT`.
 
 ## Instellen op ZAD
 
-Op component `api` in `ai-3rt`, geen van beide geheim:
+Op component `api` in `ai-3rt`:
 
 | Variabele | Waarde |
 |---|---|
-| `CHAT_ENABLED` | `true` |
 | `VLAM_BASE_URL` | `https://api.demo.vlam.ai/v2.1/projects/<project>/openai-compatible/v1` |
 | `VLAM_MODEL_ID` | het model uit dat VLAM-project |
+| `VLAM_API_KEY` | de VLAM-sleutel, als geheim |
 | `VLAM_TIMEOUT` | optioneel, standaard 120 (seconden) |
+
+Ontbreekt een van de eerste drie, dan antwoordt de route met `503`. Zet daarnaast
+de ZAD-service **VLAM-API** aan op `api`; zonder die route bereikt de pod VLAM
+niet (zie hieronder).
 
 `VLAM_BASE_URL` heeft bewust geen standaardwaarde. Een standaard zou naar het
 VLAM-project van een ander project wijzen, en een verkeerd ingestelde omgeving
@@ -68,13 +70,13 @@ bereiken is. Dat zou schelen in latency, maar is geen voorwaarde. Test de route
 **Let op:** een backend die op je eigen machine draait, bereikt VLAM niet zonder
 VPN — ook niet met een geldige sleutel. Je krijgt dan een `502`. Werk aan de
 chat-kant dus op de ZAD-omgeving, of zet de VPN aan. De rest van de applicatie
-draait lokaal gewoon; zonder `CHAT_ENABLED` bestaat de chat-route niet en merk
-je er niets van.
+draait lokaal gewoon; zonder VLAM-instellingen antwoordt alleen de chat-route
+met `503`.
 
 ```bash
 pnpm install
 ./script/generate_sources.sh
-CHAT_ENABLED=true VLAM_BASE_URL=... VLAM_MODEL_ID=... pnpm --filter boekhouding-backend dev
+VLAM_BASE_URL=... VLAM_MODEL_ID=... VLAM_API_KEY=... pnpm --filter boekhouding-backend dev
 ```
 
 Tests draaien tegen Postgres; de coverage-drempel staat op 100 procent, dus
@@ -89,8 +91,8 @@ pnpm -r test:coverage
 1. **Deze branch gaat niet naar `main`.** Alleen hier bestaat de koppeling met
    VLAM. Komt de functionaliteit later toch naar productie, dan is dat een
    aparte, bewuste stap met een eigen beoordeling.
-2. **Geen sleutel in de repository en geen sleutel in een omgevingsvariabele.**
-   Een sleutel hoort in de header van het verzoek.
+2. **Geen sleutel in de repository.** De sleutel staat alleen als geheim op
+   component `api` in ZAD, en `ai-3rt` blijft achter de SSO-poort.
 3. **Let op het verbruik.** VLAM antwoordt in ongeveer een seconde zonder tools,
    maar tientallen seconden zodra er tools in het spel zijn. Spreek het aantal
    testruns vooraf af.

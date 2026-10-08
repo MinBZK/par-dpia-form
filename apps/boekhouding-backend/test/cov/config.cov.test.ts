@@ -24,9 +24,9 @@ const ENV_KEYS = [
   'RATE_LIMIT_MAX',
   'RATE_LIMIT_USER_MAX',
   'OIDC_ALLOW_INSECURE_JWKS',
-  'CHAT_ENABLED',
   'VLAM_BASE_URL',
   'VLAM_MODEL_ID',
+  'VLAM_API_KEY',
   'VLAM_TIMEOUT',
 ] as const
 
@@ -376,37 +376,31 @@ describe('assertSecureJwksUri', () => {
   })
 })
 
-// The chat block is off unless switched on explicitly, and carries no key: the
-// caller supplies one per request (see the chat route). These cases pin both
-// halves of every branch in that block.
+// The chat block reads VLAM's endpoint, model and key from the deployment and
+// has no defaults for them (see the chat route, which answers 503 without
+// them). These cases pin both halves of every branch in that block.
 describe('config — chat', () => {
-  it('is off and unconfigured when no chat env vars are set', async () => {
+  it('is unconfigured when no chat env vars are set', async () => {
     const config = await loadConfig()
 
-    expect(config.chat.enabled).toBe(false)
     expect(config.chat.vlam.baseUrl).toBe('')
     expect(config.chat.vlam.modelId).toBe('')
+    expect(config.chat.vlam.apiKey).toBe('')
     expect(config.chat.vlam.timeout).toBe(120)
   })
 
-  it('switches on for exactly "true" and reads the VLAM endpoint', async () => {
-    process.env.CHAT_ENABLED = 'true'
+  it('reads the VLAM endpoint, model, key and timeout', async () => {
     process.env.VLAM_BASE_URL = 'https://vlam.example/v1'
     process.env.VLAM_MODEL_ID = 'some-model'
+    process.env.VLAM_API_KEY = 'sleutel-'.repeat(4)
     process.env.VLAM_TIMEOUT = '45'
 
     const config = await loadConfig()
 
-    expect(config.chat.enabled).toBe(true)
     expect(config.chat.vlam.baseUrl).toBe('https://vlam.example/v1')
     expect(config.chat.vlam.modelId).toBe('some-model')
+    expect(config.chat.vlam.apiKey).toBe('sleutel-'.repeat(4))
     expect(config.chat.vlam.timeout).toBe(45)
-  })
-
-  it.each(['1', 'yes', 'TRUE', ''])('stays off for %j', async (value) => {
-    process.env.CHAT_ENABLED = value
-    const config = await loadConfig()
-    expect(config.chat.enabled).toBe(false)
   })
 
   it('clamps an absurd timeout to the ceiling', async () => {

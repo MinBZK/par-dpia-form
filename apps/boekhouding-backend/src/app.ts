@@ -30,13 +30,10 @@ export interface BuildAppOptions {
   exposeApiDocs?: boolean
   /** Fastify trustProxy value (proxy CIDR or named range). Defaults to config.trustProxy. */
   trustProxy?: string | boolean
-  /** Register the VLAM chat route. Defaults to config.chat.enabled. */
-  chatEnabled?: boolean
 }
 
 export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyInstance> {
   const exposeApiDocs = options.exposeApiDocs ?? config.exposeApiDocs
-  const chatEnabled = options.chatEnabled ?? config.chat.enabled
   const app = Fastify({
     logger: options.logger ?? true,
     // Small by default so a new route cannot inherit a 25 MB parse budget by
@@ -95,7 +92,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         { name: 'assessments', description: 'Assessments beheren' },
         { name: 'projects', description: 'Projecten en leden beheren' },
         { name: 'sync', description: 'Collaboration sync signals voor polling clients' },
-        { name: 'chat', description: 'Chat via VLAM (alleen aanwezig als CHAT_ENABLED aanstaat)' },
+        { name: 'chat', description: 'Chat via VLAM (503 zolang VLAM niet is ingesteld)' },
       ],
       components: {
         securitySchemes: {
@@ -213,9 +210,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(assessmentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
-  // Absent, not merely disabled, when the flag is off: an environment without
-  // an LLM set up should have no LLM endpoint to find.
-  if (chatEnabled) await app.register(chatRoutes, { prefix: '/api/v1/chat' })
+  await app.register(chatRoutes, { prefix: '/api/v1/chat' })
 
   // Readiness: reports 503 once beginShutdown() has been called, so Kubernetes
   // stops routing new traffic here before the server actually closes.

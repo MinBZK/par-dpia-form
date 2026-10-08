@@ -2,26 +2,19 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { config } from '../config.js'
 import { requireAuth } from '../middleware/auth.js'
 import { dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
-import { API_KEY_REJECTION_DETAIL, validateApiKey } from '../utils/apiKey.js'
 
 /**
  * Chat against VLAM — the experiment surface for adding AI help to the AIIA.
  *
- * Registered only when config.chat.enabled is on, so an environment that was
- * never set up for an LLM has no such endpoint at all rather than one that
- * fails at call time.
+ * The VLAM key comes from the deployment (config.chat.vlam.apiKey). Who may
+ * spend it is decided in front of the app, by the ZAD SSO gate, and by the
+ * login every other route requires as well.
  *
- * Three things this route deliberately does not do:
- *  - It keeps no key. The caller's key is read from the request, used for that
- *    one outbound call and then goes out of scope; nothing is cached on the app
- *    instance, where a second concurrent request could pick it up.
- *  - It never logs the key, nor echoes it in an error. Every failure names the
- *    header and the reason, never the value.
+ * Two things this route deliberately does not do:
+ *  - It never logs the key, nor echoes it in an error.
  *  - It stores nothing. A conversation lives in the client; this is a proxy,
  *    not a transcript.
  */
-
-const KEY_HEADER = 'x-vlam-api-key'
 
 // A conversation the client replays on every turn, bounded so one request
 // cannot turn into an unbounded bill. The body limit (64 kB, see app.ts) is the
@@ -46,15 +39,15 @@ function problem(reply: FastifyReply, request: FastifyRequest, status: number, t
 export async function chatRoutes(app: FastifyInstance) {
   app.setSchemaErrorFormatter(dutchSchemaErrorFormatter)
 
-  // Chat costs the caller money and reaches an external service, so it is not
-  // anonymous even though the key is the caller's own.
+  // Chat spends the environment's VLAM budget and reaches an external service,
+  // so it is never anonymous.
   app.addHook('preHandler', requireAuth)
 
   app.post<{ Body: ChatBody }>('/', {
     schema: {
       tags: ['chat'],
       description:
-        'Stuurt een gesprek door naar VLAM en geeft het antwoord terug. De sleutel komt per verzoek mee in de header x-vlam-api-key; de server bewaart geen sleutel en geen gesprek.',
+        'Stuurt een gesprek door naar VLAM en geeft het antwoord terug. De server bewaart geen gesprek.',
       body: {
         type: 'object',
         required: ['messages'],
@@ -88,19 +81,14 @@ export async function chatRoutes(app: FastifyInstance) {
       },
     },
   }, async (request, reply) => {
-    const rejection = validateApiKey(request.headers[KEY_HEADER] as string | undefined)
-    if (rejection) {
-      return problem(reply, request, 400, 'Sleutel ontbreekt of is ongeldig', API_KEY_REJECTION_DETAIL[rejection])
-    }
-
-    const { baseUrl, modelId, timeout } = config.chat.vlam
-    if (!baseUrl || !modelId) {
+    const { baseUrl, modelId, apiKey, timeout } = config.chat.vlam
+    if (!baseUrl || !modelId || !apiKey) {
       return problem(
         reply,
         request,
         503,
         'Chat niet geconfigureerd',
-        'VLAM_BASE_URL en VLAM_MODEL_ID staan niet ingesteld op deze omgeving.',
+        'VLAM_BASE_URL, VLAM_MODEL_ID en VLAM_API_KEY staan niet allemaal ingesteld op deze omgeving.',
       )
     }
 
@@ -110,7 +98,7 @@ export async function chatRoutes(app: FastifyInstance) {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          authorization: `Bearer ${request.headers[KEY_HEADER] as string}`,
+          authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({ model: modelId, messages: request.body.messages }),
         signal: AbortSignal.timeout(timeout * 1000),

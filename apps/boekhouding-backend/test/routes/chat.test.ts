@@ -24,8 +24,8 @@ const jwks = getJwks()
 const realFetch = globalThis.fetch
 const originalVlam = { ...config.chat.vlam }
 
-function headers(extra: Record<string, string> = {}) {
-  return { authorization: `Bearer ${token}`, 'x-vlam-api-key': KEY, ...extra }
+function headers() {
+  return { authorization: `Bearer ${token}` }
 }
 
 const body = { messages: [{ role: 'user', content: 'Wat is een AIIA?' }] }
@@ -48,7 +48,7 @@ function vlamResponse(payload: unknown, status = 200) {
 }
 
 beforeAll(async () => {
-  app = await buildApp({ logger: false, chatEnabled: true })
+  app = await buildApp({ logger: false })
   await app.ready()
 })
 
@@ -63,6 +63,7 @@ beforeEach(async () => {
   token = await jwks.signToken({ sub: user.oidcSub, email: user.email })
   config.chat.vlam.baseUrl = 'https://vlam.example/v1'
   config.chat.vlam.modelId = 'test-model'
+  config.chat.vlam.apiKey = KEY
   config.chat.vlam.timeout = 30
 })
 
@@ -72,50 +73,9 @@ afterEach(() => {
 })
 
 describe('POST /api/v1/chat', () => {
-  it('is absent when the chat flag is off', async () => {
-    const off = await buildApp({ logger: false, chatEnabled: false })
-    await off.ready()
-    const res = await off.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
-    expect(res.statusCode).toBe(404)
-    await off.close()
-  })
-
   it('requires authentication', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: CHAT_URL,
-      headers: { 'x-vlam-api-key': KEY },
-      payload: body,
-    })
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, payload: body })
     expect(res.statusCode).toBe(401)
-  })
-
-  it('refuses a request without a key', async () => {
-    const res = await app.inject({
-      method: 'POST',
-      url: CHAT_URL,
-      headers: { authorization: `Bearer ${token}` },
-      payload: body,
-    })
-    expect(res.statusCode).toBe(400)
-    expect(res.json().detail).toContain('x-vlam-api-key')
-  })
-
-  it.each([
-    ['too short', 'short'],
-    ['with whitespace', 'vlam key with spaces 0123456789'],
-    ['non-ascii', 'vlam-sleutel-méér-dan-twintig'],
-    ['too long', 'k'.repeat(513)],
-  ])('refuses a key %s', async (_label, key) => {
-    const res = await app.inject({
-      method: 'POST',
-      url: CHAT_URL,
-      headers: headers({ 'x-vlam-api-key': key }),
-      payload: body,
-    })
-    expect(res.statusCode).toBe(400)
-    // The rejection never echoes the value back.
-    expect(res.body).not.toContain(key)
   })
 
   it('reports 503 when the environment has no VLAM configured', async () => {
@@ -126,6 +86,12 @@ describe('POST /api/v1/chat', () => {
 
   it('reports 503 when the model is missing', async () => {
     config.chat.vlam.modelId = ''
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(503)
+  })
+
+  it('reports 503 when the key is missing', async () => {
+    config.chat.vlam.apiKey = ''
     const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
     expect(res.statusCode).toBe(503)
   })

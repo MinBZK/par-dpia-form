@@ -102,25 +102,19 @@ export const config = {
     audience: process.env.OIDC_PUBLIC_CLIENT_ID || 'boekhouding-frontend',
   },
   // Chat against VLAM, the government-wide LLM gateway (Mistral via UbiOps,
-  // OpenAI-compatible). Off unless CHAT_ENABLED is exactly 'true': the AI
-  // experiment lives on its own branch and its own ZAD project, and merging it
-  // must never switch on an LLM call path in an environment that was not set up
-  // for one.
-  //
-  // No API key here, by design. The key travels per request in the
-  // `x-vlam-api-key` header, so no LLM secret sits on a deployment: nothing to
-  // rotate, nothing to leak through a misconfigured component, and no shared
-  // budget for whoever reaches the endpoint to drain. The cost lands with the
-  // person making the call.
+  // OpenAI-compatible). The key is a secret on the deployment; access to the
+  // environment, and so to its budget, is guarded by the ZAD SSO gate in front
+  // of it. An environment without all three VLAM settings answers the chat
+  // route with 503, so an LLM call path stays dead wherever none was set up.
   //
   // baseUrl has no default on purpose. A default would have to name someone
   // else's VLAM project, and a misconfigured deployment would then quietly
   // spend their budget instead of failing.
   chat: {
-    enabled: process.env.CHAT_ENABLED === 'true',
     vlam: {
       baseUrl: process.env.VLAM_BASE_URL || '',
       modelId: process.env.VLAM_MODEL_ID || '',
+      apiKey: process.env.VLAM_API_KEY || '',
       // Seconds. VLAM answers in ~1s without tools but takes tens of seconds
       // once tools are in play, so the ceiling is generous.
       timeout: parsePositiveInt(process.env.VLAM_TIMEOUT, 120, 600),
