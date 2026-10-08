@@ -62,6 +62,10 @@ jobs:
           api-key: ${{ secrets.ZAD_AI_3RT_API_KEY }}
           project-id: ${{ env.PROJECT_ID }}
           deployment-name: ${{ env.DEPLOYMENT_NAME }}
+          # One host for both components, frontend on / and api on /api: the
+          # frontend calls the API same-origin. The default format gives every
+          # component a host of its own, which leaves /api on the frontend.
+          domain-format: deployment-project
           # Off until ai-3rt serves /api/health outside its SSO gate. The
           # readiness poll in zad-actions only accepts HTTP 200-399, so the 403
           # of a login page never counts as ready and the run goes red while the
