@@ -83,7 +83,7 @@ Tasks MAY have the following additional properties:
 - `instance_label_template`: Template for generating labels for repeatable tasks
 - `item_name`: Singular name for add/remove buttons of repeatable tasks (falls back to task name)
 - `references`: References to external systems or documents
-- `sources`: References to external sources such as images
+- `sources`: References to external sources such as images. Each item needs a `source` and a non-empty `description`; the description is also the alt text of an image
 
 
 ### 3.4 Advanced form features
