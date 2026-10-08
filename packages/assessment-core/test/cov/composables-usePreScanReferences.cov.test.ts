@@ -134,6 +134,36 @@ describe('usePreScanReferences — AIIA as reference target', () => {
     expect(result[0].taskId).toBe('4.1')
     expect(result[0].answer).toBe('Mensenrechten')
   })
+
+  it('returns IAMA preview data for an AIIA section, tagged with its source form', () => {
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+
+    const source: FlatTask = {
+      id: '4.1',
+      task: 'IAMA deel 4',
+      type: ['text'],
+      parentId: null,
+      childrenIds: [],
+      references: { AIIA: [{ id: '2.3', type: 'pre-view' }] },
+    }
+    taskStore.flatTasks[FormType.IAMA] = { '4.1': source }
+    taskStore.taskInstances[FormType.IAMA] = {
+      '4.1': { id: '4.1', taskId: '4.1', groupId: '4.1_g', parentInstanceId: null, childInstanceIds: [] },
+    }
+    answerStore.answers[FormType.IAMA]['4.1'] = rawAnswer('Mensenrechten')
+    taskStore.activeNamespace = FormType.AIIA
+
+    const { getPreviewDataForSection } = usePreScanReferences()
+    const result = getPreviewDataForSection('2')
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({
+      taskId: '4.1',
+      answer: 'Mensenrechten',
+      sourceNamespace: FormType.IAMA,
+    })
+  })
 })
 
 describe('usePreScanReferences.findPreScanReferences', () => {

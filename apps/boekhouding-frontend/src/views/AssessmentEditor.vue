@@ -17,6 +17,7 @@ import {
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
+import { loadSourceForms } from '../utils/sourceForms'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
@@ -266,8 +267,12 @@ onMounted(async () => {
         }
       }
     }
-    // Load comments and sync state
-    await collaborationStore.load(props.assessmentId)
+    // Load comments and sync state, together with the answers from the
+    // project's other assessments that this form references.
+    await Promise.all([
+      collaborationStore.load(props.assessmentId),
+      loadSourceForms(assessment.value),
+    ])
     // Now that knownVersion is populated, it's safe to enable the remote-change watcher
     syncReady.value = true
     collaborationStore.startPolling()

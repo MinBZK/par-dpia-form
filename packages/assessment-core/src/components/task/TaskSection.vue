@@ -67,22 +67,6 @@ const firstAccordionChildId = computed<string | null>(() => {
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
-const hasPreScanReferences = computed(() => {
-  if (activeNamespace.value !== FormType.DPIA) return false;
-
-  if (isSigningTask.value) return false;
-
-  const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN));
-
-  // If we're looking at root task "1", check for references to "1", "1.1", "1.2", etc.
-  return preScanTasks.some(task =>
-    task.references &&
-    task.references.DPIA
-  )
-})
-
-const shouldShowPreScanPreview = computed(() => hasPreScanReferences.value)
-
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
 }
@@ -265,7 +249,7 @@ function shouldSkipTask(taskId: string): boolean {
         </fieldset>
       </div>
 
-      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
+      <PreScanPreview v-if="!isSigningTask" :sectionTaskId="task.id" />
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">

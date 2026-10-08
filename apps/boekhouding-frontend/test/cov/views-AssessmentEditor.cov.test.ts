@@ -175,6 +175,9 @@ vi.mock('../../src/composables/useFieldCommentIndicators', () => ({
   useFieldCommentIndicators,
 }))
 
+const { loadSourceForms } = vi.hoisted(() => ({ loadSourceForms: vi.fn() }))
+vi.mock('../../src/utils/sourceForms', () => ({ loadSourceForms }))
+
 // Mock the dynamically-imported schemas so the import resolves deterministically; the real JSON resolves out-of-band and leaks schemaStore.init() calls across tests.
 vi.mock('../../../../sources/generated/DPIA.json', () => ({
   default: { name: 'DPIA', urn: 'urn:nl:dpia', version: '3.0', tasks: [{ id: '0' }] },
@@ -354,6 +357,15 @@ describe('AssessmentEditor — onMounted initialization', () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     expect(schemaStore.init).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('loads the project\'s other assessments as reference sources', async () => {
+    schemaStore.isInitialized = true
+    const assessment = makeAssessment({ assessmentType: 'aiia' })
+    assessmentsApi.get.mockResolvedValueOnce(assessment)
+    const wrapper = await mountEditor()
+    expect(loadSourceForms).toHaveBeenCalledWith(assessment)
     wrapper.unmount()
   })
 

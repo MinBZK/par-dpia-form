@@ -22,7 +22,7 @@ export { useTaskDependencies } from './composables/useTaskDependencies'
 export { useTaskNavigation } from './composables/useTaskNavigation'
 export { usePreScanReferences } from './composables/usePreScanReferences'
 export type { PreScanReference } from './composables/usePreScanReferences'
-export { useReferences } from './composables/useReferences'
+export { useReferences, REFERENCE_KEY } from './composables/useReferences'
 export type { ReferenceSuggestion, ReferenceMatch, ReferenceScope } from './composables/useReferences'
 
 // Persistence

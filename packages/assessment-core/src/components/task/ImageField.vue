@@ -2,7 +2,8 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { useAnswerStore, isImageValue, type ImageValue } from '../../stores/answers'
-import { type FlatTask } from '../../stores/tasks'
+import { type FlatTask, useTaskStore } from '../../stores/tasks'
+import { useTaskDependencies } from '../../composables/useTaskDependencies'
 import { resizeImageToDataUri } from '../../utils/imageResize'
 import UiButton from '../ui/UiButton.vue'
 
@@ -14,6 +15,8 @@ const props = defineProps<{
 }>()
 
 const answerStore = useAnswerStore()
+const taskStore = useTaskStore()
+const { canUserCreateInstances } = useTaskDependencies()
 const fileInput = ref<HTMLInputElement | null>(null)
 const isProcessing = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -41,6 +44,21 @@ const legacyIsUrl = computed(() => {
 })
 
 const hasImage = computed(() => imageData.value !== null)
+
+// In a repeatable group with more than one item, TaskGroup already shows
+// "Verwijder <item>" for the whole item; a second button with the same label
+// here would be confusing, so this one only appears for a single item.
+const canRemove = computed(() => {
+  const own = taskStore.getInstanceById(props.instanceId)
+  const group = own?.parentInstanceId ? taskStore.getInstanceById(own.parentInstanceId) : undefined
+  if (!group || !canUserCreateInstances.value(group.taskId)) return true
+  return taskStore.getInstancesForTask(group.taskId, group.parentInstanceId ?? undefined).length <= 1
+})
+
+function removeImage() {
+  answerStore.removeAnswer(props.instanceId)
+  errorMessage.value = null
+}
 
 function saveImageValue(updates: Partial<ImageValue>) {
   const current = imageData.value
@@ -169,7 +187,10 @@ watch(() => imageData.value?.description, () => {
         <div v-if="isDragging" class="image-replace-overlay">Sleep een afbeelding hierheen om de huidige afbeelding te vervangen</div>
       </div>
 
-      <UiButton variant="secondary" label="Vervang afbeelding" class="rvo-margin-block-end--md" @click="triggerFileSelect" />
+      <div class="image-actions rvo-margin-block-end--md">
+        <UiButton variant="secondary" label="Vervang afbeelding" @click="triggerFileSelect" />
+        <UiButton v-if="canRemove" variant="tertiary" icon="verwijderen" label="Verwijder afbeelding" @click="removeImage" />
+      </div>
 
       <!-- Metadata fields (only shown when an image is uploaded) -->
       <div class="rvo-layout-column rvo-layout-gap--xs">

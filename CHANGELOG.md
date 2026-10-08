@@ -24,6 +24,26 @@ build) staan kort onder "Onder de motorkap".
   formulier en in een project met account, met dezelfde export en
   versiegeschiedenis als de andere invulhulpen.
 
+* Een vraag kan nu ook antwoorden uit de DPIA, het IAMA of het AIIA als
+  achtergrond tonen, net zoals de DPIA dat al deed met de pre-scan. In een
+  project met account komen die antwoorden uit de meest recent bijgewerkte
+  invulhulp van dat type in hetzelfde project. Welke vragen aan elkaar
+  gekoppeld zijn, wordt nog ingevuld.
+* Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
+  Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
+  die was.
+* In de IAMA kan je bij vraag 2.2B.4 (dataminimalisatie) en vraag 3.1.1 (het
+  proces rond het algoritme) optioneel afbeeldingen toevoegen, zoals een
+  procesplaat.
+* In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
+  toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
+
+### Beveiliging
+
+* Bekende kwetsbaarheden in onderdelen van de server en de invulhulp zijn
+  verholpen door die onderdelen bij te werken (onder meer Fastify, dat
+  kwetsbaar was voor het omzeilen van aanmelding en validatie).
+
 ### Opgelost
 
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
