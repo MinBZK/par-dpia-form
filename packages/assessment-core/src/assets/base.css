@@ -385,6 +385,12 @@
   background-color: var(--rvo-color-grijs-100);
 }
 
+.rvo-theme .image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rvo-space-sm);
+}
+
 .rvo-theme .image-preview {
   max-width: 100%;
   max-height: 400px;

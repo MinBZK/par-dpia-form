@@ -24,7 +24,7 @@
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "drizzle-orm": "^0.45.2",
-    "fastify": "^5.12.1",
+    "fastify": "^5.12.5",
     "jose": "^6.2.10",
     "postgres": "^3.4.9"
   },

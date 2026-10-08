@@ -285,7 +285,7 @@ birpc@2.9.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-brace-expansion@5.0.9 [license(s): MIT]
+brace-expansion@5.0.12 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -361,7 +361,7 @@ dfa@1.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-dompurify@3.4.14 [license(s): (MPL-2.0 OR Apache-2.0)]
+dompurify@3.4.16 [license(s): (MPL-2.0 OR Apache-2.0)]
 ├── package.json:  (MPL-2.0 OR Apache-2.0)
 └── license files: (MPL-2.0 OR Apache-2.0)
 
@@ -413,11 +413,11 @@ fast-querystring@1.1.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-fast-uri@3.1.7 [license(s): BSD-3-Clause]
+fast-uri@3.1.8 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-fastify@5.12.1 [license(s): MIT]
+fastify@5.12.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -481,7 +481,7 @@ io-ts@2.2.22 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ip-address@10.5.0 [license(s): MIT]
+ip-address@10.7.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -769,7 +769,7 @@ sonic-boom@4.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-source-map-js@1.2.1 [license(s): BSD-3-Clause]
+source-map-js@1.2.2 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
