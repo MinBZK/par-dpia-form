@@ -1,106 +1,123 @@
 # Experiment: AI-hulp bij het AIIA
 
-Deze branch (`experiment/aiia-ai`) is een afgeschermde speelomgeving. Hij vertakt
-van `add_aiia` en rolt uit naar ZAD-project **`ai-3rt`**, los van het project
-achter acceptatie en productie (`asses-k2n`): eigen database, eigen
-Keycloak-realm, eigen budget.
+Op deze branch (`experiment/aiia-ai`) onderzoeken we hoe een taalmodel kan helpen
+bij het invullen van het AIIA. De omgeving staat klaar: de app draait, de koppeling
+met VLAM (de rijksbrede taalmodel-API) werkt, en je kunt meteen beginnen.
 
-## Chat-endpoint
+## De omgeving
 
-`POST /api/v1/chat`. De backend zet het gesprek door naar VLAM (de rijksbrede
-LLM-gateway, Mistral via UbiOps) en geeft het antwoord terug.
+| | |
+|---|---|
+| Adres | https://experiment-ai-3rt.rig.prd1.gn2.quattro.rijksapps.nl |
+| Inloggen | via SSO; heb je geen toegang, vraag dan je begeleider om een account |
+| Pull request | [#568](https://github.com/MinBZK/par-dpia-form/pull/568) |
+| ZAD-project | `ai-3rt`, deployment `experiment` |
 
-```bash
-curl -X POST https://<host>/api/v1/chat \
-  -H "Authorization: Bearer <keycloak-token>" \
-  -H "content-type: application/json" \
-  -d '{"messages":[{"role":"user","content":"Wat vraagt het AIIA bij 4.1.2?"}]}'
+De omgeving staat los van acceptatie en productie: eigen database, eigen inlog,
+eigen VLAM-budget. Je kunt er niets kapotmaken wat echte gebruikers merken.
+
+## Zo werk je
+
+1. Maak een branch vanaf `experiment/aiia-ai`.
+2. Open een pull request **naar `experiment/aiia-ai`** (niet naar `main`).
+3. Na merge rolt GitHub Actions de nieuwe versie automatisch uit. Dat duurt
+   5 tot 10 minuten; de actuele URL en commit staan als comment in #568.
+
+Alleen `experiment/aiia-ai` wordt uitgerold. Je eigen branch krijgt geen eigen
+omgeving, dus test lokaal (zie onder) of overleg wie wanneer merget.
+
+## De chat-API
+
+De backend zet een gesprek door naar VLAM. De VLAM-sleutel staat op de server; de
+browser krijgt hem nooit te zien. Beide routes vragen een ingelogde gebruiker.
+
+| Route | Wat |
+|---|---|
+| `GET /api/v1/chat/models` | beschikbare modellen: `{ "models": [...], "defaultModel": "..." \| null }` |
+| `POST /api/v1/chat` | stuurt een gesprek, antwoord: `{ "reply": "...", "model": "..." }` |
+
+Body van `POST /api/v1/chat`:
+
+```json
+{
+  "model": "<een id uit /models>",
+  "messages": [
+    { "role": "system", "content": "Je helpt bij het invullen van het AIIA." },
+    { "role": "user", "content": "Wat wordt bedoeld met vraag 4.1.2?" }
+  ]
+}
 ```
 
-Antwoord: `{ "reply": "...", "model": "..." }`.
+`model` mag weg als de omgeving een standaardmodel heeft. Het gesprek wordt niet
+bewaard: stuur bij elke beurt de hele geschiedenis mee (maximaal 50 berichten van
+8000 tekens).
 
-Het model kiest de client: geef `"model": "<id>"` mee in de body. Zonder model geldt
-`VLAM_MODEL_ID`, als die is ingesteld. Welke modellen er zijn, geeft
-`GET /api/v1/chat/models`: `{ "models": [...], "defaultModel": "..." | null }`. De
-sleutel blijft op de server.
+Aanroepen vanuit de frontend gaat via de bestaande helper in
+`apps/boekhouding-frontend/src/api.ts`, die het inlogtoken al meestuurt:
 
-**De VLAM-sleutel staat als geheim op de deployment.** Wie de omgeving kan
-bereiken, kan dus het VLAM-budget van dit project gebruiken. Daarom staat de
-ZAD-SSO-poort voor `ai-3rt`, en vraagt de route daarnaast om de gewone login.
-De server logt de sleutel niet en geeft hem in geen enkele foutmelding terug.
+```ts
+export const chat = {
+  models: () =>
+    request<{ models: string[]; defaultModel: string | null }>('/api/v1/chat/models'),
+  send: (messages: { role: 'system' | 'user' | 'assistant'; content: string }[], model?: string) =>
+    request<{ reply: string; model: string }>('/api/v1/chat', {
+      method: 'POST',
+      body: JSON.stringify({ messages, ...(model && { model }) }),
+    }),
+}
+```
 
-Foutcodes: `401` niet ingelogd, `503` omgeving zonder volledige
-VLAM-instellingen, `502` VLAM gaf een fout, `504` VLAM antwoordde niet binnen
-`VLAM_TIMEOUT`.
+Foutcodes: `400` ongeldig verzoek of geen model, `401` niet ingelogd, `502` VLAM gaf
+een fout, `503` VLAM niet ingesteld op deze omgeving, `504` VLAM antwoordde niet op
+tijd.
 
-## Instellen op ZAD
+## Waar zit wat
 
-Op component `api` in `ai-3rt`:
-
-Zet de ZAD-service **VLAM-API** aan op `api`. Die geeft de pod `VLAM_API_URL`, het
-adres van de VLAM-proxy in het cluster, en opent het netwerk ernaartoe. De backend
-roept VLAM dan aan op `{VLAM_API_URL}/v1/chat/completions`.
-
-| Variabele | Waarde |
+| | |
 |---|---|
-| `VLAM_API_KEY` | de VLAM-sleutel, als geheim (krijg je bij SSC-ICT, niet via ZAD) |
-| `VLAM_MODEL_ID` | optioneel: het model als de client er geen meegeeft |
-| `VLAM_BASE_URL` | alleen buiten ZAD nodig, bijvoorbeeld lokaal; gaat voor `VLAM_API_URL` |
-| `VLAM_TIMEOUT` | optioneel, standaard 120 (seconden) |
-
-Ontbreekt het adres of de sleutel, dan antwoordt de route met `503`. Ontbreekt
-alleen het model, dan `400`.
-
-`VLAM_BASE_URL` heeft bewust geen standaardwaarde. Een standaard zou naar het
-VLAM-project van een ander project wijzen, en een verkeerd ingestelde omgeving
-zou dan stilletjes hun budget opmaken in plaats van te falen.
-
-## Bereikbaarheid van VLAM
-
-VLAM staat achter een IP-slot. Het adres bestaat nog en de server neemt de
-verbinding aan, maar breekt de TLS-handshake af bij een client die er niet op
-staat. Vanaf een willekeurige internetverbinding kom je er dus niet bij.
-
-Dat is voor deze opzet geen belemmering, om twee redenen:
-
-- De aanroep gebeurt **server-side**: de backend praat met VLAM, de browser
-  niet. Alleen de `api`-pod heeft een route nodig, geen enkele student.
-- De uitgaande verbindingen van het ZAD-cluster staan op de allowlist van VLAM.
-
-Er is **geen clientcertificaat** nodig; de Bearer-sleutel in de header volstaat.
-
-Nog niet nagegaan: of VLAM vanuit het cluster ook onder een intern adres te
-bereiken is. Dat zou schelen in latency, maar is geen voorwaarde. Test de route
-één keer vanuit een pod in `ai-3rt` voordat je erop gaat bouwen.
+| Chat-route (backend) | `apps/boekhouding-backend/src/routes/chat.ts` |
+| Frontend | `apps/boekhouding-frontend/` (Vue 3) en `packages/assessment-core/` (formulier) |
+| AIIA-vragen | `sources/aiia.yaml` |
+| Projectconventies | `.claude/CLAUDE.md` |
 
 ## Lokaal draaien
 
-**Let op:** een backend die op je eigen machine draait, bereikt VLAM niet zonder
-VPN — ook niet met een geldige sleutel. Je krijgt dan een `502`. Werk aan de
-chat-kant dus op de ZAD-omgeving, of zet de VPN aan. De rest van de applicatie
-draait lokaal gewoon; zonder VLAM-instellingen antwoordt alleen de chat-route
-met `503`.
-
 ```bash
+corepack enable
 pnpm install
-./script/generate_sources.sh
-VLAM_BASE_URL=... VLAM_MODEL_ID=... VLAM_API_KEY=... pnpm --filter boekhouding-backend dev
+podman compose -f containers/compose.dev.yaml up -d   # backend, frontend, database, Keycloak
+pnpm db:seed                                          # testdata
 ```
 
-Tests draaien tegen Postgres; de coverage-drempel staat op 100 procent, dus
-nieuwe code heeft tests nodig:
+VLAM is alleen bereikbaar vanuit de ZAD-omgeving. Lokaal geeft de chat-route dus
+`503`; de rest van de app werkt gewoon. Wil je lokaal tegen een nep-antwoord
+ontwikkelen, mock dan `chat.send` in de frontend.
 
-```bash
-pnpm -r test:coverage
-```
+Tests draaien met `pnpm -r test:coverage`. De coverage-drempel is 100 procent, dus
+nieuwe code heeft tests nodig. De backend-tests hebben een Postgres nodig (zie
+`.claude/CLAUDE.md`).
 
 ## Afspraken
 
-1. **Deze branch gaat niet naar `main`.** Alleen hier bestaat de koppeling met
-   VLAM. Komt de functionaliteit later toch naar productie, dan is dat een
-   aparte, bewuste stap met een eigen beoordeling.
-2. **Geen sleutel in de repository.** De sleutel staat alleen als geheim op
-   component `api` in ZAD, en `ai-3rt` blijft achter de SSO-poort.
-3. **Let op het verbruik.** VLAM antwoordt in ongeveer een seconde zonder tools,
-   maar tientallen seconden zodra er tools in het spel zijn. Spreek het aantal
-   testruns vooraf af.
+1. **Deze branch gaat niet naar `main`.** Wat we hier leren, komt later via een
+   aparte, bewuste stap naar productie.
+2. **Geen sleutels in de code of in commits.** De VLAM-sleutel staat alleen in ZAD.
+3. **Let op het verbruik.** Elk verzoek kost budget. Een antwoord duurt een paar
+   seconden; met lange gesprekken of veel tekst loopt dat op. Test gericht.
+4. **Geen echte persoonsgegevens** in prompts of testdata. Alles wat je naar de chat
+   stuurt, gaat naar VLAM.
+
+## Voor beheer
+
+Instellingen op component `api` in ZAD-project `ai-3rt`:
+
+| Variabele | Waarde |
+|---|---|
+| `VLAM_API_KEY` | de VLAM-sleutel, als geheim (van SSC-ICT, niet via ZAD) |
+| `VLAM_MODEL_ID` | optioneel: standaardmodel als de client er geen meegeeft |
+| `VLAM_BASE_URL` | alleen buiten ZAD; op ZAD gebruikt de backend `{VLAM_API_URL}/v1` |
+| `VLAM_TIMEOUT` | optioneel, standaard 120 seconden |
+
+`VLAM_API_URL` zet ZAD zelf via de dienst **VLAM-API** op `api`. De Authorization
+Wall (SSO-poort) staat alleen op `frontend`; `api` controleert zelf het
+Keycloak-token, en `/api/health` is publiek zodat de uitrol gecontroleerd kan worden.
