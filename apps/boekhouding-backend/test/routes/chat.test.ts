@@ -1,0 +1,235 @@
+// Integration tests for POST /api/v1/chat.
+//
+// Runs the real Fastify app via app.inject() with real JWTs, and stubs global
+// fetch so no test ever reaches VLAM — a live call would spend someone's budget
+// and make the suite depend on an external service.
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, vi } from 'vitest'
+import type { FastifyInstance } from 'fastify'
+import { buildApp } from '../../src/app.js'
+import { config } from '../../src/config.js'
+import { getJwks } from '../helpers/testContext.js'
+import { truncateAll } from '../helpers/testDb.js'
+import { createUser, type SeededUser } from '../helpers/fixtures.js'
+
+// Built rather than written as a literal, and deliberately low-entropy: a
+// realistic-looking fixture trips the gitleaks pre-commit hook.
+const KEY = 'sleutel-'.repeat(4)
+const CHAT_URL = '/api/v1/chat'
+
+let app: FastifyInstance
+let user: SeededUser
+let token: string
+const jwks = getJwks()
+
+const realFetch = globalThis.fetch
+const originalVlam = { ...config.chat.vlam }
+
+function headers() {
+  return { authorization: `Bearer ${token}` }
+}
+
+const body = { messages: [{ role: 'user', content: 'Wat is een AIIA?' }] }
+
+/** Stub global fetch with a single canned outcome. */
+function stubFetch(outcome: Response | Error) {
+  const fn = vi.fn(async () => {
+    if (outcome instanceof Error) throw outcome
+    return outcome
+  })
+  globalThis.fetch = fn as unknown as typeof fetch
+  return fn
+}
+
+function vlamResponse(payload: unknown, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  })
+}
+
+beforeAll(async () => {
+  app = await buildApp({ logger: false })
+  await app.ready()
+})
+
+afterAll(async () => {
+  await app.close()
+  globalThis.fetch = realFetch
+})
+
+beforeEach(async () => {
+  await truncateAll(process.env.DATABASE_SERVER_FULL!)
+  user = await createUser()
+  token = await jwks.signToken({ sub: user.oidcSub, email: user.email })
+  config.chat.vlam.baseUrl = 'https://vlam.example/v1'
+  config.chat.vlam.modelId = 'test-model'
+  config.chat.vlam.apiKey = KEY
+  config.chat.vlam.timeout = 30
+})
+
+afterEach(() => {
+  globalThis.fetch = realFetch
+  Object.assign(config.chat.vlam, originalVlam)
+})
+
+describe('POST /api/v1/chat', () => {
+  it('requires authentication', async () => {
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, payload: body })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('reports 503 when the environment has no VLAM configured', async () => {
+    config.chat.vlam.baseUrl = ''
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(503)
+  })
+
+  it('asks for a model when neither the request nor the environment names one', async () => {
+    config.chat.vlam.modelId = ''
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(400)
+    expect(res.json().title).toBe('Geen model gekozen')
+  })
+
+  it('uses the model the client asks for', async () => {
+    const fetchMock = stubFetch(vlamResponse({ choices: [{ message: { content: 'ok' } }] }))
+    const res = await app.inject({
+      method: 'POST',
+      url: CHAT_URL,
+      headers: headers(),
+      payload: { ...body, model: 'mistral-small' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json().model).toBe('mistral-small')
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).model).toBe('mistral-small')
+  })
+
+  it('refuses a model id with characters model names do not use', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: CHAT_URL,
+      headers: headers(),
+      payload: { ...body, model: 'model"; drop' },
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('reports 503 when the key is missing', async () => {
+    config.chat.vlam.apiKey = ''
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(503)
+  })
+
+  it('rejects a body that is not a conversation', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: CHAT_URL,
+      headers: headers(),
+      payload: { messages: [{ role: 'wizard', content: 'hallo' }] },
+    })
+    expect(res.statusCode).toBe(400)
+  })
+
+  it('returns the assistant message on success', async () => {
+    const fetchMock = stubFetch(
+      vlamResponse({ model: 'mistral-medium', choices: [{ message: { content: 'Een AIIA is...' } }] }),
+    )
+
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.json()).toEqual({ reply: 'Een AIIA is...', model: 'mistral-medium' })
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://vlam.example/v1/chat/completions')
+    expect((init.headers as Record<string, string>).authorization).toBe(`Bearer ${KEY}`)
+    expect(JSON.parse(init.body as string).model).toBe('test-model')
+  })
+
+  it('falls back to the configured model when VLAM names none', async () => {
+    stubFetch(vlamResponse({ choices: [{ message: { content: 'ok' } }] }))
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.json().model).toBe('test-model')
+  })
+
+  it('maps an upstream error status to 502', async () => {
+    stubFetch(vlamResponse({ error: 'nope' }, 500))
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(502)
+    expect(res.json().detail).toContain('500')
+  })
+
+  it.each([
+    ['an empty choices list', { choices: [] }],
+    ['no choices at all', { model: 'x' }],
+    ['a choice without a message', { choices: [{}] }],
+    ['a message without content', { choices: [{ message: {} }] }],
+  ])('maps %s to 502', async (_label, payload) => {
+    stubFetch(vlamResponse(payload))
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(502)
+  })
+
+  it('maps a timeout to 504', async () => {
+    const timeout = new Error('timed out')
+    timeout.name = 'TimeoutError'
+    stubFetch(timeout)
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(504)
+  })
+
+  it('maps an unreachable gateway to 502', async () => {
+    stubFetch(new TypeError('fetch failed'))
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.statusCode).toBe(502)
+  })
+
+  it('never sends the key to the client, in any outcome', async () => {
+    stubFetch(vlamResponse({ choices: [{ message: { content: 'ok' } }] }))
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.body).not.toContain(KEY)
+  })
+})
+
+describe('GET /api/v1/chat/models', () => {
+  const MODELS_URL = `${CHAT_URL}/models`
+
+  it('requires authentication', async () => {
+    const res = await app.inject({ method: 'GET', url: MODELS_URL })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('lists the model ids VLAM offers, with the environment default', async () => {
+    const fetchMock = stubFetch(vlamResponse({ data: [{ id: 'mistral-medium' }, { id: 'mistral-small' }, { id: 7 }, {}] }))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(200)
+    expect(res.json()).toEqual({ models: ['mistral-medium', 'mistral-small'], defaultModel: 'test-model' })
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://vlam.example/v1/models')
+    expect(init.method).toBe('GET')
+    expect((init.headers as Record<string, string>).authorization).toBe(`Bearer ${KEY}`)
+    expect(init.body).toBeUndefined()
+  })
+
+  it('returns an empty list and no default when VLAM lists nothing and none is set', async () => {
+    config.chat.vlam.modelId = ''
+    stubFetch(vlamResponse({}))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.json()).toEqual({ models: [], defaultModel: null })
+  })
+
+  it('reports 503 when the environment has no VLAM configured', async () => {
+    config.chat.vlam.apiKey = ''
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(503)
+  })
+
+  it('maps an upstream error status to 502', async () => {
+    stubFetch(vlamResponse({ error: 'nope' }, 401))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(502)
+    expect(res.body).not.toContain(KEY)
+  })
+})
