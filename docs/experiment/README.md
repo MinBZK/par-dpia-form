@@ -19,6 +19,11 @@ curl -X POST https://<host>/api/v1/chat \
 
 Antwoord: `{ "reply": "...", "model": "..." }`.
 
+Het model kiest de client: geef `"model": "<id>"` mee in de body. Zonder model geldt
+`VLAM_MODEL_ID`, als die is ingesteld. Welke modellen er zijn, geeft
+`GET /api/v1/chat/models`: `{ "models": [...], "defaultModel": "..." | null }`. De
+sleutel blijft op de server.
+
 **De VLAM-sleutel staat als geheim op de deployment.** Wie de omgeving kan
 bereiken, kan dus het VLAM-budget van dit project gebruiken. Daarom staat de
 ZAD-SSO-poort voor `ai-3rt`, en vraagt de route daarnaast om de gewone login.
@@ -39,11 +44,12 @@ roept VLAM dan aan op `{VLAM_API_URL}/v1/chat/completions`.
 | Variabele | Waarde |
 |---|---|
 | `VLAM_API_KEY` | de VLAM-sleutel, als geheim (krijg je bij SSC-ICT, niet via ZAD) |
-| `VLAM_MODEL_ID` | het model dat je wilt gebruiken |
+| `VLAM_MODEL_ID` | optioneel: het model als de client er geen meegeeft |
 | `VLAM_BASE_URL` | alleen buiten ZAD nodig, bijvoorbeeld lokaal; gaat voor `VLAM_API_URL` |
 | `VLAM_TIMEOUT` | optioneel, standaard 120 (seconden) |
 
-Ontbreekt het adres, het model of de sleutel, dan antwoordt de route met `503`.
+Ontbreekt het adres of de sleutel, dan antwoordt de route met `503`. Ontbreekt
+alleen het model, dan `400`.
 
 `VLAM_BASE_URL` heeft bewust geen standaardwaarde. Een standaard zou naar het
 VLAM-project van een ander project wijzen, en een verkeerd ingestelde omgeving

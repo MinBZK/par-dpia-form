@@ -84,10 +84,35 @@ describe('POST /api/v1/chat', () => {
     expect(res.statusCode).toBe(503)
   })
 
-  it('reports 503 when the model is missing', async () => {
+  it('asks for a model when neither the request nor the environment names one', async () => {
     config.chat.vlam.modelId = ''
     const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
-    expect(res.statusCode).toBe(503)
+    expect(res.statusCode).toBe(400)
+    expect(res.json().title).toBe('Geen model gekozen')
+  })
+
+  it('uses the model the client asks for', async () => {
+    const fetchMock = stubFetch(vlamResponse({ choices: [{ message: { content: 'ok' } }] }))
+    const res = await app.inject({
+      method: 'POST',
+      url: CHAT_URL,
+      headers: headers(),
+      payload: { ...body, model: 'mistral-small' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json().model).toBe('mistral-small')
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(JSON.parse(init.body as string).model).toBe('mistral-small')
+  })
+
+  it('refuses a model id with characters model names do not use', async () => {
+    const res = await app.inject({
+      method: 'POST',
+      url: CHAT_URL,
+      headers: headers(),
+      payload: { ...body, model: 'model"; drop' },
+    })
+    expect(res.statusCode).toBe(400)
   })
 
   it('reports 503 when the key is missing', async () => {
@@ -163,6 +188,48 @@ describe('POST /api/v1/chat', () => {
   it('never sends the key to the client, in any outcome', async () => {
     stubFetch(vlamResponse({ choices: [{ message: { content: 'ok' } }] }))
     const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(res.body).not.toContain(KEY)
+  })
+})
+
+describe('GET /api/v1/chat/models', () => {
+  const MODELS_URL = `${CHAT_URL}/models`
+
+  it('requires authentication', async () => {
+    const res = await app.inject({ method: 'GET', url: MODELS_URL })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('lists the model ids VLAM offers, with the environment default', async () => {
+    const fetchMock = stubFetch(vlamResponse({ data: [{ id: 'mistral-medium' }, { id: 'mistral-small' }, { id: 7 }, {}] }))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(200)
+    expect(res.json()).toEqual({ models: ['mistral-medium', 'mistral-small'], defaultModel: 'test-model' })
+
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://vlam.example/v1/models')
+    expect(init.method).toBe('GET')
+    expect((init.headers as Record<string, string>).authorization).toBe(`Bearer ${KEY}`)
+    expect(init.body).toBeUndefined()
+  })
+
+  it('returns an empty list and no default when VLAM lists nothing and none is set', async () => {
+    config.chat.vlam.modelId = ''
+    stubFetch(vlamResponse({}))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.json()).toEqual({ models: [], defaultModel: null })
+  })
+
+  it('reports 503 when the environment has no VLAM configured', async () => {
+    config.chat.vlam.apiKey = ''
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(503)
+  })
+
+  it('maps an upstream error status to 502', async () => {
+    stubFetch(vlamResponse({ error: 'nope' }, 401))
+    const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
+    expect(res.statusCode).toBe(502)
     expect(res.body).not.toContain(KEY)
   })
 })
