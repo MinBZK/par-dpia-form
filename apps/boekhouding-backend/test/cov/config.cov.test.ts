@@ -25,6 +25,7 @@ const ENV_KEYS = [
   'RATE_LIMIT_USER_MAX',
   'OIDC_ALLOW_INSECURE_JWKS',
   'VLAM_BASE_URL',
+  'VLAM_API_URL',
   'VLAM_MODEL_ID',
   'VLAM_API_KEY',
   'VLAM_TIMEOUT',
@@ -401,6 +402,19 @@ describe('config — chat', () => {
     expect(config.chat.vlam.modelId).toBe('some-model')
     expect(config.chat.vlam.apiKey).toBe('sleutel-'.repeat(4))
     expect(config.chat.vlam.timeout).toBe(45)
+  })
+
+  it('derives the base URL from the ZAD VLAM-API proxy', async () => {
+    process.env.VLAM_API_URL = 'http://vlam-proxy.example:8081/'
+    const config = await loadConfig()
+    expect(config.chat.vlam.baseUrl).toBe('http://vlam-proxy.example:8081/v1')
+  })
+
+  it('prefers an explicit VLAM_BASE_URL over the proxy', async () => {
+    process.env.VLAM_API_URL = 'http://vlam-proxy.example:8081'
+    process.env.VLAM_BASE_URL = 'https://vlam.example/v1'
+    const config = await loadConfig()
+    expect(config.chat.vlam.baseUrl).toBe('https://vlam.example/v1')
   })
 
   it('clamps an absurd timeout to the ceiling', async () => {

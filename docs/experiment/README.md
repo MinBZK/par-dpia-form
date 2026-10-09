@@ -32,16 +32,18 @@ VLAM-instellingen, `502` VLAM gaf een fout, `504` VLAM antwoordde niet binnen
 
 Op component `api` in `ai-3rt`:
 
+Zet de ZAD-service **VLAM-API** aan op `api`. Die geeft de pod `VLAM_API_URL`, het
+adres van de VLAM-proxy in het cluster, en opent het netwerk ernaartoe. De backend
+roept VLAM dan aan op `{VLAM_API_URL}/v1/chat/completions`.
+
 | Variabele | Waarde |
 |---|---|
-| `VLAM_BASE_URL` | `https://api.demo.vlam.ai/v2.1/projects/<project>/openai-compatible/v1` |
-| `VLAM_MODEL_ID` | het model uit dat VLAM-project |
-| `VLAM_API_KEY` | de VLAM-sleutel, als geheim |
+| `VLAM_API_KEY` | de VLAM-sleutel, als geheim (krijg je bij SSC-ICT, niet via ZAD) |
+| `VLAM_MODEL_ID` | het model dat je wilt gebruiken |
+| `VLAM_BASE_URL` | alleen buiten ZAD nodig, bijvoorbeeld lokaal; gaat voor `VLAM_API_URL` |
 | `VLAM_TIMEOUT` | optioneel, standaard 120 (seconden) |
 
-Ontbreekt een van de eerste drie, dan antwoordt de route met `503`. Zet daarnaast
-de ZAD-service **VLAM-API** aan op `api`; zonder die route bereikt de pod VLAM
-niet (zie hieronder).
+Ontbreekt het adres, het model of de sleutel, dan antwoordt de route met `503`.
 
 `VLAM_BASE_URL` heeft bewust geen standaardwaarde. Een standaard zou naar het
 VLAM-project van een ander project wijzen, en een verkeerd ingestelde omgeving

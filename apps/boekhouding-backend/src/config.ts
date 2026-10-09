@@ -107,12 +107,15 @@ export const config = {
   // of it. An environment without all three VLAM settings answers the chat
   // route with 503, so an LLM call path stays dead wherever none was set up.
   //
-  // baseUrl has no default on purpose. A default would have to name someone
-  // else's VLAM project, and a misconfigured deployment would then quietly
-  // spend their budget instead of failing.
+  // baseUrl has no hard-coded default on purpose. A default would have to name
+  // someone else's VLAM project, and a misconfigured deployment would then
+  // quietly spend their budget instead of failing. On ZAD the VLAM-API service
+  // injects VLAM_API_URL, its in-cluster proxy, which serves the OpenAI-
+  // compatible API under /v1; VLAM_BASE_URL overrides it, e.g. for local work.
   chat: {
     vlam: {
-      baseUrl: process.env.VLAM_BASE_URL || '',
+      baseUrl: process.env.VLAM_BASE_URL
+        || (process.env.VLAM_API_URL ? `${process.env.VLAM_API_URL.replace(/\/+$/, '')}/v1` : ''),
       modelId: process.env.VLAM_MODEL_ID || '',
       apiKey: process.env.VLAM_API_KEY || '',
       // Seconds. VLAM answers in ~1s without tools but takes tens of seconds

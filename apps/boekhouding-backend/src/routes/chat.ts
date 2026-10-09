@@ -88,7 +88,7 @@ export async function chatRoutes(app: FastifyInstance) {
         request,
         503,
         'Chat niet geconfigureerd',
-        'VLAM_BASE_URL, VLAM_MODEL_ID en VLAM_API_KEY staan niet allemaal ingesteld op deze omgeving.',
+        'Deze omgeving mist een VLAM-adres (de dienst VLAM-API of VLAM_BASE_URL), VLAM_MODEL_ID of VLAM_API_KEY.',
       )
     }
 
