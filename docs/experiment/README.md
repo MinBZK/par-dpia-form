@@ -8,7 +8,7 @@ met VLAM (de rijksbrede taalmodel-API) werkt, en je kunt meteen beginnen.
 
 | | |
 |---|---|
-| Adres | https://experiment-ai-3rt.rig.prd1.gn2.quattro.rijksapps.nl |
+| Adres | `https://experiment-ai-3rt.rig.prd1.gn2.quattro.rijksapps.nl` (achter SSO, daarom geen klikbare link: de linkcheck krijgt 403) |
 | Inloggen | via SSO; heb je geen toegang, vraag dan je begeleider om een account |
 | Pull request | [#568](https://github.com/MinBZK/par-dpia-form/pull/568) |
 | ZAD-project | `ai-3rt`, deployment `experiment` |
