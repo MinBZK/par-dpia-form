@@ -24,6 +24,11 @@ const ENV_KEYS = [
   'RATE_LIMIT_MAX',
   'RATE_LIMIT_USER_MAX',
   'OIDC_ALLOW_INSECURE_JWKS',
+  'VLAM_BASE_URL',
+  'VLAM_API_URL',
+  'VLAM_MODEL_ID',
+  'VLAM_API_KEY',
+  'VLAM_TIMEOUT',
 ] as const
 
 const originalEnv: Record<string, string | undefined> = {}
@@ -369,5 +374,52 @@ describe('assertSecureJwksUri', () => {
     process.env.OIDC_INTERNAL_URL = 'https://keycloak.example.nl'
     const assertSecureJwksUri = await loadAssert()
     expect(() => assertSecureJwksUri()).not.toThrow()
+  })
+})
+
+// The chat block reads VLAM's endpoint, model and key from the deployment and
+// has no defaults for them (see the chat route, which answers 503 without
+// them). These cases pin both halves of every branch in that block.
+describe('config — chat', () => {
+  it('is unconfigured when no chat env vars are set', async () => {
+    const config = await loadConfig()
+
+    expect(config.chat.vlam.baseUrl).toBe('')
+    expect(config.chat.vlam.modelId).toBe('')
+    expect(config.chat.vlam.apiKey).toBe('')
+    expect(config.chat.vlam.timeout).toBe(120)
+  })
+
+  it('reads the VLAM endpoint, model, key and timeout', async () => {
+    process.env.VLAM_BASE_URL = 'https://vlam.example/v1'
+    process.env.VLAM_MODEL_ID = 'some-model'
+    process.env.VLAM_API_KEY = 'sleutel-'.repeat(4)
+    process.env.VLAM_TIMEOUT = '45'
+
+    const config = await loadConfig()
+
+    expect(config.chat.vlam.baseUrl).toBe('https://vlam.example/v1')
+    expect(config.chat.vlam.modelId).toBe('some-model')
+    expect(config.chat.vlam.apiKey).toBe('sleutel-'.repeat(4))
+    expect(config.chat.vlam.timeout).toBe(45)
+  })
+
+  it('derives the base URL from the ZAD VLAM-API proxy', async () => {
+    process.env.VLAM_API_URL = 'http://vlam-proxy.example:8081/'
+    const config = await loadConfig()
+    expect(config.chat.vlam.baseUrl).toBe('http://vlam-proxy.example:8081/v1')
+  })
+
+  it('prefers an explicit VLAM_BASE_URL over the proxy', async () => {
+    process.env.VLAM_API_URL = 'http://vlam-proxy.example:8081'
+    process.env.VLAM_BASE_URL = 'https://vlam.example/v1'
+    const config = await loadConfig()
+    expect(config.chat.vlam.baseUrl).toBe('https://vlam.example/v1')
+  })
+
+  it('clamps an absurd timeout to the ceiling', async () => {
+    process.env.VLAM_TIMEOUT = '99999'
+    const config = await loadConfig()
+    expect(config.chat.vlam.timeout).toBe(600)
   })
 })
