@@ -45,7 +45,7 @@ Optional fields:
 - `dependencies`: conditional display rules
 - `calculation`: score calculation logic
 - `references`: cross-references to other assessments
-- `sources`: external resource references (images, documents)
+- `sources`: external resource references (images, documents); each item requires `source` and a non-empty `description` (the alt text of an image)
 - `required_status`: whether the field is mandatory
 - `instance_label_template`: template for repeatable instance labels (e.g. `"Gegevensverwerking {4.1.1}"`)
 

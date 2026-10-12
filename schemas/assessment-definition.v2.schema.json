@@ -317,11 +317,13 @@
                             },
                             "description": {
                                 "type": "string",
-                                "description": "Description of the resource and its purpose"
+                                "minLength": 1,
+                                "description": "Description of the resource and its purpose; also the alt text of an image, so required"
                             }
                         },
                         "required": [
-                            "source"
+                            "source",
+                            "description"
                         ]
                     }
                 },
