@@ -257,7 +257,7 @@ const isInformationalStep = computed(() => {
       :class="{ 'rvo-max-width-layout-inline-padding--md': showNavHeader }">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN || namespace === FormType.IAMA" />
+          FormType.PRE_SCAN || namespace === FormType.IAMA || namespace === FormType.AIIA" />
 
       </nav>
 
