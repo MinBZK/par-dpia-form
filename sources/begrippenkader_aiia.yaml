@@ -100,6 +100,7 @@ definitions:
     met onbedoelde corruptie.
 - term: data bias
   definition: Wanneer de steekproef niet representatief is voor de gehele populatie.
+  
 - term: data pipeline
   definition: Hoe de data vanuit het veld naar het model komt; het proces dat de data
     doorloopt.
