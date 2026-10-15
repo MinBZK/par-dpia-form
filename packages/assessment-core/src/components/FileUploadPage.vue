@@ -23,7 +23,9 @@ const introText = computed(() => {
     return "Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA. De rapportage voldoet aan de eisen uit de AVG en het model DPIA Rijksdienst, en is geschikt voor verwerking in het verwerkingsregister.";
   } else if (taskStore.activeNamespace === FormType.IAMA) {
     return 'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een IAMA. Het Impact Assessment Mensenrechten en Algoritmes helpt bij het beoordelen van de impact van algoritmes op mensenrechten en publieke waarden.<br /><br /> <div class="rvo-alert rvo-alert--info content-alert--flex"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Het IAMA is een groepsproces en is niet bedoeld om individueel te doorlopen. Een gezamenlijke uitvoering zorgt voor betere en zorgvuldigere besluitvorming en een bredere borging. Informatie over groepssamenstelling en andere praktische tips zijn te vinden in de Inleiding en het <a href="https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes" target="_blank" rel="noopener noreferrer">IAMA-toelichtingsdocument</a>.</div></div>';
-  } else {
+  } else if (taskStore.activeNamespace === FormType.AIIA) {
+    return 'Deze tool begeleidt jouw projectteam stap voor stap bij het uitvoeren van een AIIA.';
+   } else {
     return 'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is. De tool bevat een vragenlijst die helpt bij het inschatten van risicos en geeft op basis daarvan advies over het uitvoeren van een assessment.';
   }
 })
@@ -33,6 +35,8 @@ const uploadText = computed(() => {
     return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
   } else if (taskStore.activeNamespace === FormType.IAMA) {
     return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
+  } else if (taskStore.activeNamespace === FormType.AIIA) {
+    return 'Heb je al eerder een AIIA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
   } else {
     return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
   }
@@ -86,11 +90,12 @@ const startDpia = async () => {
 const formTypeLabel = computed(() => {
   if (taskStore.activeNamespace === FormType.DPIA) return 'DPIA'
   if (taskStore.activeNamespace === FormType.IAMA) return 'IAMA'
+  if (taskStore.activeNamespace === FormType.AIIA) return 'AIIA'
   return 'pre-scan'
 })
 
 const formTypeArticle = computed(() => {
-  return taskStore.activeNamespace === FormType.IAMA ? 'het' : 'de'
+  return taskStore.activeNamespace === FormType.IAMA || taskStore.activeNamespace === FormType.AIIA ? 'het' : 'de'
 })
 </script>
 

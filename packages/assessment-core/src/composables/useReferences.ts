@@ -3,19 +3,20 @@ import { useAnswerStore, type AnswerValue } from '../stores/answers'
 import { useTaskStore, type FlatTask } from '../stores/tasks'
 import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
 
-// A reference declared on a source task points at a task in either the DPIA or
-// IAMA form. The reference key therefore identifies the form the *target* task
+// A reference declared on a source task points at a task in the DPIA, IAMA or
+// AIIA form. The reference key therefore identifies the form the *target* task
 // lives in: when DPIA is active we look at `references.DPIA`, when IAMA is
-// active at `references.IAMA`. Pre-scan tasks are only ever sources, never
-// targets, so PRE_SCAN has no reference key.
-const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA'>> = {
+// active at `references.IAMA`, and so on. Pre-scan tasks are only ever sources,
+// never targets, so PRE_SCAN has no reference key.
+export const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA' | 'AIIA'>> = {
   [FormType.DPIA]: 'DPIA',
   [FormType.IAMA]: 'IAMA',
+  [FormType.AIIA]: 'AIIA',
 }
 
 // References can originate from any form (self-references within the active
 // form, or cross-form references from another form such as pre-scan).
-const ALL_NAMESPACES: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]
+const ALL_NAMESPACES: FormType[] = [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]
 
 // Prefill reference types deterministically populate the target answer.
 const PREFILL_TYPES = ['pre-fill', 'one-to-one', 'one-to-many']
@@ -41,6 +42,7 @@ export interface PreScanReference {
   answer: AnswerValue
   referenceType: string
   dpiaTaskId: string
+  sourceNamespace: FormType
 }
 
 export interface ReferenceSuggestion {
@@ -124,16 +126,18 @@ export function useReferences() {
   }
 
   // Cross-form preview data for a whole section: preview-type references coming
-  // from another form (e.g. pre-scan answers shown read-only inside the DPIA).
+  // from another form (pre-scan answers inside the DPIA, DPIA or IAMA answers
+  // inside the AIIA, and so on).
   const getPreviewDataForSection = (sectionTaskId: string): PreScanReference[] => {
     return findReferences(sectionTaskId, { matchBySection: true })
       .filter(({ scope, reference }) => scope === 'cross' && PREVIEW_TYPES.includes(reference.type))
-      .map(({ sourceTask, reference, answer }) => ({
+      .map(({ sourceNamespace, sourceTask, reference, answer }) => ({
         taskId: sourceTask.id,
         taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
         answer,
         referenceType: reference.type,
         dpiaTaskId: reference.id,
+        sourceNamespace,
       }))
   }
 

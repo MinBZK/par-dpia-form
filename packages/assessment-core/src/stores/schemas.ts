@@ -13,6 +13,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
   const validatedDpia = ref<t.TypeOf<typeof DPIA> | null>(null)
   const validatedPreScan = ref<t.TypeOf<typeof DPIA> | null>(null)
   const validatedIama = ref<t.TypeOf<typeof DPIA> | null>(null)
+  const validatedAiia = ref<t.TypeOf<typeof DPIA> | null>(null)
   const isInitialized = ref(false)
   const hasErrors = ref(false)
   const errorMessage = ref<string | null>(null)
@@ -34,7 +35,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
         if (!hasSigningTask) {
           if (schemaType === FormType.DPIA) {
             validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION))
-          } else if (schemaType === FormType.IAMA) {
+          } else if (schemaType === FormType.IAMA || schemaType === FormType.AIIA) {
             validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION, true))
           } else {
             validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
@@ -46,6 +47,8 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
           validatedDpia.value = validData
         } else if (schemaType === FormType.IAMA) {
           validatedIama.value = validData
+        } else if (schemaType === FormType.AIIA) {
+          validatedAiia.value = validData
         } else {
           validatedPreScan.value = validData
         }
@@ -73,7 +76,8 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     }
   }
 
-  function init(schemas: { preScan: unknown; dpia: unknown; iama: unknown }) {
+  // `aiia` is optional: apps that do not ship the AIIA form yet omit it.
+  function init(schemas: { preScan: unknown; dpia: unknown; iama: unknown; aiia?: unknown }) {
     if (isInitialized.value) return
 
     // Reset error state
@@ -83,15 +87,17 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
     const preScanSuccess = processSchema(schemas.preScan, FormType.PRE_SCAN)
     const dpiaSuccess = processSchema(schemas.dpia, FormType.DPIA)
     const iamaSuccess = processSchema(schemas.iama, FormType.IAMA)
+    const aiiaSuccess = schemas.aiia !== undefined && processSchema(schemas.aiia, FormType.AIIA)
 
     // Mark as initialized if at least one schema processed successfully
-    isInitialized.value = preScanSuccess || dpiaSuccess || iamaSuccess
+    isInitialized.value = preScanSuccess || dpiaSuccess || iamaSuccess || aiiaSuccess
   }
 
   function getSchema(namespace: FormType): t.TypeOf<typeof DPIA> | null {
     if (namespace === FormType.DPIA) return validatedDpia.value
     if (namespace === FormType.PRE_SCAN) return validatedPreScan.value
     if (namespace === FormType.IAMA) return validatedIama.value
+    if (namespace === FormType.AIIA) return validatedAiia.value
     return null
   }
 

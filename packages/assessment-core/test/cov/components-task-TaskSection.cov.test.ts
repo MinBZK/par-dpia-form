@@ -27,8 +27,8 @@ const STUBS = {
   },
   PreScanPreview: {
     name: 'PreScanPreview',
-    props: ['dpiaTaskId'],
-    template: '<div class="stub-prescan-preview" :data-dpia-task-id="dpiaTaskId" />',
+    props: ['sectionTaskId'],
+    template: '<div class="stub-prescan-preview" :data-section-task-id="sectionTaskId" />',
   },
   UiButton: {
     name: 'UiButton',
@@ -143,20 +143,8 @@ describe('TaskSection taskDisplayTitle', () => {
   })
 })
 
-describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
-  it('shows PreScanPreview in DPIA when a prescan task references DPIA', () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    const prescanTasks: Task[] = [
-      {
-        id: '1',
-        task: 'Pre-scan vraag',
-        type: ['text_input'],
-        references: { DPIA: [{ id: '1', type: 'pre-view' }] },
-      },
-    ]
-    taskStore.init(prescanTasks, true)
-
+describe('TaskSection reference preview', () => {
+  it('renders the preview for a DPIA section and passes the section id', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.setActiveNamespace(FormType.DPIA)
     const dpiaTasks: Task[] = [
@@ -172,57 +160,24 @@ describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
     const wrapper = mountSection('1')
     const preview = wrapper.findComponent({ name: 'PreScanPreview' })
     expect(preview.exists()).toBe(true)
-    expect(preview.props('dpiaTaskId')).toBe('1')
+    expect(preview.props('sectionTaskId')).toBe('1')
   })
 
-  it('hides PreScanPreview when a prescan task has no DPIA references', () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    const prescanTasks: Task[] = [
-      {
-        id: '1',
-        task: 'Pre-scan vraag',
-        type: ['text_input'],
-      },
+  it('renders the preview in the IAMA as well, so DPIA answers can be shown there', () => {
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    const iamaTasks: Task[] = [
+      { id: '3', task: 'IAMA deel', type: ['text_input'], is_official_id: true },
     ]
-    taskStore.init(prescanTasks, true)
+    taskStore.init(iamaTasks, true)
 
-    taskStore.setActiveNamespace(FormType.DPIA)
-    answerStore.setActiveNamespace(FormType.DPIA)
-    const dpiaTasks: Task[] = [
-      { id: '1', task: 'DPIA sectie', type: ['text_input'], is_official_id: true },
-    ]
-    taskStore.init(dpiaTasks, true)
-
-    const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).exists()).toBe(false)
+    const wrapper = mountSection('3')
+    const preview = wrapper.findComponent({ name: 'PreScanPreview' })
+    expect(preview.exists()).toBe(true)
+    expect(preview.props('sectionTaskId')).toBe('3')
   })
 
-  it('hides PreScanPreview when the active namespace is not DPIA', () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    const prescanTasks: Task[] = [
-      { id: '1', task: 'Pre-scan vraag', type: ['text_input'] },
-    ]
-    taskStore.init(prescanTasks, true)
-
-    const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).exists()).toBe(false)
-  })
-
-  it('hides PreScanPreview for a signing task in DPIA even when prescan references DPIA', () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    const prescanTasks: Task[] = [
-      {
-        id: '1',
-        task: 'Pre-scan vraag',
-        type: ['text_input'],
-        references: { DPIA: [{ id: '1', type: 'pre-view' }] },
-      },
-    ]
-    taskStore.init(prescanTasks, true)
-
+  it('hides the preview for a signing task', () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.setActiveNamespace(FormType.DPIA)
     const dpiaTasks: Task[] = [
@@ -1026,33 +981,6 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
   function setupState(wrapper: ReturnType<typeof mountSection>) {
     return (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
   }
-
-  it('hasPreScanReferences short-circuits to false for a DPIA signing task', () => {
-    // The signing template branch never reads shouldShowPreScanPreview, so the
-    // signing guard is only reachable by evaluating the computed directly.
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    taskStore.init(
-      [
-        {
-          id: '1',
-          task: 'Pre-scan vraag',
-          type: ['text_input'],
-          references: { DPIA: [{ id: '1', type: 'pre-view' }] },
-        },
-      ],
-      true,
-    )
-
-    taskStore.setActiveNamespace(FormType.DPIA)
-    answerStore.setActiveNamespace(FormType.DPIA)
-    taskStore.init([{ id: '1', task: 'Ondertekening', type: ['signing'] }], true)
-
-    const wrapper = mountSection('1')
-    const ss = setupState(wrapper)
-    expect(ss.hasPreScanReferences as boolean).toBe(false)
-    expect(ss.shouldShowPreScanPreview as boolean).toBe(false)
-  })
 
   it('getImage returns undefined for a key absent from the imageMap', () => {
     taskStore.init([{ id: '5', task: 'Sectie', type: ['text_input'], is_official_id: true }], true)

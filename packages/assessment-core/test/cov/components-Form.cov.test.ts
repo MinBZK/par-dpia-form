@@ -344,6 +344,11 @@ describe('Form.vue prop-driven template branches', () => {
     expect(wrapper.find('.stub-progress').attributes('data-navigable')).toBe('true')
   })
 
+  it('marks ProgressTracker navigable for AIIA', async () => {
+    const { wrapper } = await mountForm({ namespace: FormType.AIIA })
+    expect(wrapper.find('.stub-progress').attributes('data-navigable')).toBe('true')
+  })
+
   it('shows the file-action buttons only when started and showFileActions is true', async () => {
     // File actions moved into the NavHeader slot: the reset UiButton + ExportMenu.
     const { wrapper } = await mountForm({ autoStart: true, showFileActions: true })
@@ -369,6 +374,11 @@ describe('Form.vue prop-driven template branches', () => {
   it('labels the reset button "Begin nieuwe IAMA" for the IAMA namespace', async () => {
     const { wrapper } = await mountForm({ namespace: FormType.IAMA, autoStart: true })
     expect(uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')).toBeTruthy()
+  })
+
+  it('labels the reset button "Begin nieuwe AIIA" for the AIIA namespace', async () => {
+    const { wrapper } = await mountForm({ namespace: FormType.AIIA, autoStart: true })
+    expect(uiButtonByLabel(wrapper, 'Begin nieuwe AIIA')).toBeTruthy()
   })
 })
 
