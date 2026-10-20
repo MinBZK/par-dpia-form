@@ -192,7 +192,7 @@ describe('useFieldCommentIndicators', () => {
       // field, whether or not it already carries a comment.
       expect(btn.classList.contains('comment-field-label__btn')).toBe(true)
       expect(btn.getAttribute('size')).toBe('xs')
-      expect(btn.getAttribute('variant')).toBe('accent-transparent')
+      expect(btn.getAttribute('appearance')).toBe('accent-transparent')
       expect(btn.getAttribute('start-icon')).toBe('comment')
       expect(btn.getAttribute('text')).toBe('Opmerking')
       expect(btn.getAttribute('accessible-label')).toBe('Opmerking toevoegen bij deze vraag')

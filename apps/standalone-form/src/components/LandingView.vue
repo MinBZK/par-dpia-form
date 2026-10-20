@@ -180,7 +180,7 @@ async function downloadOfflineApp() {
     <nldd-container gap="24">
     <h1>Invulhulpen voor pre-scan, DPIA en IAMA</h1>
 
-    <nldd-collection layout="grid" item-width="380px" gap="16px">
+    <nldd-collection layout="grid" item-min-width="380px" gap="16px">
       <nldd-card v-for="card in cards" :key="card.type">
         <nldd-container padding="16" gap="8">
           <nldd-title size="4"><h2>{{ card.title }}</h2></nldd-title>
@@ -188,12 +188,12 @@ async function downloadOfflineApp() {
         </nldd-container>
         <nldd-container slot="footer" padding="16" padding-top="0" layout="wrap" gap="16">
           <template v-if="hasCache(card.type)">
-            <nldd-button variant="primary" text="Verder gaan" class="card-button"
+            <nldd-button appearance="primary" text="Verder gaan" class="card-button"
               @click="card.start()"></nldd-button>
-            <nldd-button variant="accent-transparent" :text="card.freshLabel" class="card-button-fresh"
+            <nldd-button appearance="accent-transparent" :text="card.freshLabel" class="card-button-fresh"
               @click="askFresh(card.type)"></nldd-button>
           </template>
-          <nldd-button v-else variant="primary" :text="card.startLabel" class="card-button"
+          <nldd-button v-else appearance="primary" :text="card.startLabel" class="card-button"
             @click="card.start()"></nldd-button>
         </nldd-container>
       </nldd-card>
@@ -292,7 +292,7 @@ async function downloadOfflineApp() {
         Je kunt deze invulhulp als één HTML-bestand downloaden en lokaal openen, ook zonder internet.
         Het bestand bevat de volledige invulhulp. Je gegevens blijven op je eigen computer.
       </p>
-      <nldd-button variant="secondary" text="Download invulhulp als HTML-bestand" start-icon="file-badge-arrow-down"
+      <nldd-button appearance="secondary" text="Download invulhulp als HTML-bestand" start-icon="file-badge-arrow-down"
         width="100%" max-width="22rem" :disabled="downloading || undefined"
         @click="downloadOfflineApp"></nldd-button>
       <p v-if="downloadFailed" role="alert" class="download-error">
@@ -308,7 +308,7 @@ async function downloadOfflineApp() {
         In deze browser staan antwoorden van je {{ cachedSummary }} opgeslagen. Werk je op een
         gedeelde of openbare computer, wis ze dan voordat je weggaat.
       </p>
-      <nldd-button variant="secondary" text="Wis alle opgeslagen gegevens" start-icon="trash" width="100%" max-width="22rem"
+      <nldd-button appearance="secondary" text="Wis alle opgeslagen gegevens" start-icon="trash" width="100%" max-width="22rem"
         @click="clearAllOpen = true"></nldd-button>
     </nldd-rich-text>
     </nldd-container>
@@ -325,8 +325,8 @@ async function downloadOfflineApp() {
     <template v-if="freshTargetCard">
       <!-- The safe way out is the primary action; the destructive action is the
            secondary one (NLDD design guideline). -->
-      <nldd-button slot="actions" variant="primary" text="Annuleren" @click="cancelFresh"></nldd-button>
-      <nldd-button slot="actions" variant="destructive" :text="`Ja, start nieuwe ${freshTargetCard.title}`"
+      <nldd-button slot="actions" appearance="primary" text="Annuleren" @click="cancelFresh"></nldd-button>
+      <nldd-button slot="actions" appearance="destructive" :text="`Ja, start nieuwe ${freshTargetCard.title}`"
         @click="confirmFresh"></nldd-button>
     </template>
   </nldd-modal-dialog>
@@ -339,9 +339,9 @@ async function downloadOfflineApp() {
     :supporting-text="clearAllSupportingText"
     @close="onClearAllClose"
   >
-    <nldd-button slot="actions" variant="primary" text="Annuleren"
+    <nldd-button slot="actions" appearance="primary" text="Annuleren"
       @click="clearAllOpen = false"></nldd-button>
-    <nldd-button slot="actions" variant="destructive" text="Ja, wis alles"
+    <nldd-button slot="actions" appearance="destructive" text="Ja, wis alles"
       @click="confirmClearAll"></nldd-button>
   </nldd-modal-dialog>
 </template>

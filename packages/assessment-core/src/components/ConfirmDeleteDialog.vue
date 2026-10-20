@@ -70,8 +70,8 @@ onBeforeUnmount(() => {
 
     <!-- The safe way out is the primary action; the destructive action is the
          secondary one (NLDD design guideline). -->
-    <nldd-button slot="actions" variant="primary" text="Annuleren" @click="emit('cancel')"></nldd-button>
-    <nldd-button slot="actions" variant="destructive" start-icon="trash" text="Ja, ga door met verwijderen"
+    <nldd-button slot="actions" appearance="primary" text="Annuleren" @click="emit('cancel')"></nldd-button>
+    <nldd-button slot="actions" appearance="destructive" start-icon="trash" text="Ja, ga door met verwijderen"
       @click="emit('confirm')"></nldd-button>
   </nldd-modal-dialog>
 </template>

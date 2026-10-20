@@ -201,7 +201,7 @@ const toggleLink = () => props.editor?.toggleLink?.()
 </script>
 
 <template>
-  <nldd-toolbar size="sm" :label="accessibleLabel">
+  <nldd-toolbar size="sm" :accessible-label="accessibleLabel">
     <!-- A lower priority overflows first, so the heading picker carries the
          highest: it is the one control that also *reads* the current block
          style, which is worth keeping visible longest. -->
@@ -209,7 +209,7 @@ const toggleLink = () => props.editor?.toggleLink?.()
       <!-- The menu goes *inside* the button: nldd-button anchors and toggles
            whatever sits in its `popup` slot. As a sibling it renders, but
            nothing opens it. -->
-      <nldd-button variant="neutral-transparent" size="sm" expandable
+      <nldd-button appearance="neutral-transparent" size="sm" expandable
         popup-type="menu" :text="headingText()">
         <nldd-menu slot="popup">
           <nldd-menu-item v-for="h in HEADINGS" :key="h.level" type="radio" :text="h.text"

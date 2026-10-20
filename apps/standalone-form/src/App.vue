@@ -14,7 +14,7 @@ import LandingView from './components/LandingView.vue'
 import { createLocalPersistence } from './LocalPersistence'
 
 import '@nldd/design-system/styles'
-import '@nldd/design-system/app-view'
+import '@nldd/design-system/shell'
 import '@nldd/design-system/page'
 
 // Provide persistence (localStorage) to Form.vue
@@ -88,7 +88,7 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
 </script>
 
 <template>
-  <nldd-app-view>
+  <nldd-shell>
     <nldd-page>
       <!-- Landing page -->
       <LandingView
@@ -129,5 +129,5 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
         bannerTitle="Invulhulpen"
       />
     </nldd-page>
-  </nldd-app-view>
+  </nldd-shell>
 </template>

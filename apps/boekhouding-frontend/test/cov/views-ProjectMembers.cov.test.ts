@@ -178,7 +178,7 @@ describe('ProjectMembers', () => {
 
       const deleteButtons = wrapper.findAll('nldd-button.member-delete')
       expect(deleteButtons).toHaveLength(2)
-      expect(deleteButtons[0].attributes('variant')).toBe('destructive')
+      expect(deleteButtons[0].attributes('appearance')).toBe('destructive')
       expect(deleteButtons[0].attributes('text')).toBe('Verwijderen')
       // The sole owner keeps the button but cannot use it.
       expect(deleteButtons[0].attributes('disabled')).toBeDefined()

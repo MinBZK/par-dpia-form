@@ -12,8 +12,8 @@ defineProps<{
   <!-- NLDD only ships a horizontal ellipsis, so the icon goes in through the
        icon slot and is turned upright there; rotating the button itself would
        take its focus ring and tooltip along. -->
-  <nldd-icon-button :text="label" variant="neutral-transparent" size="sm" popup-type="menu">
-    <nldd-icon slot="icon" name="ellipsis" class="kebab-menu__icon"></nldd-icon>
+  <nldd-icon-button :text="label" appearance="neutral-transparent" size="sm" popup-type="menu">
+    <nldd-icon slot="icon" icon="ellipsis" class="kebab-menu__icon"></nldd-icon>
     <nldd-menu slot="popup">
       <slot />
     </nldd-menu>

@@ -224,7 +224,7 @@ const handleRadioGroupChange = (event: Event) => {
       target="_blank" rel="noopener noreferrer"
       title="Dit correspondeert met een vereiste uit art. 27 van de AI Verordening">
       art. 27 AI-verordening
-      <nldd-icon name="square-arrow-right-top" size="16" aria-hidden="false" aria-label="Opent in nieuw tabblad"></nldd-icon>
+      <nldd-icon icon="square-arrow-right-top" size="16" aria-hidden="false" aria-label="Opent in nieuw tabblad"></nldd-icon>
     </a>
     <div v-if="description" class="form-field__description" :id="`description-${task.id}-${instanceId}`">
       <span v-html="description"></span>
@@ -246,7 +246,7 @@ const handleRadioGroupChange = (event: Event) => {
   <div v-if="hasType('open_text')" class="open-text-field field-group">
     <!-- Editor and toolbar share one frame, so they read as a single control
          rather than a field with something loose beneath it. That means the
-         editor runs bare (variant="simple") and the wrapper draws the border,
+         editor runs bare (appearance="simple") and the wrapper draws the border,
          radius, background and focus ring — in the design system's own
          input-field tokens, so it stays in step with every other field and with
          both themes. -->
@@ -255,7 +255,7 @@ const handleRadioGroupChange = (event: Event) => {
          there, only dimmed. That leaves nothing to preview, so there is no
          read/edit switch and no second rendering of the same text: the value
          stays plain markdown, which is what the PDF export reads. -->
-    <assessment-text-editor ref="textEditor" variant="simple"
+    <assessment-text-editor ref="textEditor" appearance="simple"
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
       :accessible-label="accessibleLabel" rows="5" resize="auto"

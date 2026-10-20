@@ -58,7 +58,7 @@ const emitValues = (wrapper: Wrapper, label: string, values: string[]) =>
 describe('OpenTextToolbar.vue', () => {
   it('labels the toolbar with the field it belongs to', () => {
     const wrapper = mountToolbar()
-    expect(wrapper.find('nldd-toolbar').attributes('label')).toBe('Opmaak voor Vraag 1')
+    expect(wrapper.find('nldd-toolbar').attributes('accessible-label')).toBe('Opmaak voor Vraag 1')
   })
 
   it('names every group, so the overflow menu can head them', () => {

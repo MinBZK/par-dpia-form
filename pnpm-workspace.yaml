@@ -9,6 +9,11 @@ packages:
 allowBuilds:
   esbuild: true
 
+# Deliberate exception to the minimum release age: this app follows the
+# design system closely and 0.9.0 carries the breaking renames we migrated to.
+minimumReleaseAgeExclude:
+  - '@nldd/design-system@0.9.0'
+
 # Force patched versions of vulnerable transitives. pnpm 11 no longer reads the
 # package.json "pnpm" field, so overrides live here.
 # - fast-uri: host-confusion advisories; ajv, json-schema-resolver and

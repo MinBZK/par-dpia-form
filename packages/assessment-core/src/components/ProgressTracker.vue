@@ -10,7 +10,7 @@ import '@nldd/design-system/list-item'
 import '@nldd/design-system/spacer-cell'
 import '@nldd/design-system/text'
 import '@nldd/design-system/text-cell'
-import '@nldd/design-system/timeline-track-cell'
+import '@nldd/design-system/step-cell'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
@@ -162,7 +162,7 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
     <!-- nldd-list owns the row: hover, focus, the current marker and arrow-key
          navigation. dividers="never" keeps the timeline the only vertical line.
          The chapter number rides in the dot, so the title stands on its own. -->
-    <nldd-list variant="simple" dividers="never" accessible-label="Inhoudsopgave">
+    <nldd-list appearance="simple" dividers="never" accessible-label="Inhoudsopgave">
       <!-- `selected`, not `current`: both mark the row, but current takes the
            highlighted fill (a dark bar) while focus is in it, which buries the
            marker and the line under it. Selected is a light tint that leaves
@@ -181,9 +181,9 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
              finished in any order, and the design system's default would paint
              dark stretches between arbitrary chapters. The markers carry the
              state. -->
-        <nldd-timeline-track-cell class="toc-track-cell" variant="major" size="md" line="none"
+        <nldd-step-cell class="toc-track-cell" level="major" size="md" line="none"
           :status="step.status" :position="positionOf(i)"
-          :icon="step.markerIcon"></nldd-timeline-track-cell>
+          :icon="step.markerIcon"></nldd-step-cell>
         <nldd-spacer-cell size="12"></nldd-spacer-cell>
         <!-- The state in words under the title: an icon in a dot asks to be
              decoded, and this reads the same for everyone. It replaces the

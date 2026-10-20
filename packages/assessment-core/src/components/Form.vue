@@ -341,17 +341,17 @@ const completeAnnouncement = computed(() => {
       <!-- A toolbar of buttons: they keep their labels while there is room and
            move into the overflow menu whole once there is not, rather than
            shedding their text first. -->
-      <nldd-toolbar slot="utility" size="sm" label="Acties voor dit formulier">
+      <nldd-toolbar slot="utility" size="sm" accessible-label="Acties voor dit formulier">
         <!-- Only while the contents are folded away: with the sidebar in view
              this would open what is already open. -->
         <nldd-toolbar-item v-if="tocCollapsed" slot="start" priority="2">
-          <nldd-button variant="accent-transparent" size="sm" start-icon="bullet-list"
+          <nldd-button appearance="accent-transparent" size="sm" start-icon="bullet-list"
             text="Stappen" aria-haspopup="dialog" @click="toggleToc"></nldd-button>
           <nldd-menu-item slot="overflow" icon="bullet-list" text="Stappen"
             @select="toggleToc"></nldd-menu-item>
         </nldd-toolbar-item>
         <nldd-toolbar-item slot="end">
-          <nldd-button variant="accent-transparent" size="sm" start-icon="arrow-clockwise"
+          <nldd-button appearance="accent-transparent" size="sm" start-icon="arrow-clockwise"
             :text="`Begin nieuwe ${resetLabel}`" @click="resetOpen = true"></nldd-button>
           <nldd-menu-item slot="overflow" icon="arrow-clockwise"
             :text="`Begin nieuwe ${resetLabel}`" @select="resetOpen = true"></nldd-menu-item>
@@ -417,9 +417,9 @@ const completeAnnouncement = computed(() => {
                  naming the step so it still makes sense out of context. -->
             <p class="sr-only" role="status" aria-live="polite">{{ completeAnnouncement }}</p>
             <div class="step-actions" role="group" aria-label="Formulier navigatie">
-              <nldd-button v-if="!isFirstTask" variant="secondary" start-icon="arrow-left"
+              <nldd-button v-if="!isFirstTask" appearance="secondary" start-icon="arrow-left"
                 text="Vorige stap" @click="goToPrevious"></nldd-button>
-              <nldd-button v-if="!isLastTask" variant="primary" end-icon="arrow-right"
+              <nldd-button v-if="!isLastTask" appearance="primary" end-icon="arrow-right"
                 text="Volgende stap" @click="goToNext"></nldd-button>
               <ExportMenu v-if="isLastTask" split @export="handleExport" />
             </div>
@@ -443,9 +443,9 @@ const completeAnnouncement = computed(() => {
   <nldd-modal-dialog ref="resetDialog" variant="alert"
     :text="`Nieuwe ${resetLabel} beginnen?`" :supporting-text="resetSupportingText"
     @close="onResetClose">
-    <nldd-button slot="actions" variant="primary" text="Annuleren"
+    <nldd-button slot="actions" appearance="primary" text="Annuleren"
       @click="resetOpen = false"></nldd-button>
-    <nldd-button slot="actions" variant="destructive" :text="`Ja, begin nieuwe ${resetLabel}`"
+    <nldd-button slot="actions" appearance="destructive" :text="`Ja, begin nieuwe ${resetLabel}`"
       @click="handleReset"></nldd-button>
   </nldd-modal-dialog>
 </template>

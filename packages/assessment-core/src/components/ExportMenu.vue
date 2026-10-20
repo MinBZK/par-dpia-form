@@ -33,7 +33,7 @@ function choose(format: ExportFormat) {
 <template>
   <!-- Split button: main action exports PDF directly, the chevron opens the
        slotted menu (positioning, Esc and light dismiss handled by NLDD). -->
-  <nldd-split-button v-if="split" variant="secondary" text="Exporteer als PDF"
+  <nldd-split-button v-if="split" appearance="secondary" text="Exporteer als PDF"
     @action-click="choose('pdf')">
     <nldd-menu>
       <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="`Exporteer als ${f.label}`"
@@ -44,7 +44,7 @@ function choose(format: ExportFormat) {
   <!-- In the page toolbar: a button that keeps its label while there is room,
        and a matching menu item for when the toolbar pushes it into overflow. -->
   <nldd-toolbar-item v-else-if="toolbar" slot="end">
-    <nldd-button variant="accent-transparent" size="sm" start-icon="download"
+    <nldd-button appearance="accent-transparent" size="sm" start-icon="download"
       text="Exporteer" expandable popup-type="menu">
       <nldd-menu slot="popup" width="10rem">
         <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"
@@ -56,7 +56,7 @@ function choose(format: ExportFormat) {
   </nldd-toolbar-item>
 
   <!-- Compact button with the menu in its popup slot. -->
-  <nldd-button v-else variant="accent-transparent" size="xs" text="Exporteer"
+  <nldd-button v-else appearance="accent-transparent" size="xs" text="Exporteer"
     expandable popup-type="menu">
     <nldd-menu slot="popup" width="10rem">
       <nldd-menu-item v-for="f in FORMATS" :key="f.format" :text="f.label"

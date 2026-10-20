@@ -1030,17 +1030,17 @@ describe('CommentPanel', () => {
 
       const footerButtons = wrapper
         .findAll('.comment-item__footer nldd-button')
-        .map((b) => [b.attributes('text'), b.attributes('start-icon'), b.attributes('variant'), b.attributes('size')])
+        .map((b) => [b.attributes('text'), b.attributes('start-icon'), b.attributes('appearance'), b.attributes('size')])
       expect(footerButtons).toEqual([
         ['Reageren', 'comment', 'neutral-transparent', 'xs'],
         ['Verwijderen', 'trash', 'critical-transparent', 'xs'],
         ['Oplossen', 'check-mark', 'accent-transparent', 'xs'],
       ])
 
-      await wrapper.get('nldd-button[variant="critical-transparent"]').trigger('click')
+      await wrapper.get('nldd-button[appearance="critical-transparent"]').trigger('click')
       expect(spies.deleteComment).toHaveBeenCalledWith('a')
 
-      await wrapper.get('nldd-button[variant="accent-transparent"]').trigger('click')
+      await wrapper.get('nldd-button[appearance="accent-transparent"]').trigger('click')
       expect(spies.resolveThread).toHaveBeenCalledWith('a')
     })
 
@@ -1064,7 +1064,7 @@ describe('CommentPanel', () => {
 
       const reopenBtn = footerButtons[1]
       expect(reopenBtn.attributes('start-icon')).toBe('undo')
-      expect(reopenBtn.attributes('variant')).toBe('neutral-transparent')
+      expect(reopenBtn.attributes('appearance')).toBe('neutral-transparent')
       await reopenBtn.trigger('click')
       expect(spies.reopenThread).toHaveBeenCalledWith('a')
     })
@@ -1081,7 +1081,7 @@ describe('CommentPanel', () => {
       await flushRaf()
       await nextTick()
 
-      expect(wrapper.find('nldd-button[variant="critical-transparent"]').exists()).toBe(false)
+      expect(wrapper.find('nldd-button[appearance="critical-transparent"]').exists()).toBe(false)
       const texts = wrapper.findAll('.comment-item__footer nldd-button').map((b) => b.attributes('text'))
       expect(texts).toEqual(['Reageren', 'Oplossen'])
     })
@@ -1100,7 +1100,7 @@ describe('CommentPanel', () => {
 
       const texts = wrapper.findAll('.comment-item__footer nldd-button').map((b) => b.attributes('text'))
       expect(texts).toEqual(['Reageren'])
-      expect(wrapper.find('nldd-button[variant="critical-transparent"]').exists()).toBe(false)
+      expect(wrapper.find('nldd-button[appearance="critical-transparent"]').exists()).toBe(false)
     })
   })
 
@@ -1123,7 +1123,7 @@ describe('CommentPanel', () => {
       const replyForm = wrapper.get('.comment-reply-form')
       await setFieldValue(replyForm.get('nldd-multi-line-text-field'), 'Mijn reactie')
 
-      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
+      await replyForm.get('nldd-button[appearance="primary"]').trigger('click')
       expect(spies.createReply).toHaveBeenCalledWith('a', '1.1', 'Mijn reactie')
       await nextTick()
       expect(wrapper.find('.comment-reply-form').exists()).toBe(false)
@@ -1142,7 +1142,7 @@ describe('CommentPanel', () => {
 
       const replyForm = wrapper.get('.comment-reply-form')
       await setFieldValue(replyForm.get('nldd-multi-line-text-field'), '   ')
-      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
+      await replyForm.get('nldd-button[appearance="primary"]').trigger('click')
       expect(spies.createReply).not.toHaveBeenCalled()
     })
 
@@ -1210,7 +1210,7 @@ describe('CommentPanel', () => {
       const inline = wrapper.get('.comment-inline-form')
       await setFieldValue(inline.get('nldd-multi-line-text-field'), 'Een nieuwe opmerking')
 
-      const submit = inline.get('nldd-button[variant="primary"]')
+      const submit = inline.get('nldd-button[appearance="primary"]')
       expect(submit.attributes('text')).toBe('Plaatsen')
       expect(submit.attributes('disabled')).toBeUndefined()
       await submit.trigger('click')
@@ -1233,7 +1233,7 @@ describe('CommentPanel', () => {
       const inline = wrapper.get('.comment-inline-form')
       const textarea = inline.get('nldd-multi-line-text-field')
       await setFieldValue(textarea, 'Kostbare tekst')
-      await inline.get('nldd-button[variant="primary"]').trigger('click')
+      await inline.get('nldd-button[appearance="primary"]').trigger('click')
       await nextTick()
 
       expect(textarea.attributes('value')).toBe('Kostbare tekst')
@@ -1257,7 +1257,7 @@ describe('CommentPanel', () => {
       const replyForm = wrapper.get('.comment-reply-form')
       const textarea = replyForm.get('nldd-multi-line-text-field')
       await setFieldValue(textarea, 'Mijn reactie')
-      await replyForm.get('nldd-button[variant="primary"]').trigger('click')
+      await replyForm.get('nldd-button[appearance="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-reply-form').exists()).toBe(true)
@@ -1277,7 +1277,7 @@ describe('CommentPanel', () => {
       await nextTick()
 
       const inline = wrapper.get('.comment-inline-form')
-      const submit = inline.get('nldd-button[variant="primary"]')
+      const submit = inline.get('nldd-button[appearance="primary"]')
       expect(submit.attributes('disabled')).toBeDefined()
 
       await submit.trigger('click')
@@ -1361,7 +1361,7 @@ describe('CommentPanel', () => {
       expect(field.attributes('value')).toBe('origineel')
       await setFieldValue(field, 'aangepast')
 
-      await editBox.get('nldd-button[variant="primary"]').trigger('click')
+      await editBox.get('nldd-button[appearance="primary"]').trigger('click')
       expect(spies.updateComment).toHaveBeenCalledWith('a', 'aangepast')
       await nextTick()
       expect(wrapper.find('.comment-item__edit').exists()).toBe(false)
@@ -1388,7 +1388,7 @@ describe('CommentPanel', () => {
       const editBox = wrapper.get('.comment-item__edit')
       const textarea = editBox.get('nldd-multi-line-text-field')
       await setFieldValue(textarea, 'aangepast')
-      await editBox.get('nldd-button[variant="primary"]').trigger('click')
+      await editBox.get('nldd-button[appearance="primary"]').trigger('click')
       await nextTick()
 
       expect(wrapper.find('.comment-item__edit').exists()).toBe(true)
@@ -1432,7 +1432,7 @@ describe('CommentPanel', () => {
 
       const editBox = wrapper.get('.comment-item__edit')
       await setFieldValue(editBox.get('nldd-multi-line-text-field'), '   ')
-      await editBox.get('nldd-button[variant="primary"]').trigger('click')
+      await editBox.get('nldd-button[appearance="primary"]').trigger('click')
       expect(spies.updateComment).not.toHaveBeenCalled()
     })
 
@@ -1533,7 +1533,7 @@ describe('CommentPanel', () => {
       const replyBody = replies[0].get('.comment-item__body')
       expect(replyBody.classes()).toContain('comment-item__body--editable')
 
-      const del = replies[0].findAll('nldd-button[variant="critical-transparent"]')[0]
+      const del = replies[0].findAll('nldd-button[appearance="critical-transparent"]')[0]
       await del.trigger('click')
       expect(spies.deleteComment).toHaveBeenCalledWith('r1')
     })
@@ -1557,7 +1557,7 @@ describe('CommentPanel', () => {
 
       const editBox = wrapper.get('.comment-item--reply .comment-item__edit')
       await setFieldValue(editBox.get('nldd-multi-line-text-field'), 'reactie aangepast')
-      await editBox.get('nldd-button[variant="primary"]').trigger('click')
+      await editBox.get('nldd-button[appearance="primary"]').trigger('click')
       expect(spies.updateComment).toHaveBeenCalledWith('r1', 'reactie aangepast')
     })
 
@@ -1685,7 +1685,7 @@ describe('CommentPanel', () => {
       host.dispatchEvent(new Event('input'))
       await nextTick()
 
-      await wrapper.get('.comment-inline-form nldd-button[variant="primary"]').trigger('click')
+      await wrapper.get('.comment-inline-form nldd-button[appearance="primary"]').trigger('click')
       expect(spies.createComment).toHaveBeenCalledWith('1.1', 'Zonder detail')
     })
   })

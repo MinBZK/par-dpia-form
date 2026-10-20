@@ -31,9 +31,9 @@ describe('UiAccordion structure', () => {
     // host attributes rather than rendered text.
     const icons = iconSpan.findAll('nldd-icon')
     expect(icons).toHaveLength(2)
-    expect(icons[0].attributes('name')).toBe('chevron-down')
+    expect(icons[0].attributes('icon')).toBe('chevron-down')
     expect(icons[0].classes()).toContain('ui-accordion__icon--closed')
-    expect(icons[1].attributes('name')).toBe('chevron-up')
+    expect(icons[1].attributes('icon')).toBe('chevron-up')
     expect(icons[1].classes()).toContain('ui-accordion__icon--open')
     for (const icon of icons) {
       expect(icon.attributes('size')).toBe('20')

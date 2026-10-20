@@ -7,7 +7,7 @@ import { useAnchorNav } from './composables/useAnchorNav'
 import { useBackLink } from './composables/useBackLink'
 import SessionExpiredDialog from './components/SessionExpiredDialog.vue'
 
-import '@nldd/design-system/app-view'
+import '@nldd/design-system/shell'
 import '@nldd/design-system/page'
 import '@nldd/design-system/page-footer'
 import '@nldd/design-system/skip-link'
@@ -39,7 +39,7 @@ const displayName = computed(() => user.value?.displayName || 'Account')
 </script>
 
 <template>
-  <nldd-app-view>
+  <nldd-shell>
     <nldd-page>
       <div slot="header">
         <nldd-skip-link text="Naar hoofdinhoud" href="#main-content"></nldd-skip-link>
@@ -84,5 +84,5 @@ const displayName = computed(() => user.value?.displayName || 'Account')
         </nldd-page-footer-legal-bar>
       </nldd-page-footer>
     </nldd-page>
-  </nldd-app-view>
+  </nldd-shell>
 </template>

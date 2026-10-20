@@ -40,7 +40,7 @@ describe('CommentBadge', () => {
       const wrapper = mountBadge(false)
       const button = wrapper.get('nldd-button')
 
-      expect(button.attributes('variant')).toBe('accent-transparent')
+      expect(button.attributes('appearance')).toBe('accent-transparent')
       expect(button.attributes('size')).toBe('sm')
       expect(button.attributes('start-icon')).toBe('comment')
       expect(button.attributes('expanded')).toBeUndefined()
@@ -52,7 +52,7 @@ describe('CommentBadge', () => {
       const wrapper = mountBadge(true)
       const button = wrapper.get('nldd-button')
 
-      expect(button.attributes('variant')).toBe('accent-filled')
+      expect(button.attributes('appearance')).toBe('accent-filled')
       expect(button.attributes('expanded')).toBe('true')
     })
   })

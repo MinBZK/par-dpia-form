@@ -17,6 +17,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Het opmerkingenpaneel legt zich nu over de pagina heen in plaats van ernaast:
+  zolang het openstaat werk je niet in het formulier. Het design system heeft de
+  niet-blokkerende vorm van dit paneel geschrapt.
 * Invulhulpen heeft een eigen tabbladpictogram: een document met een pen op
   het Rijksblauw, in plaats van het blauwe vlak van eerder.
 * Een selectievakje staat weer op één lijn met de eerste regel van zijn label.
@@ -203,6 +206,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* `@nldd/design-system` van 0.8.85 naar 0.9.0, vijftien releases met tien
+  breaking changes. De grootste: `nldd-app-view` heet `nldd-shell`,
+  `nldd-timeline-track-cell` heet `nldd-step-cell`, `variant` heet `appearance`
+  op onder meer `nldd-button`, `nldd-icon` neemt `icon` in plaats van `name`,
+  en alle `--components-*`-variabelen zijn weg. Geen daarvan geeft een
+  foutmelding als je hem mist, dus elk gebruikt attribuut is nagelopen tegen
+  het manifest van 0.9.0.
 * `@nldd/design-system` van 0.8.83 naar 0.8.85. Die release haalt
   `nldd-form-field-error-text` weg (foutmeldingen lopen nu via
   `nldd-validation-list`) en hernoemt de varianten van

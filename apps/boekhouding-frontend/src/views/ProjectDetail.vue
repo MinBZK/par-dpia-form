@@ -373,8 +373,8 @@ const formatDate = (dateStr: string) =>
             @keydown.escape="cancelName"
           ></nldd-text-field>
           <nldd-container layout="row" gap="8" padding-top="8">
-            <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
-            <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
+            <nldd-button appearance="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
+            <nldd-button appearance="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
           </nldd-container>
         </div>
         <div class="project-actions">
@@ -393,7 +393,7 @@ const formatDate = (dateStr: string) =>
       <!-- A real button: the label used to be hidden until hover, so the option
            was invisible on first look and unreachable on touch. -->
       <nldd-button v-if="!editingDescription && !project.description && isEditable()"
-        class="description-add" variant="accent-transparent" size="xs"
+        class="description-add" appearance="accent-transparent" size="xs"
         start-icon="plus" text="Beschrijving toevoegen"
         @click="startEditDescription"></nldd-button>
       <div v-if="editingDescription" class="editable-field-group">
@@ -408,8 +408,8 @@ const formatDate = (dateStr: string) =>
           @keydown.escape="cancelDescription"
         ></nldd-multi-line-text-field>
         <nldd-container layout="row" gap="8" padding-top="8">
-          <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveDescription"></nldd-button>
-          <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelDescription"></nldd-button>
+          <nldd-button appearance="primary" size="xs" text="Opslaan" @click="saveDescription"></nldd-button>
+          <nldd-button appearance="accent-transparent" size="xs" text="Annuleer" @click="cancelDescription"></nldd-button>
         </nldd-container>
       </div>
 
@@ -418,7 +418,7 @@ const formatDate = (dateStr: string) =>
         <!-- max-items: the collection hides items past its own cap (24) even
              without a load-more button. The server pages the list, so the cap
              is the server total and nothing loaded is ever hidden. -->
-        <nldd-collection layout="grid" item-width="320px" gap="16px" :max-items="total"
+        <nldd-collection layout="grid" item-min-width="320px" gap="16px" :max-items="total"
           @click="onCardNav">
           <nldd-card
             v-for="item in assessmentList"
@@ -435,7 +435,7 @@ const formatDate = (dateStr: string) =>
           <nldd-button
             v-if="hasMore"
             slot="footer"
-            variant="neutral-tinted"
+            appearance="neutral-tinted"
             width="full"
             :disabled="loadingMore || undefined"
             :text="`Laad de volgende ${nextBatchSize} assessments`"
@@ -449,14 +449,14 @@ const formatDate = (dateStr: string) =>
 
       <div v-if="project.role === 'owner' || project.role === 'editor'">
         <h2>Start een nieuwe assessment</h2>
-        <nldd-collection layout="grid" item-width="320px" gap="16px">
+        <nldd-collection layout="grid" item-min-width="320px" gap="16px">
           <nldd-card>
             <nldd-container padding="16" gap="8">
               <h3>Pre-scan</h3>
               <p>Toets of een DPIA, DTIA, IAMA of KIA nodig is.</p>
             </nldd-container>
             <nldd-container slot="footer" padding="16" padding-top="0">
-              <nldd-button variant="primary" size="md" text="Start pre-scan" @click="openStartDialog('prescan')"></nldd-button>
+              <nldd-button appearance="primary" size="md" text="Start pre-scan" @click="openStartDialog('prescan')"></nldd-button>
             </nldd-container>
           </nldd-card>
           <nldd-card>
@@ -465,7 +465,7 @@ const formatDate = (dateStr: string) =>
               <p>Vul stap voor stap het rijksmodel DPIA in.</p>
             </nldd-container>
             <nldd-container slot="footer" padding="16" padding-top="0">
-              <nldd-button variant="primary" size="md" text="Start DPIA" @click="openStartDialog('dpia')"></nldd-button>
+              <nldd-button appearance="primary" size="md" text="Start DPIA" @click="openStartDialog('dpia')"></nldd-button>
             </nldd-container>
           </nldd-card>
           <nldd-card>
@@ -474,7 +474,7 @@ const formatDate = (dateStr: string) =>
               <p>Breng de impact op mensenrechten van een algoritme in kaart.</p>
             </nldd-container>
             <nldd-container slot="footer" padding="16" padding-top="0">
-              <nldd-button variant="primary" size="md" text="Start IAMA" @click="openStartDialog('iama')"></nldd-button>
+              <nldd-button appearance="primary" size="md" text="Start IAMA" @click="openStartDialog('iama')"></nldd-button>
             </nldd-container>
           </nldd-card>
         </nldd-collection>
@@ -601,7 +601,7 @@ const formatDate = (dateStr: string) =>
 
       <nldd-button
         slot="actions"
-        variant="primary"
+        appearance="primary"
         size="md"
         :disabled="dialogSubmitting || undefined"
         :text="dialogSubmitting ? 'Bezig...' : (dialogAssessmentType === 'dpia' ? 'Start DPIA' : dialogAssessmentType === 'iama' ? 'Start IAMA' : 'Start pre-scan')"
@@ -609,7 +609,7 @@ const formatDate = (dateStr: string) =>
       ></nldd-button>
       <nldd-button
         slot="actions"
-        variant="secondary"
+        appearance="secondary"
         size="md"
         :disabled="dialogSubmitting || undefined"
         text="Annuleer"
@@ -638,14 +638,14 @@ const formatDate = (dateStr: string) =>
            secondary one (NLDD design guideline). -->
       <nldd-button
         slot="actions"
-        variant="primary"
+        appearance="primary"
         size="md"
         text="Annuleer"
         @click="deleteProjectModalOpen = false; deleteConfirmInput = ''"
       ></nldd-button>
       <nldd-button
         slot="actions"
-        variant="destructive"
+        appearance="destructive"
         size="md"
         :disabled="deleteConfirmInput !== 'VERWIJDEREN' || undefined"
         text="Project verwijderen"

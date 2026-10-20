@@ -10,7 +10,7 @@ import { FormType } from '../../src/models/dpia'
 // The tracker builds a vertical step list on nldd-list / nldd-list-item
 // (stubbed in jsdom via the @nldd alias), so tests assert on host attributes
 // and light-DOM children: <nldd-list-item class="toc-item toc-item--{node}"
-// button current> with a <nldd-timeline-track-cell variant="step" status
+// button current> with a <nldd-step-cell level="step" status
 // position> whose marker carries icon="check-mark" (done), a slotted
 // .toc-progress-core (started) or text="<num>" (the chapter number).
 
@@ -72,10 +72,10 @@ function nodeKind(item: ReturnType<typeof items>[number]): string {
   return ['done', 'current', 'progress', 'open'].find(k => item.classes().includes(`toc-item--${k}`)) ?? '?'
 }
 function trackStatus(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('status')
+  return item.find('nldd-step-cell').attributes('status')
 }
 function markerIcon(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('icon')
+  return item.find('nldd-step-cell').attributes('icon')
 }
 // The state reads under the title now, in words, instead of in a screen-reader
 // only span.
@@ -83,7 +83,7 @@ function stateLabel(item: ReturnType<typeof items>[number]): string | undefined 
   return item.find('nldd-text-cell.toc-title').attributes('supporting-text')
 }
 function markerText(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('text')
+  return item.find('nldd-step-cell').attributes('text')
 }
 
 describe('ProgressTracker.vue', () => {
@@ -105,12 +105,12 @@ describe('ProgressTracker.vue', () => {
       const list = wrapper.find('nldd-list')
       expect(list.exists()).toBe(true)
       expect(list.attributes('accessible-label')).toBe('Inhoudsopgave')
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
+      const cells = wrapper.findAll('nldd-step-cell')
       expect(cells.length).toBe(items(wrapper).length)
       // 0.8.85 renamed the variants: a dot with room for a number or an icon is
-      // variant="major" at size="md" (the old "step").
+      // level="major" at size="md" (the old "step").
       for (const cell of cells) {
-        expect(cell.attributes('variant')).toBe('major')
+        expect(cell.attributes('level')).toBe('major')
         expect(cell.attributes('size')).toBe('md')
       }
     })
@@ -143,10 +143,10 @@ describe('ProgressTracker.vue', () => {
       // The number rides with the title; the marker carries the state.
       expect(titles(wrapper)).toEqual(['0. Inleiding', '1. Vragen', 'Ondertekening'])
       expect(titles(wrapper)).not.toContain('Proces voltooid')
-      expect(wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('text')))
+      expect(wrapper.findAll('nldd-step-cell').map(c => c.attributes('text')))
         .toEqual([undefined, undefined, undefined])
 
-      const positions = wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('position'))
+      const positions = wrapper.findAll('nldd-step-cell').map(c => c.attributes('position'))
       expect(positions).toEqual(['first', 'between', 'last'])
     })
 
@@ -154,7 +154,7 @@ describe('ProgressTracker.vue', () => {
       seedRootTasks(taskStore, [])
 
       const wrapper = mountTracker()
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
+      const cells = wrapper.findAll('nldd-step-cell')
       expect(cells).toHaveLength(1)
       expect(cells[0].attributes('position')).toBe('only')
       expect(titles(wrapper)).toEqual(['Proces voltooid'])

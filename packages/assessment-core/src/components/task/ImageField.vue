@@ -170,7 +170,7 @@ function triggerFileSelect() {
         <div v-if="isDragging" class="image-replace-overlay">Sleep een afbeelding hierheen om de huidige afbeelding te vervangen</div>
       </div>
 
-      <nldd-button variant="secondary" text="Vervang afbeelding" class="image-field__block" @click="triggerFileSelect"></nldd-button>
+      <nldd-button appearance="secondary" text="Vervang afbeelding" class="image-field__block" @click="triggerFileSelect"></nldd-button>
 
       <!-- Metadata fields (only shown when an image is uploaded) -->
       <nldd-container gap="8">

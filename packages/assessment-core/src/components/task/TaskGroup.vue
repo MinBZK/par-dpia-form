@@ -196,13 +196,13 @@ const cancelPendingDelete = () => {
                   <nldd-button :inert="readonly || undefined" v-if="
                     canUserCreateInstances(childId) &&
                     hasMoreThanOneInstance(childId, props.instanceId)
-                  " variant="destructive" start-icon="trash" text="Verwijder veld" @click="handleDelete(childInstanceId)"></nldd-button>
+                  " appearance="destructive" start-icon="trash" text="Verwijder veld" @click="handleDelete(childInstanceId)"></nldd-button>
                 </div>
               </div>
 
               <!-- Add button for repeatable field -->
               <template v-if="canUserCreateInstances(childId)">
-                <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
+                <nldd-button :inert="readonly || undefined" appearance="secondary" start-icon="plus"
                   :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                   @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
                 <nldd-spacer size="16"></nldd-spacer>
@@ -238,7 +238,7 @@ const cancelPendingDelete = () => {
               <nldd-box v-if="canUserCreateInstances(childId) && hasVisibleInstance(childId)"
                 :background="boxBackground">
                 <nldd-container padding="16">
-                  <nldd-button :inert="readonly || undefined" variant="secondary" start-icon="plus"
+                  <nldd-button :inert="readonly || undefined" appearance="secondary" start-icon="plus"
                     :text="`Voeg extra ${taskStore.taskById(childId).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(childId).task.toLowerCase())} toe`"
                     @click="taskStore.addRepeatableTaskInstance(childId, instanceId)"></nldd-button>
                 </nldd-container>
@@ -255,7 +255,7 @@ const cancelPendingDelete = () => {
 
       <!-- Button to delete the current task group instance (only shown for the parent component) -->
       <nldd-button :inert="readonly || undefined" v-if="isRepeatable && canUserCreateInstances(taskId) && hasMoreThanOneInstance(taskId)"
-        variant="destructive" start-icon="trash"
+        appearance="destructive" start-icon="trash"
         :text="`Verwijder ${task.item_name || getPlainTextWithoutDefinitions(task.task.toLowerCase())}`"
         @click="handleDelete(props.instanceId)"></nldd-button>
     </fieldset>

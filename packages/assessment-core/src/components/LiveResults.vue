@@ -65,7 +65,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
     <nldd-container padding="16">
       <nldd-title size="3">
         <h3>Tussenresultaten pre-scan</h3>
-        <p slot="subtitle">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
+        <p slot="supporting-text">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
       </nldd-title>
     </nldd-container>
   </nldd-card>
@@ -77,7 +77,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
         <template #title>
           <nldd-title size="3">
             <h3>Tussenresultaten pre-scan</h3>
-            <p slot="subtitle">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</p>
+            <p slot="supporting-text">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</p>
           </nldd-title>
         </template>
         <div v-if="calculationStore.isCalculating">

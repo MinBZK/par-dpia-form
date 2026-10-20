@@ -89,7 +89,7 @@ describe('App.vue', () => {
   it('renders the layout with banner, router-view, dialog and footer links', () => {
     const wrapper = mountApp()
 
-    expect(wrapper.find('nldd-app-view').exists()).toBe(true)
+    expect(wrapper.find('nldd-shell').exists()).toBe(true)
     expect(wrapper.find('nldd-page').exists()).toBe(true)
     expect(wrapper.find('[slot="header"]').exists()).toBe(true)
     expect(wrapper.find('.app-banner-stub').exists()).toBe(true)

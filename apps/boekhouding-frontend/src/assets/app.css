@@ -397,14 +397,17 @@ nldd-card p {
   display: grid;
 }
 
+/* nldd-box draws its tinted surface from these two semantic tokens, so the
+   colour of a diff side is set by rebinding them rather than by painting the
+   host: the box keeps its own radius, border width and padding. */
 .diff-old {
-  --components-box-background-color: var(--primitives-color-critical-50);
-  --components-box-border-color: var(--primitives-color-critical-200);
+  --semantics-surfaces-tinted-background-color: var(--primitives-color-critical-50);
+  --semantics-surfaces-tinted-border-color: var(--primitives-color-critical-200);
 }
 
 .diff-new {
-  --components-box-background-color: var(--primitives-color-success-50);
-  --components-box-border-color: var(--primitives-color-success-200);
+  --semantics-surfaces-tinted-background-color: var(--primitives-color-success-50);
+  --semantics-surfaces-tinted-border-color: var(--primitives-color-success-200);
 }
 
 .diff-value__label {

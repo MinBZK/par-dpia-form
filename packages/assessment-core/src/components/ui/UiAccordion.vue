@@ -10,8 +10,8 @@ defineProps<{
   <details class="ui-accordion" :open="open">
     <summary class="ui-accordion__summary">
       <span class="ui-accordion__icon" aria-hidden="true">
-        <nldd-icon name="chevron-down" size="20" color="accent" class="ui-accordion__icon--closed"></nldd-icon>
-        <nldd-icon name="chevron-up" size="20" color="accent" class="ui-accordion__icon--open"></nldd-icon>
+        <nldd-icon icon="chevron-down" size="20" color="accent" class="ui-accordion__icon--closed"></nldd-icon>
+        <nldd-icon icon="chevron-up" size="20" color="accent" class="ui-accordion__icon--open"></nldd-icon>
       </span>
       <span class="ui-accordion__title">
         <slot name="title" />

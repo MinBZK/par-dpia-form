@@ -68,7 +68,7 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
     expect(accordion.exists()).toBe(true)
     expect((accordion.element as HTMLDetailsElement).open).toBe(true)
     expect(accordion.find('.ui-accordion__title nldd-title h3').text()).toBe('Informatie uit pre-scan')
-    expect(accordion.find('.ui-accordion__title p[slot="subtitle"]').text()).toContain(
+    expect(accordion.find('.ui-accordion__title p[slot="supporting-text"]').text()).toContain(
       'Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.',
     )
     expect(wrapper.text()).toContain('1.2. Doel van de verwerking')

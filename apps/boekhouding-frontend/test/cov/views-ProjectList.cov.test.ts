@@ -135,7 +135,7 @@ describe('ProjectList', () => {
 
       const grid = wrapper.find('nldd-collection')
       expect(grid.attributes('layout')).toBe('grid')
-      expect(grid.attributes('item-width')).toBe('380px')
+      expect(grid.attributes('item-min-width')).toBe('380px')
       expect(grid.attributes('gap')).toBe('16px')
       expect(grid.attributes('max-items')).toBe('2')
 
@@ -184,7 +184,7 @@ describe('ProjectList', () => {
       expect(wrapper.find('[data-test="create-project-dialog"]').exists()).toBe(true)
       const trigger = wrapper.find('nldd-button[text="Nieuw project"]')
       expect(trigger.exists()).toBe(true)
-      expect(trigger.attributes('variant')).toBe('primary')
+      expect(trigger.attributes('appearance')).toBe('primary')
       expect(trigger.attributes('start-icon')).toBe('plus')
     })
 

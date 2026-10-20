@@ -9,7 +9,7 @@ import '@nldd/design-system/rich-text'
   <nldd-card class="export-pdf-info">
     <nldd-container padding="16" gap="8">
       <div class="export-pdf-info__heading-row">
-        <nldd-icon name="info-circle" size="24" color="accent"></nldd-icon>
+        <nldd-icon icon="info-circle" size="24" color="accent"></nldd-icon>
         <strong>Opslaan en delen van je werk</strong>
       </div>
       <nldd-rich-text>

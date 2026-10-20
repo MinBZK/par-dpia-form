@@ -82,7 +82,7 @@ const assessments = [
 
     <section aria-labelledby="landing-paths-title">
       <h2 id="landing-paths-title">Kies hoe je werkt</h2>
-      <nldd-collection layout="grid" item-width="380px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="380px" gap="16px">
         <nldd-card>
           <nldd-container padding="16" gap="8">
             <h3>Zelfstandig invullen</h3>
@@ -94,7 +94,7 @@ const assessments = [
           </nldd-container>
           <nldd-container slot="footer" padding="16" padding-top="0">
             <nldd-button
-              variant="primary"
+              appearance="primary"
               size="md"
               :href="standaloneUrl"
               text="Start zonder account"
@@ -118,7 +118,7 @@ const assessments = [
           </nldd-container>
           <nldd-container slot="footer" padding="16" padding-top="0">
             <nldd-button
-              variant="primary"
+              appearance="primary"
               size="md"
               :text="isAuthenticated ? 'Naar projecten' : 'Inloggen'"
               @click="goToProjects"
@@ -130,7 +130,7 @@ const assessments = [
 
     <section aria-labelledby="landing-pillars-title">
       <h2 id="landing-pillars-title">Voor de overheid, door de overheid</h2>
-      <nldd-collection layout="grid" item-width="20rem" gap="24px">
+      <nldd-collection layout="grid" item-min-width="20rem" gap="24px">
         <nldd-container
           v-for="pillar in pillars"
           :key="pillar.title"
@@ -138,7 +138,7 @@ const assessments = [
           gap="16"
           vertical-alignment="top"
         >
-          <nldd-icon :name="pillar.icon" size="24" color="donkerblauw"></nldd-icon>
+          <nldd-icon :icon="pillar.icon" size="24" color="donkerblauw"></nldd-icon>
           <nldd-container gap="8">
             <nldd-title size="5"><h3>{{ pillar.title }}</h3></nldd-title>
             <nldd-text>{{ pillar.body }}</nldd-text>
@@ -149,7 +149,7 @@ const assessments = [
 
     <section id="assessments" aria-labelledby="landing-assessments-title">
       <h2 id="landing-assessments-title">De drie assessments</h2>
-      <nldd-collection layout="grid" item-width="290px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="290px" gap="16px">
         <nldd-card v-for="assessment in assessments" :key="assessment.title">
           <nldd-container padding="16" gap="8">
             <h3>{{ assessment.title }}</h3>
