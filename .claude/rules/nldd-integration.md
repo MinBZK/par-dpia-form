@@ -36,7 +36,7 @@ waarschuwing. De naam die logisch klinkt is vaak net niet de echte
 Twee bronnen die niet kunnen liegen, allebei in het geïnstalleerde package:
 
 - `custom-elements.json` — per component alle attributen, slots en events.
-- `dist/components/content/icon/icon-registry.js` — de 353 geldige icoonnamen.
+- `dist/components/content/icon/icon-registry.js` — de 371 geldige icoonnamen.
 
 ```js
 // alle geldige icoonnamen
@@ -55,21 +55,32 @@ het label daar (`text` of `accessible-label` op de knop).
 
 ## Formuliervalidatie koppelt zichzelf niet
 
-De foutweergave werkt op `invalid` op het veld **plus** `error-message` met de
-id van de fouttekst:
+Een foutmelding is een eis waar de waarde niet aan voldoet, dus ze staat in een
+`nldd-validation-list`. De koppeling loopt over `unmet` op het veld, dat de
+id's noemt van de items die niet gehaald zijn:
 
 ```html
 <nldd-form-field label="E-mailadres">
-  <nldd-text-field :invalid="err ? true : undefined" error-message="emailError" />
-  <nldd-form-field-error-text id="emailError">{{ err }}</nldd-form-field-error-text>
+  <nldd-text-field :invalid="err ? true : undefined" :unmet="err ? 'emailError' : undefined" />
+  <nldd-validation-list v-if="err">
+    <nldd-validation-item id="emailError">{{ err }}</nldd-validation-item>
+  </nldd-validation-list>
 </nldd-form-field>
 ```
 
-Zonder `error-message` krijgt de melding **hoogte 0** en is ze onzichtbaar —
-ook voor een screenreader, want `nldd-form-field` zet dan geen
-`aria-describedby`. Dat is gemeten, niet aangenomen. `error-message` staat niet
-in `custom-elements.json` (het is geen property), maar `nldd-form-field` leest
-het wel degelijk uit het DOM-attribuut.
+Zonder `unmet` krijgt het item `display: none` en is de melding onzichtbaar,
+ook voor een screenreader: het veld krijgt dan geen `aria-describedby` naar de
+tekst. Dat is gemeten, niet aangenomen. Een item zonder regel is de vorm voor
+een fout die alleen de server kan vaststellen; een item mét `minlength`,
+`match` of `required` laat het component zelf oordelen.
+
+Schrijf de tekst als de eis, niet als de opdracht: "Minimaal 8 tekens", niet
+"Gebruik minimaal 8 tekens". Dezelfde regel staat er vooraf als voorwaarde en
+achteraf als wat er nog mis is.
+
+Tot 0.8.84 ging dit over `error-message` plus `nldd-form-field-error-text`.
+Allebei zijn weg; wie ze laat staan, krijgt een melding die permanent in beeld
+staat of helemaal niet.
 
 ## Gebruik wat het DS al heeft
 

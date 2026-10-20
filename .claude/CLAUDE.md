@@ -100,18 +100,23 @@ bij elke UI-wijziging: hij zegt welke attributen, slots en tokens een component
 echt heeft, in plaats van dat je het gokt.
 
 Draait de plugin nog niet, installeer hem dan zo (de marketplace is de
-Storybook-repo van het design system zelf):
+repo van het design system zelf):
 
 ```
-/plugin marketplace add MinBZK/storybook
+/plugin marketplace add NederlandseDigitaleDienst/design-system
 /plugin install nldd@nldd-plugins
 ```
 
-Daarna is de skill `nldd` beschikbaar. Wat erin zit: `reference.md` (alle
-`nldd-*`-elementen met attributen, slots en events), `changelog.md` (leidend bij
-een versiebump: lees elke `Breaking`-sectie tussen jouw versie en de doelversie),
-`design-guidelines.md` (de ontwerpkeuzes: invoer, navigatie, feedback, microcopy)
-en werkende voorbeelden. Houd de plugin-versie gelijk aan de
+Daarna zijn vijf skills beschikbaar, elk voor een eigen taak: `nldd-design`
+(de naslag: `reference.md` met alle `nldd-*`-elementen, `changelog.md` per
+versie en `design-guidelines.md`), `nldd-design-build` (bouwen),
+`nldd-design-migrate` (omzetten), `nldd-design-upgrade` (een versie verhogen)
+en `nldd-design-contribute` (iets voorstellen aan het systeem). De oude naam
+`nldd` wijst er alleen nog naar en vervalt na 1 maart 2027.
+
+Bij een versiebump is `nldd-design-upgrade` leidend: dit project brengt álles
+uit als patch, ook een breaking change, dus het versienummer zegt niets en de
+changelog alles. Houd de plugin-versie gelijk aan de
 `@nldd/design-system`-versie in `package.json`; de referentie hoort bij precies
 die release.
 
