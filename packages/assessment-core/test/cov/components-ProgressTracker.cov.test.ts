@@ -77,10 +77,13 @@ function trackStatus(item: ReturnType<typeof items>[number]): string | undefined
 function markerIcon(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-step-cell').attributes('icon')
 }
-// The state reads under the title now, in words, instead of in a screen-reader
-// only span.
-function stateLabel(item: ReturnType<typeof items>[number]): string | undefined {
+// No state carries a visible label: the marker says it on screen and a
+// screen-reader-only span says it out loud.
+function supportingText(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-text-cell.toc-title').attributes('supporting-text')
+}
+function srStates(item: ReturnType<typeof items>[number]): string[] {
+  return item.findAll('.sr-only').map(s => s.text())
 }
 function markerText(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-step-cell').attributes('text')
@@ -234,7 +237,7 @@ describe('ProgressTracker.vue', () => {
       expect(done.find('.toc-done').exists()).toBe(false)
       // No word under it: the check mark already says finished. A screen
       // reader cannot see that check, so it still hears it.
-      expect(stateLabel(done)).toBeUndefined()
+      expect(supportingText(done)).toBeUndefined()
       expect(done.findAll('.sr-only').some(s => s.text() === ', voltooid')).toBe(true)
       expect(done.attributes('current')).toBeUndefined()
 
@@ -242,7 +245,7 @@ describe('ProgressTracker.vue', () => {
       expect(trackStatus(open)).toBe('future')
       expect(markerIcon(open)).toBeUndefined()
       expect(markerText(open)).toBeUndefined()
-      expect(stateLabel(open)).toBeUndefined()
+      expect(supportingText(open)).toBeUndefined()
     })
 
     it('markeert de huidige, niet-voltooide stap in de tijdlijn, niet met een gevulde rij', () => {
@@ -261,7 +264,7 @@ describe('ProgressTracker.vue', () => {
       // The marker says where you are; the row keeps the page's own surface.
       expect(current.attributes('current')).toBeUndefined()
       // No word under it: the tinted row says it, and a screen reader hears it.
-      expect(stateLabel(current)).toBeUndefined()
+      expect(supportingText(current)).toBeUndefined()
       expect(current.findAll('.sr-only').some(s => s.text() === ', huidige stap')).toBe(true)
       expect(markerIcon(current)).toBeUndefined()
     })
@@ -280,7 +283,7 @@ describe('ProgressTracker.vue', () => {
       // Done wins in the marker, so only the announcement says you are here.
       expect(first.attributes('current')).toBeUndefined()
       // Done and current at once: the check mark carries done, so no word.
-      expect(stateLabel(first)).toBeUndefined()
+      expect(supportingText(first)).toBeUndefined()
     })
 
     it('toont geen done/current wanneer disabled: alles open (future) zonder current-attribuut', () => {
@@ -334,7 +337,8 @@ describe('ProgressTracker.vue', () => {
       expect(markerIcon(partial)).toBe('circle-filled-small')
       expect(partial.classes()).toContain('toc-item--progress')
       expect(markerText(partial)).toBeUndefined()
-      expect(stateLabel(partial)).toBe('Mee bezig')
+      expect(supportingText(partial)).toBeUndefined()
+      expect(srStates(partial)).toContain(', mee bezig')
     })
 
     it('laat done en current voorgaan op progress', () => {

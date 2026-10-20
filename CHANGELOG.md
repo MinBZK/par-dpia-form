@@ -57,9 +57,9 @@ build) staan kort onder "Onder de motorkap".
   een aanraakscherm te raken.
 * De inhoudsopgave heeft haar tijdlijn terug: elke stap is een bolletje,
   verbonden door een doorlopende lijn. Een afgeronde stap krijgt een vinkje,
-  een stap waar je mee bezig bent een gevuld rondje met "Mee bezig" eronder, en
-  de stap waar je nu bent licht op. Het hoofdstuknummer staat weer voor de
-  titel.
+  een stap waar je mee bezig bent een gevuld rondje, en de stap waar je nu bent
+  licht op. Een schermlezer noemt die drie toestanden hardop. Het
+  hoofdstuknummer staat weer voor de titel.
 * Open tekstvelden tonen de opmaak terwijl je typt: vet is vet, een kop is
   groter. De schakelaar tussen bewerken en lezen is daarmee overbodig en
   verdwenen — de tekst blijft gewoon markdown, dus de PDF-export verandert niet.
