@@ -229,6 +229,14 @@ legend.task-fieldset__legend--sub {
    own hover, focus and current state; the chapter number rides along as the
    cell's overline and a check mark closes off a finished step. */
 
+/* The sidebar box draws a ring in the page background plus a divider-coloured
+   border, which frames the table of contents as a card; it reads as one list
+   without it. The border width is the only public token in that ring: the box'
+   own background and border colour are private since 0.8.96. */
+nldd-sidebar-section {
+  --semantics-surfaces-border-width: 0;
+}
+
 /* nldd-list-item reaches outward by this inset so its highlight frames the
    row; without matching padding here it would push the sidebar into a
    horizontal scroll. */
