@@ -56,6 +56,12 @@ const childGroups = computed<ChildGroup[]>(() => {
   return groups
 })
 
+// A definition inside an accordion title sits in the clickable <summary>; tapping
+// the term (the only way to reveal it on touch) must not also toggle the item.
+const keepAccordionOnDefinitionClick = (event: MouseEvent) => {
+  if ((event.target as Element).closest('.aiv-definition')) event.preventDefault()
+}
+
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const isInformationalTask = computed(() => taskIsOfTaskType(task.value, 'informational'))
@@ -268,9 +274,9 @@ function shouldSkipTask(taskId: string): boolean {
                     role="img" aria-label="Inklappen"></span>
                 </div>
                 <div class="rvo-accordion__item-title-container">
-                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-                    {{ taskStore.taskById(childId).task }}
-                  </h3>
+                  <!-- Titles come from the trusted schema and may carry definition markup. -->
+                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal"
+                    @click="keepAccordionOnDefinitionClick" v-html="taskStore.taskById(childId).task"></h3>
                 </div>
               </summary>
               <div class="rvo-accordion__content">

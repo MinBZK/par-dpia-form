@@ -1087,6 +1087,39 @@ describe('TaskSection accordion grouping of info-only children', () => {
     expect(item).toBeTruthy()
   })
 
+  it('renders a definition in an accordion title as markup, not as literal HTML', () => {
+    const definition =
+      '<span class="aiv-definition">by design<span class="aiv-definition-text">Uitleg</span></span>'
+    taskStore.init(
+      [
+        {
+          id: '4',
+          task: 'Informatie-sectie',
+          type: ['task_group', 'informational'],
+          is_official_id: true,
+          tasks: [
+            { id: '4.1', task: `Verantwoorde AI ${definition}`, type: ['task_group'], description: 'Uitleg A' },
+          ],
+        },
+      ],
+      true,
+    )
+
+    const title = mountSection('4').find('.rvo-accordion__item-title')
+    expect(title.find('.aiv-definition').exists()).toBe(true)
+    expect(title.text()).not.toContain('<span')
+
+    // Clicking the term shows its definition without toggling the accordion;
+    // clicking elsewhere in the title still toggles it.
+    const click = (el: Element) => {
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true })
+      el.dispatchEvent(event)
+      return event.defaultPrevented
+    }
+    expect(click(title.find('.aiv-definition-text').element)).toBe(true)
+    expect(click(title.element)).toBe(false)
+  })
+
   it('opens the first accordion item by default for an informational section (firstAccordionChildId)', () => {
     taskStore.init(tree, true)
 
