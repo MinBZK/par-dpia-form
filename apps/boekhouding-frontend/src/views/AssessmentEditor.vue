@@ -18,8 +18,9 @@ import {
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import '@nldd/design-system/button'
-import '@nldd/design-system/sheet'
 import '@nldd/design-system/page'
+import '@nldd/design-system/navigation-split-view'
+import '@nldd/design-system/split-view-pane'
 import '@nldd/design-system/simple-section'
 import '@nldd/design-system/text-field'
 import '@nldd/design-system/modal-dialog'
@@ -81,35 +82,55 @@ useFieldCommentIndicators(formContainerRef, (fieldId) => {
   commentPanelOpen.value = true
 }, canComment)
 
-// nldd-sheet exposes show()/hide(); they exist once the custom element has
-// upgraded (not in jsdom), hence the optional calls. Mirroring the state onto
-// them rather than mounting and unmounting the sheet keeps its slide-in.
-type SheetElement = HTMLElement & { show?: () => void; hide?: () => void }
+// The split view hands the inspector its own column while there is room for
+// one, and folds it into a sheet when there is not. Which of the two it is
+// doing is its own call, reported on inspector-auto-hidden; opening the sheet
+// is then ours to ask for. The methods exist once the element has upgraded
+// (not in jsdom), hence the optional calls.
+type SplitViewElement = HTMLElement & {
+  showInspectorSheet?: () => void
+  hideInspectorSheet?: () => void
+}
 
-const commentSheet = ref<SheetElement | null>(null)
+// The split view belongs to the app shell, not to this view, so it is looked
+// up rather than held in a ref.
+const splitView = () =>
+  document.querySelector<SplitViewElement>('nldd-navigation-split-view')
+
+function openInspector() {
+  const view = splitView()
+  if (view?.hasAttribute('inspector-auto-hidden')) view.showInspectorSheet?.()
+}
 
 watch(commentPanelOpen, async (open) => {
   if (!open) {
-    commentSheet.value?.hide?.()
+    splitView()?.hideInspectorSheet?.()
     return
   }
+  // The pane is mounted by this same state, so the element the split view has
+  // to measure only exists after the render.
   await nextTick()
-  commentSheet.value?.show?.()
+  openInspector()
 })
 
-// The sheet emits close for its own routes out (its dismiss button, Escape
-// while focus is inside it). Routing that back through the state keeps the
-// button in step, and the watch above then performs no second hide() because
-// the sheet is already closed.
-const onCommentSheetClose = () => {
-  commentPanelOpen.value = false
-  activeCommentFieldId.value = null
-}
+// Narrowing the window takes the column away. Without this the panel would
+// just be gone: the split view reports that it hid the inspector, opening it
+// as a sheet is ours to ask for.
+let inspectorObserver: MutationObserver | null = null
 
-// A modeless sheet is a non-modal dialog, so the browser only routes Escape to
-// it while focus is inside. That is the point of modeless — the form stays
-// usable — but it means clicking back into a question takes Escape away from
-// the panel. Listening on the document gives it back.
+onMounted(() => {
+  const view = splitView()
+  if (!view) return
+  inspectorObserver = new MutationObserver(() => {
+    if (commentPanelOpen.value) openInspector()
+  })
+  inspectorObserver.observe(view, { attributeFilter: ['inspector-auto-hidden'] })
+})
+
+onUnmounted(() => inspectorObserver?.disconnect())
+
+// The panel closes from inside as well: its own close button, or Escape. The
+// column is not a dialog, so Escape does not reach it on its own.
 const onDocumentKeydown = (event: KeyboardEvent) => {
   if (event.key !== 'Escape' || !commentPanelOpen.value) return
   // Escape belongs to the innermost thing that can use it: cancelling an edit,
@@ -609,25 +630,27 @@ const confirmDelete = async () => {
         </Form>
     </div>
 
-    <!-- A side panel, the way the rest of the family does it: a right-hand
-         sheet that slides in over the page. Teleported to the body because a
-         sheet must sit at the document root. The sheet owns Esc and the click
-         outside; @close is the single way the state comes back down. -->
-    <Teleport to="body">
-      <nldd-sheet ref="commentSheet" placement="right" width="480px"
-        accessible-label="Opmerkingen" @close="onCommentSheetClose">
-        <!-- sticky-header keeps the title bar in place while the list scrolls. -->
-        <nldd-page sticky-header>
+    <!-- The comments get a column of their own beside the form instead of a
+         sheet over it: you read a comment and the question it is about at the
+         same time. That column is the app shell's inspector slot, which lives
+         in App.vue, so the pane is teleported into the split view there. Its
+         presence in the light DOM is what opens the column; the split view
+         folds it into a sheet by itself once the form runs out of room.
+         landmarks="region" makes this page a labelled section rather than a
+         second main landmark, which is what an inspector beside a form is. -->
+    <Teleport to="nldd-navigation-split-view">
+      <nldd-split-view-pane v-if="commentPanelOpen" slot="inspector" has-content>
+        <!-- sticky-header keeps the title bar in place while the thread scrolls. -->
+        <nldd-page sticky-header landmarks="region" accessible-label="Opmerkingen">
           <CommentPanel
-            v-if="commentPanelOpen"
             :role="assessment.role || 'viewer'"
             :activeFieldId="activeCommentFieldId"
             :formContainerRef="formContainerRef"
             @close="commentPanelOpen = false"
-            @deactivate-field="activeCommentFieldId = null"
+            @select-field="activeCommentFieldId = $event"
           />
         </nldd-page>
-      </nldd-sheet>
+      </nldd-split-view-pane>
     </Teleport>
   </template>
 

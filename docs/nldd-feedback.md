@@ -19,6 +19,20 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
 
 ## Nog in te dienen
 
+- **Een split view binnen een `nldd-page` valt stil samen tot niets.** De host
+  staat op `height: 100%` en krijgt alleen `height: auto` als de
+  ScrollModeController hem `data-scroll="root"` geeft. Zet je hem ergens anders
+  neer dan direct onder de `nldd-shell`, dan meet hij 0 pixels hoog: geen
+  foutmelding, geen waarschuwing, een lege pagina. Tegelijk schakelt de shell de
+  hele app wel naar `--context-scroll-mode: nested`, dus de rest van de pagina
+  verandert wél van gedrag. Gevraagd: een waarschuwing in de dev-build wanneer
+  een split view buiten de shell-compositie staat, en een zin in de
+  component-documentatie dat de plaatsing vast ligt.
+- **`nldd-sidebar-section` kan alleen links.** De inhoudsopgave staat links en
+  het opmerkingenpaneel moet rechts; daarvoor is een `nldd-navigation-split-view`
+  om de hele app nodig, met nested scrolling als gevolg. Gevraagd: een
+  `position="end"` (of een tweede zijkolom), zodat een pagina een inspector kan
+  tonen zonder dat de hele app van scrollmodel wisselt.
 - **`nldd-checkbox` en `nldd-radio-button` nemen alleen platte tekst als label.**
   Onze antwoordopties dragen begrippen-uitleg in hun label (opmaak, geen tekst),
   en die kan niet door de shadow-DOM-grens. Daardoor blijven radio's en

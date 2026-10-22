@@ -17,9 +17,15 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
-* Het opmerkingenpaneel legt zich nu over de pagina heen in plaats van ernaast:
-  zolang het openstaat werk je niet in het formulier. Het design system heeft de
-  niet-blokkerende vorm van dit paneel geschrapt.
+* Opmerkingen staan nu in een kolom naast het formulier en gaan over één vraag
+  tegelijk: je leest de opmerking en de vraag waar hij bij hoort tegelijk, en
+  het formulier blijft gewoon te gebruiken. Boven in het paneel staan de vraag
+  en het hoofdstuk, en met "Vorige" en "Volgende" loop je langs alle vragen met
+  opmerkingen; het formulier springt mee. Past de kolom er niet meer naast, dan
+  schuift het paneel vanaf de zijkant in beeld.
+* Bij een vraag met opmerkingen staat nu rechts in de regel van de vraag een
+  gevulde knop met het aantal. Een vraag zonder opmerkingen houdt daar een
+  rustige knop om er een te plaatsen.
 * Invulhulpen heeft een eigen tabbladpictogram: een document met een pen op
   het Rijksblauw, in plaats van het blauwe vlak van eerder.
 * Een selectievakje staat weer op één lijn met de eerste regel van zijn label.

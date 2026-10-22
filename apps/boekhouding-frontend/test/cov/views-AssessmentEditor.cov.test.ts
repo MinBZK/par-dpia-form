@@ -219,7 +219,7 @@ const stubs = {
   CommentPanel: {
     name: 'CommentPanel',
     props: ['role', 'activeFieldId', 'formContainerRef'],
-    emits: ['close', 'deactivate-field'],
+    emits: ['close', 'select-field'],
     template: '<aside class="comment-panel-stub" :data-role="role" :data-field="activeFieldId" />',
   },
 }
@@ -238,7 +238,27 @@ function makeAssessment(overrides: Record<string, unknown> = {}) {
   }
 }
 
-async function mountEditor(props: { assessmentId?: string } = {}) {
+// The split view is the app shell's, so it lives in App.vue, which jsdom never
+// mounts. The editor teleports its inspector pane into it and looks it up to
+// drive the sheet, so the tests have to put one in the document themselves.
+type SplitViewStub = HTMLElement & {
+  showInspectorSheet?: () => void
+  hideInspectorSheet?: () => void
+}
+
+function splitView(): SplitViewStub | null {
+  return document.querySelector<SplitViewStub>('nldd-navigation-split-view')
+}
+
+function installSplitView(): SplitViewStub {
+  return splitView()
+    ?? (document.body.appendChild(
+      document.createElement('nldd-navigation-split-view'),
+    ) as SplitViewStub)
+}
+
+async function mountEditor(props: { assessmentId?: string; withSplitView?: boolean } = {}) {
+  if (props.withSplitView !== false) installSplitView()
   const wrapper = mount(AssessmentEditor, {
     props: { assessmentId: props.assessmentId ?? 'a1' },
     global: { stubs },
@@ -309,8 +329,9 @@ beforeEach(async () => {
 
 afterEach(() => {
   vi.useRealTimers()
-  // The comment sheet is teleported to the body, so an unmounted editor can
-  // still leave its nodes behind for the next test to find.
+  // The inspector pane is teleported out of the wrapper's tree, so an unmounted
+  // editor can still leave its nodes behind for the next test to find. This
+  // also takes the installed split view away again.
   document.body.innerHTML = ''
 })
 
@@ -318,6 +339,7 @@ describe('AssessmentEditor — loading and error states', () => {
   it('shows the loading message before the assessment resolves', async () => {
     let resolveGet!: (v: unknown) => void
     assessmentsApi.get.mockReturnValueOnce(new Promise((r) => { resolveGet = r }))
+    installSplitView()
     const wrapper = mount(AssessmentEditor, {
       props: { assessmentId: 'a1' },
       global: { stubs },
@@ -614,17 +636,14 @@ describe('AssessmentEditor — role-based access', () => {
 })
 
 describe('AssessmentEditor — comment panel', () => {
-  // The panel lives in a sheet teleported to the body, so it is not inside the
-  // wrapper's tree; these read the document instead.
+  // The panel lives in a pane teleported into the app shell's split view, so it
+  // is not inside the wrapper's tree; these read the document instead.
   function panelStub() {
     return document.querySelector('.comment-panel-stub')
   }
 
-  function sheetEl() {
-    return document.querySelector('nldd-sheet') as (HTMLElement & {
-      show?: () => void
-      hide?: () => void
-    }) | null
+  function paneEl() {
+    return document.querySelector('nldd-split-view-pane')
   }
 
   it('toggles the comment panel open and closed via the badge', async () => {
@@ -636,12 +655,17 @@ describe('AssessmentEditor — comment panel', () => {
     await nextTick()
     expect(panelStub()).not.toBeNull()
 
-    // A right-hand side panel. `modeless` is gone from nldd-sheet since 0.8.87,
-    // so the sheet is modal: it draws a backdrop and holds focus.
-    const sheet = sheetEl()!
-    expect(sheet.getAttribute('placement')).toBe('right')
-    expect(sheet.hasAttribute('modeless')).toBe(false)
-    expect(sheet.getAttribute('accessible-label')).toBe('Opmerkingen')
+    // The pane is the split view's inspector slot: its presence in the light
+    // DOM is what opens the column, so it has to sit inside the split view.
+    const pane = paneEl()!
+    expect(pane.getAttribute('slot')).toBe('inspector')
+    expect(pane.hasAttribute('has-content')).toBe(true)
+    expect(pane.parentElement?.tagName.toLowerCase()).toBe('nldd-navigation-split-view')
+
+    const page = pane.querySelector('nldd-page')!
+    expect(page.getAttribute('accessible-label')).toBe('Opmerkingen')
+    expect(page.getAttribute('landmarks')).toBe('region')
+    expect(page.hasAttribute('sticky-header')).toBe(true)
 
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
@@ -674,29 +698,104 @@ describe('AssessmentEditor — comment panel', () => {
     wrapper.unmount()
   })
 
-  // Mirrored onto the element rather than mounted and unmounted, so the sheet
-  // keeps its slide-in.
-  it('drives show() and hide() on the upgraded sheet', async () => {
+  // With the column folded away the split view says so on
+  // inspector-auto-hidden, and opening the sheet is ours to ask for.
+  it('drives the inspector sheet while the split view keeps the column hidden', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
 
-    const sheet = sheetEl()!
-    sheet.show = vi.fn()
-    sheet.hide = vi.fn()
+    const view = splitView()!
+    view.setAttribute('inspector-auto-hidden', '')
+    // Let the observer see this attribute change before the panel opens, so the
+    // count below is the watch's call and nothing else.
+    await flushPromises()
+    view.showInspectorSheet = vi.fn()
+    view.hideInspectorSheet = vi.fn()
 
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
     await nextTick()
-    expect(sheet.show).toHaveBeenCalledTimes(1)
+    expect(view.showInspectorSheet).toHaveBeenCalledTimes(1)
 
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
-    expect(sheet.hide).toHaveBeenCalledTimes(1)
+    expect(view.hideInspectorSheet).toHaveBeenCalledTimes(1)
     wrapper.unmount()
   })
 
-  // A modeless sheet is a non-modal dialog: the browser routes Escape to it only
-  // while focus is inside, so clicking back into the form would take it away.
+  // With room for a column of its own, asking for the sheet would open what is
+  // already open.
+  it('leaves the sheet alone while the inspector has its own column', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    const view = splitView()!
+    view.showInspectorSheet = vi.fn()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(view.showInspectorSheet).not.toHaveBeenCalled()
+    expect(panelStub()).not.toBeNull()
+    wrapper.unmount()
+  })
+
+  // Narrowing the window takes the column away mid-session. Without following
+  // the split view there, the panel would simply be gone.
+  it('opens the sheet when the column disappears under an open panel', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+
+    const view = splitView()!
+    view.showInspectorSheet = vi.fn()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(view.showInspectorSheet).not.toHaveBeenCalled()
+
+    view.setAttribute('inspector-auto-hidden', '')
+    await flushPromises()
+    expect(view.showInspectorSheet).toHaveBeenCalledTimes(1)
+
+    // And it stays out of the way once the panel is closed again.
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    view.removeAttribute('inspector-auto-hidden')
+    await flushPromises()
+    expect(view.showInspectorSheet).toHaveBeenCalledTimes(1)
+    wrapper.unmount()
+  })
+
+  // The split view belongs to the app shell, so it is looked up every time
+  // rather than held; finding nothing has to be survivable.
+  it('tolerates the split view disappearing from the document', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    const view = splitView()!
+    view.setAttribute('inspector-auto-hidden', '')
+    view.remove()
+
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    await nextTick()
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    expect(splitView()).toBeNull()
+    wrapper.unmount()
+  })
+
+  // Without an app shell there is no split view to watch. The error state keeps
+  // the teleport out of the picture, so this is the editor mounting on its own.
+  it('mounts with no split view in the document at all', async () => {
+    assessmentsApi.get.mockRejectedValueOnce(new Error('Geen shell'))
+    const wrapper = await mountEditor({ withSplitView: false })
+    expect(splitView()).toBeNull()
+    expect(wrapper.text()).toContain('Geen shell')
+    wrapper.unmount()
+  })
+
+  // The column is not a dialog, so Escape does not reach it on its own.
   it('closes on Escape from anywhere on the page', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
@@ -744,30 +843,20 @@ describe('AssessmentEditor — comment panel', () => {
     wrapper.unmount()
   })
 
-  it('survives a sheet that has not been upgraded yet', async () => {
+  it('survives a split view that has not been upgraded yet', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
 
-    // jsdom upgrades no custom elements, so neither method exists; the optional
-    // calls have to swallow that rather than throw.
+    // jsdom upgrades no custom elements, so neither sheet method exists; the
+    // optional calls have to swallow that rather than throw.
+    splitView()!.setAttribute('inspector-auto-hidden', '')
+
     await wrapper.find('.comment-badge-stub').trigger('click')
     await nextTick()
     await nextTick()
     expect(panelStub()).not.toBeNull()
-    wrapper.unmount()
-  })
-
-  // The sheet closes itself on Esc and on a click outside; routing that back
-  // through the state keeps the button in step.
-  it('closes the panel when the sheet closes itself', async () => {
-    schemaStore.isInitialized = true
-    const wrapper = await mountEditor()
 
     await wrapper.find('.comment-badge-stub').trigger('click')
-    await nextTick()
-    expect(panelStub()).not.toBeNull()
-
-    sheetEl()!.dispatchEvent(new CustomEvent('close'))
     await nextTick()
     expect(panelStub()).toBeNull()
     wrapper.unmount()
@@ -785,15 +874,15 @@ describe('AssessmentEditor — comment panel', () => {
     wrapper.unmount()
   })
 
-  it('clears the active field when CommentPanel emits deactivate-field', async () => {
+  it('takes over the field CommentPanel selects', async () => {
     schemaStore.isInitialized = true
     const wrapper = await mountEditor()
     fieldClickHolder.fn!('3.3')
     await nextTick()
     expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-field')).toBe('3.3')
-    await wrapper.findComponent({ name: 'CommentPanel' }).vm.$emit('deactivate-field')
+    await wrapper.findComponent({ name: 'CommentPanel' }).vm.$emit('select-field', '4.4')
     await nextTick()
-    expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-field')).toBeNull()
+    expect(document.querySelector('.comment-panel-stub')?.getAttribute('data-field')).toBe('4.4')
     wrapper.unmount()
   })
 

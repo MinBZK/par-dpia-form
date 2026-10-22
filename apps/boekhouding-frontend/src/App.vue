@@ -9,6 +9,8 @@ import SessionExpiredDialog from './components/SessionExpiredDialog.vue'
 
 import '@nldd/design-system/shell'
 import '@nldd/design-system/page'
+import '@nldd/design-system/navigation-split-view'
+import '@nldd/design-system/split-view-pane'
 import '@nldd/design-system/page-footer'
 import '@nldd/design-system/skip-link'
 import '@nldd/design-system/menu-bar'
@@ -40,6 +42,14 @@ const displayName = computed(() => user.value?.displayName || 'Account')
 
 <template>
   <nldd-shell>
+    <!-- An app shell rather than a stack of pages: the split view is what lets
+         a view open a column beside the form (the assessment editor's comments
+         panel, teleported into the inspector slot). It takes the scrolling with
+         it - the pane scrolls, not the document - so it sits here for every
+         route instead of only that one, which would hand two routes two
+         different kinds of scrolling. -->
+    <nldd-navigation-split-view inspector-accessible-label="Opmerkingen">
+    <nldd-split-view-pane slot="main" has-content>
     <nldd-page>
       <div slot="header">
         <nldd-skip-link text="Naar hoofdinhoud" href="#main-content"></nldd-skip-link>
@@ -84,5 +94,7 @@ const displayName = computed(() => user.value?.displayName || 'Account')
         </nldd-page-footer-legal-bar>
       </nldd-page-footer>
     </nldd-page>
+    </nldd-split-view-pane>
+    </nldd-navigation-split-view>
   </nldd-shell>
 </template>
