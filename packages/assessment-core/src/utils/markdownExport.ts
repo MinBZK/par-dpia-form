@@ -1,6 +1,6 @@
 import { type FlatTask, type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType, type ImageValue, isImageValue } from '../stores/answers'
-import { FormType } from '../models/dpia'
+import { FORM_TITLES, FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
 import { renderInstanceLabel } from './taskUtils'
@@ -15,11 +15,7 @@ export async function exportToMarkdown(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA
-    ? 'DPIA'
-    : activeNamespace === FormType.IAMA
-      ? 'IAMA'
-      : 'Pre-scan DPIA'
+  const formType = FORM_TITLES[activeNamespace]
   const lines: string[] = []
 
   lines.push(`# ${formType}`)
@@ -38,7 +34,7 @@ export async function exportToMarkdown(
   if (activeNamespace === FormType.DPIA) {
     buildDpiaSections(lines, rootTasks, taskStore, answerStore)
   } else {
-    buildPreScanSections(lines, rootTasks, taskStore, answerStore)
+    buildNumberedOnlySections(lines, rootTasks, taskStore, answerStore)
   }
 
   // Append image data URIs as reference-style links at the end
@@ -76,7 +72,7 @@ function buildDpiaSections(
   }
 }
 
-function buildPreScanSections(
+function buildNumberedOnlySections(
   lines: string[],
   rootTasks: FlatTask[],
   taskStore: TaskStoreType,
