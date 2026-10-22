@@ -39,10 +39,10 @@ describe('parseAndValidateImport', () => {
     )
   })
 
-  it('throws when no DPIA/prescan/IAMA type can be detected', () => {
+  it('throws when no DPIA/prescan/IAMA/AIIA type can be detected', () => {
     expect(() =>
       parseAndValidateImport(JSON.stringify({ metadata: { createdAt: '2026-01-01' }, answers: {} })),
-    ).toThrow('Bestand bevat geen DPIA-, pre-scan- of IAMA-antwoorden')
+    ).toThrow('Bestand bevat geen DPIA-, pre-scan-, IAMA- of AIIA-antwoorden')
   })
 
   it('parses and normalizes a valid modern DPIA export (success path)', () => {
@@ -128,6 +128,16 @@ describe('detectImportType', () => {
 
   it('treats an empty dpia namespace plus other keys as dpia via final fallback', () => {
     expect(detectImportType({ metadata: {}, answers: { dpia: {}, prescan: {} } })).toBe('dpia')
+  })
+
+  it('detects aiia from metadata.urn', () => {
+    expect(detectImportType({ metadata: { urn: 'urn:nl:aiia:2.0' }, answers: {} })).toBe('aiia')
+  })
+
+  it('detects aiia from namespaced answers (FormType.AIIA key with entries)', () => {
+    expect(
+      detectImportType({ metadata: {}, answers: { dpia: {}, prescan: {}, aiia: { '1.1': { value: 'x' } } } }),
+    ).toBe('aiia')
   })
 })
 
@@ -295,6 +305,17 @@ describe('normalizeToState', () => {
     expect(Number.isNaN(created)).toBe(false)
   })
 
+  it('unwraps old namespace-wrapped aiia answers (aiia namespace branch)', () => {
+    const json = {
+      $schema: 'https://example/schema.json',
+      metadata: { urn: 'urn:nl:aiia:2.0', createdAt: '2026-01-01T00:00:00Z' },
+      answers: { aiia: { '1.1': { value: 'gewrapt' } } },
+    }
+
+    const state = normalizeToState(json, 'aiia')
+    expect(state.answers).toEqual({ '1.1': { value: 'gewrapt' } })
+  })
+
   it('handles completely missing metadata and answers (both optional-chaining falsy branches)', () => {
     const before = Date.now()
     const state = normalizeToState({}, 'prescan')
@@ -311,6 +332,7 @@ describe('namespaceFromUrn', () => {
     expect(namespaceFromUrn('urn:nl:dpia:3.0')).toBe(FormType.DPIA)
     expect(namespaceFromUrn('urn:nl:prescan')).toBe(FormType.PRE_SCAN)
     expect(namespaceFromUrn('urn:nl:iama:2.0')).toBe(FormType.IAMA)
+    expect(namespaceFromUrn('urn:nl:aiia:2.0')).toBe(FormType.AIIA)
   })
 
   it('returns null for a missing urn', () => {
@@ -356,6 +378,22 @@ describe('assertImportMatchesNamespace', () => {
   it('rejects an IAMA file in the pre-scan form', () => {
     expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:iama:2.0'), FormType.PRE_SCAN)).toThrow(
       'Dit bestand bevat geen pre-scan- of DPIA-gegevens.',
+    )
+  })
+
+  it('accepts an AIIA file in the AIIA form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:aiia:2.0'), FormType.AIIA)).not.toThrow()
+  })
+
+  it('rejects a DPIA file in the AIIA form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:dpia:3.0'), FormType.AIIA)).toThrow(
+      'Dit bestand bevat geen AIIA-gegevens.',
+    )
+  })
+
+  it('rejects an AIIA file in the IAMA form', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:aiia:2.0'), FormType.IAMA)).toThrow(
+      'Dit bestand bevat geen IAMA-gegevens.',
     )
   })
 })

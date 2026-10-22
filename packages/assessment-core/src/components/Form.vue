@@ -188,6 +188,7 @@ const resetOpen = ref(false)
 const resetLabel = computed(() =>
   taskStore.activeNamespace === FormType.DPIA ? 'DPIA'
   : taskStore.activeNamespace === FormType.IAMA ? 'IAMA'
+  : taskStore.activeNamespace === FormType.AIIA ? 'AIIA'
   : 'Pre-scan')
 
 // Counted from the store rather than storage: this is what the user is about to
@@ -256,7 +257,7 @@ const isInformationalStep = computed(() => {
       :class="{ 'rvo-max-width-layout-inline-padding--md': showNavHeader }">
       <nav class="rvo-sidebar-layout__sidebar" aria-label="Stappen navigatie">
         <ProgressTracker :disabled="!formStarted" :navigable="namespace === FormType.DPIA || namespace ===
-          FormType.PRE_SCAN || namespace === FormType.IAMA" />
+          FormType.PRE_SCAN || namespace === FormType.IAMA || namespace === FormType.AIIA" />
 
       </nav>
 

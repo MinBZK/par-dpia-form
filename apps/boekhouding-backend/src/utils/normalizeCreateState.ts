@@ -10,6 +10,7 @@ export const ASSESSMENT_TYPE_URNS = {
   prescan: 'urn:nl:prescan:2.0',
   dpia: 'urn:nl:dpia:3.0',
   iama: 'urn:nl:iama:2.0',
+  aiia: 'urn:nl:aiia:2.0',
 } as const
 
 export type AssessmentType = keyof typeof ASSESSMENT_TYPE_URNS

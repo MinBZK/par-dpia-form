@@ -2,7 +2,7 @@ import { type FlatTask, type TaskStoreType } from '../stores/tasks'
 import { type AnswerStoreType, isImageValue, type ImageValue } from '../stores/answers'
 import { convertWebpToPng } from './imageResize'
 import { type CalculationStoreType } from '../stores/calculations'
-import { FormType } from '../models/dpia'
+import { FORM_TITLES, FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
@@ -38,11 +38,7 @@ export async function exportToPdf(
   filename?: string,
 ): Promise<void> {
   const activeNamespace = taskStore.activeNamespace
-  const formType = activeNamespace === FormType.DPIA
-    ? 'DPIA'
-    : activeNamespace === FormType.IAMA
-      ? 'IAMA'
-      : 'Pre-scan DPIA'
+  const formType = FORM_TITLES[activeNamespace]
 
   // Pre-convert WebP images to PNG (pdfmake only supports JPEG/PNG)
   pdfImageCache.clear()
@@ -50,9 +46,9 @@ export async function exportToPdf(
 
   const contentSections: Content[] = activeNamespace === FormType.DPIA
     ? buildDpiaContentSections(taskStore, answerStore)
-    : activeNamespace === FormType.IAMA
-      ? buildIamaContentSections(taskStore, answerStore)
-      : buildPreScanContentSections(taskStore, answerStore, calculationStore)
+    : activeNamespace === FormType.PRE_SCAN
+      ? buildPreScanContentSections(taskStore, answerStore, calculationStore)
+      : buildNumberedOnlyContentSections(taskStore, answerStore)
 
   const styles: StyleDictionary = {
     title: {
@@ -199,7 +195,7 @@ export async function exportToPdf(
 // starting at `startNumber`. Shared by all three builders below; they differ
 // only in which tasks they pass and what precedes the numbered sections (the
 // pre-scan prepends a calculated Resultaten section, the DPIA prepends
-// unnumbered metadata/signing/summary sections, the IAMA prepends nothing).
+// unnumbered metadata/signing/summary sections, the IAMA and AIIA prepend nothing).
 function buildNumberedSections(
   tasks: FlatTask[],
   taskStore: TaskStoreType,
@@ -258,7 +254,7 @@ function buildPreScanContentSections(
   return contentSections
 }
 
-function buildIamaContentSections(
+function buildNumberedOnlyContentSections(
   taskStore: TaskStoreType,
   answerStore: AnswerStoreType,
 ): Content[] {

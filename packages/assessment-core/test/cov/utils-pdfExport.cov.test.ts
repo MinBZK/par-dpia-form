@@ -1107,3 +1107,43 @@ describe('exportToPdf (IAMA namespace)', () => {
     expect(arg.endsWith('.pdf')).toBe(true)
   })
 })
+
+describe('exportToPdf (AIIA namespace)', () => {
+  let taskStore: ReturnType<typeof useTaskStore>
+  let answerStore: ReturnType<typeof useAnswerStore>
+  let calculationStore: ReturnType<typeof useCalculationStore>
+
+  beforeEach(() => {
+    taskStore = useTaskStore()
+    answerStore = useAnswerStore()
+    calculationStore = useCalculationStore()
+    taskStore.setActiveNamespace(FormType.AIIA)
+    answerStore.setActiveNamespace(FormType.AIIA)
+  })
+
+  it('titles the report AIIA and numbers sections from 1 without a pre-scan Resultaten section', async () => {
+    taskStore.init(
+      [
+        {
+          task: 'Doel en noodzaak',
+          id: '1',
+          type: ['task_group'],
+          tasks: [{ task: 'Doel', id: '1.1', type: ['open_text'] }],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+    answerStore.setAnswer('1.1', 'Mijn doel')
+
+    await exportToPdf(taskStore, answerStore, calculationStore)
+
+    const texts = allTexts()
+    expect(texts.some((t) => t.includes('Resultaten'))).toBe(false)
+    expect(texts.some((t) => t.includes('Pre-scan'))).toBe(false)
+    expect(texts).toContain('AIIA')
+    expect(texts).toContain('1.  Doel en noodzaak')
+    expect(texts).toContain('Mijn doel')
+    expect(lastDocDefinition().info.title).toBe('AIIA Rapportagemodel')
+    expect((downloadMock.mock.calls[0][0] as string).startsWith('aiia_')).toBe(true)
+  })
+})

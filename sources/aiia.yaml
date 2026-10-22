@@ -1,0 +1,1265 @@
+# yaml-language-server: $schema=../schemas/assessment-definition.v2.schema.json
+name: AI Impact Assessment
+urn: 'urn:nl:aiia'
+version: "2.0"
+description: >-
+  AI Impact Assessment (AIIA) versie 2.0, december 2024. Het AIIA is ontwikkeld
+  door het IDlab en de afdeling analyse van de ILT, het RWS Datalab en de
+  Concerndirectie Informatiebeleid van het ministerie van Infrastructuur en
+  Waterstaat. Het AIIA begeleidt het denkproces rond een AI-project, met als doel
+  de verantwoording, kwaliteit en reproduceerbaarheid van AI-inzet te vergroten.
+prefixQuestionIds: true
+tasks:
+  - task: Inleiding
+    id: "0"
+    is_official_id: false
+    type:
+      - task_group
+      - informational
+    repeatable: false
+    tasks:
+      - task: Het AI impact assessment helpt bij verantwoorde AI by-design
+        id: "0.1"
+        is_official_id: false
+        description: |
+          Artificial Intelligence (AI) biedt kansen, maar het brengt ook risico’s met zich mee. Zicht op de impact van een AI-systeem voorkomt onbedoelde, negatieve gevolgen. Op deze manier kunnen de kansen van AI optimaal benut worden.
+
+          Het AI Impact Assessment (hierna: AIIA) helpt om een betrouwbare AI-oplossing van hoge kwaliteit te maken die écht toegevoegde waarde geeft voor je organisatie. Het AIIA dient als hulpmiddel en begeleidt het denkproces, met als doel de verantwoording, kwaliteit en reproduceerbaarheid van AI-inzet te vergroten. Het geeft inzicht in de gemaakte afwegingen.
+
+          <strong> De verschillende delen van het AIIA </strong>
+
+          Het AIIA bestaat uit twee delen. Deel A gaat in op de afwegingen voor het gebruik van een AI-systeem: wat is het doel en de verwachte effecten? Met deze informatie wordt een afweging gemaakt voor de toepassing van het AI-systeem en eventuele maatregelen. Op deze manier is de ethische discussie rondom de wenselijkheid van de toepassing aantoonbaar. Deel B gaat over de inrichting, implementatie en het gebruik van het AI-systeem.
+
+          Over het algemeen is er minder technische kennis nodig om Deel A in te vullen dan deel B, maar beide onderdelen hebben wel sterke invloed op elkaar. Zo kan de impact van de oplossing (Deel A) sterk afhankelijk zijn van de keuze van het specifieke algoritme (Deel B). Andersom kunnen keuzes over het gebruik of de inrichting van het AI-systeem (Deel B) gemaakt zijn om inbreuk op grondrechten te voorkomen, of om duurzaamheidsdoelen te bereiken (Deel A).
+
+          Het kan ook dat tijdens de implementatie van het AI-systeem (Deel B) blijken dat een beoogde oplossing (Deel A) niet werkt. Dan moet er naast een nieuw ontwerp (bijvoorbeeld een ander algoritme, of het gebruiken van gevoeligere data) ook weer opnieuw naar de afweging gekeken worden.
+
+          Het AIIA bestaat uit 31 vragen, elk een aantal aandachtspunten. Deze aandachtspunten helpen om de genummerde vragen te beantwoorden en horen, als ze relevant zijn, terug te komen in het antwoord op de genummerde vraag.
+
+          <strong> Vul het AIIA in met een multidisciplinaire groep </strong>
+
+          De ontwikkeling van een goed AI-systeem vereist expertise uit verschillende disciplines (denk aan datawetenschappers, databeheerders, ICT-specialisten, domeinexperts, privacy- en juridisch specialisten). Betrek daarom de verschillende disciplines bij het invullen van het AIIA, zodat je samen het gesprek kunt voeren over de afweging. Zo voorkom je blinde vlekken en krijg je een robuuste, ethisch verantwoorde toepassing.
+        type:
+          - task_group
+        repeatable: false
+
+      - task: Gebruik het AIIA in alle fasen van je AI-project
+        id: "0.2"
+        is_official_id: false
+        description: |
+          Het AIIA ondersteunt elke fase van ontwikkeling en inkoop van een AI-systeem, zowel voor ingekochte systemen, zelf ontwikkelde systemen en saas-oplossingen. Het AIIA heeft de meeste toegevoegde waarde
+          als het vanaf de start van een AI-project wordt gebruikt, en gedurende het hele project in het achterhoofd wordt gehouden. Dit betekent niet dat bij elke vraag van tevoren een antwoord moet staan, het is normaal dat sommige vragen pas tijdens het project kunnen worden beantwoord.
+
+          Het doel van het AIIA is om een goede afweging te maken tussen de technische eisen van je AI-systeem en de impact daarvan. Daarom is het dus ook van belang dat bij het invullen van het AIIA deze afweging naar voren komt. Vragen beantwoorden met “ja” of “nee” zonder toelichting dragen daar niet aan bij.
+
+          <strong> Het AIIA moet verplicht ingevuld zijn vanaf de pilotfase, als er met productie-gegevens in een productie-omgeving gewerkt wordt. </strong>
+
+          <ul>
+            <li><strong>Verkenning</strong> — Onderzoek of je AI-idee haalbaar is. Beantwoord in grote lijnen de vragen uit deel A, aangevuld met de daarvoor relevante vragen uit deel B indien toepasselijk. Zoek hierbij de diepgang die past bij het stadium van ontwikkeling en de risico’s van je oplossing. In dit geval hoeft nog niet alles duidelijk te zijn. Identificeer knelpunten en beoordeel of het plan verstandig is.</li>
+            <li><strong>Opstellen projectplan</strong> — stel je een projectplan op voor het gebruik van een AI-systeem, dan ben je verplicht om het AIIA in te vullen. Leg met het AIIA de afweging voor het AI-systeem transparant vast om de keuze te verantwoorden. Het is een goed middel voor gesprek en als check of alle relevante aspecten zijn meegenomen. De handreiking AI-ontwikkeling en inkoop bevat praktische tips voor de ontwikkeling, implementatie en beheer van een AI-systeem.</li>
+            <li><strong>Inkoop AI-systeem</strong> — De informatie uit de verkenning (deel A) kan gebruikt worden voor het opstellen van een goed programma van eisen wat de kwaliteit van inschrijvingen verhoogd. Gebruik deel B voor verdere aanscherping. Vul na de inkoopprocedure deel B in samen met de leverancier. </li>
+            <li><strong>Tijdens de ontwikkeling</strong> — Check of implementatiekeuzes de impact van een AI-systeem (bijvoorbeeld de gebruikte data of type model) beïnvloeden en pas aan waar nodig.</li>
+            <li><strong>AI-systeem in productie</strong> — een ingevuld AIIA is verplicht voordat een AI-systeem naar productie gaat. Eenmaal in productie evalueer je of het AI-project nog aan de eisen voldoet. Onderzoek of het toepassingsgebied is gewijzigd.</li>
+          </ul>
+
+        type:
+          - task_group
+        repeatable: false
+
+      - task: Hulp nodig?
+        id: "0.3"
+        is_official_id: false
+        description: |
+          Past het AIIA niet bij een AI-project of systeem waaraan je denkt? Loop je vast bij het invullen van een vraag of spelen er ethische dilemma's? Of heb je andere opmerkingen of vragen over het AIIA? Roept het invullen van het AIIA vragen op? Bekijk dan de veelgestelde vragen (FAQ).
+        type:
+          - task_group
+        repeatable: false
+
+      - task: Verantwoording (moet dit erbij?)
+        id: "0.4"
+        is_official_id: false
+        description: |
+          ...
+        type:
+          - task_group
+        repeatable: false
+
+
+  - task: Doel en noodzaak van het systeem
+    id: "1"
+    is_official_id: true
+    description: >-
+      <strong>Deel A: Afweging.</strong>
+
+      Is de impact van het AI-systeem in verhouding tot de beoogde doelstellingen? Die vraag staat centraal in het eerste deel van het AIIA. Loop alle vragen door en besteed daarin aandacht aan de doelen, de beoogde oplossing en verwachte effecten. Met name de proportionaliteit van inzet van AI is relevant. Wellicht zijn er andere, minder ingrijpende manieren om het doel te bereiken?
+
+      Als het een lastige afweging is, bijvoorbeeld omdat er verschillende belangen botsen of omdat het AI-systeem inbreuk maakt op grondrechten, zijn er verschillende tools om een gestructureerd gesprek over ethische aspecten te voeren. Denk bijvoorbeeld aan de datadialoog van IBDS, DEDA, Moreel beraad of een van vele andere methoden.
+      Het AI-team IenW biedt workshops aan binnen het IenW- concern om dit gesprek te ondersteunen
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Doel van het systeem
+        id: "1.1"
+        is_official_id: true
+        description: |
+          Het 'toepassen van AI' is geen doel op zich. Een AI-systeem wordt ingezet om een bepaald doel te bereiken binnen de organisatie, bijvoorbeeld om het werk efficiënter of beter uit te voeren. Welk probleem moet opgelost worden? Kijk hierbij naar het gehele proces waarin AI een rol speelt. Het antwoord op deze vragen kan gebruikt worden bij het invullen van de rest van het AIIA.
+
+          Om erachter te komen in welk risicogebied van de AI-verordening jouw systeem valt, raden we je aan de toets in Bijlage 1 te doen. Valt het systeem in de categorie 'onaanvaardbaar', dan is het AI-systeem niet toegestaan en is dit AIIA verder invullen niet nodig. Valt het systeem in de hoog-risicocategorie, vul dan ook Bijlage 2 in.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: >-
+              Geef een korte beschrijving van het beoogde doel en beoogde resultaat van het AI-systeem.
+            description: >-
+              Denk aan: titel, algemene omschrijving, probleemstelling, verwachte
+              tijdsperiode, plaats, doelgroepen, het domein en het werkproces.
+            id: "1.1.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: "Aandachtspunt"
+            description: |
+              Worden er beslissingen gebaseerd op de uitkomsten van het algoritme? Zo ja, welke?
+            id: "1.1.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: In welk risicogebied van de AI-verordening past jouw AI-systeem?
+            description: >-
+              Gebruik Bijlage 1 om de risicoclassificatie van het AI-systeem te bepalen.
+            id: "1.1.2"
+            is_official_id: true
+            type:
+              - select_option
+            valueType: string
+            options:
+              - value: onaanvaardbaar
+                label: Onaanvaardbaar risico
+              - value: hoog
+                label: Hoog risico
+              - value: beperkt
+                label: Beperkt risico (transparantieverplichting)
+              - value: minimaal
+                label: Minimaal risico
+              - value: onbekend
+                label: Nog niet bepaald
+            repeatable: false
+
+
+      - task: Beoogde oplossing
+        id: "1.2"
+        is_official_id: true
+        description: >-
+          In dit deel kijken we naar de beoogde oplossing voor het eerder
+          beschreven probleem, zoals de AI-technieken die toegepast worden en de
+          data die gebruikt wordt. Maak, waar nodig, gebruik van de vragen in
+          deel B om onderstaande vragen goed te kunnen beantwoorden.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Geef een korte beschrijving van het beoogde AI-systeem.
+            description: >-
+              Denk aan techniek, data en type algoritme.
+            id: "1.2.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: Waarom is er voor deze vorm van AI gekozen en welke alternatieven zijn overwogen?
+            description: >-
+              Denk bijvoorbeeld aan generatieve AI, lineaire regressie of een neuraal netwerk.
+            id: "1.2.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Rolverdeling
+        id: "1.3"
+        is_official_id: true
+        description: >-
+          Een AI-systeem heeft, net als elk ander IT-systeem, een opdrachtgever en eindverantwoordelijke. Eigenaarschap is essentieel. Bij deze vragen stel je ook de rolverdeling binnen het ontwikkelen en gebruiken van je systeem vast. Deze rollen staan gedefinieerd in de begrippenlijst; houd deze definities aan.
+          Daarnaast heeft elk AI-systeem ook onderhoud en beheer nodig. Ook bij een proof of concept of pilot is het goed om te onderzoeken waar en op welke wijze het AI-systeem in productie gaat. Zo kunnen vooraf al de juiste keuzes gemaakt worden en dit voorkomt bijvoorbeeld een niet-compatible IT-infrastructuur of AI-technieken waardoor een AI-systeem niet in beheer kan worden genomen.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Met welke stakeholders, mensen en/of groepen is er afgestemd bij het ontwikkelen van het AI-systeem?</li>
+                <li>Welke feedback is er verzameld van teams of groepen die verschillende achtergronden en ervaringen representeren? Wat is hier vervolgens mee gedaan?</li>
+                <li>Is de benodigde deskundigheid voor het beheer van Al-systeem aanwezig en gedocumenteerd?</li>
+              </ul>
+            id: "1.3.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: Beschrijf de rolverdeling binnen het opzetten van het AI-systeem en tijdens de gebruiksfase.
+            description: >-
+              Denk aan de ontwikkelaar, opdrachtgever, projectleider,
+              beheerorganisaties en eindverantwoordelijke. Indien het systeem is
+              ontwikkeld door een externe partij: wat zijn de contractuele afspraken?
+            id: "1.3.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: >-
+              Wie is de gebruiker van het AI-systeem, wie zijn de eindgebruikers die met het
+              systeem werken en welke betrokkenen ondervinden impact van het AI-systeem?
+            id: "1.3.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Impact
+    id: "2"
+    is_official_id: true
+    description: >-
+      De vragen in dit onderdeel brengen de
+      impact van de toepassing van het AI-systeem in een specifieke context in
+      kaart.  We kijken hierbij met een brede blik: we nemen expliciet grondrechten en duurzaamheid mee,
+      maar kijken ook naar de effecten op de brede welvaart. Dit betekent dat je de effecten weegt voor het
+      individu, de organisatie en de samenleving, zowel op de korte als op de lange termijn. Kijk in dit hoofdstuk
+      niet alleen naar de risico’s, maar ook naar de kansen en positieve effecten die de inzet van het AI-systeem met zich
+      meebrengt.
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Grondrechten
+        id: "2.1"
+        is_official_id: true
+        description: |
+          Iedereen die belang heeft bij de werking van het AI-systeem moet goed behandeld worden. Dat betekent dat de (fundamentele) rechten van alle betrokkenen gewaarborgd moeten worden. Bij het beantwoorden van de vragen zijn de grondrechten van de mens van toepassing, deze staan vastgelegd in de <a href="https://wetten.overheid.nl/BWBR0001840/2023-02-22" target="_blank">Grondwet </a> en het <a href="https://www.europarl.europa.eu/charter/pdf/text_nl.pdf" target="_blank">Europees Verdrag voor de Rechten van de Mens </a>. In een bijlage van het Impact Assessment Mensenrechten en Algoritmes (IAMA) is een lijst van grondrechtenclusters opgenomen; gebruik deze eventueel als hulpmiddel.
+          Het AI-systeem kan een lichte, middelzware of zware inbreuk op de grondrechten maken. In het geval van een middelzware of zware inbreuk moet de afweging extra zorgvuldig gemaakt worden en kan het zijn dat er extra maatregelen nodig zijn.
+
+          Hulp nodig? Deel 4 van het IAMA bevat een stappenplan grondrechten dat extra toelichting geeft op dit onderwerp.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Wat is de (wettelijke) grondslag van de inzet van het Al-systeem en van de beoogde besluiten die genomen worden op basis van het Al-systeem? Denk bijvoorbeeld aan voor welke wettelijke taak dit systeem gebruikt gaat worden.</li>
+                <li>Welke grondrechten zijn mogelijk van toepassing?</li>
+                <li>Op welk van deze grondrechtelijke bepalingen kan mogelijk een inbreuk worden gemaakt bij verkeerde uitvoering van het Al-systeem?</li>
+              </ul>
+            id: "2.1.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: >-
+              Wat is de mogelijke impact op de grondrechten van burgers door het gebruik
+              van het AI-systeem, zowel positief als negatief?
+            id: "2.1.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Duurzaamheid
+        id: "2.2"
+        is_official_id: true
+        description: |
+          Tijdens de gehele levenscyclus bouwt een AI-systeem een ecologische voetafdruk op door het verbruik van energie, water en grondstoffen. Het is een wettelijke en maatschappelijke plicht om kritisch te beoordelen of de ecologische impact van het systeem proportioneel is aan het probleem dat ermee wordt opgelost.
+
+          Hoewel de exacte milieu-impact van AI-modellen in de praktijk soms lastig te kwantificeren is, dwingen deze vragen je om duurzame keuzes te verankeren in het ontwerp. Over het algemeen geldt: hoe complexer het model (zoals een Large Language Model), des te groter de rekenkracht en voetafdruk. Ook de in- en output maken een groot verschil; tekstverwerking vraagt aanzienlijk minder energie dan beeld- of videoanalyse. Het energieverbruik van een AI-systeem kan invloed hebben op de kosten van een AI-systeem. Zie bijlage 2 voor een infographic met meer informatie.
+
+          Als de inzet van AI juist bedoeld is om milieuwinst te behalen (bijvoorbeeld door efficiëntiewinst), weeg dan de verwachte winst expliciet af tegen de operationele milieukosten van het systeem zelf.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Wat voor maatregelen zijn er genomen om de (negatieve) milieu-impact van het Al-systeem te minimaliseren?</li>
+                <li>Wat is de inschatting van de milieu-impact (tijdens ontwikkeling, installatie en gebruik)?</li>
+              </ul>
+            id: "2.2.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: >-
+              Wat is de impact op het milieu door het invoeren van het AI-systeem?
+              <i> Beschrijf hoe je de impact hebt ingeschat en welke keuzes je hebt gemaakt om de impact op het milieu te minimaliseren ten opzichte van het beoogde doel. </i>
+            id: "2.2.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Overige effecten
+        id: "2.3"
+        is_official_id: true
+        description: |
+          In dit onderdeel breng je de effecten en neveneffecten in kaart die in de voorgaande paragrafen nog niet zijn geraakt, met speciale aandacht voor de brede welvaart en de missie van de organisatie. Denk bijvoorbeeld aan:
+          <ul>
+            <li><b>Organisatorisch: </b>Hoe sluit het systeem aan bij de publieke waarden van de overheid en de specifieke missie van de organisatie? </li>
+            <li><b>Sociaal en maatschappelijk: </b>Welke effecten treden op voor specifieke doelgroepen? Denk hierbij ook aan het risico op onbedoeld gebruik: de praktijk wijst uit dat eindgebruikers een AI-systeem soms gaan inzetten voor taken waarvoor het oorspronkelijk niet is ontworpen. </li>
+          </ul>
+          Formuleer de antwoorden niet enkel als een risicoanalyse, maar benoem ook de maatschappelijke baten en kansen die met dit systeem worden ontsloten.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Welke overige effecten (positief, negatief, risico’s, voor bepaalde doelgroepen, op verschillende niveau’s, brede welvaart) van het AI-systeem zijn relevant voor de afweging?
+            id: "2.3.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+
+  - task: Afweging voor het wel of niet inzetten van het AI-systeem
+    id: "3"
+    is_official_id: true
+    description: |
+      Dit hoofdstuk vormt het cruciale go/no-go-moment van het assessment. Op basis van de verzamelde
+      inzichten over het doel (hoofdstuk 1) en de impact (hoofdstuk 2) neem je nu een definitief en
+      gemotiveerd besluit: is het maatschappelijk, ethisch en juridisch verantwoord om dit AI-systeem in te
+      zetten?
+      De principes van proportionaliteit (staat de impact in verhouding tot het doel?) en subsidiariteit (is er
+      echt geen minder ingrijpende, niet-AI-oplossing mogelijk?) staan hierbij centraal.
+
+      <strong>Let op: </strong> Dit is geen formele invuloefening. Als uit de antwoorden blijkt dat het AI-systeem een
+      onaanvaardbare inbreuk maakt op de grondrechten, in strijd is met wet- en regelgeving, of dat de
+      negatieve impact op de samenleving of het milieu niet in verhouding staat tot de baten, dan kan het
+      project in deze vorm niet doorgaan en moet de ontwikkeling of inkoop worden gestopt.
+
+      Indien het systeem wel wenselijk is, maar gepaard gaat met risico's, benoem je hier de harde,
+      aanvullende (proces)maatregelen die randvoorwaardelijk zijn voor de inzet. Zorg voor een heldere,
+      onderbouwing waarin rekening is gehouden met alle groepen betrokkenen, zodat niemand onterecht
+      wordt benadeeld.
+      Overige maatregelen voor het verantwoord inzetten van het AI-systeem komen aan bod in deel B
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: >-
+          Is de impact in verhouding met de beoogde doelen en zijn er geen andere minder
+          ingrijpende manieren om deze doelen te behalen?
+        description: >-
+          Oftewel: is het proportioneel en subsidiair om dit systeem in te zetten
+          om de gestelde doelen te realiseren?
+        id: "3.1"
+        is_official_id: true
+        type:
+          - open_text
+        repeatable: false
+
+  - task: Technische robuustheid
+    id: "4"
+    is_official_id: true
+    description: >-
+      Of een AI-systeem werkt waarvoor het bedoeld is wordt afgevangen met technische robuustheid.
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+    - task: Bias
+      description: |
+        Bias betekent het doen van aannames over dingen, mensen of groepen. Dit heeft twee kanten. Enerzijds is
+        het noodzakelijk om conclusies over data op een nieuwe situatie te projecteren. We maken in generalisaties
+        namelijk altijd aannames. Tegelijkertijd is het van belang dat er geen onrechtmatige vertekening ontstaat
+        met vormen van onterechte en onwenselijke bias die in strijd kunnen zijn met de rechten van de mens of
+        regelgeving.
+        Bias kan overal in het systeem voorkomen. Denk bijvoorbeeld aan: bias in de input, bias in het model en
+        bias in de output. Tijdens het ontwikkelen en inzetten van AI zijn data bias en design bias belangrijk om
+        rekening mee te houden. Deze soorten bias worden vaak veroorzaakt door socio-economische aannames
+        in de data of van een ontwikkelaar. Het model kan deze aannames versterken. Dat kan betekenen dat een
+        AI-systeem niet voor alle betrokkenen goed werkt, indien je niet bewust van de bias bent en deze niet
+        corrigeert.
+        Het kernelement van dit thema is bewustzijn en integriteit. Het is onmogelijk om volledig zonder bias te
+        werken. Vaak bestaat bias al decennialang en herkennen we deze (onterecht) niet eens. Denk hierbij aan de
+        taalmodellen (ChatGPT, Google Bing, Microsoft Co-pilot): deze zijn waarschijnlijk getraind op informatie
+        van internet en alle aannames die daar al jaren lang in verwerkt zitten. Dus in plaats van ons richten op
+        bias-loze AI, moeten we ernaar streven om ons zoveel mogelijk bewust te zijn van mogelijke discriminatie.
+        Bias hangt nauw samen met menselijke diversiteit, gelijkheid en eerlijkheid, maar het is van belang om
+        bewust te zijn dat aannames ook over niet-menselijke aspecten kunnen gaan, zoals de natuur of leefomgeving.
+        Daarnaast kan het voor de wijze waarop je bias wilt mitigeren relevant zijn om onderscheid te maken tussen
+        negatieve impact, geen positieve impact en een positieve impact die de bias kan hebben.
+      id: "4.1"
+      is_official_id: true
+
+      type:
+        - task_group
+        - informational
+      repeatable: false
+      tasks:
+        - task: "Aandachtspunten"
+          description: |
+            <ul>
+              <li><b>Bias in de input (data):</b>
+                <ul>
+                  <li>Is de input(data) relevant en representatief, rekening houdende met het beoogde doel (vraag 1.1) van het Al-systeem?</li>
+                  <li>Worden indien nodig subpopulaties beschermd bij het trekken van steekproeven?</li>
+                  <li>Is de keuze voor de inputvariabelen onderbouwd en afgestemd met de betrokkenen?</li>
+                </ul>
+              </li>
+              <li><b>Bias in het model:</b>
+                <ul>
+                  <li>Op welke manier wordt er rekening gehouden met de eis dat er geen onterechte of onrechtvaardige bias in een Al-systeem wordt gecreëerd of versterkt?</li>
+                  <li>Is het Al-systeem te gebruiken door de beoogde eindgebruikers (dus ongeacht diens kenmerken zoals leeftijd, geslacht of capaciteit)?</li>
+                </ul>
+              </li>
+              <li><b>Bias in de output (data):</b>
+                <ul>
+                  <li>Zijn er stop-, toezicht- of controle-mechanismen ingesteld om te voorkomen dat groepen in de maatschappij disproportioneel getroffen kunnen worden door de negatieve implicaties van het Al-systeem?</li>
+                  <li>Specifiek voor ILT: maak hier onderscheid tussen ondertoezichtstaanden (OTS) en de rest van de maatschappij.</li>
+                </ul>
+              </li>
+            </ul>
+          id: "4.1.Aandachtspunten"
+          is_official_id: false
+          type:
+            - informational
+          repeatable: false
+        - task: >-
+            Hoe wordt rekening gehouden met mogelijk onwenselijke bias, zowel maatschappelijk als
+            technisch? <i> Beschrijf een analyse van de bias die kan optreden, de gevolgen van de bias en welke
+            maatregelen genomen zijn om de bias te mitigeren. </i>
+          id: "4.1.1"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+
+
+    - task: Accuraatheid en consistentie
+      id: "4.2"
+      is_official_id: true
+      description: >-
+        Bij het ontwikkelen van een AI-systeem is het belangrijk om zorgvuldig te onderzoeken hoe goed het model
+        in de praktijk zal presteren. Een accuraat AI-systeem presteert goed genoeg en geeft een goede
+        beoordeling die consistent is passend bij de toepassing. Ook is het voor inzicht in de werking belangrijk
+        om inzicht te hebben in het type fouten dat een AI-systeem maakt en wat de impact op de praktijk
+        is. Een AI-systeem is nooit af; het blijft noodzakelijk AI-systemen regelmatig te testen en (indien mogelijk)
+        te hertrainen (zie hoofdstuk 7.3 over monitoring).
+        De accuraatheid van het systeem kan je bepalen door vooraf acceptatiecriteria op te stellen voor
+        zowel de (trainings)data als het systeem. Acceptatiecriteria kunnen bijvoorbeeld een minimale hoeveelheid
+        data zijn of bepaalde drempelwaardes van het meetsysteem. Het is belangrijk om deze criteria te
+        koppelen aan de praktijk waarin het AI-systeem wordt ingezet, zodat ze een representatief beeld
+        geven van hoe goed het AI-systeem het in de praktijk gaat doen. Er zijn veel verschillende soorten
+        meetsystemen (vaak ‘performance metrics’ genoemd door data scientists) beschikbaar om de kwaliteit
+        van modellen te kwantificeren, denk bijvoorbeeld aan een accuratesse, precision en recall of F1-score.
+        Daarnaast is het ook belangrijk om, voor zover mogelijk, de interne werking van het systeem te
+        onderzoeken, door bijvoorbeeld te weten wat voor soorten fouten het systeem maakt (bijvoorbeeld
+        vals positief of vals negatief), welke mechanismen daar achter zitten en wat de impact van
+        verschillende soort fouten in de praktijk is. Dit draagt bij aan een inzicht hoe het AI-systeem het in de
+        praktijk gaat doen.
+        Ook consistentie is een belangrijk om te bekijken om inzicht te krijgen hoe het AI-systeem in de
+        praktijk gaat functioneren. Dit speelt met name een rol bij non-deterministische modellen die in
+        verschillende omstandigheden of met verschillende inputs verschillende uitkomsten kunnen
+        genereren. In veel gevallen is het belangrijk dat een AI-systeem vergelijkbare situaties consistent
+        behandelt, zodat gebruikers op dezelfde manier kunnen rekenen op diens antwoorden. In andere
+        gevallen is dat minder belangrijk. Dit vraagt zowel om inzicht in de consistentie van het model en
+        of antwoord op de vraag of eventuele variabiliteit acceptabel is binnen de context van de beoogde
+        toepassing. Ook is het belangrijk om dat de acceptatiecriteria rekening houden met de
+          consistentie van de antwoorden zodat de criteria ook representatief zijn voor hoe het AI-systeem binnen de praktijk wordt ingezet.
+      type:
+          - task_group
+          - informational
+      repeatable: false
+      tasks:
+        - task: "Aandachtspunten"
+          description: |
+            <ul>
+              <li>Passen de acceptatiecriteria bij de data en het doel van het Al-systeem?</li>
+              <li>Wordt een deel van de (sub) dataset uitgesloten voor het leren van het model en alleen gebruikt voor het bepalen van de betrouwbaarheid, of wordt de betrouwbaarheid van het model berekend met behulp van cross-validatie?</li>
+              <li>Hoe is de (hyper)parameter-tuning onderbouwd en getoetst?</li>
+              <li>In hoeverre zijn de globale en/of lokale uitlegbaarheid van het model relevant voor het beoogde doel?</li>
+            </ul>
+          id: "4.2.Aandachtspunten"
+          is_official_id: false
+          type:
+            - informational
+          repeatable: false
+        - task: >-
+            Hoe accuraat is het systeem en hoe wordt dit gemeten? <i> Beschrijf hoe de prestatie van het systeem wordt geëvalueerd aan de hand van evaluatie-metrieken of mechanismen </i>
+          id: "4.2.1"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+        - task: >-
+            In welke mate is het AI-systeem consistent en wat is de impact? <i> Beschrijf of het model bij een herhaalde input zal
+            leiden tot dezelfde uitkomst en de invloed van consistente/inconsistente uitkomsten op het beoogde doel </i>
+          id: "4.2.2"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+        - task: >-
+            Is het AI-systeem voldoende uitlegbaar en te interpreteren voor de ontwikkelaars? <i> Denk hierbij
+            aan het proces waarbij het model op basis van de input resulteert in een output en/of aan tools zoals SHAP
+            of LIME die worden gebruikt om een model toe te lichten. </i>
+          id: "4.2.3"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+
+    - task: Implementatie van het model
+      id: "4.3"
+      is_official_id: true
+      description: |
+        Bij de implementatie van het model ligt de nadruk op drie belangrijke thema's:
+        reproduceerbaarheid, traceerbaarheid en technische implementatie.
+        Reproduceerbaarheid gaat over trainen, valideren en testen. Bij reproduceerbaarheid gaat
+        bijvoorbeeld over het vastleggen van de gebruikte data, totstandkoming van het model, bijhouden
+        van wijzigingen in de data, of uit dezelfde input(data) dezelfde resultaten voortvloeien, en of er
+        bepaalde situaties of condities zijn waarin de output(data) beïnvloed kunnen worden.
+        Reproduceerbaarheid hangt nauw samen met traceerbaarheid. Bij traceerbaarheid gaat het er
+        voornamelijk om dat de datasets en processen goed worden gedocumenteerd. Versiebeheer op de
+        data, het model en de training van het model speelt daarin een belangrijke rol.
+        De technische implementatie beschrijft hoe het AI-systeem technisch binnen het ICT-landschap van de
+        organisatie is geïntegreerd. De specifieke eisen van het AI-systeem aan hard- en software zijn gedocumenteerd
+        zodat hier rekening mee gehouden kan worden bij de uitrol en beheer van het systeem. Daarnaast wordt
+        uit de systeemarchitectuur duidelijk hoe de verschillende softwarecomponenten zich tot elkaar
+        verhouden.
+        Een goed doordachte architectuur vermindert de bedrijfsrisico’s die gepaard gaan met het bouwen van
+        een technische oplossing en slaat een brug tussen bedrijfs- en technische vereisten. Vaak is er al
+        bestaande documentatie, verwijs daar dan vooral naar. Bekijk ook de <a href="https://www.noraonline.nl/wiki/IenW_Enterprise_Architectuur_(IWEA)" target="_blank">Infrastructuur en Waterstaat
+        Enterprise Architectuur (IWEA). </a>
+      type:
+        - task_group
+        - informational
+      repeatable: false
+      tasks:
+        - task: "Aandachtspunten"
+          description: |
+            <ul>
+              <li>Hoe worden de wijzigingen tijdens de levensduur van het systeem gedocumenteerd?</li>
+              <li>Is er nagedacht hoe het Al-systeem past in de al bestaande technische- en systeeminfrastructuur en zijn hier passende maatregelen voor genomen om deze uit te rollen (indien van toepassing)?</li>
+            </ul>
+          id: "4.3.Aandachtspunten"
+          is_official_id: false
+          type:
+            - informational
+          repeatable: false
+        - task: >-
+            Is het AI-systeem reproduceerbaar? Is er een proces ingesteld om dit te meten? <i> Beschrijf hoe een
+            identiek systeem gebouwd kan worden, hoe deterministische resultaten behaald kunnen worden, de
+            beschikbaarheid van de trainingsdata, hertraining van het model en de documentatie van benodigde
+            variabelen. </i>
+          id: "4.3.1"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+        - task: >-
+            Hoe is het AI-systeem technisch geïmplementeerd? Is dit onder architectuur
+            gedaan? <i> Beschrijf in hoofdlijnen de architectuur, hoe het AI-systeem is opgezet, hoe het
+            AI-systeem is beveiligd en hoe het AI-systeem wordt gemonitord en onderhouden. </i>
+          id: "4.3.2"
+          is_official_id: true
+          type:
+            - open_text
+          repeatable: false
+
+  - task: Data governance
+    id: "5"
+    is_official_id: true
+    description: >-
+      Data governance gaat over een werkwijze rondom data met betrekking tot toegang, eigenaarschap,
+      bruikbaarheid, integriteit en veiligheid. Daarnaast is er aandacht voor de kwaliteit van de data die wordt
+      gebruikt.
+      Onder data governance valt ook privacy. Privacy is een van de fundamentele rechten van de mens, die mogelijk
+      door AI kan worden aangetast. Het is daarom belangrijk dat er adequate data governance en bescherming
+      van persoonsgegevens is, minimaal conform de Algemene Verordening Gegevensbescherming (AVG) en het
+      <a href="https://rijksportaal.overheid-i.nl/organisaties/ienw/artikelen/avg-en-privacy" target="_blank">privacybeleid IenW.</a>
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Kwaliteit en integriteit van data
+        id: "5.1"
+        is_official_id: true
+        description: |
+          Datakwaliteit is essentieel voor de goede werking van een AI-systeem. De term ‘garbage in = garbage out’
+          bestaat niet voor niets. Wanneer data vervuild is, zal de uitkomst van het AI-systeem ook niet zuiver zijn.
+          Verzamelde data kan bijvoorbeeld sociaal geconstrueerde bias, onjuistheden, fouten en vergissingen
+          bevatten (zie ook ‘Bias’). Dit moet worden geadresseerd voordat er verder met deze data wordt
+          gewerkt.
+          Gebruik voor het bepalen van datakwaliteit de FAIR-principes (Vindbaar, Toegankelijk, Interoperabel en
+          Herbruikbaar) en het nauw samenhangende FACT (Eerlijk, Nauwkeurig, Vertrouwelijk en Transparant) als
+          inspiratie. Deze principes worden binnen de AVG gebruikt. De datasets en de werkwijze moeten worden getest
+          en gedocumenteerd bij iedere stap: training, testen, uitrolfase en operationele fase. Dit geldt ook voor AI-
+          systemen die niet intern gebouwd zijn, maar zijn verworven. De data-eigenaar is hiervoor
+          verantwoordelijk.
+          Datakwaliteit is des te meer van belang wanneer je persoonsgegevens gebruikt. Volgens de AVG is het essentieel
+          dat de persoonsgegevens juist zijn en zo nodig worden geactualiseerd4. Ook dienen de gegevens noodzakelijk
+          te zijn voor het doel van de analyse. Beschrijf daarom ook het doel van de analyse en hoe je omgaat met de
+          data en fouten in de datasets en uitkomsten
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Voldoet de data aan de aannames van het model?</li>
+                <li>Hoe wordt de data gelabeld?</li>
+                <li>Welke factoren (denk aan beperkingen in de verzamelmethode, de opslag) hebben invloed op de kwaliteit van de input(data)? Wat kan je daaraan doen?</li>
+                <li>Indien output(data) wordt gebruikt als nieuwe input, hoe wordt de output(data) opgeslagen en gecontroleerd op juistheid en volledigheid?</li>
+              </ul>
+            id: "5.1.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: >-
+              Welke data wordt gebruikt als input voor het algoritme en uit welke bronnen is de data
+              afkomstig? <i> Beschrijf het formaat van de data, hoe betrouwbaar, actueel en accuraat de
+              geleverde data zijn per bron en de verwerking van data voor gebruik als inputdata. </i>
+            id: "5.1.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: Hoe wordt de kwaliteit van de data gewaarborgd? <i> Beschrijf hoe de datakwaliteit is bepaald aan de hand
+              van principes. </i>
+            id: "5.1.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Privacy en vertrouwelijkheid
+        id: "5.2"
+        is_official_id: true
+        description: |
+          Bij het ontwerp van een AI-systeem moet rekening worden gehouden met de privacywetgeving. Het is immers
+          makkelijker om het vooraf op de juiste manier in te richten dan op een later moment te repareren.
+          Uiteraard moet privacy gewaarborgd zijn gedurende de hele levenscyclus van het AI-systeem.
+          Bij de verwerking van persoonsgegevens moet er een pre-scan Data Protection Impact Assessment (DPIA)
+          worden ingevuld om te bepalen of de volledige DPIA ingevuld moet worden. Als een DPIA ingevuld
+          dient te worden, kunnen de antwoorden van enkele vragen vanuit dit AIIA hergebruikt worden. Zie
+          bijlage 4 voor een overzicht.
+          Naast persoonsgegevens kunnen er ook andere vertrouwelijke gegevens gebruikt worden, die niet zomaar
+          openbaar gemaakt mogen worden. Dit geldt bijvoorbeeld voor het gebruik van vertrouwelijke informatie
+          zoals gerubriceerde informatie of bedrijfsgeheimen. Ook deze data moet goed beschermd zijn. De AI-
+          verordening biedt, bovenop de AVG, aanvullende regels voor het gebruik van bepaalde gegevens in AI-systemen.
+          Het is van belang dat de vertrouwelijke gegevens voldoende beveiligd worden (zie Risicobeheer).
+
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: Hoe wordt er omgegaan met persoonsgegevens of vertrouwelijke gegevens? Is er een (pre-) DPIA uitgevoerd? <i> Beschrijf op hoofdlijnen de uitkomsten en aandachtpunten uit de DPIA. </i>
+            id: "5.2.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Risicobeheer
+    id: "6"
+    is_official_id: true
+    description: >-
+      Het doel van het gehele AIIA is om de risico’s rondom het ontwikkelen en in gebruik nemen van
+      een AI-systeem zo veel mogelijk in te kaderen. In dit hoofdstuk gaan we dieper in op het stukje
+      risicobeheer op drie verschillende vlakken: een algemene risico-analyse, risico’s met betrekking
+      tot uitval van het systeem en informatiebeveiligingsrisico’s. Noem hier alleen (of verwijs) de
+      risico’s die niet eerder benoemd zijn in dit AIIA.
+      Wanneer de risico’s niet zijn voorzien kan een AI-systeem tot onbetrouwbare resultaten komen
+      en dit kan schade veroorzaken, bijvoorbeeld door slecht functioneren van het AI-systeem, of
+      bijvoorbeeld door hackaanvallen
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Risicobeheer
+        id: "6.1"
+        is_official_id: true
+        description: >-
+          Bij het ontwikkelen en in gebruik nemen van een AI-systeem komen gevaren kijken, die in deze AIIA
+          zoveel mogelijk ingekaderd worden. Toch kunnen zich alsnog onvoorziene problemen voordoen. Het is
+          belangrijk om vast te stellen hoe je met deze potentiële gevaren omgaat. Er moeten mechanismes zijn om
+          risico’s te beheersen, en deze mechanismen moeten zijn toetst. Denk aan het voorkomen van
+          datavergiftiging, de mate van beheersmaatregelen en de beveiliging van de bewaarplaats van uitkomsten.
+          Daarnaast kunnen er risico’s ontstaan na invoering van het AI-systeem. Controleer de
+          risicobeheersmaatregelen periodiek, maar minimaal elke 3 jaar of bij grote wijzigingen.
+          Voor hoog-risico-AI-systemen is een risicobeheerssysteem verplicht. Voor andere systemen is een
+          eenmalige risicoanalyse voldoende of volgen deze uit de geïdentificeerde risico’s rondom een
+          project.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Wat zijn de gevolgen bij de verkeerde inzet van het Al-systeem?</li>
+                <li>Kunnen mensen misbruik maken van het feit dat er een Al-systeem wordt ingezet in plaats van een menselijke beslissing?</li>
+                <li>Voor hoog-risico-systemen: Is er een risicobeheersysteem vastgesteld en gedocumenteerd?</li>
+                <li>Deze bestaat uit volgende stappen:
+                  <ul>
+                    <li>Een risicoanalyse van het Al-systeem voor de gezondheid, veiligheid of grondrechten</li>
+                    <li>Een inschatting en evaluatie van de risico's die zich kunnen voordoen</li>
+                    <li>Een evaluatie van nieuwe risico's na markttoetreding, op basis van het monitoringsysteem van het Al-systeem</li>
+                    <li>Het opstellen van risicobeheersmaatregelen</li>
+                  </ul>
+                </li>
+              </ul>
+            id: "6.1.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: Wat zijn de risico’s van de inzet van dit AI-systeem en welke maatregelen zijn getroffen? <i> Beschrijf per risico de gevolgen en de beheersmaatregelen die zijn genomen </i>
+            id: "6.1.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Alternatieve werkwijze (BCM)
+        id: "6.2"
+        is_official_id: true
+        description: >-
+          Het is wenselijk om een plan te hebben voor wanneer er problemen optreden met het AI-systeem.
+          Dit betekent dat er een alternatieve werkwijze beschikbaar moet zijn. Denk aan de mogelijkheid om
+          van een machine learning model naar een beperkter rule-based model terug te schakelen. Of om zelfs
+          nog een stap terug te doen door het proces handmatig uit te voeren. Als het acceptabel is dat het systeem
+          tijdelijk niet beschikbaar is, is geen plan uiteraard ook een optie.
+          Alternatieve werkwijze wordt binnen de ICT vaak business continuity management (BCM) genoemd.
+          Ook is er een sterke samenhang met hoofdstuk 7.3 over monitoring. Het is immers essentieel om te weten wannéér je moet overstappen naar de alternatieve werkwijze, bijvoorbeeld als het AI-systeem
+          niet meer werkt óf niet meer op de juiste manier werkt.
+          Door het gebruik van een AI-systeem kan het gebeuren dat bepaalde menselijke vaardigheden minder
+          worden. Denk bijvoorbeeld aan het effect van de rekenmachine op onze vaardigheid hoofdrekenen.
+          Een alternatieve werkwijze moet daarom niet ineens gebruik maken van deze vaardigheid.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Hebben gebruikers bij uitval van het Al-systeem nog voldoende vaardigheden om het proces zonder hulp van Al uit te voeren?</li>
+                <li>Is er een exit-strategie aanwezig?</li>
+                <li>Wat is de impact als het systeem uitvalt?</li>
+              </ul>
+            id: "6.2.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: Wat is het plan als er problemen met de werking van het AI-systeem zijn? <i> Beschrijf de aanpak die genomen zal worden als het AI-systeem uitvalt en de impact van de (on) beschikbaarheid van het AI-systeem </i>
+            id: "6.2.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Informatiebeveiligingsrisico's
+        id: "6.3"
+        is_official_id: true
+        description: |
+          Een AI-systeem moet, net als een regulier AI-systeem goed zoveel mogelijk secure by design zijn gebouwd,
+          waarbij in de ontwerpfase al over security is nagedacht. Een groot deel van de security-risico’s zijn
+          daarmee afgedekt door te voldoen aan de BIO (Baseline Informatiebeveiliging Overheid). De vereiste
+          beschikbaarheid, integriteit en vertrouwelijkheid van het AI-systeem (BIV-classificatie) staat hierin
+          centraal.
+          Er zijn voor AI-systemen echter een paar aanvullingen die onvoldoende door de BIO gedekt worden.
+          Het gaat hierbij om de manipulatie van het model (bv. door prompt injection of data poisoning),
+          ongewenste toegang of het lekken van data. Onderwerpen die extra aandacht nodig hebben zijn de
+          beveiliging van de (toegang tot) het model, in/out-putvalidatie, het beperken van het aantal verzoeken
+          (rate limiting) en goede use cases omschrijven voor het monitoren van (gedrag van) het model.
+          Meer praktische handvatten zijn te vinden in het <a href="https://www.rekenkamer.nl/onderwerpen/a/algoritmes/toetsingskader" target="_blank"> Toetsingskader Algoritmes </a>van de Rekenkamer of <a href="https://www.rijksoverheid.nl/documenten/2023/07/11/onderzoekskader-algoritmes-adr-2023" target="_blank">
+          onderzoekskader algoritmes ADR </a>. De AIVD heeft een <a href="https://www.aivd.nl/documenten/2023/02/15/ai-systemen-ontwikkel-ze-veilig" target="_blank"> handleiding </a> over het veilig ontwikkelen van AI-systemen.
+          Daarnaast heeft Open Worldwide Application Security Project (OWASP) veel resources over het <a href="https://owaspai.org/docs/ai_security_overview/" target="_blank"> veilig
+          toepassen van AI. </a>
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Hoe is het model beschermd tegen manipulatie (bv. door prompt injection of data poisoning)?</li>
+                <li>Hoe is de toegang tot het model ingeregeld?</li>
+                <li>Op welke manier wordt de in- en output gevalideerd?</li>
+                <li>Wordt het aantal verzoeken beperkt (rate limiting)?</li>
+                <li>Welke use cases (vanuit security) zijn omschreven om het gedrag van het model te monitoren?</li>
+                <li>Kan het systeem zelfstandig acties uitvoeren op andere systemen?</li>
+                <li>Zijn kritieke acties uitgesloten of afhankelijk van menselijke goedkeuring?</li>
+              </ul>
+            id: "6.3.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: >-
+              Op welke manier worden informatiebeveiligingsrisico's inzichtelijk gemaakt,
+              teruggebracht naar een acceptabel niveau en (technisch) getest? ? Is er een BIO-scan uitgevoerd? <i> Beschrijf
+              op hoofdlijnen de uitkomsten en aandachtpunten uit de BIO-scan, de aanvullende risico’s en
+              beheersmaatregelen </i>
+            id: "6.3.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+  - task: Gebruik van het AI-systeem
+    id: "7"
+    is_official_id: true
+    description: >-
+      Dit hoofdstuk gaat over de daadwerkelijke inzet en het gebruik van het AI-systeem. Bij de eerste
+      experimenten is het niet nodig om antwoord te hebben op alle vragen, maar het is wél nuttig om
+      inzicht te krijgen in een mogelijk vervolg.
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Inzet van het AI-systeem
+        id: "7.1"
+        is_official_id: true
+        description: >-
+          (Eind-) Gebruikers moeten weten hoe ze een AI-systeem moeten gebruiken en welke rol van ze
+          verwacht wordt. Het is niet nodig dat ze het AI-systeem compleet begrijpen. Op hoofdlijnen moet de
+          werking van een AI-systeem en beperkingen ervan duidelijk zijn. Daarvoor hebben ze voldoende AI-
+          geletterdheid nodig. Het gaat hierbij om zowel gebruikers (vaak een medewerker) als een eindgebruiker
+          (vaak een burger die bijvoorbeeld een subsidie moet aanvragen via een AI-systeem).
+
+          Als het AI-systeem het maken van een beslissing ondersteund zijn hier een paar opties voor, denk aan
+          de ‘human in the loop’ of ‘human on the loop’. Het is daarbij belangrijk dat de gebruiker hierbij, naast
+          begrip van de werking en beperkingen, een betekenisvolle mate van invloed heeft op de beslissing.
+          De Autoriteit Persoonsgegevens heeft hiervoor enkele handvatten <a href="https://www.autoriteitpersoonsgegevens.nl/documenten/handvatten-betekenisvolle-menselijke-tussenkomst" target="_blank">omschreven </a>.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Is het systeem voldoende transparant om gebruiksverantwoordelijken in staat te stellen de output(data) van het systeem te interpreteren en op passende wijze te gebruiken?</li>
+                <li>Is er iets ingericht om eindgebruikers eventueel bij te scholen?</li>
+              </ul>
+            id: "7.1.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: >-
+              Op welke manier geef je (eind)gebruikers inzicht in de werking en beperkingen van
+              het AI-systeem? En blijven deze voldoende onder de aandacht zolang ze bestaan? <i> Beschrijf hoe het
+              systeem tot het resultaat is gekomen, de richtlijnen of handleidingen voor het gebruik van het resultaat
+              en hoe de gebruikers geïnformeerd worden </i>
+            id: "7.1.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: >-
+              Welke rol spelen mensen bij het nemen van beslissingen op basis van input van het
+              AI-systeem ('human in the loop') en hoe worden zij in staat gesteld om die rol te
+              spelen? <i> Beschrijf de rol van de mens in het systeem en hoe het AI-systeem ondersteunt bij het maken van
+              beslissingen </i>
+            id: "7.1.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Communicatie naar betrokkenen
+        id: "7.2"
+        is_official_id: true
+        description: |
+          Het is belangrijk om transparant te zijn over de inzet en gebruik van een AI-systeem (en verplicht volgens de
+          AI-verordening). Betrokkenen, de mensen die het AI-systeem niet gebruiken, maar wel de effecten merken,
+          moeten weten dat ze met een AI-systeem te maken hebben.
+          Dit doen we door het doel en de beperkingen van het AI-systeem duidelijk, eerlijk en transparant te
+          communiceren. Zowel technische processen als daaraan gerelateerde menselijke beslissingen moeten
+          begrijpelijk zijn, opgevraagd kunnen worden en indien nodig gecorrigeerd. Soms is, gezien het karakter van
+          een AI-systeem, de werking niet 100% te herleiden. In dat geval moet er in ieder geval een gepaste uitleg
+          gegeven over het proces aan eindgebruikers. Wijs bijvoorbeeld een contactpersoon aan met inhoudelijke
+          kennis over het AI-systeem.
+
+          Daarnaast publiceren we betekenisvolle algoritmes en hoog-risico AI-systemen altijd in het
+          algoritmeregister.
+
+          Daarnaast moeten burgers informatie kunnen opvragen over het AI-systeem of zich beroepen op de rechten vanuit
+          de AVG/Wpg. Men moet in staat zijn om resultaten van het AI-systeem te kunnen betwisten. Dat betekent ook dat de
+          data, en de omstandigheden waarin de data ter beschikking is gesteld, bewaard moeten worden (zie
+          Archivering).
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: >-
+              In hoeverre ben je transparant richting verschillende groepen betrokkenen over
+              het AI-systeem en op welke wijze?  Denk aan duidelijkheid over dat er een AI-systeem gebruikt wordt.
+            id: "7.2.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: >-
+              Worden er mechanismen ingesteld waarin eindgebruikers opmerkingen over het
+              systeem (data, techniek, doelgroep, etc.) kunnen maken?
+            id: "7.2.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: >-
+              Moet het systeem onder invloed van de AI-verordening in het algoritmeregister
+              en/of (voor hoog-risicotoepassingen) in de EU-databank?
+            id: "7.2.3"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Monitoren en verantwoorden
+        id: "7.3"
+        is_official_id: true
+        description: >-
+          Met monitoren van een AI-model is essentieel om de kwaliteit en betrouwbaarheid van het AI-systeem
+          over tijd te waarborgen. De context rondom het AI-systeem kan bijvoorbeeld veranderen.
+          Met monitoren bedoelen we het evalueren, testen en beoordelen van onder andere de prestaties van
+          het model in verloop van tijd. Het bouwt daarmee deels voort op de accuraatheid en consistentie
+          (hoofdstuk 4.2), maar gaat ook breder. We kijken we naar de manier waarop de data, het model en de
+          resultaten worden geëvalueerd.
+
+          In de meest eenvoudige situatie kan het om een periodieke evaluatie gaan (denk aan minimaal elke drie
+          maanden), maar het kan ook continu monitoring zijn. Of controle kan in de vorm van interne of externe
+          audits plaatsvinden. Bij toepassing van het AI-systeem in risicovollere gebieden zijn er strengere eisen.
+          Zoek een manier die past bij de risico’s van het AI-systeem.
+          Het <a href="https://functioneringsgesprek.dataschool.nl/" target="_blank"> functioneringsgesprek AI </a> van Data School Utrecht geeft mogelijke onderwerpen voor een
+          evaluatie.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li>Wie verzorgt de onafhankelijke controle van het Al-systeem?</li>
+                <li>Op welke wijze?</li>
+                <li>Hoe wordt rekening gehouden met verandering van de context van het Al-systeem?</li>
+                <li>Hoe wordt de output(data) (periodiek) steekproefsgewijs en doorlopend gemanitord op juistheid?</li>
+                <li>Hoe worden afwijkingen in de output(data) ten opzichte van acceptatiecriteria tijdig geanalyseerd en gecorrigeerd?</li>
+                <li>Is het mogelijk om de trainings- en testgegevens te actualiseren als de situatie daar om vraagt?</li>
+                <li>Wanneer besluit je het Al-systeem te her-trainen, tijdelijk stop te zetten, of door te ontwikkelen?</li>
+                <li>Is de input(data) getoetst op veranderingen die zich voordoen tijdens trainen, testen en evalueren?</li>
+                <li>Is de input(data) ook door de tijd heen tijdens het gebruik van het algoritme getoetst op veranderingen?</li>
+                <li>Wordt het Al-systeem nog steeds voor hetzelfde doel ingezet zoals in dit AllA beschreven?</li>
+              </ul>
+            id: "7.3.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: Door wie en hoe vaak wordt het AI-systeem gecontroleerd en gemonitord?
+            id: "7.3.1"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: Welke aspecten worden meegenomen in de periodieke evaluatie?
+            id: "7.3.2"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+          - task: Op welke manier wordt verantwoording afgelegd over het AI-systeem?
+            id: "7.3.3"
+            is_official_id: true
+            type:
+              - open_text
+            repeatable: false
+
+      - task: Informatiebeheer en archivering
+        id: "7.4"
+        is_official_id: true
+        description: >-
+          Overheden moeten informatie over algoritmes in goede, geordende en toegankelijke staat brengen en
+          bewaren. Ook moeten ze zorgen voor de vernietiging van archiefbescheiden die daarvoor in aanmerking
+          komen. Op basis van deze informatie moet bijvoorbeeld gereconstrueerd kunnen worden hoe besluiten,
+          ook in de context van algoritmes, tot stand zijn gekomen. Informatie over algoritmes moet daarom op
+          basis van het selectiebesluit bewaard en vernietigd worden. In het algoritmekader staan een aantal
+          mogelijke maatregelen genoemd.
+        type:
+          - task_group
+        repeatable: false
+        tasks:
+          - task: "Aandachtspunten"
+            description: |
+              <ul>
+                <li><b>Input(data):</b>
+                  <ul>
+                    <li>Hoe wordt de input(data) opgeslagen?</li>
+                    <li>Wat is de bewaartermijn van de input(data)?</li>
+                  </ul>
+                </li>
+                <li><b>Model:</b>
+                  <ul>
+                    <li>Hoe wordt het model opgeslagen?</li>
+                    <li>Hoe is het versiebeheer geregeld?</li>
+                  </ul>
+                </li>
+                <li><b>Output(data):</b>
+                  <ul>
+                    <li>Wat is de bewaartermijn van de output(data)?</li>
+                  </ul>
+                </li>
+              </ul>
+            id: "7.4.Aandachtspunten"
+            is_official_id: false
+            type:
+              - informational
+            repeatable: false
+          - task: Welke informatie moet bewaard worden?
+            id: "7.4.1"
+            is_official_id: false
+            type:
+              - open_text
+            repeatable: false
+
+  - task: "Frequently Asked Questions (FAQ)"
+    id: "8"
+    type:
+      - task_group
+    repeatable: false
+    tasks:
+      - task: Is het AIIA verplicht?
+        id: "8.1"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Ja, binnen het ministerie van Infrastructuur en Waterstaat en het concern is het AIIA verplicht op het moment dat een AI-project de pilot-fase ingaat. Andere organisaties kunnen hier zelf invulling aan geven naast de andere compliance-processen zoals bijvoorbeeld security, privacy en cloudgebruik.
+
+      - task: Moet ik het AIIA ook gebruiken voor algoritmes?
+        id: "8.2"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Het AIIA is binnen IenW alleen verplicht voor AI-systemen, maar kan je zeker helpen bij de verantwoorde inzet van algoritmes.
+
+      - task: Wie betrek ik bij het invullen van het AIIA?
+        id: "8.3"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: >-
+          Voor het ontwikkelen van een goed AI-systeem zijn vaak meerdere verschillende
+          disciplines nodig, betrek deze daarom ook bij het invullen van het AIIA. Het AIIA werkt het
+          beste wanneer je het er samen over hebt, in plaats van dat iedereen afzonderlijk zijn
+          onderdeel invult. Enige voorbereiding of uitzoekwerk helpt wel om sneller door
+          gezamenlijke sessies heen te lopen.
+
+          Bij de verschillende hoofdstukken kun je bijvoorbeeld denken aan de volgende disciplines:
+          - Deel A (afweging): betrek in ieder geval de opdrachtgever/eigenaar van het AI-systeem en domeinexperts. Verder evt. een juridisch specialist of adviseur ethiek.
+          - Hoofdstuk 4 (Technische robuustheid): data scientist, ICT-specialist
+          - Hoofdstuk 5 (data governance): privacy en/of security-adviseur, databeheerder
+          - Hoofdstuk 6 (risicobeheer): datascientist, security-adviseur
+          - Hoofdstuk 7 (gebruik van het AI-systeem): communicatie-adviseur, architect, ICT-specialist
+
+      - task: Wie is verantwoordelijk voor het invullen van het AIIA?
+        id: "8.4"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Binnen IenW is de opdrachtgever, proces- en/of systeemeigenaar verantwoordelijk voor AIIA en daarmee de afweging met bijbehorende maatregelen. Deze kan dit delegeren naar een projectleider, maar is uiteindelijk zelf verantwoordelijk.
+
+      - task: Wat is het verschil tussen een AIIA en een IAMA?
+        id: "8.5"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Het Impact Assessment Mensenrechten en Algoritmes (IAMA) is een behoorlijk uitgebreid assessment dat specifiek geschreven is voor algoritmes en AI-systemen waar er spanning op verschillende grondrechten zit. Is dat voor jouw AI-systeem het geval? Gebruik dan het IAMA. In de meeste andere gevallen is het AIIA een praktischer, toegankelijker en compacter alternatief.
+
+      - task: Wat is het verschil tussen een AIIA en andere assessments?
+        id: "8.6"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Het AIIA richt zich op de risico’s rondom AI. We proberen de overlap met andere assessments zoveel mogelijk te voorkomen en verwijzen daarom naar een aantal andere instrumenten. Deze richting zich specifiek op de risico’s en andere maatregelen in andere domeinen zoals een DPIA (voor privacy-risico’s), Cloud risk assessment (voor cloud-risico’s) en een BIO/security-scan (voor security-risico’s).
+
+      - task: Kan ik het AIIA ook gebruiken voor hoog-risico-systemen (FRIA)?
+        id: "8.7"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: >-
+          Ja, in het AIIA zijn de eisen vanuit artikel 27 vanuit de AI-verordening opgenomen om een
+          fundamental rights impact assessment (FRIA) uit te voeren. De AI-verordening beschrijft
+          verschillende partijen die ieder haar eigen rol en verantwoordelijkheid hebben rondom
+          een AI-systeem. De vragen zijn voor zowel de gebruiker (gebruikersverantwoordelijke) en
+          ontwikkelaar (aanbieder) van een AI-systeem. Een aanbieder schaft bijvoorbeeld een AI-
+          systeem aan en verbindt daar een eigen naam aan. Of brengt substantiële wijzigingen aan
+          het systeem aan.
+
+          Geef hierbij extra aandacht aan de vragen die met een # gemarkeerd zijn. Er zijn een
+          aantal zaken die extra belangrijk zijn zoals bij het doel van het systeem het werkproces en
+          periode/frequentie van gebruik beschrijven (gebruikerscontext). Ook de impactanalyse
+          grondrechten vereist extra zorgvuldigheid. Daarnaast dient er extra aandacht besteed te
+          worden aan risicobeheersingssysteem.
+
+          Op het moment van schrijven van dit AIIA is nog niet alles duidelijk rondom de FRIA-
+          verplichting. De Autoriteit Persoonsgegevens geeft extra uitleg over het FRIA, voor zover
+          deze nu bekend is.
+
+      - task: Ik heb een oude versie van het AIIA ingevuld, moet ik nu deze versie opnieuw doen?
+        id: "8.8"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Nee, eerder ingevulde, oude versies van het AIIA geven voldoende richting voor een betrouwbaar en verantwoord AI-systeem.
+
+      - task: Mag ik AI gebruiken om het AIIA in te vullen?
+        id: "8.9"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: AI kan een handig hulpmiddel zijn bij het verwerken van tekst. Gebruik AI ondersteunend voor het invullen van het AIIA, maar blijf vooral zelf nadenken. Het is immers geen invuloefening, maar ondersteunt je bij de ontwikkeling van een AI-systeem. Je blijft altijd zelf verantwoordelijk voor de zorgvuldige en verantwoorde inzet van het AI-systeem.
+
+      - task: Hoe gebruik ik het AIIA bij het inkopen van een AI-systeem?
+        id: "8.10"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: >-
+          Je kunt deel A, de afweging gebruiken voorafgaande aan de aanbesteding. Deel B, de implementatie wordt doorgaans ingevuld door de aannemer (maar eigen input blijft vaak noodzakelijk). Let op: de samenhang tussen deel A en B blijft belangrijk: mocht de aannemer iets moeten veranderen in de implementatie, zorg dan ook dat de afweging wordt bijgewerkt.
+
+      - task: Hoe ga ik om met AI als component van bestaande software?
+        id: "8.11"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: >-
+          Het gaat hierbij om bestaande software waar AI-functionaliteiten aan worden toegevoegd.
+          Vul het AIIA pragmatisch in, ingezoomd op de functionaliteiten en het risicoprofiel van de
+          nieuwe toepassingen. Andere tips:
+          - Geef duidelijk aan in welk deel van het IT-systeem AI wordt ingezet (H1.2)
+          - Of het AI-component valt binnen de reguliere contractvoorwaarden of er aanvullende aandachtspunten zijn (H1.3)
+          - Voor de afweging (H3): Wegen de voordelen van het toevoegen van het AI-component op tegen de impact? Zo nee, heb je de mogelijkheden tot uitzetten? Zo nee, kun je nog andere maatregelen treffen? Als niet, overweeg in dat geval alternatieven.
+          - Waar draait het AI-systeem? Als lokaal: heb je hier voldoende rekenkracht voor? Als via de leverancier: welke afspraken zijn gemaakt over de uitwisseling met gegevens met eventuele externe API en de bijbehorende kosten?
+
+      - task: Kan ik mijn AI-systeem voor een ander doel inzetten?
+        id: "8.12"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Het AIIA wordt ingevuld voor het toepassen van AI voor een specifiek doel. Als het AI-systeem (of delen hiervan) voor een ander doel wordt ingezet, moet er (gedeeltelijk) opnieuw een AIIA uitgevoerd worden. Denk bijvoorbeeld aan wanneer een beeldherkenningsmodel voor schepen ook ingezet wordt voor andere voertuigen.
+
+      - task: Hoe gebruik ik het AIIA voor agents?
+        id: "8.13"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Een agent is een klein AI-systeem, waarbij er vaak sprake is van communicatie tussen verschillende systemen en/of agents. Het AIIA is ook hier op van toepassing. Geef hierbij extra aandacht aan de toegang en rechten die je de agent geeft binnen je IT-omgeving. Goede monitoring, zeker bij toegang tot verschillende gegevens, is essentieel.
+
+      - task: Hoe gebruik ik het AIIA voor andere nieuwe AI-innovaties?
+        id: "8.14"
+        is_official_id: false
+        type:
+          - informational
+        repeatable: false
+        description: Het AIIA is in 2026 herschreven zodat het beter aansluit bij de ontwikkelingen rondom generatieve AI. We verwachten dat ook voor andere AI-innovaties gebruikt kan worden. Denk, als een vraag niet helemaal past, na over de bedoeling achter de vraag. Kom je er niet uit? Stuur ons dan een mailtje via teamai@minienw.nl.
+
+
+
+  - task: "Bijlage 1: Compacte lijst grondrechten"
+    id: "9"
+    is_official_id: true
+    description: |
+      Er zijn verschillende soorten grondrechten die mogelijk van toepassing zijn op je AI-systeem. Hieronder staat een overzicht van alle grondrechtenclusters, waar soms een aantal aspecten aan toegevoegd zijn die we vaak terugzien bij ingevulde AIIA’s binnen de IenW-context. Daarnaast geven we aan welke worden afgedekt binnen dit AIIA.
+
+      Deze lijst is overgenomen uit het toelichtingsdocument bij de Impact Assessment Mensenrechten en Algoritmes (IAMA). Deze bevat vanaf pagina 37 een uitgebreid overzicht van alle grondrechtenclusters, inclusief een uitgebreide toelichting en verschillende aspecten die eronder vallen. Voor het volledige overzicht en uitgebreidere uitleg verwijzen we door naar het IAMA.
+
+      <strong>Aan de persoon gerelateerde grondrechten</strong>
+      <ol>
+          <li>Recht op persoonlijke identiteit / persoonlijkheidsrechten / persoonlijke autonomie</li>
+          <li>Recht op sociale identiteit/ relationele privacyrechten / relationele autonomie</li>
+          <li>Recht op lichamelijke en geestelijke integriteit</li>
+          <li>Recht op persoons-gegevensbescherming / informationele privacy-rechten. Afgedekt in hoofdstuk 5.2 (privacy)</li>
+          <li>Communicatierechten</li>
+          <li>Ruimtelijke privacyrechten</li>
+          <li>Verbod op cameratoezicht</li>
+          <li>Reputatierechten</li>
+          <li>Recht op een gezonde/ duurzame leefomgeving. Denk bijvoorbeeld aan het recht op milieubescherming, bescherming tegen uitstoot van schadelijke stoffen en recht tot schoon drinkwater.</li>
+          <li>Sociale en economische grondrechten</li>
+      </ol>
+
+      <strong>Vrijheidsrechten</strong>
+      <ol start="11">
+          <li>Uitingsvrijheid</li>
+          <li>Vrijheid om informatie te ontvangen</li>
+          <li>Godsdienstvrijheid</li>
+          <li>Demonstratievrijheid</li>
+          <li>Verenigingsvrijheid</li>
+          <li>Politieke rechten/ vrijheden</li>
+      </ol>
+
+      <strong>Gelijkheidsrechten</strong>
+      <ol start="17">
+          <li>Recht op gelijkheid voor de wet, denk bijvoorbeeld aan gelijke toepassing van de wet voor iedereen die onder haar bereik valt en verbod op willekeur. Deels afgedekt in hoofdstuk 4.2 (accuraatheid en consistentie).</li>
+          <li>Verbod van direct onderscheid op bepaalde gronden. Deels afgedekt in hoofdstuk 4.1 (Bias)</li>
+          <li>Verbod van indirect onderscheid op bepaalde gronden. Deels afgedekt in hoofdstuk 4.1 (Bias)</li>
+          <li>Verbod van discriminatoir gemotiveerd handelen</li>
+          <li>Recht op materieel onderscheid / maatwerk</li>
+          <li>Recht op redelijke accommodatie / positieve actie</li>
+          <li>Verbod van profilering. Deels afgedekt in hoofdstuk 4.1 (Bias)</li>
+          <li>Verbod van segregatie. Deels afgedekt in hoofdstuk 4.1 (Bias)</li>
+      </ol>
+
+      <strong>Procedurele grondrechten</strong>
+      <ol start="25">
+          <li>Recht op behoorlijk bestuur (precontentieuze fase), denk aan het recht op transparantie en informatievoorziening of motiveringsplichten. Deels afgedekt in 7.2 (communicatie naar betrokkenen)</li>
+          <li>Recht op een effectief rechtsmiddel en toegang tot de rechter (contentieuze fase)</li>
+          <li>Recht op een onafhankelijke en onpartijdige rechter</li>
+          <li>Recht op beoordeling binnen redelijke termijn</li>
+          <li>Recht op een eerlijk proces: algemeen</li>
+          <li>Strafrechtelijk legaliteitsvereiste (geen straf zonder wet)</li>
+      </ol>
+    type:
+      - informational
+    repeatable: false
+
+  - task: "Bijlage 2: Factsheet Duurzaamheid en AI"
+    id: "10"
+    is_official_id: false
+    type:
+      - informational
+    repeatable: false
+    sources:
+      - source: Factsheet Duurzaamheid en AI - juni 2025-1.png
+        description: Factsheet Duurzaamheid en AI
+
+  - task: "Bijlage 3: Beginselen AVG in het AIIA"
+    id: "11"
+    is_official_id: false
+    description: >-
+      ...
+    type:
+      - open_text
+    repeatable: false

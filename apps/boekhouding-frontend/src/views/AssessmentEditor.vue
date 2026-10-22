@@ -17,6 +17,7 @@ import {
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
+import { loadSourceForms } from '../utils/sourceForms'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
@@ -204,6 +205,7 @@ const assessmentTypeMap: Record<string, FormType> = {
   prescan: FormType.PRE_SCAN,
   dpia: FormType.DPIA,
   iama: FormType.IAMA,
+  aiia: FormType.AIIA,
 }
 
 // Navigation: back goes to project detail
@@ -225,12 +227,18 @@ onMounted(async () => {
     assessment.value = await assessmentsApi.get(props.assessmentId)
 
     if (!schemaStore.isInitialized) {
-      const [preScanModule, dpiaModule, iamaModule] = await Promise.all([
+      const [preScanModule, dpiaModule, iamaModule, aiiaModule] = await Promise.all([
         import('../../../../sources/generated/PreScanDPIA.json'),
         import('../../../../sources/generated/DPIA.json'),
         import('../../../../sources/generated/IAMA.json'),
+        import('../../../../sources/generated/AIIA.json'),
       ])
-      schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
+      schemaStore.init({
+        preScan: preScanModule.default,
+        dpia: dpiaModule.default,
+        iama: iamaModule.default,
+        aiia: aiiaModule.default,
+      })
     }
 
     const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
@@ -259,8 +267,12 @@ onMounted(async () => {
         }
       }
     }
-    // Load comments and sync state
-    await collaborationStore.load(props.assessmentId)
+    // Load comments and sync state, together with the answers from the
+    // project's other assessments that this form references.
+    await Promise.all([
+      collaborationStore.load(props.assessmentId),
+      loadSourceForms(assessment.value),
+    ])
     // Now that knownVersion is populated, it's safe to enable the remote-change watcher
     syncReady.value = true
     collaborationStore.startPolling()
@@ -328,6 +340,7 @@ const namespace = computed(() =>
 const assessmentTypeLabel = computed(() =>
   assessment.value?.assessmentType === 'dpia' ? 'DPIA'
     : assessment.value?.assessmentType === 'iama' ? 'IAMA'
+    : assessment.value?.assessmentType === 'aiia' ? 'AIIA'
     : 'Pre-scan DPIA'
 )
 
