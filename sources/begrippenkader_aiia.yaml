@@ -50,7 +50,7 @@ definitions:
     AI kent geen eenduidige definitie. Wij hanteren de definitie van AI in de AI-verordening: "een op een machine gebaseerd
     systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan
     aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input
-    afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele 
+    afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele
     omgevingen."
 - term: audit
 - term: AVG
@@ -100,7 +100,7 @@ definitions:
     met onbedoelde corruptie.
 - term: data bias
   definition: Wanneer de steekproef niet representatief is voor de gehele populatie.
-  
+
 - term: data pipeline
   definition: Hoe de data vanuit het veld naar het model komt; het proces dat de data
     doorloopt.

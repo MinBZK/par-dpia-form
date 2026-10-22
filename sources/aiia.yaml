@@ -83,13 +83,13 @@ tasks:
         type:
           - task_group
         repeatable: false
-   
+
 
   - task: Doel en noodzaak van het systeem
     id: "1"
     is_official_id: true
     description: >-
-      <strong>Deel A: Afweging.</strong> 
+      <strong>Deel A: Afweging.</strong>
 
       Is de impact van het AI-systeem in verhouding tot de beoogde doelstellingen? Die vraag staat centraal in het eerste deel van het AIIA. Loop alle vragen door en besteed daarin aandacht aan de doelen, de beoogde oplossing en verwachte effecten. Met name de proportionaliteit van inzet van AI is relevant. Wellicht zijn er andere, minder ingrijpende manieren om het doel te bereiken?
 
@@ -125,7 +125,7 @@ tasks:
               Worden er beslissingen gebaseerd op de uitkomsten van het algoritme? Zo ja, welke?
             id: "1.1.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: In welk risicogebied van de AI-verordening past jouw AI-systeem?
@@ -148,7 +148,7 @@ tasks:
               - value: onbekend
                 label: Nog niet bepaald
             repeatable: false
-          
+
 
       - task: Beoogde oplossing
         id: "1.2"
@@ -183,7 +183,7 @@ tasks:
         id: "1.3"
         is_official_id: true
         description: >-
-          Een AI-systeem heeft, net als elk ander IT-systeem, een opdrachtgever en eindverantwoordelijke. Eigenaarschap is essentieel. Bij deze vragen stel je ook de rolverdeling binnen het ontwikkelen en gebruiken van je systeem vast. Deze rollen staan gedefinieerd in de begrippenlijst; houd deze definities aan. 
+          Een AI-systeem heeft, net als elk ander IT-systeem, een opdrachtgever en eindverantwoordelijke. Eigenaarschap is essentieel. Bij deze vragen stel je ook de rolverdeling binnen het ontwikkelen en gebruiken van je systeem vast. Deze rollen staan gedefinieerd in de begrippenlijst; houd deze definities aan.
           Daarnaast heeft elk AI-systeem ook onderhoud en beheer nodig. Ook bij een proof of concept of pilot is het goed om te onderzoeken waar en op welke wijze het AI-systeem in productie gaat. Zo kunnen vooraf al de juiste keuzes gemaakt worden en dit voorkomt bijvoorbeeld een niet-compatible IT-infrastructuur of AI-technieken waardoor een AI-systeem niet in beheer kan worden genomen.
         type:
           - task_group
@@ -198,7 +198,7 @@ tasks:
               </ul>
             id: "1.3.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: Beschrijf de rolverdeling binnen het opzetten van het AI-systeem en tijdens de gebruiksfase.
@@ -256,7 +256,7 @@ tasks:
               </ul>
             id: "2.1.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: >-
@@ -267,7 +267,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-    
+
       - task: Duurzaamheid
         id: "2.2"
         is_official_id: true
@@ -289,7 +289,7 @@ tasks:
               </ul>
             id: "2.2.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: >-
@@ -302,7 +302,7 @@ tasks:
             repeatable: false
 
       - task: Overige effecten
-        id: "2.3"   
+        id: "2.3"
         is_official_id: true
         description: |
           In dit onderdeel breng je de effecten en neveneffecten in kaart die in de voorgaande paragrafen nog niet zijn geraakt, met speciale aandacht voor de brede welvaart en de missie van de organisatie. Denk bijvoorbeeld aan:
@@ -393,7 +393,7 @@ tasks:
         negatieve impact, geen positieve impact en een positieve impact die de bias kan hebben.
       id: "4.1"
       is_official_id: true
-      
+
       type:
         - task_group
         - informational
@@ -424,7 +424,7 @@ tasks:
             </ul>
           id: "4.1.Aandachtspunten"
           is_official_id: false
-          type: 
+          type:
             - informational
           repeatable: false
         - task: >-
@@ -436,7 +436,7 @@ tasks:
           type:
             - open_text
           repeatable: false
-      
+
 
     - task: Accuraatheid en consistentie
       id: "4.2"
@@ -484,7 +484,7 @@ tasks:
             </ul>
           id: "4.2.Aandachtspunten"
           is_official_id: false
-          type: 
+          type:
             - informational
           repeatable: false
         - task: >-
@@ -547,7 +547,7 @@ tasks:
             </ul>
           id: "4.3.Aandachtspunten"
           is_official_id: false
-          type: 
+          type:
             - informational
           repeatable: false
         - task: >-
@@ -618,7 +618,7 @@ tasks:
               </ul>
             id: "5.1.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: >-
@@ -654,7 +654,7 @@ tasks:
           zoals gerubriceerde informatie of bedrijfsgeheimen. Ook deze data moet goed beschermd zijn. De AI-
           verordening biedt, bovenop de AVG, aanvullende regels voor het gebruik van bepaalde gegevens in AI-systemen.
           Het is van belang dat de vertrouwelijke gegevens voldoende beveiligd worden (zie Risicobeheer).
-        
+
         type:
           - task_group
         repeatable: false
@@ -717,7 +717,7 @@ tasks:
               </ul>
             id: "6.1.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: Wat zijn de risico’s van de inzet van dit AI-systeem en welke maatregelen zijn getroffen? <i> Beschrijf per risico de gevolgen en de beheersmaatregelen die zijn genomen </i>
@@ -755,7 +755,7 @@ tasks:
               </ul>
             id: "6.2.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: Wat is het plan als er problemen met de werking van het AI-systeem zijn? <i> Beschrijf de aanpak die genomen zal worden als het AI-systeem uitvalt en de impact van de (on) beschikbaarheid van het AI-systeem </i>
@@ -800,7 +800,7 @@ tasks:
               </ul>
             id: "6.3.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: >-
@@ -851,7 +851,7 @@ tasks:
               </ul>
             id: "7.1.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: >-
@@ -888,7 +888,7 @@ tasks:
           een AI-systeem, de werking niet 100% te herleiden. In dat geval moet er in ieder geval een gepaste uitleg
           gegeven over het proces aan eindgebruikers. Wijs bijvoorbeeld een contactpersoon aan met inhoudelijke
           kennis over het AI-systeem.
-        
+
           Daarnaast publiceren we betekenisvolle algoritmes en hoog-risico AI-systemen altijd in het
           algoritmeregister.
 
@@ -910,7 +910,7 @@ tasks:
             repeatable: false
           - task: >-
               Worden er mechanismen ingesteld waarin eindgebruikers opmerkingen over het
-              systeem (data, techniek, doelgroep, etc.) kunnen maken? 
+              systeem (data, techniek, doelgroep, etc.) kunnen maken?
             id: "7.2.2"
             is_official_id: true
             type:
@@ -962,7 +962,7 @@ tasks:
               </ul>
             id: "7.3.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: Door wie en hoe vaak wordt het AI-systeem gecontroleerd en gemonitord?
@@ -971,7 +971,7 @@ tasks:
             type:
               - open_text
             repeatable: false
-          - task: Welke aspecten worden meegenomen in de periodieke evaluatie? 
+          - task: Welke aspecten worden meegenomen in de periodieke evaluatie?
             id: "7.3.2"
             is_official_id: true
             type:
@@ -1021,7 +1021,7 @@ tasks:
               </ul>
             id: "7.4.Aandachtspunten"
             is_official_id: false
-            type: 
+            type:
               - informational
             repeatable: false
           - task: Welke informatie moet bewaard worden?
@@ -1033,7 +1033,7 @@ tasks:
 
   - task: "Frequently Asked Questions (FAQ)"
     id: "8"
-    type: 
+    type:
       - task_group
     repeatable: false
     tasks:
@@ -1187,7 +1187,7 @@ tasks:
         description: Het AIIA is in 2026 herschreven zodat het beter aansluit bij de ontwikkelingen rondom generatieve AI. We verwachten dat ook voor andere AI-innovaties gebruikt kan worden. Denk, als een vraag niet helemaal past, na over de bedoeling achter de vraag. Kom je er niet uit? Stuur ons dan een mailtje via teamai@minienw.nl.
 
 
-      
+
   - task: "Bijlage 1: Compacte lijst grondrechten"
     id: "9"
     is_official_id: true
@@ -1244,14 +1244,14 @@ tasks:
     type:
       - informational
     repeatable: false
-    
+
   - task: "Bijlage 2: Factsheet Duurzaamheid en AI"
     id: "10"
     is_official_id: false
     type:
       - informational
     repeatable: false
-    sources: 
+    sources:
       - source: Factsheet Duurzaamheid en AI - juni 2025-1.png
         description: Factsheet Duurzaamheid en AI
 
