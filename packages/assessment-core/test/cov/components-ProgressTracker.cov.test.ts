@@ -10,7 +10,7 @@ import { FormType } from '../../src/models/dpia'
 // The tracker builds a vertical step list on nldd-list / nldd-list-item
 // (stubbed in jsdom via the @nldd alias), so tests assert on host attributes
 // and light-DOM children: <nldd-list-item class="toc-item toc-item--{node}"
-// button current> with a <nldd-timeline-track-cell variant="step" status
+// button current> with a <nldd-step-cell level="step" status
 // position> whose marker carries icon="check-mark" (done), a slotted
 // .toc-progress-core (started) or text="<num>" (the chapter number).
 
@@ -72,18 +72,21 @@ function nodeKind(item: ReturnType<typeof items>[number]): string {
   return ['done', 'current', 'progress', 'open'].find(k => item.classes().includes(`toc-item--${k}`)) ?? '?'
 }
 function trackStatus(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('status')
+  return item.find('nldd-step-cell').attributes('status')
 }
 function markerIcon(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('icon')
+  return item.find('nldd-step-cell').attributes('icon')
 }
-// The state reads under the title now, in words, instead of in a screen-reader
-// only span.
-function stateLabel(item: ReturnType<typeof items>[number]): string | undefined {
+// No state carries a visible label: the marker says it on screen and a
+// screen-reader-only span says it out loud.
+function supportingText(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-text-cell.toc-title').attributes('supporting-text')
 }
+function srStates(item: ReturnType<typeof items>[number]): string[] {
+  return item.findAll('.sr-only').map(s => s.text())
+}
 function markerText(item: ReturnType<typeof items>[number]): string | undefined {
-  return item.find('nldd-timeline-track-cell').attributes('text')
+  return item.find('nldd-step-cell').attributes('text')
 }
 
 describe('ProgressTracker.vue', () => {
@@ -105,12 +108,12 @@ describe('ProgressTracker.vue', () => {
       const list = wrapper.find('nldd-list')
       expect(list.exists()).toBe(true)
       expect(list.attributes('accessible-label')).toBe('Inhoudsopgave')
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
+      const cells = wrapper.findAll('nldd-step-cell')
       expect(cells.length).toBe(items(wrapper).length)
       // 0.8.85 renamed the variants: a dot with room for a number or an icon is
-      // variant="major" at size="md" (the old "step").
+      // level="major" at size="md" (the old "step").
       for (const cell of cells) {
-        expect(cell.attributes('variant')).toBe('major')
+        expect(cell.attributes('level')).toBe('major')
         expect(cell.attributes('size')).toBe('md')
       }
     })
@@ -143,10 +146,10 @@ describe('ProgressTracker.vue', () => {
       // The number rides with the title; the marker carries the state.
       expect(titles(wrapper)).toEqual(['0. Inleiding', '1. Vragen', 'Ondertekening'])
       expect(titles(wrapper)).not.toContain('Proces voltooid')
-      expect(wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('text')))
+      expect(wrapper.findAll('nldd-step-cell').map(c => c.attributes('text')))
         .toEqual([undefined, undefined, undefined])
 
-      const positions = wrapper.findAll('nldd-timeline-track-cell').map(c => c.attributes('position'))
+      const positions = wrapper.findAll('nldd-step-cell').map(c => c.attributes('position'))
       expect(positions).toEqual(['first', 'between', 'last'])
     })
 
@@ -154,7 +157,7 @@ describe('ProgressTracker.vue', () => {
       seedRootTasks(taskStore, [])
 
       const wrapper = mountTracker()
-      const cells = wrapper.findAll('nldd-timeline-track-cell')
+      const cells = wrapper.findAll('nldd-step-cell')
       expect(cells).toHaveLength(1)
       expect(cells[0].attributes('position')).toBe('only')
       expect(titles(wrapper)).toEqual(['Proces voltooid'])
@@ -234,7 +237,7 @@ describe('ProgressTracker.vue', () => {
       expect(done.find('.toc-done').exists()).toBe(false)
       // No word under it: the check mark already says finished. A screen
       // reader cannot see that check, so it still hears it.
-      expect(stateLabel(done)).toBeUndefined()
+      expect(supportingText(done)).toBeUndefined()
       expect(done.findAll('.sr-only').some(s => s.text() === ', voltooid')).toBe(true)
       expect(done.attributes('current')).toBeUndefined()
 
@@ -242,7 +245,7 @@ describe('ProgressTracker.vue', () => {
       expect(trackStatus(open)).toBe('future')
       expect(markerIcon(open)).toBeUndefined()
       expect(markerText(open)).toBeUndefined()
-      expect(stateLabel(open)).toBeUndefined()
+      expect(supportingText(open)).toBeUndefined()
     })
 
     it('markeert de huidige, niet-voltooide stap in de tijdlijn, niet met een gevulde rij', () => {
@@ -261,7 +264,7 @@ describe('ProgressTracker.vue', () => {
       // The marker says where you are; the row keeps the page's own surface.
       expect(current.attributes('current')).toBeUndefined()
       // No word under it: the tinted row says it, and a screen reader hears it.
-      expect(stateLabel(current)).toBeUndefined()
+      expect(supportingText(current)).toBeUndefined()
       expect(current.findAll('.sr-only').some(s => s.text() === ', huidige stap')).toBe(true)
       expect(markerIcon(current)).toBeUndefined()
     })
@@ -280,7 +283,7 @@ describe('ProgressTracker.vue', () => {
       // Done wins in the marker, so only the announcement says you are here.
       expect(first.attributes('current')).toBeUndefined()
       // Done and current at once: the check mark carries done, so no word.
-      expect(stateLabel(first)).toBeUndefined()
+      expect(supportingText(first)).toBeUndefined()
     })
 
     it('toont geen done/current wanneer disabled: alles open (future) zonder current-attribuut', () => {
@@ -334,7 +337,8 @@ describe('ProgressTracker.vue', () => {
       expect(markerIcon(partial)).toBe('circle-filled-small')
       expect(partial.classes()).toContain('toc-item--progress')
       expect(markerText(partial)).toBeUndefined()
-      expect(stateLabel(partial)).toBe('Mee bezig')
+      expect(supportingText(partial)).toBeUndefined()
+      expect(srStates(partial)).toContain(', mee bezig')
     })
 
     it('laat done en current voorgaan op progress', () => {

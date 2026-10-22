@@ -112,8 +112,8 @@ describe('LandingPage', () => {
 
     it('makes both path buttons primary (blue)', () => {
       const wrapper = mountPage()
-      expect(samenwerkenButton(wrapper).attributes('variant')).toBe('primary')
-      expect(standaloneButtons(wrapper)[0].attributes('variant')).toBe('primary')
+      expect(samenwerkenButton(wrapper).attributes('appearance')).toBe('primary')
+      expect(standaloneButtons(wrapper)[0].attributes('appearance')).toBe('primary')
     })
   })
 
@@ -184,7 +184,7 @@ describe('LandingPage', () => {
       const section = wrapper.find('[aria-labelledby="landing-pillars-title"]')
       const grid = section.find('nldd-collection')
       expect(grid.attributes('layout')).toBe('grid')
-      expect(grid.attributes('item-width')).toBe('20rem')
+      expect(grid.attributes('item-min-width')).toBe('20rem')
       const pillars = grid.findAll('nldd-container[layout="row"]')
       expect(pillars).toHaveLength(4)
       for (const pillar of pillars) {
@@ -193,7 +193,7 @@ describe('LandingPage', () => {
         expect(pillar.find('nldd-text').exists()).toBe(true)
       }
       const icons = grid.findAll('nldd-icon')
-      expect(icons.map((icon) => icon.attributes('name'))).toEqual([
+      expect(icons.map((icon) => icon.attributes('icon'))).toEqual([
         'foundation',
         'square-grid-2x2',
         'seal-check-mark',

@@ -25,7 +25,7 @@ export function useFieldCommentIndicators(
   function createButton(fieldId: string, count: number): HTMLElement {
     const btn = document.createElement('nldd-button')
     btn.setAttribute('size', 'xs')
-    btn.setAttribute('variant', 'accent-transparent')
+    btn.setAttribute('appearance', 'accent-transparent')
     btn.setAttribute('start-icon', 'comment')
     btn.addEventListener('click', (e) => {
       e.preventDefault()

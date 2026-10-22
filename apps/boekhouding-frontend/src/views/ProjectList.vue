@@ -86,7 +86,7 @@ const handleCreate = async () => {
       <!-- max-items: the collection hides items past its own cap (24) even
            without a load-more button. The server pages the list, so the cap is
            the server total and nothing loaded is ever hidden. -->
-      <nldd-collection layout="grid" item-width="380px" gap="16px" :max-items="total" class="project-grid"
+      <nldd-collection layout="grid" item-min-width="380px" gap="16px" :max-items="total" class="project-grid"
         @click="onCardNav">
         <nldd-card
           v-for="project in projectList"
@@ -103,7 +103,7 @@ const handleCreate = async () => {
         <nldd-button
           v-if="hasMore"
           slot="footer"
-          variant="neutral-tinted"
+          appearance="neutral-tinted"
           width="full"
           :disabled="loadingMore || undefined"
           :text="`Laad de volgende ${nextBatchSize} projecten`"
@@ -116,7 +116,7 @@ const handleCreate = async () => {
 
       <div>
         <nldd-button
-          variant="primary"
+          appearance="primary"
           size="md"
           start-icon="plus"
           text="Nieuw project"
@@ -155,9 +155,9 @@ const handleCreate = async () => {
       </nldd-form-field>
       </form>
     </nldd-form>
-    <nldd-button slot="actions" variant="primary" text="Project toevoegen"
+    <nldd-button slot="actions" appearance="primary" text="Project toevoegen"
       @click="handleCreate"></nldd-button>
-    <nldd-button slot="actions" variant="secondary" text="Annuleren"
+    <nldd-button slot="actions" appearance="secondary" text="Annuleren"
       @click="showCreateForm = false"></nldd-button>
   </nldd-modal-dialog>
 </template>

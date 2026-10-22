@@ -19,7 +19,7 @@ describe('NotFound.vue', () => {
     expect(button.exists()).toBe(true)
     expect(button.attributes('href')).toBe('/')
     expect(button.attributes('text')).toBe('Naar de startpagina')
-    expect(button.attributes('variant')).toBe('primary')
+    expect(button.attributes('appearance')).toBe('primary')
     expect(button.attributes('size')).toBe('md')
   })
 })

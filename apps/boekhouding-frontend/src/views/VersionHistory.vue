@@ -754,7 +754,7 @@ function mapEditsToDiffFields(
               <nldd-icon-button
                 v-if="version.version > 1"
                 size="xs"
-                variant="neutral-transparent"
+                appearance="neutral-transparent"
                 :icon="expandedVersion === version.version ? 'chevron-down' : 'chevron-right'"
                 :expanded="expandedVersion === version.version || undefined"
                 :text="expandedVersion === version.version ? 'Verschillen inklappen' : 'Verschillen tonen'"
@@ -840,7 +840,7 @@ function mapEditsToDiffFields(
 
         <div v-if="hasMoreVersions" class="version-list__more">
           <nldd-button
-            variant="neutral-tinted"
+            appearance="neutral-tinted"
             size="sm"
             :disabled="loadingMore || undefined"
             :text="loadMoreLabel"
@@ -867,8 +867,8 @@ function mapEditsToDiffFields(
           @input="onDescInput"
         ></nldd-multi-line-text-field>
       </nldd-form-field>
-      <nldd-button slot="actions" variant="primary" text="Opslaan" @click="saveDescription"></nldd-button>
-      <nldd-button slot="actions" variant="secondary" text="Annuleren" @click="descModalOpen = false"></nldd-button>
+      <nldd-button slot="actions" appearance="primary" text="Opslaan" @click="saveDescription"></nldd-button>
+      <nldd-button slot="actions" appearance="secondary" text="Annuleren" @click="descModalOpen = false"></nldd-button>
     </nldd-modal-dialog>
 
     <!-- Restore confirmation modal -->
@@ -893,9 +893,9 @@ function mapEditsToDiffFields(
 
       <!-- The safe way out is the primary action; the destructive action is the
            secondary one (NLDD design guideline). -->
-      <nldd-button slot="actions" variant="primary" text="Annuleren"
+      <nldd-button slot="actions" appearance="primary" text="Annuleren"
         @click="restoreModalOpen = false; restoreConfirmText = ''"></nldd-button>
-      <nldd-button slot="actions" variant="destructive" text="Herstellen"
+      <nldd-button slot="actions" appearance="destructive" text="Herstellen"
         :disabled="!restoreConfirmed || undefined"
         @click="handleRestore"></nldd-button>
     </nldd-modal-dialog>
@@ -910,8 +910,8 @@ function mapEditsToDiffFields(
         Weet je zeker dat je <strong>"{{ fieldRestoreTarget?.label }}"</strong>
         wilt herstellen naar de waarde uit versie {{ fieldRestoreTarget?.originVersion ?? (expandedVersion! - 1) }}?
       </p>
-      <nldd-button slot="actions" variant="primary" text="Herstellen" @click="handleFieldRestore"></nldd-button>
-      <nldd-button slot="actions" variant="secondary" text="Annuleren" @click="fieldRestoreModalOpen = false"></nldd-button>
+      <nldd-button slot="actions" appearance="primary" text="Herstellen" @click="handleFieldRestore"></nldd-button>
+      <nldd-button slot="actions" appearance="secondary" text="Annuleren" @click="fieldRestoreModalOpen = false"></nldd-button>
     </nldd-modal-dialog>
   </nldd-simple-section>
 </template>

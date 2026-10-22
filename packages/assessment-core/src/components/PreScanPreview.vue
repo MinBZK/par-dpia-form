@@ -61,7 +61,7 @@ const formatAnswer = (answer: AnswerValue): string => {
     <template #title>
       <nldd-title size="5">
         <h3>Informatie uit pre-scan</h3>
-        <p slot="subtitle">Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.</p>
+        <p slot="supporting-text">Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.</p>
       </nldd-title>
     </template>
     <div v-for="item in preScanAnswers" :key="item.taskId">

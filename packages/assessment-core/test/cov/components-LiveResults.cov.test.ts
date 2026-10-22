@@ -64,7 +64,7 @@ describe('LiveResults.vue', () => {
       const title = card.find('nldd-title')
       expect(title.attributes('size')).toBe('3')
       expect(title.find('h3').text()).toBe('Tussenresultaten pre-scan')
-      expect(title.find('p[slot="subtitle"]').text()).toBe(
+      expect(title.find('p[slot="supporting-text"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er geen assessments vereist.',
       )
     })
@@ -78,7 +78,7 @@ describe('LiveResults.vue', () => {
       expect(accordion.exists()).toBe(true)
       expect((accordion.element as HTMLDetailsElement).open).toBe(true)
       expect(accordion.find('.ui-accordion__title nldd-title h3').text()).toBe('Tussenresultaten pre-scan')
-      expect(accordion.find('.ui-accordion__title p[slot="subtitle"]').text()).toBe(
+      expect(accordion.find('.ui-accordion__title p[slot="supporting-text"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.',
       )
     })

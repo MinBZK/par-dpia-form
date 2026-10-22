@@ -13,7 +13,7 @@ import '@nldd/design-system/title'
     </p>
     <p>
       <nldd-button
-        variant="primary"
+        appearance="primary"
         size="md"
         href="/"
         text="Naar de startpagina"

@@ -24,7 +24,7 @@ describe('ExportMenu.vue compacte variant (zonder split)', () => {
     const button = wrapper.find('nldd-button')
     expect(button.exists()).toBe(true)
     expect(button.attributes('text')).toBe('Exporteer')
-    expect(button.attributes('variant')).toBe('accent-transparent')
+    expect(button.attributes('appearance')).toBe('accent-transparent')
     expect(button.attributes('size')).toBe('xs')
     expect(button.attributes('expandable')).toBeDefined()
     expect(button.attributes('popup-type')).toBe('menu')
@@ -65,7 +65,7 @@ describe('ExportMenu.vue split-variant', () => {
 
     const splitButton = wrapper.find('nldd-split-button')
     expect(splitButton.exists()).toBe(true)
-    expect(splitButton.attributes('variant')).toBe('secondary')
+    expect(splitButton.attributes('appearance')).toBe('secondary')
     expect(splitButton.attributes('text')).toBe('Exporteer als PDF')
 
     expect(splitButton.find('nldd-menu').attributes('accessible-label')).toBeUndefined()

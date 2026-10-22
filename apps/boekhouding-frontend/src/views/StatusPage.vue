@@ -130,12 +130,12 @@ onMounted(async () => {
     <section aria-labelledby="status-onderdelen">
       <nldd-container gap="16">
       <nldd-title size="4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
-      <nldd-collection layout="grid" item-width="380px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="380px" gap="16px">
 
         <nldd-card>
           <nldd-container padding="16" gap="8">
             <h3 class="status-card__title">
-              <nldd-icon name="rack-server" size="20"></nldd-icon>
+              <nldd-icon icon="rack-server" size="20"></nldd-icon>
               De achterkant
             </h3>
             <nldd-text size="xs">
@@ -166,7 +166,7 @@ onMounted(async () => {
         <nldd-card>
           <nldd-container padding="16" gap="8">
             <h3 class="status-card__title">
-              <nldd-icon name="key" size="20"></nldd-icon>
+              <nldd-icon icon="key" size="20"></nldd-icon>
               De aanmeldvoorziening
             </h3>
             <nldd-text size="xs">
@@ -210,7 +210,7 @@ onMounted(async () => {
           <p class="version-card__line"><template v-if="frontend.version === 'dev'">Ontwikkelversie<template v-if="hasCommit"> op commit <span data-test="build">{{ frontend.commit }}</span></template></template><template v-else>Versie <span data-test="version">{{ displayVersion }}</span></template></p>
           <nldd-container layout="wrap" gap="8" class="version-card__actions">
             <nldd-button
-              variant="secondary"
+              appearance="secondary"
               size="md"
               :start-icon="copyIcon"
               :text="copyLabel"
@@ -218,7 +218,7 @@ onMounted(async () => {
               @click="copyVersion"
             ></nldd-button>
             <nldd-button
-              variant="secondary"
+              appearance="secondary"
               size="md"
               :href="githubUrl"
               target="_blank"

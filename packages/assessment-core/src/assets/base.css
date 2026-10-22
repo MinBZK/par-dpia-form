@@ -7,9 +7,9 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* The Vue mount point sits between body and nldd-app-view; without an explicit
+/* The Vue mount point sits between body and nldd-shell; without an explicit
    height the NLDD app shell collapses to 0 and nothing renders. */
-html:has(nldd-app-view) #app {
+html:has(nldd-shell) #app {
   height: 100%;
 }
 
@@ -32,7 +32,7 @@ a:active {
 
 /* Typography and content colour come from NLDD's document-reset (@layer reset);
    redeclaring them here would win over the layer and pin the DS defaults.
-   Only the surface stays ours: nldd-app-view paints it on body itself. */
+   Only the surface stays ours: nldd-shell paints it on body itself. */
 body {
   background-color: var(--semantics-surfaces-base-background-color);
 }
@@ -48,7 +48,7 @@ body {
 /* Questions read at the same measure as the rest of the prose in the design
    system; a column the full width of the page runs past a comfortable line. */
 .form-content {
-  max-width: var(--components-rich-text-main-max-width);
+  max-width: var(--primitives-area-720);
 }
 
 .form-field__label {
@@ -106,7 +106,7 @@ body {
      line-height the choices are set in. */
   font-size: inherit;
   margin: max(0px, calc((1em * var(--form-choice-line-height) - 1.25rem) / 2)) 0 0;
-  accent-color: var(--semantics-controls-is-highlighted-indicator-color);
+  accent-color: var(--semantics-controls-is-selected-indicator-color);
 }
 
 /* Shared accordion: native details/summary with NLDD chevron icons. */
@@ -229,18 +229,19 @@ legend.task-fieldset__legend--sub {
    own hover, focus and current state; the chapter number rides along as the
    cell's overline and a check mark closes off a finished step. */
 
-/* The table of contents sits open in the sidebar column; drop the
-   sidebar-section's boxed surface and border so it reads as one list. */
+/* The sidebar box draws a ring in the page background plus a divider-coloured
+   border, which frames the table of contents as a card; it reads as one list
+   without it. The border width is the only public token in that ring: the box'
+   own background and border colour are private since 0.8.96. */
 nldd-sidebar-section {
-  --components-sidebar-section-sidebar-box-background-color: transparent;
-  --components-sidebar-section-sidebar-box-highlight-border-color: transparent;
+  --semantics-surfaces-highlight-border-width: 0;
 }
 
 /* nldd-list-item reaches outward by this inset so its highlight frames the
    row; without matching padding here it would push the sidebar into a
    horizontal scroll. */
 .progress-tracker {
-  padding-inline: var(--components-list-item-indicator-inline-inset);
+  padding-inline: var(--semantics-list-items-indicator-inline-inset);
 }
 
 /* nldd-text carries the weight and colour; only the gap to the list is ours. */
@@ -253,7 +254,7 @@ nldd-sidebar-section {
    table, thin for a navigation column the pointer has to aim at. Borrow the
    selected step's own fill, one stop darker and theme-aware by the same token. */
 .toc-item {
-  --components-list-item-is-hovered-background-color: light-dark(
+  --semantics-list-items-is-hovered-background-color: light-dark(
     var(--primitives-color-neutral-100),
     var(--primitives-color-neutral-250)
   );
@@ -275,7 +276,10 @@ nldd-sidebar-section {
    comes from --semantics-content-secondary-color, so it is set there, scoped to
    this cell so the row's own text keeps its colour. */
 .toc-item--progress .toc-track-cell {
-  --semantics-content-secondary-color: var(--components-timeline-track-cell-color);
+  --semantics-content-secondary-color: light-dark(
+    var(--primitives-color-accent-750),
+    var(--primitives-color-accent-650)
+  );
 }
 
 
@@ -312,7 +316,7 @@ nldd-sidebar-section {
   box-shadow: var(--primitives-box-shadows-level-2);
   text-align: left;
   border-radius: var(--semantics-surfaces-corner-radius);
-  border: 1px solid var(--semantics-surfaces-tinted-border-color);
+  border: 1px solid var(--semantics-surfaces-tinted-highlight-border-color);
   padding: var(--primitives-space-12, 12px);
   position: absolute;
   z-index: 1;
@@ -412,7 +416,7 @@ nldd-sidebar-section {
 
 /* Image field */
 .image-dropzone {
-  border: 2px dashed var(--semantics-surfaces-tinted-border-color);
+  border: 2px dashed var(--semantics-surfaces-tinted-highlight-border-color);
   border-radius: 12px;
   padding: var(--primitives-space-8, 0.5rem) var(--primitives-space-24, 1.5rem);
   text-align: center;
@@ -468,7 +472,7 @@ nldd-sidebar-section {
 .multiselect-scrollable {
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid var(--semantics-surfaces-base-border-color);
+  border: 1px solid var(--semantics-surfaces-base-highlight-border-color);
   border-radius: var(--semantics-surfaces-corner-radius);
   padding: 0.25rem 0;
 }
@@ -501,7 +505,7 @@ nldd-sidebar-section {
   padding: var(--primitives-space-2, 0.125rem) var(--primitives-space-8, 0.5rem);
   border: var(--primitives-border-width-thin, 1px) solid
     var(--semantics-categories-accent-tinted-highlight-border-color);
-  border-radius: var(--components-tag-md-corner-radius);
+  border-radius: var(--primitives-corner-radius-xs);
   background: var(--semantics-categories-accent-tinted-background-color);
   color: var(--semantics-categories-accent-tinted-content-color);
   font: var(--primitives-font-body-sm-medium-flat);

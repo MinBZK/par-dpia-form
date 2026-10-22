@@ -501,7 +501,7 @@ const confirmDelete = async () => {
     <h2>Foutmelding</h2>
     <p>{{ error }}</p>
     <nldd-button
-      variant="accent-transparent"
+      appearance="accent-transparent"
       size="xs"
       start-icon="arrow-left"
       text="Terug naar project"
@@ -548,8 +548,8 @@ const confirmDelete = async () => {
                   @keydown.enter="saveName"
                   @keydown.escape.stop="cancelName"
                 ></nldd-text-field>
-                <nldd-button variant="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
-                <nldd-button variant="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
+                <nldd-button appearance="primary" size="xs" text="Opslaan" @click="saveName"></nldd-button>
+                <nldd-button appearance="accent-transparent" size="xs" text="Annuleer" @click="cancelName"></nldd-button>
               </div>
             </div>
             <!-- A toolbar, so the buttons shed into the overflow menu once the
@@ -558,7 +558,7 @@ const confirmDelete = async () => {
                  assessment actions are plain overflow items here rather than a
                  kebab of their own: two ellipsis menus side by side would be one
                  too many. -->
-            <nldd-toolbar class="form-subheader__right" size="sm" label="Assessmentacties">
+            <nldd-toolbar class="form-subheader__right" size="sm" accessible-label="Assessmentacties">
               <!-- Only while the contents are folded into their sheet is there
                    something to open; with the sidebar in view this would open
                    what is already open. The item is mounted as a whole or not at
@@ -567,7 +567,7 @@ const confirmDelete = async () => {
                    place in the row. -->
               <nldd-toolbar-item v-if="tocCollapsed" slot="end" priority="1">
                 <nldd-button
-                  variant="accent-transparent"
+                  appearance="accent-transparent"
                   size="sm"
                   start-icon="bullet-list"
                   text="Stappen"
@@ -611,12 +611,10 @@ const confirmDelete = async () => {
 
     <!-- A side panel, the way the rest of the family does it: a right-hand
          sheet that slides in over the page. Teleported to the body because a
-         sheet must sit at the document root, and modeless so the form stays
-         usable with it open — you read a comment and edit the answer beside it.
-         The sheet owns Esc and the click outside; @close is the single way the
-         state comes back down. -->
+         sheet must sit at the document root. The sheet owns Esc and the click
+         outside; @close is the single way the state comes back down. -->
     <Teleport to="body">
-      <nldd-sheet ref="commentSheet" placement="right" width="480px" modeless
+      <nldd-sheet ref="commentSheet" placement="right" width="480px"
         accessible-label="Opmerkingen" @close="onCommentSheetClose">
         <!-- sticky-header keeps the title bar in place while the list scrolls. -->
         <nldd-page sticky-header>
@@ -657,9 +655,9 @@ const confirmDelete = async () => {
 
     <!-- The safe way out is the primary action; the destructive action is the
          secondary one (NLDD design guideline). -->
-    <nldd-button slot="actions" variant="primary" text="Annuleer"
+    <nldd-button slot="actions" appearance="primary" text="Annuleer"
       @click="deleteModalOpen = false; deleteConfirmInput = ''"></nldd-button>
-    <nldd-button slot="actions" variant="destructive" text="Assessment verwijderen"
+    <nldd-button slot="actions" appearance="destructive" text="Assessment verwijderen"
       :disabled="deleteConfirmInput !== 'VERWIJDEREN' || undefined"
       @click="confirmDelete"></nldd-button>
   </nldd-modal-dialog>

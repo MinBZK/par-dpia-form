@@ -458,8 +458,8 @@ async function handleReopen(commentId: string) {
                 @keydown.escape.stop="cancelEdit"
               ></nldd-multi-line-text-field>
               <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
-                <nldd-button variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
-                <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
+                <nldd-button appearance="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
               </nldd-button-group>
             </div>
             <p
@@ -477,7 +477,7 @@ async function handleReopen(commentId: string) {
               <nldd-button
                 v-if="canComment && !thread.resolvedAt"
                 size="xs"
-                variant="neutral-transparent"
+                appearance="neutral-transparent"
                 start-icon="comment"
                 text="Reageren"
                 @click="startReply(thread.id)"
@@ -485,7 +485,7 @@ async function handleReopen(commentId: string) {
               <nldd-button
                 v-if="canDeleteComment(thread.authorId)"
                 size="xs"
-                variant="critical-transparent"
+                appearance="critical-transparent"
                 start-icon="trash"
                 text="Verwijderen"
                 @click="handleDelete(thread.id)"
@@ -494,7 +494,7 @@ async function handleReopen(commentId: string) {
               <nldd-button
                 v-if="canResolve && !thread.resolvedAt"
                 size="xs"
-                variant="accent-transparent"
+                appearance="accent-transparent"
                 start-icon="check-mark"
                 text="Oplossen"
                 @click="handleResolve(thread.id)"
@@ -502,7 +502,7 @@ async function handleReopen(commentId: string) {
               <nldd-button
                 v-if="canResolve && thread.resolvedAt"
                 size="xs"
-                variant="neutral-transparent"
+                appearance="neutral-transparent"
                 start-icon="undo"
                 text="Heropenen"
                 @click="handleReopen(thread.id)"
@@ -532,8 +532,8 @@ async function handleReopen(commentId: string) {
                   @keydown.escape.stop="cancelEdit"
                 ></nldd-multi-line-text-field>
                 <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
-                  <nldd-button variant="primary" text="Opslaan" @click="submitEdit"></nldd-button>
-                  <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
+                  <nldd-button appearance="primary" text="Opslaan" @click="submitEdit"></nldd-button>
+                  <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
                 </nldd-button-group>
               </div>
               <p
@@ -551,7 +551,7 @@ async function handleReopen(commentId: string) {
                 <nldd-button
                   v-if="canDeleteComment(reply.authorId)"
                   size="xs"
-                  variant="critical-transparent"
+                  appearance="critical-transparent"
                   start-icon="trash"
                   text="Verwijderen"
                   @click="handleDelete(reply.id)"
@@ -573,8 +573,8 @@ async function handleReopen(commentId: string) {
               @keydown.escape.stop="cancelReply"
             ></nldd-multi-line-text-field>
             <nldd-button-group orientation="horizontal" class="comment-reply-form__actions" size="xs">
-              <nldd-button variant="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
-              <nldd-button variant="neutral-tinted" text="Annuleer" @click="cancelReply"></nldd-button>
+              <nldd-button appearance="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
+              <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelReply"></nldd-button>
             </nldd-button-group>
           </div>
           </nldd-container>
@@ -596,13 +596,13 @@ async function handleReopen(commentId: string) {
             ></nldd-multi-line-text-field>
             <nldd-button-group orientation="horizontal" size="xs">
               <nldd-button
-                variant="primary"
+                appearance="primary"
                 text="Plaatsen"
                 :disabled="!newCommentBody.trim() || undefined"
                 @click="submitComment(entry.fieldId)"
               ></nldd-button>
               <nldd-button
-                variant="neutral-tinted"
+                appearance="neutral-tinted"
                 text="Annuleer"
                 @click="newCommentBody = ''; emit('deactivate-field')"
               ></nldd-button>

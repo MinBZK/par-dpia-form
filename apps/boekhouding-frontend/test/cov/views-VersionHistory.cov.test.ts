@@ -294,7 +294,7 @@ describe('VersionHistory — version list rendering', () => {
     const toggles = wrapper.findAll(DIFF_TOGGLE)
     expect(toggles.length).toBe(1)
     expect(toggles[0].attributes('size')).toBe('xs')
-    expect(toggles[0].attributes('variant')).toBe('neutral-transparent')
+    expect(toggles[0].attributes('appearance')).toBe('neutral-transparent')
     expect(toggles[0].attributes('icon')).toBe('chevron-right')
     expect(toggles[0].attributes('text')).toBe('Verschillen tonen')
     expect(toggles[0].attributes('expanded')).toBeUndefined()
@@ -616,7 +616,7 @@ describe('VersionHistory — restore modal & handleRestore', () => {
 
   it('disables the destructive Herstellen button until the confirm word is typed', async () => {
     const wrapper = await openRestoreFor(3)
-    expect(restoreButton(wrapper).attributes('variant')).toBe('destructive')
+    expect(restoreButton(wrapper).attributes('appearance')).toBe('destructive')
     expect(restoreButton(wrapper).attributes('disabled')).toBeDefined()
 
     setNlddValue(restoreInput(wrapper), '  HERSTELLEN  ')

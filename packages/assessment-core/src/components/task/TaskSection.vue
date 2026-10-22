@@ -308,7 +308,7 @@ function shouldSkipTask(taskId: string): boolean {
 
             <nldd-box v-if="isRepeatable(group.id) && canUserCreateInstances(group.id)">
               <nldd-container padding="16">
-                <nldd-button variant="secondary" start-icon="plus"
+                <nldd-button appearance="secondary" start-icon="plus"
                   :text="`Voeg extra ${taskStore.taskById(group.id).item_name || getPlainTextWithoutDefinitions(taskStore.taskById(group.id).task.toLowerCase())} toe`"
                   @click="handleAddRepeatableTask(group.id)"></nldd-button>
               </nldd-container>

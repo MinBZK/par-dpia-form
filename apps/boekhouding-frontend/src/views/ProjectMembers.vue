@@ -189,7 +189,7 @@ const whoLabel = (member: Member) =>
                hidden, the same way their role select is. -->
           <nldd-cell class="member-col--action" width="8.5rem" horizontal-alignment="right">
             <nldd-button
-              variant="destructive"
+              appearance="destructive"
               text="Verwijderen"
               class="member-delete"
               :disabled="isOnlyOwner(member) || undefined"
@@ -204,7 +204,7 @@ const whoLabel = (member: Member) =>
 
       <div v-if="hasMore" class="version-list__more">
         <nldd-button
-          variant="neutral-tinted"
+          appearance="neutral-tinted"
           size="sm"
           :disabled="loadingMore || undefined"
           :text="`Laad de volgende ${nextBatchSize} leden`"
@@ -248,7 +248,7 @@ const whoLabel = (member: Member) =>
           </nldd-dropdown>
         </nldd-form-field>
         <nldd-form-actions>
-          <nldd-button variant="primary" size="md" type="submit" text="Toevoegen"></nldd-button>
+          <nldd-button appearance="primary" size="md" type="submit" text="Toevoegen"></nldd-button>
         </nldd-form-actions>
         </form>
       </nldd-form>
@@ -266,8 +266,8 @@ const whoLabel = (member: Member) =>
     <p>Weet je zeker dat je <strong>{{ memberToDelete ? whoLabel(memberToDelete) : '' }}</strong> wilt verwijderen uit dit project?</p>
     <!-- The safe way out is the primary action; the destructive action is the
          secondary one (NLDD design guideline). -->
-    <nldd-button slot="actions" variant="primary" text="Annuleer" @click="closeDeleteModal"></nldd-button>
-    <nldd-button slot="actions" variant="destructive" text="Verwijderen" @click="confirmRemove"></nldd-button>
+    <nldd-button slot="actions" appearance="primary" text="Annuleer" @click="closeDeleteModal"></nldd-button>
+    <nldd-button slot="actions" appearance="destructive" text="Verwijderen" @click="confirmRemove"></nldd-button>
   </nldd-modal-dialog>
   </div>
 </template>

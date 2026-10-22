@@ -19,7 +19,7 @@ const accessibleLabel = computed(() => {
 <template>
   <nldd-button
     size="sm"
-    :variant="props.open ? 'accent-filled' : 'accent-transparent'"
+    :appearance="props.open ? 'accent-filled' : 'accent-transparent'"
     start-icon="comment"
     :expanded="props.open || undefined"
     :accessible-label="accessibleLabel"

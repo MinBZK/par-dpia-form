@@ -457,7 +457,7 @@ describe('Form.vue prop-driven template branches', () => {
     const bar = wrapper.find('nldd-toolbar')
     expect(bar.exists()).toBe(true)
     expect(bar.attributes('slot')).toBe('utility')
-    expect(bar.attributes('label')).toBe('Acties voor dit formulier')
+    expect(bar.attributes('accessible-label')).toBe('Acties voor dit formulier')
   })
 
   it('leaves the menu bar out when showNavHeader is false', async () => {

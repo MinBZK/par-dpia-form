@@ -102,7 +102,7 @@ describe('FormField.vue', () => {
       expect(editor.exists()).toBe(true)
       // "simple" is bare: the wrapper draws the frame, so the toolbar sits
       // inside it and the whole control takes one focus ring.
-      expect(editor.attributes('variant')).toBe('simple')
+      expect(editor.attributes('appearance')).toBe('simple')
       expect(editor.attributes('rows')).toBe('5')
       expect(editor.attributes('resize')).toBe('auto')
       expect(editor.attributes('dir')).toBe('auto')
@@ -1019,7 +1019,7 @@ describe('FormField.vue', () => {
       expect(tag.attributes('rel')).toBe('noopener noreferrer')
       const icon = tag.find('nldd-icon')
       expect(icon.exists()).toBe(true)
-      expect(icon.attributes('name')).toBe('square-arrow-right-top')
+      expect(icon.attributes('icon')).toBe('square-arrow-right-top')
       expect(icon.attributes('size')).toBe('16')
       expect(icon.attributes('aria-label')).toBe('Opent in nieuw tabblad')
     })

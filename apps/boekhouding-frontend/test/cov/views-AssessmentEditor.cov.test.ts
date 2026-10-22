@@ -636,11 +636,11 @@ describe('AssessmentEditor — comment panel', () => {
     await nextTick()
     expect(panelStub()).not.toBeNull()
 
-    // A right-hand side panel that leaves the form usable: no backdrop, no
-    // focus lock, so you can read a comment and edit the answer beside it.
+    // A right-hand side panel. `modeless` is gone from nldd-sheet since 0.8.87,
+    // so the sheet is modal: it draws a backdrop and holds focus.
     const sheet = sheetEl()!
     expect(sheet.getAttribute('placement')).toBe('right')
-    expect(sheet.hasAttribute('modeless')).toBe(true)
+    expect(sheet.hasAttribute('modeless')).toBe(false)
     expect(sheet.getAttribute('accessible-label')).toBe('Opmerkingen')
 
     await wrapper.find('.comment-badge-stub').trigger('click')
@@ -1007,7 +1007,7 @@ describe('AssessmentEditor — overflow menu', () => {
     const wrapper = await mountEditor()
     // The toolbar draws its own ellipsis button, so the row no longer needs a
     // kebab of its own; the name sits on the toolbar.
-    expect(wrapper.find('nldd-toolbar').attributes('label')).toBe('Assessmentacties')
+    expect(wrapper.find('nldd-toolbar').attributes('accessible-label')).toBe('Assessmentacties')
     wrapper.unmount()
   })
 
@@ -1086,7 +1086,7 @@ describe('AssessmentEditor — delete flow', () => {
     await openDeleteModal(wrapper)
 
     const deleteBtn = dialogButton(wrapper, 'Assessment verwijderen')
-    expect(deleteBtn.attributes('variant')).toBe('destructive')
+    expect(deleteBtn.attributes('appearance')).toBe('destructive')
     expect(deleteBtn.attributes('disabled')).toBeDefined()
 
     setConfirmValue(wrapper, 'VERWIJDEREN')

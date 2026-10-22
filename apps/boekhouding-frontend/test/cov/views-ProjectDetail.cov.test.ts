@@ -900,7 +900,7 @@ describe('ProjectDetail', () => {
       expect(dialog.attributes('variant')).toBe('alert')
       expect(dialog.attributes('text')).toBe('Weet je zeker dat je dit project wilt verwijderen?')
       const deleteBtn = findButton(dialog, 'Project verwijderen')!
-      expect(deleteBtn.attributes('variant')).toBe('destructive')
+      expect(deleteBtn.attributes('appearance')).toBe('destructive')
       expect(deleteBtn.attributes('disabled')).toBeDefined()
       expect(dialog.text()).toContain('Te wissen')
     })

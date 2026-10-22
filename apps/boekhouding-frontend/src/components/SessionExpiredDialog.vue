@@ -31,6 +31,6 @@ function onClose() {
     supporting-text="Je bent automatisch uitgelogd omdat je langere tijd niet actief was. Log opnieuw in om verder te gaan. Je werk wordt bewaard."
     @close="onClose"
   >
-    <nldd-button slot="actions" variant="primary" text="Opnieuw inloggen" @click="relogin()"></nldd-button>
+    <nldd-button slot="actions" appearance="primary" text="Opnieuw inloggen" @click="relogin()"></nldd-button>
   </nldd-modal-dialog>
 </template>

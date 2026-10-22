@@ -57,7 +57,7 @@ const getAssessmentResult = (id: string) => {
 </script>
 
 <template>
-  <nldd-collection layout="grid" item-width="320px" gap="16px">
+  <nldd-collection layout="grid" item-min-width="320px" gap="16px">
     <!-- Dynamically render all assessment cards -->
     <AssessmentCard
       v-for="config in assessmentConfigs"

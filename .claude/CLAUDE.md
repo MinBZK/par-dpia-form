@@ -100,18 +100,23 @@ bij elke UI-wijziging: hij zegt welke attributen, slots en tokens een component
 echt heeft, in plaats van dat je het gokt.
 
 Draait de plugin nog niet, installeer hem dan zo (de marketplace is de
-Storybook-repo van het design system zelf):
+repo van het design system zelf):
 
 ```
-/plugin marketplace add MinBZK/storybook
+/plugin marketplace add NederlandseDigitaleDienst/design-system
 /plugin install nldd@nldd-plugins
 ```
 
-Daarna is de skill `nldd` beschikbaar. Wat erin zit: `reference.md` (alle
-`nldd-*`-elementen met attributen, slots en events), `changelog.md` (leidend bij
-een versiebump: lees elke `Breaking`-sectie tussen jouw versie en de doelversie),
-`design-guidelines.md` (de ontwerpkeuzes: invoer, navigatie, feedback, microcopy)
-en werkende voorbeelden. Houd de plugin-versie gelijk aan de
+Daarna zijn vijf skills beschikbaar, elk voor een eigen taak: `nldd-design`
+(de naslag: `reference.md` met alle `nldd-*`-elementen, `changelog.md` per
+versie en `design-guidelines.md`), `nldd-design-build` (bouwen),
+`nldd-design-migrate` (omzetten), `nldd-design-upgrade` (een versie verhogen)
+en `nldd-design-contribute` (iets voorstellen aan het systeem). De oude naam
+`nldd` wijst er alleen nog naar en vervalt na 1 maart 2027.
+
+Bij een versiebump is `nldd-design-upgrade` leidend: dit project brengt álles
+uit als patch, ook een breaking change, dus het versienummer zegt niets en de
+changelog alles. Houd de plugin-versie gelijk aan de
 `@nldd/design-system`-versie in `package.json`; de referentie hoort bij precies
 die release.
 
@@ -129,7 +134,7 @@ Deze regels komen steeds terug bij review; houd je eraan voordat je een scherm o
 
 **Tekstkleur.** Lopende tekst, labels, koppen en waarden krijgen de gewone tekstkleur. Grijs (`--semantics-content-secondary-color`) is alleen voor tekst die echt ondergeschikt is: een veldtoelichting, een tijdstempel, een bijschrift. Nooit voor een alinea die iemand moet lezen, nooit voor een label bij een invoerveld. Zet nooit zelf een grijstint op iets dat de gebruiker als inhoud leest. Rendert een NLDD-component zijn eigen tekst grijs (bijvoorbeeld de `supporting-text` van `nldd-text-cell`), dan is dat de keuze van het design system en laat je die staan - maar meld het als je twijfelt of die tekst daar wel ondergeschikt is.
 
-**Stuur componenten via attributen en tokens, niet via overrides.** Wil je een NLDD-component er anders uit laten zien, gebruik dan eerst zijn eigen attributen, daarna zijn `--components-<naam>-*`-tokens (die lees je op de host, ze cascaderen de shadow DOM in). Grijp nooit in de shadow DOM en overschrijf nooit wat een component zelf tekent. Kan het niet via die weg, koppel dat dan terug in plaats van er stil omheen te werken; vaak is het een gat in het design system dat een issue verdient.
+**Stuur componenten via attributen en tokens, niet via overrides.** Wil je een NLDD-component er anders uit laten zien, gebruik dan eerst zijn eigen attributen, daarna de `--semantics-*`-tokens die het component leest (die lees je op de host, ze cascaderen de shadow DOM in). De `--components-*`-laag is sinds 0.10.0 terug maar alleen voor wat een thema zet, niet als stuurknop voor jouw styling. Grijp nooit in de shadow DOM en overschrijf nooit wat een component zelf tekent. Kan het niet via die weg, koppel dat dan terug in plaats van er stil omheen te werken; vaak is het een gat in het design system dat een issue verdient.
 
 **Bouw niet na wat het DS al heeft.** Voor je eigen CSS schrijft: bestaat er een component of een layout-primitive voor? Lijsten en tabellen (`nldd-list`, `nldd-table`, de cellen), formulierritme (`nldd-form`, `nldd-form-section`, `nldd-form-actions`), afstand en kolommen (`nldd-container`, `nldd-spacer`, `nldd-box`). Een eigen media query voor een mobiele variant is bijna altijd een teken dat je het verkeerde component gebruikt: `nldd-container layout="grid"` vouwt zelf om, een lijstrij past zich zelf aan.
 

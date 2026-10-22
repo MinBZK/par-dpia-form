@@ -10,7 +10,7 @@ import '@nldd/design-system/list-item'
 import '@nldd/design-system/spacer-cell'
 import '@nldd/design-system/text'
 import '@nldd/design-system/text-cell'
-import '@nldd/design-system/timeline-track-cell'
+import '@nldd/design-system/step-cell'
 
 const props = withDefaults(defineProps<{
   disabled?: boolean
@@ -89,11 +89,10 @@ interface Step {
   // What the marker draws: a check for a finished step, a filled dot for one
   // someone has worked in, nothing for the rest.
   markerIcon: string | undefined
-  // The state in words, under the title, only where nothing else says it. The
-  // check mark carries done and the tinted row carries current, so the one that
-  // is left is a chapter someone has begun. An untouched one says nothing:
-  // "nog niet begonnen" under every other chapter is noise.
-  stateLabel: string | undefined
+  // Someone has answered something here but has not finished the chapter. On
+  // screen the filled dot says it; it has no visible label, so it is announced
+  // like the other states.
+  progress: boolean
   // What the track draws in the dot: the same three values nldd-step-indicator
   // uses. A started-but-unfinished step is 'future' with a filled core.
   status: 'past' | 'current' | 'future'
@@ -121,7 +120,7 @@ function describe(task: FlatTask): Step {
     comment: props.commentedTaskIds.includes(task.id),
     markerText: num,
     markerIcon: done ? 'check-mark' : progress ? 'circle-filled-small' : undefined,
-    stateLabel: !done && !current && progress ? 'Mee bezig' : undefined,
+    progress,
     // 'past' fills the marker from the track colour, which is what a finished
     // step should look like. It would normally darken the line above it too,
     // but line="none" on the cell keeps both halves pale, so the track stays
@@ -139,7 +138,7 @@ const steps = computed<Step[]>(() => {
     out.push({
       key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid',
       node: 'open', current: false, done: false, comment: false,
-      markerText: null, markerIcon: undefined, stateLabel: undefined,
+      markerText: null, markerIcon: undefined, progress: false,
       status: 'future', navigable: false,
     })
   }
@@ -162,7 +161,7 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
     <!-- nldd-list owns the row: hover, focus, the current marker and arrow-key
          navigation. dividers="never" keeps the timeline the only vertical line.
          The chapter number rides in the dot, so the title stands on its own. -->
-    <nldd-list variant="simple" dividers="never" accessible-label="Inhoudsopgave">
+    <nldd-list appearance="simple" dividers="never" accessible-label="Inhoudsopgave">
       <!-- `selected`, not `current`: both mark the row, but current takes the
            highlighted fill (a dark bar) while focus is in it, which buries the
            marker and the line under it. Selected is a light tint that leaves
@@ -181,15 +180,11 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
              finished in any order, and the design system's default would paint
              dark stretches between arbitrary chapters. The markers carry the
              state. -->
-        <nldd-timeline-track-cell class="toc-track-cell" variant="major" size="md" line="none"
+        <nldd-step-cell class="toc-track-cell" level="major" size="md" line="none"
           :status="step.status" :position="positionOf(i)"
-          :icon="step.markerIcon"></nldd-timeline-track-cell>
+          :icon="step.markerIcon"></nldd-step-cell>
         <nldd-spacer-cell size="12"></nldd-spacer-cell>
-        <!-- The state in words under the title: an icon in a dot asks to be
-             decoded, and this reads the same for everyone. It replaces the
-             screen-reader-only spans that used to say it. -->
-        <nldd-text-cell class="toc-title" :text="step.label"
-          :supporting-text="step.stateLabel"></nldd-text-cell>
+        <nldd-text-cell class="toc-title" :text="step.label"></nldd-text-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
           icon="comment" size="16" color="accent"></nldd-icon-cell>
         <!-- What only a colour or an icon says on screen still has to be said
@@ -197,6 +192,7 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
              sets no aria-current either. -->
         <span v-if="step.current" class="sr-only">, huidige stap</span>
         <span v-if="step.done" class="sr-only">, voltooid</span>
+        <span v-if="step.progress" class="sr-only">, mee bezig</span>
         <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>
       </nldd-list-item>
     </nldd-list>

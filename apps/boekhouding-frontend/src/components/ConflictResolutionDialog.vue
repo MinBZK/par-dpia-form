@@ -111,6 +111,6 @@ function handleResolve() {
         </div>
       </nldd-form-section>
     </div>
-    <nldd-button slot="actions" variant="primary" text="Toepassen" @click="handleResolve"></nldd-button>
+    <nldd-button slot="actions" appearance="primary" text="Toepassen" @click="handleResolve"></nldd-button>
   </nldd-modal-dialog>
 </template>

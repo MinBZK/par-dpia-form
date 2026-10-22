@@ -159,9 +159,9 @@ describe('ConfirmDeleteDialog action buttons', () => {
     const cancel = buttons.find((b) => b.attributes('text') === 'Annuleren')!
     const confirm = buttons.find((b) => b.attributes('text') === 'Ja, ga door met verwijderen')!
 
-    expect(cancel.attributes('variant')).toBe('primary')
+    expect(cancel.attributes('appearance')).toBe('primary')
     expect(cancel.attributes('slot')).toBe('actions')
-    expect(confirm.attributes('variant')).toBe('destructive')
+    expect(confirm.attributes('appearance')).toBe('destructive')
     expect(confirm.attributes('start-icon')).toBe('trash')
     expect(confirm.attributes('slot')).toBe('actions')
   })

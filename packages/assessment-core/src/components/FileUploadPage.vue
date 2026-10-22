@@ -148,7 +148,7 @@ const formTypeArticle = computed(() => {
       </div>
 
       <nldd-container layout="wrap" gap="16">
-        <nldd-button variant="primary" :start-icon="isProcessing ? 'arrow-clockwise' : undefined"
+        <nldd-button appearance="primary" :start-icon="isProcessing ? 'arrow-clockwise' : undefined"
           :text="isProcessing ? 'Bezig met laden...' : `Beginnen met ${formTypeArticle} ${formTypeLabel}`"
           :disabled="isProcessing || undefined" @click="startDpia"></nldd-button>
       </nldd-container>

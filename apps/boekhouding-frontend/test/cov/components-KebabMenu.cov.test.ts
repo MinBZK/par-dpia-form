@@ -24,10 +24,10 @@ describe('KebabMenu', () => {
     // upright: NLDD ships no vertical ellipsis.
     expect(trigger.attributes('icon')).toBeUndefined()
     const icon = trigger.find('nldd-icon[slot="icon"]')
-    expect(icon.attributes('name')).toBe('ellipsis')
+    expect(icon.attributes('icon')).toBe('ellipsis')
     expect(icon.classes()).toContain('kebab-menu__icon')
     expect(trigger.attributes('text')).toBe('Projectacties')
-    expect(trigger.attributes('variant')).toBe('neutral-transparent')
+    expect(trigger.attributes('appearance')).toBe('neutral-transparent')
     expect(trigger.attributes('size')).toBe('sm')
     expect(trigger.attributes('popup-type')).toBe('menu')
 
