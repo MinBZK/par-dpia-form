@@ -98,11 +98,59 @@ pnpm db:seed                                          # testdata
 
 VLAM is alleen bereikbaar vanuit de ZAD-omgeving. Lokaal geeft de chat-route
 daarom `503`; de overige functionaliteit werkt normaal. Voor lokale ontwikkeling
-kan `chat.send` in de frontend worden gemockt.
+kan `chat.send` in de frontend worden gemockt. Echte aanroepen naar het model doe
+je vanaf je eigen machine via de experimentomgeving (zie hieronder).
 
-Tests draaien met `pnpm -r test:coverage`. De coverage-drempel is 100 procent;
-nieuwe code vereist dus tests. De backend-tests hebben een Postgres-database nodig
-(zie `.claude/CLAUDE.md`).
+## Het model aanroepen vanaf je eigen machine
+
+Met `scripts/experiment/chat.mjs` stuur je vanaf je laptop een vraag naar het echte
+model. Het script draait lokaal en roept de chat-API van de experimentomgeving aan,
+die de vraag doorstuurt naar VLAM. Het heeft alleen Node.js 22 of hoger nodig; de
+lokale stack hoeft niet te draaien.
+
+| Commando | Functie |
+|---|---|
+| `pnpm experiment:chat modellen` | toont de beschikbare modellen en het standaardmodel |
+| `pnpm experiment:chat vraag "Wat bedoelt vraag 4.1.2?"` | stelt één vraag |
+| `pnpm experiment:chat gesprek` | voert een gesprek; een lege regel of `stop` beëindigt het |
+
+Opties: `--model <id>` en `--systeem "<instructie>"` voor een eigen systeembericht.
+Met `--help` verschijnt het overzicht. Het script bewaart niets: bij elke beurt in
+een gesprek gaat de volledige geschiedenis mee, tot het maximum van 50 berichten.
+
+### Token ophalen
+
+De chat-API vraagt om je inlogtoken. Iedereen die kan inloggen op de
+experimentomgeving heeft er een; gebruik altijd je eigen token. Je haalt het uit de
+browser:
+
+1. Log in op de experimentomgeving en open een project.
+2. Open de ontwikkelaarstools (F12), tabblad **Network**, en klik in de lijst op
+   een verzoek naar `/api/v1/...`.
+3. Kopieer bij **Request Headers** de waarde van `Authorization`.
+
+Start het script en plak het token als erom wordt gevraagd; het verschijnt niet op
+het scherm. Voor meerdere aanroepen achter elkaar kan het token ook in een
+variabele:
+
+```bash
+export AIIA_TOKEN='Bearer eyJ...'
+pnpm experiment:chat modellen
+pnpm experiment:chat vraag "Wat bedoelt vraag 4.1.2?" --model <id>
+```
+
+Het token verloopt na enkele minuten. Geeft het script `Fout 401`, haal dan een
+nieuw token op. Niet elk model uit `modellen` werkt met de sleutel van deze
+omgeving; geeft een model `Fout 502`, kies dan een ander. Op 11 oktober 2026
+werkten de `prepaid`-modellen, zoals `Kimi-K3-prepaid`.
+
+Elke vraag gaat naar het echte model en gaat ten koste van het budget van de
+omgeving. De afspraken hieronder gelden dus ook voor het script: beperk het
+verbruik en gebruik geen echte persoonsgegevens. Het token geeft toegang tot je
+account; deel het niet en zet het niet in code of commits.
+
+De tests van het script draaien zonder netwerk en zonder token met
+`pnpm test:experiment`.
 
 ## Afspraken
 
