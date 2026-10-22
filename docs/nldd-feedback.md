@@ -19,6 +19,20 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
 
 ## Nog in te dienen
 
+- **De inspectorkolom is 320px en dat is niet in te stellen.** De breedte komt
+  uit `--_navigation-split-view-inspector-min-width`, en de pane staat op
+  `flex-shrink: 0` zonder `flex-grow`, dus de kolom is precies die minimumbreedte
+  en groeit niet mee met het scherm. De naam begint met `--_`, dus hij is privé.
+  Voor een paneel waarin je leest en typt (opmerkingen bij een vraag) is 320px
+  krap, zeker op een breed scherm. Gevraagd: een publiek attribuut of token voor
+  de breedte van de inspector, of laat de kolom meegroeien tot een maximum.
+- **Een inspectorkolom heeft geen sluitknop.** `nldd-navigation-split-view` zet
+  `--context-dismiss-button-display: none` op de inspector-pane ("always
+  dismissable as a sheet, not inline"), dus een `nldd-top-title-bar` met
+  `dismiss-text` toont daar niets. Een kolom die de gebruiker zelf heeft geopend
+  heeft wel een weg terug nodig; wij zetten nu een eigen icon-button in het
+  `toolbar`-slot. Gevraagd: laat de pane de dismiss toe (of documenteer waarom
+  de sluitknop ergens anders hoort).
 - **Een split view binnen een `nldd-page` valt stil samen tot niets.** De host
   staat op `height: 100%` en krijgt alleen `height: auto` als de
   ScrollModeController hem `data-scroll="root"` geeft. Zet je hem ergens anders

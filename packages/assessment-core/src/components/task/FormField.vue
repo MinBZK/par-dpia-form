@@ -350,10 +350,11 @@ const handleRadioGroupChange = (event: Event) => {
       </div>
     </div>
     <!-- Not an error the reader made: this field simply has nothing to show
-         until another section is filled in. An inline dialog says that as a
-         status, with the icon and the announcement that plain red text lacks. -->
+         until another section is filled in. The alert variant colours the icon
+         as a warning; the text itself stays the normal colour, which is the
+         design system's call for every inline dialog. -->
     <nldd-inline-dialog v-else class="form-field__dependency"
-      icon="arrow-up" icon-color="secondary"
+      variant="alert" icon="exclamation-triangle"
       text="Deze vraag wacht op een eerdere sectie"
       :supporting-text="dependencyMessage"></nldd-inline-dialog>
   </div>

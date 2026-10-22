@@ -8,14 +8,19 @@ import '@nldd/design-system/button'
  * The button goes into the label block, to the right of the question itself:
  * that is where you look to see whether a question carries a comment. The block
  * becomes a grid for it, so the description underneath keeps the full width.
+ *
+ * The question the panel is showing is marked in the form as well, so the two
+ * columns say the same thing without the reader having to match titles.
  */
 export function useFieldCommentIndicators(
   containerRef: Ref<HTMLElement | null>,
   onFieldClick: (fieldId: string) => void,
   canComment: Ref<boolean>,
+  activeFieldId?: Ref<string | null>,
 ) {
   const commentStore = useCollaborationStore()
   const injectedElements = new Map<string, HTMLElement>()
+  const ACTIVE_CLASS = 'comment-field-label--active'
   let observer: MutationObserver | null = null
   let isInjecting = false
 
@@ -25,7 +30,14 @@ export function useFieldCommentIndicators(
     const labelContainer = btn.closest('.form-field__label')
     btn.remove()
     if (labelContainer && !labelContainer.querySelector('.comment-field-label__btn')) {
-      labelContainer.classList.remove('comment-field-label--grid')
+      labelContainer.classList.remove('comment-field-label--grid', ACTIVE_CLASS)
+    }
+  }
+
+  function markActive() {
+    const active = activeFieldId?.value
+    for (const [fieldId, btn] of injectedElements) {
+      btn.closest('.form-field__label')?.classList.toggle(ACTIVE_CLASS, fieldId === active)
     }
   }
 
@@ -42,17 +54,18 @@ export function useFieldCommentIndicators(
     return btn
   }
 
-  // A question that carries comments says so: a filled button with the count on
-  // it, which reads at a glance down a column of questions. One that carries
-  // none is only an invitation, so it stays quiet and icon-only.
+  // A question that carries comments says so with a filled button and the
+  // count, which reads at a glance down a column of questions. One that carries
+  // none keeps the word: an icon on its own was not enough of an invitation to
+  // be recognised as the way to leave a comment.
   function updateButton(btn: HTMLElement, count: number) {
     if (count > 0) {
       btn.setAttribute('appearance', 'accent-filled')
-      btn.setAttribute('text', String(count))
+      btn.setAttribute('text', `Opmerking (${count})`)
       btn.setAttribute('accessible-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
     } else {
       btn.setAttribute('appearance', 'accent-transparent')
-      btn.removeAttribute('text')
+      btn.setAttribute('text', 'Opmerking')
       btn.setAttribute('accessible-label', 'Opmerking toevoegen bij deze vraag')
     }
   }
@@ -126,6 +139,8 @@ export function useFieldCommentIndicators(
       }
     }
 
+    markActive()
+
     // Reconnect observer now that DOM modifications are done
     if (observer) {
       observer.observe(container, { childList: true, subtree: true })
@@ -164,6 +179,8 @@ export function useFieldCommentIndicators(
     () => commentStore.unresolvedCountByField,
     () => scanAndInject(),
   )
+
+  watch(() => activeFieldId?.value, () => markActive())
 
   watch(containerRef, (el) => {
     if (el) {

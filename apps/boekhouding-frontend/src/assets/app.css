@@ -499,10 +499,14 @@ nldd-card p {
    title bar in its header slot and scrolls the list itself, so neither needs a
    height, a sticky rule or a background here. */
 /* The walk through the questions, under the title. nldd-container lays the row
-   out; only the rule that closes it off from the thread below is ours. */
+   out; only the rule that closes it off from what follows is ours. */
 .comment-panel__nav {
   padding-block: 0.5rem;
   border-bottom: 1px solid var(--semantics-dividers-color);
+}
+
+.comment-panel__filters {
+  padding-block: 0.5rem;
 }
 
 /* Between the two arrows, so it does not drift to one of them. */
@@ -512,10 +516,6 @@ nldd-card p {
   text-align: center;
   font-size: var(--primitives-font-size-70, 0.8rem);
   color: var(--semantics-content-secondary-color);
-}
-
-.comment-panel__filter {
-  margin-block: 0.5rem 0.75rem;
 }
 
 .comment-panel__body {
@@ -531,6 +531,13 @@ nldd-card p {
 
 .comment-field-group {
   margin-bottom: 1rem;
+}
+
+/* With the whole section in view, the question you are on carries the same
+   accent bar it has in the form. */
+.comment-field-group--current {
+  border-inline-start: 3px solid var(--semantics-content-accent-color);
+  padding-inline-start: var(--primitives-space-8, 0.5rem);
 }
 
 /* The chapter the question sits in. Secondary on purpose: it places the
@@ -657,6 +664,16 @@ nldd-card p {
 
 /* Field comment buttons (injected by useFieldCommentIndicators): only the
    layout hooks that place the nldd-button in core's light-DOM label row. */
+
+/* The question the panel is showing, marked in the form as well: the two
+   columns say the same thing, so nobody has to match titles across the page.
+   An accent bar in the gutter, because a background behind the question would
+   fight the field's own surface. */
+.form-field__label.comment-field-label--active {
+  border-inline-start: 3px solid var(--semantics-content-accent-color);
+  padding-inline-start: var(--primitives-space-8, 0.5rem);
+  margin-inline-start: calc(-3px - var(--primitives-space-8, 0.5rem));
+}
 
 /* Beside the question. Core's label block is a plain column of label,
    optional tag and optional description; a grid with a second column puts the

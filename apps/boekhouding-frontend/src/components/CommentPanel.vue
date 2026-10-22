@@ -4,6 +4,8 @@ import { useCollaborationStore } from '../stores/collaboration'
 import { getPlainTextWithoutDefinitions, useTaskNavigation, useTaskStore } from '@overheid-assessment/core'
 import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
+import '@nldd/design-system/icon-button'
+import '@nldd/design-system/segmented-control'
 import '@nldd/design-system/inline-dialog'
 import '@nldd/design-system/card'
 import '@nldd/design-system/top-title-bar'
@@ -29,6 +31,17 @@ const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
 const rootIds = computed(() => new Set(rootTasks.value.map(t => t.id)))
 
 const showResolved = ref(false)
+
+// One question, or every question in the chapter it belongs to. The walk stays
+// the same in both: the arrows move the question, the scope decides how much
+// around it comes along.
+const scope = ref<'question' | 'section'>('question')
+
+// nldd-segmented-control reports the picked value in the change detail.
+const handleScopeChange = (event: Event) => {
+  const value = (event as CustomEvent<{ value?: string }>).detail?.value
+  if (value === 'question' || value === 'section') scope.value = value
+}
 
 // nldd-toggle-button reports the new state in the change detail.
 const handleResolvedToggle = (event: Event) => {
@@ -197,13 +210,37 @@ const currentIndex = computed(() => {
   return fieldId ? entries.value.findIndex(e => e.fieldId === fieldId) : -1
 })
 
-// Counting from one, and silent while a first comment is being written: that
-// question is not one of the stops.
+// Counting from one. A question you opened to write a first comment is not one
+// of the stops, so it says what it is instead of a position.
 const positionLabel = computed(() => {
   if (entries.value.length === 0) return ''
-  if (currentIndex.value < 0) return `Nieuwe opmerking (${entries.value.length} elders)`
-  return `Vraag ${currentIndex.value + 1} van ${entries.value.length}`
+  if (currentIndex.value < 0) return `Nieuwe opmerking, ${entries.value.length} elders`
+  return `${currentIndex.value + 1} van ${entries.value.length}`
 })
+
+// What the body renders. In section scope that is every question in the
+// chapter, with the one you are on marked; a question you opened for a first
+// comment has no thread yet, so it is slotted into the order rather than
+// looked up.
+const shownEntries = computed<Entry[]>(() => {
+  const entry = current.value
+  if (!entry) return []
+  if (scope.value === 'question') return [entry]
+
+  const inSection = entries.value.filter(e => e.rootId === entry.rootId)
+  if (inSection.some(e => e.fieldId === entry.fieldId)) return inSection
+  return [...inSection, entry]
+    .sort((a, b) => fieldSortKey(a.fieldId).localeCompare(fieldSortKey(b.fieldId)))
+})
+
+// Where the arrows go. From a question that is not itself a stop they still
+// work: back is the last one, forward the first, so you are never parked on a
+// question with nothing around it.
+const previousIndex = computed(() =>
+  currentIndex.value < 0 ? entries.value.length - 1 : currentIndex.value - 1)
+
+const nextIndex = computed(() =>
+  currentIndex.value < 0 ? 0 : currentIndex.value + 1)
 
 // Opened from the toolbar rather than from a question: the panel starts at the
 // first comment in the form and takes the form there, so the two never show a
@@ -362,9 +399,16 @@ async function handleReopen(commentId: string) {
   <!-- A fragment, not a wrapper: these are the direct children of the
        nldd-page the panel is placed in, so the title bar reaches its `header`
        slot and the thread is the page's own scrolling content. The bar renders
-       the title as a real heading and draws the close button itself. -->
-  <nldd-top-title-bar slot="header" class="comment-panel__header" text="Opmerkingen"
-    dismiss-text="Sluiten" @dismiss="emit('close')"></nldd-top-title-bar>
+       the title as a real heading.
+       The close button is ours: the split view sets
+       --context-dismiss-button-display: none on an inspector pane, because it
+       assumes an inline inspector is closed from elsewhere. A column you opened
+       needs a way out that is in the column. -->
+  <nldd-top-title-bar slot="header" class="comment-panel__header" text="Opmerkingen">
+    <nldd-icon-button slot="toolbar" icon="dismiss" size="sm"
+      appearance="neutral-transparent" text="Opmerkingen sluiten"
+      @click="emit('close')"></nldd-icon-button>
+  </nldd-top-title-bar>
 
   <!-- No role of its own: the page this sits in is the labelled region. -->
   <nldd-container class="comment-panel__body" ref="panelBodyRef">
@@ -374,21 +418,32 @@ async function handleReopen(commentId: string) {
          region: otherwise a screen reader hears nothing happen. -->
     <nldd-container v-if="entries.length > 0" class="comment-panel__nav"
       layout="row" gap="8" vertical-alignment="center">
-      <nldd-button size="xs" appearance="neutral-transparent" start-icon="arrow-left"
-        text="Vorige" accessible-label="Vorige vraag met opmerkingen"
-        :disabled="currentIndex <= 0 || undefined"
-        @click="goToEntry(currentIndex - 1)"></nldd-button>
+      <nldd-icon-button size="sm" appearance="neutral-transparent" icon="arrow-left"
+        text="Vorige vraag met opmerkingen"
+        :disabled="previousIndex < 0 || undefined"
+        @click="goToEntry(previousIndex)"></nldd-icon-button>
       <p class="comment-panel__position" role="status">{{ positionLabel }}</p>
-      <nldd-button size="xs" appearance="neutral-transparent" end-icon="arrow-right"
-        text="Volgende" accessible-label="Volgende vraag met opmerkingen"
-        :disabled="currentIndex < 0 || currentIndex >= entries.length - 1 || undefined"
-        @click="goToEntry(currentIndex + 1)"></nldd-button>
+      <nldd-icon-button size="sm" appearance="neutral-transparent" icon="arrow-right"
+        text="Volgende vraag met opmerkingen"
+        :disabled="nextIndex >= entries.length || undefined"
+        @click="goToEntry(nextIndex)"></nldd-icon-button>
     </nldd-container>
 
-    <nldd-toggle-button class="comment-panel__filter"
-      type="checkbox" size="sm" icon="check-mark-circle" text="Opgeloste opmerkingen"
-      :selected="showResolved || undefined"
-      @change="handleResolvedToggle"></nldd-toggle-button>
+    <!-- What the panel shows, as the two things it can show rather than as two
+         separate switches. The resolved ones are a filter on top of that. -->
+    <nldd-container class="comment-panel__filters" layout="wrap" gap="4"
+      vertical-alignment="center">
+      <nldd-segmented-control size="sm" accessible-label="Welke opmerkingen"
+        :value="scope" @change="handleScopeChange">
+        <nldd-segmented-control-item value="question" text="Deze vraag"></nldd-segmented-control-item>
+        <nldd-segmented-control-item value="section" text="Hele sectie"></nldd-segmented-control-item>
+      </nldd-segmented-control>
+      <nldd-toggle-button class="comment-panel__filter"
+        type="checkbox" size="sm" icon="check-mark-circle" text="Ook opgeloste"
+        accessible-label="Toon ook opgeloste opmerkingen"
+        :selected="showResolved || undefined"
+        @change="handleResolvedToggle"></nldd-toggle-button>
+    </nldd-container>
 
     <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
     <nldd-inline-dialog v-else-if="!current" class="comment-panel__empty"
@@ -396,21 +451,26 @@ async function handleReopen(commentId: string) {
       text="Nog geen opmerkingen"
       supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
 
-    <div v-else class="comment-field-group" :data-field-group="current.fieldId">
-      <!-- Which question this belongs to, and the way back to it in the form.
-           The chapter above it, because a question number on its own says
-           little once the panel has walked you somewhere else. -->
-      <p class="comment-field-group__chapter">{{ current.rootTitle }}</p>
+    <template v-else>
+    <!-- The chapter the panel is in, once above the questions rather than per
+         question: within one chapter it would repeat on every group. -->
+    <p class="comment-field-group__chapter">{{ current.rootTitle }}</p>
+
+    <div v-for="entry in shownEntries" :key="entry.fieldId"
+      class="comment-field-group"
+      :class="{ 'comment-field-group--current': entry.fieldId === current.fieldId }"
+      :data-field-group="entry.fieldId">
+      <!-- The question itself, and the way back to it in the form. -->
       <h2 class="comment-field-group__heading">
         <button
           class="comment-field-group__label"
-          @click="scrollToField(current.fieldId)"
-        >{{ fieldLabels.get(current.fieldId) || current.fieldId }}</button>
+          @click="scrollToField(entry.fieldId)"
+        >{{ fieldLabels.get(entry.fieldId) || entry.fieldId }}</button>
       </h2>
 
         <!-- Threads -->
         <nldd-card
-          v-for="thread in current.threads"
+          v-for="thread in entry.threads"
           :key="thread.id"
           class="comment-thread"
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
@@ -564,7 +624,7 @@ async function handleReopen(commentId: string) {
         </nldd-card>
 
         <!-- Inline new comment form (appears when this field is active) -->
-        <nldd-card v-if="canComment"
+        <nldd-card v-if="canComment && entry.fieldId === current.fieldId"
           class="comment-inline-form" background="tinted">
           <nldd-container padding="12" gap="8">
             <nldd-multi-line-text-field
@@ -574,7 +634,7 @@ async function handleReopen(commentId: string) {
               placeholder="Schrijf een opmerking..."
               :value="newCommentBody"
               @input="newCommentBody = readFieldValue($event)"
-              @keydown.enter.meta="submitComment(current.fieldId)"
+              @keydown.enter.meta="submitComment(entry.fieldId)"
               @keydown.escape.stop="newCommentBody = ''"
             ></nldd-multi-line-text-field>
             <nldd-button-group orientation="horizontal" size="xs">
@@ -582,7 +642,7 @@ async function handleReopen(commentId: string) {
                 appearance="primary"
                 text="Plaatsen"
                 :disabled="!newCommentBody.trim() || undefined"
-                @click="submitComment(current.fieldId)"
+                @click="submitComment(entry.fieldId)"
               ></nldd-button>
               <nldd-button
                 v-if="newCommentBody"
@@ -595,6 +655,7 @@ async function handleReopen(commentId: string) {
         </nldd-card>
 
     </div>
+    </template>
 
   </nldd-container>
 </template>

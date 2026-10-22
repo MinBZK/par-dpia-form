@@ -216,10 +216,20 @@ function toggleResolved(wrapper: Panel, selected = true) {
   )
 }
 
-function navButton(wrapper: Panel, text: 'Vorige' | 'Volgende') {
-  return wrapper
-    .findAll('.comment-panel__nav nldd-button')
-    .find((b) => b.attributes('text') === text)!
+// The arrows are icon-buttons: an arrow plus the question it walks to, named in
+// `text` because there is no visible label beside them.
+function navButton(wrapper: Panel, direction: 'Vorige' | 'Volgende') {
+  const icon = direction === 'Vorige' ? 'arrow-left' : 'arrow-right'
+  return wrapper.get(`.comment-panel__nav nldd-icon-button[icon="${icon}"]`)
+}
+
+// The scope control is one picker with two stops, so switching is reporting the
+// value that was picked.
+function pickScope(wrapper: Panel, value: unknown) {
+  wrapper.get('nldd-segmented-control').element.dispatchEvent(
+    new CustomEvent('change', { detail: { value } }),
+  )
+  return nextTick()
 }
 
 // Every question the panel asked the editor to show, in order.
@@ -241,21 +251,36 @@ function group(wrapper: Panel) {
   return wrapper.get('.comment-field-group')
 }
 
+// Every question the body renders, in order.
+function groupIds(wrapper: Panel): string[] {
+  return wrapper.findAll('.comment-field-group')
+    .map((g) => g.attributes('data-field-group')!)
+}
+
+// The one of those the arrows are parked on.
+function currentGroupId(wrapper: Panel): string | undefined {
+  return wrapper.find('.comment-field-group--current').attributes('data-field-group')
+}
+
 function positionText(wrapper: Panel): string {
   return wrapper.get('.comment-panel__position').text()
 }
 
 describe('CommentPanel', () => {
   describe('header & basic rendering', () => {
-    it('closes on the title bar\'s own dismiss button', async () => {
+    it('closes on a dismiss button of its own in the title bar', async () => {
       const { wrapper } = mountPanel()
-      // nldd-top-title-bar draws that button itself and reports it as `dismiss`.
       const bar = wrapper.get('.comment-panel__header')
       expect(bar.attributes('text')).toBe('Opmerkingen')
-      expect(bar.attributes('dismiss-text')).toBe('Sluiten')
+      // The bar's own dismiss button is hidden on an inspector pane, so the
+      // close button is ours and sits in the bar's toolbar slot.
+      expect(bar.attributes('dismiss-text')).toBeUndefined()
 
-      bar.element.dispatchEvent(new CustomEvent('dismiss'))
-      await nextTick()
+      const close = bar.get('nldd-icon-button[icon="dismiss"]')
+      expect(close.attributes('slot')).toBe('toolbar')
+      expect(close.attributes('text')).toBe('Opmerkingen sluiten')
+
+      await close.trigger('click')
       expect(wrapper.emitted('close')).toHaveLength(1)
     })
 
@@ -276,11 +301,10 @@ describe('CommentPanel', () => {
     it('labels the filter and gives it checkbox semantics', () => {
       const { wrapper } = mountPanel()
       const button = filterButton(wrapper)
-      // An icon alone cannot say which comments are meant, so it carries the
-      // word; no accessible-label beside it, which would rename the visible
-      // text and break "click Opgelost" for voice control.
-      expect(button.attributes('text')).toBe('Opgeloste opmerkingen')
-      expect(button.attributes('accessible-label')).toBeUndefined()
+      // Short enough to sit beside the scope control, with the whole sentence
+      // on the accessible label so it still says which comments are meant.
+      expect(button.attributes('text')).toBe('Ook opgeloste')
+      expect(button.attributes('accessible-label')).toBe('Toon ook opgeloste opmerkingen')
       expect(button.attributes('icon')).toBe('check-mark-circle')
       // A filter is on or off, not an action: checkbox, not button.
       expect(button.attributes('type')).toBe('checkbox')
@@ -451,7 +475,7 @@ describe('CommentPanel', () => {
       // Opened from the toolbar: the panel takes the form to the first comment
       // so the two never show a different question.
       expect(selected(wrapper)).toEqual(['1.1'])
-      expect(positionText(wrapper)).toBe('Vraag 1 van 3')
+      expect(positionText(wrapper)).toBe('1 van 3')
       expect(navButton(wrapper, 'Vorige').attributes('disabled')).toBeDefined()
       expect(navButton(wrapper, 'Volgende').attributes('disabled')).toBeUndefined()
     })
@@ -473,13 +497,13 @@ describe('CommentPanel', () => {
 
       await step(wrapper, 'Volgende')
       expect(selected(wrapper)).toEqual(['1.1', '2.1'])
-      expect(positionText(wrapper)).toBe('Vraag 2 van 3')
+      expect(positionText(wrapper)).toBe('2 van 3')
       // Another chapter has to be opened before its question can be scrolled to.
       expect(taskStoreMock.goToTask).toHaveBeenCalledWith('2')
 
       await step(wrapper, 'Volgende')
       expect(selected(wrapper).at(-1)).toBe('3.4')
-      expect(positionText(wrapper)).toBe('Vraag 3 van 3')
+      expect(positionText(wrapper)).toBe('3 van 3')
       expect(navButton(wrapper, 'Volgende').attributes('disabled')).toBeDefined()
       expect(navButton(wrapper, 'Vorige').attributes('disabled')).toBeUndefined()
 
@@ -546,7 +570,7 @@ describe('CommentPanel', () => {
       await step(wrapper, 'Volgende')
       // One question: both arrows have nowhere to go.
       expect(selected(wrapper)).toEqual(['1.1'])
-      expect(positionText(wrapper)).toBe('Vraag 1 van 1')
+      expect(positionText(wrapper)).toBe('1 van 1')
     })
 
     // Writing the first comment on a question: that question is not a stop, so
@@ -560,9 +584,40 @@ describe('CommentPanel', () => {
       })
       await settle()
 
-      expect(positionText(wrapper)).toBe('Nieuwe opmerking (2 elders)')
-      expect(navButton(wrapper, 'Vorige').attributes('disabled')).toBeDefined()
-      expect(navButton(wrapper, 'Volgende').attributes('disabled')).toBeDefined()
+      expect(positionText(wrapper)).toBe('Nieuwe opmerking, 2 elders')
+      // Not a stop itself, so both arrows lead somewhere: you are never parked
+      // on a question with nothing around it.
+      expect(navButton(wrapper, 'Vorige').attributes('disabled')).toBeUndefined()
+      expect(navButton(wrapper, 'Volgende').attributes('disabled')).toBeUndefined()
+    })
+
+    it('walks forward to the first question from one that is not a stop', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        activeFieldId: '1.5',
+        threads: [thread({ id: 'a', fieldId: '1.1' }), thread({ id: 'b', fieldId: '2.1' })],
+      })
+      await settle()
+
+      await step(wrapper, 'Volgende')
+      expect(selected(wrapper)).toEqual(['1.1'])
+      expect(positionText(wrapper)).toBe('1 van 2')
+    })
+
+    it('walks back to the last question from one that is not a stop', async () => {
+      const form = buildFormContainer([])
+      const { wrapper } = mountPanel({
+        formContainerRef: form,
+        activeFieldId: '1.5',
+        threads: [thread({ id: 'a', fieldId: '1.1' }), thread({ id: 'b', fieldId: '2.1' })],
+      })
+      await settle()
+
+      await step(wrapper, 'Vorige')
+      expect(selected(wrapper)).toEqual(['2.1'])
+      expect(positionText(wrapper)).toBe('2 van 2')
+      expect(taskStoreMock.goToTask).toHaveBeenCalledWith('2')
     })
 
     // Opened from a question rather than from the toolbar: the panel must not
@@ -577,7 +632,7 @@ describe('CommentPanel', () => {
       await settle()
 
       expect(selected(wrapper)).toEqual([])
-      expect(positionText(wrapper)).toBe('Vraag 2 van 2')
+      expect(positionText(wrapper)).toBe('2 van 2')
     })
 
     it('jumps once, and only once', async () => {
@@ -595,6 +650,107 @@ describe('CommentPanel', () => {
       store.threads = [...store.threads, thread({ id: 'b', fieldId: '2.1' })]
       await settle()
       expect(selected(wrapper)).toEqual(['1.1'])
+    })
+  })
+
+  describe('one question or the whole chapter', () => {
+    function panelInChapterOne(activeFieldId: string | null = null) {
+      const form = buildFormContainer([
+        { id: 'label-dpia-1.1', fieldLabel: 'Eerste vraag' },
+        { id: 'label-dpia-1.2', fieldLabel: 'Tweede vraag' },
+      ])
+      return mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        activeFieldId,
+        threads: [
+          thread({ id: 'a', fieldId: '1.1' }),
+          thread({ id: 'b', fieldId: '1.2' }),
+          thread({ id: 'c', fieldId: '2.1' }),
+        ],
+      })
+    }
+
+    it('offers both stops, with the question picked to begin with', async () => {
+      const { wrapper } = panelInChapterOne()
+      await settle()
+
+      const control = wrapper.get('nldd-segmented-control')
+      expect(control.attributes('value')).toBe('question')
+      expect(control.attributes('accessible-label')).toBe('Welke opmerkingen')
+      expect(wrapper.findAll('nldd-segmented-control-item')
+        .map((i) => [i.attributes('value'), i.attributes('text')]))
+        .toEqual([['question', 'Deze vraag'], ['section', 'Hele sectie']])
+    })
+
+    it('shows the question alone in question scope', async () => {
+      const { wrapper } = panelInChapterOne()
+      await settle()
+
+      expect(groupIds(wrapper)).toEqual(['1.1'])
+      expect(currentGroupId(wrapper)).toBe('1.1')
+    })
+
+    it('shows every question of the chapter in section scope', async () => {
+      const { wrapper } = panelInChapterOne()
+      await settle()
+
+      await pickScope(wrapper, 'section')
+      // Chapter 1 only: 2.1 belongs to another chapter.
+      expect(groupIds(wrapper)).toEqual(['1.1', '1.2'])
+      // The chapter heads the body once, not once per question.
+      expect(wrapper.findAll('.comment-field-group__chapter')).toHaveLength(1)
+      expect(wrapper.findAll('.comment-field-group__label').map((l) => l.text()))
+        .toEqual(['Eerste vraag', 'Tweede vraag'])
+      // The one the arrows are on stays marked among its neighbours.
+      expect(currentGroupId(wrapper)).toBe('1.1')
+      // And the comment box belongs to that one alone.
+      expect(wrapper.findAll('.comment-inline-form')).toHaveLength(1)
+      expect(wrapper.get('.comment-field-group--current .comment-inline-form').exists()).toBe(true)
+    })
+
+    it('adds a question that has no comments yet to its chapter', async () => {
+      const form = buildFormContainer([
+        { id: 'label-dpia-1.1', fieldLabel: 'Eerste vraag' },
+        { id: 'label-dpia-1.5', fieldLabel: 'Nog lege vraag' },
+      ])
+      const { wrapper } = mountPanel({
+        role: 'owner',
+        formContainerRef: form,
+        activeFieldId: '1.5',
+        threads: [thread({ id: 'a', fieldId: '1.1' })],
+      })
+      await settle()
+
+      await pickScope(wrapper, 'section')
+      // Not one of the stops, so it is appended rather than looked up.
+      expect(groupIds(wrapper)).toEqual(['1.1', '1.5'])
+      expect(currentGroupId(wrapper)).toBe('1.5')
+      expect(wrapper.findAll('.comment-thread')).toHaveLength(1)
+    })
+
+    it('goes back to the question alone', async () => {
+      const { wrapper } = panelInChapterOne()
+      await settle()
+
+      await pickScope(wrapper, 'section')
+      expect(groupIds(wrapper)).toEqual(['1.1', '1.2'])
+
+      await pickScope(wrapper, 'question')
+      expect(groupIds(wrapper)).toEqual(['1.1'])
+    })
+
+    it('ignores a scope change that names no stop', async () => {
+      const { wrapper } = panelInChapterOne()
+      await settle()
+
+      await pickScope(wrapper, 'section')
+      await pickScope(wrapper, 'iets anders')
+      expect(groupIds(wrapper)).toEqual(['1.1', '1.2'])
+
+      wrapper.get('nldd-segmented-control').element.dispatchEvent(new CustomEvent('change'))
+      await nextTick()
+      expect(groupIds(wrapper)).toEqual(['1.1', '1.2'])
     })
   })
 
@@ -645,7 +801,7 @@ describe('CommentPanel', () => {
       })
       await settle()
 
-      expect(positionText(wrapper)).toBe('Vraag 1 van 2')
+      expect(positionText(wrapper)).toBe('1 van 2')
       await step(wrapper, 'Volgende')
       expect(selected(wrapper)).toEqual(['1.1', 'completed.2'])
       expect(wrapper.get('.comment-field-group__chapter').text()).toBe('Deel 2 - Wat?')
@@ -835,7 +991,7 @@ describe('CommentPanel', () => {
       const card = wrapper.get('.comment-thread')
       expect(card.classes()).toContain('comment-thread--resolved')
       expect(card.attributes('background')).toBe('tinted')
-      expect(positionText(wrapper)).toBe('Vraag 1 van 1')
+      expect(positionText(wrapper)).toBe('1 van 1')
     })
   })
 
@@ -1502,6 +1658,13 @@ describe('CommentPanel', () => {
       const { wrapper } = mountPanel({ threads: [] })
       expect(setupOf(wrapper).positionLabel).toBe('')
       expect(setupOf(wrapper).currentIndex).toBe(-1)
+    })
+
+    // With no question to show the body renders the empty state instead, so
+    // shownEntries is never read from the template.
+    it('has nothing to show while there is no question', () => {
+      const { wrapper } = mountPanel({ threads: [] })
+      expect(setupOf(wrapper).shownEntries).toEqual([])
     })
 
     it('scrollToField returns early when there is no form container', () => {

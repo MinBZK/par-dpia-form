@@ -80,7 +80,7 @@ const commentedRootTaskIds = computed(() => {
 useFieldCommentIndicators(formContainerRef, (fieldId) => {
   activeCommentFieldId.value = fieldId
   commentPanelOpen.value = true
-}, canComment)
+}, canComment, activeCommentFieldId)
 
 // The split view hands the inspector its own column while there is room for
 // one, and folds it into a sheet when there is not. Which of the two it is

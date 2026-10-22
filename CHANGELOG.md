@@ -25,7 +25,12 @@ build) staan kort onder "Onder de motorkap".
   schuift het paneel vanaf de zijkant in beeld.
 * Bij een vraag met opmerkingen staat nu rechts in de regel van de vraag een
   gevulde knop met het aantal. Een vraag zonder opmerkingen houdt daar een
-  rustige knop om er een te plaatsen.
+  rustige knop om er een te plaatsen. De vraag die het paneel laat zien, krijgt
+  in het formulier een accentbalk, zodat je ziet waar de opmerking bij hoort.
+* In het opmerkingenpaneel kies je tussen "Deze vraag" en "Hele sectie", en
+  "Ook opgeloste" haalt de afgehandelde opmerkingen erbij.
+* Een vraag die wacht op een eerdere sectie krijgt een waarschuwingsicoon in
+  plaats van een grijze pijl omhoog.
 * Invulhulpen heeft een eigen tabbladpictogram: een document met een pen op
   het Rijksblauw, in plaats van het blauwe vlak van eerder.
 * Een selectievakje staat weer op één lijn met de eerste regel van zijn label.

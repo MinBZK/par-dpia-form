@@ -39,21 +39,28 @@ function thread(overrides: Partial<CommentThread> = {}): CommentThread {
 function mountHarness(opts: {
   container: HTMLElement | null
   canComment?: boolean
+  activeFieldId?: string | null
+  // Leaves the fourth argument off entirely, the way a caller without a
+  // comments panel uses the composable.
+  omitActiveFieldId?: boolean
 } = { container: null }) {
   const containerRef = ref<HTMLElement | null>(opts.container) as Ref<HTMLElement | null>
   const canComment = ref<boolean>(opts.canComment ?? true)
+  const activeFieldId = ref<string | null>(opts.activeFieldId ?? null) as Ref<string | null>
   const onFieldClick = vi.fn()
   let api: ReturnType<typeof useFieldCommentIndicators> | undefined
 
   const Host = defineComponent({
     setup() {
-      api = useFieldCommentIndicators(containerRef, onFieldClick, canComment)
+      api = opts.omitActiveFieldId
+        ? useFieldCommentIndicators(containerRef, onFieldClick, canComment)
+        : useFieldCommentIndicators(containerRef, onFieldClick, canComment, activeFieldId)
       return () => h('div')
     },
   })
 
   const wrapper: VueWrapper = mount(Host)
-  return { wrapper, containerRef, canComment, onFieldClick, api: api! }
+  return { wrapper, containerRef, canComment, activeFieldId, onFieldClick, api: api! }
 }
 
 // Builds a `label-<prefix>-<fieldId>` element in a container, optionally inside
@@ -136,7 +143,7 @@ describe('useFieldCommentIndicators', () => {
   })
 
   describe('button rendering by comment count', () => {
-    it('renders the quiet icon-only variant when count is 0 and user can comment', () => {
+    it('renders the quiet variant with the word when count is 0 and user can comment', () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
 
@@ -148,12 +155,12 @@ describe('useFieldCommentIndicators', () => {
       expect(btn.getAttribute('size')).toBe('xs')
       expect(btn.getAttribute('appearance')).toBe('accent-transparent')
       expect(btn.getAttribute('start-icon')).toBe('comment')
-      // No count to show, so no text at all.
-      expect(btn.hasAttribute('text')).toBe(false)
+      // No count to show, but the word stays as the invitation.
+      expect(btn.getAttribute('text')).toBe('Opmerking')
       expect(btn.getAttribute('accessible-label')).toBe('Opmerking toevoegen bij deze vraag')
     })
 
-    it('renders a filled button with the bare count and a singular label for one comment', async () => {
+    it('renders a filled button with the count and a singular label for one comment', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -164,7 +171,7 @@ describe('useFieldCommentIndicators', () => {
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn.getAttribute('appearance')).toBe('accent-filled')
-      expect(btn.getAttribute('text')).toBe('1')
+      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
       expect(btn.getAttribute('accessible-label')).toBe('1 opmerking bij deze vraag')
     })
 
@@ -182,7 +189,7 @@ describe('useFieldCommentIndicators', () => {
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn.getAttribute('appearance')).toBe('accent-filled')
-      expect(btn.getAttribute('text')).toBe('2')
+      expect(btn.getAttribute('text')).toBe('Opmerking (2)')
       expect(btn.getAttribute('accessible-label')).toBe('2 opmerkingen bij deze vraag')
     })
   })
@@ -266,7 +273,7 @@ describe('useFieldCommentIndicators', () => {
       const buttons = container.querySelectorAll('nldd-button')
       expect(buttons.length).toBe(1)
       expect(buttons[0]).toBe(firstBtn)
-      expect(firstBtn.getAttribute('text')).toBe('2')
+      expect(firstBtn.getAttribute('text')).toBe('Opmerking (2)')
       expect(firstBtn.classList.contains('comment-field-label__btn')).toBe(true)
     })
 
@@ -310,6 +317,93 @@ describe('useFieldCommentIndicators', () => {
       expect(row.className).toBe('comment-field-row')
       expect(row.querySelector('nldd-button')).not.toBeNull()
       expect(container.querySelector('.comment-field-label--grid')).toBeNull()
+    })
+  })
+
+  describe('marking the question the panel is showing', () => {
+    // Two questions in their own label blocks, so the active mark can move.
+    function twoFields(): { container: HTMLElement; lcA: HTMLElement; lcB: HTMLElement } {
+      const container = document.createElement('div')
+      const blocks = ['1.1', '2.2'].map((fieldId) => {
+        const lc = document.createElement('div')
+        lc.className = 'form-field__label'
+        const label = document.createElement('label')
+        label.id = `label-x-${fieldId}`
+        lc.appendChild(label)
+        container.appendChild(lc)
+        return lc
+      })
+      return { container, lcA: blocks[0], lcB: blocks[1] }
+    }
+
+    it('marks the active field on the first scan', () => {
+      const { container, lcA, lcB } = twoFields()
+      document.body.appendChild(container)
+
+      mountHarness({ container, activeFieldId: '1.1' })
+
+      expect(lcA.classList.contains('comment-field-label--active')).toBe(true)
+      expect(lcB.classList.contains('comment-field-label--active')).toBe(false)
+    })
+
+    it('moves the mark when the active field changes and clears it on null', async () => {
+      const { container, lcA, lcB } = twoFields()
+      document.body.appendChild(container)
+
+      const { activeFieldId } = mountHarness({ container, activeFieldId: '1.1' })
+
+      activeFieldId.value = '2.2'
+      await nextTick()
+      expect(lcA.classList.contains('comment-field-label--active')).toBe(false)
+      expect(lcB.classList.contains('comment-field-label--active')).toBe(true)
+
+      activeFieldId.value = null
+      await nextTick()
+      expect(lcA.classList.contains('comment-field-label--active')).toBe(false)
+      expect(lcB.classList.contains('comment-field-label--active')).toBe(false)
+    })
+
+    it('marks nothing while the container ref is still null', async () => {
+      const { activeFieldId, api } = mountHarness({ container: null })
+
+      activeFieldId.value = '1.1'
+      await nextTick()
+
+      expect(() => api.scanAndInject()).not.toThrow()
+    })
+
+    it('leaves a fallback-row button unmarked, since it has no label block', () => {
+      const { container } = makeLabel({ id: 'label-x-1.1' })
+      document.body.appendChild(container)
+
+      mountHarness({ container, activeFieldId: '1.1' })
+
+      expect(container.querySelector('.comment-field-label--active')).toBeNull()
+    })
+
+    it('runs without the optional active-field argument', () => {
+      const { container, labelContainer } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+      document.body.appendChild(container)
+
+      mountHarness({ container, omitActiveFieldId: true })
+
+      expect(container.querySelector('nldd-button')).not.toBeNull()
+      expect(labelContainer!.classList.contains('comment-field-label--active')).toBe(false)
+    })
+
+    it('strips the active class along with the grid class on removal', () => {
+      const { container, lcA } = twoFields()
+      document.body.appendChild(container)
+
+      const { api } = mountHarness({ container, activeFieldId: '1.1' })
+      expect(lcA.classList.contains('comment-field-label--active')).toBe(true)
+
+      lcA.querySelector('label')!.removeAttribute('id')
+      api.scanAndInject()
+
+      expect(lcA.querySelector('nldd-button')).toBeNull()
+      expect(lcA.classList.contains('comment-field-label--grid')).toBe(false)
+      expect(lcA.classList.contains('comment-field-label--active')).toBe(false)
     })
   })
 
@@ -403,13 +497,13 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
       let btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.hasAttribute('text')).toBe(false)
+      expect(btn.getAttribute('text')).toBe('Opmerking')
 
       store.threads = [thread({ fieldId: '1.1', id: 't1' })]
       await nextTick()
 
       btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.getAttribute('text')).toBe('1')
+      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
     })
   })
 
