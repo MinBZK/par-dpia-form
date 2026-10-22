@@ -690,8 +690,11 @@ nldd-card p {
   margin-block-end: var(--primitives-space-4, 0.25rem);
 }
 
+/* The same measure the design system holds for prose (and that the question
+   column uses); the tiles below may be wide, a paragraph that wide may not. */
 .project-detail-description {
   margin-top: 0;
+  max-width: var(--primitives-area-720);
 }
 
 .value-list {
