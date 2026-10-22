@@ -3,7 +3,7 @@ import { type AnswerStoreType, type ImageValue, isImageValue } from '../stores/a
 import { FORM_TITLES, FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
-import { renderInstanceLabel } from './taskUtils'
+import { isTextBlock, renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
 
 let imageRefCounter = 0
@@ -172,11 +172,16 @@ function processTaskWithInstances(
   // Simple task
   if (!task.childrenIds || task.childrenIds.length === 0) {
     for (const instanceId of instanceIds) {
-      if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
-        const answer = answerStore.getAnswer(instanceId)
-        lines.push(formatAnswerValue(answer))
-        lines.push('')
+      if (!shouldShowTask(task.id, instanceId, taskStore, answerStore)) continue
+      if (isTextBlock(task)) {
+        if (task.description) {
+          lines.push(getPlainTextWithoutDefinitions(task.description))
+          lines.push('')
+        }
+        continue
       }
+      lines.push(formatAnswerValue(answerStore.getAnswer(instanceId)))
+      lines.push('')
     }
     return
   }
@@ -195,6 +200,7 @@ function processTaskWithInstances(
     // Simple child fields as a table (images rendered separately below)
     const tableRows: [string, string][] = []
     const imageBlocks: string[] = []
+    const textBlocks: string[] = []
     for (const childId of task.childrenIds) {
       const childTask = taskStore.taskById(childId)
       if (childTask.childrenIds && childTask.childrenIds.length > 0) continue
@@ -202,6 +208,12 @@ function processTaskWithInstances(
       const childInstanceIds = taskStore.getInstanceIdsForTask(childId, instanceId)
       for (const childInstanceId of childInstanceIds) {
         if (!shouldShowTask(childId, childInstanceId, taskStore, answerStore)) continue
+        if (isTextBlock(childTask)) {
+          textBlocks.push(childTask.description
+            ? `**${getPlainTextWithoutDefinitions(childTask.task)}**\n\n${getPlainTextWithoutDefinitions(childTask.description)}`
+            : `**${getPlainTextWithoutDefinitions(childTask.task)}**`)
+          continue
+        }
         const value = answerStore.getAnswer(childInstanceId)
         if (isImageValue(value)) {
           imageBlocks.push(formatImageValue(value))
@@ -223,7 +235,7 @@ function processTaskWithInstances(
       lines.push('')
     }
 
-    for (const block of imageBlocks) {
+    for (const block of [...textBlocks, ...imageBlocks]) {
       lines.push(block)
       lines.push('')
     }

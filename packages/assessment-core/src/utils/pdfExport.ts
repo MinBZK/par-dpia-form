@@ -6,7 +6,7 @@ import { FORM_TITLES, FormType } from '../models/dpia'
 import { getPlainTextWithoutDefinitions, withoutDefinitionMarkup } from './stripHtml'
 import { markdownToPdfContent } from './markdown'
 import { hasInstanceMapping, shouldShowTask } from './dependency'
-import { renderInstanceLabel } from './taskUtils'
+import { isTextBlock, renderInstanceLabel } from './taskUtils'
 import { generateFilename } from './fileName'
 import { buildOutputData } from './jsonExport'
 import pdfMake from 'pdfmake/build/pdfmake'
@@ -104,8 +104,8 @@ export async function exportToPdf(
 
   const info: AssessmentDocumentInformation = {
     title: `${formType} Rapportagemodel`,
-    author: `Invulhulp DPIA`,
-    creator: `Invulhulp DPIA`,
+    author: TOOL_NAME,
+    creator: TOOL_NAME,
     AssessmentData: JSON.stringify(buildOutputData(taskStore, answerStore)),
   }
 
@@ -120,7 +120,7 @@ export async function exportToPdf(
           stack: [
             { text: formType, style: 'title' },
             {
-              text: `Gegenereerd met de 'DPIA Rapportagemodel Editor' op ${dutchDateFormatter.format(new Date())}`,
+              text: `Gegenereerd met de ${TOOL_NAME} op ${dutchDateFormatter.format(new Date())}`,
               style: 'subsubtitle',
             },
           ],
@@ -374,6 +374,10 @@ function buildSectionDescription(description?: string): Content {
   }
 }
 
+function buildTextBlockDescription(description: string): Content {
+  return { text: getPlainTextWithoutDefinitions(description), style: 'description' }
+}
+
 function formatAnswerValue(value: unknown[]): string {
   const cleanItems = value
     .map(item => {
@@ -396,6 +400,8 @@ function formatAnswerContent(value: any): Content {
   if (value === 'null') return { text: '', style: 'normal' }
   return markdownToPdfContent(withoutDefinitionMarkup(String(value)))
 }
+
+const TOOL_NAME = 'Invulhulpen voor pre-scan, DPIA en IAMA'
 
 // A4 (595pt) minus page margins (70+70) = 455pt usable content width
 const CONTENT_WIDTH = 455
@@ -493,7 +499,9 @@ function processTaskWithInstances(
     for (const instanceId of instanceIds) {
       if (shouldShowTask(task.id, instanceId, taskStore, answerStore)) {
         const answer = answerStore.getAnswer(instanceId)
-        if (isImageValue(answer)) {
+        if (isTextBlock(task)) {
+          if (task.description) elements.push(buildTextBlockDescription(task.description))
+        } else if (isImageValue(answer)) {
           elements.push(buildImageContent(answer))
         } else {
           elements.push(formatAnswerContent(answer))
@@ -595,6 +603,21 @@ function buildTableRows(
 
     for (const childInstanceId of childInstanceIds) {
       if (!shouldShowTask(childId, childInstanceId, taskStore, answerStore)) {
+        continue
+      }
+
+      if (isTextBlock(childTask)) {
+        tableRows.push([
+          {
+            stack: [
+              { text: getPlainTextWithoutDefinitions(childTask.task), bold: true },
+              ...(childTask.description ? [buildTextBlockDescription(childTask.description)] : []),
+            ],
+            colSpan: 2,
+            margin: [0, 3, 0, 3],
+          },
+          {},
+        ])
         continue
       }
 

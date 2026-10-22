@@ -1028,6 +1028,65 @@ describe('exportToPdf (IAMA namespace)', () => {
     expect(lastDocDefinition().info.title).toBe('IAMA Rapportagemodel')
   })
 
+  it('renders text blocks (task_group without children) as text, not as unanswered questions', async () => {
+    taskStore.init(
+      [
+        {
+          task: 'Inleiding',
+          id: '0',
+          type: ['task_group'],
+          tasks: [
+            { task: 'Toepassing', id: '0.0', type: ['task_group'], description: 'Het IAMA is een instrument voor dialoog.', tasks: [] },
+            { task: 'Kopje zonder tekst', id: '0.2', type: ['task_group'], tasks: [] },
+            { task: 'Lege vraag', id: '0.1', type: ['open_text'] },
+          ],
+        },
+        {
+          task: 'Deel 1',
+          id: '1',
+          type: ['task_group'],
+          tasks: [
+            {
+              task: 'Wettelijke grondslag',
+              id: '1.3',
+              type: ['task_group'],
+              tasks: [
+                { task: 'Verboden?', id: '1.3.1', type: ['open_text'] },
+                { task: 'Stop met de ontwikkeling.', id: '1.3.3', type: ['task_group'], tasks: [] },
+                { task: 'Instructie', id: '1.3.9', type: ['task_group'], description: 'Lees dit eerst.', tasks: [] },
+              ],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+    answerStore.setAnswer('1.3.1', 'Nee')
+
+    await exportToPdf(taskStore, answerStore, calculationStore)
+
+    const texts = allTexts()
+    expect(texts).toContain('Het IAMA is een instrument voor dialoog.')
+    expect(texts).toContain('Stop met de ontwikkeling.')
+    expect(texts).toContain('Lees dit eerst.')
+    // Only the real empty question (0.1) keeps the "not answered" message.
+    expect(texts.filter((t) => t === 'Vraag is niet ingevuld of er is geen waarde geselecteerd.')).toHaveLength(1)
+  })
+
+  it('names the invulhulpen on the cover page and in the PDF metadata', async () => {
+    taskStore.init(
+      [{ task: 'Vragen', id: '0', type: ['task_group'], tasks: [{ task: 'Veld', id: '0.1', type: ['text_input'] }] }] as unknown as Task[],
+      true,
+    )
+
+    await exportToPdf(taskStore, answerStore, calculationStore)
+
+    expect(allTexts().some((t) => t.startsWith('Gegenereerd met de Invulhulpen voor pre-scan, DPIA en IAMA op '))).toBe(true)
+    expect(allTexts().some((t) => t.includes('Rapportagemodel Editor'))).toBe(false)
+    expect(lastDocDefinition().info.author).toBe('Invulhulpen voor pre-scan, DPIA en IAMA')
+    expect(lastDocDefinition().info.creator).toBe('Invulhulpen voor pre-scan, DPIA en IAMA')
+  })
+
   it('uses an iama_-prefixed generated filename when none is provided', async () => {
     taskStore.init(
       [
