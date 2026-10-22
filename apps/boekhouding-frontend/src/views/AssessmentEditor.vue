@@ -639,7 +639,8 @@ const confirmDelete = async () => {
          landmarks="region" makes this page a labelled section rather than a
          second main landmark, which is what an inspector beside a form is. -->
     <Teleport to="nldd-navigation-split-view">
-      <nldd-split-view-pane v-if="commentPanelOpen" slot="inspector" has-content>
+      <nldd-split-view-pane v-if="commentPanelOpen" slot="inspector" has-content
+        class="comment-panel__pane">
         <!-- sticky-header keeps the title bar in place while the thread scrolls. -->
         <nldd-page sticky-header landmarks="region" accessible-label="Opmerkingen">
           <CommentPanel

@@ -19,13 +19,17 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
 
 ## Nog in te dienen
 
-- **De inspectorkolom is 320px en dat is niet in te stellen.** De breedte komt
-  uit `--_navigation-split-view-inspector-min-width`, en de pane staat op
-  `flex-shrink: 0` zonder `flex-grow`, dus de kolom is precies die minimumbreedte
-  en groeit niet mee met het scherm. De naam begint met `--_`, dus hij is privé.
-  Voor een paneel waarin je leest en typt (opmerkingen bij een vraag) is 320px
-  krap, zeker op een breed scherm. Gevraagd: een publiek attribuut of token voor
-  de breedte van de inspector, of laat de kolom meegroeien tot een maximum.
+- **De inspectorkolom groeit niet mee en de enige knop ervoor is privé.** De
+  breedte komt uit `--_navigation-split-view-inspector-min-width` (privé), en de
+  pane staat op `flex-shrink: 0` zonder `flex-grow`, dus de kolom blijft precies
+  die 320px, ook op een breed scherm. Voor een paneel waarin je leest en typt is
+  dat krap. Er is één weg die niet in de shadow DOM grijpt: de pane heeft
+  `flex-basis: auto`, dus een `width` op het element dat je in het
+  `inspector`-slot hangt bepaalt de kolombreedte. Dat doen wij nu, met een
+  `clamp()` die op 320px begint, want het component beslist met díé 320 of de
+  inspector nog past: een hardere ondergrens duwt de main-pane onder zijn eigen
+  minimum. Gevraagd: een publiek attribuut of token voor de breedte, of laat de
+  kolom zelf meegroeien tot een maximum.
 - **Een inspectorkolom heeft geen sluitknop.** `nldd-navigation-split-view` zet
   `--context-dismiss-button-display: none` op de inspector-pane ("always
   dismissable as a sheet, not inline"), dus een `nldd-top-title-bar` met

@@ -498,6 +498,16 @@ nldd-card p {
 /* The panel is the content of an nldd-page inside the sheet: the page holds the
    title bar in its header slot and scrolls the list itself, so neither needs a
    height, a sticky rule or a background here. */
+/* The inspector column is 320px wide because that is its min-width and the
+   split view neither grows nor shrinks it; its flex-basis is auto, so the
+   column takes the width of the pane we slot in. Hence a width here and not an
+   override on the split view. The lower bound stays 320px: the split view
+   decides with that number whether the inspector still fits, so a wider panel
+   below ~1070px would push the main pane under its own minimum. */
+.comment-panel__pane {
+  width: clamp(var(--primitives-area-320), 30vw, var(--primitives-area-480));
+}
+
 /* The walk through the questions, under the title. nldd-container lays the row
    out; only the rule that closes it off from what follows is ours. */
 .comment-panel__nav {
