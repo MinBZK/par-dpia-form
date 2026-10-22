@@ -402,12 +402,12 @@ nldd-card p {
    host: the box keeps its own radius, border width and padding. */
 .diff-old {
   --semantics-surfaces-tinted-background-color: var(--primitives-color-critical-50);
-  --semantics-surfaces-tinted-border-color: var(--primitives-color-critical-200);
+  --semantics-surfaces-tinted-highlight-border-color: var(--primitives-color-critical-200);
 }
 
 .diff-new {
   --semantics-surfaces-tinted-background-color: var(--primitives-color-success-50);
-  --semantics-surfaces-tinted-border-color: var(--primitives-color-success-200);
+  --semantics-surfaces-tinted-highlight-border-color: var(--primitives-color-success-200);
 }
 
 .diff-value__label {

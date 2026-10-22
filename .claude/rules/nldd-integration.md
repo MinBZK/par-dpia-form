@@ -102,8 +102,14 @@ het verkeerde component gebruikt.
 Mag, maar alleen met een comment erboven die uitlegt **waarom het component het
 zelf niet kan** (render-timing, shadow-DOM-grens, of een gat in het DS). Lukt
 die zin niet, dan is het smaak-styling en hoort de regel weg. Stuur bij
-voorkeur via attributen, slots en `--components-*`-tokens; die lees je op de
+voorkeur via attributen, slots en `--semantics-*`-tokens; die lees je op de
 host en ze cascaderen de shadow DOM in. Grijp nooit in de shadow DOM zelf.
+
+`--components-*` is sinds 0.10.0 terug, maar niet als stuurknop: de laag bevat
+alleen de handvol waarden die een thema per component zet (de accent-badge, de
+statusbalk, het icoon van de accent-banner, de mention in de tekstverwerker en
+het huidige tabblad). Een component leest alleen zijn eigen tokens. Wat je
+daarbuiten op die namen zet, doet niets.
 
 Kan iets écht niet via die weg, noteer het in [`docs/nldd-feedback.md`](../../docs/nldd-feedback.md)
 in plaats van er stil omheen te werken.

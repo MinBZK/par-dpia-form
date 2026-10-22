@@ -206,13 +206,16 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
-* `@nldd/design-system` van 0.8.85 naar 0.9.0, vijftien releases met tien
+* `@nldd/design-system` van 0.8.85 naar 0.10.0, zestien releases met twaalf
   breaking changes. De grootste: `nldd-app-view` heet `nldd-shell`,
   `nldd-timeline-track-cell` heet `nldd-step-cell`, `variant` heet `appearance`
   op onder meer `nldd-button`, `nldd-icon` neemt `icon` in plaats van `name`,
   en alle `--components-*`-variabelen zijn weg. Geen daarvan geeft een
   foutmelding als je hem mist, dus elk gebruikt attribuut is nagelopen tegen
-  het manifest van 0.9.0.
+  het manifest van 0.10.0. In 0.10.0 kwam daar nog een hernoemronde bovenop:
+  de randtokens van een oppervlak heten `highlight-border`, en
+  `--semantics-controls-is-highlighted-*` heet `-is-selected-*`. Alle zestig
+  tokens die onze eigen CSS leest zijn tegen 0.10.0 gecontroleerd.
 * `@nldd/design-system` van 0.8.83 naar 0.8.85. Die release haalt
   `nldd-form-field-error-text` weg (foutmeldingen lopen nu via
   `nldd-validation-list`) en hernoemt de varianten van

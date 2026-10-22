@@ -106,7 +106,7 @@ body {
      line-height the choices are set in. */
   font-size: inherit;
   margin: max(0px, calc((1em * var(--form-choice-line-height) - 1.25rem) / 2)) 0 0;
-  accent-color: var(--semantics-controls-is-highlighted-indicator-color);
+  accent-color: var(--semantics-controls-is-selected-indicator-color);
 }
 
 /* Shared accordion: native details/summary with NLDD chevron icons. */
@@ -234,7 +234,7 @@ legend.task-fieldset__legend--sub {
    without it. The border width is the only public token in that ring: the box'
    own background and border colour are private since 0.8.96. */
 nldd-sidebar-section {
-  --semantics-surfaces-border-width: 0;
+  --semantics-surfaces-highlight-border-width: 0;
 }
 
 /* nldd-list-item reaches outward by this inset so its highlight frames the
@@ -316,7 +316,7 @@ nldd-sidebar-section {
   box-shadow: var(--primitives-box-shadows-level-2);
   text-align: left;
   border-radius: var(--semantics-surfaces-corner-radius);
-  border: 1px solid var(--semantics-surfaces-tinted-border-color);
+  border: 1px solid var(--semantics-surfaces-tinted-highlight-border-color);
   padding: var(--primitives-space-12, 12px);
   position: absolute;
   z-index: 1;
@@ -416,7 +416,7 @@ nldd-sidebar-section {
 
 /* Image field */
 .image-dropzone {
-  border: 2px dashed var(--semantics-surfaces-tinted-border-color);
+  border: 2px dashed var(--semantics-surfaces-tinted-highlight-border-color);
   border-radius: 12px;
   padding: var(--primitives-space-8, 0.5rem) var(--primitives-space-24, 1.5rem);
   text-align: center;
@@ -472,7 +472,7 @@ nldd-sidebar-section {
 .multiselect-scrollable {
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid var(--semantics-surfaces-base-border-color);
+  border: 1px solid var(--semantics-surfaces-base-highlight-border-color);
   border-radius: var(--semantics-surfaces-corner-radius);
   padding: 0.25rem 0;
 }
