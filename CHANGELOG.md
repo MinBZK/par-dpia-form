@@ -37,6 +37,9 @@ build) staan kort onder "Onder de motorkap".
   procesplaat.
 * In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
   toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
+* Staat bij een tekstveld een suggestie uit een eerder antwoord, dan kan je
+  die met de knop "Neem antwoord over" in het veld zetten. Staat er al tekst,
+  dan komt de suggestie eronder; wat je zelf schreef blijft staan.
 
 ### Beveiliging
 
