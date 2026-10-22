@@ -498,12 +498,24 @@ nldd-card p {
 /* The panel is the content of an nldd-page inside the sheet: the page holds the
    title bar in its header slot and scrolls the list itself, so neither needs a
    height, a sticky rule or a background here. */
-/* The filter row under the title. nldd-container lays it out; only the rule
-   that closes it off from the list below is ours. */
-.comment-panel__filters {
+/* The walk through the questions, under the title. nldd-container lays the row
+   out; only the rule that closes it off from the thread below is ours. */
+.comment-panel__nav {
   padding-block: 0.5rem;
   border-bottom: 1px solid var(--semantics-dividers-color);
-  margin-block-end: 0.75rem;
+}
+
+/* Between the two arrows, so it does not drift to one of them. */
+.comment-panel__position {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  color: var(--semantics-content-secondary-color);
+}
+
+.comment-panel__filter {
+  margin-block: 0.5rem 0.75rem;
 }
 
 .comment-panel__body {
@@ -521,53 +533,33 @@ nldd-card p {
   margin-bottom: 1rem;
 }
 
-/* The step a group belongs to, shown as a heading only when the list spans
-   more than one step, and a way to jump there. */
-.comment-chapter__title {
+/* The chapter the question sits in. Secondary on purpose: it places the
+   question, the question itself is what you read. */
+.comment-field-group__chapter {
+  margin: 0;
+  font-size: var(--primitives-font-size-70, 0.8rem);
+  color: var(--semantics-content-secondary-color);
+}
+
+.comment-field-group__heading {
+  margin: 0 0 0.75rem;
+}
+
+/* The question the thread belongs to, and the way back to it in the form. */
+.comment-field-group__label {
   display: block;
   width: 100%;
   background: none;
   border: none;
-  padding: 0.5rem 0 0.25rem;
+  padding: 0;
   font: inherit;
-  font-weight: 600;
-  color: var(--semantics-content-accent-color);
-  cursor: pointer;
-  text-align: left;
-}
-
-.comment-chapter__title:hover {
-  text-decoration: underline;
-}
-
-.comment-field-group__label {
-  /* -webkit-box, not block: that is what line-clamp needs to cap it at two
-     lines. Still a full-width block, so the whole caption is the click target. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 0 0 0.25rem;
-  font: inherit;
-  font-size: var(--primitives-font-size-70, 0.8rem);
-  line-height: 1.35;
-  color: var(--semantics-content-secondary-color);
+  color: var(--semantics-content-color);
   cursor: pointer;
   text-align: left;
 }
 
 .comment-field-group__label:hover {
   text-decoration: underline;
-}
-
-/* The group you just opened from the form: the question in the normal text
-   colour, so it stands out from the other captions without shouting. */
-.comment-field-group--active .comment-field-group__label {
-  color: var(--semantics-content-color);
-  font-weight: 600;
 }
 
 /* Threads: nldd-card draws the surface; only the stacking gap and the resolved
@@ -666,11 +658,29 @@ nldd-card p {
 /* Field comment buttons (injected by useFieldCommentIndicators): only the
    layout hooks that place the nldd-button in core's light-DOM label row. */
 
-/* Its own row under the field, the same for every question. It used to sit in
-   core's label row (which needed !important to make that row a flex line) and,
-   for an open-text field, in that field's own toolbar — two placements, and in
-   a task group the labels ended up carrying controls belonging to the answers
-   below them. */
+/* Beside the question. Core's label block is a plain column of label,
+   optional tag and optional description; a grid with a second column puts the
+   button on the question's own line and leaves everything under it full width.
+   Two classes, so the column rule in base.css is outranked without !important. */
+.form-field__label.comment-field-label--grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: var(--primitives-space-8, 0.5rem);
+  align-items: start;
+}
+
+.form-field__label.comment-field-label--grid > * {
+  grid-column: 1;
+}
+
+.form-field__label.comment-field-label--grid > .comment-field-label__btn {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+/* Fallback for a question whose label sits outside such a block: its own row
+   under the label. */
 .comment-field-row {
   display: flex;
   justify-content: flex-end;

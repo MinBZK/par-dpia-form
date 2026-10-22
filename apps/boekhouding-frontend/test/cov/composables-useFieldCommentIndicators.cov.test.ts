@@ -57,72 +57,32 @@ function mountHarness(opts: {
 }
 
 // Builds a `label-<prefix>-<fieldId>` element in a container, optionally inside
-// a `.form-field__label` structure with a toggle and/or description.
+// the `.form-field__label` block the button is injected into.
 function makeLabel(opts: {
   id: string
   withLabelContainer?: boolean
-  withToggle?: boolean
   withDescription?: boolean
-  detached?: boolean
-  // Renders the sibling an open_text field gets: a bar holding the edit/read
-  // switch, which the comment button joins instead of sitting under the label.
-  withOpenTextBar?: boolean
-  // A plain field sibling instead, to prove the walk stops at the next question.
-  withPlainField?: boolean
-  // FormField renders ReferenceSuggestions between the label and the field, so
-  // the walk has to step over elements it does not recognise.
-  withInterloper?: boolean
-}): { container: HTMLElement; label: HTMLElement } {
+}): { container: HTMLElement; label: HTMLElement; labelContainer: HTMLElement | null } {
   const container = document.createElement('div')
   const label = document.createElement('label')
   label.id = opts.id
-
-  if (opts.detached) {
-    return { container, label }
-  }
+  let labelContainer: HTMLElement | null = null
 
   if (opts.withLabelContainer) {
-    const labelContainer = document.createElement('div')
+    labelContainer = document.createElement('div')
     labelContainer.className = 'form-field__label'
     labelContainer.appendChild(label)
-    if (opts.withToggle) {
-      const toggle = document.createElement('button')
-      toggle.className = 'open-text-field__toggle'
-      labelContainer.appendChild(toggle)
-    }
     if (opts.withDescription) {
       const desc = document.createElement('div')
       desc.className = 'form-field__description'
       labelContainer.appendChild(desc)
     }
     container.appendChild(labelContainer)
-
-    if (opts.withInterloper) {
-      container.appendChild(document.createElement('div'))
-    }
-
-    if (opts.withOpenTextBar) {
-      const field = document.createElement('div')
-      field.className = 'open-text-field field-group'
-      // As FormField renders it: a row that right-aligns, holding the toolbar
-      // the controls actually sit in.
-      const bar = document.createElement('div')
-      bar.className = 'open-text-field__bar'
-      const toolbar = document.createElement('div')
-      toolbar.className = 'open-text-field__toolbar'
-      bar.appendChild(toolbar)
-      field.appendChild(bar)
-      container.appendChild(field)
-    } else if (opts.withPlainField) {
-      const field = document.createElement('div')
-      field.className = 'field-group'
-      container.appendChild(field)
-    }
   } else {
     container.appendChild(label)
   }
 
-  return { container, label }
+  return { container, label, labelContainer }
 }
 
 let pinia: ReturnType<typeof createPinia>
@@ -161,7 +121,7 @@ describe('useFieldCommentIndicators', () => {
     })
 
     it('joins multi-segment field ids back together', async () => {
-      const { container, label } = makeLabel({ id: 'label-prefix-2-1-3', withLabelContainer: true })
+      const { container } = makeLabel({ id: 'label-prefix-2-1-3', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
       store.threads = [thread({ fieldId: '2-1-3', id: 't1' })]
@@ -172,15 +132,11 @@ describe('useFieldCommentIndicators', () => {
       expect(btn).not.toBeNull()
       btn.click()
       expect(onFieldClick).toHaveBeenCalledWith('2-1-3')
-      void label
     })
   })
 
   describe('button rendering by comment count', () => {
-    // An open-text toolbar shows or hides as a whole, so a comment count keeps
-    // the whole row in view rather than one button in it.
-
-    it('renders the no-comment variant when count is 0 and user can comment', () => {
+    it('renders the quiet icon-only variant when count is 0 and user can comment', () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
 
@@ -188,17 +144,16 @@ describe('useFieldCommentIndicators', () => {
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
       expect(btn).not.toBeNull()
-      // Always visible: one button per question, on its own row under the
-      // field, whether or not it already carries a comment.
       expect(btn.classList.contains('comment-field-label__btn')).toBe(true)
       expect(btn.getAttribute('size')).toBe('xs')
       expect(btn.getAttribute('appearance')).toBe('accent-transparent')
       expect(btn.getAttribute('start-icon')).toBe('comment')
-      expect(btn.getAttribute('text')).toBe('Opmerking')
+      // No count to show, so no text at all.
+      expect(btn.hasAttribute('text')).toBe(false)
       expect(btn.getAttribute('accessible-label')).toBe('Opmerking toevoegen bij deze vraag')
     })
 
-    it('renders a singular accessible label for exactly one comment', async () => {
+    it('renders a filled button with the bare count and a singular label for one comment', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -208,7 +163,8 @@ describe('useFieldCommentIndicators', () => {
       mountHarness({ container })
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
+      expect(btn.getAttribute('appearance')).toBe('accent-filled')
+      expect(btn.getAttribute('text')).toBe('1')
       expect(btn.getAttribute('accessible-label')).toBe('1 opmerking bij deze vraag')
     })
 
@@ -225,7 +181,8 @@ describe('useFieldCommentIndicators', () => {
       mountHarness({ container })
 
       const btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.getAttribute('text')).toBe('Opmerking (2)')
+      expect(btn.getAttribute('appearance')).toBe('accent-filled')
+      expect(btn.getAttribute('text')).toBe('2')
       expect(btn.getAttribute('accessible-label')).toBe('2 opmerkingen bij deze vraag')
     })
   })
@@ -259,8 +216,8 @@ describe('useFieldCommentIndicators', () => {
       expect(container.querySelector('nldd-button')).toBeNull()
     })
 
-    it('removes an existing button when user can no longer comment and count drops to 0', async () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+    it('removes the button and the grid class when the user can no longer comment', async () => {
+      const { container, labelContainer } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
       store.threads = [thread({ fieldId: '1.1', id: 't1' })]
@@ -268,12 +225,14 @@ describe('useFieldCommentIndicators', () => {
 
       const { canComment, api } = mountHarness({ container, canComment: true })
       expect(container.querySelector('nldd-button')).not.toBeNull()
+      expect(labelContainer!.classList.contains('comment-field-label--grid')).toBe(true)
 
       store.threads = [thread({ fieldId: '1.1', id: 't1', resolvedAt: '2026-01-02T00:00:00Z' })]
       canComment.value = false
       api.scanAndInject()
 
       expect(container.querySelector('nldd-button')).toBeNull()
+      expect(labelContainer!.classList.contains('comment-field-label--grid')).toBe(false)
     })
 
     it('takes the no-existing-button branch when user cannot comment and field never had a button', () => {
@@ -287,7 +246,7 @@ describe('useFieldCommentIndicators', () => {
   })
 
   describe('updating an existing button', () => {
-    it('updates the same button in place on re-scan and preserves the label-row class', async () => {
+    it('updates the same button in place on re-scan and keeps its class', async () => {
       const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
       const store = useCollaborationStore()
@@ -307,79 +266,56 @@ describe('useFieldCommentIndicators', () => {
       const buttons = container.querySelectorAll('nldd-button')
       expect(buttons.length).toBe(1)
       expect(buttons[0]).toBe(firstBtn)
-      expect(firstBtn.getAttribute('text')).toBe('Opmerking (2)')
+      expect(firstBtn.getAttribute('text')).toBe('2')
       expect(firstBtn.classList.contains('comment-field-label__btn')).toBe(true)
+    })
+
+    it('does not duplicate buttons across repeated scans', () => {
+      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+      document.body.appendChild(container)
+
+      const { api } = mountHarness({ container })
+      api.scanAndInject()
+      api.scanAndInject()
+
+      expect(container.querySelectorAll('nldd-button').length).toBe(1)
     })
   })
 
   describe('injection placement', () => {
-    // An open_text field already has a bar for its edit/read switch; both are
-    // controls for the same field, so they share one row.
-    it('puts the button on its own row under the field, whatever the field is', () => {
-      for (const opts of [{ withOpenTextBar: true }, { withPlainField: true }]) {
-        document.body.innerHTML = ''
-        const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true, ...opts })
-        document.body.appendChild(container)
-        mountHarness({ container })
-
-        const field = container.querySelector('.field-group')!
-        const row = field.nextElementSibling!
-        expect(row.className).toBe('comment-field-row')
-        expect(row.querySelector('nldd-button')).toBeTruthy()
-        // Not in the label row any more, and not in the field's own toolbar.
-        expect(container.querySelector('.form-field__label nldd-button')).toBeNull()
-      }
-    })
-
-    it('steps over what sits between the label and the field', () => {
-      const { container } = makeLabel({
+    it('puts the button inside the label block and turns that block into a grid', () => {
+      const { container, labelContainer } = makeLabel({
         id: 'label-x-1.1',
         withLabelContainer: true,
-        withInterloper: true,
-        withPlainField: true,
+        withDescription: true,
       })
       document.body.appendChild(container)
 
       mountHarness({ container })
 
-      // FormField puts ReferenceSuggestions in that gap; the row still lands
-      // after the field, not after the interloper.
-      const field = container.querySelector('.field-group')!
-      expect(field.nextElementSibling?.className).toBe('comment-field-row')
+      const btn = container.querySelector<HTMLElement>('nldd-button')!
+      expect(btn.parentElement).toBe(labelContainer)
+      expect(labelContainer!.classList.contains('comment-field-label--grid')).toBe(true)
+      // The description keeps the full width, so it stays a sibling of the button.
+      expect(container.querySelector('.comment-field-row')).toBeNull()
     })
 
-    it('falls back to just after the label when there is no label container', () => {
+    it('falls back to its own row after the label when there is no label block', () => {
       const { container, label } = makeLabel({ id: 'label-x-1.1' })
       document.body.appendChild(container)
 
       mountHarness({ container })
 
-      expect(label.nextElementSibling?.className).toBe('comment-field-row')
-    })
-
-
-
-
-
-
-
-
-
-
-    it('does nothing for a label with no parent element (fallback insert is a no-op)', () => {
-      // The null-parent branch is unreachable: querySelectorAll only finds
-      // attached labels, which always have a parent.
-      const container = document.createElement('div')
-      const label = document.createElement('label')
-      label.id = 'label-x-9.9'
-      container.appendChild(label)
-      expect(label.parentElement).not.toBeNull()
+      const row = label.nextElementSibling!
+      expect(row.className).toBe('comment-field-row')
+      expect(row.querySelector('nldd-button')).not.toBeNull()
+      expect(container.querySelector('.comment-field-label--grid')).toBeNull()
     })
   })
 
   describe('cleanup of stale indicators', () => {
-    it('removes indicators for fields that disappear from the DOM on re-scan', () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+    it('removes the button and the grid class for a field that leaves the DOM', () => {
+      const { container, labelContainer: lc1 } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       const lc2 = document.createElement('div')
       lc2.className = 'form-field__label'
       const label2 = document.createElement('label')
@@ -390,30 +326,51 @@ describe('useFieldCommentIndicators', () => {
 
       const { api } = mountHarness({ container })
       expect(container.querySelectorAll('nldd-button').length).toBe(2)
+      expect(lc2.classList.contains('comment-field-label--grid')).toBe(true)
 
-      lc2.remove()
+      label2.removeAttribute('id')
       api.scanAndInject()
 
-      const remaining = container.querySelectorAll('nldd-button')
-      expect(remaining.length).toBe(1)
+      expect(container.querySelectorAll('nldd-button').length).toBe(1)
+      expect(lc2.querySelector('nldd-button')).toBeNull()
+      expect(lc2.classList.contains('comment-field-label--grid')).toBe(false)
+      expect(lc1!.classList.contains('comment-field-label--grid')).toBe(true)
     })
-  })
 
-  describe('reentrancy guard', () => {
-    it('early-returns when scanAndInject is invoked re-entrantly', () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+    it('keeps the grid class while another button still sits in the same label block', () => {
+      // Two questions sharing one label block: removing one leaves the grid in place.
+      const container = document.createElement('div')
+      const labelContainer = document.createElement('div')
+      labelContainer.className = 'form-field__label'
+      const labelA = document.createElement('label')
+      labelA.id = 'label-x-1.1'
+      const labelB = document.createElement('label')
+      labelB.id = 'label-x-2.2'
+      labelContainer.append(labelA, labelB)
+      container.appendChild(labelContainer)
       document.body.appendChild(container)
 
-      const { onFieldClick, api } = mountHarness({ container })
-      let reentered = false
-      onFieldClick.mockImplementation(() => {
-        reentered = true
-      })
+      const { api } = mountHarness({ container })
+      expect(labelContainer.querySelectorAll('nldd-button').length).toBe(2)
 
+      labelB.removeAttribute('id')
       api.scanAndInject()
+
+      expect(labelContainer.querySelectorAll('nldd-button').length).toBe(1)
+      expect(labelContainer.classList.contains('comment-field-label--grid')).toBe(true)
+    })
+
+    it('removes a fallback-row button that has no label block around it', () => {
+      const { container, label } = makeLabel({ id: 'label-x-1.1' })
+      document.body.appendChild(container)
+
+      const { api } = mountHarness({ container })
+      expect(container.querySelector('nldd-button')).not.toBeNull()
+
+      label.removeAttribute('id')
       api.scanAndInject()
-      expect(container.querySelectorAll('nldd-button').length).toBe(1)
-      expect(reentered).toBe(false)
+
+      expect(container.querySelector('nldd-button')).toBeNull()
     })
   })
 
@@ -446,13 +403,13 @@ describe('useFieldCommentIndicators', () => {
 
       mountHarness({ container })
       let btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.getAttribute('text')).toBe('Opmerking')
+      expect(btn.hasAttribute('text')).toBe(false)
 
       store.threads = [thread({ fieldId: '1.1', id: 't1' })]
       await nextTick()
 
       btn = container.querySelector<HTMLElement>('nldd-button')!
-      expect(btn.getAttribute('text')).toBe('Opmerking (1)')
+      expect(btn.getAttribute('text')).toBe('1')
     })
   })
 
@@ -508,8 +465,8 @@ describe('useFieldCommentIndicators', () => {
       expect(containerB.querySelector('nldd-button')).toBeNull()
     })
 
-    it('stops observing and removes buttons when the container ref becomes null', async () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+    it('stops observing and strips the grid class when the container ref becomes null', async () => {
+      const { container, labelContainer } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
 
       const { containerRef } = mountHarness({ container })
@@ -519,12 +476,13 @@ describe('useFieldCommentIndicators', () => {
       await nextTick()
 
       expect(container.querySelector('nldd-button')).toBeNull()
+      expect(labelContainer!.classList.contains('comment-field-label--grid')).toBe(false)
     })
   })
 
   describe('onUnmounted cleanup', () => {
     it('stops observing and clears buttons when the component unmounts', async () => {
-      const { container } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
+      const { container, labelContainer } = makeLabel({ id: 'label-x-1.1', withLabelContainer: true })
       document.body.appendChild(container)
 
       const { wrapper } = mountHarness({ container })
@@ -534,6 +492,7 @@ describe('useFieldCommentIndicators', () => {
       await nextTick()
 
       expect(container.querySelector('nldd-button')).toBeNull()
+      expect(labelContainer!.classList.contains('comment-field-label--grid')).toBe(false)
     })
   })
 })

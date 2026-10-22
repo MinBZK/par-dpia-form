@@ -5,8 +5,9 @@ import '@nldd/design-system/button'
 /**
  * Observes the DOM for field labels and injects comment buttons.
  *
- * The label container gets flex styling so the button sits at the right of the
- * label row, before the description.
+ * The button goes into the label block, to the right of the question itself:
+ * that is where you look to see whether a question carries a comment. The block
+ * becomes a grid for it, so the description underneath keeps the full width.
  */
 export function useFieldCommentIndicators(
   containerRef: Ref<HTMLElement | null>,
@@ -18,14 +19,19 @@ export function useFieldCommentIndicators(
   let observer: MutationObserver | null = null
   let isInjecting = false
 
-  // In a toolbar the button is an icon-button like the ones beside it: same
-  // square footprint, same flat ground, so the row reads as one control strip
-  // rather than a text button parked next to a switch. Elsewhere it keeps its
-  // label, because there it stands alone under a question.
+  // The grid only exists for the button; without one the label block goes back
+  // to being a plain column.
+  function removeButton(btn: HTMLElement) {
+    const labelContainer = btn.closest('.form-field__label')
+    btn.remove()
+    if (labelContainer && !labelContainer.querySelector('.comment-field-label__btn')) {
+      labelContainer.classList.remove('comment-field-label--grid')
+    }
+  }
+
   function createButton(fieldId: string, count: number): HTMLElement {
     const btn = document.createElement('nldd-button')
     btn.setAttribute('size', 'xs')
-    btn.setAttribute('appearance', 'accent-transparent')
     btn.setAttribute('start-icon', 'comment')
     btn.addEventListener('click', (e) => {
       e.preventDefault()
@@ -36,31 +42,19 @@ export function useFieldCommentIndicators(
     return btn
   }
 
+  // A question that carries comments says so: a filled button with the count on
+  // it, which reads at a glance down a column of questions. One that carries
+  // none is only an invitation, so it stays quiet and icon-only.
   function updateButton(btn: HTMLElement, count: number) {
     if (count > 0) {
-      btn.setAttribute('text', `Opmerking (${count})`)
+      btn.setAttribute('appearance', 'accent-filled')
+      btn.setAttribute('text', String(count))
       btn.setAttribute('accessible-label', `${count} opmerking${count > 1 ? 'en' : ''} bij deze vraag`)
     } else {
-      btn.setAttribute('text', 'Opmerking')
+      btn.setAttribute('appearance', 'accent-transparent')
+      btn.removeAttribute('text')
       btn.setAttribute('accessible-label', 'Opmerking toevoegen bij deze vraag')
     }
-  }
-
-
-  // FormField renders the label block and the field itself as siblings with no
-  // wrapper around the pair, so a question is a label plus everything up to and
-  // including the first field after it. Anything past that is the next question.
-  function fieldRegionOf(labelContainer: Element): Element[] {
-    const region: Element[] = [labelContainer]
-    let el = labelContainer.nextElementSibling
-    while (el) {
-      // Another label means we walked into the next question.
-      if (el.classList.contains('form-field__label')) break
-      region.push(el)
-      if (el.classList.contains('field-group')) break
-      el = el.nextElementSibling
-    }
-    return region
   }
 
 
@@ -91,7 +85,7 @@ export function useFieldCommentIndicators(
       if (!canComment.value && count === 0) {
         const existing = injectedElements.get(fieldId)
         if (existing) {
-          existing.remove()
+          removeButton(existing)
           injectedElements.delete(fieldId)
         }
         continue
@@ -104,23 +98,22 @@ export function useFieldCommentIndicators(
         continue
       }
 
-      // One place for every question: on its own line under the field. The
-      // button used to sit in the label row, and in an open-text field's own
-      // toolbar — two placements, and in a task group the row of labels ended up
-      // carrying controls that belong to the answer below them.
+      // Beside the question, in the label block. The class turns that block
+      // into the grid that reserves the right-hand slot; without a block to go
+      // in, the button falls back to its own row under the label.
       const labelContainer = label.closest('.form-field__label')
       btn = createButton(fieldId, count)
       btn.classList.add('comment-field-label__btn')
 
-      const row = document.createElement('div')
-      row.className = 'comment-field-row'
-      row.appendChild(btn)
-
-      // After the field that belongs to this label; without a label container
-      // there is nothing to walk from, so it goes straight after the label.
-      const field = labelContainer && fieldRegionOf(labelContainer).at(-1)
-      if (field) field.after(row)
-      else label.after(row)
+      if (labelContainer) {
+        labelContainer.classList.add('comment-field-label--grid')
+        labelContainer.appendChild(btn)
+      } else {
+        const row = document.createElement('div')
+        row.className = 'comment-field-row'
+        row.appendChild(btn)
+        label.after(row)
+      }
 
       injectedElements.set(fieldId, btn)
     }
@@ -128,7 +121,7 @@ export function useFieldCommentIndicators(
     // Clean up indicators for fields no longer in the DOM
     for (const [fieldId, btn] of injectedElements) {
       if (!seenFieldIds.has(fieldId)) {
-        btn.remove()
+        removeButton(btn)
         injectedElements.delete(fieldId)
       }
     }
@@ -162,7 +155,7 @@ export function useFieldCommentIndicators(
       observer = null
     }
     for (const btn of injectedElements.values()) {
-      btn.remove()
+      removeButton(btn)
     }
     injectedElements.clear()
   }

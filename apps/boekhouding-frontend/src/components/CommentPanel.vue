@@ -19,7 +19,7 @@ const props = defineProps<{
   formContainerRef?: HTMLElement | null
 }>()
 
-const emit = defineEmits<{ close: []; 'deactivate-field': [] }>()
+const emit = defineEmits<{ close: []; 'select-field': [fieldId: string] }>()
 
 const commentStore = useCollaborationStore()
 // currentRootTaskId on the store is keyed by namespace; this composable is the
@@ -34,12 +34,6 @@ const showResolved = ref(false)
 const handleResolvedToggle = (event: Event) => {
   const selected = (event as CustomEvent<{ selected?: boolean }>).detail?.selected
   if (selected !== undefined) showResolved.value = selected
-}
-
-// nldd-toggle-button reports the new state in the change detail.
-const handleShowAllToggle = (event: Event) => {
-  const selected = (event as CustomEvent<{ selected?: boolean }>).detail?.selected
-  if (selected !== undefined) showAll.value = selected
 }
 
 const panelBodyRef = ref<HTMLElement | null>(null)
@@ -150,83 +144,76 @@ function fieldSortKey(fieldId: string): string {
     .join('.')
 }
 
-// One group per field, in the order of the form, for the chapter on screen.
-// Scoped to the chapter because that is the unit the form works in: you fill in
-// one step at a time, and the dots in the table of contents say where else
-// something is waiting.
-type Entry = { fieldId: string; threads: CommentThread[] }
+// One question at a time. The panel shows the thread of the question it was
+// opened from; the arrows walk the questions that have something to show, in
+// the order of the form: chapter by chapter, and inside a chapter by field id.
+type Entry = { fieldId: string; rootId: string; rootTitle: string; threads: CommentThread[] }
 
-// The visible groups for one chapter, in the order of the form.
-function entriesForRoot(root: string): Entry[] {
-  const result: Entry[] = []
-  const seen = new Set<string>()
+const entries = computed<Entry[]>(() => {
+  const byRoot = new Map<string, Entry[]>()
 
   for (const [fieldId, fieldThreads] of commentStore.threadsByField) {
-    if (rootTaskIdOf(fieldId) !== root) continue
-    seen.add(fieldId)
-
     const visible = showResolved.value
       ? fieldThreads
       : fieldThreads.filter(t => !t.resolvedAt || hasOpenInput(t))
+    if (visible.length === 0) continue
 
-    if (visible.length > 0 || fieldId === props.activeFieldId) {
-      result.push({ fieldId, threads: visible })
-    }
+    const rootId = rootTaskIdOf(fieldId)
+    const list = byRoot.get(rootId) ?? []
+    list.push({ fieldId, rootId, rootTitle: '', threads: visible })
+    byRoot.set(rootId, list)
   }
 
-  // Active field with no existing comments: the empty group is where the new
-  // comment gets typed.
-  if (props.activeFieldId && !seen.has(props.activeFieldId)
-    && rootTaskIdOf(props.activeFieldId) === root) {
-    result.push({ fieldId: props.activeFieldId, threads: [] })
+  const result: Entry[] = []
+  for (const task of rootTasks.value) {
+    const list = byRoot.get(task.id)
+    if (!list) continue
+    list.sort((a, b) => fieldSortKey(a.fieldId).localeCompare(fieldSortKey(b.fieldId)))
+    for (const entry of list) result.push({ ...entry, rootTitle: task.task })
   }
-
-  result.sort((a, b) => fieldSortKey(a.fieldId).localeCompare(fieldSortKey(b.fieldId)))
   return result
-}
-
-// showAll widens the same list to the whole form rather than opening a second
-// one beside it. Where the panel was opened from decides how it starts: the
-// badge in the header counts the whole assessment, so clicking a "3" and being
-// shown one comment reads as a bug; the button at a question is about that
-// question, so there the list opens on the step it belongs to.
-const showAll = ref(!props.activeFieldId)
-
-// Clicking a question narrows the list back to the step that question is in.
-// Only on a field arriving, never on one leaving: cancelling a new comment
-// clears activeFieldId too, and that must not silently widen the list.
-watch(() => props.activeFieldId, (fieldId) => { if (fieldId) showAll.value = false })
-
-// The steps the list covers, in the order of the form, each with its title so a
-// list spanning more than one step says where things belong. Three widths, from
-// where the panel was opened: one question (its own button), the whole form (the
-// badge in the header, which counts the whole assessment), and everything in
-// between is the filter's job.
-const chapters = computed(() => {
-  const visible = showAll.value
-    ? rootTasks.value
-    : rootTasks.value.filter(task => task.id === currentRootTaskId.value)
-  return visible
-    .map(task => ({
-      id: task.id,
-      title: task.task,
-      entries: entriesForRoot(task.id)
-        // Opened from a question and not widened: that question only.
-        .filter(entry => showAll.value || !props.activeFieldId
-          || entry.fieldId === props.activeFieldId),
-    }))
-    .filter(chapter => chapter.entries.length > 0)
 })
 
-const elsewhereCount = computed(() =>
-  rootTasks.value
-    .filter(task => task.id !== currentRootTaskId.value)
-    .reduce((total, task) => total
-      + entriesForRoot(task.id).reduce((n, e) => n + e.threads.length, 0), 0),
-)
+// The question on screen. One you just opened to write a first comment has no
+// thread yet, so it is not in the walk; it is still what the panel shows.
+const current = computed<Entry | null>(() => {
+  const active = props.activeFieldId
+  if (!active) return entries.value[0] ?? null
 
-// The list is empty when this step has nothing and the filter is still on.
-const entries = computed(() => chapters.value.flatMap(c => c.entries))
+  const known = entries.value.find(e => e.fieldId === active)
+  if (known) return known
+
+  const rootId = rootTaskIdOf(active)
+  return {
+    fieldId: active,
+    rootId,
+    rootTitle: rootTasks.value.find(t => t.id === rootId)?.task ?? '',
+    threads: [],
+  }
+})
+
+const currentIndex = computed(() => {
+  const fieldId = current.value?.fieldId
+  return fieldId ? entries.value.findIndex(e => e.fieldId === fieldId) : -1
+})
+
+// Counting from one, and silent while a first comment is being written: that
+// question is not one of the stops.
+const positionLabel = computed(() => {
+  if (entries.value.length === 0) return ''
+  if (currentIndex.value < 0) return `Nieuwe opmerking (${entries.value.length} elders)`
+  return `Vraag ${currentIndex.value + 1} van ${entries.value.length}`
+})
+
+// Opened from the toolbar rather than from a question: the panel starts at the
+// first comment in the form and takes the form there, so the two never show a
+// different question. Once only, and never over a question you picked yourself.
+let jumped = false
+watch(() => entries.value.length, (count) => {
+  if (jumped || props.activeFieldId || count === 0) return
+  jumped = true
+  void goToEntry(0)
+}, { immediate: true })
 
 onMounted(() => {
   updateFieldLabels()
@@ -242,26 +229,15 @@ onUnmounted(() => {
   if (updateTimer) clearTimeout(updateTimer)
 })
 
-// Bring the group for the activated field into view. The list is no longer
-// aligned with the form, so opening a comment from a question has to say where
-// it landed: focusing the new-comment box does that by itself, and a field that
-// already has comments has no box to focus, so that group is scrolled to.
+// A question swapped in is a fresh sheet of paper: the half-typed comment
+// belonged to the question you left.
 watch(() => props.activeFieldId, async (fieldId) => {
   if (!fieldId) return
   newCommentBody.value = ''
+  replyingTo.value = null
+  editingId.value = null
   await nextTick()
-
-  const group = panelBodyRef.value?.querySelector<HTMLElement>(
-    `[data-field-group="${CSS.escape(fieldId)}"]`,
-  )
-  const input = group?.querySelector<HTMLElement>(
-    '.comment-inline-form nldd-multi-line-text-field',
-  )
-  if (input && canComment.value) {
-    input.focus()
-    return
-  }
-  group?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  panelBodyRef.value?.scrollTo({ top: 0 })
 })
 
 function scrollToField(fieldId: string) {
@@ -269,6 +245,22 @@ function scrollToField(fieldId: string) {
   if (!formEl) return
   const label = formEl.querySelector<HTMLElement>(`[id$="-${CSS.escape(fieldId)}"]`)
   label?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+// Step to another question with comments. The panel follows the form rather
+// than floating free of it, so the form goes along: another chapter has to be
+// opened first, and only once its questions are rendered can one be scrolled to.
+async function goToEntry(index: number) {
+  const entry = entries.value[index]
+  if (!entry) return
+
+  emit('select-field', entry.fieldId)
+  if (entry.rootId !== currentRootTaskId.value) {
+    goToTask(entry.rootId)
+    await nextTick()
+  }
+  await nextTick()
+  scrollToField(entry.fieldId)
 }
 
 function formatDate(iso: string): string {
@@ -368,66 +360,57 @@ async function handleReopen(commentId: string) {
 
 <template>
   <!-- A fragment, not a wrapper: these are the direct children of the
-       nldd-page inside the sheet, so the title bar reaches its `header` slot
-       and the list is the page's own scrolling content. The bar renders the
-       title as a real heading (the panel had none) and draws the close button
-       itself. -->
+       nldd-page the panel is placed in, so the title bar reaches its `header`
+       slot and the thread is the page's own scrolling content. The bar renders
+       the title as a real heading and draws the close button itself. -->
   <nldd-top-title-bar slot="header" class="comment-panel__header" text="Opmerkingen"
     dismiss-text="Sluiten" @dismiss="emit('close')"></nldd-top-title-bar>
 
-  <nldd-container class="comment-panel__body" ref="panelBodyRef"
-    role="complementary" aria-label="Opmerkingen">
-      <!-- Their own line under the title: beside it, even two short labels
-           squeezed "Opmerkingen" down to "Opme...". Each button names the
-           comments it brings into the list, so it reads as what you get rather
-           than as a setting you operate. -->
-      <nldd-container class="comment-panel__filters" layout="wrap" gap="4"
-        vertical-alignment="center">
-        <!-- Always there once the list is narrowed to one question or one step:
-             it is the only way back to the whole form, and hiding it would leave
-             a reader stuck on what they clicked. -->
-        <nldd-toggle-button v-if="elsewhereCount > 0 || showAll || activeFieldId"
-          class="comment-panel__show-all"
-          type="checkbox" size="sm" icon="bullet-list" text="Alle opmerkingen"
-          :selected="showAll || undefined"
-          @change="handleShowAllToggle"></nldd-toggle-button>
-        <nldd-toggle-button class="comment-panel__filter"
-          type="checkbox" size="sm" icon="check-mark-circle" text="Opgeloste opmerkingen"
-          :selected="showResolved || undefined"
-          @change="handleResolvedToggle"></nldd-toggle-button>
-      </nldd-container>
+  <!-- No role of its own: the page this sits in is the labelled region. -->
+  <nldd-container class="comment-panel__body" ref="panelBodyRef">
 
-      <!-- Empty state -->
-      <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
-      <nldd-inline-dialog v-else-if="entries.length === 0" class="comment-panel__empty"
-        icon="comment" icon-color="secondary"
-        text="Nog geen opmerkingen op deze pagina"
-        supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
+    <!-- The walk through the questions that have comments. The arrows swap out
+         what the panel shows without moving focus, so the position is a live
+         region: otherwise a screen reader hears nothing happen. -->
+    <nldd-container v-if="entries.length > 0" class="comment-panel__nav"
+      layout="row" gap="8" vertical-alignment="center">
+      <nldd-button size="xs" appearance="neutral-transparent" start-icon="arrow-left"
+        text="Vorige" accessible-label="Vorige vraag met opmerkingen"
+        :disabled="currentIndex <= 0 || undefined"
+        @click="goToEntry(currentIndex - 1)"></nldd-button>
+      <p class="comment-panel__position" role="status">{{ positionLabel }}</p>
+      <nldd-button size="xs" appearance="neutral-transparent" end-icon="arrow-right"
+        text="Volgende" accessible-label="Volgende vraag met opmerkingen"
+        :disabled="currentIndex < 0 || currentIndex >= entries.length - 1 || undefined"
+        @click="goToEntry(currentIndex + 1)"></nldd-button>
+    </nldd-container>
 
-      <!-- One group per question, in the order of the form. With the filter off
-           the list spans every step, so each gets its title above it; with one
-           step there is nothing to tell apart and the heading would be noise. -->
-      <template v-for="chapter in chapters" :key="chapter.id">
-      <button v-if="showAll" class="comment-chapter__title" @click="goToTask(chapter.id)">
-        {{ chapter.title }}
-      </button>
-      <div
-        v-for="entry in chapter.entries"
-        :key="entry.fieldId"
-        :data-field-group="entry.fieldId"
-        class="comment-field-group"
-        :class="{ 'comment-field-group--active': activeFieldId === entry.fieldId }"
-      >
-        <!-- The question this belongs to, and the way back to it in the form. -->
+    <nldd-toggle-button class="comment-panel__filter"
+      type="checkbox" size="sm" icon="check-mark-circle" text="Opgeloste opmerkingen"
+      :selected="showResolved || undefined"
+      @change="handleResolvedToggle"></nldd-toggle-button>
+
+    <p v-if="commentStore.loading" class="comment-panel__empty" role="status">Laden...</p>
+    <nldd-inline-dialog v-else-if="!current" class="comment-panel__empty"
+      icon="comment" icon-color="secondary"
+      text="Nog geen opmerkingen"
+      supporting-text="Klik op &quot;Opmerking&quot; bij een vraag om er een te plaatsen."></nldd-inline-dialog>
+
+    <div v-else class="comment-field-group" :data-field-group="current.fieldId">
+      <!-- Which question this belongs to, and the way back to it in the form.
+           The chapter above it, because a question number on its own says
+           little once the panel has walked you somewhere else. -->
+      <p class="comment-field-group__chapter">{{ current.rootTitle }}</p>
+      <h2 class="comment-field-group__heading">
         <button
-          v-if="fieldLabels.get(entry.fieldId)"
           class="comment-field-group__label"
-          @click="scrollToField(entry.fieldId)"
-        >{{ fieldLabels.get(entry.fieldId) }}</button>
+          @click="scrollToField(current.fieldId)"
+        >{{ fieldLabels.get(current.fieldId) || current.fieldId }}</button>
+      </h2>
 
         <!-- Threads -->
         <nldd-card
-          v-for="thread in entry.threads"
+          v-for="thread in current.threads"
           :key="thread.id"
           class="comment-thread"
           :class="{ 'comment-thread--resolved': thread.resolvedAt }"
@@ -581,7 +564,7 @@ async function handleReopen(commentId: string) {
         </nldd-card>
 
         <!-- Inline new comment form (appears when this field is active) -->
-        <nldd-card v-if="activeFieldId === entry.fieldId && canComment"
+        <nldd-card v-if="canComment"
           class="comment-inline-form" background="tinted">
           <nldd-container padding="12" gap="8">
             <nldd-multi-line-text-field
@@ -591,27 +574,27 @@ async function handleReopen(commentId: string) {
               placeholder="Schrijf een opmerking..."
               :value="newCommentBody"
               @input="newCommentBody = readFieldValue($event)"
-              @keydown.enter.meta="submitComment(entry.fieldId)"
-              @keydown.escape.stop="newCommentBody = ''; emit('deactivate-field')"
+              @keydown.enter.meta="submitComment(current.fieldId)"
+              @keydown.escape.stop="newCommentBody = ''"
             ></nldd-multi-line-text-field>
             <nldd-button-group orientation="horizontal" size="xs">
               <nldd-button
                 appearance="primary"
                 text="Plaatsen"
                 :disabled="!newCommentBody.trim() || undefined"
-                @click="submitComment(entry.fieldId)"
+                @click="submitComment(current.fieldId)"
               ></nldd-button>
               <nldd-button
+                v-if="newCommentBody"
                 appearance="neutral-tinted"
-                text="Annuleer"
-                @click="newCommentBody = ''; emit('deactivate-field')"
+                text="Wissen"
+                @click="newCommentBody = ''"
               ></nldd-button>
             </nldd-button-group>
           </nldd-container>
         </nldd-card>
-      </div>
 
-      </template>
+    </div>
 
   </nldd-container>
 </template>
