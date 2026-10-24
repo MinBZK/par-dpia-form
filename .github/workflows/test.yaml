@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+      # The AIIA experiment sandbox deploys straight from a push, so run the
+      # checks on that branch too: a student should see a red run before the
+      # broken build lands in ai-3rt, not after.
+      - experiment/aiia-ai
   pull_request:
   workflow_dispatch:
 
