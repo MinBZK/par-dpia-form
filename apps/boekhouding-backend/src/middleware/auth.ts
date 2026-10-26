@@ -6,6 +6,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { config } from '../config.js'
 import { userIdCache } from '../utils/userIdCache.js'
 import { mergeInvitePlaceholder } from '../utils/mergePlaceholder.js'
+import { verifyChatKey } from '../utils/chatKeys.js'
 
 export interface AuthUser {
   // Only the internal id. email/displayName are intentionally NOT exposed on the
@@ -123,6 +124,21 @@ export async function verifyBearer(request: FastifyRequest): Promise<BearerResul
   const result = await verifyToken(request)
   verifiedTokens.set(request, result)
   return result
+}
+
+/**
+ * The auth hook of the chat routes: a chat key (see utils/chatKeys.ts) or the
+ * login every other route takes. Only the chat routes use it, which is what
+ * keeps a chat key away from projects and assessments.
+ */
+export async function requireChatAuth(request: FastifyRequest, reply: FastifyReply) {
+  const header = request.headers.authorization
+  const userId = header?.startsWith('Bearer ') ? await verifyChatKey(header.slice(7)) : null
+  if (userId) {
+    request.user = { id: userId }
+    return
+  }
+  return requireAuth(request, reply)
 }
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {
