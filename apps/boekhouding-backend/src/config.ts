@@ -122,6 +122,13 @@ export const config = {
       // once tools are in play, so the ceiling is generous.
       timeout: parsePositiveInt(process.env.VLAM_TIMEOUT, 120, 600),
     },
+    // Chat keys: tokens the backend signs itself for the command line, which
+    // reach the chat routes and nothing else (see utils/chatKeys.ts). A secret
+    // shorter than 32 characters leaves them off; replacing it voids every key.
+    keys: {
+      secret: process.env.CHAT_KEY_SECRET || '',
+      ttlHours: parsePositiveInt(process.env.CHAT_KEY_TTL_HOURS, 8, 24),
+    },
   },
 }
 

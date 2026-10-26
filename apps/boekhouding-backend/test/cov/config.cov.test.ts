@@ -9,6 +9,8 @@ const ENV_KEYS = [
   'OIDC_INTERNAL_URL',
   'OIDC_REALM',
   'OIDC_PUBLIC_CLIENT_ID',
+  'CHAT_KEY_SECRET',
+  'CHAT_KEY_TTL_HOURS',
   'CORS_ORIGIN',
   'PUBLIC_HOST',
   'PORT',
@@ -72,6 +74,7 @@ describe('config — defaults when no env vars are set', () => {
       'http://localhost:8080/realms/invulhulpen/protocol/openid-connect/certs',
     )
     expect(config.keycloak.audience).toBe('boekhouding-frontend')
+    expect(config.chat.keys).toEqual({ secret: '', ttlHours: 8 })
   })
 })
 
@@ -81,6 +84,8 @@ describe('config — env vars override defaults', () => {
     process.env.HOST = '127.0.0.1'
     process.env.DATABASE_SERVER_FULL = 'postgresql://u:p@db:5432/mydb'
     process.env.OIDC_PUBLIC_CLIENT_ID = 'my-client'
+    process.env.CHAT_KEY_SECRET = 's'.repeat(40)
+    process.env.CHAT_KEY_TTL_HOURS = '48'
 
     const config = await loadConfig()
 
@@ -88,6 +93,7 @@ describe('config — env vars override defaults', () => {
     expect(config.host).toBe('127.0.0.1')
     expect(config.databaseUrl).toBe('postgresql://u:p@db:5432/mydb')
     expect(config.keycloak.audience).toBe('my-client')
+    expect(config.chat.keys).toEqual({ secret: 's'.repeat(40), ttlHours: 24 })
   })
 
   it('parses PORT with base 10 (leading zeros are decimal, not octal)', async () => {

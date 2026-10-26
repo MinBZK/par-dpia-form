@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 import { config } from '../config.js'
-import { requireAuth } from '../middleware/auth.js'
+import { requireAuth, requireChatAuth } from '../middleware/auth.js'
+import { chatKeysEnabled, issueChatKey } from '../utils/chatKeys.js'
 import { dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
 
 /**
@@ -10,7 +11,8 @@ import { dutchSchemaErrorFormatter } from '../utils/routeSchemas.js'
  * leaves the server. The client picks the model per request (or leaves it to
  * VLAM_MODEL_ID) and can ask which models there are. Who may spend the key is
  * decided in front of the app, by the ZAD SSO gate, and by the login every
- * other route requires as well.
+ * other route requires as well. Besides that login, these routes take a chat
+ * key (POST /keys), which is how the command line gets in.
  *
  * Two things this route deliberately does not do:
  *  - It never logs the key, nor echoes it in an error.
@@ -48,7 +50,7 @@ export async function chatRoutes(app: FastifyInstance) {
 
   // Chat spends the environment's VLAM budget and reaches an external service,
   // so it is never anonymous.
-  app.addHook('preHandler', requireAuth)
+  app.addHook('preHandler', requireChatAuth)
 
   /**
    * Call VLAM and return its JSON, or send the problem response and return
@@ -195,5 +197,42 @@ export async function chatRoutes(app: FastifyInstance) {
     }
 
     return { reply: content, model: payload.model ?? model }
+  })
+}
+
+/**
+ * Hands a logged-in user a chat key for the command line. Kept out of
+ * chatRoutes because a key must come from a real login, never from another key.
+ */
+export async function chatKeyRoutes(app: FastifyInstance) {
+  app.addHook('preHandler', requireAuth)
+
+  app.post('/keys', {
+    schema: {
+      tags: ['chat'],
+      description:
+        'Maakt een chat-sleutel voor de commandline: alleen geldig voor de chat-routes en beperkt houdbaar. 503 als chat-sleutels uit staan.',
+      response: {
+        201: {
+          type: 'object',
+          properties: {
+            key: { type: 'string' },
+            expiresAt: { type: 'string', format: 'date-time' },
+          },
+          required: ['key', 'expiresAt'],
+        },
+      },
+    },
+  }, async (request, reply) => {
+    if (!chatKeysEnabled()) {
+      return problem(
+        reply,
+        request,
+        503,
+        'Chat-sleutels staan uit',
+        'Deze omgeving heeft geen CHAT_KEY_SECRET van minstens 32 tekens.',
+      )
+    }
+    return reply.status(201).send(await issueChatKey(request.user!.id))
   })
 }

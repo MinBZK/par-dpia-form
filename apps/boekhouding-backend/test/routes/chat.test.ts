@@ -10,6 +10,7 @@ import { config } from '../../src/config.js'
 import { getJwks } from '../helpers/testContext.js'
 import { truncateAll } from '../helpers/testDb.js'
 import { createUser, type SeededUser } from '../helpers/fixtures.js'
+import { issueChatKey } from '../../src/utils/chatKeys.js'
 
 // Built rather than written as a literal, and deliberately low-entropy: a
 // realistic-looking fixture trips the gitleaks pre-commit hook.
@@ -231,5 +232,130 @@ describe('GET /api/v1/chat/models', () => {
     const res = await app.inject({ method: 'GET', url: MODELS_URL, headers: headers() })
     expect(res.statusCode).toBe(502)
     expect(res.body).not.toContain(KEY)
+  })
+})
+
+// Every route a chat key may use, or that needs no login at all.
+const OPEN_TO_CHAT_KEYS = new Set([
+  'POST /api/v1/chat',
+  'POST /api/v1/chat/',
+  'GET /api/v1/chat/models',
+  'GET /api/health',
+  'GET /.well-known/security.txt',
+])
+
+/** The routes of the app, read from Fastify's route tree: "├── /path (GET, POST)". */
+function listRoutes(instance: FastifyInstance) {
+  const stack: string[] = []
+  const routes: { method: string; url: string }[] = []
+  for (const line of instance.printRoutes({ commonPrefix: false }).split('\n')) {
+    const match = /^([│ ]*)[├└]── (\S+) \(([^)]+)\)/.exec(line)
+    if (!match) continue
+    stack.length = match[1].length / 4
+    stack.push(match[2])
+    for (const method of match[3].split(', ')) {
+      if (method !== 'HEAD' && method !== 'OPTIONS') routes.push({ method, url: stack.join('') })
+    }
+  }
+  return routes
+}
+
+describe('chat keys (command line)', () => {
+  const SECRET = 'geheim-'.repeat(6)
+  const originalKeys = { ...config.chat.keys }
+  const keyHeader = (key: string) => ({ authorization: `Bearer ${key}` })
+  const vlamOk = () => stubFetch(vlamResponse({ model: 'test-model', choices: [{ message: { content: 'ok' } }] }))
+
+  beforeEach(() => {
+    config.chat.keys.secret = SECRET
+    config.chat.keys.ttlHours = 8
+  })
+
+  afterEach(() => {
+    Object.assign(config.chat.keys, originalKeys)
+  })
+
+  async function newKey() {
+    const res = await app.inject({ method: 'POST', url: '/api/v1/chat/keys', headers: headers() })
+    expect(res.statusCode).toBe(201)
+    return res.json() as { key: string; expiresAt: string }
+  }
+
+  it('hands a logged-in user a key that expires after the configured hours', async () => {
+    const before = Date.now()
+    const { key, expiresAt } = await newKey()
+    const after = Date.now()
+    expect(key.split('.')).toHaveLength(3)
+    expect(Date.parse(expiresAt)).toBeGreaterThanOrEqual(before + 8 * 3_600_000)
+    expect(Date.parse(expiresAt)).toBeLessThanOrEqual(after + 8 * 3_600_000)
+  })
+
+  it('opens the chat and the model list with a key', async () => {
+    const { key } = await newKey()
+    vlamOk()
+    const chat = await app.inject({ method: 'POST', url: CHAT_URL, headers: keyHeader(key), payload: body })
+    expect(chat.statusCode).toBe(200)
+    stubFetch(vlamResponse({ data: [{ id: 'm' }] }))
+    const models = await app.inject({ method: 'GET', url: '/api/v1/chat/models', headers: keyHeader(key) })
+    expect(models.statusCode).toBe(200)
+  })
+
+  it('keeps a key away from every other route, including making a new key', async () => {
+    const { key } = await newKey()
+    const routes = listRoutes(app).filter(({ method, url }) => !OPEN_TO_CHAT_KEYS.has(`${method} ${url}`))
+    // A parser that found nothing would make this test pass on nothing.
+    expect(routes.length).toBeGreaterThan(20)
+    expect(routes).toContainEqual({ method: 'POST', url: '/api/v1/chat/keys' })
+    for (const { method, url } of routes) {
+      const res = await app.inject({
+        method: method as 'GET',
+        // Ids are uuids, a version is a number: valid params, so the request
+        // gets past validation to the auth hook.
+        url: url.replace(/:([A-Za-z]+)/g, (_, name) => (name === 'version' ? '1' : '00000000-0000-4000-8000-000000000000')),
+        headers: keyHeader(key),
+      })
+      // Body validation runs before the auth hook, so a route with a body
+      // schema answers 400 first; anything else must be the auth refusal.
+      // A route without auth would reach its handler: 2xx, 404 or 500.
+      const refused = res.statusCode === 401
+      expect({ route: `${method} ${url}`, ok: refused || res.statusCode === 400 }).toEqual({
+        route: `${method} ${url}`,
+        ok: true,
+      })
+      if (method === 'GET') expect(refused, `${method} ${url}`).toBe(true)
+    }
+  })
+
+  it('refuses an expired key', async () => {
+    const { key } = await issueChatKey(user.id, Date.now() - 9 * 3_600_000)
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: keyHeader(key), payload: body })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('voids every key when the secret is replaced', async () => {
+    const { key } = await newKey()
+    config.chat.keys.secret = 'ander-geheim-'.repeat(4)
+    const res = await app.inject({ method: 'POST', url: CHAT_URL, headers: keyHeader(key), payload: body })
+    expect(res.statusCode).toBe(401)
+  })
+
+  it('refuses keys and making them while the secret is missing or too short', async () => {
+    const { key } = await newKey()
+    for (const secret of ['', 'te-kort']) {
+      config.chat.keys.secret = secret
+      const made = await app.inject({ method: 'POST', url: '/api/v1/chat/keys', headers: headers() })
+      expect(made.statusCode).toBe(503)
+      expect(made.json().title).toBe('Chat-sleutels staan uit')
+      const used = await app.inject({ method: 'POST', url: CHAT_URL, headers: keyHeader(key), payload: body })
+      expect(used.statusCode).toBe(401)
+    }
+  })
+
+  it('still takes a login on the chat, and refuses a header that is not a bearer', async () => {
+    vlamOk()
+    const login = await app.inject({ method: 'POST', url: CHAT_URL, headers: headers(), payload: body })
+    expect(login.statusCode).toBe(200)
+    const basic = await app.inject({ method: 'POST', url: CHAT_URL, headers: { authorization: 'Basic abc' }, payload: body })
+    expect(basic.statusCode).toBe(401)
   })
 })
