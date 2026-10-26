@@ -16,6 +16,7 @@
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::taskStore.taskById(childId).description",
+  "packages/assessment-core/src/components/task/TaskSection.vue::v-html::taskStore.taskById(childId).task",
   "packages/assessment-core/src/utils/stripHtml.ts::innerHTML::cleanedHtml::body:7e26acade82c",
   "packages/assessment-core/src/utils/stripHtml.ts::innerHTML::html"
 ]

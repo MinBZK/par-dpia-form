@@ -47,14 +47,12 @@ definitions:
     bij het maken van berekeningen om een probleem op te lossen of een vraag te beantwoorden.
 - term: artificial intelligence
   definition: >-
-    AI kent geen eenduidige definitie. Wij hanteren de omschrijving van AI
-    door de Algemene Rekenkamer: 'het vermogen [..] om externe gegevens correct te
-    interpreteren, om te leren van deze gegevens en om deze lessen te gebruiken om
-    specifieke doelen en taken te verwezenlijken via flexibele aanpassing'. Ook belichten
-    wij graag die van de Europese Commissie, alhoewel deze nog niet gehanteerd wordt
-    in dit document: AI omvat systemen die intelligent gedrag vertonen door hun omgeving
-    te analyseren en – met een zekere mate van zelfstandigheid – actie ondernemen om
-    specifieke doelen te bereiken.
+    AI kent geen eenduidige definitie. Wij hanteren de definitie van AI in de AI-verordening: "een op een machine gebaseerd
+    systeem dat is ontworpen om met verschillende niveaus van autonomie te werken en dat na het inzetten ervan
+    aanpassingsvermogen kan vertonen, en dat, voor expliciete of impliciete doelstellingen, uit de ontvangen input
+    afleidt hoe output te genereren zoals voorspellingen, inhoud, aanbevelingen of beslissingen die van invloed kunnen zijn op fysieke of virtuele
+    omgevingen."
+- term: audit
 - term: AVG
   definition: Algemene verordening gegevensbescherming. Deze privacywet regelt dat
     bedrijven en organisaties persoonsgegevens zorgvuldig beschermen.
@@ -102,6 +100,7 @@ definitions:
     met onbedoelde corruptie.
 - term: data bias
   definition: Wanneer de steekproef niet representatief is voor de gehele populatie.
+
 - term: data pipeline
   definition: Hoe de data vanuit het veld naar het model komt; het proces dat de data
     doorloopt.
@@ -194,7 +193,7 @@ definitions:
     waardoor zelfs door de ontwikkelaars niet volledig uit te leggen is hoe het model
     aan diens uitkomsten komt.
 - term: moreel beraad
-  definition: Overlegorgaan Fysieke Leefomgeving (mei 2021), Moreel Beraad.
+  definition: Een methode om een gestructureerd ethisch gesprek te voeren, zie Moreel Beraad.
 - term: negatieve impact
   definition: Betrokkenen die nadelige gevolgen ondervinden door de toepassing van
     het AI-systeem, bijvoorbeeld omdat ze gediscrimineerd worden op basis van een bias

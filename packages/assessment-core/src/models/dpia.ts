@@ -7,6 +7,14 @@ export enum FormType {
   AIIA = 'aiia',
 }
 
+// Report title per form, used as the heading of PDF and Markdown exports.
+export const FORM_TITLES: Record<FormType, string> = {
+  [FormType.PRE_SCAN]: 'Pre-scan DPIA',
+  [FormType.DPIA]: 'DPIA',
+  [FormType.IAMA]: 'IAMA',
+  [FormType.AIIA]: 'AIIA',
+}
+
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
   t.literal('signing'),

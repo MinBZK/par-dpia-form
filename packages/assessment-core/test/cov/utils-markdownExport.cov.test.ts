@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { useTaskStore, type FlatTask, type TaskInstance } from '../../src/stores/tasks'
 import { useAnswerStore, type Answer, type ImageValue, type AnswerValue } from '../../src/stores/answers'
 import { exportToMarkdown } from '../../src/utils/markdownExport'
-import { FormType } from '../../src/models/dpia'
+import { FormType, type Task } from '../../src/models/dpia'
 
 type StoreSetup = {
   taskStore: ReturnType<typeof useTaskStore>
@@ -290,6 +290,29 @@ describe('exportToMarkdown', () => {
     expect(downloadName).toMatch(/^iama_.*\.md$/)
   })
 
+  it('exports an AIIA document with the "AIIA" heading, not the pre-scan fallback', async () => {
+    const tasks: Record<string, FlatTask> = {
+      '1': {
+        id: '1', task: 'AIIA sectie', type: ['task_group'],
+        parentId: null, childrenIds: ['1.1'],
+      },
+      '1.1': {
+        id: '1.1', task: 'Vraag', type: ['open_text'],
+        parentId: '1', childrenIds: [],
+      },
+    }
+    const instances: Record<string, TaskInstance> = {
+      '1': { id: '1', taskId: '1', groupId: 'g1', parentInstanceId: null, childInstanceIds: ['1.1'] },
+      '1.1': { id: '1.1', taskId: '1.1', groupId: 'g1', parentInstanceId: '1', childInstanceIds: [] },
+    }
+    const setup = seed(FormType.AIIA, tasks, ['1'], instances, { '1.1': answer('AIIA antwoord') })
+
+    const md = await runExport(setup)
+    expect(md).toContain('# AIIA')
+    expect(md).not.toContain('Pre-scan')
+    expect(md).toContain('AIIA antwoord')
+  })
+
   it('exports a Pre-scan document and renders array/boolean/null answer values', async () => {
     const tasks: Record<string, FlatTask> = {
       '0': {
@@ -548,5 +571,63 @@ describe('exportToMarkdown', () => {
 
     expect(md).toContain('## 1. Groep zonder kinderen')
     expect(md).toContain('*Niet ingevuld*')
+  })
+})
+
+describe('exportToMarkdown text blocks', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('renders task_groups without children as text, not as unanswered questions', async () => {
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.init(
+      [
+        {
+          task: 'Inleiding',
+          id: '0',
+          type: ['task_group'],
+          tasks: [
+            { task: 'Toepassing', id: '0.0', type: ['task_group'], description: 'Het IAMA is een instrument voor dialoog.', tasks: [] },
+            { task: 'Kopje zonder tekst', id: '0.2', type: ['task_group'], tasks: [] },
+            { task: 'Lege vraag', id: '0.1', type: ['open_text'] },
+          ],
+        },
+        {
+          task: 'Deel 1',
+          id: '1',
+          type: ['task_group'],
+          tasks: [
+            {
+              task: 'Wettelijke grondslag',
+              id: '1.3',
+              type: ['task_group'],
+              tasks: [
+                { task: 'Verboden?', id: '1.3.1', type: ['open_text'] },
+                { task: 'Stop met de ontwikkeling.', id: '1.3.3', type: ['task_group'], tasks: [] },
+                { task: 'Instructie', id: '1.3.9', type: ['task_group'], description: 'Lees dit eerst.', tasks: [] },
+              ],
+            },
+          ],
+        },
+      ] as unknown as Task[],
+      true,
+    )
+    answerStore.setAnswer('1.3.1', 'Nee')
+
+    const md = await runExport({ taskStore, answerStore })
+
+    expect(md).toContain('Het IAMA is een instrument voor dialoog.')
+    expect(md).toContain('Stop met de ontwikkeling.')
+    expect(md).toContain('Lees dit eerst.')
+    // Only the real empty question (0.1) keeps the "not answered" marker.
+    expect(md.match(/\*Niet ingevuld\*/g)).toHaveLength(1)
   })
 })
