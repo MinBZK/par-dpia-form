@@ -512,7 +512,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande DPIA of pre-scan
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
             </span>
           </label>
 
@@ -539,7 +539,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande IAMA
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder.</span>
             </span>
           </label>
 
@@ -564,7 +564,10 @@ const formatDate = (dateStr: string) =>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="prescan-json-upload" name="startOption" />
-            <span class="start-dialog__option-label">Importeer een bestaande pre-scan (JSON- of PDF-bestand)</span>
+            <span class="start-dialog__option-label">
+              Importeer een bestaande pre-scan
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder.</span>
+            </span>
           </label>
 
           <div v-if="dialogOption === 'prescan-json-upload'" class="start-dialog__sub-options">
