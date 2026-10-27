@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { detectImportType, normalizeToState, deriveCompletedRootTaskIds, parseAndValidateImport } from '../src/utils/importDetect'
+import { detectImportType, normalizeToState, deriveCompletedRootTaskIds, parseAndValidateImport, namespaceFromUrn } from '../src/utils/importDetect'
 import { OUTPUT_SCHEMA_URL, type AssessmentState } from '../src/models/assessmentState'
+import { FormType } from '../src/models/dpia'
 
 describe('detectImportType', () => {
   describe('URN-based detection (AssessmentOutput format)', () => {
@@ -496,5 +497,17 @@ describe('import regression: completedTasks should not be fabricated', () => {
     expect(result.answers['1.1']).toBeDefined()
     // No schema, no urn → derives completedTasks as fallback
     expect(result.metadata.completedTasks).toEqual(['1'])
+  })
+})
+
+describe('an older pre-scan export without urn', () => {
+  it('is recognised as a pre-scan, so a DPIA loads it as its source and not as its own answers', () => {
+    const state = parseAndValidateImport(JSON.stringify({
+      metadata: { createdAt: '2025-01-01T00:00:00Z' },
+      answers: { prescan: { '0.2': { value: 'Beschrijving' } } },
+    }))
+
+    expect(namespaceFromUrn(state.metadata.urn)).toBe(FormType.PRE_SCAN)
+    expect(state.answers).toEqual({ '0.2': { value: 'Beschrijving' } })
   })
 })

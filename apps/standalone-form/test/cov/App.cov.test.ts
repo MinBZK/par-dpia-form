@@ -215,6 +215,7 @@ describe('App.vue — cached sessions (#322)', () => {
     seedCache(FormType.PRE_SCAN)
     seedCache(FormType.IAMA)
     const wrapper = mountApp()
+    useAnswerStore().answers[FormType.DPIA] = { '1.1': 'van de vorige gebruiker' }
     expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(3)
 
     wrapper.findComponent(LandingStub).vm.$emit('clearAll')
@@ -222,6 +223,8 @@ describe('App.vue — cached sessions (#322)', () => {
 
     for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
       expect(localStorage.getItem(storageKey(type))).toBeNull()
+      // Nothing left in memory for the next person either.
+      expect(useAnswerStore().answers[type]).toEqual({})
     }
     // The button disappears together with the data it was there to wipe.
     expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(0)

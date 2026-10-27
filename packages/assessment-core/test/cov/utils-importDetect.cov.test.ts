@@ -239,7 +239,8 @@ describe('normalizeToState', () => {
 
     const state = normalizeToState(json, 'dpia')
     expect(state.metadata.completedTasks).toEqual(['1', '2'])
-    expect(state.metadata.urn).toBeUndefined()
+    // An older export without urn is named after the form it was recognised as.
+    expect(state.metadata.urn).toBe('urn:nl:dpia')
   })
 
   it('derives completedTasks from flattened grouped answers for a legacy grouped export', () => {
@@ -299,7 +300,7 @@ describe('normalizeToState', () => {
     const before = Date.now()
     const state = normalizeToState({}, 'prescan')
 
-    expect(state.metadata.urn).toBeUndefined()
+    expect(state.metadata.urn).toBe('urn:nl:prescan')
     expect(Date.parse(state.metadata.createdAt)).toBeGreaterThanOrEqual(before)
     expect(state.answers).toEqual({})
     expect(state.metadata.completedTasks).toBeUndefined()

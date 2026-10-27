@@ -80,6 +80,8 @@ const startFresh = (type: FormType) => {
 // Wiping every namespace at once, for someone leaving a shared computer.
 const clearAll = () => {
   ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
+  // Also what is still in memory: the next person on this computer must not see it.
+  answerStore.reset()
   refreshCachedTypes()
 }
 

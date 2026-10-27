@@ -155,7 +155,9 @@ export const normalizeToState = (json: Record<string, unknown>, detectedType: 'd
 
   return {
     metadata: {
-      urn: metadata?.urn as string | undefined,
+      // Older exports carry no urn. Name the form the file was recognised as, so
+      // whoever loads it knows which form it is (a pre-scan in a DPIA, say).
+      urn: (metadata?.urn as string | undefined) ?? `urn:nl:${detectedType}`,
       createdAt: (metadata?.createdAt as string) || new Date().toISOString(),
       ...(completedTasks.length > 0 && { completedTasks }),
     },

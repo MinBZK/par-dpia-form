@@ -107,7 +107,8 @@ const confirmRemove = async () => {
   error.value = null
   try {
     await membersApi.remove(props.projectId, memberToDelete.value.userId)
-    await loadFirst()
+    // Removing yourself (allowed while another owner remains) ends your access.
+    await Promise.all([loadFirst(), loadRole()])
   } catch (e: any) {
     error.value = e.message
   } finally {

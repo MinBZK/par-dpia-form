@@ -412,6 +412,21 @@ describe('ProjectMembers — load more', () => {
       expect(wrapper.find('.rvo-alert--error').text()).toBe('Kan leden niet laden. Probeer het later opnieuw.')
     })
 
+    it('drops the management controls once an owner removes themselves', async () => {
+      membersList.mockResolvedValue([owner, owner2])
+      const wrapper = await mountPage()
+
+      membersList.mockRejectedValue(new Error('Geen lid van dit project'))
+      projectsGet.mockRejectedValue(new Error('Geen lid van dit project'))
+      await wrapper.findAll('button.member-delete').at(0)!.trigger('click')
+      await wrapper.findAll('button.confirm-dialog__delete').find((b) => b.text() === 'Verwijderen' && !b.classes('member-delete'))!.trigger('click')
+      await flushPromises()
+
+      expect(membersRemove).toHaveBeenCalledWith('p1', 'owner1')
+      expect(wrapper.find('form').exists()).toBe(false)
+      expect(wrapper.find('select').exists()).toBe(false)
+    })
+
     it('drops the management controls once an owner makes themselves editor', async () => {
       membersList.mockResolvedValue([owner, owner2])
       const wrapper = await mountPage()
