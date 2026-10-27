@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import {
@@ -266,6 +266,20 @@ describe('App.vue — cached sessions (#322)', () => {
       nav.goToIAMA!()
       expect(answerStore.answers[FormType.DPIA]['1.1']).toMatchObject({ value: 'Voorstel' })
       expect(useTaskStore().activeNamespace).toBe(FormType.IAMA)
+    })
+
+    it('still opens the DPIA when the saved IAMA cannot be loaded', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      save(FormType.IAMA, { '2.1': [null] })
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+
+      expect(useTaskStore().activeNamespace).toBe(FormType.DPIA)
+      expect(useAnswerStore().answers[FormType.IAMA]).toEqual({})
+      expect(warn).toHaveBeenCalledWith('Saved counterpart not loaded:', expect.any(Error))
+      warn.mockRestore()
     })
 
     it('shows nothing of a counterpart that was wiped from the browser', () => {

@@ -50,7 +50,13 @@ const navigateTo = (view: ViewState) => {
 const loadCounterpart = (counterpart: FormType) => {
   const state = persistence.loadAppState(counterpart)
   if (state) {
-    applySourceForm(state, counterpart, schemaStore.getSchema(counterpart)!.tasks, taskStore, answerStore)
+    try {
+      applySourceForm(state, counterpart, schemaStore.getSchema(counterpart)!.tasks, taskStore, answerStore)
+    } catch (e) {
+      // Only a preview: a damaged saved form must not keep this one from opening.
+      console.warn('Saved counterpart not loaded:', e)
+      answerStore.answers[counterpart] = {}
+    }
   } else {
     // Nothing saved (any more, e.g. after "alles wissen"): what is still in
     // memory must not show up as its answers.
