@@ -395,11 +395,34 @@ describe('ProjectMembers — load more', () => {
       expect(wrapper.find('form').exists()).toBe(true)
     })
 
-    it('shows the load error when the project cannot be read', async () => {
+    it('still lists the members, read-only, when the role cannot be read', async () => {
       projectsGet.mockRejectedValue(new Error('netwerk'))
       const wrapper = await mountPage()
 
-      expect(wrapper.text()).toContain('Kan leden niet laden. Probeer het later opnieuw.')
+      expect(wrapper.find('.rvo-alert--error').text()).toBe('Kan niet nagaan of je leden mag beheren. Probeer het later opnieuw.')
+      expect(wrapper.findAll('.member-row:not(.member-row--header)')).toHaveLength(2)
+      expect(wrapper.find('form').exists()).toBe(false)
+    })
+
+    it('reports the member list, not the role, when both fail', async () => {
+      membersList.mockRejectedValue(new Error('netwerk'))
+      projectsGet.mockRejectedValue(new Error('netwerk'))
+      const wrapper = await mountPage()
+
+      expect(wrapper.find('.rvo-alert--error').text()).toBe('Kan leden niet laden. Probeer het later opnieuw.')
+    })
+
+    it('drops the management controls once an owner makes themselves editor', async () => {
+      membersList.mockResolvedValue([owner, owner2])
+      const wrapper = await mountPage()
+      expect(wrapper.find('form').exists()).toBe(true)
+
+      projectsGet.mockResolvedValue({ id: 'p1', role: 'editor' })
+      await wrapper.findAll('select').at(0)!.setValue('editor')
+      await flushPromises()
+
+      expect(membersUpdate).toHaveBeenCalledWith('p1', 'owner1', 'editor')
+      expect(wrapper.find('h1').text()).toBe('Leden')
       expect(wrapper.find('form').exists()).toBe(false)
     })
   })

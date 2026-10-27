@@ -31,15 +31,28 @@ const ownerCount = computed(() => memberList.value.filter(m => m.role === 'owner
 
 const isOnlyOwner = (member: Member) => member.role === 'owner' && ownerCount.value <= 1
 
-onMounted(async () => {
+const loadMembers = async () => {
   try {
-    const [project] = await Promise.all([projectsApi.get(props.projectId), loadFirst()])
-    canManage.value = project.role === 'owner'
+    await loadFirst()
   } catch {
     error.value = 'Kan leden niet laden. Probeer het later opnieuw.'
-  } finally {
-    loading.value = false
   }
+}
+
+// Read again after a role change: an owner who makes themselves editor loses
+// the controls, rather than keep them and run into a refusal on every action.
+const loadRole = async () => {
+  try {
+    canManage.value = (await projectsApi.get(props.projectId)).role === 'owner'
+  } catch {
+    canManage.value = false
+    error.value ??= 'Kan niet nagaan of je leden mag beheren. Probeer het later opnieuw.'
+  }
+}
+
+onMounted(async () => {
+  await Promise.all([loadMembers(), loadRole()])
+  loading.value = false
 })
 
 const handleInvite = async () => {
@@ -59,7 +72,7 @@ const handleRoleChange = async (member: Member, newRole: string) => {
   error.value = null
   try {
     await membersApi.update(props.projectId, member.userId, newRole)
-    await loadFirst()
+    await Promise.all([loadFirst(), loadRole()])
   } catch (e: any) {
     error.value = e.message
   }
