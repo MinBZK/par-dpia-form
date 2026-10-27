@@ -227,7 +227,10 @@ const loadLinkedForm = async (namespace: FormType) => {
   try {
     const linkedDpiaId = (current.state as Record<string, unknown> | undefined)?._linkedDpiaId
     if (namespace === FormType.IAMA && typeof linkedDpiaId === 'string') {
-      source = await assessmentsApi.get(linkedDpiaId)
+      const linked = await assessmentsApi.get(linkedDpiaId)
+      // Only a DPIA of the same project. Anything else loaded as the source would
+      // land in the wrong namespace, and an IAMA would overwrite the open one.
+      if (linked.assessmentType === 'dpia' && linked.projectId === current.projectId) source = linked
     } else if (namespace === FormType.DPIA) {
       const { items } = await assessmentsApi.list(current.projectId, 1, 500)
       const iamas = items
@@ -246,7 +249,8 @@ const loadLinkedForm = async (namespace: FormType) => {
     return
   }
   if (!source?.state) return
-  const sourceNamespace = source.assessmentType === 'dpia' ? FormType.DPIA : FormType.IAMA
+  // The counterpart of the open form, never the open form itself.
+  const sourceNamespace = namespace === FormType.IAMA ? FormType.DPIA : FormType.IAMA
   applySourceForm(
     source.state as AssessmentState,
     sourceNamespace,

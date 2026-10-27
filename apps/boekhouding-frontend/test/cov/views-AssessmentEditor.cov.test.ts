@@ -398,6 +398,20 @@ describe('AssessmentEditor — onMounted initialization', () => {
       wrapper.unmount()
     })
 
+    it('ignores a link to anything but a DPIA of the same project', async () => {
+      for (const target of [
+        makeAssessment({ id: LINKED, assessmentType: 'iama', state: iamaState() }),
+        makeAssessment({ id: LINKED, assessmentType: 'dpia', projectId: 'ander-project', state: dpiaState }),
+      ]) {
+        assessmentsApi.get
+          .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: iamaState(LINKED) }))
+          .mockResolvedValueOnce(target)
+        const wrapper = await mountEditor()
+        wrapper.unmount()
+      }
+      expect(applySourceForm).not.toHaveBeenCalled()
+    })
+
     it('loads the most recently edited IAMA of the project that links to a DPIA', async () => {
       assessmentsApi.list.mockResolvedValueOnce({
         items: [
