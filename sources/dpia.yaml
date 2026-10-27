@@ -113,8 +113,8 @@ tasks:
               type:
                 - text_input
               repeatable: false
-            - task: Bron persoonsgegevens
-              description: Zijn de persoonsgegevens via een derde partij gekomen?
+            - task: Bron betrokkenen
+              description: Zijn de persoonsgegevens via een betrokken partij gekomen?
               id: "2.1.6"
               type:
                 - radio_option

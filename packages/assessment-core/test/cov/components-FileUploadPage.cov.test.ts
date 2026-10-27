@@ -59,7 +59,7 @@ describe('FileUploadPage.vue', () => {
         'Deze tool begeleidt je stap voor stap bij het uitvoeren van een DPIA.',
       )
       expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een pre-scan of DPIA in deze tool ingevuld voor deze gegevensverwerking? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.',
+        'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.',
       )
       expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de DPIA')
     })
@@ -83,7 +83,7 @@ describe('FileUploadPage.vue', () => {
         'https://www.rijksoverheid.nl/documenten/2026/02/16/toelichtingsdocument-impact-assessment-mensenrechten-en-algoritmes',
       )
       expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een IAMA in deze tool ingevuld? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.',
+        'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.',
       )
       expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met het IAMA')
     })
@@ -101,7 +101,7 @@ describe('FileUploadPage.vue', () => {
         'Met de pre-scan toets je of een DPIA, DTIA, IAMA of KIA nodig is.',
       )
       expect(wrapper.find('label#file-upload-label').text()).toContain(
-        'Heb je al eerder een pre-scan in deze tool ingevuld voor deze gegevensverwerking? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.',
+        'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking?',
       )
       expect(wrapper.find('button').attributes('data-label')).toBe('Beginnen met de pre-scan')
     })

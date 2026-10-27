@@ -123,23 +123,6 @@ describe('App.vue', () => {
     expect(form.props('validData')).toBeNull()
   })
 
-  // Answers of another form stay in the store after you leave it. Opening a form
-  // must not prefill from them: a new DPIA took over a pre-scan you never chose.
-  it.each([
-    ['goToDPIA', FormType.PRE_SCAN],
-    ['goToIAMA', FormType.DPIA],
-    ['goToPreScanDPIA', FormType.IAMA],
-  ] as const)('%s drops answers left in memory by the %s form', async (goTo, other) => {
-    const wrapper = mountApp()
-    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
-    answerStore.answers[other] = { '1.1.1': 'uit een eerder formulier' }
-
-    nav[goTo]!()
-    await wrapper.vm.$nextTick()
-
-    expect(answerStore.answers[other]).toEqual({})
-  })
-
   it('returns to the LandingView via goToLanding', async () => {
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions

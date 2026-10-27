@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { members as membersApi, projects as projectsApi, type Member } from '../api'
+import { members as membersApi, type Member } from '../api'
 import { usePaginatedList } from '../composables/usePaginatedList'
 import AppHeader from '../components/AppHeader.vue'
 
@@ -16,16 +16,6 @@ const loading = ref(true)
 const inviteEmail = ref('')
 const inviteRole = ref<'owner' | 'editor' | 'commenter' | 'viewer'>('editor')
 const error = ref<string | null>(null)
-// Every member may see who else is in the project; only owners manage it. The
-// API enforces the same split, this only decides what the page offers.
-const canManage = ref(false)
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: 'Project eigenaar',
-  editor: 'Bewerker',
-  commenter: 'Commentator',
-  viewer: 'Lezer',
-}
 
 const ownerCount = computed(() => memberList.value.filter(m => m.role === 'owner').length)
 
@@ -33,8 +23,7 @@ const isOnlyOwner = (member: Member) => member.role === 'owner' && ownerCount.va
 
 onMounted(async () => {
   try {
-    const [project] = await Promise.all([projectsApi.get(props.projectId), loadFirst()])
-    canManage.value = project.role === 'owner'
+    await loadFirst()
   } catch {
     error.value = 'Kan leden niet laden. Probeer het later opnieuw.'
   } finally {
@@ -114,7 +103,7 @@ const whoLabel = (member: Member) => {
   <div class="rvo-max-width-layout rvo-max-width-layout--md rvo-max-width-layout-inline-padding--md">
     <AppHeader backLabel="Terug naar project" :backRoute="`/project/${projectId}`" />
 
-    <h1 class="utrecht-heading-1">{{ canManage ? 'Leden beheren' : 'Leden' }}</h1>
+    <h1 class="utrecht-heading-1">Leden beheren</h1>
 
     <div v-if="loading"><p>Laden...</p></div>
 
@@ -127,12 +116,11 @@ const whoLabel = (member: Member) => {
         <div class="member-row member-row--header">
           <span class="member-col--who">Wie</span>
           <span class="member-col--role">Rol</span>
-          <span v-if="canManage" class="member-col--action"></span>
+          <span class="member-col--action"></span>
         </div>
         <div v-for="member in memberList" :key="member.userId" class="member-row">
           <span class="member-col--who">{{ whoLabel(member) }}</span>
-          <span v-if="!canManage" class="member-col--role">{{ ROLE_LABELS[member.role] }}</span>
-          <span v-else class="member-col--role">
+          <span class="member-col--role">
             <select
               :value="member.role"
               :disabled="isOnlyOwner(member)"
@@ -146,7 +134,7 @@ const whoLabel = (member: Member) => {
               <option value="viewer">Lezer</option>
             </select>
           </span>
-          <span v-if="canManage" class="member-col--action">
+          <span class="member-col--action">
             <button
               v-if="!isOnlyOwner(member)"
               class="rvo-button rvo-button--primary confirm-dialog__delete member-delete"
@@ -170,7 +158,6 @@ const whoLabel = (member: Member) => {
       <p v-if="loadError" class="version-list__error" role="alert">{{ loadError }}</p>
       <p ref="statusRef" tabindex="-1" role="status" aria-live="polite" class="sr-only">{{ loadStatus }}</p>
 
-      <template v-if="canManage">
       <h2 class="utrecht-heading-2">Lid toevoegen</h2>
 
       <form @submit.prevent="handleInvite">
@@ -188,7 +175,6 @@ const whoLabel = (member: Member) => {
         </div>
         <button class="rvo-button rvo-button--primary rvo-button--size-md" type="submit">Toevoegen</button>
       </form>
-      </template>
     </template>
   </div>
 

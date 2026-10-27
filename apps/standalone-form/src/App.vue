@@ -44,23 +44,26 @@ const navigateTo = (view: ViewState) => {
   currentView.value = view
 }
 
-// The form reloads its own answers from localStorage on mount. Answers of the
-// other forms are cleared first: left in the store, they would prefill this
-// form through its references (a pre-scan you filled in earlier ending up in a
-// new DPIA). A pre-scan reaches a DPIA only through the upload on its start page.
-const openForm = (namespace: FormType, view: ViewState) => {
-  answerStore.reset()
-  taskStore.setActiveNamespace(namespace)
-  answerStore.setActiveNamespace(namespace)
-  taskStore.isInitialized[namespace] = false
-  navigateTo(view)
-}
-
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => navigateTo(ViewState.Landing),
-  goToDPIA: () => openForm(FormType.DPIA, ViewState.DPIA),
-  goToPreScanDPIA: () => openForm(FormType.PRE_SCAN, ViewState.PreScanDPIA),
-  goToIAMA: () => openForm(FormType.IAMA, ViewState.IAMA),
+  goToDPIA: () => {
+    taskStore.setActiveNamespace(FormType.DPIA)
+    answerStore.setActiveNamespace(FormType.DPIA)
+    taskStore.isInitialized[FormType.DPIA] = false
+    navigateTo(ViewState.DPIA)
+  },
+  goToPreScanDPIA: () => {
+    taskStore.setActiveNamespace(FormType.PRE_SCAN)
+    answerStore.setActiveNamespace(FormType.PRE_SCAN)
+    taskStore.isInitialized[FormType.PRE_SCAN] = false
+    navigateTo(ViewState.PreScanDPIA)
+  },
+  goToIAMA: () => {
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.isInitialized[FormType.IAMA] = false
+    navigateTo(ViewState.IAMA)
+  },
 }
 
 // "Nieuwe starten": discard the saved session, then open a fresh form.
