@@ -31,6 +31,9 @@ build) staan kort onder "Onder de motorkap".
 * In de DPIA heet het veld bij persoonsgegevens (vraag 2) nu "Bron
   persoonsgegevens" in plaats van "Bron betrokkenen", met de vraag of de
   persoonsgegevens via een derde partij zijn gekomen.
+* Bij het inladen van een eerdere pre-scan, DPIA of IAMA staat nu dat dit
+  alleen kan met een PDF- of JSON-bestand dat je in deze invulhulp hebt
+  geëxporteerd.
 
 ### Beveiliging
 
