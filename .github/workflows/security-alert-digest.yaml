@@ -111,7 +111,7 @@ jobs:
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       # The category names the environment too: two uploads sharing one category
       # replace each other, which would leave only one environment in the tab.
-      - uses: github/codeql-action/upload-sarif@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+      - uses: github/codeql-action/upload-sarif@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
         with:
           sarif_file: trivy-${{ matrix.component }}-${{ matrix.environment }}.sarif
           category: trivy-${{ matrix.component }}-${{ matrix.environment }}
@@ -147,7 +147,7 @@ jobs:
                 installed: .InstalledVersion,
                 fixed: .FixedVersion
               } ]' "trivy-${COMPONENT}-${ENVIRONMENT}.json" > "findings-${COMPONENT}-${ENVIRONMENT}.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: findings-${{ matrix.component }}-${{ matrix.environment }}
           path: findings-${{ matrix.component }}-${{ matrix.environment }}.json
@@ -160,7 +160,7 @@ jobs:
       contents: read
       issues: write
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: findings-*
           merge-multiple: true
