@@ -17,6 +17,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Toegevoegd
 
+* Bij de start van een IAMA in een project kan je een DPIA uit dat project
+  kiezen. Waar IAMA en DPIA elkaar volgens de handreiking *Gezamenlijk gebruik
+  IAMA en Model DPIA Rijksdienst* overlappen, zie je per hoofdstuk de
+  antwoorden uit de andere, zodat je ze niet dubbel hoeft te schrijven. In het
+  formulier zonder account gebeurt dit met de DPIA en het IAMA in je browser.
+* Het blok met informatie uit een ander formulier noemt nu de bron: pre-scan,
+  DPIA of IAMA.
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
   Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
   die was.
