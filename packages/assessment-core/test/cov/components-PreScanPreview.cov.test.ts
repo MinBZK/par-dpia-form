@@ -19,15 +19,22 @@ vi.mock('../../src/composables/usePreScanReferences', () => ({
 
 // Import AFTER the mock is registered so the component picks up the stub.
 import PreScanPreview from '../../src/components/PreScanPreview.vue'
+import { FormType } from '../../src/models/dpia'
 
 interface PreviewItem {
+  sourceNamespace: FormType
   taskId: string
   taskTitle: string
   answer: AnswerValue
 }
 
-function item(taskId: string, taskTitle: string, answer: AnswerValue): PreviewItem {
-  return { taskId, taskTitle, answer }
+function item(
+  taskId: string,
+  taskTitle: string,
+  answer: AnswerValue,
+  sourceNamespace: FormType = FormType.PRE_SCAN,
+): PreviewItem {
+  return { sourceNamespace, taskId, taskTitle, answer }
 }
 
 async function mountPreview(dpiaTaskId = '2.1') {
@@ -84,6 +91,26 @@ describe('PreScanPreview hasPreScanData (v-if)', () => {
     expect(entries).toHaveLength(2)
     expect(entries[0].text()).toContain('1.1. Eerste')
     expect(entries[1].text()).toContain('1.3. Tweede')
+  })
+})
+
+describe('PreScanPreview per source form', () => {
+  it('shows one block per form the answers come from, in a fixed order', async () => {
+    previewHolder.getPreviewDataForSection.mockReturnValue([
+      item('16.1.1', 'Beschrijving van het risico', 'Uitsluiting', FormType.DPIA),
+      item('3.5.2', 'Nadelige effecten', 'Stigmatisering', FormType.IAMA),
+      item('0.2', 'Beschrijving', 'Aanvragen', FormType.PRE_SCAN),
+    ])
+
+    const wrapper = await mountPreview('2')
+
+    const titles = wrapper.findAll('h3').map((h) => h.text())
+    expect(titles).toEqual(['Informatie uit pre-scan', 'Informatie uit de DPIA', 'Informatie uit het IAMA'])
+    const blocks = wrapper.findAll('.rvo-accordion')
+    expect(blocks[1].text()).toContain('In de gekoppelde DPIA staat informatie die mogelijk relevant is.')
+    expect(blocks[1].text()).toContain('16.1.1. Beschrijving van het risico')
+    expect(blocks[2].text()).toContain('In het gekoppelde IAMA staat informatie die mogelijk relevant is.')
+    expect(blocks[2].text()).toContain('Stigmatisering')
   })
 })
 

@@ -175,30 +175,16 @@ describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
     expect(preview.props('dpiaTaskId')).toBe('1')
   })
 
-  it('hides PreScanPreview when a prescan task has no DPIA references', () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    const prescanTasks: Task[] = [
-      {
-        id: '1',
-        task: 'Pre-scan vraag',
-        type: ['text_input'],
-      },
-    ]
-    taskStore.init(prescanTasks, true)
-
-    taskStore.setActiveNamespace(FormType.DPIA)
-    answerStore.setActiveNamespace(FormType.DPIA)
-    const dpiaTasks: Task[] = [
-      { id: '1', task: 'DPIA sectie', type: ['text_input'], is_official_id: true },
-    ]
-    taskStore.init(dpiaTasks, true)
+  it('shows PreScanPreview in the IAMA, which previews the linked DPIA', () => {
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.init([{ id: '1', task: 'Deel 1', type: ['text_input'] }], true)
 
     const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'PreScanPreview' }).props('dpiaTaskId')).toBe('1')
   })
 
-  it('hides PreScanPreview when the active namespace is not DPIA', () => {
+  it('hides PreScanPreview in the pre-scan, which previews no other form', () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     const prescanTasks: Task[] = [
@@ -1027,7 +1013,7 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
     return (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
   }
 
-  it('hasPreScanReferences short-circuits to false for a DPIA signing task', () => {
+  it('shouldShowPreScanPreview is false for a DPIA signing task', () => {
     // The signing template branch never reads shouldShowPreScanPreview, so the
     // signing guard is only reachable by evaluating the computed directly.
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
@@ -1050,7 +1036,6 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
 
     const wrapper = mountSection('1')
     const ss = setupState(wrapper)
-    expect(ss.hasPreScanReferences as boolean).toBe(false)
     expect(ss.shouldShowPreScanPreview as boolean).toBe(false)
   })
 

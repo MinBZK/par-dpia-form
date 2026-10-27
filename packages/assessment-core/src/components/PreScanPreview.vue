@@ -1,36 +1,45 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { FormType } from '../models/dpia'
-import { usePreScanReferences, type PreScanReference } from '../composables/usePreScanReferences'
-import { useAnswerStore, type AnswerValue } from '../stores/answers'
-import { useTaskStore } from '../stores/tasks'
-import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
+import { usePreScanReferences } from '../composables/usePreScanReferences'
+import type { PreviewItem } from '../composables/useReferences'
+import type { AnswerValue } from '../stores/answers'
 
+// Answers from another form that relate to this section, read-only: the
+// pre-scan inside the DPIA, the linked DPIA inside the IAMA and the other way
+// round. One block per source form.
 const props = defineProps<{
   dpiaTaskId: string
 }>()
 
-const answerStore = useAnswerStore()
-const taskStore = useTaskStore()
-
-interface PreScanDataItem {
-  taskId: string;
-  taskTitle: string;
-  answer: AnswerValue;
-}
+const SOURCES: { namespace: FormType; title: string; teaser: string }[] = [
+  {
+    namespace: FormType.PRE_SCAN,
+    title: 'Informatie uit pre-scan',
+    teaser: 'Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.',
+  },
+  {
+    namespace: FormType.DPIA,
+    title: 'Informatie uit de DPIA',
+    teaser: 'In de gekoppelde DPIA staat informatie die mogelijk relevant is.',
+  },
+  {
+    namespace: FormType.IAMA,
+    title: 'Informatie uit het IAMA',
+    teaser: 'In het gekoppelde IAMA staat informatie die mogelijk relevant is.',
+  },
+]
 
 const { getPreviewDataForSection } = usePreScanReferences()
-const preScanAnswers = ref<PreScanDataItem[]>([])
-const hasPreScanData = computed(() => preScanAnswers.value.length > 0)
 
-// Load Pre-scan answers that reference this DPIA section
-const loadPreScanAnswers = () => {
-  preScanAnswers.value = getPreviewDataForSection(props.dpiaTaskId)
-}
-
-
-onMounted(loadPreScanAnswers)
-watch(() => props.dpiaTaskId, loadPreScanAnswers)
+// Computed rather than loaded once: the other form's answers may arrive after
+// this section is shown.
+const groups = computed(() => {
+  const items: PreviewItem[] = getPreviewDataForSection(props.dpiaTaskId)
+  return SOURCES
+    .map((source) => ({ ...source, items: items.filter((item) => item.sourceNamespace === source.namespace) }))
+    .filter((group) => group.items.length > 0)
+})
 
 // Format answer for display
 const formatAnswer = (answer: AnswerValue): string => {
@@ -56,7 +65,7 @@ const formatAnswer = (answer: AnswerValue): string => {
 }
 </script>
 <template>
-  <div v-if="hasPreScanData" class="rvo-accordion">
+  <div v-for="group in groups" :key="group.namespace" class="rvo-accordion">
     <details class="rvo-accordion__item" open>
       <summary class="rvo-accordion__item-summary">
         <div class="rvo-accordion__item-icon">
@@ -69,16 +78,15 @@ const formatAnswer = (answer: AnswerValue): string => {
         </div>
         <div class="rvo-accordion__item-title-container">
           <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-            Informatie uit pre-scan
+            {{ group.title }}
           </h3>
-          <div class="rvo-accordion-teaser">Je hebt in de pre-scan informatie ingevuld die mogelijk
-            relevant is.</div>
+          <div class="rvo-accordion-teaser">{{ group.teaser }}</div>
         </div>
       </summary>
       <div class="rvo-accordion__content">
-        <div v-for="item in preScanAnswers" :key="item.taskId">
+        <div v-for="item in group.items" :key="item.taskId">
           <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
-          <!-- Pre-scan answers are user input; render as text to prevent stored XSS. -->
+          <!-- Answers from another form are user input; render as text to prevent stored XSS. -->
           <p>{{ formatAnswer(item.answer) }}</p>
         </div>
       </div>

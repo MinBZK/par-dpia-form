@@ -43,6 +43,11 @@ export interface PreScanReference {
   dpiaTaskId: string
 }
 
+// A preview item also names the form it comes from, so the preview can say so.
+export interface PreviewItem extends PreScanReference {
+  sourceNamespace: FormType
+}
+
 export interface ReferenceSuggestion {
   sourceTaskId: string
   sourceTaskTitle: string
@@ -124,17 +129,24 @@ export function useReferences() {
   }
 
   // Cross-form preview data for a whole section: preview-type references coming
-  // from another form (e.g. pre-scan answers shown read-only inside the DPIA).
-  const getPreviewDataForSection = (sectionTaskId: string): PreScanReference[] => {
-    return findReferences(sectionTaskId, { matchBySection: true })
-      .filter(({ scope, reference }) => scope === 'cross' && PREVIEW_TYPES.includes(reference.type))
-      .map(({ sourceTask, reference, answer }) => ({
+  // from another form (pre-scan answers inside the DPIA, DPIA answers inside the
+  // IAMA and the other way round). A source task linked to several questions of
+  // the section is listed once.
+  const getPreviewDataForSection = (sectionTaskId: string): PreviewItem[] => {
+    const items: PreviewItem[] = []
+    for (const { sourceNamespace, sourceTask, reference, scope, answer } of findReferences(sectionTaskId, { matchBySection: true })) {
+      if (scope !== 'cross' || !PREVIEW_TYPES.includes(reference.type)) continue
+      if (items.some((item) => item.sourceNamespace === sourceNamespace && item.taskId === sourceTask.id)) continue
+      items.push({
+        sourceNamespace,
         taskId: sourceTask.id,
         taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
         answer,
         referenceType: reference.type,
         dpiaTaskId: reference.id,
-      }))
+      })
+    }
+    return items
   }
 
   return {

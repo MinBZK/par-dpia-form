@@ -67,21 +67,10 @@ const firstAccordionChildId = computed<string | null>(() => {
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
 
-const hasPreScanReferences = computed(() => {
-  if (activeNamespace.value !== FormType.DPIA) return false;
-
-  if (isSigningTask.value) return false;
-
-  const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN));
-
-  // If we're looking at root task "1", check for references to "1", "1.1", "1.2", etc.
-  return preScanTasks.some(task =>
-    task.references &&
-    task.references.DPIA
-  )
-})
-
-const shouldShowPreScanPreview = computed(() => hasPreScanReferences.value)
+// The DPIA and the IAMA show answers from another form; the preview itself
+// stays empty when that form has nothing for this section.
+const shouldShowPreScanPreview = computed(() =>
+  [FormType.DPIA, FormType.IAMA].includes(activeNamespace.value) && !isSigningTask.value)
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
