@@ -50,7 +50,9 @@ const navigateTo = (view: ViewState) => {
 // its start page. The form's own answers stay, in case saving them failed.
 const openForm = (namespace: FormType, view: ViewState) => {
   for (const other of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
-    if (other !== namespace) answerStore.answers[other] = {}
+    // Only what is safely in browser storage (it reloads from there when that
+    // form opens). A form whose save failed keeps its answers in memory.
+    if (other !== namespace && persistence.hasSavedState(other)) answerStore.answers[other] = {}
   }
   taskStore.setActiveNamespace(namespace)
   answerStore.setActiveNamespace(namespace)
@@ -79,9 +81,12 @@ const startFresh = (type: FormType) => {
 
 // Wiping every namespace at once, for someone leaving a shared computer.
 const clearAll = () => {
-  ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
-  // Also what is still in memory: the next person on this computer must not see it.
+  // Also what is still in memory: the next person on this computer must not see
+  // it. The task store first, so the save watcher sees no open form and does not
+  // write the emptied state straight back.
+  taskStore.reset()
   answerStore.reset()
+  ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
   refreshCachedTypes()
 }
 

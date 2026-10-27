@@ -130,6 +130,7 @@ describe('App.vue', () => {
     ['goToIAMA', FormType.DPIA],
     ['goToPreScanDPIA', FormType.IAMA],
   ] as const)('%s drops answers left in memory by the %s form', async (goTo, other) => {
+    localStorage.setItem(storageKey(other), JSON.stringify({ answers: { '1.1.1': { value: 'opgeslagen' } } }))
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
     answerStore.answers[other] = { '1.1.1': 'uit een eerder formulier' }
@@ -138,6 +139,17 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
 
     expect(answerStore.answers[other]).toEqual({})
+  })
+
+  it('keeps the answers of another form whose save failed, so they are not lost', async () => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    answerStore.answers[FormType.DPIA] = { '1.1': 'niet opgeslagen, opslag vol' }
+
+    nav.goToPreScanDPIA()
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[FormType.DPIA]).toEqual({ '1.1': 'niet opgeslagen, opslag vol' })
   })
 
   it('keeps the answers of the form it reopens, which may not have been saved', async () => {
@@ -223,8 +235,10 @@ describe('App.vue — cached sessions (#322)', () => {
 
     for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
       expect(localStorage.getItem(storageKey(type))).toBeNull()
-      // Nothing left in memory for the next person either.
+      // Nothing left in memory for the next person either, and no open form for
+      // the save watcher to write back.
       expect(useAnswerStore().answers[type]).toEqual({})
+      expect(useTaskStore().isInitialized[type]).toBe(false)
     }
     // The button disappears together with the data it was there to wipe.
     expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(0)
