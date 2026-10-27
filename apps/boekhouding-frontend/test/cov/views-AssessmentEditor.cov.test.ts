@@ -361,92 +361,92 @@ describe('AssessmentEditor — onMounted initialization', () => {
     wrapper.unmount()
   })
 
-  describe('linked DPIA and IAMA', () => {
-    const LINKED = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'
+  describe('linked assessments', () => {
+    const DPIA_ID = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'
     const dpiaState = { metadata: { createdAt: 't' }, answers: { '5.1.1': { value: 'Doel' } } }
-    const iamaState = (link?: string) => ({ metadata: { createdAt: 't' }, answers: {}, ...(link && { _linkedDpiaId: link }) })
+    const withLinks = (...ids: string[]) => ({ metadata: { createdAt: 't' }, answers: {}, _linkedAssessmentIds: ids })
+    const listed = (...items: ReturnType<typeof makeAssessment>[]) =>
+      assessmentsApi.list.mockResolvedValueOnce({ items, total: items.length })
 
     beforeEach(() => {
       schemaStore.isInitialized = true
       schemaStore.getSchema.mockImplementation((ns: string) => ({ tasks: [{ id: ns }] }))
     })
 
-    it('loads the DPIA an IAMA is linked to as the source of its preview', async () => {
+    it('loads the DPIA an IAMA links to as the source of its preview', async () => {
+      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
       assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: iamaState(LINKED) }))
-        .mockResolvedValueOnce(makeAssessment({ id: LINKED, assessmentType: 'dpia', state: dpiaState }))
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks(DPIA_ID) }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
       const wrapper = await mountEditor()
 
-      expect(assessmentsApi.get).toHaveBeenLastCalledWith(LINKED)
+      expect(assessmentsApi.list).toHaveBeenCalledWith('p1', 1, 500)
       expect(applySourceForm).toHaveBeenCalledWith(
         dpiaState, FormTypeMock.DPIA, [{ id: FormTypeMock.DPIA }], taskStore, answerStore,
       )
       wrapper.unmount()
     })
 
-    it('loads nothing for an IAMA without a link, or whose DPIA is empty', async () => {
-      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: iamaState() }))
-      let wrapper = await mountEditor()
-      expect(assessmentsApi.get).toHaveBeenCalledTimes(1)
-      wrapper.unmount()
-
-      assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: iamaState(LINKED) }))
-        .mockResolvedValueOnce(makeAssessment({ id: LINKED, assessmentType: 'dpia' }))
-      wrapper = await mountEditor()
-      expect(applySourceForm).not.toHaveBeenCalled()
-      wrapper.unmount()
-    })
-
-    it('ignores a link to anything but a DPIA of the same project', async () => {
-      for (const target of [
-        makeAssessment({ id: LINKED, assessmentType: 'iama', state: iamaState() }),
-        makeAssessment({ id: LINKED, assessmentType: 'dpia', projectId: 'ander-project', state: dpiaState }),
-      ]) {
-        assessmentsApi.get
-          .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: iamaState(LINKED) }))
-          .mockResolvedValueOnce(target)
-        const wrapper = await mountEditor()
-        wrapper.unmount()
-      }
-      expect(applySourceForm).not.toHaveBeenCalled()
-    })
-
-    it('loads the most recently edited IAMA of the project that links to a DPIA', async () => {
-      assessmentsApi.list.mockResolvedValueOnce({
-        items: [
-          makeAssessment({ id: 'ps', assessmentType: 'prescan', updatedAt: '2026-03-01T00:00:00Z' }),
-          makeAssessment({ id: 'iama-oud', assessmentType: 'iama', updatedAt: '2026-01-01T00:00:00Z' }),
-          makeAssessment({ id: 'iama-ander', assessmentType: 'iama', updatedAt: '2026-03-01T00:00:00Z' }),
-          makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', updatedAt: '2026-02-01T00:00:00Z' }),
-        ],
-        total: 4,
-      })
-      const linked = makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', state: iamaState('a1') })
+    it('loads, per form type, the most recently edited assessment that links to the open one', async () => {
+      listed(
+        makeAssessment({ id: 'iama-oud', assessmentType: 'iama', updatedAt: '2026-01-01T00:00:00Z' }),
+        makeAssessment({ id: 'iama-ander', assessmentType: 'iama', updatedAt: '2026-03-01T00:00:00Z' }),
+        makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', updatedAt: '2026-02-01T00:00:00Z' }),
+      )
+      const linked = makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', state: withLinks('a1') })
       assessmentsApi.get
         .mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: {} }))
-        .mockResolvedValueOnce(makeAssessment({ id: 'iama-ander', assessmentType: 'iama', state: iamaState(LINKED) }))
+        .mockResolvedValueOnce(makeAssessment({ id: 'iama-ander', assessmentType: 'iama', state: withLinks(DPIA_ID) }))
         .mockResolvedValueOnce(linked)
       const wrapper = await mountEditor()
 
-      expect(assessmentsApi.list).toHaveBeenCalledWith('p1', 1, 500)
+      // iama-oud is never fetched: the IAMA slot is already taken.
       expect(assessmentsApi.get.mock.calls.map((call) => call[0])).toEqual(['a1', 'iama-ander', 'iama-nieuw'])
+      expect(applySourceForm).toHaveBeenCalledTimes(1)
       expect(applySourceForm).toHaveBeenCalledWith(
         linked.state, FormTypeMock.IAMA, [{ id: FormTypeMock.IAMA }], taskStore, answerStore,
       )
       wrapper.unmount()
     })
 
-    it('opens the DPIA without a preview when no IAMA links to it or the lookup fails', async () => {
-      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: {} }))
-      let wrapper = await mountEditor()
+    it('never takes the open assessment, one of its own type or a pre-scan as a source', async () => {
+      listed(
+        makeAssessment({ id: 'a1', assessmentType: 'iama' }),
+        makeAssessment({ id: 'iama-2', assessmentType: 'iama' }),
+        makeAssessment({ id: 'ps', assessmentType: 'prescan' }),
+      )
+      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks('a1', 'iama-2', 'ps') }))
+      const wrapper = await mountEditor()
+
+      expect(assessmentsApi.get).toHaveBeenCalledTimes(1)
       expect(applySourceForm).not.toHaveBeenCalled()
       wrapper.unmount()
+    })
 
+    it('skips a linked assessment without state, and one that is not linked at all', async () => {
+      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+      assessmentsApi.get
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks(DPIA_ID) }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+      let wrapper = await mountEditor()
+      wrapper.unmount()
+
+      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+      assessmentsApi.get
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama' }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+      wrapper = await mountEditor()
+      wrapper.unmount()
+
+      expect(applySourceForm).not.toHaveBeenCalled()
+    })
+
+    it('opens the form without a preview when the lookup fails', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       assessmentsApi.list.mockRejectedValueOnce(new Error('netwerk'))
       assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: {} }))
-      wrapper = await mountEditor()
+      const wrapper = await mountEditor()
+
       expect(warn).toHaveBeenCalledWith('Linked assessment not loaded:', expect.any(Error))
       expect(applySourceForm).not.toHaveBeenCalled()
       expect(wrapper.find('.form-stub').exists()).toBe(true)

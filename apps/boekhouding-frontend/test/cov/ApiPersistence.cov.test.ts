@@ -728,12 +728,12 @@ describe('saveAppState — success path', () => {
     expect(payload._prescanAnswers).toEqual({ '0.1': { value: 'prescan waarde', lastEditedAt: 't' } })
   })
 
-  it('keeps the DPIA an IAMA is linked to on every save and when starting over', async () => {
+  it('keeps the linked assessments on every save and when starting over', async () => {
     const { answerStore } = initStores()
-    const linked = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'
+    const linked = ['6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b']
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 1,
-      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:iama:2.0' }, answers: {}, _linkedDpiaId: linked },
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:iama:2.0' }, answers: {}, _linkedAssessmentIds: linked },
     }))
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
 
@@ -744,10 +744,10 @@ describe('saveAppState — success path', () => {
 
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'nieuw', lastEditedAt: 't' }
     await p.saveAppState()
-    expect(mockUpdate.mock.calls[0][1]._linkedDpiaId).toBe(linked)
+    expect(mockUpdate.mock.calls[0][1]._linkedAssessmentIds).toEqual(linked)
 
     await p.clearSavedState(FormType.DPIA)
-    expect(mockUpdate.mock.calls[1][1]._linkedDpiaId).toBe(linked)
+    expect(mockUpdate.mock.calls[1][1]._linkedAssessmentIds).toEqual(linked)
   })
 
   it('builds grouped answers for repeatable tasks (buildApiState groupAnswers branch)', async () => {

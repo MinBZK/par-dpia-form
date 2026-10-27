@@ -291,7 +291,7 @@ const submitIamaDialog = async () => {
     const form = await assessmentsApi.create(props.projectId, 'iama', undefined, {
       metadata: { createdAt: new Date().toISOString() },
       answers: {},
-      _linkedDpiaId: selectedDpiaId.value,
+      _linkedAssessmentIds: [selectedDpiaId.value],
     })
     router.push(`/assessment/${form.id}`)
     return

@@ -1,4 +1,4 @@
-const STATE_KEYS = ['$schema', 'metadata', 'answers', '_prescanAnswers', '_linkedDpiaId'] as const
+const STATE_KEYS = ['$schema', 'metadata', 'answers', '_prescanAnswers', '_linkedAssessmentIds'] as const
 const METADATA_KEYS = ['urn', 'createdAt', 'createdBy', 'completedTasks'] as const
 
 function pick(

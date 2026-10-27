@@ -217,47 +217,51 @@ const navigationFunctions: NavigationFunctions = {
   goToDPIA: () => {},
 }
 
-// An IAMA started from a DPIA of the project, and that DPIA, show each other's
-// answers where the two overlap (the pre-view references in sources/*.yaml).
-// The IAMA holds the link; a DPIA takes the most recently edited IAMA that
-// points at it. Only a preview: the form works the same without it.
-const loadLinkedForm = async (namespace: FormType) => {
+// Assessments of one project can be linked (_linkedAssessmentIds, set when an
+// IAMA is started from a DPIA). Linked forms show each other's answers where
+// their questions overlap (the pre-view references in sources/*.yaml), in both
+// directions: the assessments this one links to, and those that link to it.
+// Per form type the most recently edited one is used. Only a preview: the form
+// works the same without it.
+const linkedIds = (state: unknown): string[] => {
+  const ids = (state as Record<string, unknown> | undefined)?._linkedAssessmentIds
+  return Array.isArray(ids) ? ids : []
+}
+
+const loadLinkedForms = async () => {
   const current = assessment.value!
-  let source: AssessmentInstance | undefined
+  const outgoing = linkedIds(current.state)
+  const sources = new Map<FormType, AssessmentInstance>()
   try {
-    const linkedDpiaId = (current.state as Record<string, unknown> | undefined)?._linkedDpiaId
-    if (namespace === FormType.IAMA && typeof linkedDpiaId === 'string') {
-      const linked = await assessmentsApi.get(linkedDpiaId)
-      // Only a DPIA of the same project. Anything else loaded as the source would
-      // land in the wrong namespace, and an IAMA would overwrite the open one.
-      if (linked.assessmentType === 'dpia' && linked.projectId === current.projectId) source = linked
-    } else if (namespace === FormType.DPIA) {
-      const { items } = await assessmentsApi.list(current.projectId, 1, 500)
-      const iamas = items
-        .filter((item) => item.assessmentType === 'iama')
-        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-      for (const iama of iamas) {
-        const full = await assessmentsApi.get(iama.id)
-        if ((full.state as Record<string, unknown> | undefined)?._linkedDpiaId === current.id) {
-          source = full
-          break
-        }
+    const { items } = await assessmentsApi.list(current.projectId, 1, 500)
+    const candidates = items
+      // Another form type than the open one: its answers go to their own
+      // namespace and can never overwrite the open form. The pre-scan reaches
+      // a DPIA through _prescanAnswers instead.
+      .filter((item) => item.id !== current.id && item.assessmentType !== current.assessmentType && item.assessmentType !== 'prescan')
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    for (const item of candidates) {
+      const sourceNamespace = assessmentTypeMap[item.assessmentType]
+      if (sources.has(sourceNamespace)) continue
+      const full = await assessmentsApi.get(item.id)
+      if (outgoing.includes(item.id) || linkedIds(full.state).includes(current.id)) {
+        sources.set(sourceNamespace, full)
       }
     }
   } catch (e) {
     console.warn('Linked assessment not loaded:', e)
     return
   }
-  if (!source?.state) return
-  // The counterpart of the open form, never the open form itself.
-  const sourceNamespace = namespace === FormType.IAMA ? FormType.DPIA : FormType.IAMA
-  applySourceForm(
-    source.state as AssessmentState,
-    sourceNamespace,
-    schemaStore.getSchema(sourceNamespace)!.tasks,
-    taskStore,
-    answerStore,
-  )
+  for (const [sourceNamespace, source] of sources) {
+    if (!source.state) continue
+    applySourceForm(
+      source.state as AssessmentState,
+      sourceNamespace,
+      schemaStore.getSchema(sourceNamespace)!.tasks,
+      taskStore,
+      answerStore,
+    )
+  }
 }
 
 onMounted(async () => {
@@ -304,7 +308,7 @@ onMounted(async () => {
         }
       }
     }
-    await loadLinkedForm(namespace)
+    await loadLinkedForms()
     // Load comments and sync state
     await collaborationStore.load(props.assessmentId)
     // Now that knownVersion is populated, it's safe to enable the remote-change watcher

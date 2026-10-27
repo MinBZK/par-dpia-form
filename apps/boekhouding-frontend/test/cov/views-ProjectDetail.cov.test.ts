@@ -963,7 +963,7 @@ describe('ProjectDetail', () => {
       expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama', undefined, {
         metadata: { createdAt: expect.any(String) },
         answers: {},
-        _linkedDpiaId: 'dpia1',
+        _linkedAssessmentIds: ['dpia1'],
       })
       expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
     })
