@@ -26,6 +26,12 @@ build) staan kort onder "Onder de motorkap".
 * In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
   toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
 
+### Gewijzigd
+
+* In de DPIA heet het veld bij persoonsgegevens (vraag 2) nu "Bron
+  persoonsgegevens" in plaats van "Bron betrokkenen", met de vraag of de
+  persoonsgegevens via een derde partij zijn gekomen.
+
 ### Beveiliging
 
 * Bekende kwetsbaarheden in onderdelen van de server en de invulhulp zijn
