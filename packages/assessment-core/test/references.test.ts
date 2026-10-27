@@ -192,4 +192,29 @@ describe('useReferences — reference routing', () => {
       },
     ])
   })
+
+  it('cross preview: lists every filled-in repetition, also when the first one is empty', () => {
+    initNamespace(FormType.DPIA, [
+      {
+        id: '5.1', task: 'Doeleinden', type: ['task_group'], repeatable: true,
+        tasks: [{
+          id: '5.1.1', task: 'Verwerkingsdoeleinde', type: ['open_text'],
+          references: { IAMA: [{ id: '1.1.2', type: 'pre-view' }] },
+        }],
+      },
+    ] as unknown as Task[])
+    // Three repetitions, the first one empty.
+    taskStore.addRepeatableTaskInstance('5.1')
+    taskStore.addRepeatableTaskInstance('5.1')
+    const [first, second, third] = taskStore.getInstanceIdsForTask('5.1.1')
+    expect(first).toBeDefined()
+    seedAnswer(FormType.DPIA, second, 'Aanvragen beoordelen')
+    seedAnswer(FormType.DPIA, third, 'Fraude opsporen')
+    initNamespace(FormType.IAMA, [{ id: '1.1.2', task: 'Doel', type: ['open_text'] }] as unknown as Task[])
+
+    const { getPreviewDataForSection, findReferences } = useReferences()
+
+    expect(getPreviewDataForSection('1').map((item) => item.answer)).toEqual(['Aanvragen beoordelen', 'Fraude opsporen'])
+    expect(findReferences('1.1.2')[0].answer).toBe('Aanvragen beoordelen')
+  })
 })

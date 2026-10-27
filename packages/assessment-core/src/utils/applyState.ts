@@ -43,9 +43,10 @@ export function applyStateToStores(
 }
 
 /**
- * Load another form's state as the source the active form previews from (the
- * linked DPIA inside an IAMA, or the other way round), into that form's own
- * namespace. The active form and its answers are left as they were.
+ * Load another form's state as a source the active form reads its references
+ * from (a linked pre-scan or DPIA inside a DPIA or IAMA), into that form's own
+ * namespace. The active form, its answers and its current section are left as
+ * they were, also when the state cannot be applied.
  */
 export function applySourceForm(
   state: AssessmentState,
@@ -55,13 +56,19 @@ export function applySourceForm(
   answerStore: AnswerStoreType,
 ): void {
   const active = taskStore.activeNamespace
+  // Switching back resets the active form to its first section.
+  const section = taskStore.currentRootTaskId[active]
   taskStore.setActiveNamespace(namespace)
   answerStore.setActiveNamespace(namespace)
-  taskStore.init(tasks, true)
-  applyStateToStores(state, taskStore, answerStore)
-  rebuildRepeatableInstances(taskStore, answerStore, state.answers)
-  taskStore.setActiveNamespace(active)
-  answerStore.setActiveNamespace(active)
+  try {
+    taskStore.init(tasks, true)
+    applyStateToStores(state, taskStore, answerStore)
+    rebuildRepeatableInstances(taskStore, answerStore, state.answers)
+  } finally {
+    taskStore.setActiveNamespace(active)
+    answerStore.setActiveNamespace(active)
+    taskStore.currentRootTaskId[active] = section
+  }
 }
 
 /**

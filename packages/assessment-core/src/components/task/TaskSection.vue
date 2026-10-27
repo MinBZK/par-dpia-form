@@ -4,7 +4,7 @@ import TaskGroup from './TaskGroup.vue'
 import TaskItem from './TaskItem.vue'
 import UiButton from '../ui/UiButton.vue'
 import Results from '../Results.vue'
-import PreScanPreview from '../PreScanPreview.vue'
+import LinkedFormPreview from '../LinkedFormPreview.vue'
 import { FormType } from '../../models/dpia'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
@@ -69,7 +69,7 @@ const activeNamespace = computed(() => taskStore.activeNamespace)
 
 // The DPIA and the IAMA show answers from another form; the preview itself
 // stays empty when that form has nothing for this section.
-const shouldShowPreScanPreview = computed(() =>
+const shouldShowLinkedFormPreview = computed(() =>
   [FormType.DPIA, FormType.IAMA].includes(activeNamespace.value) && !isSigningTask.value)
 
 const isRepeatable = (taskId: string) => {
@@ -254,7 +254,7 @@ function shouldSkipTask(taskId: string): boolean {
         </fieldset>
       </div>
 
-      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
+      <LinkedFormPreview v-if="shouldShowLinkedFormPreview" :sectionId="task.id" />
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">

@@ -32,7 +32,9 @@ export interface ReferenceMatch {
   sourceTask: FlatTask
   reference: TaskReference
   scope: ReferenceScope
+  // The first filled-in answer, and every filled-in answer of a repeatable source.
   answer: AnswerValue
+  answers: AnswerValue[]
 }
 
 export interface PreScanReference {
@@ -88,11 +90,13 @@ export function useReferences() {
           sourceNamespace,
           sourceTask.id,
         )
-        if (instanceIds.length === 0) continue
-        const answer = answerStore.getAnswerFromNamespace(sourceNamespace, instanceIds[0])
-        if (answer === null || answer === undefined) continue
+        // Every repetition counts, also when the first one was removed or left empty.
+        const answers = instanceIds
+          .map((instanceId) => answerStore.getAnswerFromNamespace(sourceNamespace, instanceId))
+          .filter((answer): answer is AnswerValue => answer !== null && answer !== undefined)
+        if (answers.length === 0) continue
         for (const reference of matching) {
-          results.push({ sourceNamespace, sourceTask, reference, scope, answer })
+          results.push({ sourceNamespace, sourceTask, reference, scope, answer: answers[0], answers })
         }
       }
     }
@@ -134,17 +138,20 @@ export function useReferences() {
   // the section is listed once.
   const getPreviewDataForSection = (sectionTaskId: string): PreviewItem[] => {
     const items: PreviewItem[] = []
-    for (const { sourceNamespace, sourceTask, reference, scope, answer } of findReferences(sectionTaskId, { matchBySection: true })) {
+    for (const { sourceNamespace, sourceTask, reference, scope, answers } of findReferences(sectionTaskId, { matchBySection: true })) {
       if (scope !== 'cross' || !PREVIEW_TYPES.includes(reference.type)) continue
       if (items.some((item) => item.sourceNamespace === sourceNamespace && item.taskId === sourceTask.id)) continue
-      items.push({
-        sourceNamespace,
-        taskId: sourceTask.id,
-        taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
-        answer,
-        referenceType: reference.type,
-        dpiaTaskId: reference.id,
-      })
+      // One item per filled-in repetition (each purpose, each risk).
+      for (const answer of answers) {
+        items.push({
+          sourceNamespace,
+          taskId: sourceTask.id,
+          taskTitle: getPlainTextWithoutDefinitions(sourceTask.task),
+          answer,
+          referenceType: reference.type,
+          dpiaTaskId: reference.id,
+        })
+      }
     }
     return items
   }

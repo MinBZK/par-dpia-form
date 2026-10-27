@@ -25,10 +25,10 @@ const STUBS = {
     name: 'Results',
     template: '<div class="stub-results" />',
   },
-  PreScanPreview: {
-    name: 'PreScanPreview',
-    props: ['dpiaTaskId'],
-    template: '<div class="stub-prescan-preview" :data-dpia-task-id="dpiaTaskId" />',
+  LinkedFormPreview: {
+    name: 'LinkedFormPreview',
+    props: ['sectionId'],
+    template: '<div class="stub-linked-preview" :data-section-id="sectionId" />',
   },
   UiButton: {
     name: 'UiButton',
@@ -143,8 +143,8 @@ describe('TaskSection taskDisplayTitle', () => {
   })
 })
 
-describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
-  it('shows PreScanPreview in DPIA when a prescan task references DPIA', () => {
+describe('TaskSection LinkedFormPreview', () => {
+  it('shows LinkedFormPreview in DPIA when a prescan task references DPIA', () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     const prescanTasks: Task[] = [
@@ -170,21 +170,21 @@ describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
     taskStore.init(dpiaTasks, true)
 
     const wrapper = mountSection('1')
-    const preview = wrapper.findComponent({ name: 'PreScanPreview' })
+    const preview = wrapper.findComponent({ name: 'LinkedFormPreview' })
     expect(preview.exists()).toBe(true)
-    expect(preview.props('dpiaTaskId')).toBe('1')
+    expect(preview.props('sectionId')).toBe('1')
   })
 
-  it('shows PreScanPreview in the IAMA, which previews the linked DPIA', () => {
+  it('shows LinkedFormPreview in the IAMA, which previews the linked DPIA', () => {
     taskStore.setActiveNamespace(FormType.IAMA)
     answerStore.setActiveNamespace(FormType.IAMA)
     taskStore.init([{ id: '1', task: 'Deel 1', type: ['text_input'] }], true)
 
     const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).props('dpiaTaskId')).toBe('1')
+    expect(wrapper.findComponent({ name: 'LinkedFormPreview' }).props('sectionId')).toBe('1')
   })
 
-  it('hides PreScanPreview in the pre-scan, which previews no other form', () => {
+  it('hides LinkedFormPreview in the pre-scan, which previews no other form', () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     const prescanTasks: Task[] = [
@@ -193,10 +193,10 @@ describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
     taskStore.init(prescanTasks, true)
 
     const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'LinkedFormPreview' }).exists()).toBe(false)
   })
 
-  it('hides PreScanPreview for a signing task in DPIA even when prescan references DPIA', () => {
+  it('hides LinkedFormPreview for a signing task in DPIA even when prescan references DPIA', () => {
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
     const prescanTasks: Task[] = [
@@ -217,7 +217,7 @@ describe('TaskSection hasPreScanReferences / PreScanPreview', () => {
     taskStore.init(dpiaTasks, true)
 
     const wrapper = mountSection('1')
-    expect(wrapper.findComponent({ name: 'PreScanPreview' }).exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'LinkedFormPreview' }).exists()).toBe(false)
     expect(wrapper.findComponent({ name: 'Results' }).exists()).toBe(false)
   })
 })
@@ -1013,8 +1013,8 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
     return (wrapper.vm as unknown as { $: { setupState: Record<string, unknown> } }).$.setupState
   }
 
-  it('shouldShowPreScanPreview is false for a DPIA signing task', () => {
-    // The signing template branch never reads shouldShowPreScanPreview, so the
+  it('shouldShowLinkedFormPreview is false for a DPIA signing task', () => {
+    // The signing template branch never reads shouldShowLinkedFormPreview, so the
     // signing guard is only reachable by evaluating the computed directly.
     taskStore.setActiveNamespace(FormType.PRE_SCAN)
     answerStore.setActiveNamespace(FormType.PRE_SCAN)
@@ -1036,7 +1036,7 @@ describe('TaskSection setup-scope helpers (template-unreachable branches)', () =
 
     const wrapper = mountSection('1')
     const ss = setupState(wrapper)
-    expect(ss.shouldShowPreScanPreview as boolean).toBe(false)
+    expect(ss.shouldShowLinkedFormPreview as boolean).toBe(false)
   })
 
   it('getImage returns undefined for a key absent from the imageMap', () => {

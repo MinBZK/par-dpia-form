@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { FormType } from '../models/dpia'
-import { usePreScanReferences } from '../composables/usePreScanReferences'
-import type { PreviewItem } from '../composables/useReferences'
+import { useReferences, type PreviewItem } from '../composables/useReferences'
 import type { AnswerValue } from '../stores/answers'
 
 // Answers from another form that relate to this section, read-only: the
 // pre-scan inside the DPIA, the linked DPIA inside the IAMA and the other way
 // round. One block per source form.
 const props = defineProps<{
-  dpiaTaskId: string
+  sectionId: string
 }>()
 
 const SOURCES: { namespace: FormType; title: string; teaser: string }[] = [
@@ -30,12 +29,12 @@ const SOURCES: { namespace: FormType; title: string; teaser: string }[] = [
   },
 ]
 
-const { getPreviewDataForSection } = usePreScanReferences()
+const { getPreviewDataForSection } = useReferences()
 
 // Computed rather than loaded once: the other form's answers may arrive after
 // this section is shown.
 const groups = computed(() => {
-  const items: PreviewItem[] = getPreviewDataForSection(props.dpiaTaskId)
+  const items: PreviewItem[] = getPreviewDataForSection(props.sectionId)
   return SOURCES
     .map((source) => ({ ...source, items: items.filter((item) => item.sourceNamespace === source.namespace) }))
     .filter((group) => group.items.length > 0)
@@ -84,7 +83,7 @@ const formatAnswer = (answer: AnswerValue): string => {
         </div>
       </summary>
       <div class="rvo-accordion__content">
-        <div v-for="item in group.items" :key="item.taskId">
+        <div v-for="(item, index) in group.items" :key="`${item.taskId}-${index}`">
           <p><strong>{{ item.taskId }}. {{ item.taskTitle }}</strong></p>
           <!-- Answers from another form are user input; render as text to prevent stored XSS. -->
           <p>{{ formatAnswer(item.answer) }}</p>
