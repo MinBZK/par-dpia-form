@@ -337,9 +337,14 @@ describe('assertImportMatchesNamespace', () => {
     expect(() => assertImportMatchesNamespace(stateWithUrn(), FormType.IAMA)).not.toThrow()
   })
 
-  it('accepts DPIA and pre-scan files interchangeably (cross-form prefill)', () => {
-    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:dpia:3.0'), FormType.PRE_SCAN)).not.toThrow()
+  it('accepts a pre-scan file in the DPIA form (its source for prefill)', () => {
     expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:prescan'), FormType.DPIA)).not.toThrow()
+  })
+
+  it('rejects a DPIA file in the pre-scan form, whose questions share numbers with it', () => {
+    expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:dpia:3.0'), FormType.PRE_SCAN)).toThrow(
+      'Dit bestand bevat geen pre-scan-gegevens.',
+    )
   })
 
   it('rejects a DPIA file in the IAMA form', () => {
@@ -356,7 +361,7 @@ describe('assertImportMatchesNamespace', () => {
 
   it('rejects an IAMA file in the pre-scan form', () => {
     expect(() => assertImportMatchesNamespace(stateWithUrn('urn:nl:iama:2.0'), FormType.PRE_SCAN)).toThrow(
-      'Dit bestand bevat geen pre-scan- of DPIA-gegevens.',
+      'Dit bestand bevat geen pre-scan-gegevens.',
     )
   })
 })
