@@ -8,7 +8,7 @@ De koppelingen uit hoofdstuk 3 van de handreiking zijn verwerkt in de invulhulp.
 ## Hoe de handreiking is verwerkt
 
 - Elke koppeling tussen een DPIA-vraag en een IAMA-vraag uit hoofdstuk 3 staat in de bronbestanden van de invulhulp (`sources/dpia.yaml` en `sources/iama.yaml`).
-- Bij de start van een IAMA in een project kies je de DPIA waar het bij hoort. Daarna ziet het IAMA per deel de antwoorden uit die DPIA, en de DPIA per hoofdstuk de antwoorden uit het IAMA. In het formulier zonder account horen de DPIA en het IAMA in dezelfde browser bij elkaar.
+- In een project koppel je een IAMA aan een DPIA, bij de start van het IAMA of later via "Koppelen aan…". Daarna ziet het IAMA per deel de antwoorden uit die DPIA, en de DPIA per hoofdstuk de antwoorden uit het IAMA. In het formulier zonder account horen de DPIA en het IAMA in dezelfde browser bij elkaar.
 - Van de DPIA worden per hoofdstuk de velden getoond die de kern van het antwoord bevatten. Bij hoofdstuk 15 (rechten van betrokkenen) staat het antwoord verdeeld over een veld per recht. Die worden niet getoond; het IAMA toont wel zijn antwoorden in de DPIA.
 - De DPIA-vragen 7 (belangen), 8 (verwerkingslocaties) en 10 (bewaartermijnen) hebben volgens de handreiking geen tegenhanger in het IAMA. Die zijn niet gekoppeld.
 
