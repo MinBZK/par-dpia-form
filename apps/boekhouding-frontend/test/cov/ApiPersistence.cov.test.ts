@@ -710,30 +710,12 @@ describe('saveAppState — success path', () => {
     expect(p.sync.knownVersion.value).toBe(4)
   })
 
-  it('includes _prescanAnswers when the active namespace is DPIA and prescan data exists', async () => {
+  it('passes the pre-scan copy of an older DPIA on unchanged, and never builds one from the store', async () => {
     const { answerStore } = initStores()
-    answerStore.answers[FormType.PRE_SCAN]['0.1'] = { value: 'prescan waarde', lastEditedAt: 't' }
-    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
-    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 2 }))
-
-    const { createApiPersistence } = await loadModule()
-    const p = createApiPersistence('a1')
-    await p.loadAppState(FormType.DPIA)
-    p.snapshotBaseline()
-
-    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'nieuw', lastEditedAt: 't' }
-    await p.saveAppState()
-
-    const payload = mockUpdate.mock.calls[0][1]
-    expect(payload._prescanAnswers).toEqual({ '0.1': { value: 'prescan waarde', lastEditedAt: 't' } })
-  })
-
-  it('keeps the linked assessments on every save and when starting over', async () => {
-    const { answerStore } = initStores()
-    const linked = ['6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b']
+    const legacy = { '0.1': { value: 'prescan waarde', lastEditedAt: 't' } }
     mockGet.mockResolvedValueOnce(getResponse({
       currentVersion: 1,
-      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:iama:2.0' }, answers: {}, _linkedAssessmentIds: linked },
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' }, answers: {}, _prescanAnswers: legacy },
     }))
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
 
@@ -741,13 +723,28 @@ describe('saveAppState — success path', () => {
     const p = createApiPersistence('a1')
     await p.loadAppState(FormType.DPIA)
     p.snapshotBaseline()
-
+    // A linked pre-scan loaded live must not end up in the saved copy.
+    answerStore.answers[FormType.PRE_SCAN]['0.2'] = { value: 'live', lastEditedAt: 't' }
     answerStore.answers[FormType.DPIA]['1.1'] = { value: 'nieuw', lastEditedAt: 't' }
     await p.saveAppState()
-    expect(mockUpdate.mock.calls[0][1]._linkedAssessmentIds).toEqual(linked)
 
-    await p.clearSavedState(FormType.DPIA)
-    expect(mockUpdate.mock.calls[1][1]._linkedAssessmentIds).toEqual(linked)
+    expect(mockUpdate.mock.calls[0][1]._prescanAnswers).toEqual(legacy)
+  })
+
+  it('saves no pre-scan copy for a DPIA without one, even with a linked pre-scan loaded', async () => {
+    const { answerStore } = initStores()
+    answerStore.answers[FormType.PRE_SCAN]['0.1'] = { value: 'live', lastEditedAt: 't' }
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    mockUpdate.mockResolvedValueOnce(getResponse({ currentVersion: 2 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'nieuw', lastEditedAt: 't' }
+    await p.saveAppState()
+
+    expect('_prescanAnswers' in mockUpdate.mock.calls[0][1]).toBe(false)
   })
 
   it('builds grouped answers for repeatable tasks (buildApiState groupAnswers branch)', async () => {

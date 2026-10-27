@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
+import { type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { usePaginatedList } from '../composables/usePaginatedList'
@@ -191,15 +191,13 @@ const assertImportTypeMatches = (
   }
 }
 
-/** Build a DPIA initial state that embeds pre-scan answers for cross-referencing.
- *  Pre-scan answers go in a separate `_prescanAnswers` field (not inside `answers`)
- *  so they don't collide with DPIA flat-format answers and usePreScanReferences
- *  can load them into the PRE_SCAN namespace. The DPIA starts with empty answers. */
-const buildPrescanState = (prescanAnswers: Record<string, unknown>): Record<string, unknown> => ({
-  metadata: { createdAt: new Date().toISOString() },
-  answers: {},
-  _prescanAnswers: prescanAnswers,
-})
+// Create an assessment and link it to others of this project: the new one then
+// shows their answers where the questions overlap (see AssessmentEditor).
+const createLinked = async (assessmentType: 'dpia' | 'iama', linkTo: string[]) => {
+  const form = await assessmentsApi.create(props.projectId, assessmentType)
+  await assessmentsApi.setLinks(form.id, linkTo)
+  router.push(`/assessment/${form.id}`)
+}
 
 const submitDialog = async () => {
   dialogError.value = null
@@ -229,25 +227,12 @@ const submitDpiaDialog = async () => {
   }
 
   if (dialogOption.value === 'prescan-project') {
-    // Option 2a: Take over answers from a project pre-scan
+    // Option 2a: link a pre-scan of this project; the DPIA reads it live
     if (!selectedPrescanId.value) {
       dialogError.value = 'Selecteer een pre-scan'
       return
     }
-    const prescanForm = await assessmentsApi.get(selectedPrescanId.value)
-    const prescanState = prescanForm.state as Record<string, unknown> | undefined
-    let prescanAnswers = prescanState?.answers as Record<string, unknown> | undefined
-    // Unwrap old namespace-wrapped format: { prescan: { "0.1": ... } } → { "0.1": ... }
-    if (prescanAnswers?.[FormType.PRE_SCAN] && typeof prescanAnswers[FormType.PRE_SCAN] === 'object') {
-      prescanAnswers = prescanAnswers[FormType.PRE_SCAN] as Record<string, unknown>
-    }
-    if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
-      dialogError.value = 'De geselecteerde pre-scan bevat geen ingevulde gegevens'
-      return
-    }
-    const initialState = buildPrescanState(prescanAnswers)
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
-    router.push(`/assessment/${form.id}`)
+    await createLinked('dpia', [selectedPrescanId.value])
     return
   }
 
@@ -261,13 +246,17 @@ const submitDpiaDialog = async () => {
     assertImportTypeMatches(state, ['dpia', 'prescan'])
     const importType = detectImportType(state as unknown as Record<string, unknown>)
 
-    // Pre-scan file imported to start a DPIA: wrap answers under prescan
-    // namespace so usePreScanReferences can find them; DPIA starts empty.
-    const initialState = importType === 'prescan'
-      ? buildPrescanState(state.answers as Record<string, unknown>)
-      : state
+    if (importType === 'prescan') {
+      // A pre-scan file becomes a pre-scan of the project, linked to the new
+      // DPIA, so it can be opened and kept up to date like any other.
+      const prescan = await assessmentsApi.create(
+        props.projectId, 'prescan', uploadFile.value.name.replace(/\.(json|pdf)$/i, ''), state,
+      )
+      await createLinked('dpia', [prescan.id])
+      return
+    }
 
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
+    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, state)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -282,18 +271,13 @@ const submitIamaDialog = async () => {
   }
 
   if (dialogOption.value === 'dpia-project') {
-    // Option 2: an empty IAMA linked to a DPIA of this project; each shows the
+    // Option 2: an IAMA linked to a DPIA of this project; each shows the
     // other's answers where the two overlap.
     if (!selectedDpiaId.value) {
       dialogError.value = 'Selecteer een DPIA'
       return
     }
-    const form = await assessmentsApi.create(props.projectId, 'iama', undefined, {
-      metadata: { createdAt: new Date().toISOString() },
-      answers: {},
-      _linkedAssessmentIds: [selectedDpiaId.value],
-    })
-    router.push(`/assessment/${form.id}`)
+    await createLinked('iama', [selectedDpiaId.value])
     return
   }
 
@@ -534,7 +518,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande DPIA of pre-scan
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Een pre-scan wordt als pre-scan aan het project toegevoegd en aan de DPIA gekoppeld.</span>
             </span>
           </label>
 

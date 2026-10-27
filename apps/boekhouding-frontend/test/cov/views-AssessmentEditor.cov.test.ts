@@ -58,6 +58,8 @@ const {
   const assessmentsApi = {
     get: vi.fn(),
     list: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+    links: vi.fn().mockResolvedValue({ links: [] }),
+    setLinks: vi.fn().mockResolvedValue({ links: [] }),
     rename: vi.fn(),
     delete: vi.fn(),
   }
@@ -161,6 +163,9 @@ vi.mock('@overheid-assessment/core', () => ({
   PERSISTENCE_KEY: Symbol('persistence'),
   sanitizeAnswers,
   applySourceForm,
+  // Pass-throughs: the editor's own tests only check which state goes where.
+  migrateStateV1toV2: (state: unknown) => state,
+  normalizeToState: (state: unknown) => state,
 }))
 
 vi.mock('../../src/api', () => ({
@@ -198,6 +203,12 @@ if (!HTMLDialogElement.prototype.close) {
 }
 
 const stubs = {
+  LinkAssessmentsDialog: {
+    name: 'LinkAssessmentsDialog',
+    props: ['open', 'assessment'],
+    emits: ['close', 'saved'],
+    template: '<div class="link-dialog-stub" :data-open="open" />',
+  },
   AppHeader: { name: 'AppHeader', props: ['backLabel', 'backRoute'], template: '<header class="app-header-stub" />' },
   ConflictResolutionDialog: {
     name: 'ConflictResolutionDialog',
@@ -364,196 +375,129 @@ describe('AssessmentEditor — onMounted initialization', () => {
   describe('linked assessments', () => {
     const DPIA_ID = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'
     const dpiaState = { metadata: { createdAt: 't' }, answers: { '5.1.1': { value: 'Doel' } } }
-    const withLinks = (...ids: string[]) => ({ metadata: { createdAt: 't' }, answers: {}, _linkedAssessmentIds: ids })
-    const listed = (...items: ReturnType<typeof makeAssessment>[]) =>
-      assessmentsApi.list.mockResolvedValueOnce({ items, total: items.length })
+    const link = (assessmentId: string, assessmentType: string, direction = 'outgoing') =>
+      ({ assessmentId, assessmentType, name: assessmentId, updatedAt: 't', direction })
 
     beforeEach(() => {
       schemaStore.isInitialized = true
       schemaStore.getSchema.mockImplementation((ns: string) => ({ tasks: [{ id: ns }] }))
     })
 
-    it('loads the DPIA an IAMA links to as the source of its preview', async () => {
-      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+    it('loads the linked assessments of another type as sources, the first per type', async () => {
+      assessmentsApi.links.mockResolvedValueOnce({ links: [
+        link(DPIA_ID, 'dpia'),
+        link('dpia-oud', 'dpia', 'incoming'),
+        link('ps1', 'prescan', 'incoming'),
+        link('iama-2', 'iama'),
+      ] })
+      const prescanState = { metadata: { createdAt: 't' }, answers: { '0.2': { value: 'P' } } }
       assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks(DPIA_ID) }))
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
         .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+        .mockResolvedValueOnce(makeAssessment({ id: 'ps1', assessmentType: 'prescan', state: prescanState }))
       const wrapper = await mountEditor()
 
-      expect(assessmentsApi.list).toHaveBeenCalledWith('p1', 1, 500)
-      expect(applySourceForm).toHaveBeenCalledWith(
-        dpiaState, FormTypeMock.DPIA, [{ id: FormTypeMock.DPIA }], taskStore, answerStore,
-      )
+      expect(assessmentsApi.links).toHaveBeenCalledWith('a1')
+      // Not dpia-oud (the DPIA slot is taken), not iama-2 (same type as the open form).
+      expect(assessmentsApi.get.mock.calls.map((call) => call[0])).toEqual(['a1', DPIA_ID, 'ps1'])
+      expect(applySourceForm).toHaveBeenCalledWith(dpiaState, FormTypeMock.DPIA, [{ id: FormTypeMock.DPIA }], taskStore, answerStore)
+      expect(applySourceForm).toHaveBeenCalledWith(prescanState, FormTypeMock.PRE_SCAN, [{ id: FormTypeMock.PRE_SCAN }], taskStore, answerStore)
       wrapper.unmount()
     })
 
-    it('loads, per form type, the most recently edited assessment that links to the open one', async () => {
-      listed(
-        makeAssessment({ id: 'iama-oud', assessmentType: 'iama', updatedAt: '2026-01-01T00:00:00Z' }),
-        makeAssessment({ id: 'iama-ander', assessmentType: 'iama', updatedAt: '2026-03-01T00:00:00Z' }),
-        makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', updatedAt: '2026-02-01T00:00:00Z' }),
-      )
-      const linked = makeAssessment({ id: 'iama-nieuw', assessmentType: 'iama', state: withLinks('a1') })
+    it('skips a linked assessment without state', async () => {
+      assessmentsApi.links.mockResolvedValueOnce({ links: [link(DPIA_ID, 'dpia')] })
       assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: {} }))
-        .mockResolvedValueOnce(makeAssessment({ id: 'iama-ander', assessmentType: 'iama', state: withLinks(DPIA_ID) }))
-        .mockResolvedValueOnce(linked)
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
       const wrapper = await mountEditor()
-
-      // iama-oud is never fetched: the IAMA slot is already taken.
-      expect(assessmentsApi.get.mock.calls.map((call) => call[0])).toEqual(['a1', 'iama-ander', 'iama-nieuw'])
-      expect(applySourceForm).toHaveBeenCalledTimes(1)
-      expect(applySourceForm).toHaveBeenCalledWith(
-        linked.state, FormTypeMock.IAMA, [{ id: FormTypeMock.IAMA }], taskStore, answerStore,
-      )
-      wrapper.unmount()
-    })
-
-    it('never takes the open assessment, one of its own type or a pre-scan as a source', async () => {
-      listed(
-        makeAssessment({ id: 'a1', assessmentType: 'iama' }),
-        makeAssessment({ id: 'iama-2', assessmentType: 'iama' }),
-        makeAssessment({ id: 'ps', assessmentType: 'prescan' }),
-      )
-      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks('a1', 'iama-2', 'ps') }))
-      const wrapper = await mountEditor()
-
-      expect(assessmentsApi.get).toHaveBeenCalledTimes(1)
       expect(applySourceForm).not.toHaveBeenCalled()
       wrapper.unmount()
     })
 
-    it('skips a linked assessment without state, and one that is not linked at all', async () => {
-      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+    it('uses the pre-scan copy of an older DPIA when no pre-scan is linked', async () => {
+      for (const state of [
+        { answers: {}, _prescanAnswers: { '1.1': { value: 'x' } } },
+        { answers: { prescan: { '1.1': { value: 'x' } } } },
+      ]) {
+        assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state }))
+        const wrapper = await mountEditor()
+        wrapper.unmount()
+      }
+      expect(applySourceForm).toHaveBeenCalledTimes(2)
+      for (const call of applySourceForm.mock.calls) {
+        expect(call[0]).toEqual({ metadata: { createdAt: '' }, answers: { '1.1': { value: 'x' } } })
+        expect(call[1]).toBe(FormTypeMock.PRE_SCAN)
+      }
+    })
+
+    it('prefers a linked pre-scan over the copy, and ignores an empty copy or one outside a DPIA', async () => {
+      const prescanState = { metadata: { createdAt: 't' }, answers: { '0.2': { value: 'live' } } }
+      assessmentsApi.links.mockResolvedValueOnce({ links: [link('ps1', 'prescan')] })
       assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: withLinks(DPIA_ID) }))
-        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: { _prescanAnswers: { '1.1': { value: 'kopie' } } } }))
+        .mockResolvedValueOnce(makeAssessment({ id: 'ps1', assessmentType: 'prescan', state: prescanState }))
       let wrapper = await mountEditor()
       wrapper.unmount()
+      expect(applySourceForm).toHaveBeenCalledTimes(1)
+      expect(applySourceForm.mock.calls[0][0]).toBe(prescanState)
 
-      listed(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia' }))
-      assessmentsApi.get
-        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama' }))
-        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: { _prescanAnswers: {} } }))
       wrapper = await mountEditor()
       wrapper.unmount()
-
-      expect(applySourceForm).not.toHaveBeenCalled()
+      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: { _prescanAnswers: { '1.1': { value: 'x' } } } }))
+      wrapper = await mountEditor()
+      wrapper.unmount()
+      expect(applySourceForm).toHaveBeenCalledTimes(1)
     })
 
-    it('opens the form without a preview when the lookup fails', async () => {
+    it('opens the form without a preview when the lookup or a source fails', async () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      assessmentsApi.list.mockRejectedValueOnce(new Error('netwerk'))
+      assessmentsApi.links.mockRejectedValueOnce(new Error('netwerk'))
       assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'dpia', state: {} }))
-      const wrapper = await mountEditor()
-
+      let wrapper = await mountEditor()
       expect(warn).toHaveBeenCalledWith('Linked assessment not loaded:', expect.any(Error))
-      expect(applySourceForm).not.toHaveBeenCalled()
+      expect(wrapper.find('.form-stub').exists()).toBe(true)
+      wrapper.unmount()
+
+      assessmentsApi.links.mockResolvedValueOnce({ links: [link(DPIA_ID, 'dpia')] })
+      assessmentsApi.get
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+      applySourceForm.mockImplementationOnce(() => { throw new Error('kapot') })
+      wrapper = await mountEditor()
+      expect(warn).toHaveBeenCalledTimes(2)
       expect(wrapper.find('.form-stub').exists()).toBe(true)
       warn.mockRestore()
       wrapper.unmount()
     })
-  })
 
-  it('initializes the pre-scan task structure from _prescanAnswers (DPIA)', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'p' }] })
-    taskStore.isInitialized = { dpia: false, prescan: false }
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { _prescanAnswers: { '1.1': { value: 'x' } } },
-    }))
-    const wrapper = await mountEditor()
-    expect(schemaStore.getSchema).toHaveBeenCalledWith(FormTypeMock.PRE_SCAN)
-    expect(taskStore.init).toHaveBeenCalledWith([{ id: 'p' }])
-    expect(answerStore.answers[FormTypeMock.PRE_SCAN]).toEqual({ '1.1': { value: 'x' } })
-    wrapper.unmount()
-  })
-
-  it('sanitizes _prescanAnswers before they reach the store', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'p' }] })
-    taskStore.isInitialized = { dpia: false, prescan: false }
-    sanitizeAnswers.mockReturnValueOnce({
-      answers: { '1.1': { value: 'x' } },
-      dropped: ['__proto__'],
-      invalidImages: [],
+    it('does not touch the stores when the editor was left before the sources arrived', async () => {
+      let resolveLinks: (value: unknown) => void = () => {}
+      assessmentsApi.links.mockReturnValueOnce(new Promise((resolve) => { resolveLinks = resolve }))
+      assessmentsApi.get
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+      const wrapper = mount(AssessmentEditor, { props: { assessmentId: 'a1' }, global: { stubs } })
+      await flushPromises()
+      wrapper.unmount()
+      resolveLinks({ links: [link(DPIA_ID, 'dpia')] })
+      await flushPromises()
+      expect(applySourceForm).not.toHaveBeenCalled()
     })
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { _prescanAnswers: { '1.1': { value: 'x' }, gesmokkeld: { value: 'nee' } } },
-    }))
-    const wrapper = await mountEditor()
 
-    expect(sanitizeAnswers).toHaveBeenCalledWith({
-      '1.1': { value: 'x' },
-      gesmokkeld: { value: 'nee' },
+    it('reloads the sources, from scratch, after the links were changed', async () => {
+      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
+      const wrapper = await mountEditor()
+      answerStore.answers[FormTypeMock.DPIA] = { '5.1.1': { value: 'ontkoppeld' } }
+      assessmentsApi.links.mockResolvedValueOnce({ links: [] })
+
+      wrapper.findComponent({ name: 'LinkAssessmentsDialog' }).vm.$emit('saved')
+      await flushPromises()
+
+      expect(answerStore.answers[FormTypeMock.DPIA]).toEqual({})
+      wrapper.unmount()
     })
-    expect(answerStore.answers[FormTypeMock.PRE_SCAN]).toEqual({ '1.1': { value: 'x' } })
-    wrapper.unmount()
-  })
-
-  it('falls back to answers.prescan when _prescanAnswers is absent', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'q' }] })
-    taskStore.isInitialized = { dpia: false, prescan: false }
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { answers: { prescan: { '2.1': { value: 'y' } } } },
-    }))
-    const wrapper = await mountEditor()
-    expect(taskStore.init).toHaveBeenCalledWith([{ id: 'q' }])
-    expect(answerStore.answers[FormTypeMock.PRE_SCAN]).toEqual({ '2.1': { value: 'y' } })
-    wrapper.unmount()
-  })
-
-  it('does not init pre-scan when the embedded answers object is empty', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'r' }] })
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { _prescanAnswers: {} },
-    }))
-    const wrapper = await mountEditor()
-    expect(taskStore.init).not.toHaveBeenCalled()
-    wrapper.unmount()
-  })
-
-  it('does not init pre-scan when the pre-scan schema is missing', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue(undefined)
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { _prescanAnswers: { '1.1': { value: 'x' } } },
-    }))
-    const wrapper = await mountEditor()
-    expect(taskStore.init).not.toHaveBeenCalled()
-    wrapper.unmount()
-  })
-
-  it('does not init pre-scan when the pre-scan task store is already initialized', async () => {
-    schemaStore.isInitialized = true
-    schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 's' }] })
-    taskStore.isInitialized = { dpia: false, prescan: true }
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'dpia',
-      state: { _prescanAnswers: { '1.1': { value: 'x' } } },
-    }))
-    const wrapper = await mountEditor()
-    expect(taskStore.init).not.toHaveBeenCalled()
-    wrapper.unmount()
-  })
-
-  it('skips pre-scan handling entirely for a prescan assessment', async () => {
-    schemaStore.isInitialized = true
-    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({
-      assessmentType: 'prescan',
-      state: { _prescanAnswers: { '1.1': { value: 'x' } } },
-    }))
-    const wrapper = await mountEditor()
-    expect(taskStore.init).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Pre-scan DPIA')
-    wrapper.unmount()
   })
 
   it('labels an IAMA assessment as "IAMA" and uses the iama namespace', async () => {
@@ -867,6 +811,30 @@ describe('AssessmentEditor — kebab menu', () => {
     const item = wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Versiegeschiedenis')!
     await item.trigger('mousedown')
     expect(routerPush).toHaveBeenCalledWith('/assessment/a1/versies')
+    wrapper.unmount()
+  })
+
+  it('opens the link dialog from the menu for an editor, and closes it again', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    await openMenu(wrapper)
+    await wrapper.findAll('.kebab-menu__item').find((b) => b.text() === 'Koppelen aan…')!.trigger('mousedown')
+    const dialog = wrapper.findComponent({ name: 'LinkAssessmentsDialog' })
+    expect(dialog.props('open')).toBe(true)
+    expect(wrapper.find('.kebab-menu__dropdown').exists()).toBe(false)
+
+    dialog.vm.$emit('close')
+    await nextTick()
+    expect(dialog.props('open')).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('offers no linking to a viewer', async () => {
+    schemaStore.isInitialized = true
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ role: 'viewer' }))
+    const wrapper = await mountEditor()
+    await openMenu(wrapper)
+    expect(wrapper.findAll('.kebab-menu__item').some((b) => b.text() === 'Koppelen aan…')).toBe(false)
     wrapper.unmount()
   })
 

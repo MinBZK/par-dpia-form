@@ -12,8 +12,9 @@ import {
   exportToMarkdown,
   exportToPdf,
   PERSISTENCE_KEY,
-  sanitizeAnswers,
   applySourceForm,
+  migrateStateV1toV2,
+  normalizeToState,
   type AssessmentState,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
@@ -21,6 +22,7 @@ import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { createApiPersistence } from '../ApiPersistence'
 import { IconArrowLeft, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
+import LinkAssessmentsDialog from '../components/LinkAssessmentsDialog.vue'
 import ConflictResolutionDialog from '../components/ConflictResolutionDialog.vue'
 import CommentBadge from '../components/CommentBadge.vue'
 import CommentPanel from '../components/CommentPanel.vue'
@@ -217,50 +219,57 @@ const navigationFunctions: NavigationFunctions = {
   goToDPIA: () => {},
 }
 
-// Assessments of one project can be linked (_linkedAssessmentIds, set when an
-// IAMA is started from a DPIA). Linked forms show each other's answers where
-// their questions overlap (the pre-view references in sources/*.yaml), in both
-// directions: the assessments this one links to, and those that link to it.
-// Per form type the most recently edited one is used. Only a preview: the form
-// works the same without it.
-const linkedIds = (state: unknown): string[] => {
-  const ids = (state as Record<string, unknown> | undefined)?._linkedAssessmentIds
-  return Array.isArray(ids) ? ids : []
-}
+// Linked assessments of the project show their answers next to this one where
+// the sources link their questions (pre-view and pre-fill references in
+// sources/*.yaml): a pre-scan inside a DPIA, a DPIA inside an IAMA and the
+// other way round. Per form type the most recently edited link counts; a link to
+// the same type is ignored, so a source never overwrites the open form. A DPIA
+// from before links existed carries its pre-scan as a copy (_prescanAnswers, or
+// answers.prescan in the oldest format), used when no pre-scan is linked.
+// Only a preview: the form works the same without it.
+let unmounted = false
 
-const loadLinkedForms = async () => {
-  const current = assessment.value!
-  const outgoing = linkedIds(current.state)
-  const sources = new Map<FormType, AssessmentInstance>()
+const loadLinkedForms = async (current: AssessmentInstance) => {
+  const sources = new Map<FormType, AssessmentState>()
   try {
-    const { items } = await assessmentsApi.list(current.projectId, 1, 500)
-    const candidates = items
-      // Another form type than the open one: its answers go to their own
-      // namespace and can never overwrite the open form. The pre-scan reaches
-      // a DPIA through _prescanAnswers instead.
-      .filter((item) => item.id !== current.id && item.assessmentType !== current.assessmentType && item.assessmentType !== 'prescan')
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    for (const item of candidates) {
-      const sourceNamespace = assessmentTypeMap[item.assessmentType]
-      if (sources.has(sourceNamespace)) continue
-      const full = await assessmentsApi.get(item.id)
-      if (outgoing.includes(item.id) || linkedIds(full.state).includes(current.id)) {
-        sources.set(sourceNamespace, full)
+    const { links } = await assessmentsApi.links(current.id)
+    const chosen = new Map<FormType, string>()
+    for (const link of links) {
+      const sourceNamespace = assessmentTypeMap[link.assessmentType]
+      if (link.assessmentType !== current.assessmentType && !chosen.has(sourceNamespace)) {
+        chosen.set(sourceNamespace, link.assessmentId)
       }
+    }
+    const loaded = await Promise.all([...chosen.values()].map((id) => assessmentsApi.get(id)))
+    for (const source of loaded) {
+      if (!source.state) continue
+      const migrated = migrateStateV1toV2(source.state as AssessmentState, {}) as unknown as Record<string, unknown>
+      sources.set(assessmentTypeMap[source.assessmentType], normalizeToState(migrated, source.assessmentType))
     }
   } catch (e) {
     console.warn('Linked assessment not loaded:', e)
-    return
   }
-  for (const [sourceNamespace, source] of sources) {
-    if (!source.state) continue
-    applySourceForm(
-      source.state as AssessmentState,
-      sourceNamespace,
-      schemaStore.getSchema(sourceNamespace)!.tasks,
-      taskStore,
-      answerStore,
-    )
+
+  const state = current.state as Record<string, unknown> | undefined
+  const legacyPrescan = (state?._prescanAnswers
+    ?? (state?.answers as Record<string, unknown> | undefined)?.[FormType.PRE_SCAN]) as AssessmentState['answers'] | undefined
+  if (current.assessmentType === 'dpia' && !sources.has(FormType.PRE_SCAN) && legacyPrescan && Object.keys(legacyPrescan).length > 0) {
+    sources.set(FormType.PRE_SCAN, { metadata: { createdAt: '' }, answers: legacyPrescan })
+  }
+
+  // The stores belong to whichever assessment is open now; a slow lookup for
+  // one that was left behind must not write into them.
+  if (unmounted || assessment.value?.id !== current.id) return
+  // Start from empty sources, so a link removed via "Koppelen aan…" disappears.
+  for (const namespace of Object.values(assessmentTypeMap)) {
+    if (namespace !== assessmentTypeMap[current.assessmentType]) answerStore.answers[namespace] = {}
+  }
+  for (const [sourceNamespace, sourceState] of sources) {
+    try {
+      applySourceForm(sourceState, sourceNamespace, schemaStore.getSchema(sourceNamespace)!.tasks, taskStore, answerStore)
+    } catch (e) {
+      console.warn('Linked assessment not loaded:', e)
+    }
   }
 }
 
@@ -286,29 +295,7 @@ onMounted(async () => {
     taskStore.setActiveNamespace(namespace)
     answerStore.setActiveNamespace(namespace)
 
-    // If this is a DPIA with embedded pre-scan answers, initialize the PRE_SCAN
-    // task structure and load answers so usePreScanReferences can work.
-    if (namespace === FormType.DPIA && assessment.value.state) {
-      const loadedState = assessment.value.state as Record<string, unknown>
-      // Support both new `_prescanAnswers` field and old `answers.prescan` format
-      const prescanAnswers = (loadedState._prescanAnswers
-        ?? (loadedState.answers as Record<string, unknown>)?.[FormType.PRE_SCAN]) as Record<string, unknown> | undefined
-      if (prescanAnswers && Object.keys(prescanAnswers).length > 0) {
-        const preScanSchema = schemaStore.getSchema(FormType.PRE_SCAN)
-        if (preScanSchema && !taskStore.isInitialized[FormType.PRE_SCAN]) {
-          const prevNamespace = taskStore.activeNamespace
-          taskStore.setActiveNamespace(FormType.PRE_SCAN)
-          answerStore.setActiveNamespace(FormType.PRE_SCAN)
-          taskStore.init(preScanSchema.tasks)
-          // These bypass applyStateToStores, so they need the same key and
-          // image check every other loaded answer gets.
-          answerStore.answers[FormType.PRE_SCAN] = sanitizeAnswers(prescanAnswers).answers as any
-          taskStore.setActiveNamespace(prevNamespace)
-          answerStore.setActiveNamespace(prevNamespace)
-        }
-      }
-    }
-    await loadLinkedForms()
+    await loadLinkedForms(assessment.value)
     // Load comments and sync state
     await collaborationStore.load(props.assessmentId)
     // Now that knownVersion is populated, it's safe to enable the remote-change watcher
@@ -367,6 +354,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent) {
 window.addEventListener('beforeunload', handleBeforeUnload)
 
 onUnmounted(() => {
+  unmounted = true
   window.removeEventListener('beforeunload', handleBeforeUnload)
   collaborationStore.reset()
 })
@@ -461,6 +449,13 @@ const handleDownloadMarkdown = async () => {
 
 const isOwner = computed(() => assessment.value?.role === 'owner')
 
+const linkDialogOpen = ref(false)
+
+const openLinkDialog = () => {
+  menuOpen.value = false
+  linkDialogOpen.value = true
+}
+
 const openDeleteModal = () => {
   menuOpen.value = false
   deleteModalOpen.value = true
@@ -536,6 +531,7 @@ const confirmDelete = async () => {
             </button>
             <div v-if="menuOpen" class="kebab-menu__dropdown" role="menu">
               <button class="kebab-menu__item" role="menuitem" @mousedown="handleVersionHistory">Versiegeschiedenis</button>
+              <button v-if="canEdit" class="kebab-menu__item" role="menuitem" @mousedown="openLinkDialog">Koppelen aan…</button>
               <div class="kebab-menu__divider"></div>
               <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadPdf">Download als PDF</button>
               <button class="kebab-menu__item" role="menuitem" @mousedown="handleDownloadJson">Download als JSON</button>
@@ -590,6 +586,14 @@ const confirmDelete = async () => {
   />
 
   <!-- Delete confirmation modal -->
+  <LinkAssessmentsDialog
+    v-if="assessment"
+    :open="linkDialogOpen"
+    :assessment="assessment"
+    @close="linkDialogOpen = false"
+    @saved="loadLinkedForms(assessment)"
+  />
+
   <dialog ref="deleteDialogRef" class="confirm-dialog" @close="deleteModalOpen = false; deleteConfirmInput = ''">
     <div class="confirm-dialog__content">
       <h2 class="utrecht-heading-2">Weet je zeker dat je deze assessment wilt verwijderen?</h2>

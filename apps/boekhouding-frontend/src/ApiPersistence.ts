@@ -58,10 +58,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
   let instancesDirty = false
   let pinnedNamespace: string | null = namespace ?? null
-  // The assessments of the project this one is linked to (e.g. the DPIA an
-  // IAMA was started from); carried on every save so the links outlive the
-  // first edit.
-  let linkedAssessmentIds: string[] | undefined
+  // Pre-scan answers a DPIA started before links existed carries as a copy.
+  // Linked pre-scans are loaded live instead, so this copy is only passed on
+  // unchanged, never rebuilt from the store.
+  let legacyPrescanAnswers: Record<string, unknown> | undefined
 
   let resolveCallback: ((resolutions: Map<string, 'mine' | 'theirs'>) => void) | null = null
 
@@ -101,16 +101,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         : state.answers,
     }
 
-    // Preserve pre-scan answers in a separate field so usePreScanReferences
-    // can cross-reference them after reload.
-    if (ns === FormType.DPIA) {
-      const prescanAnswers = answerStore.answers[FormType.PRE_SCAN]
-      if (prescanAnswers && Object.keys(prescanAnswers).length > 0) {
-        apiState._prescanAnswers = prescanAnswers
-      }
-    }
-
-    if (linkedAssessmentIds) apiState._linkedAssessmentIds = linkedAssessmentIds
+    if (legacyPrescanAnswers) apiState._prescanAnswers = legacyPrescanAnswers
 
     return apiState
   }
@@ -801,8 +792,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       knownVersion.value = form.currentVersion
       knownUpdatedAt.value = form.updatedAt
 
-      const linked = (form.state as Record<string, unknown> | undefined)?._linkedAssessmentIds
-      linkedAssessmentIds = Array.isArray(linked) ? linked : undefined
+      const legacy = (form.state as Record<string, unknown> | undefined)?._prescanAnswers
+      legacyPrescanAnswers = legacy && typeof legacy === 'object' ? legacy as Record<string, unknown> : undefined
 
       if (form.state && Object.keys(form.state).length > 0) {
         return normalizeServerResponse(form.state)
@@ -828,8 +819,6 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         $schema: OUTPUT_SCHEMA_URL,
         metadata: { createdAt: new Date().toISOString(), urn: useSchemaStore().getUrn(namespace) },
         answers: {},
-        // Starting over empties the answers, not the links.
-        ...(linkedAssessmentIds && { _linkedAssessmentIds: linkedAssessmentIds }),
       })
       localStorage.removeItem(UI_STORAGE_PREFIX + assessmentId)
     } catch (error) {
