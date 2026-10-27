@@ -5,9 +5,13 @@ import {
   FormType,
   useTaskStore,
   useAnswerStore,
+  useSchemaStore,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import App from '../../src/App.vue'
+import dpiaJson from '../../../../sources/generated/DPIA.json'
+import preScanJson from '../../../../sources/generated/PreScanDPIA.json'
+import iamaJson from '../../../../sources/generated/IAMA.json'
 
 const LandingStub = {
   name: 'LandingView',
@@ -130,7 +134,6 @@ describe('App.vue', () => {
     ['goToIAMA', FormType.DPIA],
     ['goToPreScanDPIA', FormType.IAMA],
   ] as const)('%s drops answers left in memory by the %s form', async (goTo, other) => {
-    localStorage.setItem(storageKey(other), JSON.stringify({ answers: { '1.1.1': { value: 'opgeslagen' } } }))
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
     answerStore.answers[other] = { '1.1.1': 'uit een eerder formulier' }
@@ -139,17 +142,6 @@ describe('App.vue', () => {
     await wrapper.vm.$nextTick()
 
     expect(answerStore.answers[other]).toEqual({})
-  })
-
-  it('keeps the answers of another form whose save failed, so they are not lost', async () => {
-    const wrapper = mountApp()
-    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
-    answerStore.answers[FormType.DPIA] = { '1.1': 'niet opgeslagen, opslag vol' }
-
-    nav.goToPreScanDPIA()
-    await wrapper.vm.$nextTick()
-
-    expect(answerStore.answers[FormType.DPIA]).toEqual({ '1.1': 'niet opgeslagen, opslag vol' })
   })
 
   it('keeps the answers of the form it reopens, which may not have been saved', async () => {
@@ -286,5 +278,40 @@ describe('App.vue — cached sessions (#322)', () => {
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(type)
     expect(form.props('autoStart')).toBe(true)
+  })
+
+  describe('the pre-scan uploaded for a DPIA', () => {
+    beforeEach(() => {
+      useSchemaStore().init({ preScan: preScanJson, dpia: dpiaJson, iama: iamaJson })
+    })
+
+    it('comes back with the DPIA, and only with the DPIA', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: { '1.1': { value: 'Voorstel' } },
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]['0.2']).toMatchObject({ value: 'Uit de geüploade pre-scan' })
+      expect(useTaskStore().activeNamespace).toBe(FormType.DPIA)
+
+      nav.goToIAMA!()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+    })
+
+    it('is gone with "Start nieuwe DPIA"', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: { '1.1': { value: 'Voorstel' } },
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+
+      wrapper.findComponent(LandingStub).vm.$emit('startFresh', FormType.DPIA)
+      await wrapper.vm.$nextTick()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+    })
   })
 })

@@ -206,8 +206,10 @@ const handleReset = () => {
   // 1. Clear persistence
   persistence.clearSavedState(taskStore.activeNamespace)
 
-  // 2. Reset answer store
+  // 2. Reset answer store. A new DPIA also starts without the pre-scan it was
+  // built on; otherwise that pre-scan would prefill it again.
   answerStore.answers[taskStore.activeNamespace] = {}
+  if (taskStore.activeNamespace === FormType.DPIA) answerStore.answers[FormType.PRE_SCAN] = {}
 
   // 3. Reset task store state
   taskStore.taskInstances[taskStore.activeNamespace] = {}

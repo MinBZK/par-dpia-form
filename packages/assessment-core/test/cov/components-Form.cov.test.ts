@@ -565,6 +565,8 @@ describe('Form.vue handleReset', () => {
     const taskStore = useTaskStore()
     const answerStore = useAnswerStore()
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } }
+    // The pre-scan the DPIA was built on; a new DPIA starts without it.
+    answerStore.answers[FormType.PRE_SCAN] = { '0.2': { value: 'Bron' } }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['0'])
 
     await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
@@ -579,9 +581,23 @@ describe('Form.vue handleReset', () => {
 
     expect(persistence.clearSavedState).toHaveBeenCalledWith(FormType.DPIA)
     expect(answerStore.answers[FormType.DPIA]).toEqual({})
+    expect(answerStore.answers[FormType.PRE_SCAN]).toEqual({})
     expect(taskStore.completedRootTaskIds[FormType.DPIA]).toEqual(new Set())
     expect(wrapper.find('.stub-fileupload').exists()).toBe(true)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(false)
+  })
+
+  it('leaves the pre-scan alone when another form than the DPIA starts over', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, namespace: FormType.IAMA })
+    const answerStore = useAnswerStore()
+    answerStore.answers[FormType.PRE_SCAN] = { '0.2': { value: 'Eigen pre-scan' } }
+
+    await uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.find('.cd-confirm').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[FormType.PRE_SCAN]).toEqual({ '0.2': { value: 'Eigen pre-scan' } })
   })
 
   it('cancels without clearing, and phrases the warning without a count', async () => {

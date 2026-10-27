@@ -7,6 +7,7 @@ import {
   useTaskStore,
   useAnswerStore,
   useSchemaStore,
+  applyPreScanSource,
   PERSISTENCE_KEY,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
@@ -46,13 +47,17 @@ const navigateTo = (view: ViewState) => {
 
 // Answers of the other forms are cleared first: left in the store, they would
 // prefill this form through its references (a pre-scan you filled in earlier
-// ending up in a new DPIA). A pre-scan reaches a DPIA only through the upload on
-// its start page. The form's own answers stay, in case saving them failed.
+// ending up in a new DPIA). A DPIA then gets back only the pre-scan that was
+// uploaded for it, which it keeps with its own saved state. The form's own
+// answers stay, in case saving them failed.
 const openForm = (namespace: FormType, view: ViewState) => {
   for (const other of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
-    // Only what is safely in browser storage (it reloads from there when that
-    // form opens). A form whose save failed keeps its answers in memory.
-    if (other !== namespace && persistence.hasSavedState(other)) answerStore.answers[other] = {}
+    if (other !== namespace) answerStore.answers[other] = {}
+  }
+  const source = namespace === FormType.DPIA ? persistence.loadPrescanSource() : null
+  if (source) {
+    taskStore.setActiveNamespace(FormType.DPIA)
+    applyPreScanSource(source, schemaStore.getSchema(FormType.PRE_SCAN)!.tasks, taskStore, answerStore)
   }
   taskStore.setActiveNamespace(namespace)
   answerStore.setActiveNamespace(namespace)
