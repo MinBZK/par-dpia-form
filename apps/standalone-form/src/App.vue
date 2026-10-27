@@ -51,6 +51,10 @@ const loadCounterpart = (counterpart: FormType) => {
   const state = persistence.loadAppState(counterpart)
   if (state) {
     applySourceForm(state, counterpart, schemaStore.getSchema(counterpart)!.tasks, taskStore, answerStore)
+  } else {
+    // Nothing saved (any more, e.g. after "alles wissen"): what is still in
+    // memory must not show up as its answers.
+    answerStore.answers[counterpart] = {}
   }
 }
 

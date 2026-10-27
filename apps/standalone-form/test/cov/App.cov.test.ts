@@ -267,5 +267,16 @@ describe('App.vue — cached sessions (#322)', () => {
       expect(answerStore.answers[FormType.DPIA]['1.1']).toMatchObject({ value: 'Voorstel' })
       expect(useTaskStore().activeNamespace).toBe(FormType.IAMA)
     })
+
+    it('shows nothing of a counterpart that was wiped from the browser', () => {
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      const answerStore = useAnswerStore()
+      answerStore.answers[FormType.IAMA] = { '1.1.2': { value: 'gewist' } }
+
+      nav.goToDPIA()
+
+      expect(answerStore.answers[FormType.IAMA]).toEqual({})
+    })
   })
 })
