@@ -17,6 +17,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Toegevoegd
 
+* Ook als je geen eigenaar van een project bent, zie je wie er lid is en met
+  welke rol, via de knop "Leden" in het project. Leden toevoegen, rollen
+  wijzigen en leden verwijderen blijft voorbehouden aan eigenaren.
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
   Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
   die was.

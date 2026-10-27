@@ -358,11 +358,10 @@ const formatDate = (dateStr: string) =>
         </div>
         <div class="project-actions">
           <button
-            v-if="isOwner"
             class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
             @click="router.push(`/project/${projectId}/leden`)"
           >
-            <IconUsers :size="16" /> Leden beheren
+            <IconUsers :size="16" /> {{ isOwner ? 'Leden beheren' : 'Leden' }}
           </button>
           <div v-if="isOwner" class="kebab-menu" @focusout="projectMenuOpen = false">
             <button
