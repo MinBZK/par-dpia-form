@@ -309,3 +309,18 @@ describe('PUT /assessments/:id/links — body schema', () => {
     expect(await outgoingRows(dpia.id)).toEqual([iama.id])
   })
 })
+
+describe('PUT /api/v1/assessments/:assessmentId/links — two saves at once', () => {
+  it('lets the later save win instead of failing on the primary key', async () => {
+    const { iama, dpia, prescan, headers } = await seed()
+
+    const [first, second] = await Promise.all([
+      putLinks(iama.id, headers, { assessmentIds: [dpia.id, prescan.id] }),
+      putLinks(iama.id, headers, { assessmentIds: [dpia.id] }),
+    ])
+
+    expect([first.statusCode, second.statusCode]).toEqual([200, 200])
+    // Serialised on the assessment row: the result is exactly one of the two sets.
+    expect([[dpia.id, prescan.id].sort(), [dpia.id]]).toContainEqual(await outgoingRows(iama.id))
+  })
+})

@@ -113,6 +113,14 @@ export async function assessmentLinkRoutes(app: FastifyInstance) {
     if (!result) return
 
     const replaced = !assessmentIds.includes(assessmentId) && await db.transaction(async (tx) => {
+      // Two saves of the same assessment's links run one after the other: the
+      // second waits here, then replaces what the first wrote (last one wins)
+      // instead of colliding on the primary key.
+      await tx
+        .select({ id: assessmentInstances.id })
+        .from(assessmentInstances)
+        .where(eq(assessmentInstances.id, assessmentId))
+        .for('update')
       // Lock this assessment and every target (KEY SHARE: blocks a concurrent
       // delete, not a save) so none can vanish between this check and the insert.
       // A row is only found when it is in the same project, so a missing one

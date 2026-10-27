@@ -230,6 +230,8 @@ const navigationFunctions: NavigationFunctions = {
 let unmounted = false
 
 const loadLinkedForms = async (current: AssessmentInstance) => {
+  // A pre-scan shows no answers of other forms (it is only ever a source).
+  if (current.assessmentType === 'prescan') return
   const sources = new Map<FormType, AssessmentState>()
   try {
     const { links } = await assessmentsApi.links(current.id)
@@ -240,8 +242,15 @@ const loadLinkedForms = async (current: AssessmentInstance) => {
         chosen.set(sourceNamespace, link.assessmentId)
       }
     }
-    const loaded = await Promise.all([...chosen.values()].map((id) => assessmentsApi.get(id)))
-    for (const source of loaded) {
+    // One source that fails to load (deleted meanwhile, a network blip) must not
+    // hide the others.
+    const loaded = await Promise.allSettled([...chosen.values()].map((id) => assessmentsApi.get(id)))
+    for (const result of loaded) {
+      if (result.status === 'rejected') {
+        console.warn('Linked assessment not loaded:', result.reason)
+        continue
+      }
+      const source = result.value
       if (!source.state) continue
       const migrated = migrateStateV1toV2(source.state as AssessmentState, {}) as unknown as Record<string, unknown>
       sources.set(assessmentTypeMap[source.assessmentType], normalizeToState(migrated, source.assessmentType))

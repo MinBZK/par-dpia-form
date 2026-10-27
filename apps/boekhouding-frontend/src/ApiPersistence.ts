@@ -792,7 +792,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       knownVersion.value = form.currentVersion
       knownUpdatedAt.value = form.updatedAt
 
-      const legacy = (form.state as Record<string, unknown> | undefined)?._prescanAnswers
+      // The copy sits in _prescanAnswers, or in the oldest format under
+      // answers.prescan, which normalizeServerResponse drops from the answers.
+      const raw = form.state as Record<string, unknown> | undefined
+      const legacy = raw?._prescanAnswers ?? (raw?.answers as Record<string, unknown> | undefined)?.[FormType.PRE_SCAN]
       legacyPrescanAnswers = legacy && typeof legacy === 'object' ? legacy as Record<string, unknown> : undefined
 
       if (form.state && Object.keys(form.state).length > 0) {

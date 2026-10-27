@@ -731,6 +731,25 @@ describe('saveAppState — success path', () => {
     expect(mockUpdate.mock.calls[0][1]._prescanAnswers).toEqual(legacy)
   })
 
+  it('keeps the pre-scan copy of the oldest format (answers.prescan) as _prescanAnswers', async () => {
+    const { answerStore } = initStores()
+    const copy = { '0.1': { value: 'oud', lastEditedAt: 't' } }
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 1,
+      state: { metadata: { createdAt: '2026-01-01' }, answers: { dpia: { '1.1': { value: 'x' } }, prescan: copy } },
+    }))
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    answerStore.answers[FormType.DPIA]['1.2'] = { value: 'nieuw', lastEditedAt: 't' }
+    await p.saveAppState()
+
+    expect(mockUpdate.mock.calls[0][1]._prescanAnswers).toEqual(copy)
+  })
+
   it('saves no pre-scan copy for a DPIA without one, even with a linked pre-scan loaded', async () => {
     const { answerStore } = initStores()
     answerStore.answers[FormType.PRE_SCAN]['0.1'] = { value: 'live', lastEditedAt: 't' }

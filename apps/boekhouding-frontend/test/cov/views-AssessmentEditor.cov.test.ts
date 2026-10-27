@@ -405,6 +405,29 @@ describe('AssessmentEditor — onMounted initialization', () => {
       wrapper.unmount()
     })
 
+    it('shows the sources that loaded when another one fails', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      assessmentsApi.links.mockResolvedValueOnce({ links: [link(DPIA_ID, 'dpia'), link('ps1', 'prescan')] })
+      assessmentsApi.get
+        .mockResolvedValueOnce(makeAssessment({ assessmentType: 'iama', state: {} }))
+        .mockResolvedValueOnce(makeAssessment({ id: DPIA_ID, assessmentType: 'dpia', state: dpiaState }))
+        .mockRejectedValueOnce(new Error('verwijderd'))
+      const wrapper = await mountEditor()
+
+      expect(applySourceForm).toHaveBeenCalledTimes(1)
+      expect(applySourceForm.mock.calls[0][1]).toBe(FormTypeMock.DPIA)
+      expect(warn).toHaveBeenCalledWith('Linked assessment not loaded:', expect.any(Error))
+      warn.mockRestore()
+      wrapper.unmount()
+    })
+
+    it('loads no sources for a pre-scan, which shows none', async () => {
+      assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'prescan', state: {} }))
+      const wrapper = await mountEditor()
+      expect(assessmentsApi.links).not.toHaveBeenCalled()
+      wrapper.unmount()
+    })
+
     it('skips a linked assessment without state', async () => {
       assessmentsApi.links.mockResolvedValueOnce({ links: [link(DPIA_ID, 'dpia')] })
       assessmentsApi.get

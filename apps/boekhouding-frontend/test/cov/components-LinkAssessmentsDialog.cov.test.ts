@@ -65,6 +65,18 @@ describe('LinkAssessmentsDialog', () => {
     expect(wrapper.text()).toContain('Deze is vanuit ps1 aan deze assessment gekoppeld. Ontkoppelen kan daar.')
   })
 
+  it('keeps its own link editable when the other side links back', async () => {
+    assessmentsLinks.mockResolvedValueOnce({ links: [link('dpia1', 'outgoing'), link('dpia1', 'incoming')] })
+    const wrapper = await mountOpen()
+    expect(checkbox(wrapper, 'dpia1').checked).toBe(true)
+    expect(checkbox(wrapper, 'dpia1').disabled).toBe(false)
+
+    await wrapper.find('input[value="dpia1"]').trigger('change')
+    await wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!.trigger('click')
+    await flushPromises()
+    expect(assessmentsSetLinks).toHaveBeenCalledWith('iama1', [])
+  })
+
   it('saves the ticked links, then reports saved and closes', async () => {
     const wrapper = await mountOpen()
     await wrapper.find('input[value="dpia1"]').trigger('change')
@@ -91,10 +103,11 @@ describe('LinkAssessmentsDialog', () => {
     expect(wrapper.emitted('saved')).toBeUndefined()
   })
 
-  it('says so when loading fails or there is nothing to link to', async () => {
+  it('says so when loading fails, and then does not let you save over the unknown links', async () => {
     assessmentsLinks.mockRejectedValueOnce(new Error('netwerk'))
     let wrapper = await mountOpen()
     expect(wrapper.find('[role="alert"]').text()).toContain('konden niet worden geladen')
+    expect(wrapper.findAll('button').find((b) => b.text() === 'Opslaan')!.attributes('disabled')).toBeDefined()
     wrapper.unmount()
 
     assessmentsList.mockResolvedValueOnce({ items: [item('iama1', 'iama')], total: 1 })

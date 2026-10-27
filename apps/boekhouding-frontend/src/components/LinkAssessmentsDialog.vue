@@ -25,14 +25,20 @@ const dialogRef = ref<HTMLDialogElement | null>(null)
 const loading = ref(false)
 const saving = ref(false)
 const error = ref<string | null>(null)
+// Without the current links, saving would replace them with whatever is ticked.
+const loadFailed = ref(false)
 const candidates = ref<AssessmentInstance[]>([])
 const incoming = ref<AssessmentLink[]>([])
 const selected = ref<string[]>([])
 
 const incomingIds = computed(() => new Set(incoming.value.map((link) => link.assessmentId)))
+// Linked only from the other side: shown, but undone there. A link this one
+// made itself stays editable, also when the other side links back.
+const onlyIncoming = (id: string) => incomingIds.value.has(id) && !selected.value.includes(id)
 
 const load = async () => {
   loading.value = true
+  loadFailed.value = false
   error.value = null
   try {
     const [{ items }, { links }] = await Promise.all([
@@ -43,6 +49,7 @@ const load = async () => {
     incoming.value = links.filter((link) => link.direction === 'incoming')
     selected.value = links.filter((link) => link.direction === 'outgoing').map((link) => link.assessmentId)
   } catch {
+    loadFailed.value = true
     error.value = 'De assessments van dit project konden niet worden geladen. Probeer het later opnieuw.'
   } finally {
     loading.value = false
@@ -97,13 +104,13 @@ const save = async () => {
             <input
               type="checkbox"
               :value="candidate.id"
-              :checked="selected.includes(candidate.id) || incomingIds.has(candidate.id)"
-              :disabled="incomingIds.has(candidate.id)"
+              :checked="selected.includes(candidate.id) || onlyIncoming(candidate.id)"
+              :disabled="onlyIncoming(candidate.id)"
               @change="toggle(candidate.id)"
             />
             <span class="start-dialog__option-label">
               {{ TYPE_LABELS[candidate.assessmentType] }}: {{ candidate.name }}
-              <span v-if="incomingIds.has(candidate.id)" class="start-dialog__option-hint">
+              <span v-if="onlyIncoming(candidate.id)" class="start-dialog__option-hint">
                 Deze is vanuit {{ candidate.name }} aan deze assessment gekoppeld. Ontkoppelen kan daar.
               </span>
             </span>
@@ -118,7 +125,7 @@ const save = async () => {
       <div class="confirm-dialog__actions">
         <button
           class="rvo-button rvo-button--primary rvo-button--size-md"
-          :disabled="loading || saving"
+          :disabled="loading || saving || loadFailed"
           @click="save"
         >
           {{ saving ? 'Bezig...' : 'Opslaan' }}
