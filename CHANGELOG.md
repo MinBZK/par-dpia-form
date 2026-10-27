@@ -43,6 +43,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Een nieuwe DPIA in het formulier zonder account neemt geen antwoorden meer
+  over uit een pre-scan die je eerder in dezelfde sessie had ingevuld. Wil je
+  de pre-scan meenemen, laad dan het geëxporteerde bestand in bij de start van
+  de DPIA. Hetzelfde gold tussen DPIA en IAMA.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
