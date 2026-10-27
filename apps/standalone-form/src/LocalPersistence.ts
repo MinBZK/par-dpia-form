@@ -25,6 +25,8 @@ interface LoadedState {
 export interface LocalPersistence extends PersistenceProvider {
   /** Whether a non-empty saved state exists for the given assessment type. */
   hasSavedState(namespace: FormType): boolean
+  /** Reads localStorage synchronously, so no promise. */
+  loadAppState(namespace?: FormType): AssessmentState | null
 }
 
 function getStorageKey(namespace: string): string {
@@ -71,9 +73,11 @@ export function createLocalPersistence(): LocalPersistence {
     }
   }
 
-  function loadAppState(): AssessmentState | null {
+  // Reads the active form unless told otherwise; the DPIA and the IAMA also read
+  // each other's saved state to show it next to their own questions.
+  function loadAppState(namespace?: FormType): AssessmentState | null {
     try {
-      const ns = taskStore.activeNamespace
+      const ns = namespace ?? taskStore.activeNamespace
       const stateData = localStorage.getItem(getStorageKey(ns))
       if (!stateData) return null
 

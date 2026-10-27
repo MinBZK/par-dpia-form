@@ -7,6 +7,7 @@ import {
   useTaskStore,
   useAnswerStore,
   useSchemaStore,
+  applySourceForm,
   PERSISTENCE_KEY,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
@@ -44,12 +45,22 @@ const navigateTo = (view: ViewState) => {
   currentView.value = view
 }
 
+// The DPIA and the IAMA in this browser belong together: each shows the other's
+// saved answers where the two overlap (pre-view references in sources/*.yaml).
+const loadCounterpart = (counterpart: FormType) => {
+  const state = persistence.loadAppState(counterpart)
+  if (state) {
+    applySourceForm(state, counterpart, schemaStore.getSchema(counterpart)!.tasks, taskStore, answerStore)
+  }
+}
+
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => navigateTo(ViewState.Landing),
   goToDPIA: () => {
     taskStore.setActiveNamespace(FormType.DPIA)
     answerStore.setActiveNamespace(FormType.DPIA)
     taskStore.isInitialized[FormType.DPIA] = false
+    loadCounterpart(FormType.IAMA)
     navigateTo(ViewState.DPIA)
   },
   goToPreScanDPIA: () => {
@@ -62,6 +73,7 @@ const navigationFunctions: NavigationFunctions = {
     taskStore.setActiveNamespace(FormType.IAMA)
     answerStore.setActiveNamespace(FormType.IAMA)
     taskStore.isInitialized[FormType.IAMA] = false
+    loadCounterpart(FormType.DPIA)
     navigateTo(ViewState.IAMA)
   },
 }
