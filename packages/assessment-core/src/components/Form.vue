@@ -18,10 +18,12 @@ import type { NavigationFunctions } from '../models/navigation'
 import { useAnswerStore } from '../stores/answers'
 import { useTaskStore, taskIsOfTaskType } from '../stores/tasks'
 import { useCalculationStore } from '../stores/calculations'
+import { useSchemaStore } from '../stores/schemas'
+import { namespaceFromUrn } from '../utils/importDetect'
 import { exportToJson } from '../utils/jsonExport'
 import { exportToMarkdown } from '../utils/markdownExport'
 import { exportToPdf } from '../utils/pdfExport'
-import { rebuildRepeatableInstances } from '../utils/applyState'
+import { applyPreScanSource, rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
 import * as t from 'io-ts'
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
@@ -171,7 +173,11 @@ const handleExport = async (format: 'pdf' | 'json' | 'markdown') => {
 }
 
 const handleStart = (fileData?: AssessmentState) => {
-  if (fileData) {
+  if (fileData && props.namespace === FormType.DPIA && namespaceFromUrn(fileData.metadata.urn) === FormType.PRE_SCAN) {
+    // A pre-scan uploaded to start a DPIA is the source of its references, not
+    // its answers: the DPIA starts empty and takes over what the pre-scan maps.
+    applyPreScanSource(fileData, useSchemaStore().getSchema(FormType.PRE_SCAN)!.tasks, taskStore, answerStore)
+  } else if (fileData) {
     // Apply state for all namespaces
     persistence.applyAppState(fileData)
 

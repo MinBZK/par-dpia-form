@@ -44,12 +44,14 @@ const navigateTo = (view: ViewState) => {
   currentView.value = view
 }
 
-// The form reloads its own answers from localStorage on mount. Answers of the
-// other forms are cleared first: left in the store, they would prefill this
-// form through its references (a pre-scan you filled in earlier ending up in a
-// new DPIA). A pre-scan reaches a DPIA only through the upload on its start page.
+// Answers of the other forms are cleared first: left in the store, they would
+// prefill this form through its references (a pre-scan you filled in earlier
+// ending up in a new DPIA). A pre-scan reaches a DPIA only through the upload on
+// its start page. The form's own answers stay, in case saving them failed.
 const openForm = (namespace: FormType, view: ViewState) => {
-  answerStore.reset()
+  for (const other of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+    if (other !== namespace) answerStore.answers[other] = {}
+  }
   taskStore.setActiveNamespace(namespace)
   answerStore.setActiveNamespace(namespace)
   taskStore.isInitialized[namespace] = false
@@ -71,6 +73,7 @@ const goByType: Record<FormType, () => void> = {
 }
 const startFresh = (type: FormType) => {
   persistence.clearSavedState(type)
+  answerStore.answers[type] = {}
   goByType[type]()
 }
 

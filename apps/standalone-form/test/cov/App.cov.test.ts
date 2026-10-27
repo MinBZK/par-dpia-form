@@ -140,6 +140,17 @@ describe('App.vue', () => {
     expect(answerStore.answers[other]).toEqual({})
   })
 
+  it('keeps the answers of the form it reopens, which may not have been saved', async () => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    answerStore.answers[FormType.DPIA] = { '1.1': 'nog niet opgeslagen' }
+
+    nav.goToDPIA()
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[FormType.DPIA]).toEqual({ '1.1': 'nog niet opgeslagen' })
+  })
+
   it('returns to the LandingView via goToLanding', async () => {
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
@@ -224,11 +235,14 @@ describe('App.vue — cached sessions (#322)', () => {
   ])('startFresh(%s) clears the saved state and opens a fresh form (no autoStart)', async (type) => {
     seedCache(type)
     const wrapper = mountApp()
+    const answerStore = useAnswerStore()
+    answerStore.answers[type] = { '1.1': 'uit de vorige sessie' }
 
     wrapper.findComponent(LandingStub).vm.$emit('startFresh', type)
     await wrapper.vm.$nextTick()
 
     expect(localStorage.getItem(storageKey(type))).toBeNull()
+    expect(answerStore.answers[type]).toEqual({})
     const taskStore = useTaskStore()
     expect(taskStore.activeNamespace).toBe(type)
     const form = wrapper.findComponent(FormStub)

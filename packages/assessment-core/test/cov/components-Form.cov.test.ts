@@ -17,8 +17,10 @@ vi.mock('../../src/utils/markdownExport', () => ({
 }))
 
 const rebuildMock = vi.fn()
+const applyPreScanSourceMock = vi.fn()
 vi.mock('../../src/utils/applyState', () => ({
   rebuildRepeatableInstances: (...args: unknown[]) => rebuildMock(...args),
+  applyPreScanSource: (...args: unknown[]) => applyPreScanSourceMock(...args),
 }))
 
 import Form from '../../src/components/Form.vue'
@@ -28,6 +30,7 @@ import type { AssessmentState } from '../../src/models/assessmentState'
 import type { NavigationFunctions } from '../../src/models/navigation'
 import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
+import { useSchemaStore } from '../../src/stores/schemas'
 import * as t from 'io-ts'
 
 type ValidData = t.TypeOf<typeof DPIA>
@@ -512,6 +515,47 @@ describe('Form.vue handleStart (FileUploadPage)', () => {
     expect(persistence.applyAppState).toHaveBeenCalledWith(fileData)
     expect(rebuildMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), fileData.answers)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(true)
+  })
+
+  it('loads a pre-scan file uploaded at DPIA start as reference source, not as DPIA answers', async () => {
+    const preScanTasks = [{ id: '0', task: 'Inleiding', type: ['task_group'], tasks: [] }]
+    useSchemaStore().init({
+      preScan: { name: 'Pre-scan', urn: 'urn:nl:prescan', version: '1.0', description: '', tasks: preScanTasks },
+      dpia: makeValidData(),
+      iama: null,
+    })
+    const { wrapper, persistence } = await mountForm({ autoStart: false })
+    const fileData: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z', urn: 'urn:nl:prescan:1.0' },
+      answers: { '0.2': { value: 'Beschrijving' } },
+    }
+    applyPreScanSourceMock.mockClear()
+    rebuildMock.mockClear()
+
+    wrapper.findComponent({ name: 'FileUploadPage' }).vm.$emit('start', fileData)
+    await wrapper.vm.$nextTick()
+
+    expect(applyPreScanSourceMock).toHaveBeenCalledWith(
+      fileData, useSchemaStore().getSchema(FormType.PRE_SCAN)!.tasks, expect.anything(), expect.anything(),
+    )
+    expect(persistence.applyAppState).not.toHaveBeenCalled()
+    expect(rebuildMock).not.toHaveBeenCalled()
+    expect(wrapper.find('.stub-tasksection').exists()).toBe(true)
+  })
+
+  it('applies a pre-scan file as its own answers when the form is the pre-scan', async () => {
+    const { wrapper, persistence } = await mountForm({ autoStart: false, namespace: FormType.PRE_SCAN })
+    const fileData: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z', urn: 'urn:nl:prescan:1.0' },
+      answers: { '0.2': { value: 'Beschrijving' } },
+    }
+    applyPreScanSourceMock.mockClear()
+
+    wrapper.findComponent({ name: 'FileUploadPage' }).vm.$emit('start', fileData)
+    await wrapper.vm.$nextTick()
+
+    expect(persistence.applyAppState).toHaveBeenCalledWith(fileData)
+    expect(applyPreScanSourceMock).not.toHaveBeenCalled()
   })
 })
 

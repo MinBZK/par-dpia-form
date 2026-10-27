@@ -50,9 +50,14 @@ build) staan kort onder "Onder de motorkap".
 ### Opgelost
 
 * Een nieuwe DPIA in het formulier zonder account neemt geen antwoorden meer
-  over uit een pre-scan die je eerder in dezelfde sessie had ingevuld. Wil je
-  de pre-scan meenemen, laad dan het geëxporteerde bestand in bij de start van
-  de DPIA. Hetzelfde gold tussen DPIA en IAMA.
+  over uit een pre-scan die je eerder in dezelfde sessie had ingevuld, en
+  "Start nieuwe DPIA" begint echt leeg. Wil je de pre-scan meenemen, laad dan
+  het geëxporteerde bestand in bij de start van de DPIA. Hetzelfde gold tussen
+  DPIA en IAMA.
+* Een pre-scan-bestand dat je bij de start van een DPIA inlaadt in het
+  formulier zonder account, vult de DPIA nu vooraf in zoals in de
+  projectomgeving. Eerder kwamen de antwoorden van de pre-scan op DPIA-vragen
+  met hetzelfde nummer terecht.
 * De tussenresultaten van de pre-scan noemen bij "DPIA verplicht" nu ook een
   enkele keuze uit de EDPB-lijst. Die viel weg zodra de DPIA om een andere
   reden verplicht was, bijvoorbeeld door de AP-lijst.
