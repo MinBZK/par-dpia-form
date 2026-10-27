@@ -301,6 +301,35 @@ describe('App.vue — cached sessions (#322)', () => {
       expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
     })
 
+    it('never becomes the user\'s own pre-scan when the pre-scan form opens next', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: {},
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).not.toEqual({})
+      nav.goToPreScanDPIA()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+      // And the landing page knows the DPIA is there, so it can be resumed or wiped.
+      nav.goToLanding()
+      await wrapper.vm.$nextTick()
+      expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toEqual([FormType.DPIA])
+    })
+
+    it('leaves the own pre-scan in memory alone when no DPIA source is saved', async () => {
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      useAnswerStore().answers[FormType.PRE_SCAN] = { '0.2': { value: 'Eigen, nog niet opgeslagen' } }
+
+      nav.goToPreScanDPIA()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({ '0.2': { value: 'Eigen, nog niet opgeslagen' } })
+    })
+
     it('is gone with "Start nieuwe DPIA"', async () => {
       localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
         answers: { '1.1': { value: 'Voorstel' } },

@@ -55,6 +55,11 @@ describe('createLocalPersistence — the pre-scan source of a DPIA', () => {
     expect('_prescanAnswers' in JSON.parse(localStorage.getItem(storageKey(FormType.PRE_SCAN)) as string)).toBe(false)
   })
 
+  it('counts a DPIA holding only its uploaded pre-scan as saved, so it can be resumed or wiped', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {}, _prescanAnswers: { '0.2': { value: 'Bron' } } }))
+    expect(createLocalPersistence().hasSavedState(FormType.DPIA)).toBe(true)
+  })
+
   it('has no source without one saved, or when storage cannot be read', () => {
     const provider = createLocalPersistence()
     expect(provider.loadPrescanSource()).toBeNull()

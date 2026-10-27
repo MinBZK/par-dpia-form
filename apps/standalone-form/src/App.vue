@@ -54,6 +54,12 @@ const openForm = (namespace: FormType, view: ViewState) => {
   for (const other of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
     if (other !== namespace) answerStore.answers[other] = {}
   }
+  // The pre-scan answers in memory may be the DPIA's uploaded source rather than
+  // the user's own pre-scan: then the pre-scan form starts from its own saved
+  // state, so that source never becomes the user's pre-scan.
+  if (namespace === FormType.PRE_SCAN && persistence.loadPrescanSource()) {
+    answerStore.answers[FormType.PRE_SCAN] = {}
+  }
   const source = namespace === FormType.DPIA ? persistence.loadPrescanSource() : null
   if (source) {
     taskStore.setActiveNamespace(FormType.DPIA)

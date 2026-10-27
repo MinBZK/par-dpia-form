@@ -147,11 +147,13 @@ export function createLocalPersistence(): LocalPersistence {
     try {
       const data = localStorage.getItem(getStorageKey(namespace))
       if (!data) return false
-      const parsed = JSON.parse(data) as { answers?: Record<string, unknown> }
+      const parsed = JSON.parse(data) as { answers?: Record<string, unknown>; _prescanAnswers?: Record<string, unknown> }
       const answers = parsed.answers ?? {}
       // Old caches namespace their answers; current format stores them flat.
       const scoped = (answers[namespace] as Record<string, unknown> | undefined) ?? answers
-      return Object.keys(scoped).length > 0
+      // A DPIA holding only its uploaded pre-scan is still saved data: the
+      // landing page must offer to resume or wipe it.
+      return Object.keys(scoped).length > 0 || Object.keys(parsed._prescanAnswers ?? {}).length > 0
     } catch {
       return false
     }
