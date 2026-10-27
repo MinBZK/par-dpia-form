@@ -1,5 +1,5 @@
 # Stage 1: build
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS build
+FROM node:26-alpine@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS build
 
 RUN npm install --global corepack@0.35.0 && corepack enable && corepack prepare pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af --activate
 
@@ -44,7 +44,7 @@ RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); pro
     > /app/security-txt-expires
 
 # Stage 2: unprivileged nginx voor statische bestanden
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:3af0c10d960cc2502427fe1219c52989d309e7d65596869c60a34fd2fa2406f0
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6
 
 # `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
 # the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
