@@ -69,6 +69,11 @@
                 ]
             }
         },
+        "_linkedDpiaId": {
+            "type": "string",
+            "description": "Id of the DPIA in the same project an IAMA is linked to, so each can show the other's answers where the two overlap. Written by the client (buildApiState).",
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
         "_prescanAnswers": {
             "type": "object",
             "description": "Pre-scan answers carried alongside a DPIA so the DPIA can cross-reference them after reload. Written by the client (buildApiState); not part of the assessment answers themselves.",

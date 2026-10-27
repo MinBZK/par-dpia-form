@@ -28,8 +28,9 @@ const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 const startDialogRef = ref<HTMLDialogElement | null>(null)
 const dialogOpen = ref(false)
 const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
-const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
+const dialogOption = ref<'empty' | 'prescan-project' | 'dpia-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
+const selectedDpiaId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
 const dialogError = ref<string | null>(null)
 const dialogSubmitting = ref(false)
@@ -61,6 +62,10 @@ const isOwner = computed(() => project.value?.role === 'owner')
 
 const existingPrescans = computed(() =>
   assessmentList.value.filter(a => a.assessmentType === 'prescan')
+)
+
+const existingDpias = computed(() =>
+  assessmentList.value.filter(a => a.assessmentType === 'dpia')
 )
 
 const loadError = ref<string | null>(null)
@@ -138,6 +143,7 @@ const openStartDialog = (assessmentType: 'dpia' | 'prescan' | 'iama') => {
   dialogAssessmentType.value = assessmentType
   dialogOption.value = 'empty'
   selectedPrescanId.value = null
+  selectedDpiaId.value = null
   uploadFile.value = null
   dialogError.value = null
   dialogSubmitting.value = false
@@ -271,6 +277,22 @@ const submitIamaDialog = async () => {
   if (dialogOption.value === 'empty') {
     // Option 1: Start with empty IAMA
     const form = await assessmentsApi.create(props.projectId, 'iama')
+    router.push(`/assessment/${form.id}`)
+    return
+  }
+
+  if (dialogOption.value === 'dpia-project') {
+    // Option 2: an empty IAMA linked to a DPIA of this project; each shows the
+    // other's answers where the two overlap.
+    if (!selectedDpiaId.value) {
+      dialogError.value = 'Selecteer een DPIA'
+      return
+    }
+    const form = await assessmentsApi.create(props.projectId, 'iama', undefined, {
+      metadata: { createdAt: new Date().toISOString() },
+      answers: {},
+      _linkedDpiaId: selectedDpiaId.value,
+    })
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -534,6 +556,25 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
             <span class="start-dialog__option-label">Start een nieuwe IAMA</span>
           </label>
+
+          <label v-if="existingDpias.length > 0" class="start-dialog__option">
+            <input type="radio" v-model="dialogOption" value="dpia-project" name="startOption" />
+            <span class="start-dialog__option-label">
+              Start een nieuwe IAMA bij een DPIA uit dit project
+              <span class="start-dialog__option-hint">Waar IAMA en DPIA overlappen, zie je de antwoorden uit de andere.</span>
+            </span>
+          </label>
+
+          <div v-if="dialogOption === 'dpia-project' && existingDpias.length > 0" class="start-dialog__sub-options">
+            <label
+              v-for="dpia in existingDpias"
+              :key="dpia.id"
+              class="start-dialog__option"
+            >
+              <input type="radio" v-model="selectedDpiaId" :value="dpia.id" name="dpiaChoice" />
+              <span class="start-dialog__option-label">{{ dpia.name }} <span class="rvo-text--sm rvo-text--subtle">({{ formatDate(dpia.updatedAt) }})</span></span>
+            </label>
+          </div>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />

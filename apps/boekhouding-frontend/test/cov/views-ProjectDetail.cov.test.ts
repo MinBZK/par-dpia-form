@@ -938,6 +938,43 @@ describe('ProjectDetail', () => {
       expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
     })
 
+    it('starts an IAMA linked to a DPIA of the project', async () => {
+      assessmentsCreate.mockResolvedValue({ id: 'iama-new' })
+      const wrapper = await mountDetail({
+        project: makeProject({ role: 'owner' }),
+        assessments: [makeAssessment({ id: 'dpia1', assessmentType: 'dpia', name: 'DPIA Klantportaal' })],
+      })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      const start = () => dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'dpia-project')!.setValue()
+      await flushPromises()
+
+      await start()
+      await flushPromises()
+      expect(wrapper.text()).toContain('Selecteer een DPIA')
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+
+      expect(dialog.text()).toContain('DPIA Klantportaal')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'dpia1')!.setValue()
+      await start()
+      await flushPromises()
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama', undefined, {
+        metadata: { createdAt: expect.any(String) },
+        answers: {},
+        _linkedDpiaId: 'dpia1',
+      })
+      expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
+    })
+
+    it('offers no DPIA to link to when the project has none', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(wrapper.find('input[value="dpia-project"]').exists()).toBe(false)
+    })
+
     it('errors when IAMA import is chosen without a file', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
       await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')

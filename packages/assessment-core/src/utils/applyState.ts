@@ -1,6 +1,7 @@
 import type { AssessmentState, GroupedAnswerValue, IndexedGroupElement } from '../models/assessmentState'
 import type { TaskStoreType } from '../stores/tasks'
 import type { Answer, AnswerStoreType } from '../stores/answers'
+import type { FormType, Task } from '../models/dpia'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
 import { sanitizeAnswers } from './sanitizeState'
@@ -39,6 +40,28 @@ export function applyStateToStores(
       taskStore.flatTasks[ns],
     )
   }
+}
+
+/**
+ * Load another form's state as the source the active form previews from (the
+ * linked DPIA inside an IAMA, or the other way round), into that form's own
+ * namespace. The active form and its answers are left as they were.
+ */
+export function applySourceForm(
+  state: AssessmentState,
+  namespace: FormType,
+  tasks: Task[],
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): void {
+  const active = taskStore.activeNamespace
+  taskStore.setActiveNamespace(namespace)
+  answerStore.setActiveNamespace(namespace)
+  taskStore.init(tasks, true)
+  applyStateToStores(state, taskStore, answerStore)
+  rebuildRepeatableInstances(taskStore, answerStore, state.answers)
+  taskStore.setActiveNamespace(active)
+  answerStore.setActiveNamespace(active)
 }
 
 /**

@@ -51,6 +51,13 @@ describe('validateState', () => {
     expect(result.valid).toBe(true)
   })
 
+  it('accepts the DPIA id an IAMA is linked to, and only as an id', () => {
+    const linked = (id: unknown) => validateState({ ...validState(), _linkedDpiaId: id })
+    expect(linked('6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b').valid).toBe(true)
+    expect(linked('../projects').valid).toBe(false)
+    expect(linked(42).valid).toBe(false)
+  })
+
   it('accepts grouped repeatable answers inside _prescanAnswers', () => {
     const result = validateState({
       ...validState(),

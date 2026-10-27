@@ -13,6 +13,8 @@ import {
   exportToPdf,
   PERSISTENCE_KEY,
   sanitizeAnswers,
+  applySourceForm,
+  type AssessmentState,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
@@ -215,6 +217,45 @@ const navigationFunctions: NavigationFunctions = {
   goToDPIA: () => {},
 }
 
+// An IAMA started from a DPIA of the project, and that DPIA, show each other's
+// answers where the two overlap (the pre-view references in sources/*.yaml).
+// The IAMA holds the link; a DPIA takes the most recently edited IAMA that
+// points at it. Only a preview: the form works the same without it.
+const loadLinkedForm = async (namespace: FormType) => {
+  const current = assessment.value!
+  let source: AssessmentInstance | undefined
+  try {
+    const linkedDpiaId = (current.state as Record<string, unknown> | undefined)?._linkedDpiaId
+    if (namespace === FormType.IAMA && typeof linkedDpiaId === 'string') {
+      source = await assessmentsApi.get(linkedDpiaId)
+    } else if (namespace === FormType.DPIA) {
+      const { items } = await assessmentsApi.list(current.projectId, 1, 500)
+      const iamas = items
+        .filter((item) => item.assessmentType === 'iama')
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      for (const iama of iamas) {
+        const full = await assessmentsApi.get(iama.id)
+        if ((full.state as Record<string, unknown> | undefined)?._linkedDpiaId === current.id) {
+          source = full
+          break
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Linked assessment not loaded:', e)
+    return
+  }
+  if (!source?.state) return
+  const sourceNamespace = source.assessmentType === 'dpia' ? FormType.DPIA : FormType.IAMA
+  applySourceForm(
+    source.state as AssessmentState,
+    sourceNamespace,
+    schemaStore.getSchema(sourceNamespace)!.tasks,
+    taskStore,
+    answerStore,
+  )
+}
+
 onMounted(async () => {
   try {
     // Reset stores to clear state from any previously opened assessment
@@ -259,6 +300,7 @@ onMounted(async () => {
         }
       }
     }
+    await loadLinkedForm(namespace)
     // Load comments and sync state
     await collaborationStore.load(props.assessmentId)
     // Now that knownVersion is populated, it's safe to enable the remote-change watcher

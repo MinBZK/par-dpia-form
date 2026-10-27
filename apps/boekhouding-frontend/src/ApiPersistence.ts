@@ -58,6 +58,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
   let instancesDirty = false
   let pinnedNamespace: string | null = namespace ?? null
+  // The DPIA an IAMA is linked to (chosen when it was started); carried on
+  // every save so the link outlives the first edit.
+  let linkedDpiaId: string | undefined
 
   let resolveCallback: ((resolutions: Map<string, 'mine' | 'theirs'>) => void) | null = null
 
@@ -105,6 +108,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         apiState._prescanAnswers = prescanAnswers
       }
     }
+
+    if (linkedDpiaId) apiState._linkedDpiaId = linkedDpiaId
 
     return apiState
   }
@@ -795,6 +800,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       knownVersion.value = form.currentVersion
       knownUpdatedAt.value = form.updatedAt
 
+      const linked = (form.state as Record<string, unknown> | undefined)?._linkedDpiaId
+      linkedDpiaId = typeof linked === 'string' ? linked : undefined
+
       if (form.state && Object.keys(form.state).length > 0) {
         return normalizeServerResponse(form.state)
       }
@@ -819,6 +827,8 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         $schema: OUTPUT_SCHEMA_URL,
         metadata: { createdAt: new Date().toISOString(), urn: useSchemaStore().getUrn(namespace) },
         answers: {},
+        // Starting over empties the answers, not the link to the DPIA.
+        ...(linkedDpiaId && { _linkedDpiaId: linkedDpiaId }),
       })
       localStorage.removeItem(UI_STORAGE_PREFIX + assessmentId)
     } catch (error) {
