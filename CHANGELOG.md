@@ -47,6 +47,9 @@ build) staan kort onder "Onder de motorkap".
   over uit een pre-scan die je eerder in dezelfde sessie had ingevuld. Wil je
   de pre-scan meenemen, laad dan het geëxporteerde bestand in bij de start van
   de DPIA. Hetzelfde gold tussen DPIA en IAMA.
+* De tussenresultaten van de pre-scan noemen bij "DPIA verplicht" nu ook een
+  enkele keuze uit de EDPB-lijst. Die viel weg zodra de DPIA om een andere
+  reden verplicht was, bijvoorbeeld door de AP-lijst.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
