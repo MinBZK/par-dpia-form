@@ -14,7 +14,6 @@ function legacyState() {
     },
     answers: { '0.1': { value: 'x', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
     _prescanAnswers: { '0.1': { value: 'p', lastEditedAt: '2026-01-01T00:00:00.000Z' } },
-    _linkedAssessmentIds: ['6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'],
     taskState: { dpia: { completedRootTaskIds: ['0'] } },
     smuggled: 'x'.repeat(10),
   }
@@ -24,7 +23,7 @@ describe('stripUnknownStateKeys', () => {
   it('keeps every key the output schema defines', () => {
     const { state: result } = stripUnknownStateKeys(legacyState())
     const kept = result as Record<string, unknown>
-    expect(Object.keys(kept)).toEqual(['$schema', 'metadata', 'answers', '_prescanAnswers', '_linkedAssessmentIds'])
+    expect(Object.keys(kept)).toEqual(['$schema', 'metadata', 'answers', '_prescanAnswers'])
     expect(kept.answers).toEqual({ '0.1': { value: 'x', lastEditedAt: '2026-01-01T00:00:00.000Z' } })
     expect(Object.keys(kept.metadata as object)).toEqual(['urn', 'createdAt', 'completedTasks'])
   })

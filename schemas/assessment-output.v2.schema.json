@@ -69,16 +69,6 @@
                 ]
             }
         },
-        "_linkedAssessmentIds": {
-            "type": "array",
-            "description": "Ids of assessments in the same project this one is linked to (e.g. the DPIA an IAMA was started from), so linked forms can show each other's answers where they overlap. Written by the client (buildApiState).",
-            "maxItems": 20,
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-            }
-        },
         "_prescanAnswers": {
             "type": "object",
             "description": "Pre-scan answers carried alongside a DPIA so the DPIA can cross-reference them after reload. Written by the client (buildApiState); not part of the assessment answers themselves.",

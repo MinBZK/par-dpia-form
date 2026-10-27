@@ -51,16 +51,6 @@ describe('validateState', () => {
     expect(result.valid).toBe(true)
   })
 
-  it('accepts the ids of linked assessments, and only as a short list of ids', () => {
-    const id = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b'
-    const linked = (ids: unknown) => validateState({ ...validState(), _linkedAssessmentIds: ids })
-    expect(linked([id]).valid).toBe(true)
-    expect(linked(id).valid).toBe(false)
-    expect(linked(['../projects']).valid).toBe(false)
-    expect(linked([id, id]).valid).toBe(false)
-    expect(linked(Array.from({ length: 21 }, (_, n) => id.slice(0, -2) + String(n).padStart(2, '0'))).valid).toBe(false)
-  })
-
   it('accepts grouped repeatable answers inside _prescanAnswers', () => {
     const result = validateState({
       ...validState(),
