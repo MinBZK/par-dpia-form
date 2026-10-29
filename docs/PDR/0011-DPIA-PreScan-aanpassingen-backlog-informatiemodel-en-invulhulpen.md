@@ -68,6 +68,7 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 | Pre-scan 0.4, grondslag | "Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het Model DPIA Rijksdienst." |
 | Pre-scan 0.5.2, bij cloudgebruik "Ja" | "Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister." |
 | Pre-scan, resultaatpagina | "Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie." |
+| Pre-scan 6.1.2, hoog-risico AI-systeem | "Raadpleeg artikel 6, bijlage I en bijlage III uit de AI Verordening, …", met links naar bijlage I en bijlage III op EUR-Lex. Was: "Raadpleeg artikel 6 en Annex III uit de AI Verordening". |
 | Pre-scan, resultaatpagina (toegevoegd, geen voorstel uit de backlog) | "Dit advies is pas volledig als alle vragen zijn ingevuld." |
 | Startpagina, bij Inloggen | "Op dit moment is alleen het SSO-systeem van de Rijksoverheid aangesloten." |
 | Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl." |

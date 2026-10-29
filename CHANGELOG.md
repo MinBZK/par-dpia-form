@@ -49,6 +49,9 @@ build) staan kort onder "Onder de motorkap".
 * Als je in de pre-scan aangeeft dat er een cloudoplossing wordt gebruikt,
   wijst de invulhulp op het cloudbeleid, het contact met CIO en CTO en het
   cloudregister.
+* Bij de vraag of het algoritme een hoog-risico AI-systeem is (pre-scan 6.1.2)
+  verwijst de toelichting naar bijlage I en bijlage III van de AI-verordening,
+  met een link naar de officiële tekst.
 * De resultaatpagina van de pre-scan adviseert om de resultaten te bespreken
   met de privacyprofessional van je organisatie, en zegt dat het advies pas
   volledig is als alle vragen zijn ingevuld.
