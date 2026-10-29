@@ -8,13 +8,14 @@ Voorgesteld
 
 ## Besluit
 
-Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpen op vijf punten aan:
+Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpen op zes punten aan:
 
 1. DPIA-vraag 2.1.6 heet **Bron persoonsgegevens** in plaats van "Bron betrokkenen". De vraag luidt: "Zijn de persoonsgegevens via een derde partij gekomen?"
 2. De pre-scan krijgt een colofon. De onderdelen 19 en 20 van de DPIA worden overgenomen als onderdeel 8 en 9 van de pre-scan.
 3. Bij het inladen van een bestand staat dat alleen een PDF- of JSON-bestand kan worden ingeladen dat in deze invulhulp is geëxporteerd.
 4. In het formulier zonder account neemt een formulier geen antwoorden meer over uit een ander formulier dat in dezelfde sessie is ingevuld. Wie de pre-scan wil meenemen in de DPIA, laadt het geëxporteerde pre-scan-bestand in bij de start van de DPIA.
 5. Elk lid van een project ziet wie er lid is en met welke rol. Alleen eigenaren kunnen leden beheren.
+6. De tekstvoorstellen uit de backlog voor de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring nemen we letterlijk over.
 
 ## Achtergrond
 
@@ -25,6 +26,8 @@ Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpe
 **Importtekst.** Gebruikers probeerden pre-scans, DPIA's en IAMA's uit andere hulpmiddelen in te laden. Dat kan niet: de invulhulp leest alleen haar eigen export. De uploadtekst zei dat niet.
 
 **Formulier zonder account.** Na het invullen van een pre-scan bleven de antwoorden in het geheugen van de browser staan. Een daarna gestarte DPIA nam ze over, ook na "Start nieuwe DPIA". Tussen DPIA en IAMA gebeurde hetzelfde. Een gebruiker kon niet zien waar die antwoorden vandaan kwamen. Ook kwam een ingeladen pre-scan-bestand op DPIA-vragen met hetzelfde nummer terecht, terwijl die vragen over iets anders gaan.
+
+**Tekstvoorstellen.** De backlog bevat voor een aantal plekken een uitgeschreven tekstvoorstel. Die teksten zijn inhoudelijk afgestemd. Door ze letterlijk over te nemen, blijft de tekst in de invulhulp gelijk aan wat is afgesproken.
 
 **Ledenlijst.** De API gaf de ledenlijst al aan elk lid, maar de knop ernaartoe stond alleen bij eigenaren. Bewerkers en lezers konden niet zien met wie zij samenwerkten.
 
@@ -55,9 +58,25 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 
 **5. Ledenlijst.** De knop "Leden" staat bij iedereen in het project. Niet-eigenaren zien de lijst alleen-lezen. De rol wordt los van de ledenlijst geladen en na een rolwijziging opnieuw gelezen.
 
+**6. Tekstvoorstellen.** De volgende teksten zijn letterlijk overgenomen, inclusief spelling:
+
+| Plek | Tekst |
+|---|---|
+| Pre-scan, inleiding (eerste blok) | "Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG. Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren. Ook kunnen er organisatiespecifieke afspraken zijn voor het uitvoeren van een DPIA." |
+| Pre-scan, inleiding (laatste zin eerste blok) | "Ingevulde gegevens kunnen ook worden gebruikt (indien van toepassing) voor het verwerkingsregister, register van cloudactiviteiten etc. Ook in die gevallen dat er geen DPIA  nodig is geeft dit herbruikbare informatie" |
+| Pre-scan, inleiding (producten) | "Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), een Impact Assessment Mensenrechten en Algoritmes (IAMA), etc." |
+| Pre-scan 0.4, grondslag | "Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het Model DPIA Rijksdienst." |
+| Pre-scan 0.5.2, bij cloudgebruik "Ja" | "Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister" |
+| Pre-scan, resultaatpagina | "Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie." |
+| Startpagina, bij Inloggen | "Op dit moment is alleen het SSO systeem van de RIjksoverheid aangesloten." |
+| Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl" |
+| Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen vai RIG@rijksoverheid.nl . Wordt je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse zaken of bij de Autoriteit Persoonsgegevens." |
+
+Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invulhulpen" (het voorstel noemde ook de startpagina), de SSO-zin alleen voor wie niet is ingelogd, en de cloudmelding als informatieblok dat alleen verschijnt bij "Ja" op 0.5.1.
+
 ## Impact
 
-- Gebruikers: de titel van 2.1.6 wijzigt, de pre-scan heeft twee onderdelen meer en kan worden vastgesteld en ondertekend, en het formulier zonder account neemt alleen nog over wat de gebruiker zelf inlaadt. Iedereen in een project ziet de ledenlijst.
+- Gebruikers: de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring tonen de afgestemde teksten. De titel van 2.1.6 wijzigt, de pre-scan heeft twee onderdelen meer en kan worden vastgesteld en ondertekend, en het formulier zonder account neemt alleen nog over wat de gebruiker zelf inlaadt. Iedereen in een project ziet de ledenlijst.
 - Datamodel: nieuwe vraag-ID's 8 en 9 (met onderliggende vragen) in de pre-scan. De ID's en antwoorden van de DPIA veranderen niet.
 - Bestaande pre-scans: wie bij het hervatten op de resultaatpagina stond, komt uit op het eerste colofononderdeel, twee stappen ervoor. Een voltooiing van nummer 8 kan niet zijn opgeslagen, omdat de resultaatpagina geen vinkje "Markeer als voltooid" heeft.
 - Export: de nieuwe onderdelen komen mee in de PDF- en JSON-export. De PDF zet het colofon van de pre-scan nog als gewone onderdelen achteraan. Bij de DPIA staat het colofon apart.
@@ -69,6 +88,8 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 2. **Pre-scan-antwoorden in het formulier zonder account automatisch blijven overnemen, met een melding.** Niet gekozen: de antwoorden staan alleen in het geheugen van de browser en verdwijnen bij herladen. Een ingeladen bestand is controleerbaar en werkt na herladen nog.
 3. **Het colofon van de pre-scan los van de DPIA ontwerpen.** Niet gekozen: twee verschillende colofons vragen van gebruikers en beheerders twee werkwijzen voor hetzelfde doel.
 
-## Open punt
+## Open punten
 
-De vraag bij 2.1.6 spreekt van een "derde partij". De definitie van Bron persoonsgegevens in het begrippenkader spreekt van een "betrokken partij". In het begrippenkader is "derde" een smallere term dan "betrokken partij": een derde is onder meer geen verwerker of verwerkingsverantwoordelijke. Vraag en definitie moeten op elkaar worden afgestemd.
+- In de letterlijk overgenomen teksten staan spelfouten: "RIjksoverheid", "vai", "Wordt je klacht" (moet zijn "Word je klacht"), "SSO systeem" (SSO-systeem), "Binnenlandse zaken" (Binnenlandse Zaken), een dubbele spatie in "DPIA  nodig", en een ontbrekende punt aan het eind van drie zinnen. Deze teksten worden pas gecorrigeerd na akkoord van de opstellers van het voorstel.
+- Het colofon van de pre-scan wijkt af van het voorstel in de backlog: daar is Advies FG niet nodig, en zijn afstemming met de PO (en waarom wel of niet) en ondertekening door de proceseigenaar wel nodig. Het voorstel noemt als plek "onder Resultaten".
+- De vraag bij 2.1.6 spreekt van een "derde partij". De definitie van Bron persoonsgegevens in het begrippenkader spreekt van een "betrokken partij". In het begrippenkader is "derde" een smallere term dan "betrokken partij": een derde is onder meer geen verwerker of verwerkingsverantwoordelijke. Vraag en definitie moeten op elkaar worden afgestemd.
