@@ -8,7 +8,7 @@ Voorgesteld
 
 ## Besluit
 
-Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpen op zes punten aan:
+Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpen op acht punten aan:
 
 1. DPIA-vraag 2.1.6 heet **Bron persoonsgegevens** in plaats van "Bron betrokkenen". De vraag luidt: "Zijn de persoonsgegevens via een derde partij gekomen?"
 2. De pre-scan krijgt een colofon. De onderdelen 19 en 20 van de DPIA worden overgenomen als onderdeel 8 en 9 van de pre-scan.
@@ -16,6 +16,8 @@ Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpe
 4. In het formulier zonder account neemt een formulier geen antwoorden meer over uit een ander formulier dat in dezelfde sessie is ingevuld. Wie de pre-scan wil meenemen in de DPIA, laadt het geëxporteerde pre-scan-bestand in bij de start van de DPIA.
 5. Elk lid van een project ziet wie er lid is en met welke rol. Alleen eigenaren kunnen leden beheren.
 6. De tekstvoorstellen uit de backlog voor de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring nemen we over. We corrigeren alleen de spelling en het klachtadres.
+7. De vragen bij de lijst AP en de lijst EDPB vragen naar de verwerking en de criteria, niet naar betrokkenen. Bij de lijst EDPB staat hoe het aantal criteria de uitkomst bepaalt. Deze teksten zijn aannames.
+8. Begrippen die eindigen op een haakje tonen hun eigen definitie en toelichting.
 
 ## Achtergrond
 
@@ -92,6 +94,18 @@ Aangepast ten opzichte van het voorstel:
 
 Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invulhulpen" (het voorstel noemde ook de startpagina), de SSO-zin alleen voor wie niet is ingelogd, en de cloudmelding als informatieblok dat alleen verschijnt bij "Ja" op 0.5.1.
 
+**7. Lijst AP en lijst EDPB (aannames).** Voor deze vragen lag geen uitgeschreven tekstvoorstel, alleen de richting "welke gegevensverwerking gaat er plaatsvinden". De volgende teksten zijn een aanname en moeten nog worden bevestigd:
+
+| Plek | Was | Wordt |
+|---|---|---|
+| Pre-scan 3.1, lijst AP | Welke groepen betrokkenen kun je onderscheiden? | Welke van de onderstaande gegevensverwerkingen gaan er plaatsvinden? |
+| Pre-scan 4.1, lijst EDPB | Welke categorieën betrokkenen kun je onderscheiden? | Welke van de onderstaande criteria zijn van toepassing op de gegevensverwerking? |
+| Pre-scan 4.1, toelichting | (geen) | Toegevoegd na de bestaande toelichting: "Voldoet de verwerking aan twee of meer criteria, dan is een DPIA in de meeste gevallen verplicht. Bij één criterium wordt een DPIA aanbevolen." |
+
+De vraag bij 4.1 spreekt van "criteria" omdat het begrippenkader de lijst EDPB omschrijft als negen criteria. De zin over de uitkomst beschrijft hoe de pre-scan al rekent (twee of meer: verplicht, één: aanbevolen), in lijn met de richtsnoeren van de EDPB.
+
+**8. Toelichting bij "Mensen beoordelen met persoonskenmerken".** De backlog meldde dat bij deze optie alleen de definitie van "Lijst EDPB" verscheen. De toelichting stond wel in het begrippenkader, maar werd niet gekoppeld: het script dat begrippen koppelt (`script/definition_enricher.py`) zocht met woordgrenzen (`\b`), en een begrip dat eindigt op ")" heeft daar geen woordgrens. Het kortere begrip "Lijst EDPB" won dan. Het script gebruikt nu lookarounds. Dit herstelt ook "Privacy Impact Assessment (PIA)", "gegevensbeschermingseffectbeoordeling (GEB)", "Besluit (Awb)" en "zwevendekommabewerking of floating-point operation (FLOP)". De tekst uit het informatiemodel hoeft daarom niet apart te worden overgenomen.
+
 ## Impact
 
 - Gebruikers: de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring tonen de afgestemde teksten. De titel van 2.1.6 wijzigt, de pre-scan heeft twee onderdelen meer en kan worden vastgesteld en ondertekend, en het formulier zonder account neemt alleen nog over wat de gebruiker zelf inlaadt. Iedereen in een project ziet de ledenlijst.
@@ -107,6 +121,9 @@ Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invu
 3. **Het colofon van de pre-scan los van de DPIA ontwerpen.** Niet gekozen: twee verschillende colofons vragen van gebruikers en beheerders twee werkwijzen voor hetzelfde doel.
 
 ## Open punten
+
+- De teksten bij punt 7 zijn aannames en moeten nog worden bevestigd.
+- In de definitie van "Lijst EDPB" in het begrippenkader staat "op gront van". Het begrippenkader komt van J&V; dit melden we daar.
 
 - Een pre-scan kan op "DPIA niet verplicht" uitkomen terwijl niet alle vragen zijn ingevuld. De resultaatpagina zegt nu dat het advies pas volledig is als alle vragen zijn ingevuld. Of de uitkomst bij een onvolledige pre-scan anders moet werken, bijvoorbeeld geen uitkomst tonen of de ontbrekende vragen noemen, is nog niet besloten.
 

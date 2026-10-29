@@ -725,7 +725,7 @@ tasks:
   - task_group
   repeatable: false
   tasks:
-  - task: Welke groepen betrokkenen kun je onderscheiden?
+  - task: Welke van de onderstaande gegevensverwerkingen gaan er plaatsvinden?
     description: >-
       Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de Autoriteit Persoonsgegevens (AP). Deze lijst bevat soorten gegevensverwerkingen waarvoor een DPIA verplicht is.
     id: "3.1"
@@ -769,10 +769,10 @@ tasks:
   - task_group
   repeatable: false
   tasks:
-  - task: Welke categorieën betrokkenen kun je onderscheiden?
+  - task: Welke van de onderstaande criteria zijn van toepassing op de gegevensverwerking?
     id: "4.1"
     description: >-
-     Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is.
+     Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is. Voldoet de verwerking aan twee of meer criteria, dan is een DPIA in de meeste gevallen verplicht. Bij één criterium wordt een DPIA aanbevolen.
     type:
     - checkbox_option
     options:

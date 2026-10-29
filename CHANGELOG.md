@@ -52,6 +52,11 @@ build) staan kort onder "Onder de motorkap".
 * Bij de vraag of het algoritme een hoog-risico AI-systeem is (pre-scan 6.1.2)
   verwijst de toelichting naar artikel 6, bijlage I en bijlage III van de
   AI-verordening, met links naar de officiële tekst.
+* In de pre-scan vraagt de AP-lijst nu welke van de genoemde
+  gegevensverwerkingen gaan plaatsvinden, en de EDPB-lijst welke criteria van
+  toepassing zijn. Eerder vroegen beide naar groepen of categorieën
+  betrokkenen. Bij de EDPB-lijst staat ook hoe het aantal criteria de uitkomst
+  bepaalt.
 * De resultaatpagina van de pre-scan adviseert om de resultaten te bespreken
   met de privacyprofessional van je organisatie, en zegt dat het advies pas
   volledig is als alle vragen zijn ingevuld.
@@ -80,6 +85,10 @@ build) staan kort onder "Onder de motorkap".
   formulier zonder account, vult de DPIA nu vooraf in zoals in de
   projectomgeving. Eerder kwamen de antwoorden van de pre-scan op DPIA-vragen
   met hetzelfde nummer terecht.
+* Begrippen die eindigen op een haakje, zoals "Lijst EDPB: Mensen beoordelen
+  met persoonskenmerken (evaluatie of scoring)", "Privacy Impact Assessment
+  (PIA)" en "Besluit (Awb)", tonen weer hun eigen definitie en toelichting.
+  Eerder verscheen de definitie van een korter begrip, zoals "Lijst EDPB".
 * De tussenresultaten van de pre-scan noemen bij "DPIA verplicht" nu ook een
   enkele keuze uit de EDPB-lijst. Die viel weg zodra de DPIA om een andere
   reden verplicht was, bijvoorbeeld door de AP-lijst.
