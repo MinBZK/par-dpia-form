@@ -58,7 +58,7 @@ Bij het openen laadt de editor per formuliertype het laatst bijgewerkte gekoppel
 - Gedragswijziging: een DPIA uit een pre-scan kopieert niet meer eenmalig, maar blijft gekoppeld. Velden die de pre-scan vooraf invult, worden alleen gevuld zolang ze in de DPIA nog leeg zijn.
 - Datamodel: nieuwe tabel `assessment_links` met migratie `0004`. De state van een assessment verandert niet.
 - Beperkingen: de weergave staat per hoofdstuk, niet per vraag. De antwoorden per recht uit DPIA-hoofdstuk 15 (rechten van betrokkenen) worden niet in het IAMA getoond. Een koppeling wordt niet als versie in de versiegeschiedenis vastgelegd.
-- Handreiking: bij het verwerken vielen 13 punten op. Drie zijn uitgevoerd, vier hebben we ingevuld ter bevestiging, en zes zijn een vraag of verzoek aan de opstellers (zie hieronder).
+- Handreiking: bij het verwerken vielen 13 punten op. Drie zijn uitgevoerd, vier hebben we ingevuld ter bevestiging, één is ter informatie en vijf zijn een verzoek om de handreiking aan te passen (zie "Punten bij de handreiking").
 
 ## Punten bij de handreiking
 
