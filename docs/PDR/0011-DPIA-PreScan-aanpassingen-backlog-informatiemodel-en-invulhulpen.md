@@ -15,7 +15,7 @@ Op basis van de backlog "informatiemodel en invulhulpen" passen we de invulhulpe
 3. Bij het inladen van een bestand staat dat alleen een PDF- of JSON-bestand kan worden ingeladen dat in deze invulhulp is geëxporteerd.
 4. In het formulier zonder account neemt een formulier geen antwoorden meer over uit een ander formulier dat in dezelfde sessie is ingevuld. Wie de pre-scan wil meenemen in de DPIA, laadt het geëxporteerde pre-scan-bestand in bij de start van de DPIA.
 5. Elk lid van een project ziet wie er lid is en met welke rol. Alleen eigenaren kunnen leden beheren.
-6. De tekstvoorstellen uit de backlog voor de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring nemen we letterlijk over.
+6. De tekstvoorstellen uit de backlog voor de pre-scan, de startpagina, "Over Invulhulpen" en de privacyverklaring nemen we over. We corrigeren alleen de spelling en het klachtadres.
 
 ## Achtergrond
 
@@ -58,21 +58,35 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 
 **5. Ledenlijst.** De knop "Leden" staat bij iedereen in het project. Niet-eigenaren zien de lijst alleen-lezen. De rol wordt los van de ledenlijst geladen en na een rolwijziging opnieuw gelezen.
 
-**6. Tekstvoorstellen.** De volgende teksten zijn letterlijk overgenomen, inclusief spelling:
+**6. Tekstvoorstellen.** De volgende teksten zijn overgenomen zoals voorgesteld, met de correcties die onder de tabel staan:
 
 | Plek | Tekst |
 |---|---|
 | Pre-scan, inleiding (eerste blok) | "Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG. Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren. Ook kunnen er organisatiespecifieke afspraken zijn voor het uitvoeren van een DPIA." |
-| Pre-scan, inleiding (laatste zin eerste blok) | "Ingevulde gegevens kunnen ook worden gebruikt (indien van toepassing) voor het verwerkingsregister, register van cloudactiviteiten etc. Ook in die gevallen dat er geen DPIA  nodig is geeft dit herbruikbare informatie" |
+| Pre-scan, inleiding (laatste zin eerste blok) | "Ingevulde gegevens kunnen ook worden gebruikt (indien van toepassing) voor het verwerkingsregister, register van cloudactiviteiten etc. Ook in die gevallen dat er geen DPIA nodig is geeft dit herbruikbare informatie." |
 | Pre-scan, inleiding (producten) | "Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), een Impact Assessment Mensenrechten en Algoritmes (IAMA), etc." |
 | Pre-scan 0.4, grondslag | "Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het Model DPIA Rijksdienst." |
-| Pre-scan 0.5.2, bij cloudgebruik "Ja" | "Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister" |
+| Pre-scan 0.5.2, bij cloudgebruik "Ja" | "Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister." |
 | Pre-scan, resultaatpagina | "Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie." |
-| Startpagina, bij Inloggen | "Op dit moment is alleen het SSO systeem van de RIjksoverheid aangesloten." |
-| Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl" |
-| Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen vai privacy-ciorijk@minbzk.nl . Wordt je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse zaken of bij de Autoriteit Persoonsgegevens." |
+| Startpagina, bij Inloggen | "Op dit moment is alleen het SSO-systeem van de Rijksoverheid aangesloten." |
+| Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl." |
+| Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen via privacy-ciorijk@minbzk.nl. Word je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse Zaken of bij de Autoriteit Persoonsgegevens." |
 
-In de klachttekst is het voorgestelde adres RIG@rijksoverheid.nl vervangen door privacy-ciorijk@minbzk.nl: klachten gaan naar CIO Rijk.
+Aangepast ten opzichte van het voorstel:
+
+| Plek | Voorstel | Aangepast naar | Reden |
+|---|---|---|---|
+| Startpagina | SSO systeem | SSO-systeem | spelling |
+| Startpagina | RIjksoverheid | Rijksoverheid | spelling |
+| Privacyverklaring | vai | via | spelling |
+| Privacyverklaring | RIG@rijksoverheid.nl | privacy-ciorijk@minbzk.nl | klachten gaan naar CIO Rijk |
+| Privacyverklaring | "…minbzk.nl ." | "…minbzk.nl." | spatie voor de punt |
+| Privacyverklaring | Wordt je klacht | Word je klacht | spelling |
+| Privacyverklaring | Binnenlandse zaken | Binnenlandse Zaken | spelling |
+| Pre-scan, inleiding | "DPIA  nodig" | "DPIA nodig" | dubbele spatie |
+| Pre-scan, inleiding | "…herbruikbare informatie" | "…herbruikbare informatie." | ontbrekende punt |
+| Pre-scan 0.5.2 | "…in een cloudregister" | "…in een cloudregister." | ontbrekende punt |
+| Over Invulhulpen | "…privacy-ciorijk@minbzk.nl" | "…privacy-ciorijk@minbzk.nl." | ontbrekende punt |
 
 Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invulhulpen" (het voorstel noemde ook de startpagina), de SSO-zin alleen voor wie niet is ingelogd, en de cloudmelding als informatieblok dat alleen verschijnt bij "Ja" op 0.5.1.
 
@@ -92,6 +106,5 @@ Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invu
 
 ## Open punten
 
-- In de letterlijk overgenomen teksten staan spelfouten: "RIjksoverheid", "vai", "Wordt je klacht" (moet zijn "Word je klacht"), "SSO systeem" (SSO-systeem), "Binnenlandse zaken" (Binnenlandse Zaken), een dubbele spatie in "DPIA  nodig", en een ontbrekende punt aan het eind van drie zinnen. Deze teksten worden pas gecorrigeerd na akkoord van de opstellers van het voorstel.
 - Het colofon van de pre-scan wijkt af van het voorstel in de backlog: daar is Advies FG niet nodig, en zijn afstemming met de PO (en waarom wel of niet) en ondertekening door de proceseigenaar wel nodig. Het voorstel noemt als plek "onder Resultaten".
 - De vraag bij 2.1.6 spreekt van een "derde partij". De definitie van Bron persoonsgegevens in het begrippenkader spreekt van een "betrokken partij". In het begrippenkader is "derde" een smallere term dan "betrokken partij": een derde is onder meer geen verwerker of verwerkingsverantwoordelijke. Vraag en definitie moeten op elkaar worden afgestemd.

@@ -29,7 +29,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
 
     <p>
       Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar
-      <a href="mailto:privacy-ciorijk@minbzk.nl">privacy-ciorijk@minbzk.nl</a>
+      <a href="mailto:privacy-ciorijk@minbzk.nl">privacy-ciorijk@minbzk.nl</a>.
     </p>
 
     <h2 class="utrecht-heading-2">Pre-scan</h2>

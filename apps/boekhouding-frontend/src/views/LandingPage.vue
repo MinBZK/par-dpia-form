@@ -109,7 +109,7 @@ const assessments = [
                 mogelijkheid om opmerkingen te plaatsen.
               </p>
               <p v-if="!isAuthenticated">
-                Op dit moment is alleen het SSO systeem van de RIjksoverheid aangesloten.
+                Op dit moment is alleen het SSO-systeem van de Rijksoverheid aangesloten.
               </p>
               <button
                 class="rvo-button rvo-button--primary rvo-button--size-md"
