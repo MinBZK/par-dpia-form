@@ -17,6 +17,19 @@ build) staan kort onder "Onder de motorkap".
 
 ### Toegevoegd
 
+* Assessments in een project kan je aan elkaar koppelen, via "Koppelen aan…"
+  in het menu van een assessment of bij de start van een IAMA of DPIA. Waar
+  IAMA en DPIA elkaar volgens de handreiking *Gezamenlijk gebruik IAMA en
+  Model DPIA Rijksdienst* overlappen, zie je per hoofdstuk de antwoorden uit
+  de andere, zodat je ze niet dubbel hoeft te schrijven. In het formulier
+  zonder account gebeurt dit met de DPIA en het IAMA in je browser.
+  Waar de tabel van de handreiking "NVT" zegt maar de toelichting wel een
+  IAMA-vraag noemt, is die ook gekoppeld: belangen (DPIA 7) met de publieke
+  waarden (IAMA 1.2.1 en 1.2.2), verwerkingslocaties (DPIA 8) met de
+  exitstrategie (IAMA 1.4.3), en het juridisch kader (DPIA 9) met IAMA 4.2.2.
+* Het blok met informatie uit een ander formulier noemt nu de bron: pre-scan,
+  DPIA of IAMA, en toont bij een herhaalbare vraag alle ingevulde antwoorden
+  (bijvoorbeeld alle doeleinden), niet alleen het eerste.
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
   Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
   die was.
@@ -25,6 +38,14 @@ build) staan kort onder "Onder de motorkap".
   procesplaat.
 * In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
   toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
+
+### Gewijzigd
+
+* Een DPIA die je in een project start vanuit een pre-scan, is voortaan aan
+  die pre-scan gekoppeld in plaats van dat de antwoorden eenmalig worden
+  gekopieerd. Pas je de pre-scan later aan, dan zie je dat in de DPIA. Een
+  geïmporteerd pre-scan-bestand wordt eerst als pre-scan aan het project
+  toegevoegd. Bestaande DPIA's houden hun gekopieerde pre-scan.
 
 ### Beveiliging
 

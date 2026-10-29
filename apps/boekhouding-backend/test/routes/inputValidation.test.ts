@@ -81,6 +81,7 @@ describe('path parameters must be UUIDs', () => {
       '/api/v1/assessments/not-a-uuid/edits',
       '/api/v1/assessments/not-a-uuid/comments',
       '/api/v1/assessments/not-a-uuid/sync',
+      '/api/v1/assessments/not-a-uuid/links',
     ]) {
       expectProblem400(await app.inject({ method: 'GET', url, headers }))
     }

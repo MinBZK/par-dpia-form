@@ -279,6 +279,21 @@ describe('assessments endpoints', () => {
     expect(f.mock.calls[0][0]).toBe('/api/v1/projects/p1/assessments?page=1&pageSize=100')
   })
 
+  it('links -> GET the links of an assessment', async () => {
+    const f = mockFetchOk({ links: [] })
+    await api.assessments.links('a1')
+    expect(f.mock.calls[0][0]).toBe('/api/v1/assessments/a1/links')
+  })
+
+  it('setLinks -> PUT the outgoing links of an assessment', async () => {
+    const f = mockFetchOk({ links: [] })
+    await api.assessments.setLinks('a1', ['a2', 'a3'])
+    const [url, init] = f.mock.calls[0]
+    expect(url).toBe('/api/v1/assessments/a1/links')
+    expect(init.method).toBe('PUT')
+    expect(JSON.parse(init.body)).toEqual({ assessmentIds: ['a2', 'a3'] })
+  })
+
   it('get -> GET assessment', async () => {
     const f = mockFetchOk({})
     await api.assessments.get('a1')

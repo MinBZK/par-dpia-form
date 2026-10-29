@@ -41,7 +41,7 @@ export async function addMember(projectId: string, userId: string, role: Project
 export async function createAssessment(
   projectId: string,
   createdBy: string,
-  overrides: { name?: string; assessmentType?: 'dpia' | 'prescan'; cachedState?: unknown } = {},
+  overrides: { name?: string; assessmentType?: 'dpia' | 'prescan' | 'iama'; cachedState?: unknown } = {},
 ) {
   const [row] = await db.insert(assessmentInstances).values({
     projectId,
