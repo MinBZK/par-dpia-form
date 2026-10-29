@@ -68,6 +68,7 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 | Pre-scan 0.4, grondslag | "Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het Model DPIA Rijksdienst." |
 | Pre-scan 0.5.2, bij cloudgebruik "Ja" | "Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister." |
 | Pre-scan, resultaatpagina | "Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie." |
+| Pre-scan, resultaatpagina (toegevoegd, geen voorstel uit de backlog) | "Dit advies is pas volledig als alle vragen zijn ingevuld." |
 | Startpagina, bij Inloggen | "Op dit moment is alleen het SSO-systeem van de Rijksoverheid aangesloten." |
 | Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl." |
 | Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen via privacy-ciorijk@minbzk.nl. Word je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse Zaken of bij de Autoriteit Persoonsgegevens." |
@@ -105,6 +106,8 @@ Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invu
 3. **Het colofon van de pre-scan los van de DPIA ontwerpen.** Niet gekozen: twee verschillende colofons vragen van gebruikers en beheerders twee werkwijzen voor hetzelfde doel.
 
 ## Open punten
+
+- Een pre-scan kan op "DPIA niet verplicht" uitkomen terwijl niet alle vragen zijn ingevuld. De resultaatpagina zegt nu dat het advies pas volledig is als alle vragen zijn ingevuld. Of de uitkomst bij een onvolledige pre-scan anders moet werken, bijvoorbeeld geen uitkomst tonen of de ontbrekende vragen noemen, is nog niet besloten.
 
 - Het colofon van de pre-scan wijkt af van het voorstel in de backlog: daar is Advies FG niet nodig, en zijn afstemming met de PO (en waarom wel of niet) en ondertekening door de proceseigenaar wel nodig. Het voorstel noemt als plek "onder Resultaten".
 - De vraag bij 2.1.6 spreekt van een "derde partij". De definitie van Bron persoonsgegevens in het begrippenkader spreekt van een "betrokken partij". In het begrippenkader is "derde" een smallere term dan "betrokken partij": een derde is onder meer geen verwerker of verwerkingsverantwoordelijke. Vraag en definitie moeten op elkaar worden afgestemd.

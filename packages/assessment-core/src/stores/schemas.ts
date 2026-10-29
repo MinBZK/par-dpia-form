@@ -10,7 +10,7 @@ const AFRONDING_DESCRIPTION =
   'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'
 
 const PRESCAN_RESULT_DESCRIPTION =
-  'Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie.'
+  'Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie.<br><br>Dit advies is pas volledig als alle vragen zijn ingevuld.'
 
 export const useSchemaStore = defineStore('SchemaStore', () => {
   const validatedDpia = ref<t.TypeOf<typeof DPIA> | null>(null)

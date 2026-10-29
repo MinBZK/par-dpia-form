@@ -50,7 +50,8 @@ build) staan kort onder "Onder de motorkap".
   wijst de invulhulp op het cloudbeleid, het contact met CIO en CTO en het
   cloudregister.
 * De resultaatpagina van de pre-scan adviseert om de resultaten te bespreken
-  met de privacyprofessional van je organisatie.
+  met de privacyprofessional van je organisatie, en zegt dat het advies pas
+  volledig is als alle vragen zijn ingevuld.
 * Op de startpagina staat dat alleen het SSO-systeem van de Rijksoverheid is
   aangesloten.
 * "Over Invulhulpen" noemt een e-mailadres voor vragen en tips.
