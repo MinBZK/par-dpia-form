@@ -903,7 +903,7 @@ tasks:
       repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
       description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren. <br><br>
-       Raadpleeg artikel 6, <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_I" target="_blank">bijlage I</a> en <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_III" target="_blank">bijlage III</a> uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
+       Raadpleeg <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_6" target="_blank">artikel 6</a>, <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_I" target="_blank">bijlage I</a> en <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_III" target="_blank">bijlage III</a> uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
       id: "6.1.2"
       type:
       - radio_option
