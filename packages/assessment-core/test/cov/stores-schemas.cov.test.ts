@@ -55,7 +55,7 @@ describe('useSchemaStore', () => {
       expect(preScanSchema.tasks[0].task).toBe('Resultaat pre-scan')
       expect(preScanSchema.tasks[0].id).toBe('0')
       expect(preScanSchema.tasks[0].type).toContain('signing')
-      expect(preScanSchema.tasks[0].description).toBeUndefined()
+      expect(preScanSchema.tasks[0].description).toBe('Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie.<br><br>Dit advies is pas volledig als alle vragen zijn ingevuld.')
 
       const iamaSchema = store.getSchema(FormType.IAMA)!
       expect(iamaSchema.tasks).toHaveLength(1)

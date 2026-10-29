@@ -85,16 +85,16 @@ export const namespaceFromUrn = (urn: string | undefined): FormType | null => {
   return null
 }
 
-// Reject an import that belongs to another form: DPIA and pre-scan accept each
-// other's file (cross-form prefill), IAMA only its own. Legacy files without
-// urn cannot be classified reliably and are accepted as-is.
+// Reject an import that belongs to another form. A DPIA also accepts a pre-scan
+// file (its source for prefill); every other form only its own. A DPIA file in
+// the pre-scan would put its answers on pre-scan questions that share a number.
+// Legacy files without urn cannot be classified reliably and are accepted as-is.
 export const assertImportMatchesNamespace = (state: AssessmentState, active: FormType): void => {
   const detected = namespaceFromUrn(state.metadata.urn)
   if (!detected || detected === active) return
-  const dpiaFamily = [FormType.DPIA, FormType.PRE_SCAN]
-  if (dpiaFamily.includes(detected) && dpiaFamily.includes(active)) return
+  if (active === FormType.DPIA && detected === FormType.PRE_SCAN) return
   const expected =
-    active === FormType.IAMA ? 'IAMA-' : active === FormType.DPIA ? 'DPIA- of pre-scan-' : 'pre-scan- of DPIA-'
+    active === FormType.IAMA ? 'IAMA-' : active === FormType.DPIA ? 'DPIA- of pre-scan-' : 'pre-scan-'
   throw new Error(`Dit bestand bevat geen ${expected}gegevens.`)
 }
 
@@ -155,7 +155,9 @@ export const normalizeToState = (json: Record<string, unknown>, detectedType: 'd
 
   return {
     metadata: {
-      urn: metadata?.urn as string | undefined,
+      // Older exports carry no urn. Name the form the file was recognised as, so
+      // whoever loads it knows which form it is (a pre-scan in a DPIA, say).
+      urn: (metadata?.urn as string | undefined) ?? `urn:nl:${detectedType}`,
       createdAt: (metadata?.createdAt as string) || new Date().toISOString(),
       ...(completedTasks.length > 0 && { completedTasks }),
     },

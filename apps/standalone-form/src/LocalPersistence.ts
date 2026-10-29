@@ -25,6 +25,8 @@ interface LoadedState {
 export interface LocalPersistence extends PersistenceProvider {
   /** Whether a non-empty saved state exists for the given assessment type. */
   hasSavedState(namespace: FormType): boolean
+  /** The pre-scan uploaded at the start of the saved DPIA, if any. */
+  loadPrescanSource(): AssessmentState | null
 }
 
 function getStorageKey(namespace: string): string {
@@ -62,7 +64,13 @@ export function createLocalPersistence(): LocalPersistence {
           : flatAnswers,
       }
 
-      localStorage.setItem(getStorageKey(ns), JSON.stringify(state))
+      // A DPIA keeps the pre-scan uploaded for it (its source), like the project
+      // version does; openForm puts nothing else in the pre-scan answers.
+      const prescanAnswers = answerStore.answers[FormType.PRE_SCAN]
+      const saved = ns === FormType.DPIA && Object.keys(prescanAnswers).length > 0
+        ? { ...state, _prescanAnswers: prescanAnswers }
+        : state
+      localStorage.setItem(getStorageKey(ns), JSON.stringify(saved))
       localStorage.setItem(getUiStorageKey(ns), JSON.stringify({
         currentRootTaskId: taskStore.currentRootTaskId[ns],
       }))
@@ -125,15 +133,27 @@ export function createLocalPersistence(): LocalPersistence {
     applyStateToStores(state, taskStore, answerStore)
   }
 
+  function loadPrescanSource(): AssessmentState | null {
+    try {
+      const data = localStorage.getItem(getStorageKey(FormType.DPIA))
+      const source = data ? (JSON.parse(data) as { _prescanAnswers?: AssessmentState['answers'] })._prescanAnswers : undefined
+      return source ? { metadata: { createdAt: new Date().toISOString() }, answers: source } : null
+    } catch {
+      return null
+    }
+  }
+
   function hasSavedState(namespace: FormType): boolean {
     try {
       const data = localStorage.getItem(getStorageKey(namespace))
       if (!data) return false
-      const parsed = JSON.parse(data) as { answers?: Record<string, unknown> }
+      const parsed = JSON.parse(data) as { answers?: Record<string, unknown>; _prescanAnswers?: Record<string, unknown> }
       const answers = parsed.answers ?? {}
       // Old caches namespace their answers; current format stores them flat.
       const scoped = (answers[namespace] as Record<string, unknown> | undefined) ?? answers
-      return Object.keys(scoped).length > 0
+      // A DPIA holding only its uploaded pre-scan is still saved data: the
+      // landing page must offer to resume or wipe it.
+      return Object.keys(scoped).length > 0 || Object.keys(parsed._prescanAnswers ?? {}).length > 0
     } catch {
       return false
     }
@@ -185,6 +205,7 @@ export function createLocalPersistence(): LocalPersistence {
     loadAppState,
     applyAppState,
     hasSavedState,
+    loadPrescanSource,
     clearSavedState,
     setupWatchers,
     restoreUiState,

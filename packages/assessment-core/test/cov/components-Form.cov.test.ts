@@ -17,8 +17,10 @@ vi.mock('../../src/utils/markdownExport', () => ({
 }))
 
 const rebuildMock = vi.fn()
+const applyPreScanSourceMock = vi.fn()
 vi.mock('../../src/utils/applyState', () => ({
   rebuildRepeatableInstances: (...args: unknown[]) => rebuildMock(...args),
+  applyPreScanSource: (...args: unknown[]) => applyPreScanSourceMock(...args),
 }))
 
 import Form from '../../src/components/Form.vue'
@@ -28,6 +30,7 @@ import type { AssessmentState } from '../../src/models/assessmentState'
 import type { NavigationFunctions } from '../../src/models/navigation'
 import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
+import { useSchemaStore } from '../../src/stores/schemas'
 import * as t from 'io-ts'
 
 type ValidData = t.TypeOf<typeof DPIA>
@@ -513,6 +516,47 @@ describe('Form.vue handleStart (FileUploadPage)', () => {
     expect(rebuildMock).toHaveBeenCalledWith(expect.anything(), expect.anything(), fileData.answers)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(true)
   })
+
+  it('loads a pre-scan file uploaded at DPIA start as reference source, not as DPIA answers', async () => {
+    const preScanTasks = [{ id: '0', task: 'Inleiding', type: ['task_group'], tasks: [] }]
+    useSchemaStore().init({
+      preScan: { name: 'Pre-scan', urn: 'urn:nl:prescan', version: '1.0', description: '', tasks: preScanTasks },
+      dpia: makeValidData(),
+      iama: null,
+    })
+    const { wrapper, persistence } = await mountForm({ autoStart: false })
+    const fileData: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z', urn: 'urn:nl:prescan:1.0' },
+      answers: { '0.2': { value: 'Beschrijving' } },
+    }
+    applyPreScanSourceMock.mockClear()
+    rebuildMock.mockClear()
+
+    wrapper.findComponent({ name: 'FileUploadPage' }).vm.$emit('start', fileData)
+    await wrapper.vm.$nextTick()
+
+    expect(applyPreScanSourceMock).toHaveBeenCalledWith(
+      fileData, useSchemaStore().getSchema(FormType.PRE_SCAN)!.tasks, expect.anything(), expect.anything(),
+    )
+    expect(persistence.applyAppState).not.toHaveBeenCalled()
+    expect(rebuildMock).not.toHaveBeenCalled()
+    expect(wrapper.find('.stub-tasksection').exists()).toBe(true)
+  })
+
+  it('applies a pre-scan file as its own answers when the form is the pre-scan', async () => {
+    const { wrapper, persistence } = await mountForm({ autoStart: false, namespace: FormType.PRE_SCAN })
+    const fileData: AssessmentState = {
+      metadata: { createdAt: '2026-03-20T12:00:00Z', urn: 'urn:nl:prescan:1.0' },
+      answers: { '0.2': { value: 'Beschrijving' } },
+    }
+    applyPreScanSourceMock.mockClear()
+
+    wrapper.findComponent({ name: 'FileUploadPage' }).vm.$emit('start', fileData)
+    await wrapper.vm.$nextTick()
+
+    expect(persistence.applyAppState).toHaveBeenCalledWith(fileData)
+    expect(applyPreScanSourceMock).not.toHaveBeenCalled()
+  })
 })
 
 describe('Form.vue handleReset', () => {
@@ -521,6 +565,8 @@ describe('Form.vue handleReset', () => {
     const taskStore = useTaskStore()
     const answerStore = useAnswerStore()
     answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } }
+    // The pre-scan the DPIA was built on; a new DPIA starts without it.
+    answerStore.answers[FormType.PRE_SCAN] = { '0.2': { value: 'Bron' } }
     taskStore.completedRootTaskIds[FormType.DPIA] = new Set(['0'])
 
     await uiButtonByLabel(wrapper, 'Begin nieuwe DPIA')!.trigger('click')
@@ -535,9 +581,23 @@ describe('Form.vue handleReset', () => {
 
     expect(persistence.clearSavedState).toHaveBeenCalledWith(FormType.DPIA)
     expect(answerStore.answers[FormType.DPIA]).toEqual({})
+    expect(answerStore.answers[FormType.PRE_SCAN]).toEqual({})
     expect(taskStore.completedRootTaskIds[FormType.DPIA]).toEqual(new Set())
     expect(wrapper.find('.stub-fileupload').exists()).toBe(true)
     expect(wrapper.find('.stub-tasksection').exists()).toBe(false)
+  })
+
+  it('leaves the pre-scan alone when another form than the DPIA starts over', async () => {
+    const { wrapper } = await mountForm({ autoStart: true, namespace: FormType.IAMA })
+    const answerStore = useAnswerStore()
+    answerStore.answers[FormType.PRE_SCAN] = { '0.2': { value: 'Eigen pre-scan' } }
+
+    await uiButtonByLabel(wrapper, 'Begin nieuwe IAMA')!.trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.find('.cd-confirm').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[FormType.PRE_SCAN]).toEqual({ '0.2': { value: 'Eigen pre-scan' } })
   })
 
   it('cancels without clearing, and phrases the warning without a count', async () => {

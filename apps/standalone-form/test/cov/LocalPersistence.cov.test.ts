@@ -37,6 +37,41 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+describe('createLocalPersistence — the pre-scan source of a DPIA', () => {
+  it('saves the pre-scan answers with the DPIA, and not with another form', () => {
+    stubUrns()
+    const answerStore = useAnswerStore()
+    answerStore.answers[FormType.DPIA] = { '0.1': { value: 'Inleiding' } } as Record<string, unknown>
+    answerStore.answers[FormType.PRE_SCAN] = { '0.2': { value: 'Bron' } } as Record<string, unknown>
+    const provider = createLocalPersistence()
+
+    provider.saveAppState()
+    expect(JSON.parse(localStorage.getItem(storageKey(FormType.DPIA)) as string)._prescanAnswers)
+      .toEqual({ '0.2': { value: 'Bron' } })
+    expect(provider.loadPrescanSource()?.answers).toEqual({ '0.2': { value: 'Bron' } })
+
+    useTaskStore().setActiveNamespace(FormType.PRE_SCAN)
+    provider.saveAppState()
+    expect('_prescanAnswers' in JSON.parse(localStorage.getItem(storageKey(FormType.PRE_SCAN)) as string)).toBe(false)
+  })
+
+  it('counts a DPIA holding only its uploaded pre-scan as saved, so it can be resumed or wiped', () => {
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {}, _prescanAnswers: { '0.2': { value: 'Bron' } } }))
+    expect(createLocalPersistence().hasSavedState(FormType.DPIA)).toBe(true)
+  })
+
+  it('has no source without one saved, or when storage cannot be read', () => {
+    const provider = createLocalPersistence()
+    expect(provider.loadPrescanSource()).toBeNull()
+
+    localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({ answers: {} }))
+    expect(provider.loadPrescanSource()).toBeNull()
+
+    localStorage.setItem(storageKey(FormType.DPIA), '{kapot')
+    expect(provider.loadPrescanSource()).toBeNull()
+  })
+})
+
 describe('createLocalPersistence — saveAppState', () => {
   it('saves flat answers verbatim when no flatTasks are present', () => {
     stubUrns()

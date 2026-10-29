@@ -358,11 +358,10 @@ const formatDate = (dateStr: string) =>
         </div>
         <div class="project-actions">
           <button
-            v-if="isOwner"
             class="rvo-button rvo-button--tertiary rvo-button--size-xs rvo-button--icon-before"
             @click="router.push(`/project/${projectId}/leden`)"
           >
-            <IconUsers :size="16" /> Leden beheren
+            <IconUsers :size="16" /> {{ isOwner ? 'Leden beheren' : 'Leden' }}
           </button>
           <div v-if="isOwner" class="kebab-menu" @focusout="projectMenuOpen = false">
             <button
@@ -512,7 +511,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande DPIA of pre-scan
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
             </span>
           </label>
 
@@ -539,7 +538,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande IAMA
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder.</span>
             </span>
           </label>
 
@@ -564,7 +563,10 @@ const formatDate = (dateStr: string) =>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="prescan-json-upload" name="startOption" />
-            <span class="start-dialog__option-label">Importeer een bestaande pre-scan (JSON- of PDF-bestand)</span>
+            <span class="start-dialog__option-label">
+              Importeer een bestaande pre-scan
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand dat je in deze tool hebt geëxporteerd en werk verder.</span>
+            </span>
           </label>
 
           <div v-if="dialogOption === 'prescan-json-upload'" class="start-dialog__sub-options">
