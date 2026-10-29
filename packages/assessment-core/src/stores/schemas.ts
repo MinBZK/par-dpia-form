@@ -9,6 +9,9 @@ import { createConclusionTask } from '../utils/taskUtils'
 const AFRONDING_DESCRIPTION =
   'Zorg dat alle stappen als voltooid gemarkeerd zijn, zodat het formulier compleet is. Als je nog niet klaar bent, kun je het formulier ook opslaan en later weer verder gaan. Indien je klaar bent, kun je het formulier als PDF exporteren.'
 
+const PRESCAN_RESULT_DESCRIPTION =
+  'Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie.'
+
 export const useSchemaStore = defineStore('SchemaStore', () => {
   const validatedDpia = ref<t.TypeOf<typeof DPIA> | null>(null)
   const validatedPreScan = ref<t.TypeOf<typeof DPIA> | null>(null)
@@ -37,7 +40,7 @@ export const useSchemaStore = defineStore('SchemaStore', () => {
           } else if (schemaType === FormType.IAMA) {
             validData.tasks.push(createConclusionTask("Afronding", validData.tasks.length.toString(), AFRONDING_DESCRIPTION, true))
           } else {
-            validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString()))
+            validData.tasks.push(createConclusionTask("Resultaat pre-scan", validData.tasks.length.toString(), PRESCAN_RESULT_DESCRIPTION))
           }
         }
 

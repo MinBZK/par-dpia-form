@@ -40,6 +40,23 @@ build) staan kort onder "Onder de motorkap".
 * Bij het inladen van een eerdere pre-scan, DPIA of IAMA staat nu dat dit
   alleen kan met een PDF- of JSON-bestand dat je in deze invulhulp hebt
   geëxporteerd.
+* De inleiding van de pre-scan noemt ook organisatiespecifieke afspraken over
+  het uitvoeren van een DPIA, en dat de ingevulde gegevens herbruikbaar zijn
+  voor bijvoorbeeld het verwerkingsregister, ook als er geen DPIA nodig is.
+* Bij de grondslagvraag in de pre-scan staat dat een grondslag altijd nodig is
+  en dat je bij twijfel contact opneemt met de privacyprofessional van je
+  organisatie.
+* Als je in de pre-scan aangeeft dat er een cloudoplossing wordt gebruikt,
+  wijst de invulhulp op het cloudbeleid, het contact met CIO en CTO en het
+  cloudregister.
+* De resultaatpagina van de pre-scan adviseert om de resultaten te bespreken
+  met de privacyprofessional van je organisatie.
+* Op de startpagina staat dat alleen het SSO-systeem van de Rijksoverheid is
+  aangesloten.
+* "Over Invulhulpen" noemt een e-mailadres voor vragen en tips.
+* Een klacht over de verwerking van je persoonsgegevens dien je volgens de
+  privacyverklaring eerst in bij RIG@rijksoverheid.nl, daarna bij de
+  Functionaris gegevensbescherming van BZK of de Autoriteit Persoonsgegevens.
 
 ### Beveiliging
 

@@ -9,15 +9,16 @@ tasks:
 - task: Inleiding
   description: >-
     Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG.
-    Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren.<br><br>
+    Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren.
+    Ook kunnen er organisatiespecifieke afspraken zijn voor het uitvoeren van een DPIA.
+    Ingevulde gegevens kunnen ook worden gebruikt (indien van toepassing) voor het verwerkingsregister, register van cloudactiviteiten etc. Ook in die gevallen dat er geen DPIA  nodig is geeft dit herbruikbare informatie<br><br>
     De Pre-scan DPIA geeft inzicht in zaken zoals:<br>
     • Categorieën persoonsgegevens<br>
     • Doelen van de verwerking<br>
     • Rechtsgrond<br>
     • Proportionaliteit van de verwerking<br>
     • Bijzondere aandachtspunten zoals verwerking buiten de Europese Economische Ruimte (EER)<br><br>
-    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), en een Impact Assessment Mensenrechten en Algoritmes (IAMA)
-    en welke andere privacy producten: een verwerkersovereenkomst, Standard Contractual Clauses.<br><br>
+    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), een Impact Assessment Mensenrechten en Algoritmes (IAMA), etc.<br><br>
     Om je te helpen inzicht te krijgen in de voortgang van je pre-scan, is onderaan elke pagina een uitklapbaar gedeelte 'Tussenresultaten pre-scan' toegevoegd.
     Hier zie je direct welke assessments op basis van je huidige antwoorden verplicht of aangeraden zijn.
     Zodra je voldoende informatie hebt verzameld of weet welke assessments van toepassing zijn, kun je het proces versnellen door op 'Markeer als voltooid' te klikken en vervolgens naar 'Volgende stap' te gaan.
@@ -71,7 +72,7 @@ tasks:
         - id: "5.1.1"
           type: "one-to-many"
     - task: Wat is de grondslag voor de verwerking?
-      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+      description: Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.4"
       repeatable: false
       type:
@@ -108,6 +109,7 @@ tasks:
              label: Nee
        - task: Selecteer een of meer van onderstaande opties
          description: >-
+            <div class="rvo-alert rvo-alert--info content-alert--flex"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister</div></div>
             Met Infrastructure as a Service (IaaS) huurt u een IT-infrastructuur (servers en virtuele machines (VM's)), opslag, netwerken, besturingssystemen) bij een cloudprovider op basis van betaling per gebruik.
             Platform as a Service (PaaS) verwijst naar diensten die bestaan uit de levering op aanvraag van een omgeving voor het ontwikkelen, testen, leveren en beheren van softwaretoepassingen.
             Software-as-a-Service (SaaS) is een methode voor de levering op aanvraag van softwaretoepassingen via het internet, en doorgaans op basis van een abonnement.
