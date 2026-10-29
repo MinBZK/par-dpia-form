@@ -55,8 +55,9 @@ build) staan kort onder "Onder de motorkap".
   aangesloten.
 * "Over Invulhulpen" noemt een e-mailadres voor vragen en tips.
 * Een klacht over de verwerking van je persoonsgegevens dien je volgens de
-  privacyverklaring eerst in bij RIG@rijksoverheid.nl, daarna bij de
-  Functionaris gegevensbescherming van BZK of de Autoriteit Persoonsgegevens.
+  privacyverklaring eerst in bij CIO Rijk (privacy-ciorijk@minbzk.nl), daarna
+  bij de Functionaris gegevensbescherming van BZK of de Autoriteit
+  Persoonsgegevens.
 
 ### Beveiliging
 

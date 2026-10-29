@@ -109,7 +109,7 @@ const hasHistory = computed(() => !!window.history.state?.back)
     <h2 class="utrecht-heading-2">Klacht indienen</h2>
     <p>
       Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen
-      vai <a href="mailto:RIG@rijksoverheid.nl">RIG@rijksoverheid.nl</a> . Wordt je klacht niet naar tevredenheid
+      vai <a href="mailto:privacy-ciorijk@minbzk.nl">privacy-ciorijk@minbzk.nl</a> . Wordt je klacht niet naar tevredenheid
       opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het
       ministerie van Binnenlandse zaken of bij de <a href="https://www.autoriteitpersoonsgegevens.nl/een-tip-of-klacht-indienen-bij-de-ap" target="_blank" rel="noopener noreferrer">Autoriteit Persoonsgegevens</a>.
     </p>

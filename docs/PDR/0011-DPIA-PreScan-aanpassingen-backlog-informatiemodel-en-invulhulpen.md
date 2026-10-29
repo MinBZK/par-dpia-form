@@ -70,7 +70,9 @@ Waar de DPIA zichzelf noemt, staat in de pre-scan "pre-scan". De automatisch toe
 | Pre-scan, resultaatpagina | "Advies: bespreek de resultaten van de pre-scan met de privacyprofessional van je organisatie." |
 | Startpagina, bij Inloggen | "Op dit moment is alleen het SSO systeem van de RIjksoverheid aangesloten." |
 | Over Invulhulpen | "Heb je vragen of tips om de invulhulpen te verbeteren? Mail dan naar privacy-ciorijk@minbzk.nl" |
-| Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen vai RIG@rijksoverheid.nl . Wordt je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse zaken of bij de Autoriteit Persoonsgegevens." |
+| Privacyverklaring, klacht indienen | "Als je een klacht hebt over de verwerking van je persoonsgegevens, kun je deze indienen vai privacy-ciorijk@minbzk.nl . Wordt je klacht niet naar tevredenheid opgelost, dan kun je een klacht indienen bij de Functionaris gegevensbescherming van het ministerie van Binnenlandse zaken of bij de Autoriteit Persoonsgegevens." |
+
+In de klachttekst is het voorgestelde adres RIG@rijksoverheid.nl vervangen door privacy-ciorijk@minbzk.nl: klachten gaan naar CIO Rijk.
 
 Waar het voorstel de plek openliet, is gekozen voor: het mailadres op "Over Invulhulpen" (het voorstel noemde ook de startpagina), de SSO-zin alleen voor wie niet is ingelogd, en de cloudmelding als informatieblok dat alleen verschijnt bij "Ja" op 0.5.1.
 
