@@ -43,7 +43,7 @@
 | 6.2 |   Aanvullende informatie over de betrokken partijen | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
 | 7 | Belangen bij de gegevensverwerkingen | Beschrijf alle belangen die de betrokken partijen hebben bij de gegevensverwerkingen. Vraag betro... | task_group |  |  |
 | 7.1 |   Betrokken partij, belangen, uitkomst consultatie van betrokkenen |  | task_group |  | Copy from 6.1.1.1 |
-| 7.1.1 |     Belang van betrokken partij en uitkomst consultatie van betrokkenen |  | open_text |  |  |
+| 7.1.1 |     Belang van betrokken partij en uitkomst consultatie van betrokkenen |  | open_text |  | IAMA: [{'id': '1.2.1', 'type': 'pre-view'}, {'id': '1.2.2', 'type': 'pre-view'}] |
 | 7.2 |   Aanvullende informatie over de belangen | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
 | 8 | Verwerkingslocaties | Benoem in welke landen de gegevensverwerkingen plaatsvinden. Beschrijf het doorgiftemechanisme da... | task_group |  |  |
 | 8.1 |   Gegevensverwerking, verwerkingslocatie, doorgiftemechanisme, maatregelen |  | task_group |  | Copy from 3.1.1 |
@@ -51,11 +51,11 @@
 | 8.1.1.1 |       Verwerkingslocatie |  | text_input |  |  |
 | 8.1.1.2 |       Doorgiftemechanisme |  | select_option | Adequaatheidsbesluit; Standaard contractsbepaling (SCC); binding corporate rules/bindend bedrijfsvoorschrift (bcr); Goedgekeurde certificeringsmechanisme; Goedgekeurde gedragscode; Juridisch bindend en afdwingbaar instrument; uitzondering artikel 49 avg; Overig mechanisme |  |
 | 8.1.1.3 |       Maatregelen |  | text_input |  |  |
-| 8.2 |   Aanvullende informatie over de verwerkingslocaties | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  |  |
+| 8.2 |   Aanvullende informatie over de verwerkingslocaties | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  | IAMA: [{'id': '1.4.3', 'type': 'pre-view'}] |
 | 9 | Juridisch en beleidsmatig kader | Benoem alle wet- en regelgeving en beleid met mogelijke gevolgen voor de gegevensverwerkingen. De... | task_group |  |  |
 | 9.1 |   Gegevensverwerkingen, juridisch en/of beleidsmatigkader, Wetsartikelen |  | task_group |  | Copy from 3.1.1 |
 | 9.1.1 |     Juridisch en beleidsmatig kader |  | task_group |  |  |
-| 9.1.1.1 |       Juridisch en/of beleidsmatig kader |  | text_input |  | IAMA: [{'id': '1.3.1', 'type': 'pre-view'}, {'id': '1.3.2', 'type': 'pre-view'}, {'id': '4.2.1', 'type': 'pre-view'}, {'id': '4.2.3', 'type': 'pre-view'}, {'id': '4.2.4', 'type': 'pre-view'}] |
+| 9.1.1.1 |       Juridisch en/of beleidsmatig kader |  | text_input |  | IAMA: [{'id': '1.3.1', 'type': 'pre-view'}, {'id': '1.3.2', 'type': 'pre-view'}, {'id': '4.2.1', 'type': 'pre-view'}, {'id': '4.2.2', 'type': 'pre-view'}, {'id': '4.2.3', 'type': 'pre-view'}, {'id': '4.2.4', 'type': 'pre-view'}] |
 | 9.1.1.2 |       Wetsartikelen |  | text_input |  |  |
 | 9.2 |   Aanvullende informatie over het juridische en beleidsmatig kader | Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen. | open_text |  | IAMA: [{'id': '1.3.1', 'type': 'pre-view'}, {'id': '1.3.2', 'type': 'pre-view'}, {'id': '4.2.1', 'type': 'pre-view'}, {'id': '4.2.3', 'type': 'pre-view'}, {'id': '4.2.4', 'type': 'pre-view'}] |
 | 10 | Bewaartermijnen | Bepaal de bewaartermijnen van de persoonsgegevens aan de hand van de gegevensverwerkingen en de v... | task_group |  |  |

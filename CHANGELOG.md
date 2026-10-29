@@ -23,6 +23,10 @@ build) staan kort onder "Onder de motorkap".
   Model DPIA Rijksdienst* overlappen, zie je per hoofdstuk de antwoorden uit
   de andere, zodat je ze niet dubbel hoeft te schrijven. In het formulier
   zonder account gebeurt dit met de DPIA en het IAMA in je browser.
+  Waar de tabel van de handreiking "NVT" zegt maar de toelichting wel een
+  IAMA-vraag noemt, is die ook gekoppeld: belangen (DPIA 7) met de publieke
+  waarden (IAMA 1.2.1 en 1.2.2), verwerkingslocaties (DPIA 8) met de
+  exitstrategie (IAMA 1.4.3), en het juridisch kader (DPIA 9) met IAMA 4.2.2.
 * Het blok met informatie uit een ander formulier noemt nu de bron: pre-scan,
   DPIA of IAMA, en toont bij een herhaalbare vraag alle ingevulde antwoorden
   (bijvoorbeeld alle doeleinden), niet alleen het eerste.

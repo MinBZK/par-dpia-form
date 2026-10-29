@@ -164,6 +164,9 @@ tasks:
                   type: pre-view
                 - id: "5.A.1"
                   type: pre-view
+              DPIA:
+                - id: "7"
+                  type: pre-view
           - task: Wat zijn de publieke waarden die mogelijk negatief geraakt worden door de inzet van het algoritme?
             id: "1.2.2"
             type:
@@ -172,6 +175,9 @@ tasks:
             references:
               IAMA:
                 - id: "3.5.2"
+                  type: pre-view
+              DPIA:
+                - id: "7"
                   type: pre-view
 
       - task: Wettelijke grondslag
@@ -348,6 +354,8 @@ tasks:
             repeatable: false
             references:
               DPIA:
+                - id: "8"
+                  type: pre-view
                 - id: "17"
                   type: pre-view
       - task: Actiepunten Deel 1
@@ -1279,6 +1287,8 @@ tasks:
             references:
               DPIA:
                 - id: "2"
+                  type: pre-view
+                - id: "9"
                   type: pre-view
           - task: >-
               Levert het algoritme een (direct of indirect) onderscheid of
