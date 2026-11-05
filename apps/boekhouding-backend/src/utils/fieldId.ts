@@ -17,7 +17,7 @@ const FIELD_URN = /^urn:nl:(\w+):[^?]+\?=task_id=([^&]+)(?:&task_index=(\d+))?$/
 // and the ids the version history builds to look labels up by. Core derives this
 // from its FormType enum; here it is a literal, and the conformance test turns a
 // new assessment that only lands there into a failing test.
-const DOT_NAMESPACES = ['prescan', 'dpia', 'iama']
+const DOT_NAMESPACES = ['prescan', 'dpia', 'iama', 'aiia']
 
 /**
  * Build an instance ID from a task ID and optional index.

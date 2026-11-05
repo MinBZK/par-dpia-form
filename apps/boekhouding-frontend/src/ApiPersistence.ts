@@ -7,7 +7,6 @@ import {
   OUTPUT_SCHEMA_URL,
   type PersistenceProvider,
   type AssessmentState,
-  migrateStateV1toV2,
   getPlainTextWithoutDefinitions,
   applyStateToStores,
   groupAnswers,
@@ -17,6 +16,7 @@ import {
 } from '@overheid-assessment/core'
 import { assessments, ApiError, SessionExpiredError } from './api'
 import { computeFieldDiff } from './utils/fieldDiff'
+import { normalizeServerState } from './utils/normalizeServerState'
 import { escapeHtml, stripHtml } from './utils/html'
 import { PENDING_STORAGE_PREFIX, UI_STORAGE_PREFIX } from './storageKeys'
 import type { ConflictField } from './components/ConflictResolutionDialog.vue'
@@ -284,7 +284,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     if (disposed || !fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
-    const serverState = normalizeServerResponse(fresh.state)
+    const serverState = normalizeServerState(fresh.state, taskStore.activeNamespace)
 
     // Flatten for field-level diff comparison (lastSavedState uses flat keys)
     const serverDiff = computeFieldDiff(lastSavedState, flattenForDiff(serverState))
@@ -408,53 +408,6 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       } else {
         answerStore.answers[ns][key] = value as any
       }
-    }
-  }
-
-  /**
-   * Normalize a server response to the unified AssessmentState format.
-   * Handles old namespace-keyed format and new flat format.
-   * Returns answers in their original format (grouped arrays preserved)
-   * so that rebuildRepeatableInstances can discover empty instances.
-   */
-  function normalizeServerResponse(serverData: any): AssessmentState {
-    if (!serverData?.metadata) {
-      return { metadata: { createdAt: new Date().toISOString() }, answers: {} }
-    }
-
-    const schemaStore = useSchemaStore()
-    const urnLookup: Record<string, string> = {}
-    try { urnLookup[FormType.DPIA] = schemaStore.getUrn(FormType.DPIA) } catch { /* */ }
-    try { urnLookup[FormType.PRE_SCAN] = schemaStore.getUrn(FormType.PRE_SCAN) } catch { /* */ }
-
-    const migrated = migrateStateV1toV2(serverData as any, urnLookup)
-
-    const answers = (migrated as any).answers || {}
-    const metadata = migrated.metadata
-    const ns = taskStore.activeNamespace
-
-    // Old format: answers wrapped in namespace key
-    const isNamespaced = answers[FormType.DPIA] || answers[FormType.PRE_SCAN]
-
-    let resolvedAnswers: Record<string, any>
-    let completedTasks: string[]
-
-    if (isNamespaced) {
-      resolvedAnswers = answers[ns] || {}
-      completedTasks = (migrated as any).taskState?.[ns]?.completedRootTaskIds
-        || metadata.completedTasks || []
-    } else {
-      resolvedAnswers = answers
-      completedTasks = metadata.completedTasks || []
-    }
-
-    return {
-      metadata: {
-        urn: metadata.urn,
-        createdAt: metadata.createdAt,
-        ...(completedTasks.length > 0 && { completedTasks }),
-      },
-      answers: resolvedAnswers,
     }
   }
 
@@ -598,7 +551,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     }
     if (disposed || !fresh.state) return { backgroundMerged: 0, activeSectionChanges: [], backgroundSectionLabels: [], activeSectionFieldLabels: [], changeId: deferredChangeId }
 
-    const serverState = normalizeServerResponse(fresh.state)
+    const serverState = normalizeServerState(fresh.state, taskStore.activeNamespace)
     const serverDiff = computeFieldDiff(lastSavedState, flattenForDiff(serverState))
 
     if (serverDiff.size === 0) {
@@ -796,7 +749,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       knownUpdatedAt.value = form.updatedAt
 
       if (form.state && Object.keys(form.state).length > 0) {
-        return normalizeServerResponse(form.state)
+        return normalizeServerState(form.state, taskStore.activeNamespace)
       }
 
       // New/empty assessment

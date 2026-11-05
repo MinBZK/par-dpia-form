@@ -97,6 +97,46 @@ describe('FormField.vue', () => {
       expect(preview.attributes('aria-label')).toBe('Voorbeeld van de opmaak')
     })
 
+    it('focuses the textarea after a suggestion is adopted', async () => {
+      const wrapper = mount(FormField, {
+        props: { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]', label: 'Toelichting' },
+        attachTo: document.body,
+      })
+
+      wrapper.findComponent({ name: 'ReferenceSuggestions' }).vm.$emit('adopted')
+      await nextTick()
+
+      expect(document.activeElement).toBe(wrapper.find('textarea').element)
+      wrapper.unmount()
+    })
+
+    it('does not throw when the field is gone before focus after adopting', async () => {
+      const wrapper = mount(FormField, {
+        props: { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]', label: 'Toelichting' },
+      })
+
+      wrapper.findComponent({ name: 'ReferenceSuggestions' }).vm.$emit('adopted')
+      wrapper.unmount()
+
+      await expect(nextTick()).resolves.toBeUndefined()
+    })
+
+    it('leaves preview mode and focuses the textarea after a suggestion is adopted', async () => {
+      const wrapper = mount(FormField, {
+        props: { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]', label: 'Toelichting' },
+        attachTo: document.body,
+      })
+      await wrapper.find('button.open-text-field__toggle').trigger('click')
+      expect(wrapper.find('textarea').exists()).toBe(false)
+
+      wrapper.findComponent({ name: 'ReferenceSuggestions' }).vm.$emit('adopted')
+      await nextTick()
+      await nextTick()
+
+      expect(document.activeElement).toBe(wrapper.find('textarea').element)
+      wrapper.unmount()
+    })
+
     it('does not render the toggle button when the field is not open_text', () => {
       const wrapper = mountField({
         task: flatTask({ type: ['text_input'] }),
