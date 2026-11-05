@@ -127,6 +127,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: In welk risicogebied van de AI-verordening past jouw AI-systeem?
             description: >-
@@ -200,6 +201,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: Beschrijf de rolverdeling binnen het opzetten van het AI-systeem en tijdens de gebruiksfase.
             description: >-
@@ -258,6 +260,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: >-
               Wat is de mogelijke impact op de grondrechten van burgers door het gebruik
@@ -291,6 +294,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: >-
               Wat is de impact op het milieu door het invoeren van het AI-systeem?
@@ -426,6 +430,7 @@ tasks:
           is_official_id: false
           type:
             - informational
+            - task_group
           repeatable: false
         - task: >-
             Hoe wordt rekening gehouden met mogelijk onwenselijke bias, zowel maatschappelijk als
@@ -486,6 +491,7 @@ tasks:
           is_official_id: false
           type:
             - informational
+            - task_group
           repeatable: false
         - task: >-
             Hoe accuraat is het systeem en hoe wordt dit gemeten? <i> Beschrijf hoe de prestatie van het systeem wordt geëvalueerd aan de hand van evaluatie-metrieken of mechanismen </i>
@@ -549,6 +555,7 @@ tasks:
           is_official_id: false
           type:
             - informational
+            - task_group
           repeatable: false
         - task: >-
             Is het AI-systeem reproduceerbaar? Is er een proces ingesteld om dit te meten? <i> Beschrijf hoe een
@@ -620,6 +627,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: >-
               Welke data wordt gebruikt als input voor het algoritme en uit welke bronnen is de data
@@ -719,6 +727,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: Wat zijn de risico’s van de inzet van dit AI-systeem en welke maatregelen zijn getroffen? <i> Beschrijf per risico de gevolgen en de beheersmaatregelen die zijn genomen </i>
             id: "6.1.1"
@@ -757,6 +766,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: Wat is het plan als er problemen met de werking van het AI-systeem zijn? <i> Beschrijf de aanpak die genomen zal worden als het AI-systeem uitvalt en de impact van de (on) beschikbaarheid van het AI-systeem </i>
             id: "6.2.1"
@@ -802,6 +812,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: >-
               Op welke manier worden informatiebeveiligingsrisico's inzichtelijk gemaakt,
@@ -853,6 +864,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: >-
               Op welke manier geef je (eind)gebruikers inzicht in de werking en beperkingen van
@@ -964,6 +976,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: Door wie en hoe vaak wordt het AI-systeem gecontroleerd en gemonitord?
             id: "7.3.1"
@@ -1023,6 +1036,7 @@ tasks:
             is_official_id: false
             type:
               - informational
+              - task_group
             repeatable: false
           - task: Welke informatie moet bewaard worden?
             id: "7.4.1"
@@ -1042,6 +1056,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Ja, binnen het ministerie van Infrastructuur en Waterstaat en het concern is het AIIA verplicht op het moment dat een AI-project de pilot-fase ingaat. Andere organisaties kunnen hier zelf invulling aan geven naast de andere compliance-processen zoals bijvoorbeeld security, privacy en cloudgebruik.
 
@@ -1050,6 +1065,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Het AIIA is binnen IenW alleen verplicht voor AI-systemen, maar kan je zeker helpen bij de verantwoorde inzet van algoritmes.
 
@@ -1058,6 +1074,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: >-
           Voor het ontwikkelen van een goed AI-systeem zijn vaak meerdere verschillende
@@ -1078,6 +1095,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Binnen IenW is de opdrachtgever, proces- en/of systeemeigenaar verantwoordelijk voor AIIA en daarmee de afweging met bijbehorende maatregelen. Deze kan dit delegeren naar een projectleider, maar is uiteindelijk zelf verantwoordelijk.
 
@@ -1086,6 +1104,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Het Impact Assessment Mensenrechten en Algoritmes (IAMA) is een behoorlijk uitgebreid assessment dat specifiek geschreven is voor algoritmes en AI-systemen waar er spanning op verschillende grondrechten zit. Is dat voor jouw AI-systeem het geval? Gebruik dan het IAMA. In de meeste andere gevallen is het AIIA een praktischer, toegankelijker en compacter alternatief.
 
@@ -1094,6 +1113,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Het AIIA richt zich op de risico’s rondom AI. We proberen de overlap met andere assessments zoveel mogelijk te voorkomen en verwijzen daarom naar een aantal andere instrumenten. Deze richting zich specifiek op de risico’s en andere maatregelen in andere domeinen zoals een DPIA (voor privacy-risico’s), Cloud risk assessment (voor cloud-risico’s) en een BIO/security-scan (voor security-risico’s).
 
@@ -1102,6 +1122,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: >-
           Ja, in het AIIA zijn de eisen vanuit artikel 27 vanuit de AI-verordening opgenomen om een
@@ -1127,6 +1148,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Nee, eerder ingevulde, oude versies van het AIIA geven voldoende richting voor een betrouwbaar en verantwoord AI-systeem.
 
@@ -1135,6 +1157,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: AI kan een handig hulpmiddel zijn bij het verwerken van tekst. Gebruik AI ondersteunend voor het invullen van het AIIA, maar blijf vooral zelf nadenken. Het is immers geen invuloefening, maar ondersteunt je bij de ontwikkeling van een AI-systeem. Je blijft altijd zelf verantwoordelijk voor de zorgvuldige en verantwoorde inzet van het AI-systeem.
 
@@ -1143,6 +1166,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: >-
           Je kunt deel A, de afweging gebruiken voorafgaande aan de aanbesteding. Deel B, de implementatie wordt doorgaans ingevuld door de aannemer (maar eigen input blijft vaak noodzakelijk). Let op: de samenhang tussen deel A en B blijft belangrijk: mocht de aannemer iets moeten veranderen in de implementatie, zorg dan ook dat de afweging wordt bijgewerkt.
@@ -1152,6 +1176,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: >-
           Het gaat hierbij om bestaande software waar AI-functionaliteiten aan worden toegevoegd.
@@ -1167,6 +1192,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Het AIIA wordt ingevuld voor het toepassen van AI voor een specifiek doel. Als het AI-systeem (of delen hiervan) voor een ander doel wordt ingezet, moet er (gedeeltelijk) opnieuw een AIIA uitgevoerd worden. Denk bijvoorbeeld aan wanneer een beeldherkenningsmodel voor schepen ook ingezet wordt voor andere voertuigen.
 
@@ -1175,6 +1201,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Een agent is een klein AI-systeem, waarbij er vaak sprake is van communicatie tussen verschillende systemen en/of agents. Het AIIA is ook hier op van toepassing. Geef hierbij extra aandacht aan de toegang en rechten die je de agent geeft binnen je IT-omgeving. Goede monitoring, zeker bij toegang tot verschillende gegevens, is essentieel.
 
@@ -1183,6 +1210,7 @@ tasks:
         is_official_id: false
         type:
           - informational
+          - task_group
         repeatable: false
         description: Het AIIA is in 2026 herschreven zodat het beter aansluit bij de ontwikkelingen rondom generatieve AI. We verwachten dat ook voor andere AI-innovaties gebruikt kan worden. Denk, als een vraag niet helemaal past, na over de bedoeling achter de vraag. Kom je er niet uit? Stuur ons dan een mailtje via teamai@minienw.nl.
 
