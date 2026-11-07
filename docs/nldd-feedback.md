@@ -19,6 +19,15 @@ Getest tegen `@nldd/design-system` 0.8.83, Chrome 151, licht en donker thema.
 
 ## Nog in te dienen
 
+- **`split-view-needs-main-page` rekent niet op een pagina die haar eigen
+  `main` meebrengt.** De regel (nieuw in 0.18.0) eist `landmarks="page"` op de
+  `nldd-page` in de main-pane, anders "offers the screen no main landmark or
+  two". Bij ons staat er `landmarks="auto"`, wat in een pane een `<section>`
+  oplevert, en zetten wij zelf een `<main id="main-content">` in de pagina,
+  omdat de skip-link een doel nodig heeft dat focus kan krijgen. Er is dus
+  precies één main-landmark en de waarschuwing is vals. Gevraagd: laat de regel
+  zwijgen wanneer er in de pane al een `<main>` staat, of beschrijf waar de
+  skip-link naartoe moet wijzen als de pagina zelf de main tekent.
 - **De inspectorkolom groeit niet mee en de enige knop ervoor is privé.** De
   breedte komt uit `--_navigation-split-view-inspector-min-width` (privé), en de
   pane staat op `flex-shrink: 0` zonder `flex-grow`, dus de kolom blijft precies

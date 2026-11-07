@@ -17,6 +17,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Een eerder opgeslagen PDF of JSON kun je nu ook naar het uploadveld slepen,
+  in plaats van alleen via de bestandskiezer. Het veld zegt zelf welke soorten
+  het aanneemt, toont het pictogram van het gekozen bestandstype en legt uit
+  waarom het een bestand weigert.
 * Opmerkingen staan nu in een kolom naast het formulier en gaan over één vraag
   tegelijk: je leest de opmerking en de vraag waar hij bij hoort tegelijk, en
   het formulier blijft gewoon te gebruiken. Boven in het paneel staan de vraag
@@ -218,6 +222,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* `@nldd/design-system` van 0.10.0 naar 0.18.0, veertien releases. Breaking
+  voor ons was alleen dat `--primitives-color-accent-*` in een aantal thema's
+  de themakleur werd; de inhoudsopgave leest daarvoor nu het semantische token
+  dat het thema zelf kiest (gemeten: 9.76:1 licht, 5.33:1 donker). De overige
+  breaking changes raken componenten die wij niet gebruiken. Deze versie brengt
+  ook een eigen linter mee (`nldd lint`) en waarschuwingen in de dev-build, die
+  voortaan onze controle zijn op attributen die stil genegeerd worden.
 * `@nldd/design-system` van 0.8.85 naar 0.10.0, zestien releases met twaalf
   breaking changes. De grootste: `nldd-app-view` heet `nldd-shell`,
   `nldd-timeline-track-cell` heet `nldd-step-cell`, `variant` heet `appearance`
