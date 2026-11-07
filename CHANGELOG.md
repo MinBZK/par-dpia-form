@@ -21,6 +21,10 @@ build) staan kort onder "Onder de motorkap".
   in plaats van alleen via de bestandskiezer. Het veld zegt zelf welke soorten
   het aanneemt, toont het pictogram van het gekozen bestandstype en legt uit
   waarom het een bestand weigert.
+* Het opmerkingenpaneel sluit zodra je naar een ander hoofdstuk gaat. Het hoort
+  bij één vraag, en die vraag staat dan niet meer op het scherm. Loop je met de
+  pijlen in het paneel langs de opmerkingen, dan blijft het open: die nemen het
+  formulier mee naar de vraag waar de opmerking bij hoort.
 * Opmerkingen staan nu in een kolom naast het formulier en gaan over één vraag
   tegelijk: je leest de opmerking en de vraag waar hij bij hoort tegelijk, en
   het formulier blijft gewoon te gebruiken. Boven in het paneel staan de vraag

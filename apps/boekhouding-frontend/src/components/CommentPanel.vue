@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCollaborationStore } from '../stores/collaboration'
-import { getPlainTextWithoutDefinitions, useTaskNavigation, useTaskStore } from '@overheid-assessment/core'
+import { getPlainTextWithoutDefinitions, useTaskNavigation } from '@overheid-assessment/core'
+import { useRootTaskId } from '../composables/useRootTaskId'
 import type { CommentThread } from '../api'
 import '@nldd/design-system/button'
 import '@nldd/design-system/icon-button'
@@ -26,9 +27,8 @@ const emit = defineEmits<{ close: []; 'select-field': [fieldId: string] }>()
 const commentStore = useCollaborationStore()
 // currentRootTaskId on the store is keyed by namespace; this composable is the
 // accessor that resolves it, the same one Form uses.
-const taskStore = useTaskStore()
 const { currentRootTaskId, rootTasks, goToTask } = useTaskNavigation()
-const rootIds = computed(() => new Set(rootTasks.value.map(t => t.id)))
+const { rootTaskIdOf } = useRootTaskId()
 
 const showResolved = ref(false)
 
@@ -110,35 +110,6 @@ function hasOpenInput(thread: CommentThread): boolean {
   return replyingTo.value === thread.id
     || editingId.value === thread.id
     || thread.replies.some(r => r.id === editingId.value)
-}
-
-// The chapter a field belongs to, walked up the real parent chain. Task ids are
-// display numbers, not a hierarchy: the IAMA's second chapter is "1.0" and holds
-// 1.1 and 1.actiepunten, so neither the first dot-segment nor a prefix match
-// gets it right. A field id can carry a repeat index ("2.1.3[0]"), which the
-// task itself does not have.
-function rootTaskIdOf(fieldId: string): string {
-  const base = fieldId.startsWith('completed.') ? fieldId.slice('completed.'.length) : fieldId
-  const taskId = base.split('[')[0]
-
-  let current = taskId
-  const guard = new Set<string>()
-  for (;;) {
-    const parent = taskStore.getParentTaskId(current)
-    if (!parent || guard.has(parent)) break
-    guard.add(parent)
-    current = parent
-  }
-  if (rootIds.value.has(current)) return current
-
-  // Not a task we know: a completion id ("completed.3"), or the schema has not
-  // loaded yet so the parent chain is still empty. Fall back to the longest root
-  // id the field id starts with, and only then to its first segment.
-  let best = ''
-  for (const id of rootIds.value) {
-    if ((taskId === id || taskId.startsWith(`${id}.`)) && id.length > best.length) best = id
-  }
-  return best || taskId.split('.')[0]
 }
 
 // Field ids are dotted numbers ("1.1", "2.1.3", "2.1.3[0]"), so comparing them

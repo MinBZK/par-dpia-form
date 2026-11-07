@@ -35,6 +35,7 @@ import CommentPanel from '../components/CommentPanel.vue'
 import { useCollaborationStore } from '../stores/collaboration'
 import { useBackLink } from '../composables/useBackLink'
 import { useFieldCommentIndicators } from '../composables/useFieldCommentIndicators'
+import { useRootTaskId } from '../composables/useRootTaskId'
 
 const props = defineProps<{
   assessmentId: string
@@ -82,6 +83,29 @@ useFieldCommentIndicators(formContainerRef, (fieldId) => {
   commentPanelOpen.value = true
 }, canComment, activeCommentFieldId)
 
+// Closing forgets the question too: the next time the panel opens from the
+// toolbar it starts at the first comment rather than at wherever it was left.
+function closeCommentPanel() {
+  commentPanelOpen.value = false
+  activeCommentFieldId.value = null
+}
+
+// The panel belongs to one question. Walk to another chapter and that question
+// leaves the screen, so a panel that stayed open would show a comment with
+// nothing to check it against. It closes with its question. The panel's own
+// arrows name the next question before they move the form, so they keep it
+// open.
+const { rootTaskIdOf } = useRootTaskId()
+watch(
+  () => taskStore.currentRootTaskId[taskStore.activeNamespace],
+  (rootId) => {
+    if (!commentPanelOpen.value) return
+    const fieldId = activeCommentFieldId.value
+    if (fieldId && rootTaskIdOf(fieldId) === rootId) return
+    closeCommentPanel()
+  },
+)
+
 // The split view hands the inspector its own column while there is room for
 // one, and folds it into a sheet when there is not. Which of the two it is
 // doing is its own call, reported on inspector-auto-hidden; opening the sheet
@@ -127,7 +151,12 @@ onMounted(() => {
   inspectorObserver.observe(view, { attributeFilter: ['inspector-auto-hidden'] })
 })
 
-onUnmounted(() => inspectorObserver?.disconnect())
+// The split view lives in the app shell and outlives this view, so a sheet that
+// was open stays open on its own once the pane is gone with the editor.
+onUnmounted(() => {
+  inspectorObserver?.disconnect()
+  splitView()?.hideInspectorSheet?.()
+})
 
 // The panel closes from inside as well: its own close button, or Escape. The
 // column is not a dialog, so Escape does not reach it on its own.
@@ -136,8 +165,7 @@ const onDocumentKeydown = (event: KeyboardEvent) => {
   // Escape belongs to the innermost thing that can use it: cancelling an edit,
   // a reply or a new comment. Those handlers stop the event, so anything still
   // travelling up landed on nothing and closes the panel.
-  commentPanelOpen.value = false
-  activeCommentFieldId.value = null
+  closeCommentPanel()
 }
 
 onMounted(() => document.addEventListener('keydown', onDocumentKeydown))
@@ -151,10 +179,8 @@ const commentOverflowText = computed(() => {
 })
 
 function toggleCommentPanel() {
-  commentPanelOpen.value = !commentPanelOpen.value
-  if (!commentPanelOpen.value) {
-    activeCommentFieldId.value = null
-  }
+  if (commentPanelOpen.value) closeCommentPanel()
+  else commentPanelOpen.value = true
 }
 
 // Sync toast state. A plain notice leaves on the notification's own clock,
@@ -647,7 +673,7 @@ const confirmDelete = async () => {
             :role="assessment.role || 'viewer'"
             :activeFieldId="activeCommentFieldId"
             :formContainerRef="formContainerRef"
-            @close="commentPanelOpen = false"
+            @close="closeCommentPanel"
             @select-field="activeCommentFieldId = $event"
           />
         </nldd-page>

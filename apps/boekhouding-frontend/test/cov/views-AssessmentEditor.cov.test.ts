@@ -48,6 +48,13 @@ const {
     reset: vi.fn(),
     setActiveNamespace: vi.fn((ns: string) => { taskStore.activeNamespace = ns }),
     init: vi.fn(),
+    // useRootTaskId resolves the chapter of a comment field with these two: the
+    // chapters that exist, and the walk up to one of them.
+    getRootTasks: [{ id: '0' }, { id: '5' }, { id: '8' }],
+    getParentTaskId: (taskId: string) => {
+      const cut = taskId.lastIndexOf('.')
+      return cut === -1 ? null : taskId.slice(0, cut)
+    },
   })
   const answerStore: any = reactive({
     answers: {} as Record<string, unknown>,
@@ -1617,6 +1624,79 @@ describe('AssessmentEditor — remote change watcher', () => {
     expect(wrapper.find('nldd-notification').exists()).toBe(false)
     expect(sync.handleRemoteChange).toHaveBeenCalledWith(taskStore.currentRootTaskId[taskStore.activeNamespace])
     wrapper.unmount()
+  })
+})
+
+// A panel that stayed open across a chapter change would show a comment with
+// the question it belongs to no longer on screen.
+describe('AssessmentEditor — the comment panel follows its question', () => {
+  const panel = () => document.querySelector('.comment-panel-stub')
+  const goToChapter = async (id: string) => {
+    taskStore.currentRootTaskId = { ...taskStore.currentRootTaskId, [taskStore.activeNamespace]: id }
+    await nextTick()
+  }
+
+  it('closes the panel when the form moves to another chapter', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    fieldClickHolder.fn?.('0.1')
+    await nextTick()
+    expect(panel()).not.toBeNull()
+
+    await goToChapter('5')
+    expect(panel()).toBeNull()
+    wrapper.unmount()
+  })
+
+  // The panel's own arrows name the question before they move the form, so the
+  // chapter that arrives is the one the panel is already pointing at.
+  it('keeps the panel open when its question lives in the chapter moved to', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    fieldClickHolder.fn?.('5.2')
+    await nextTick()
+    expect(panel()).not.toBeNull()
+
+    await goToChapter('5')
+    expect(panel()).not.toBeNull()
+    expect(panel()?.getAttribute('data-field')).toBe('5.2')
+    wrapper.unmount()
+  })
+
+  it('closes a panel that is not pointing at a question', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    await wrapper.find('.comment-badge-stub').trigger('click')
+    await nextTick()
+    expect(panel()).not.toBeNull()
+
+    await goToChapter('8')
+    expect(panel()).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('leaves a closed panel alone on navigation', async () => {
+    schemaStore.isInitialized = true
+    const wrapper = await mountEditor()
+    expect(panel()).toBeNull()
+
+    await goToChapter('5')
+    expect(panel()).toBeNull()
+    wrapper.unmount()
+  })
+
+  // The split view belongs to the app shell and outlives the editor, so a sheet
+  // it opened stays open unless the editor closes it on the way out.
+  it('closes the inspector sheet when the editor goes away', async () => {
+    schemaStore.isInitialized = true
+    const view = installSplitView()
+    const hide = vi.fn()
+    view.hideInspectorSheet = hide
+    const wrapper = await mountEditor()
+
+    wrapper.unmount()
+    expect(hide).toHaveBeenCalled()
+    delete view.hideInspectorSheet
   })
 })
 

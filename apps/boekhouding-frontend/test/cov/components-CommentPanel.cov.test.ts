@@ -46,7 +46,9 @@ vi.mock('@overheid-assessment/core', () => ({
     el.querySelectorAll('span.aiv-definition-text').forEach((n) => n.remove())
     return el.textContent ?? ''
   },
-  useTaskStore: () => ({ getParentTaskId: parentOf }),
+  // useRootTaskId reads the chapters from the store; useTaskNavigation exposes
+  // the same list, so both views of it come from one fixture.
+  useTaskStore: () => ({ getParentTaskId: parentOf, getRootTasks: taskStoreMock.rootTasks.value }),
   useTaskNavigation: () => taskStoreMock,
 }))
 
