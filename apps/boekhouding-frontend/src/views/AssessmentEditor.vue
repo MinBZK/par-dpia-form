@@ -55,6 +55,7 @@ const isReadonly = computed(() => !canEdit.value)
 
 // Comment system
 const collaborationStore = useCollaborationStore()
+const { rootTaskIdOf } = useRootTaskId()
 const commentPanelOpen = ref(false)
 const activeCommentFieldId = ref<string | null>(null)
 const formContainerRef = ref<HTMLElement | null>(null)
@@ -64,16 +65,11 @@ const canComment = computed(() =>
 )
 
 // Root task ids that have unresolved comments, so the table of contents can
-// flag them. Comment field ids are instance ids ("2.1.3", "2.1.3[0]") or
-// section-completion ids ("completed.2"); the root section is the first
-// dot-segment.
+// flag them.
 const commentedRootTaskIds = computed(() => {
   const roots = new Set<string>()
   for (const [fieldId, count] of collaborationStore.unresolvedCountByField) {
-    if (count > 0) {
-      const base = fieldId.startsWith('completed.') ? fieldId.slice('completed.'.length) : fieldId
-      roots.add(base.split('.')[0])
-    }
+    if (count > 0) roots.add(rootTaskIdOf(fieldId))
   }
   return [...roots]
 })
@@ -95,7 +91,6 @@ function closeCommentPanel() {
 // nothing to check it against. It closes with its question. The panel's own
 // arrows name the next question before they move the form, so they keep it
 // open.
-const { rootTaskIdOf } = useRootTaskId()
 watch(
   () => taskStore.currentRootTaskId[taskStore.activeNamespace],
   (rootId) => {

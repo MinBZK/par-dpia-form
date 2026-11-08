@@ -50,8 +50,14 @@ const {
     init: vi.fn(),
     // useRootTaskId resolves the chapter of a comment field with these two: the
     // chapters that exist, and the walk up to one of them.
-    getRootTasks: [{ id: '0' }, { id: '5' }, { id: '8' }],
+    // '1.0' is the IAMA shape: a chapter whose own id holds a dot, carrying
+    // questions like '1.actiepunten'. The real store answers from the task
+    // tree, so the parent of such a question is not its id minus a segment.
+    getRootTasks: [{ id: '0' }, { id: '5' }, { id: '8' }, { id: '1.0' }],
     getParentTaskId: (taskId: string) => {
+      // A chapter has no parent, as in the real store (`parentId || null`).
+      if (taskStore.getRootTasks.some((t: { id: string }) => t.id === taskId)) return null
+      if (taskId === '1.actiepunten') return '1.0'
       const cut = taskId.lastIndexOf('.')
       return cut === -1 ? null : taskId.slice(0, cut)
     },
@@ -1458,6 +1464,19 @@ describe('AssessmentEditor — navigation functions', () => {
     const wrapper = await mountEditor()
     const commented = wrapper.findComponent({ name: 'Form' }).props('commentedRootTaskIds') as string[]
     expect([...commented].sort()).toEqual(['0', '2', '5'])
+    wrapper.unmount()
+  })
+
+  it('flags the chapter a field really sits in, not its first id segment', async () => {
+    schemaStore.isInitialized = true
+    // The IAMA's chapter '1.0' holds '1.actiepunten'. Reading the chapter off
+    // the first dot-segment would flag '1', which is no chapter at all.
+    collaborationStore.unresolvedCountByField = new Map<string, number>([
+      ['1.actiepunten[2]', 1],
+    ])
+    const wrapper = await mountEditor()
+    const commented = wrapper.findComponent({ name: 'Form' }).props('commentedRootTaskIds') as string[]
+    expect(commented).toEqual(['1.0'])
     wrapper.unmount()
   })
 })

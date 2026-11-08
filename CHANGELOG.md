@@ -205,6 +205,10 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Het vlaggetje bij een hoofdstuk in de inhoudsopgave kon in het IAMA bij het
+  verkeerde hoofdstuk staan: het hoofdstuk van een opmerking werd afgeleid uit
+  het eerste stuk van het vraagnummer, en de hoofdstuknummers van het IAMA
+  bevatten zelf een punt. Het volgt nu de echte plek van de vraag.
 * Op de statuspagina was tijdens het controleren niets te zien van de
   voortgang: de melding stond op "Controleren" met hetzelfde informatie-icoon
   als een gewone mededeling. Die staat er nu met een eigen icoon.
