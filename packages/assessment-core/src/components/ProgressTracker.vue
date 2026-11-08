@@ -79,6 +79,7 @@ interface Step {
   id: string | null
   title: string
   label: string
+  accessibleLabel: string
   node: Node
   current: boolean
   done: boolean
@@ -107,17 +108,26 @@ function describe(task: FlatTask): Step {
   const current = !props.disabled && task.id === currentRootTaskId.value
   const progress = !props.disabled && !done && !current && answeredRoots.value.has(task.id)
   const node: Node = done ? 'done' : current ? 'current' : progress ? 'progress' : 'open'
+  const comment = props.commentedTaskIds.includes(task.id)
+  const label = num ? `${num}. ${title}` : title
+  const states = [
+    current && 'huidige stap',
+    done && 'voltooid',
+    progress && 'mee bezig',
+    comment && 'bevat opmerkingen',
+  ].filter(Boolean)
   return {
     key: task.id,
     id: task.id,
     title,
     // Number and title on one line: as an overline it would cost a second line
     // per row, and the DPIA already runs to 22 chapters.
-    label: num ? `${num}. ${title}` : title,
+    label,
+    accessibleLabel: states.length ? [label, ...states].join(', ') : '',
     node,
     current,
     done,
-    comment: props.commentedTaskIds.includes(task.id),
+    comment,
     markerText: num,
     markerIcon: done ? 'check-mark' : progress ? 'circle-filled-small' : undefined,
     progress,
@@ -136,7 +146,7 @@ const steps = computed<Step[]>(() => {
     out.push(describe(conclusionTask.value))
   } else {
     out.push({
-      key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid',
+      key: '__end__', id: null, title: 'Proces voltooid', label: 'Proces voltooid', accessibleLabel: '',
       node: 'open', current: false, done: false, comment: false,
       markerText: null, markerIcon: undefined, progress: false,
       status: 'future', navigable: false,
@@ -166,11 +176,16 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
            highlighted fill (a dark bar) while focus is in it, which buries the
            marker and the line under it. Selected is a light tint that leaves
            both readable. Neither sets aria-current in a list that is not a
-           `navigation` parent, so the state is announced below instead. -->
+           `navigation` parent, so what only the marker, the fill and the
+           comment icon say on screen goes into accessible-label instead. That
+           label replaces the whole row for assistive technology, so it starts
+           with the visible title (WCAG 2.5.3), and it only lands on a row that
+           has an action, hence not on the end step. -->
       <nldd-list-item v-for="(step, i) in steps" :key="step.key"
         class="toc-item" :class="`toc-item--${step.node}`"
         :button="step.navigable || undefined"
         :selected="step.current || undefined"
+        :accessible-label="step.accessibleLabel || undefined"
         @click="goToTask(step.id)">
         <!-- The marker carries the state, the number rides with the title:
              a finished step shows a check mark instead of its number, which is
@@ -187,13 +202,6 @@ function positionOf(index: number): 'only' | 'first' | 'between' | 'last' {
         <nldd-text-cell class="toc-title" :text="step.label"></nldd-text-cell>
         <nldd-icon-cell v-if="step.comment" class="toc-comment"
           icon="comment" size="16" color="accent"></nldd-icon-cell>
-        <!-- What only a colour or an icon says on screen still has to be said
-             out loud: this list is not a `navigation` parent, so nldd-list-item
-             sets no aria-current either. -->
-        <span v-if="step.current" class="sr-only">, huidige stap</span>
-        <span v-if="step.done" class="sr-only">, voltooid</span>
-        <span v-if="step.progress" class="sr-only">, mee bezig</span>
-        <span v-if="step.comment" class="sr-only">, bevat opmerkingen</span>
       </nldd-list-item>
     </nldd-list>
   </div>

@@ -5,7 +5,6 @@ import { previousPage } from '../router'
 import { getConfig } from '../config'
 import { loadVersion, type VersionInfo } from '../version'
 import { probe, TimeoutError } from '../probe'
-import '@nldd/design-system/activity-indicator'
 import '@nldd/design-system/button'
 import '@nldd/design-system/card'
 import '@nldd/design-system/collection'
@@ -22,6 +21,7 @@ type ProbeState = 'loading' | 'ok' | 'error' | 'timeout'
 interface StatusMeta {
   label: string
   variant: 'neutral' | 'success' | 'warning' | 'critical'
+  icon?: string
 }
 
 // Name where the reader goes back to, rather than a bare "Terug".
@@ -59,12 +59,14 @@ const copyIcon = computed(() =>
 )
 
 function statusMeta(state: ProbeState): StatusMeta {
-  // The banner picks its own icon per variant; only the checking state needs
-  // one of its own (an activity indicator in the icon slot).
+  // The banner picks its own icon per variant, and draws it in its shadow DOM,
+  // so the one state that needs another icon overrides the name rather than
+  // slotting a component in: while checking, the neutral info glyph would say
+  // there is something to read.
   if (state === 'ok') return { label: 'Alles werkt', variant: 'success' }
   if (state === 'timeout') return { label: 'Reageert traag', variant: 'warning' }
   if (state === 'error') return { label: 'Er werkt iets niet', variant: 'critical' }
-  return { label: 'Controleren', variant: 'neutral' }
+  return { label: 'Controleren', variant: 'neutral', icon: 'arrow-clockwise' }
 }
 
 function buildVersionText(): string {
@@ -130,7 +132,7 @@ onMounted(async () => {
     <section aria-labelledby="status-onderdelen">
       <nldd-container gap="16">
       <nldd-title size="4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
-      <nldd-collection layout="grid" item-min-width="380px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="380px">
 
         <nldd-card>
           <nldd-container padding="16" gap="8">
@@ -151,14 +153,9 @@ onMounted(async () => {
               <nldd-banner
                 :variant="statusMeta(backendState).variant"
                 :text="statusMeta(backendState).label"
+                :icon="statusMeta(backendState).icon"
                 data-test="backend-state"
-              >
-                <nldd-activity-indicator
-                  v-if="backendState === 'loading'"
-                  slot="icon"
-                  size="20"
-                ></nldd-activity-indicator>
-              </nldd-banner>
+              ></nldd-banner>
             </div>
           </nldd-container>
         </nldd-card>
@@ -182,14 +179,9 @@ onMounted(async () => {
               <nldd-banner
                 :variant="statusMeta(keycloakState).variant"
                 :text="statusMeta(keycloakState).label"
+                :icon="statusMeta(keycloakState).icon"
                 data-test="keycloak-state"
-              >
-                <nldd-activity-indicator
-                  v-if="keycloakState === 'loading'"
-                  slot="icon"
-                  size="20"
-                ></nldd-activity-indicator>
-              </nldd-banner>
+              ></nldd-banner>
             </div>
           </nldd-container>
         </nldd-card>

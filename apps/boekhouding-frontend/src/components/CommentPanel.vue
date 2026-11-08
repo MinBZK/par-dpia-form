@@ -471,7 +471,7 @@ async function handleReopen(commentId: string) {
                 @keydown.enter.meta="submitEdit"
                 @keydown.escape.stop="cancelEdit"
               ></nldd-multi-line-text-field>
-              <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
+              <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="sm">
                 <nldd-button appearance="primary" text="Opslaan" @click="submitEdit"></nldd-button>
                 <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
               </nldd-button-group>
@@ -545,7 +545,7 @@ async function handleReopen(commentId: string) {
                   @keydown.enter.meta="submitEdit"
                   @keydown.escape.stop="cancelEdit"
                 ></nldd-multi-line-text-field>
-                <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="xs">
+                <nldd-button-group orientation="horizontal" class="comment-item__edit-actions" size="sm">
                   <nldd-button appearance="primary" text="Opslaan" @click="submitEdit"></nldd-button>
                   <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelEdit"></nldd-button>
                 </nldd-button-group>
@@ -586,7 +586,7 @@ async function handleReopen(commentId: string) {
               @keydown.enter.meta="submitReply(thread.id, thread.fieldId)"
               @keydown.escape.stop="cancelReply"
             ></nldd-multi-line-text-field>
-            <nldd-button-group orientation="horizontal" class="comment-reply-form__actions" size="xs">
+            <nldd-button-group orientation="horizontal" class="comment-reply-form__actions" size="sm">
               <nldd-button appearance="primary" text="Reageer" @click="submitReply(thread.id, thread.fieldId)"></nldd-button>
               <nldd-button appearance="neutral-tinted" text="Annuleer" @click="cancelReply"></nldd-button>
             </nldd-button-group>
@@ -608,7 +608,7 @@ async function handleReopen(commentId: string) {
               @keydown.enter.meta="submitComment(entry.fieldId)"
               @keydown.escape.stop="newCommentBody = ''"
             ></nldd-multi-line-text-field>
-            <nldd-button-group orientation="horizontal" size="xs">
+            <nldd-button-group orientation="horizontal" size="sm">
               <nldd-button
                 appearance="primary"
                 text="Plaatsen"

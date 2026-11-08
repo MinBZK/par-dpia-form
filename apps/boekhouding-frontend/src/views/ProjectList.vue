@@ -86,7 +86,7 @@ const handleCreate = async () => {
       <!-- max-items: the collection hides items past its own cap (24) even
            without a load-more button. The server pages the list, so the cap is
            the server total and nothing loaded is ever hidden. -->
-      <nldd-collection layout="grid" item-min-width="380px" gap="16px" :max-items="total" class="project-grid"
+      <nldd-collection layout="grid" item-min-width="380px" :max-items="total" class="project-grid"
         @click="onCardNav">
         <nldd-card
           v-for="project in projectList"

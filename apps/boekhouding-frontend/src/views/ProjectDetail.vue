@@ -418,7 +418,7 @@ const formatDate = (dateStr: string) =>
         <!-- max-items: the collection hides items past its own cap (24) even
              without a load-more button. The server pages the list, so the cap
              is the server total and nothing loaded is ever hidden. -->
-        <nldd-collection layout="grid" item-min-width="320px" gap="16px" :max-items="total"
+        <nldd-collection layout="grid" item-min-width="320px" :max-items="total"
           @click="onCardNav">
           <nldd-card
             v-for="item in assessmentList"
@@ -449,7 +449,7 @@ const formatDate = (dateStr: string) =>
 
       <div v-if="project.role === 'owner' || project.role === 'editor'">
         <h2>Start een nieuwe assessment</h2>
-        <nldd-collection layout="grid" item-min-width="320px" gap="16px">
+        <nldd-collection layout="grid" item-min-width="320px">
           <nldd-card>
             <nldd-container padding="16" gap="8">
               <h3>Pre-scan</h3>

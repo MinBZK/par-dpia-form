@@ -82,7 +82,7 @@ const assessments = [
 
     <section aria-labelledby="landing-paths-title">
       <h2 id="landing-paths-title">Kies hoe je werkt</h2>
-      <nldd-collection layout="grid" item-min-width="380px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="380px">
         <nldd-card>
           <nldd-container padding="16" gap="8">
             <h3>Zelfstandig invullen</h3>
@@ -130,7 +130,7 @@ const assessments = [
 
     <section aria-labelledby="landing-pillars-title">
       <h2 id="landing-pillars-title">Voor de overheid, door de overheid</h2>
-      <nldd-collection layout="grid" item-min-width="20rem" gap="24px">
+      <nldd-collection layout="grid" item-min-width="20rem">
         <nldd-container
           v-for="pillar in pillars"
           :key="pillar.title"
@@ -149,7 +149,7 @@ const assessments = [
 
     <section id="assessments" aria-labelledby="landing-assessments-title">
       <h2 id="landing-assessments-title">De drie assessments</h2>
-      <nldd-collection layout="grid" item-min-width="290px" gap="16px">
+      <nldd-collection layout="grid" item-min-width="290px">
         <nldd-card v-for="assessment in assessments" :key="assessment.title">
           <nldd-container padding="16" gap="8">
             <h3>{{ assessment.title }}</h3>

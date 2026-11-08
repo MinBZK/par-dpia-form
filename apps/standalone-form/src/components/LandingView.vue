@@ -180,7 +180,7 @@ async function downloadOfflineApp() {
     <nldd-container gap="24">
     <h1>Invulhulpen voor pre-scan, DPIA en IAMA</h1>
 
-    <nldd-collection layout="grid" item-min-width="380px" gap="16px">
+    <nldd-collection layout="grid" item-min-width="380px">
       <nldd-card v-for="card in cards" :key="card.type">
         <nldd-container padding="16" gap="8">
           <nldd-title size="4"><h2>{{ card.title }}</h2></nldd-title>

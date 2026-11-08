@@ -78,12 +78,12 @@ function markerIcon(item: ReturnType<typeof items>[number]): string | undefined 
   return item.find('nldd-step-cell').attributes('icon')
 }
 // No state carries a visible label: the marker says it on screen and a
-// screen-reader-only span says it out loud.
+// the row's accessible-label says it out loud.
 function supportingText(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-text-cell.toc-title').attributes('supporting-text')
 }
-function srStates(item: ReturnType<typeof items>[number]): string[] {
-  return item.findAll('.sr-only').map(s => s.text())
+function spokenLabel(item: ReturnType<typeof items>[number]): string | undefined {
+  return item.attributes('accessible-label')
 }
 function markerText(item: ReturnType<typeof items>[number]): string | undefined {
   return item.find('nldd-step-cell').attributes('text')
@@ -238,7 +238,7 @@ describe('ProgressTracker.vue', () => {
       // No word under it: the check mark already says finished. A screen
       // reader cannot see that check, so it still hears it.
       expect(supportingText(done)).toBeUndefined()
-      expect(done.findAll('.sr-only').some(s => s.text() === ', voltooid')).toBe(true)
+      expect(spokenLabel(done)).toBe('1. Vragen, voltooid')
       expect(done.attributes('current')).toBeUndefined()
 
       expect(nodeKind(open)).toBe('open')
@@ -265,7 +265,7 @@ describe('ProgressTracker.vue', () => {
       expect(current.attributes('current')).toBeUndefined()
       // No word under it: the tinted row says it, and a screen reader hears it.
       expect(supportingText(current)).toBeUndefined()
-      expect(current.findAll('.sr-only').some(s => s.text() === ', huidige stap')).toBe(true)
+      expect(spokenLabel(current)).toBe('1. Vragen, huidige stap')
       expect(markerIcon(current)).toBeUndefined()
     })
 
@@ -284,6 +284,7 @@ describe('ProgressTracker.vue', () => {
       expect(first.attributes('current')).toBeUndefined()
       // Done and current at once: the check mark carries done, so no word.
       expect(supportingText(first)).toBeUndefined()
+      expect(spokenLabel(first)).toBe('0. Inleiding, huidige stap, voltooid')
     })
 
     it('toont geen done/current wanneer disabled: alles open (future) zonder current-attribuut', () => {
@@ -300,6 +301,7 @@ describe('ProgressTracker.vue', () => {
         expect(trackStatus(item)).toBe('future')
         expect(item.attributes('current')).toBeUndefined()
         expect(markerIcon(item)).toBeUndefined()
+        expect(spokenLabel(item)).toBeUndefined()
       }
     })
 
@@ -338,7 +340,7 @@ describe('ProgressTracker.vue', () => {
       expect(partial.classes()).toContain('toc-item--progress')
       expect(markerText(partial)).toBeUndefined()
       expect(supportingText(partial)).toBeUndefined()
-      expect(srStates(partial)).toContain(', mee bezig')
+      expect(spokenLabel(partial)).toBe('2. Slot, mee bezig')
     })
 
     it('laat done en current voorgaan op progress', () => {
@@ -399,7 +401,7 @@ describe('ProgressTracker.vue', () => {
   })
 
   describe('opmerking-indicator', () => {
-    it('toont het opmerking-icoon + sr-only voor secties in commentedTaskIds', () => {
+    it('toont het opmerking-icoon + accessible-label voor secties in commentedTaskIds', () => {
       seedRootTasks(taskStore, [
         flatTask({ id: '0', task: 'Inleiding' }),
         flatTask({ id: '1', task: 'Vragen' }),
@@ -410,7 +412,8 @@ describe('ProgressTracker.vue', () => {
       const without = items(wrapper)[0]
 
       expect(withComment.find('.toc-comment').exists()).toBe(true)
-      expect(withComment.findAll('.sr-only').some(s => s.text() === ', bevat opmerkingen')).toBe(true)
+      expect(spokenLabel(withComment)).toBe('1. Vragen, bevat opmerkingen')
+      expect(spokenLabel(without)).toBe('0. Inleiding, huidige stap')
       expect(without.find('.toc-comment').exists()).toBe(false)
     })
 

@@ -200,6 +200,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Op de statuspagina was tijdens het controleren niets te zien van de
+  voortgang: de melding stond op "Controleren" met hetzelfde informatie-icoon
+  als een gewone mededeling. Die staat er nu met een eigen icoon.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
@@ -233,6 +236,13 @@ build) staan kort onder "Onder de motorkap".
   breaking changes raken componenten die wij niet gebruiken. Deze versie brengt
   ook een eigen linter mee (`nldd lint`) en waarschuwingen in de dev-build, die
   voortaan onze controle zijn op attributen die stil genegeerd worden.
+* De meldingen van die linter opgelost: `gap` op `nldd-collection` neemt een
+  stap van de spacingschaal in plaats van een CSS-lengte, dus onze negen
+  `gap="16px"` deden niets en zijn weg, waarmee de responsieve standaard van
+  het component het ritme bepaalt. De knopgroepen in het opmerkingenpaneel
+  stonden op `xs`, dat daar niet bestaat, en staan nu op `sm`. De toestanden in
+  de inhoudsopgave gaan van losse verborgen tekst naar `accessible-label`, het
+  attribuut dat de rij daarvoor heeft.
 * `@nldd/design-system` van 0.8.85 naar 0.10.0, zestien releases met twaalf
   breaking changes. De grootste: `nldd-app-view` heet `nldd-shell`,
   `nldd-timeline-track-cell` heet `nldd-step-cell`, `variant` heet `appearance`

@@ -136,7 +136,6 @@ describe('ProjectList', () => {
       const grid = wrapper.find('nldd-collection')
       expect(grid.attributes('layout')).toBe('grid')
       expect(grid.attributes('item-min-width')).toBe('380px')
-      expect(grid.attributes('gap')).toBe('16px')
       expect(grid.attributes('max-items')).toBe('2')
 
       const cards = wrapper.findAll('nldd-collection > nldd-card')

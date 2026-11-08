@@ -71,18 +71,17 @@ describe('StatusPage', () => {
     })
   })
 
-  it('shows the loading state (neutral banner with activity indicator) before the probes resolve', () => {
+  it('shows the loading state (neutral banner with its own icon) before the probes resolve', () => {
     probe.mockReturnValue(new Promise(() => {})) // never resolves
     const wrapper = mountStatus()
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Controleren')
     expect(backend.attributes('variant')).toBe('neutral')
-    expect(backend.find('nldd-activity-indicator').exists()).toBe(true)
-    expect(backend.find('nldd-icon').exists()).toBe(false)
+    expect(backend.attributes('icon')).toBe('arrow-clockwise')
     const keycloak = wrapper.get('[data-test="keycloak-state"]')
     expect(keycloak.attributes('text')).toBe('Controleren')
     expect(keycloak.attributes('variant')).toBe('neutral')
-    expect(keycloak.find('nldd-activity-indicator').exists()).toBe(true)
+    expect(keycloak.attributes('icon')).toBe('arrow-clockwise')
   })
 
   it('renders the status cards with small description text and the state as a banner in the footer', () => {
@@ -106,7 +105,7 @@ describe('StatusPage', () => {
     const backend = wrapper.get('[data-test="backend-state"]')
     expect(backend.attributes('text')).toBe('Alles werkt')
     expect(backend.attributes('variant')).toBe('success')
-    expect(backend.find('nldd-activity-indicator').exists()).toBe(false)
+    expect(backend.attributes('icon')).toBeUndefined()
     expect(wrapper.get('[data-test="keycloak-state"]').attributes('text')).toBe('Alles werkt')
     // The git tag carries the v; the reading version does not.
     expect(wrapper.get('[data-test="version"]').text()).toBe('2026.6.14')
