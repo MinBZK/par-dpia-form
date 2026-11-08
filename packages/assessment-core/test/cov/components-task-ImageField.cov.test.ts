@@ -23,7 +23,10 @@ const task: FlatTask = {
   childrenIds: [],
 }
 
-function mountField(props: Partial<{ instanceId: string; label: string; description: string }> = {}, readonly = false) {
+function mountField(
+  props: Partial<{ instanceId: string; label: string; description: string; accessibleLabel: string }> = {},
+  readonly = false,
+) {
   return mount(ImageField, {
     global: { provide: { [CONTENT_READONLY_KEY as symbol]: ref(readonly) } },
     props: {
@@ -31,6 +34,7 @@ function mountField(props: Partial<{ instanceId: string; label: string; descript
       instanceId: props.instanceId ?? 'img-1',
       ...(props.label !== undefined ? { label: props.label } : {}),
       ...(props.description !== undefined ? { description: props.description } : {}),
+      ...(props.accessibleLabel !== undefined ? { accessibleLabel: props.accessibleLabel } : {}),
     },
   })
 }
@@ -48,6 +52,13 @@ function dispatchNlddChange(el: Element, value: string) {
   el.dispatchEvent(new CustomEvent('change', { detail: { value } }))
 }
 
+// nldd-file-field reports its selection as detail: { files, paths }.
+function dispatchFileChange(el: Element, files: File[]) {
+  el.dispatchEvent(new CustomEvent('change', { detail: { files, paths: files.map((f) => f.name) } }))
+}
+
+const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml'
+
 describe('ImageField.vue', () => {
   let store: ReturnType<typeof useAnswerStore>
 
@@ -59,29 +70,24 @@ describe('ImageField.vue', () => {
   })
 
   describe('empty state (no answer)', () => {
-    it('shows the dropzone and hides preview/legacy/error/processing', () => {
+    it('shows the area upload field and hides preview/legacy/error/processing', () => {
       const wrapper = mountField()
-      expect(wrapper.find('.image-dropzone').exists()).toBe(true)
-      expect(wrapper.text()).toContain('Sleep een afbeelding hierheen of klik om te uploaden')
+      const field = wrapper.find('nldd-file-field')
+      expect(field.exists()).toBe(true)
+      expect(field.attributes('variant')).toBe('area')
+      expect(field.attributes('accept')).toBe(ACCEPT)
       expect(wrapper.find('.image-preview').exists()).toBe(false)
       expect(wrapper.find('nldd-banner').exists()).toBe(false)
       expect(wrapper.find('[role="status"]').exists()).toBe(false)
     })
 
-    it('sets the file input aria-label when no label prop is given', () => {
-      const wrapper = mountField()
-      const input = wrapper.find('input[type="file"]')
-      expect(input.attributes('aria-label')).toBe('Afbeelding uploaden')
-      expect(input.attributes('aria-labelledby')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBeUndefined()
+    it('falls back to a generic accessible label when none is given', () => {
+      expect(mountField().find('nldd-file-field').attributes('accessible-label')).toBe('Afbeelding uploaden')
     })
 
-    it('sets aria-labelledby on the file input and aria-describedby on dropzone when a label is given', () => {
-      const wrapper = mountField({ label: 'Mijn afbeelding' })
-      const input = wrapper.find('input[type="file"]')
-      expect(input.attributes('aria-labelledby')).toBe(`label-${task.id}-img-1`)
-      expect(input.attributes('aria-label')).toBeUndefined()
-      expect(wrapper.find('.image-dropzone').attributes('aria-describedby')).toBe(`label-${task.id}-img-1`)
+    it('uses the accessible label computed by FormField when it is given', () => {
+      const wrapper = mountField({ accessibleLabel: 'Mijn afbeelding' })
+      expect(wrapper.find('nldd-file-field').attributes('accessible-label')).toBe('Mijn afbeelding')
     })
   })
 
@@ -138,6 +144,13 @@ describe('ImageField.vue', () => {
       expect(img.exists()).toBe(true)
       expect(img.attributes('src')).toBe(RASTER_DATA_URI)
       expect(img.attributes('alt')).toBe('Diagram')
+    })
+
+    it('offers a control-variant file field below the preview', () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
+      const field = mountField().find('nldd-file-field')
+      expect(field.attributes('variant')).toBeUndefined()
+      expect(field.attributes('accept')).toBe(ACCEPT)
     })
 
     it('falls back to the task text as alt when no title is set', () => {
@@ -206,17 +219,13 @@ describe('ImageField.vue', () => {
   })
 
   describe('processFile success and error paths', () => {
-    it('processes a selected file and stores the resulting data URI', async () => {
+    it('processes a chosen file and stores the resulting data URI', async () => {
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(resizeMock).toHaveBeenCalledTimes(1)
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
-      expect(el.value).toBe('')
       expect(wrapper.find('img.image-preview').exists()).toBe(true)
     })
 
@@ -224,13 +233,10 @@ describe('ImageField.vue', () => {
       let resolve!: (uri: string) => void
       resizeMock.mockReturnValue(new Promise<string>((r) => { resolve = r }))
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await nextTick()
       expect(wrapper.find('[role="status"]').text()).toBe('Bezig met verwerken...')
-      expect(wrapper.find('.image-dropzone').exists()).toBe(false)
+      expect(wrapper.find('nldd-file-field').exists()).toBe(false)
       resolve(RASTER_DATA_URI)
       await flushPromises()
       await nextTick()
@@ -240,10 +246,7 @@ describe('ImageField.vue', () => {
     it('shows the Error message when resize throws an Error', async () => {
       resizeMock.mockRejectedValue(new Error('Bestand te groot'))
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       const banner = wrapper.find('nldd-banner[variant="critical"]')
@@ -254,23 +257,47 @@ describe('ImageField.vue', () => {
     it('shows a generic message when resize rejects with a non-Error', async () => {
       resizeMock.mockRejectedValue('boom')
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(wrapper.find('nldd-banner[variant="critical"]').attributes('text')).toBe('Er is een fout opgetreden.')
     })
+  })
 
-    it('does nothing when no file is selected (handleFileSelect early return)', async () => {
+  describe('a change without a file', () => {
+    it('does nothing when the event carries no detail at all', async () => {
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [], configurable: true })
-      await fileInput.trigger('change')
+      wrapper.find('nldd-file-field').element.dispatchEvent(new Event('change'))
       await flushPromises()
       expect(resizeMock).not.toHaveBeenCalled()
+      expect(store.getAnswer('img-1')).toBeNull()
+    })
+
+    it('does nothing when the detail carries no files key', async () => {
+      const wrapper = mountField()
+      wrapper.find('nldd-file-field').element.dispatchEvent(new CustomEvent('change', { detail: {} }))
+      await flushPromises()
+      expect(resizeMock).not.toHaveBeenCalled()
+      expect(store.getAnswer('img-1')).toBeNull()
+    })
+
+    it('does nothing when the file list is empty and no image is stored', async () => {
+      const wrapper = mountField()
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [])
+      await flushPromises()
+      expect(resizeMock).not.toHaveBeenCalled()
+      expect(store.getAnswer('img-1')).toBeNull()
+    })
+
+    it('removes the stored image when the field is cleared', async () => {
+      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, title: 'Diagram' })
+      const wrapper = mountField()
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [])
+      await flushPromises()
+      await nextTick()
+      expect(store.getAnswer('img-1')).toBeNull()
+      expect(wrapper.find('img.image-preview').exists()).toBe(false)
+      expect(wrapper.find('nldd-file-field').attributes('variant')).toBe('area')
     })
   })
 
@@ -278,13 +305,7 @@ describe('ImageField.vue', () => {
     it('keeps the existing image source when replacing the image', async () => {
       setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI, source: 'bestaande bron' })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')
-      expect(replaceBtn).toBeDefined()
-      await replaceBtn!.trigger('click')
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, source: 'bestaande bron' })
@@ -293,10 +314,7 @@ describe('ImageField.vue', () => {
     it('adopts a legacy URL as the source when uploading the first image', async () => {
       store.setAnswer('img-1', 'https://example.com/old.png')
       const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({
@@ -315,12 +333,7 @@ describe('ImageField.vue', () => {
         source: 'Bron',
       })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
-      await replaceBtn.trigger('click')
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({
@@ -334,12 +347,7 @@ describe('ImageField.vue', () => {
     it('evaluates current?.source when replacing an image that has no source', async () => {
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Alleen titel' })
       const wrapper = mountField()
-      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
-      await replaceBtn.trigger('click')
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI, title: 'Alleen titel' })
@@ -349,12 +357,7 @@ describe('ImageField.vue', () => {
       setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD', title: 'Behoud' })
       const wrapper = mountField()
       resizeMock.mockResolvedValue(undefined as unknown as string)
-      const replaceBtn = wrapper.findAll('nldd-button').find((b) => b.attributes('text') === 'Vervang afbeelding')!
-      await replaceBtn.trigger('click')
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: 'data:image/png;base64,OLD', title: 'Behoud' })
@@ -363,10 +366,7 @@ describe('ImageField.vue', () => {
     it('falls back to an empty data string when no current image exists and resize yields nullish', async () => {
       const wrapper = mountField()
       resizeMock.mockResolvedValue(undefined as unknown as string)
-      const fileInput = wrapper.find('input[type="file"]')
-      const el = fileInput.element as HTMLInputElement
-      Object.defineProperty(el, 'files', { value: [makeFile()], configurable: true })
-      await fileInput.trigger('change')
+      dispatchFileChange(wrapper.find('nldd-file-field').element, [makeFile()])
       await flushPromises()
       await nextTick()
       expect(store.getAnswer('img-1')).toEqual({ data: '' })
@@ -384,83 +384,6 @@ describe('ImageField.vue', () => {
       dispatchNlddChange(field.element, 'genegeerd')
       await nextTick()
       expect(store.getAnswer('img-1')).toBeNull()
-    })
-  })
-
-  describe('drag and drop', () => {
-    it('toggles the active class on dragover/dragleave on the dropzone', async () => {
-      const wrapper = mountField()
-      const dropzone = wrapper.find('.image-dropzone')
-      await dropzone.trigger('dragover')
-      expect(wrapper.find('.image-dropzone--active').exists()).toBe(true)
-      await dropzone.trigger('dragleave')
-      expect(wrapper.find('.image-dropzone--active').exists()).toBe(false)
-    })
-
-    it('processes a dropped file on the empty dropzone', async () => {
-      const wrapper = mountField()
-      const dropzone = wrapper.find('.image-dropzone')
-      await dropzone.trigger('drop', { dataTransfer: { files: [makeFile()] } })
-      await flushPromises()
-      await nextTick()
-      expect(resizeMock).toHaveBeenCalledTimes(1)
-      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
-    })
-
-    it('ignores a drop with no file (handleDrop false branch)', async () => {
-      const wrapper = mountField()
-      const dropzone = wrapper.find('.image-dropzone')
-      await dropzone.trigger('drop', { dataTransfer: { files: [] } })
-      await flushPromises()
-      expect(resizeMock).not.toHaveBeenCalled()
-      expect(wrapper.find('.image-dropzone--active').exists()).toBe(false)
-    })
-
-    it('shows the replace overlay when dragging over an existing preview', async () => {
-      setImageAnswer(store, 'img-1', { data: RASTER_DATA_URI })
-      const wrapper = mountField()
-      const dragDiv = wrapper
-        .findAll('div')
-        .find((d) => d.element.firstElementChild?.classList.contains('image-replace-target'))!
-      await dragDiv.trigger('dragover')
-      expect(wrapper.find('.image-replace-overlay').exists()).toBe(true)
-      expect(wrapper.find('.image-replace-overlay').text()).toContain(
-        'Sleep een afbeelding hierheen om de huidige afbeelding te vervangen',
-      )
-      await dragDiv.trigger('dragleave')
-      expect(wrapper.find('.image-replace-overlay').exists()).toBe(false)
-    })
-
-    it('replaces the image by dropping onto an existing preview', async () => {
-      setImageAnswer(store, 'img-1', { data: 'data:image/png;base64,OLD' })
-      const wrapper = mountField()
-      const dragDiv = wrapper
-        .findAll('div')
-        .find((d) => d.element.firstElementChild?.classList.contains('image-replace-target'))!
-      await dragDiv.trigger('drop', { dataTransfer: { files: [makeFile()] } })
-      await flushPromises()
-      await nextTick()
-      expect(store.getAnswer('img-1')).toEqual({ data: RASTER_DATA_URI })
-    })
-  })
-
-  describe('triggerFileSelect via dropzone interactions', () => {
-    it('clicks the hidden file input when the dropzone is clicked', async () => {
-      const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
-      const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
-      await wrapper.find('.image-dropzone').trigger('click')
-      expect(clickSpy).toHaveBeenCalledTimes(1)
-    })
-
-    it('clicks the hidden file input on Enter and Space keydown', async () => {
-      const wrapper = mountField()
-      const fileInput = wrapper.find('input[type="file"]').element as HTMLInputElement
-      const clickSpy = vi.spyOn(fileInput, 'click').mockImplementation(() => {})
-      const dropzone = wrapper.find('.image-dropzone')
-      await dropzone.trigger('keydown.enter')
-      await dropzone.trigger('keydown.space')
-      expect(clickSpy).toHaveBeenCalledTimes(2)
     })
   })
 

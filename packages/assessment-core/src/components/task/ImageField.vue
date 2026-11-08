@@ -5,8 +5,8 @@ import { useAnswerStore, isImageValue, type ImageValue } from '../../stores/answ
 import { type FlatTask } from '../../stores/tasks'
 import { resizeImageToDataUri } from '../../utils/imageResize'
 import '@nldd/design-system/banner'
-import '@nldd/design-system/button'
 import '@nldd/design-system/container'
+import '@nldd/design-system/file-field'
 import '@nldd/design-system/form-field'
 import '@nldd/design-system/text-field'
 import '@nldd/design-system/multi-line-text-field'
@@ -16,16 +16,17 @@ const props = defineProps<{
   instanceId: string
   label?: string
   description?: string
+  accessibleLabel?: string
 }>()
+
+const ACCEPTED_TYPES = 'image/jpeg,image/png,image/webp,image/gif,image/svg+xml'
 
 const answerStore = useAnswerStore()
 // Read-only role: the upload controls go inert, the preview stays visible.
 const readonly = inject(CONTENT_READONLY_KEY, ref(false))
 
-const fileInput = ref<HTMLInputElement | null>(null)
 const isProcessing = ref(false)
 const errorMessage = ref<string | null>(null)
-const isDragging = ref(false)
 
 const currentValue = computed(() => answerStore.getAnswer(props.instanceId))
 
@@ -49,6 +50,8 @@ const legacyIsUrl = computed(() => {
 })
 
 const hasImage = computed(() => imageData.value !== null)
+
+const uploadLabel = computed(() => props.accessibleLabel || 'Afbeelding uploaden')
 
 function saveImageValue(updates: Partial<ImageValue>) {
   const current = imageData.value
@@ -100,46 +103,20 @@ async function processFile(file: File) {
   }
 }
 
-async function handleFileSelect(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file) return
-  await processFile(file)
-  // Reset file input so the same file can be re-selected.
-  input.value = ''
-}
-
-function handleDrop(event: DragEvent) {
-  isDragging.value = false
-  const file = event.dataTransfer?.files?.[0]
-  if (file) processFile(file)
-}
-
-function handleDragOver() {
-  isDragging.value = true
-}
-
-function handleDragLeave() {
-  isDragging.value = false
-}
-
-function triggerFileSelect() {
-  fileInput.value?.click()
+async function handleFileChange(event: Event) {
+  const file = (event as CustomEvent<{ files?: File[] }>).detail?.files?.[0]
+  if (file) {
+    await processFile(file)
+    return
+  }
+  // The clear button of the field is the only control that reads as "undo this
+  // upload", so an empty change drops the stored image.
+  if (hasImage.value) answerStore.removeAnswer(props.instanceId)
 }
 </script>
 
 <template>
   <div class="field-group" :inert="readonly || undefined">
-    <input
-      ref="fileInput"
-      type="file"
-      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
-      hidden
-      :aria-label="label ? undefined : 'Afbeelding uploaden'"
-      :aria-labelledby="label ? `label-${task.id}-${instanceId}` : undefined"
-      @change="handleFileSelect"
-    />
-
     <!-- Legacy string/URL reference -->
     <nldd-banner v-if="legacyValue" variant="warning" class="image-field__block">
       <p>Bestaande referentie:
@@ -155,22 +132,20 @@ function triggerFileSelect() {
     <!-- Error message -->
     <nldd-banner v-if="errorMessage" variant="critical" :text="errorMessage" class="image-field__block"></nldd-banner>
 
-    <!-- Image preview (also accepts drag & drop to replace) -->
-    <div v-if="hasImage" class="image-field__block"
-      @dragover.prevent="handleDragOver"
-      @dragleave.prevent="handleDragLeave"
-      @drop.prevent="handleDrop"
-    >
-      <div class="image-replace-target">
-        <img
-          :src="imageData!.data"
-          :alt="imageData!.title || task.task"
-          class="image-preview"
-        />
-        <div v-if="isDragging" class="image-replace-overlay">Sleep een afbeelding hierheen om de huidige afbeelding te vervangen</div>
-      </div>
+    <nldd-container v-if="hasImage" gap="16">
+      <img
+        :src="imageData!.data"
+        :alt="imageData!.title || task.task"
+        class="image-preview"
+      />
 
-      <nldd-button appearance="secondary" text="Vervang afbeelding" class="image-field__block" @click="triggerFileSelect"></nldd-button>
+      <!-- A browser does not let a file input be prefilled, so this field shows
+           no file name even though the preview above holds the stored image. -->
+      <nldd-file-field
+        :accept="ACCEPTED_TYPES"
+        :accessible-label="uploadLabel"
+        @change="handleFileChange"
+      ></nldd-file-field>
 
       <!-- Metadata fields (only shown when an image is uploaded) -->
       <nldd-container gap="8">
@@ -206,23 +181,15 @@ function triggerFileSelect() {
           ></nldd-text-field>
         </nldd-form-field>
       </nldd-container>
-    </div>
+    </nldd-container>
 
-    <!-- Upload dropzone (shown when no image) -->
-    <div v-if="!hasImage && !isProcessing"
-      class="image-dropzone"
-      :class="{ 'image-dropzone--active': isDragging }"
-      @click="triggerFileSelect"
-      @dragover.prevent="handleDragOver"
-      @dragleave.prevent="handleDragLeave"
-      @drop.prevent="handleDrop"
-      role="button"
-      tabindex="0"
-      :aria-describedby="label ? `label-${task.id}-${instanceId}` : undefined"
-      @keydown.enter="triggerFileSelect"
-      @keydown.space.prevent="triggerFileSelect"
-    >
-      Sleep een afbeelding hierheen of klik om te uploaden
-    </div>
+    <!-- Upload field (shown when no image) -->
+    <nldd-file-field
+      v-if="!hasImage && !isProcessing"
+      variant="area"
+      :accept="ACCEPTED_TYPES"
+      :accessible-label="uploadLabel"
+      @change="handleFileChange"
+    ></nldd-file-field>
   </div>
 </template>

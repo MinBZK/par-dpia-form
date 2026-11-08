@@ -17,6 +17,11 @@ build) staan kort onder "Onder de motorkap".
 
 ### Gewijzigd
 
+* Het afbeeldingsveld bij een vraag is nu hetzelfde uploadveld als elders in
+  Invulhulpen: het noemt zelf welke formaten het aanneemt, weigert een bestand
+  met uitleg waarom, en neemt een afbeelding aan die je erheen sleept. Een
+  geplaatste afbeelding kun je nu ook weer weghalen; tot nu toe kon je hem
+  alleen vervangen.
 * Een eerder opgeslagen PDF of JSON kun je nu ook naar het uploadveld slepen,
   in plaats van alleen via de bestandskiezer. Het veld zegt zelf welke soorten
   het aanneemt, toont het pictogram van het gekozen bestandstype en legt uit

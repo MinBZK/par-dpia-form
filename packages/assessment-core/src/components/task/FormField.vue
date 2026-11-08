@@ -371,5 +371,5 @@ const handleRadioGroupChange = (event: Event) => {
   </div>
 
   <!-- Image upload -->
-  <ImageField v-else-if="hasType('image')" :task="task" :instanceId="instanceId" :label="label" :description="description" />
+  <ImageField v-else-if="hasType('image')" :task="task" :instanceId="instanceId" :label="label" :description="description" :accessible-label="accessibleLabel" />
 </template>
