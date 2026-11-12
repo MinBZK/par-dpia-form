@@ -208,6 +208,35 @@ test('toets lists the answer options, and reads the answer from a file or from i
   assert.match(lastChat().messages[1].content, /Antwoord:\nRegel een\nRegel twee$/)
 })
 
+test('herformuleer sends the Dutch reformulation prompt and question context', async () => {
+  const lines = await run(['herformuleer', '1.1.1', '--bron', bron, '--antwoord', 'Een chatbot voor burgers.'])
+  const { messages } = lastChat()
+  assert.equal(messages.length, 2)
+  assert.match(messages[0].content, /Herformuleer de tekst in helder, beknopt en professioneel Nederlands/)
+  assert.match(messages[0].content, /Geef uitsluitend de herformuleerde tekst terug/)
+  assert.equal(messages[1].content, [
+    'Vraag 1.1.1: Geef een korte beschrijving van het beoogde doel.',
+    'Toelichting: Denk aan doelgroepen en het werkproces.',
+    'Onderdeel: Doel en noodzaak > Doel van het systeem',
+    'Uitleg bij het onderdeel: Welk probleem moet opgelost worden?',
+    '',
+    'Te herformuleren tekst:',
+    'Een chatbot voor burgers.',
+  ].join('\n'))
+  assert.match(lines[0], /geen echte persoonsgegevens/)
+})
+
+test('herformuleer accepts a custom system prompt and reads text from a file or input', async () => {
+  const file = join(fixtureDir, 'antwoord.txt')
+  await writeFile(file, 'Een lange uitleg.\n')
+  await run(['herformuleer', '1.1.1', '--bron', bron, '--bestand', file, '--systeem', 'Wees zakelijk.'])
+  assert.equal(lastChat().messages[0].content, 'Wees zakelijk.')
+  assert.match(lastChat().messages[1].content, /Te herformuleren tekst:\nEen lange uitleg\.$/)
+
+  await run(['herformuleer', '1.1.1', '--bron', bron], { input: 'Regel een\nRegel twee\n\nniet meer\n' })
+  assert.match(lastChat().messages[1].content, /Te herformuleren tekst:\nRegel een\nRegel twee$/)
+})
+
 test('toets checks the question before asking for the key', async () => {
   const readKey = async () => assert.fail('should not ask for a key')
   const env = { AIIA_API_URL: apiUrl }
@@ -215,6 +244,7 @@ test('toets checks the question before asking for the key', async () => {
   await assert.rejects(run(['toets', '9.9', '--bron', bron], { env, readKey }), /Vraag 9\.9 staat niet in het AIIA/)
   await assert.rejects(run(['toets', '1.1', '--bron', bron], { env, readKey }), /1\.1 is een onderdeel, geen vraag\. Kies een vraag daarbinnen: 1\.1\.1, 1\.1\.2\./)
   await assert.rejects(run(['toets', '1.1.1', '--bron', join(fixtureDir, 'weg.yaml')], { env, readKey }), /niet te lezen/)
+  await assert.rejects(run(['herformuleer', '9.9', '--bron', bron], { env, readKey }), /Vraag 9\.9 staat niet in het AIIA/)
   assert.equal(requests.length, 0)
 })
 
@@ -222,6 +252,8 @@ test('toets refuses an empty answer, an unreadable file and an answer that is to
   await assert.rejects(run(['toets', '1.1.1', '--bron', bron], { input: '\n' }), /Geen antwoord opgegeven/)
   await assert.rejects(run(['toets', '1.1.1', '--bron', bron, '--bestand', join(fixtureDir, 'weg.txt')]), /niet te lezen/)
   await assert.rejects(run(['toets', '1.1.1', '--bron', bron, '--antwoord', 'x'.repeat(8000)]), /te lang/)
+  await assert.rejects(run(['herformuleer', '1.1.1', '--bron', bron, '--antwoord', '  ']), /Geen antwoord opgegeven/)
+  await assert.rejects(run(['herformuleer', '1.1.1', '--bron', bron, '--antwoord', 'x'.repeat(8000)]), /te lang/)
   assert.equal(requests.filter((r) => r.url === '/api/v1/chat').length, 0)
 })
 

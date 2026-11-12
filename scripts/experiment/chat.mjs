@@ -8,6 +8,7 @@
 //   node scripts/experiment/chat.mjs vraag "Wat bedoelt vraag 1.1.2?"
 //   node scripts/experiment/chat.mjs gesprek
 //   node scripts/experiment/chat.mjs toets 1.1.1
+//   node scripts/experiment/chat.mjs herformuleer 1.1.1
 //
 // It asks for a chat key, which you make in the web app (see login.mjs); the
 // AIIA questions come from sources/aiia.yaml (see aiia.mjs).
@@ -16,7 +17,7 @@ import { readFile } from 'node:fs/promises'
 import { createInterface } from 'node:readline/promises'
 import { pathToFileURL } from 'node:url'
 import { ChatError, getKey } from './login.mjs'
-import { buildReviewMessages, findTask, loadAiia } from './aiia.mjs'
+import { buildReformulationMessages, buildReviewMessages, findTask, loadAiia } from './aiia.mjs'
 
 export { ChatError, getKey } from './login.mjs'
 
@@ -34,14 +35,15 @@ const USAGE = `Gebruik:
   node scripts/experiment/chat.mjs vraag "<je vraag>"
   node scripts/experiment/chat.mjs gesprek
   node scripts/experiment/chat.mjs toets <vraagnummer>
+  node scripts/experiment/chat.mjs herformuleer <vraagnummer>
 
 Opties:
   --model <id>               een id uit 'modellen'; zonder: het standaardmodel van de omgeving
   --systeem "<instructie>"   eigen systeembericht; standaard: "${DEFAULT_SYSTEM}"
-                             (bij toets: de beoordelingsinstructie uit aiia.mjs)
-  --antwoord "<tekst>"       bij toets: het antwoord om te beoordelen
-  --bestand <pad>            bij toets: lees het antwoord uit een bestand
-  --bron <pad>               bij toets: een ander AIIA-bestand dan sources/aiia.yaml
+                             (bij toets/herformuleer: de instructie uit aiia.mjs)
+  --antwoord "<tekst>"       bij toets/herformuleer: het antwoord om te verwerken
+  --bestand <pad>            bij toets/herformuleer: lees het antwoord uit een bestand
+  --bron <pad>               bij toets/herformuleer: een ander AIIA-bestand dan sources/aiia.yaml
 
 Het script vraagt om een chat-sleutel; die maak je in de webapp op /chat-sleutel.
 AIIA_API_URL kiest een ander API-adres; standaard ${API_URL}.`
@@ -144,6 +146,19 @@ async function review(apiUrl, key, id, options, io, fetchImpl) {
   io.log(`\n${model}> ${reply}`)
 }
 
+async function reformulate(apiUrl, key, id, options, io, fetchImpl) {
+  const found = findTask(await loadAiia(options.bron), id)
+  const answer = await readAnswer(options, io)
+  if (!answer.trim()) throw new ChatError('Geen antwoord opgegeven; er is niets verstuurd.')
+  const messages = buildReformulationMessages(found, answer, options.systeem)
+  if (messages[1].content.length > MAX_CONTENT) {
+    throw new ChatError(`Vraag en antwoord zijn samen te lang (meer dan ${MAX_CONTENT} tekens); maak het antwoord korter.`)
+  }
+  io.log(`${PRIVACY_NOTE}\nAntwoord op vraag ${id} wordt herformuleerd...`)
+  const { reply, model } = await sendChat(apiUrl, key, messages, options.model, fetchImpl)
+  io.log(`\n${model}> ${reply}`)
+}
+
 export async function runCli(argv, { env = process.env, fetchImpl = fetch, io, readKey } = {}) {
   io ??= { stdin: process.stdin, stdout: process.stdout, log: console.log }
   const { values, positionals } = parseArgs({
@@ -163,7 +178,7 @@ export async function runCli(argv, { env = process.env, fetchImpl = fetch, io, r
     io.log(USAGE)
     return
   }
-  if (!['modellen', 'vraag', 'gesprek', 'toets'].includes(command)) {
+  if (!['modellen', 'vraag', 'gesprek', 'toets', 'herformuleer'].includes(command)) {
     throw new ChatError(`Onbekend commando "${command}".\n\n${USAGE}`)
   }
   const argument = rest.join(' ').trim()
@@ -173,8 +188,11 @@ export async function runCli(argv, { env = process.env, fetchImpl = fetch, io, r
   if (command === 'toets' && !argument) {
     throw new ChatError('Geef een vraagnummer mee, bijvoorbeeld: toets 1.1.1')
   }
+  if (command === 'herformuleer' && !argument) {
+    throw new ChatError('Geef een vraagnummer mee, bijvoorbeeld: herformuleer 1.1.1')
+  }
   // Check the question before asking for the key, so a typo costs no paste.
-  if (command === 'toets') findTask(await loadAiia(values.bron), argument)
+  if (command === 'toets' || command === 'herformuleer') findTask(await loadAiia(values.bron), argument)
 
   const apiUrl = (env.AIIA_API_URL || API_URL).replace(/\/+$/, '')
   const key = await getKey(env, apiUrl, readKey)
@@ -195,6 +213,7 @@ export async function runCli(argv, { env = process.env, fetchImpl = fetch, io, r
     return
   }
   if (command === 'toets') return review(apiUrl, key, argument, values, io, fetchImpl)
+  if (command === 'herformuleer') return reformulate(apiUrl, key, argument, values, io, fetchImpl)
   return converse(apiUrl, key, values, io, fetchImpl)
 }
 

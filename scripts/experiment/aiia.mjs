@@ -2,9 +2,8 @@
 // turn it, with an answer, into a conversation for the model. This is the place
 // to start when you want the model to help in another way: write a new
 // build...Messages next to buildReviewMessages and give it a command in chat.mjs.
-import { readFile } from 'node:fs/promises'
-import { parse } from 'yaml'
-import { ChatError } from './login.mjs'
+
+export class ChatError extends Error {}
 
 export const AIIA_SOURCE = new URL('../../sources/aiia.yaml', import.meta.url)
 
@@ -15,7 +14,16 @@ Geef in het Nederlands, kort en zakelijk:
 3. een concrete suggestie om het antwoord te verbeteren.
 Verzin geen feiten over het AI-systeem. Ontbreekt informatie, benoem dan welke.`
 
+export const REFORMULATE_SYSTEM = `Je herformuleert antwoorden op vragen uit het AI Impact Assessment (AIIA) van de Nederlandse overheid.
+Herformuleer de tekst in helder, beknopt en professioneel Nederlands.
+Behoud de betekenis, feiten en nuance. Voeg geen informatie toe, verzin geen feiten en laat geen relevante informatie weg.
+Geef uitsluitend de herformuleerde tekst terug.`
+
 export async function loadAiia(source = AIIA_SOURCE) {
+  const [{ readFile }, { parse }] = await Promise.all([
+    import(/* @vite-ignore */ 'node:fs/promises'),
+    import('yaml'),
+  ])
   const text = await readFile(source, 'utf8').catch(() => {
     throw new ChatError(`AIIA-bestand ${source} is niet te lezen.`)
   })
@@ -63,5 +71,13 @@ export function buildReviewMessages(found, answer, system = REVIEW_SYSTEM) {
   return [
     { role: 'system', content: system },
     { role: 'user', content: `${describeTask(found)}\n\nAntwoord:\n${answer.trim()}` },
+  ]
+}
+
+/** A conversation that asks the model to reformulate an answer to one question. */
+export function buildReformulationMessages(found, answer, system = REFORMULATE_SYSTEM) {
+  return [
+    { role: 'system', content: system },
+    { role: 'user', content: `${describeTask(found)}\n\nTe herformuleren tekst:\n${answer.trim()}` },
   ]
 }

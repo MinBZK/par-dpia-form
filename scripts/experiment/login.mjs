@@ -4,8 +4,9 @@
 // never stored.
 import { createInterface } from 'node:readline/promises'
 import { Writable } from 'node:stream'
+import { ChatError } from './aiia.mjs'
 
-export class ChatError extends Error {}
+export { ChatError }
 
 // Reads one line without echoing it, so a pasted key stays off the screen.
 async function readHidden(prompt, stdin = process.stdin, stdout = process.stdout) {
