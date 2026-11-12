@@ -1286,8 +1286,9 @@ tasks:
   - task: "Bijlage 3: Beginselen AVG in het AIIA"
     id: "11"
     is_official_id: false
-    description: >-
-      ...
     type:
-      - open_text
+      - informational
     repeatable: false
+    sources:
+      - source: beginselenAVG_AIIA.JPG
+        description: Beginselen AVG in het AIIA

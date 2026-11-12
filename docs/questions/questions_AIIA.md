@@ -94,4 +94,4 @@
 | 8.14 |   Hoe gebruik ik het AIIA voor andere nieuwe AI-innovaties? | Het AIIA is in 2026 herschreven zodat het beter aansluit bij de ontwikkelingen rondom generatieve AI. We verwachten dat ook voor andere AI-innovaties gebruikt kan worden. Denk, als een vraag niet helemaal past, na over de bedoeling achter de vraag. Kom je er niet uit? Stuur ons dan een mailtje via teamai@minienw.nl. | informational, task_group |  |  |
 | 9 | Bijlage 1: Compacte lijst grondrechten | Er zijn verschillende soorten grondrechten die mogelijk van toepassing zijn op je AI-systeem. Hie... | informational |  |  |
 | 10 | Bijlage 2: Factsheet Duurzaamheid en AI |  | informational |  |  |
-| 11 | Bijlage 3: Beginselen AVG in het AIIA | ... | open_text |  |  |
+| 11 | Bijlage 3: Beginselen AVG in het AIIA |  | informational |  |  |
