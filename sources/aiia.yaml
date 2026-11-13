@@ -75,11 +75,17 @@ tasks:
           - task_group
         repeatable: false
 
-      - task: Verantwoording (moet dit erbij?)
+      - task: Verantwoording
         id: "0.4"
         is_official_id: false
         description: |
-          ...
+          Het IDlab en afdeling analyse ILT, het RWS Datalab en Concerndirectie Informatiebeleid van IenW (CDIB) hebben de eerste versie van het AIIA ontwikkeld. Het AIIA is vastgesteld door de Bestuursraad van IenW op 4 juli 2022.
+
+          In versie 2.0 (2024) is informatie over generatieve AI toegevoegd, zijn gebruikerservaringen verwerkt en is informatie over de definitieve teksten van de AI-verordening opgenomen. Daarnaast is de samenhang met het Impact Assessment mensenrechten en algoritmes (IAMA) versterkt. Het AIIA gaat hiermee niet alleen meer over hoe AI toegepast kan worden, maar ook of het wenselijk is om AI in te zetten.
+
+          In versie 2.1 (2026) zijn gebruikerservaringen, de praktische ervaringen met generatieve AI en overige ontwikkelingen verwerkt. We hebben wat vragen herformuleerd, structuur logischer geordend en de overlap met andere assessments beperkt om het AIIA eenvoudiger en compacter te maken.
+
+          Eerder ingevulde, oude versies van het AIIA geven voldoende richting voor een betrouwbaar en verantwoord AI-systeem. Het AIIA hoeft dus niet opnieuw uitgevoerd te worden.
         type:
           - task_group
         repeatable: false
