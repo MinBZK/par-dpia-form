@@ -24,6 +24,8 @@ Tests draaien tegen een echte Postgres. Zet `TEST_DATABASE_URL`, of laat de defa
 | `OIDC_URL` / `OIDC_INTERNAL_URL` | `http://localhost:8080` | Publieke resp. in-cluster Keycloak-URL (JWKS gebruikt de interne) |
 | `OIDC_REALM` | `invulhulpen` | Keycloak-realm |
 | `OIDC_PUBLIC_CLIENT_ID` | `boekhouding-frontend` | Verwachte `azp`-claim |
+| `CHAT_KEY_SECRET` | leeg (uit) | Geheim (min. 32 tekens) waarmee de backend chat-sleutels ondertekent; vervangen maakt alle sleutels ongeldig |
+| `CHAT_KEY_TTL_HOURS` | `8` (max. 24) | Geldigheid van een chat-sleutel in uren |
 | `CORS_ORIGIN` / `PUBLIC_HOST` | `http://localhost:5174` | Toegestane origin(s), comma-gescheiden lijst mogelijk |
 | `TRUST_PROXY` | `uniquelocal` | Welke directe peer een proxy is (voor `req.ip` / rate-limit): benoemd bereik of CIDR, `0` om uit te zetten |
 | `EXPOSE_API_DOCS` | `false` | Swagger UI + `/api/openapi.json` |

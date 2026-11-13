@@ -28,6 +28,7 @@ vi.mock('../../src/views/PrivacyStatement.vue', () => stub('PrivacyStatement'))
 vi.mock('../../src/views/AccessibilityStatement.vue', () => stub('AccessibilityStatement'))
 vi.mock('../../src/views/AboutAssessments.vue', () => stub('AboutAssessments'))
 vi.mock('../../src/views/StatusPage.vue', () => stub('StatusPage'))
+vi.mock('../../src/views/ChatKey.vue', () => stub('ChatKey'))
 vi.mock('../../src/views/NotFound.vue', () => stub('NotFound'))
 
 let router: typeof import('../../src/router').router
@@ -64,6 +65,7 @@ describe('router route table', () => {
     expect(paths.get('accessibility')).toBe('/toegankelijkheid')
     expect(paths.get('about')).toBe('/over')
     expect(paths.get('status')).toBe('/status')
+    expect(paths.get('chat-key')).toBe('/chat-sleutel')
     expect(paths.get('not-found')).toBe('/:pathMatch(.*)*')
   })
 
@@ -78,6 +80,7 @@ describe('router route table', () => {
     expect(byName('projects').meta?.public).toBeUndefined()
     expect(byName('project').meta?.public).toBeUndefined()
     expect(byName('assessment-editor').meta?.public).toBeUndefined()
+    expect(byName('chat-key').meta?.public).toBeUndefined()
   })
 
   it('invokes every lazy component loader and resolves the stubbed module', async () => {
@@ -92,6 +95,7 @@ describe('router route table', () => {
       accessibility: 'AccessibilityStatement',
       about: 'AboutAssessments',
       status: 'StatusPage',
+      'chat-key': 'ChatKey',
       'not-found': 'NotFound',
     }
 

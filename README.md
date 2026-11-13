@@ -3,6 +3,11 @@
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-yellow.svg)](https://github.com/MinBZK/par-dpia-form)
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL_v1.2-blue.svg)](LICENSE)
 
+> **Experimentbranch `experiment/aiia-ai`.** Deze branch dient voor onderzoek naar
+> AI-ondersteuning bij het AIIA. De omgeving, de werkwijze, de chat-API en de afspraken
+> staan in [docs/experiment/README.md](docs/experiment/README.md). Deze branch wordt
+> niet naar `main` gemerged.
+
 Webapplicatie voor het uitvoeren van Pre-scan-, DPIA- en IAMA-assessments, volgens het Rijksmodel DPIA en het IAMA (Impact Assessment Mensenrechten en Algoritmes) van de Nederlandse overheid. Gebouwd met het [RVO component library](https://nl-design-system.github.io/rvo/).
 
 ## Kenmerken

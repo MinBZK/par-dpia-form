@@ -278,6 +278,17 @@ export const commentsApi = {
     }),
 }
 
+// Chat keys: a short-lived key for the command line (scripts/experiment), which
+// the API only accepts on its chat routes.
+export interface ChatKey {
+  key: string
+  expiresAt: string
+}
+
+export const chatKeys = {
+  create: () => request<ChatKey>('/api/v1/chat/keys', { method: 'POST' }),
+}
+
 export const syncApi = {
   get: (assessmentId: string) =>
     request<SyncResponse>(`/api/v1/assessments/${assessmentId}/sync`),
