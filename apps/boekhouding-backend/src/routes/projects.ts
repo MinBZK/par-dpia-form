@@ -202,7 +202,7 @@ export async function projectRoutes(app: FastifyInstance) {
 
   app.post<{
     Params: { projectId: string }
-    Body: { name?: string; assessmentType: 'prescan' | 'dpia' | 'iama'; state?: unknown }
+    Body: { name?: string; assessmentType: 'prescan' | 'dpia' | 'iama' | 'aiia'; state?: unknown }
   }>('/:projectId/assessments', {
     bodyLimit: STATE_BODY_LIMIT,
     schema: {
@@ -212,7 +212,7 @@ export async function projectRoutes(app: FastifyInstance) {
         type: 'object',
         required: ['assessmentType'],
         properties: {
-          assessmentType: { type: 'string', enum: ['prescan', 'dpia', 'iama'] },
+          assessmentType: { type: 'string', enum: ['prescan', 'dpia', 'iama', 'aiia'] },
           name: { type: 'string', minLength: 1, maxLength: 200 },
           state: { type: 'object' },
         },
@@ -265,7 +265,7 @@ export async function projectRoutes(app: FastifyInstance) {
     if (!finalName) {
       // assessmentType is enum-validated by the route schema (400 otherwise),
       // so this is an explicit per-type label, not a fallback for unknown input.
-      const baseLabel = { prescan: 'Pre-scan', dpia: 'DPIA', iama: 'IAMA' }[assessmentType]
+      const baseLabel = { prescan: 'Pre-scan', dpia: 'DPIA', iama: 'IAMA', aiia: 'AIIA' }[assessmentType]
       const existing = await db
         .select()
         .from(assessmentInstances)

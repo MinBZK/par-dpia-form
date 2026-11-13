@@ -12,6 +12,8 @@ import { type FlatTask, taskIsOfTaskType, useTaskStore } from '../../stores/task
 import { computed } from 'vue'
 import risicoMatrixImage from '../../../../../sources/assets/risico_matrix.png'
 import stroomschemaIamaV2Image from '../../../../../sources/assets/stroomschema_iama_v2.png'
+import factsheetDuurzaamheidImage from '../../../../../sources/assets/Factsheet Duurzaamheid en AI - juni 2025-1.png'
+const beginselenAvgAiiaImage = new URL('../../../../../sources/assets/beginselenAVG_AIIA.JPG', import.meta.url).href
 
 const props = defineProps<{
   taskId: string
@@ -56,6 +58,12 @@ const childGroups = computed<ChildGroup[]>(() => {
   return groups
 })
 
+// A definition inside an accordion title sits in the clickable <summary>; tapping
+// the term (the only way to reveal it on touch) must not also toggle the item.
+const keepAccordionOnDefinitionClick = (event: MouseEvent) => {
+  if ((event.target as Element).closest('.aiv-definition')) event.preventDefault()
+}
+
 const isSigningTask = computed(() => taskIsOfTaskType(task.value, 'signing'))
 
 const isInformationalTask = computed(() => taskIsOfTaskType(task.value, 'informational'))
@@ -66,22 +74,6 @@ const firstAccordionChildId = computed<string | null>(() => {
 })
 
 const activeNamespace = computed(() => taskStore.activeNamespace)
-
-const hasPreScanReferences = computed(() => {
-  if (activeNamespace.value !== FormType.DPIA) return false;
-
-  if (isSigningTask.value) return false;
-
-  const preScanTasks = Object.values(taskStore.getTasksFromNamespace(FormType.PRE_SCAN));
-
-  // If we're looking at root task "1", check for references to "1", "1.1", "1.2", etc.
-  return preScanTasks.some(task =>
-    task.references &&
-    task.references.DPIA
-  )
-})
-
-const shouldShowPreScanPreview = computed(() => hasPreScanReferences.value)
 
 const isRepeatable = (taskId: string) => {
   return taskStore.taskById(taskId).repeatable === true
@@ -172,6 +164,8 @@ const showActiepuntenOverview = computed(() => task.value.action_point_summary =
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
   'stroomschema_iama_v2.png': stroomschemaIamaV2Image,
+  'Factsheet Duurzaamheid en AI - juni 2025-1.png': factsheetDuurzaamheidImage,
+  'beginselenAVG_AIIA.JPG': beginselenAvgAiiaImage,
 }
 
 // Helper function with proper type safety
@@ -252,10 +246,10 @@ function shouldSkipTask(taskId: string): boolean {
       </div>
 
       <!-- Description section (if available) -->
-      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
+      <div v-if="task.description || task.sources" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
+          <p v-if="task.description" class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source.source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"
@@ -265,7 +259,7 @@ function shouldSkipTask(taskId: string): boolean {
         </fieldset>
       </div>
 
-      <PreScanPreview v-if="shouldShowPreScanPreview" :dpiaTaskId="task.id" />
+      <PreScanPreview v-if="!isSigningTask" :sectionTaskId="task.id" />
 
       <!-- If task is a task group and it has child tasks, show the child tasks -->
       <div v-if="shouldShowChildren" class="rvo-layout-column rvo-layout-gap--2xl">
@@ -284,9 +278,9 @@ function shouldSkipTask(taskId: string): boolean {
                     role="img" aria-label="Inklappen"></span>
                 </div>
                 <div class="rvo-accordion__item-title-container">
-                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
-                    {{ taskStore.taskById(childId).task }}
-                  </h3>
+                  <!-- Titles come from the trusted schema and may carry definition markup. -->
+                  <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal"
+                    @click="keepAccordionOnDefinitionClick" v-html="taskStore.taskById(childId).task"></h3>
                 </div>
               </summary>
               <div class="rvo-accordion__content">

@@ -210,4 +210,69 @@ describe('useSchemaStore', () => {
       )
     })
   })
+
+  describe('AIIA', () => {
+    it('processes the aiia schema and appends an informational "Afronding" step', () => {
+      const store = useSchemaStore()
+
+      store.init({
+        dpia: buildSchema(),
+        preScan: buildSchema(),
+        iama: buildSchema(),
+        aiia: buildSchema({ urn: 'urn:nl:aiia', version: '2.0' }),
+      })
+
+      const aiiaSchema = store.getSchema(FormType.AIIA)!
+      expect(aiiaSchema.tasks).toHaveLength(1)
+      expect(aiiaSchema.tasks[0].task).toBe('Afronding')
+      expect(aiiaSchema.tasks[0].type).toContain('signing')
+      expect(aiiaSchema.tasks[0].type).toContain('informational')
+    })
+
+    it('exposes the aiia urn with its version', () => {
+      const store = useSchemaStore()
+
+      store.init({
+        dpia: buildSchema(),
+        preScan: buildSchema(),
+        iama: buildSchema(),
+        aiia: buildSchema({ urn: 'urn:nl:aiia', version: '2.0' }),
+      })
+
+      expect(store.getUrn(FormType.AIIA)).toBe('urn:nl:aiia:2.0')
+    })
+
+    it('initializes without an aiia schema (callers that do not ship AIIA yet)', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: buildSchema(), preScan: buildSchema(), iama: buildSchema() })
+
+      expect(store.isInitialized).toBe(true)
+      expect(store.hasErrors).toBe(false)
+      expect(store.getSchema(FormType.AIIA)).toBeNull()
+    })
+
+    it('marks initialized when only the aiia schema is valid', () => {
+      const store = useSchemaStore()
+
+      store.init({
+        dpia: { bad: true },
+        preScan: { bad: true },
+        iama: { bad: true },
+        aiia: buildSchema({ urn: 'urn:nl:aiia', version: '2.0' }),
+      })
+
+      expect(store.isInitialized).toBe(true)
+      expect(store.getSchema(FormType.AIIA)).not.toBeNull()
+    })
+
+    it('reports errors for an invalid aiia schema', () => {
+      const store = useSchemaStore()
+
+      store.init({ dpia: buildSchema(), preScan: buildSchema(), iama: buildSchema(), aiia: { bad: true } })
+
+      expect(store.hasErrors).toBe(true)
+      expect(store.getSchema(FormType.AIIA)).toBeNull()
+    })
+  })
 })

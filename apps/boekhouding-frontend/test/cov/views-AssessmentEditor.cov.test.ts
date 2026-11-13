@@ -29,7 +29,7 @@ const {
   fieldClickHolder,
 } = vi.hoisted(() => {
   const { reactive, ref } = require('vue')
-  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama' } as const
+  const FormTypeMock = { DPIA: 'dpia', PRE_SCAN: 'prescan', IAMA: 'iama', AIIA: 'aiia' } as const
 
   const schemaStore = reactive({
     isInitialized: false,
@@ -174,6 +174,9 @@ vi.mock('../../src/stores/collaboration', () => ({
 vi.mock('../../src/composables/useFieldCommentIndicators', () => ({
   useFieldCommentIndicators,
 }))
+
+const { loadSourceForms } = vi.hoisted(() => ({ loadSourceForms: vi.fn() }))
+vi.mock('../../src/utils/sourceForms', () => ({ loadSourceForms }))
 
 // Mock the dynamically-imported schemas so the import resolves deterministically; the real JSON resolves out-of-band and leaks schemaStore.init() calls across tests.
 vi.mock('../../../../sources/generated/DPIA.json', () => ({
@@ -357,6 +360,15 @@ describe('AssessmentEditor — onMounted initialization', () => {
     wrapper.unmount()
   })
 
+  it('loads the project\'s other assessments as reference sources', async () => {
+    schemaStore.isInitialized = true
+    const assessment = makeAssessment({ assessmentType: 'aiia' })
+    assessmentsApi.get.mockResolvedValueOnce(assessment)
+    const wrapper = await mountEditor()
+    expect(loadSourceForms).toHaveBeenCalledWith(assessment)
+    wrapper.unmount()
+  })
+
   it('initializes the pre-scan task structure from _prescanAnswers (DPIA)', async () => {
     schemaStore.isInitialized = true
     schemaStore.getSchema.mockReturnValue({ tasks: [{ id: 'p' }] })
@@ -464,6 +476,15 @@ describe('AssessmentEditor — onMounted initialization', () => {
     const wrapper = await mountEditor()
     expect(wrapper.text()).toContain('IAMA')
     expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('iama')
+    wrapper.unmount()
+  })
+
+  it('labels an AIIA assessment as "AIIA" and uses the aiia namespace', async () => {
+    schemaStore.isInitialized = true
+    assessmentsApi.get.mockResolvedValueOnce(makeAssessment({ assessmentType: 'aiia' }))
+    const wrapper = await mountEditor()
+    expect(wrapper.text()).toContain('AIIA')
+    expect(wrapper.find('.form-stub').attributes('data-namespace')).toBe('aiia')
     wrapper.unmount()
   })
 

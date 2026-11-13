@@ -406,6 +406,30 @@ describe('POST /api/v1/projects/:projectId/assessments (create assessment)', () 
     expect(second.json().name).toBe('DPIA 2')
   })
 
+  it('defaults the aiia name to "AIIA" and stores the aiia type', async () => {
+    const owner = await createUser()
+    const project = await projectWithRole(owner, 'owner')
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+      // A lean state (no $schema/urn) is what the import and conversion paths send;
+      // it is the only create path that fills metadata.urn from ASSESSMENT_TYPE_URNS.
+      payload: { assessmentType: 'aiia', state: {} },
+    })
+    expect(res.statusCode).toBe(201)
+    expect(res.json().name).toBe('AIIA')
+
+    const rows = await db
+      .select()
+      .from(assessmentInstances)
+      .where(eq(assessmentInstances.projectId, project.id))
+    expect(rows).toHaveLength(1)
+    expect(rows[0].assessmentType).toBe('aiia')
+    expect((rows[0].cachedState as { metadata: { urn: string } }).metadata.urn).toBe('urn:nl:aiia:2.0')
+  })
+
   it('defaults the prescan name to "Pre-scan"', async () => {
     const owner = await createUser()
     const project = await projectWithRole(owner, 'owner')
