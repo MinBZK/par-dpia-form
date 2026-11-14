@@ -62,7 +62,7 @@ describe('LiveResults.vue', () => {
       expect(card.exists()).toBe(true)
       expect(card.find('nldd-container').attributes('padding')).toBe('16')
       const title = card.find('nldd-title')
-      expect(title.attributes('size')).toBe('3')
+      expect(title.attributes('size')).toBe('display-3')
       expect(title.find('h3').text()).toBe('Tussenresultaten pre-scan')
       expect(title.find('p[slot="supporting-text"]').text()).toBe(
         'Op basis van de huidige antwoorden zijn er geen assessments vereist.',

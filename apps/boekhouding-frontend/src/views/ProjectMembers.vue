@@ -151,7 +151,7 @@ const whoLabel = (member: Member) =>
 <template>
   <div>
   <nldd-simple-section width="52rem" padding-top="24">
-    <nldd-title size="3"><h1>Leden beheren</h1></nldd-title>
+    <nldd-title size="display-3"><h1>Leden beheren</h1></nldd-title>
 
     <div v-if="loading"><p>Laden...</p></div>
 

@@ -122,7 +122,7 @@ onMounted(async () => {
   <nldd-simple-section width="60rem" padding-top="24">
     <nldd-container gap="32">
       <nldd-container gap="16">
-        <nldd-title size="3"><h1>Status van Invulhulpen</h1></nldd-title>
+        <nldd-title size="display-3"><h1>Status van Invulhulpen</h1></nldd-title>
         <nldd-text>
           Op deze pagina zie je in één oogopslag of Invulhulpen goed werkt. Werkt er iets niet, dan
           zie je dat hieronder, met een korte uitleg.
@@ -131,7 +131,7 @@ onMounted(async () => {
 
     <section aria-labelledby="status-onderdelen">
       <nldd-container gap="16">
-      <nldd-title size="4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
+      <nldd-title size="display-4"><h2 id="status-onderdelen">Onderdelen die Invulhulpen nodig heeft</h2></nldd-title>
       <nldd-collection layout="grid" item-min-width="380px">
 
         <nldd-card>
@@ -192,7 +192,7 @@ onMounted(async () => {
 
     <section aria-labelledby="status-versie">
       <nldd-container gap="16">
-      <nldd-title size="4"><h2 id="status-versie">Welke versie draait er?</h2></nldd-title>
+      <nldd-title size="display-4"><h2 id="status-versie">Welke versie draait er?</h2></nldd-title>
       <nldd-text>
         Handig om mee te sturen als je een probleem meldt. Je kunt de versie kopiëren of de
         broncode op GitHub bekijken.

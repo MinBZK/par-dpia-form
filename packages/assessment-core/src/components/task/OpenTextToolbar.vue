@@ -9,7 +9,7 @@
   control paints selection itself, so there is no aria-pressed to work around.
 
   The editor is headless. Every command is a public method (toggleBold, setList,
-  setHeading) and nldd-text-editor-state reports the formats at the caret, which
+  setHeading) and its state-change event reports the formats at the caret, which
   is what drives the controls. Two-way, no editor internals.
 
   The set stays small on purpose: these are DPIA answers, not documents. Two
@@ -66,13 +66,13 @@ const onStateChange = () => readState()
 
 // The editor element is owned by the parent, so it arrives after this mounts.
 watch(() => props.editor, (editor, previous) => {
-  previous?.removeEventListener('nldd-text-editor-state', onStateChange)
-  editor?.addEventListener('nldd-text-editor-state', onStateChange)
+  previous?.removeEventListener('state-change', onStateChange)
+  editor?.addEventListener('state-change', onStateChange)
   readState()
 }, { immediate: true })
 
 onBeforeUnmount(() => {
-  props.editor?.removeEventListener('nldd-text-editor-state', onStateChange)
+  props.editor?.removeEventListener('state-change', onStateChange)
 })
 
 /**

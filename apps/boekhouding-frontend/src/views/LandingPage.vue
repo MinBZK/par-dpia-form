@@ -140,7 +140,7 @@ const assessments = [
         >
           <nldd-icon :icon="pillar.icon" size="24" color="donkerblauw"></nldd-icon>
           <nldd-container gap="8">
-            <nldd-title size="5"><h3>{{ pillar.title }}</h3></nldd-title>
+            <nldd-title size="display-5"><h3>{{ pillar.title }}</h3></nldd-title>
             <nldd-text>{{ pillar.body }}</nldd-text>
           </nldd-container>
         </nldd-container>

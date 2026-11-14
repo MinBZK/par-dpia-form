@@ -13,7 +13,7 @@ allowBuilds:
 # system closely, and every release of it is a patch, so waiting out the age
 # only means migrating a longer list of breaking changes at once.
 minimumReleaseAgeExclude:
-  - '@nldd/design-system@0.18.0'
+  - '@nldd/design-system@0.24.0'
 
 # Force patched versions of vulnerable transitives. pnpm 11 no longer reads the
 # package.json "pnpm" field, so overrides live here.

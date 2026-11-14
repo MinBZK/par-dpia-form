@@ -169,7 +169,7 @@ describe('ProjectList', () => {
     await flushPromises()
 
     const title = wrapper.get('nldd-title')
-    expect(title.attributes('size')).toBe('3')
+    expect(title.attributes('size')).toBe('display-3')
     expect(title.get('h1').text()).toBe('Projecten')
   })
 

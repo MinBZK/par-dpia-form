@@ -271,7 +271,7 @@ function shouldSkipTask(taskId: string): boolean {
             <UiAccordion v-for="childId in group.ids" :key="childId"
               :open="isInformationalTask && childId === firstAccordionChildId">
               <template #title>
-                <nldd-title size="5">
+                <nldd-title size="display-5">
                   <h3>{{ taskStore.taskById(childId).task }}</h3>
                 </nldd-title>
               </template>

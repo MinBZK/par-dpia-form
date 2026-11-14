@@ -134,7 +134,7 @@ const formTypeArticle = computed(() => {
            below, which is meant for a stack of sections sharing their lines --
            a single one between other content just adds two stray rules. -->
       <div>
-        <nldd-title size="5">
+        <nldd-title size="display-5">
           <h2>{{ uploadText }}</h2>
         </nldd-title>
         <nldd-spacer size="8"></nldd-spacer>

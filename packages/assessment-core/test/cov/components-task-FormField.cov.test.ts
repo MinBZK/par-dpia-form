@@ -100,9 +100,9 @@ describe('FormField.vue', () => {
       // read/edit switch and no second rendering of the same text.
       const editor = wrapper.find('assessment-text-editor')
       expect(editor.exists()).toBe(true)
-      // "simple" is bare: the wrapper draws the frame, so the toolbar sits
+      // `embedded` is bare: the wrapper draws the frame, so the toolbar sits
       // inside it and the whole control takes one focus ring.
-      expect(editor.attributes('appearance')).toBe('simple')
+      expect(editor.attributes('embedded')).toBe('')
       expect(editor.attributes('rows')).toBe('5')
       expect(editor.attributes('resize')).toBe('auto')
       expect(editor.attributes('dir')).toBe('auto')

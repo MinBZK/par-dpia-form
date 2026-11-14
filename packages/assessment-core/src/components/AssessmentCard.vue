@@ -38,7 +38,7 @@ const statusTag = computed(() => {
   <nldd-card class="assessment-card">
     <nldd-container padding="16" gap="8">
       <!-- Card Title with Definition -->
-      <nldd-title size="3">
+      <nldd-title size="display-3">
         <h2>
           <span class="aiv-definition">{{ title }}
             <span class="aiv-definition-text">{{ definition }}</span>

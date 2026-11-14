@@ -6,7 +6,7 @@ import '@nldd/design-system/title'
 
 <template>
   <nldd-simple-section width="45rem" padding-top="24">
-    <nldd-title size="3"><h1>Pagina niet gevonden</h1></nldd-title>
+    <nldd-title size="display-3"><h1>Pagina niet gevonden</h1></nldd-title>
     <p>
       De pagina die je zoekt bestaat niet (meer). Controleer de link, of ga
       terug naar het overzicht.

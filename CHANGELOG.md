@@ -238,6 +238,16 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* `@nldd/design-system` van 0.18.0 naar 0.24.0, zes releases. De titels zijn de
+  enige zichtbare wijziging: `size` neemt nu `display-3` in plaats van `3`, een
+  getal wordt genegeerd, en een titel zonder kopniveau is voortaan gewone tekst.
+  Al onze titels dragen een kop, dus het beeld blijft gelijk. Verder nam de
+  tekstverwerker een eigen kader, waar de onze zijn eigen kader om de verwerker
+  plus werkbalk tekent, dus die staat nu op `embedded`: precies de samenstelling
+  waarvoor het design system dat attribuut bedoelt. De gebeurtenissen van het
+  design system heten nu zonder `nldd-`-voorvoegsel. Wat op een zelfgetekend
+  oppervlak staat leest zijn kleur sinds 0.23 uit de context, dus het tag-label
+  naast een veldlabel geeft die nu door aan het pictogram erin.
 * `@nldd/design-system` van 0.10.0 naar 0.18.0, veertien releases. Breaking
   voor ons was alleen dat `--primitives-color-accent-*` in een aantal thema's
   de themakleur werd; de inhoudsopgave leest daarvoor nu het semantische token

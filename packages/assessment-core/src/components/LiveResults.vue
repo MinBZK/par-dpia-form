@@ -63,7 +63,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
   <!-- No assessments: static block with same styling but no expand/collapse -->
   <nldd-card v-if="!hasRequiredOrRecommendedAssessments" class="assessment-results">
     <nldd-container padding="16">
-      <nldd-title size="3">
+      <nldd-title size="display-3">
         <h3>Tussenresultaten pre-scan</h3>
         <p slot="supporting-text">Op basis van de huidige antwoorden zijn er geen assessments vereist.</p>
       </nldd-title>
@@ -75,7 +75,7 @@ const renderAssessmentExplanation = (assessment: AssessmentResult): ExplanationR
     <nldd-container padding="16">
       <UiAccordion open>
         <template #title>
-          <nldd-title size="3">
+          <nldd-title size="display-3">
             <h3>Tussenresultaten pre-scan</h3>
             <p slot="supporting-text">Op basis van de huidige antwoorden zijn er verplichte/aangeraden assessments.</p>
           </nldd-title>

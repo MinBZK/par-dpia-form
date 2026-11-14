@@ -183,7 +183,7 @@ async function downloadOfflineApp() {
     <nldd-collection layout="grid" item-min-width="380px">
       <nldd-card v-for="card in cards" :key="card.type">
         <nldd-container padding="16" gap="8">
-          <nldd-title size="4"><h2>{{ card.title }}</h2></nldd-title>
+          <nldd-title size="display-4"><h2>{{ card.title }}</h2></nldd-title>
           <p>{{ card.description }}</p>
         </nldd-container>
         <nldd-container slot="footer" padding="16" padding-top="0" layout="wrap" gap="16">

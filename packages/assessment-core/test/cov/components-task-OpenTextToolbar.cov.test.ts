@@ -312,7 +312,7 @@ describe('OpenTextToolbar.vue', () => {
       expect(bold()).toBeUndefined()
 
       active.bold = true
-      ;(el as HTMLElement).dispatchEvent(new CustomEvent('nldd-text-editor-state'))
+      ;(el as HTMLElement).dispatchEvent(new CustomEvent('state-change'))
       await nextTick()
       expect(bold()).toBeDefined()
     })
@@ -333,7 +333,7 @@ describe('OpenTextToolbar.vue', () => {
       const wrapper = mountToolbar(first.el)
       await wrapper.setProps({ editor: second.el })
 
-      expect(removeFirst).toHaveBeenCalledWith('nldd-text-editor-state', expect.any(Function))
+      expect(removeFirst).toHaveBeenCalledWith('state-change', expect.any(Function))
       expect(groupFor(wrapper, 'Nadruk').findAll('nldd-segmented-control-item')[1]
         .attributes('selected')).toBeDefined()
     })
@@ -342,7 +342,7 @@ describe('OpenTextToolbar.vue', () => {
       const { el } = fakeEditor()
       const remove = vi.spyOn(el as HTMLElement, 'removeEventListener')
       mountToolbar(el).unmount()
-      expect(remove).toHaveBeenCalledWith('nldd-text-editor-state', expect.any(Function))
+      expect(remove).toHaveBeenCalledWith('state-change', expect.any(Function))
     })
 
     it('unmounts cleanly without an editor', () => {

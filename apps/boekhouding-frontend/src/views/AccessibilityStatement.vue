@@ -14,7 +14,7 @@ useBackLink().set(previousPage.value ?? { text: 'Startpagina', to: '/' })
 <template>
   <nldd-simple-section width="45rem" padding-top="24">
     <nldd-container gap="16">
-    <nldd-title size="3"><h1>Toegankelijkheidsverklaring</h1></nldd-title>
+    <nldd-title size="display-3"><h1>Toegankelijkheidsverklaring</h1></nldd-title>
 
     <nldd-rich-text>
     <p>

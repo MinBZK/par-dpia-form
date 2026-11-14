@@ -59,7 +59,7 @@ const formatAnswer = (answer: AnswerValue): string => {
 <template>
   <UiAccordion v-if="hasPreScanData" open>
     <template #title>
-      <nldd-title size="5">
+      <nldd-title size="display-5">
         <h3>Informatie uit pre-scan</h3>
         <p slot="supporting-text">Je hebt in de pre-scan informatie ingevuld die mogelijk relevant is.</p>
       </nldd-title>

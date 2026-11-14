@@ -362,11 +362,11 @@ nldd-sidebar-section {
 /* Editor and formatting toolbar as one control.
 
    The design system has no component for a field that contains its own toolbar
-   (nldd-text-editor's input-field variant frames the text alone), so the frame
-   is drawn here. Every value is the token the input-field variant uses itself,
-   so this tracks the design system rather than freezing a copy of it: same
-   border, same radius, same focus ring, in both themes. The editor runs
-   variant="simple" inside, which is flush by design for exactly this case. */
+   (nldd-text-editor frames the text alone), so the frame is drawn here. Every
+   value is the token the editor's own frame uses, so this tracks the design
+   system rather than freezing a copy of it: same border, same radius, same
+   focus ring, in both themes. The editor runs `embedded` inside, which the
+   design system documents for exactly this composition. */
 .open-text-field {
   display: flex;
   flex-direction: column;
@@ -465,6 +465,11 @@ nldd-sidebar-section {
   border-radius: var(--primitives-corner-radius-xs);
   background: var(--semantics-categories-accent-tinted-background-color);
   color: var(--semantics-categories-accent-tinted-content-color);
+  /* The nldd-icon inside reads the context, not the CSS color around it, so a
+     surface painted here hands its content color on the same way the design
+     system's own surfaces do. */
+  --context-content-color: var(--semantics-categories-accent-tinted-content-color);
+  --context-background-color: var(--semantics-categories-accent-tinted-background-color);
   font: var(--primitives-font-body-sm-medium-flat);
   text-decoration: none;
 }

@@ -246,8 +246,9 @@ const handleRadioGroupChange = (event: Event) => {
   <div v-if="hasType('open_text')" class="open-text-field field-group">
     <!-- Editor and toolbar share one frame, so they read as a single control
          rather than a field with something loose beneath it. That means the
-         editor runs bare (appearance="simple") and the wrapper draws the border,
-         radius, background and focus ring — in the design system's own
+         editor runs bare (`embedded`, which the design system documents for an
+         editor in a composition that frames it) and the wrapper draws the
+         border, radius, background and focus ring - in the design system's own
          input-field tokens, so it stays in step with every other field and with
          both themes. -->
     <!-- nldd-text-editor shows the markdown formatted while you type — bold
@@ -255,7 +256,7 @@ const handleRadioGroupChange = (event: Event) => {
          there, only dimmed. That leaves nothing to preview, so there is no
          read/edit switch and no second rendering of the same text: the value
          stays plain markdown, which is what the PDF export reads. -->
-    <assessment-text-editor ref="textEditor" appearance="simple"
+    <assessment-text-editor ref="textEditor" embedded
       :inert="readonly || undefined"
       :input-id="`field-${task.id}-${instanceId}`" dir="auto"
       :accessible-label="accessibleLabel" rows="5" resize="auto"
