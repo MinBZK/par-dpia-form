@@ -205,6 +205,13 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Zet je in een open tekstveld vet of cursief aan zonder iets te selecteren en
+  typ je vervolgens niets, dan blijven de sterretjes niet meer in de tekst
+  staan.
+* Een regel in een open tekstveld die met vier spaties begint blijft gewone
+  tekst, ook in de PDF. Tot nu toe werd zo'n regel daar een codeblok, terwijl
+  het veld hem zelf als tekst laat staan. Een regel tussen drie backticks is
+  nog steeds code.
 * Het vlaggetje bij een hoofdstuk in de inhoudsopgave kon in het IAMA bij het
   verkeerde hoofdstuk staan: het hoofdstuk van een opmerking werd afgeleid uit
   het eerste stuk van het vraagnummer, en de hoofdstuknummers van het IAMA

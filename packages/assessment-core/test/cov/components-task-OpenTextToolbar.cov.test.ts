@@ -12,7 +12,8 @@ function fakeEditor(active: Record<string, boolean | number> = {}, doc = '') {
   const calls: string[] = []
   const el = document.createElement('div') as HTMLElement & Record<string, unknown>
   // The caret sits at the end of `doc`; dispatch records where it is moved to.
-  const selection = { main: { to: doc.length } }
+  // `empty` is the CodeMirror flag for a caret without a selection.
+  const selection = { main: { to: doc.length, empty: false } }
   const moves: number[] = []
   el.view = {
     state: {
@@ -248,6 +249,18 @@ describe('OpenTextToolbar.vue', () => {
       const wrapper = mountToolbar(el)
       await emitValues(wrapper, 'Nadruk', ['strikethrough'])
       expect(moves).toEqual([6])
+    })
+
+    // Without a selection the command leaves an empty pair for the next
+    // keystroke, and the design system removes that pair once the caret leaves
+    // it, so stepping over the markers would undo the mark.
+    it('leaves the caret inside an empty pair of markers', async () => {
+      const { el, moves, selection } = fakeEditor({}, '****')
+      selection.main.to = 2
+      selection.main.empty = true
+      const wrapper = mountToolbar(el)
+      await emitValues(wrapper, 'Nadruk', ['bold'])
+      expect(moves).toEqual([])
     })
 
     it('does not touch the caret for a line command', async () => {

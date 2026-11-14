@@ -5,8 +5,15 @@ import { escapeHtml } from './escapeHtml'
 // Marked instance with a custom renderer that acts as an allowlist.
 // Only safe HTML tags are produced; raw HTML input and images are stripped.
 // Links are rendered with target="_blank" and rel="noopener noreferrer".
+// A line indented four spaces is prose here, not a code block: nldd-text-editor
+// shows it as text, and the preview and the PDF have to show what the editor
+// showed. Marked has no disable(), so the tokenizer for indented code never
+// matches; a fenced block is still code.
+const noIndentedCode = { code: () => undefined }
+
 const safeMarked = new Marked({
   breaks: true,
+  tokenizer: noIndentedCode,
   renderer: {
     html() { return '' },
     image() { return '' },
@@ -189,7 +196,7 @@ function processBlockTokens(tokens: Token[]): Content[] {
 export function markdownToPdfContent(markdown: string): Content {
   if (!markdown) return { text: '' }
 
-  const tokens = new Marked({ breaks: true }).lexer(markdown)
+  const tokens = new Marked({ breaks: true, tokenizer: noIndentedCode }).lexer(markdown)
   const content = processBlockTokens(tokens)
 
   if (content.length === 0) return { text: '' }

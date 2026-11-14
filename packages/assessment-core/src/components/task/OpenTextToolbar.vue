@@ -115,8 +115,13 @@ const MARK_COMMANDS: Record<string, () => void> = {
 }
 
 function runMark(value: string) {
+  // With nothing selected the command leaves an empty pair of markers for the
+  // next keystroke to land in, and the design system removes that pair as soon
+  // as the caret leaves it. Stepping over the markers would therefore undo the
+  // mark the user just switched on.
+  const hadSelection = !props.editor?.view?.state.selection.main.empty
   MARK_COMMANDS[value]?.()
-  collapseSelection()
+  if (hadSelection) collapseSelection()
 }
 
 /** The marks on at the caret, in the space-separated form the control takes. */

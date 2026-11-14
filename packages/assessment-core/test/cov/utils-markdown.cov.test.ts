@@ -15,6 +15,16 @@ describe('renderMarkdownToHtml', () => {
     expect(renderMarkdownToHtml('Hello world')).toContain('<p>Hello world</p>')
   })
 
+  it('keeps text indented four spaces out of a code block', () => {
+    const html = renderMarkdownToHtml('    ingesprongen tekst')
+    expect(html).toContain('<p>    ingesprongen tekst</p>')
+    expect(html).not.toContain('<code>')
+  })
+
+  it('still renders a fenced block as code', () => {
+    expect(renderMarkdownToHtml('```\nconst x = 1\n```')).toContain('<code>')
+  })
+
   it('strips raw HTML via the html() renderer', () => {
     const html = renderMarkdownToHtml('<script>alert("xss")</script>')
     expect(html).not.toContain('<script>')
@@ -209,6 +219,14 @@ describe('markdownToPdfContent — block token handling (processBlockTokens)', (
     expect(content.ul).toBeDefined()
     expect(content.ul).toHaveLength(2)
     expect(content.ol).toBeUndefined()
+  })
+
+  // The editor shows a line indented four spaces as prose, so the PDF has to as
+  // well: in CommonMark it would be a code block.
+  it('keeps text indented four spaces out of a code block', () => {
+    const content = markdownToPdfContent('    ingesprongen tekst') as any
+    expect(content.text).toEqual(['    ingesprongen tekst'])
+    expect(content.table).toBeUndefined()
   })
 
   it('handles a fenced code block', () => {
