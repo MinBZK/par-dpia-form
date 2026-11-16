@@ -148,6 +148,7 @@ vi.mock('@overheid-assessment/core', () => ({
     template: '<div class="form-stub" :data-namespace="namespace" />',
   },
   FormType: FormTypeMock,
+  FORM_TYPE_BY_NAME: { prescan: 'prescan', dpia: 'dpia', iama: 'iama', aiia: 'aiia' },
   useSchemaStore: () => schemaStore,
   useTaskStore: () => taskStore,
   useAnswerStore: () => answerStore,

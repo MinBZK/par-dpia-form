@@ -78,6 +78,7 @@ vi.mock('@overheid-assessment/core', async () => ({
     IAMA: 'iama',
     AIIA: 'aiia',
   },
+  FORM_TYPE_BY_NAME: { prescan: 'prescan', dpia: 'dpia', iama: 'iama', aiia: 'aiia' },
   OUTPUT_SCHEMA_URL: 'https://github.com/MinBZK/par-dpia-form/blob/main/schemas/assessment-output.v2.schema.json',
   getPlainTextWithoutDefinitions: (html: string | null | undefined) =>
     (html ?? '').replace(/<[^>]*>/g, ''),

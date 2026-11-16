@@ -15,6 +15,16 @@ export const FORM_TITLES: Record<FormType, string> = {
   [FormType.AIIA]: 'AIIA',
 }
 
+// Form per type name, as assessment types, import types and field-id prefixes
+// spell it. Keyed by the enum's string values, so a caller's own union of type
+// names fails to compile once it holds a name without a form.
+export const FORM_TYPE_BY_NAME: Record<`${FormType}`, FormType> = {
+  prescan: FormType.PRE_SCAN,
+  dpia: FormType.DPIA,
+  iama: FormType.IAMA,
+  aiia: FormType.AIIA,
+}
+
 export const TaskTypeValue = t.union([
   t.literal('task_group'),
   t.literal('signing'),

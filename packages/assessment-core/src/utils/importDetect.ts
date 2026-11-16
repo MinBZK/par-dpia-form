@@ -1,4 +1,4 @@
-import { FormType } from '../models/dpia'
+import { FORM_TYPE_BY_NAME, FormType } from '../models/dpia'
 import type { AssessmentState, GroupedAnswerValue } from '../models/assessmentState'
 import { migrateStateV1toV2 } from './stateMigration'
 import { flattenGroupedAnswers } from './groupedAnswers'
@@ -121,17 +121,10 @@ export const deriveCompletedRootTaskIds = (answerKeys: string[]): string[] => {
  * Handles old namespace-wrapped and new flat formats.
  * Flattens grouped arrays; puts completedTasks in metadata.
  */
-const NAMESPACE_BY_IMPORT_TYPE: Record<Exclude<ImportType, null>, FormType> = {
-  dpia: FormType.DPIA,
-  prescan: FormType.PRE_SCAN,
-  iama: FormType.IAMA,
-  aiia: FormType.AIIA,
-}
-
 export const normalizeToState = (json: Record<string, unknown>, detectedType: Exclude<ImportType, null>): AssessmentState => {
   const answers = json.answers as Record<string, unknown> | undefined
   const metadata = json.metadata as Record<string, unknown> | undefined
-  const namespace = NAMESPACE_BY_IMPORT_TYPE[detectedType]
+  const namespace = FORM_TYPE_BY_NAME[detectedType]
 
   // Detect old namespace-wrapped format and unwrap.
   const isNamespaced =
