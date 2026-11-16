@@ -29,7 +29,6 @@ PDRs helpen ons om:
 | [0008](0008-backend-in-typescript.md) | Architectuur | Backend in TypeScript | Geaccepteerd | 2026-08-22 |
 | [0009](0009-IAMA-afwijkingen-invulhulp-ten-opzichte-van-iama-v2.md) | IAMA | Afwijkingen invulhulp IAMA ten opzichte van IAMA v2 | Voorgesteld | 2026-10-05 |
 | [0010](0010-IAMA-aanpassingen-op-basis-van-gebruikersonderzoek.md) | IAMA | Aanpassingen invulhulp IAMA op basis van gebruikersonderzoek | Voorgesteld | 2026-10-05 |
-| [0011](0011-overlap-tussen-formulieren.md) | Alle formulieren | Overlap tussen de formulieren: wat gekoppeld is en hoe het werkt | Voorgesteld | 2026-11-16 |
 
 ## Template
 
