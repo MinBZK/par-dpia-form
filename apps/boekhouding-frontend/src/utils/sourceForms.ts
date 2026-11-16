@@ -117,17 +117,24 @@ export async function loadSourceForms(current: AssessmentInstance): Promise<void
       const schema = schemaStore.getSchema(namespace)!
       if (!(form.state as { metadata?: unknown } | undefined)?.metadata) continue
       if (taskStore.isInitialized[namespace]) continue
-      const state = normalizeServerState(form.state, namespace)
 
-      taskStore.setActiveNamespace(namespace)
-      answerStore.setActiveNamespace(namespace)
-      taskStore.init(schema.tasks)
-      applyStateToStores(state, taskStore, answerStore)
-      rebuildRepeatableInstances(
-        taskStore,
-        answerStore,
-        state.answers as Record<string, GroupedAnswerValue>,
-      )
+      try {
+        const state = normalizeServerState(form.state, namespace)
+        taskStore.setActiveNamespace(namespace)
+        answerStore.setActiveNamespace(namespace)
+        taskStore.init(schema.tasks)
+        applyStateToStores(state, taskStore, answerStore)
+        rebuildRepeatableInstances(
+          taskStore,
+          answerStore,
+          state.answers as Record<string, GroupedAnswerValue>,
+        )
+      } catch (error) {
+        // A half-applied source would pass for a loaded one; drop it entirely.
+        taskStore.isInitialized[namespace] = false
+        answerStore.answers[namespace] = {}
+        console.warn(`Kon assessment ${form.id} (${namespace}) niet verwerken:`, error)
+      }
     }
   } finally {
     taskStore.setActiveNamespace(activeNamespace)
