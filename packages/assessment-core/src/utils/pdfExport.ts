@@ -401,7 +401,7 @@ function formatAnswerContent(value: any): Content {
   return markdownToPdfContent(withoutDefinitionMarkup(String(value)))
 }
 
-const TOOL_NAME = 'Invulhulpen voor pre-scan, DPIA en IAMA'
+const TOOL_NAME = 'Invulhulpen voor pre-scan, DPIA, IAMA en AIIA'
 
 // A4 (595pt) minus page margins (70+70) = 455pt usable content width
 const CONTENT_WIDTH = 455
