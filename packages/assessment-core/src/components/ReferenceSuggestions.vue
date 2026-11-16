@@ -41,7 +41,7 @@ const normalize = (text: string): string =>
 interface SuggestionItem extends ReferenceSuggestion {
   // Shown in the suggestion ("Ja"/"Nee" for booleans).
   text: string
-  // Written to the field: the source answer as the user wrote it.
+  // Written to the field: typed text as written, a picked answer as shown.
   adoptText: string
   // Matched against the field text as a whole paragraph.
   needle: string
@@ -50,7 +50,8 @@ interface SuggestionItem extends ReferenceSuggestion {
 const items = computed<SuggestionItem[]>(() =>
   getSuggestionsForTask(props.task).map((suggestion) => {
     const text = formatAnswer(suggestion.answer)
-    const adoptText = clean(typeof suggestion.answer === 'string' ? suggestion.answer : text)
+    const written = suggestion.sourceIsText && typeof suggestion.answer === 'string'
+    const adoptText = clean(written ? suggestion.answer as string : text)
     return { ...suggestion, text, adoptText, needle: PARAGRAPH + normalize(adoptText) + PARAGRAPH }
   }),
 )
