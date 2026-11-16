@@ -230,6 +230,22 @@ describe('ReferenceSuggestions.vue', () => {
       expect(adoptButton(wrapper)).toBeUndefined()
     })
 
+    it('still recognises an adopted answer when the user adds spaces at a line end', async () => {
+      const target = seedTarget('open_text', 'Ja')
+      answerStore.setAnswer('3.1', 'Eigen tekst')
+
+      const wrapper = mountFor(target, '3.1')
+      await adoptButton(wrapper)!.trigger('click')
+      // Two trailing spaces: a markdown hard break, then more text.
+      answerStore.setAnswer('3.1', 'Eigen tekst\n\nJa  \nVerder\n\nNog meer')
+      await wrapper.vm.$nextTick()
+      expect(adoptButton(wrapper)).toBeDefined()
+
+      answerStore.setAnswer('3.1', 'Eigen tekst\n\nJa  \n\nNog meer')
+      await wrapper.vm.$nextTick()
+      expect(adoptButton(wrapper)).toBeUndefined()
+    })
+
     it('emits adopted so the field can take focus', async () => {
       const target = seedTarget('open_text', 'Eerder antwoord')
 

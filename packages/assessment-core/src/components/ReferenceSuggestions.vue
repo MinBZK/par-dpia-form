@@ -33,10 +33,10 @@ const PARAGRAPH = '\n\n'
 const clean = (text: string): string =>
   text.replace(/\r\n/g, '\n').replace(/^(?:[ \t]*\n)+/, '').trimEnd()
 
-// For matching only: paragraph breaks (blank lines, possibly holding spaces)
-// collapsed to one PARAGRAPH.
+// For matching only: whitespace at line ends dropped (a hard break does not
+// make a paragraph different) and blank lines collapsed to one PARAGRAPH.
 const normalize = (text: string): string =>
-  clean(text).replace(/\n[ \t]*(?:\n[ \t]*)*\n/g, PARAGRAPH)
+  clean(text).replace(/[ \t]+$/gm, '').replace(/\n{2,}/g, PARAGRAPH)
 
 interface SuggestionItem extends ReferenceSuggestion {
   // Shown in the suggestion ("Ja"/"Nee" for booleans).
