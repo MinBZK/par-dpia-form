@@ -405,7 +405,7 @@ describe('parseAndValidateImport', () => {
         metadata: { urn: 'urn:nl:other:1.0' },
         answers: {},
       })
-      expect(() => parseAndValidateImport(input)).toThrow('geen DPIA-, pre-scan- of IAMA-antwoorden')
+      expect(() => parseAndValidateImport(input)).toThrow('geen DPIA-, pre-scan-, IAMA- of AIIA-antwoorden')
     })
   })
 })

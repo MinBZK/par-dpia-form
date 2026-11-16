@@ -2,7 +2,7 @@
 import './assets/base.css'
 
 // Models
-export { FormType, DPIA } from './models/dpia'
+export { FormType, DPIA, FORM_TYPE_BY_NAME } from './models/dpia'
 export { OUTPUT_SCHEMA_URL } from './models/assessmentState'
 export type { AssessmentState, IndexedGroupElement, GroupedAnswerValue, GroupedAnswers } from './models/assessmentState'
 export { ViewState } from './models/navigation'
@@ -22,7 +22,7 @@ export { useTaskDependencies } from './composables/useTaskDependencies'
 export { useTaskNavigation } from './composables/useTaskNavigation'
 export { usePreScanReferences } from './composables/usePreScanReferences'
 export type { PreScanReference } from './composables/usePreScanReferences'
-export { useReferences } from './composables/useReferences'
+export { useReferences, REFERENCE_KEY } from './composables/useReferences'
 export type { ReferenceSuggestion, ReferenceMatch, ReferenceScope } from './composables/useReferences'
 
 // Persistence
@@ -32,6 +32,7 @@ export type { PersistenceProvider } from './persistence'
 // Utils
 export { migrateStateV1toV2 } from './utils/stateMigration'
 export { parseAndValidateImport, detectImportType } from './utils/importDetect'
+export type { ImportType } from './utils/importDetect'
 export { importFromPdf } from './utils/pdfImport'
 export { applyStateToStores, rebuildRepeatableInstances } from './utils/applyState'
 export { exportToJson, buildOutputData } from './utils/jsonExport'

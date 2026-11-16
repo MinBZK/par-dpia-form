@@ -144,6 +144,38 @@ describe('TaskGroup rendering of a rich repeatable group', () => {
   })
 })
 
+describe('TaskGroup rendering of info-only children', () => {
+  it('renders an info-only child as a collapsed accordion', () => {
+    taskStore.init(
+      [
+        {
+          id: 'parent',
+          task: 'Parent group',
+          type: ['task_group'],
+          tasks: [
+            {
+              id: 'parent.info',
+              task: 'Informational child',
+              type: ['informational', 'task_group'],
+              description: '<ul><li>Informational content.</li></ul>',
+            },
+          ],
+        },
+      ],
+      true,
+    )
+
+    const w = mountGroup('parent', 'parent')
+    const accordion = w.find('details.rvo-accordion__item')
+
+    expect(accordion.exists()).toBe(true)
+    expect((accordion.element as HTMLDetailsElement).open).toBe(false)
+    expect(accordion.find('summary').text()).toBe('Informational child')
+    expect(accordion.find('.rvo-accordion__content').html()).toContain('<li>Informational content.</li>')
+    expect(w.find('.form-field-stub[data-task="parent.info"]').exists()).toBe(false)
+  })
+})
+
 describe('TaskGroup add-button click handlers and item_name fallbacks', () => {
   const tree: Task[] = [
     {

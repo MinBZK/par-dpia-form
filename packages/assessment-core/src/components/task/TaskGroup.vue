@@ -4,7 +4,7 @@ import UiButton from '../ui/UiButton.vue'
 import ConfirmDeleteDialog from '../ConfirmDeleteDialog.vue'
 import { getPlainTextWithoutDefinitions } from '../../utils/stripHtml'
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
-import { useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
+import { taskIsOfTaskType, useTaskStore, type FlatTask, type TaskInstance } from '../../stores/tasks'
 import { useAnswerStore } from '../../stores/answers'
 import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { renderInstanceLabel } from '../../utils/taskUtils'
@@ -21,6 +21,11 @@ const answerStore = useAnswerStore()
 const { shouldShowTask, canUserCreateInstances, syncInstances} = useTaskDependencies()
 const task = computed<FlatTask>(() => taskStore.taskById(props.taskId))
 const isRepeatable = computed(() => task.value.repeatable === true)
+
+function isInfoOnlyChild(taskId: string): boolean {
+  const child = taskStore.taskById(taskId)
+  return taskIsOfTaskType(child, 'task_group') && child.childrenIds.length === 0 && !!child.description
+}
 
 const prefixQuestionIds = usePrefixQuestionIds()
 
@@ -166,8 +171,38 @@ const cancelPendingDelete = () => {
         <!-- Children rendered in original YAML order -->
         <template v-for="childId in task.childrenIds" :key="childId">
 
+          <!-- Match TaskSection's accordion treatment for info-only children in nested groups. -->
+          <template v-if="isInfoOnlyChild(childId)">
+            <div v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"
+              :key="`info-${childInstanceId}`">
+              <div v-if="shouldShowTask(childId, childInstanceId)" class="rvo-accordion">
+                <details class="rvo-accordion__item">
+                  <summary class="rvo-accordion__item-summary">
+                    <div class="rvo-accordion__item-icon">
+                      <span
+                        class="utrecht-icon rvo-icon rvo-icon-delta-omlaag rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--closed"
+                        role="img" aria-label="Uitklappen"></span>
+                      <span
+                        class="utrecht-icon rvo-icon rvo-icon-delta-omhoog rvo-icon--md rvo-icon--hemelblauw rvo-accordion__item-icon--open"
+                        role="img" aria-label="Inklappen"></span>
+                    </div>
+                    <div class="rvo-accordion__item-title-container">
+                      <h3 class="rvo-accordion__item-title utrecht-heading-3 rvo-heading--no-margins rvo-heading--normal">
+                        {{ taskStore.taskById(childId).task }}
+                      </h3>
+                    </div>
+                  </summary>
+                  <div class="rvo-accordion__content">
+                    <div class="utrecht-paragraph preserve-whitespace"
+                      v-html="taskStore.taskById(childId).description"></div>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </template>
+
           <!-- Simple field (no children) -->
-          <template v-if="!taskStore.taskById(childId).childrenIds?.length">
+          <template v-else-if="!taskStore.taskById(childId).childrenIds?.length">
             <template v-if="!taskStore.taskById(childId).repeatable">
               <!-- Non-repeatable simple fields -->
               <template v-for="childInstanceId in taskStore.getInstanceIdsForTask(childId, props.instanceId)"

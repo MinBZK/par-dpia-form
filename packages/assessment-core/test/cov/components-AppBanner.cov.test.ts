@@ -24,7 +24,7 @@ describe('AppBanner default props', () => {
     const wrapper = mount(AppBanner)
     expect(wrapper.find('.rvo-logo__wordmark').exists()).toBe(true)
     expect(wrapper.find('.rvo-logo__title').text()).toBe('Invulhulpen')
-    expect(wrapper.find('.rvo-logo__subtitle').text()).toBe('Pre-scan, DPIA en IAMA')
+    expect(wrapper.find('.rvo-logo__subtitle').text()).toBe('Pre-scan, DPIA, IAMA en AIIA')
   })
 
   it('renders the warning icon and the Rijksoverheid logo svg', () => {

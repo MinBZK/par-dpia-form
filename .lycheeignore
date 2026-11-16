@@ -1,0 +1,6 @@
+# Read by lychee from the working directory, next to the --exclude flags in
+# .github/workflows/broken-link-and-begrippenkader-sync.yaml.
+#
+# The European Parliament site answers 403 to lychee's user agent while the
+# same URL serves a browser (checked 16 Nov 2026). The link itself works.
+^https://www\.europarl\.europa\.eu/
