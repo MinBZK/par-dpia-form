@@ -13,6 +13,7 @@
   "packages/assessment-core/src/components/task/FormField.vue::v-html::renderedHtml::body:dc54c3f5400e",
   "packages/assessment-core/src/components/task/TaskGroup.vue::v-html::instanceLabel::body:94ade37314cc",
   "packages/assessment-core/src/components/task/TaskGroup.vue::v-html::task.description",
+  "packages/assessment-core/src/components/task/TaskGroup.vue::v-html::taskStore.taskById(childId).description",
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::task.description",
   "packages/assessment-core/src/components/task/TaskSection.vue::v-html::taskStore.taskById(childId).description",
