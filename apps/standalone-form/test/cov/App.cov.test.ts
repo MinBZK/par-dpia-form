@@ -207,13 +207,14 @@ describe('App.vue — cached sessions (#322)', () => {
     seedCache(FormType.DPIA)
     seedCache(FormType.PRE_SCAN)
     seedCache(FormType.IAMA)
+    seedCache(FormType.AIIA)
     const wrapper = mountApp()
-    expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(3)
+    expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(4)
 
     wrapper.findComponent(LandingStub).vm.$emit('clearAll')
     await wrapper.vm.$nextTick()
 
-    for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+    for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]) {
       expect(localStorage.getItem(storageKey(type))).toBeNull()
     }
     // The button disappears together with the data it was there to wipe.
