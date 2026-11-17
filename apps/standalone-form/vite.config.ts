@@ -15,6 +15,9 @@ const appVersion = formatBuildVersion(
   process.env.RELEASE_TAG ?? 'dev',
   (process.env.GIT_SHA ?? 'dev').slice(0, 7),
 )
+//this is for testing purposes!!
+const apiTarget = process.env.API_URL || 'http://localhost:3000'
+//this is for testing purposes!!
 
 /**
  * Inject the build version as a <meta> tag instead of a baked-in JS literal, so
@@ -81,11 +84,18 @@ export default defineConfig(({ mode }) => ({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@overheid-assessment/core': fileURLToPath(new URL('../../packages/assessment-core/src/index.ts', import.meta.url)),
+      '@experiment/aiia': fileURLToPath(new URL('../../scripts/experiment/aiia.mjs', import.meta.url)),   //this is for testing purposes!!
     },
   },
   server: {
     port: 5175,
     host: true,
     allowedHosts: true,
+    proxy: { //this is for testing purposes!!
+      '/api': {
+        target: apiTarget,
+        changeOrigin: true,
+      },
+    },
   },
 }))
