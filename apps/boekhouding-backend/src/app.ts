@@ -12,6 +12,7 @@ import { memberRoutes } from './routes/members.js'
 import { assessmentRoutes } from './routes/assessments.js'
 import { commentRoutes } from './routes/comments.js'
 import { syncRoutes } from './routes/sync.js'
+import { assessmentLinkRoutes } from './routes/links.js'
 import { securityTxt } from './utils/securityTxt.js'
 
 export const API_VERSION = '1.0.0'
@@ -208,6 +209,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await app.register(assessmentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(commentRoutes, { prefix: '/api/v1/assessments' })
   await app.register(syncRoutes, { prefix: '/api/v1/assessments' })
+  await app.register(assessmentLinkRoutes, { prefix: '/api/v1/assessments' })
 
   // Readiness: reports 503 once beginShutdown() has been called, so Kubernetes
   // stops routing new traffic here before the server actually closes.

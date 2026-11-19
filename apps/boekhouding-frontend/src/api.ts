@@ -169,6 +169,16 @@ export interface VersionEdit {
   version: number
 }
 
+// A link between two assessments of one project; outgoing links are the ones
+// this assessment made, incoming ones point at it.
+export interface AssessmentLink {
+  assessmentId: string
+  assessmentType: 'dpia' | 'prescan' | 'iama'
+  name: string
+  updatedAt: string
+  direction: 'outgoing' | 'incoming'
+}
+
 export const assessments = {
   list: (projectId: string, page: number, pageSize: number) =>
     requestPaged<AssessmentInstance>(`/api/v1/projects/${projectId}/assessments?page=${page}&pageSize=${pageSize}`),
@@ -191,6 +201,13 @@ export const assessments = {
     }),
   delete: (assessmentId: string) =>
     request<void>(`/api/v1/assessments/${assessmentId}`, { method: 'DELETE' }),
+  links: (assessmentId: string) =>
+    request<{ links: AssessmentLink[] }>(`/api/v1/assessments/${assessmentId}/links`),
+  setLinks: (assessmentId: string, assessmentIds: string[]) =>
+    request<{ links: AssessmentLink[] }>(`/api/v1/assessments/${assessmentId}/links`, {
+      method: 'PUT',
+      body: JSON.stringify({ assessmentIds }),
+    }),
   versions: (assessmentId: string, page: number, pageSize: number) =>
     requestPaged<AssessmentVersion>(`/api/v1/assessments/${assessmentId}/versions?page=${page}&pageSize=${pageSize}`),
   version: (assessmentId: string, version: number, options?: { includeState?: boolean }) =>

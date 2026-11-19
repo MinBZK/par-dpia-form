@@ -1,6 +1,7 @@
 import type { AssessmentState, GroupedAnswerValue, IndexedGroupElement } from '../models/assessmentState'
 import type { TaskStoreType } from '../stores/tasks'
 import type { Answer, AnswerStoreType } from '../stores/answers'
+import type { FormType, Task } from '../models/dpia'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
 import { sanitizeAnswers } from './sanitizeState'
@@ -38,6 +39,35 @@ export function applyStateToStores(
       safe as Record<string, Answer>,
       taskStore.flatTasks[ns],
     )
+  }
+}
+
+/**
+ * Load another form's state as a source the active form reads its references
+ * from (a linked pre-scan or DPIA inside a DPIA or IAMA), into that form's own
+ * namespace. The active form, its answers and its current section are left as
+ * they were, also when the state cannot be applied.
+ */
+export function applySourceForm(
+  state: AssessmentState,
+  namespace: FormType,
+  tasks: Task[],
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): void {
+  const active = taskStore.activeNamespace
+  // Switching back resets the active form to its first section.
+  const section = taskStore.currentRootTaskId[active]
+  taskStore.setActiveNamespace(namespace)
+  answerStore.setActiveNamespace(namespace)
+  try {
+    taskStore.init(tasks, true)
+    applyStateToStores(state, taskStore, answerStore)
+    rebuildRepeatableInstances(taskStore, answerStore, state.answers)
+  } finally {
+    taskStore.setActiveNamespace(active)
+    answerStore.setActiveNamespace(active)
+    taskStore.currentRootTaskId[active] = section
   }
 }
 

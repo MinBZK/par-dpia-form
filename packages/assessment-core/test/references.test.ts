@@ -162,4 +162,59 @@ describe('useReferences — reference routing', () => {
     expect(suggestions).toHaveLength(1)
     expect(suggestions[0].sourceTaskId).toBe('4.2')
   })
+
+  it('cross preview: lists a DPIA answer once in the IAMA, with the form it comes from', () => {
+    // One DPIA field linked to two questions of the same IAMA part.
+    initNamespace(FormType.DPIA, [
+      {
+        id: '16.1.1',
+        task: 'Beschrijving van het risico',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '3.5.1', type: 'pre-view' }, { id: '3.5.2', type: 'pre-view' }] },
+      },
+    ] as unknown as Task[])
+    seedAnswer(FormType.DPIA, '16.1.1', 'Uitsluiting van aanvragers')
+    initNamespace(FormType.IAMA, [
+      { id: '3.5.1', task: 'Geraakte groepen', type: ['open_text'] },
+      { id: '3.5.2', task: 'Nadelige effecten', type: ['open_text'] },
+    ] as unknown as Task[])
+
+    const { getPreviewDataForSection } = useReferences()
+
+    expect(getPreviewDataForSection('3')).toEqual([
+      {
+        sourceNamespace: FormType.DPIA,
+        taskId: '16.1.1',
+        taskTitle: 'Beschrijving van het risico',
+        answer: 'Uitsluiting van aanvragers',
+        referenceType: 'pre-view',
+        dpiaTaskId: '3.5.1',
+      },
+    ])
+  })
+
+  it('cross preview: lists every filled-in repetition, also when the first one is empty', () => {
+    initNamespace(FormType.DPIA, [
+      {
+        id: '5.1', task: 'Doeleinden', type: ['task_group'], repeatable: true,
+        tasks: [{
+          id: '5.1.1', task: 'Verwerkingsdoeleinde', type: ['open_text'],
+          references: { IAMA: [{ id: '1.1.2', type: 'pre-view' }] },
+        }],
+      },
+    ] as unknown as Task[])
+    // Three repetitions, the first one empty.
+    taskStore.addRepeatableTaskInstance('5.1')
+    taskStore.addRepeatableTaskInstance('5.1')
+    const [first, second, third] = taskStore.getInstanceIdsForTask('5.1.1')
+    expect(first).toBeDefined()
+    seedAnswer(FormType.DPIA, second, 'Aanvragen beoordelen')
+    seedAnswer(FormType.DPIA, third, 'Fraude opsporen')
+    initNamespace(FormType.IAMA, [{ id: '1.1.2', task: 'Doel', type: ['open_text'] }] as unknown as Task[])
+
+    const { getPreviewDataForSection, findReferences } = useReferences()
+
+    expect(getPreviewDataForSection('1').map((item) => item.answer)).toEqual(['Aanvragen beoordelen', 'Fraude opsporen'])
+    expect(findReferences('1.1.2')[0].answer).toBe('Aanvragen beoordelen')
+  })
 })
