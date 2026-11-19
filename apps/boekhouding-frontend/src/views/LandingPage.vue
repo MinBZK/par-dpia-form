@@ -108,6 +108,9 @@ const assessments = [
                 en IAMA's in projecten en nodig anderen uit. Inclusief versiebeheer en de
                 mogelijkheid om opmerkingen te plaatsen.
               </p>
+              <p v-if="!isAuthenticated">
+                Op dit moment is alleen het SSO-systeem van de Rijksoverheid aangesloten.
+              </p>
               <button
                 class="rvo-button rvo-button--primary rvo-button--size-md"
                 @click="goToProjects"

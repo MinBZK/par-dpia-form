@@ -31,7 +31,11 @@ export function normalizeCreateState(
     $schema: typeof state.$schema === 'string' ? state.$schema : OUTPUT_SCHEMA_URL,
     metadata: {
       ...metadata,
-      urn: typeof metadata.urn === 'string' ? metadata.urn : ASSESSMENT_TYPE_URNS[assessmentType],
+      // An urn without version is an older export the client recognised by its
+      // content; it gets the canonical urn like a payload without one.
+      urn: typeof metadata.urn === 'string' && /:[0-9]+\.[0-9]+$/.test(metadata.urn)
+        ? metadata.urn
+        : ASSESSMENT_TYPE_URNS[assessmentType],
       createdAt: typeof metadata.createdAt === 'string' ? metadata.createdAt : new Date().toISOString(),
     },
     answers: typeof state.answers === 'object' && state.answers !== null ? state.answers : {},

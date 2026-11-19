@@ -5,9 +5,13 @@ import {
   FormType,
   useTaskStore,
   useAnswerStore,
+  useSchemaStore,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import App from '../../src/App.vue'
+import dpiaJson from '../../../../sources/generated/DPIA.json'
+import preScanJson from '../../../../sources/generated/PreScanDPIA.json'
+import iamaJson from '../../../../sources/generated/IAMA.json'
 
 const LandingStub = {
   name: 'LandingView',
@@ -123,6 +127,34 @@ describe('App.vue', () => {
     expect(form.props('validData')).toBeNull()
   })
 
+  // Answers of another form stay in the store after you leave it. Opening a form
+  // must not prefill from them: a new DPIA took over a pre-scan you never chose.
+  it.each([
+    ['goToDPIA', FormType.PRE_SCAN],
+    ['goToIAMA', FormType.DPIA],
+    ['goToPreScanDPIA', FormType.IAMA],
+  ] as const)('%s drops answers left in memory by the %s form', async (goTo, other) => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    answerStore.answers[other] = { '1.1.1': 'uit een eerder formulier' }
+
+    nav[goTo]!()
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[other]).toEqual({})
+  })
+
+  it('keeps the answers of the form it reopens, which may not have been saved', async () => {
+    const wrapper = mountApp()
+    const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+    answerStore.answers[FormType.DPIA] = { '1.1': 'nog niet opgeslagen' }
+
+    nav.goToDPIA()
+    await wrapper.vm.$nextTick()
+
+    expect(answerStore.answers[FormType.DPIA]).toEqual({ '1.1': 'nog niet opgeslagen' })
+  })
+
   it('returns to the LandingView via goToLanding', async () => {
     const wrapper = mountApp()
     const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
@@ -187,6 +219,7 @@ describe('App.vue — cached sessions (#322)', () => {
     seedCache(FormType.PRE_SCAN)
     seedCache(FormType.IAMA)
     const wrapper = mountApp()
+    useAnswerStore().answers[FormType.DPIA] = { '1.1': 'van de vorige gebruiker' }
     expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(3)
 
     wrapper.findComponent(LandingStub).vm.$emit('clearAll')
@@ -194,6 +227,10 @@ describe('App.vue — cached sessions (#322)', () => {
 
     for (const type of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
       expect(localStorage.getItem(storageKey(type))).toBeNull()
+      // Nothing left in memory for the next person either, and no open form for
+      // the save watcher to write back.
+      expect(useAnswerStore().answers[type]).toEqual({})
+      expect(useTaskStore().isInitialized[type]).toBe(false)
     }
     // The button disappears together with the data it was there to wipe.
     expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toHaveLength(0)
@@ -207,11 +244,14 @@ describe('App.vue — cached sessions (#322)', () => {
   ])('startFresh(%s) clears the saved state and opens a fresh form (no autoStart)', async (type) => {
     seedCache(type)
     const wrapper = mountApp()
+    const answerStore = useAnswerStore()
+    answerStore.answers[type] = { '1.1': 'uit de vorige sessie' }
 
     wrapper.findComponent(LandingStub).vm.$emit('startFresh', type)
     await wrapper.vm.$nextTick()
 
     expect(localStorage.getItem(storageKey(type))).toBeNull()
+    expect(answerStore.answers[type]).toEqual({})
     const taskStore = useTaskStore()
     expect(taskStore.activeNamespace).toBe(type)
     const form = wrapper.findComponent(FormStub)
@@ -238,5 +278,69 @@ describe('App.vue — cached sessions (#322)', () => {
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(type)
     expect(form.props('autoStart')).toBe(true)
+  })
+
+  describe('the pre-scan uploaded for a DPIA', () => {
+    beforeEach(() => {
+      useSchemaStore().init({ preScan: preScanJson, dpia: dpiaJson, iama: iamaJson })
+    })
+
+    it('comes back with the DPIA, and only with the DPIA', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: { '1.1': { value: 'Voorstel' } },
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]['0.2']).toMatchObject({ value: 'Uit de geüploade pre-scan' })
+      expect(useTaskStore().activeNamespace).toBe(FormType.DPIA)
+
+      nav.goToIAMA!()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+    })
+
+    it('never becomes the user\'s own pre-scan when the pre-scan form opens next', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: {},
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).not.toEqual({})
+      nav.goToPreScanDPIA()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+      // And the landing page knows the DPIA is there, so it can be resumed or wiped.
+      nav.goToLanding()
+      await wrapper.vm.$nextTick()
+      expect(wrapper.findComponent(LandingStub).props('cachedTypes')).toEqual([FormType.DPIA])
+    })
+
+    it('leaves the own pre-scan in memory alone when no DPIA source is saved', async () => {
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      useAnswerStore().answers[FormType.PRE_SCAN] = { '0.2': { value: 'Eigen, nog niet opgeslagen' } }
+
+      nav.goToPreScanDPIA()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({ '0.2': { value: 'Eigen, nog niet opgeslagen' } })
+    })
+
+    it('is gone with "Start nieuwe DPIA"', async () => {
+      localStorage.setItem(storageKey(FormType.DPIA), JSON.stringify({
+        answers: { '1.1': { value: 'Voorstel' } },
+        _prescanAnswers: { '0.2': { value: 'Uit de geüploade pre-scan' } },
+      }))
+      const wrapper = mountApp()
+
+      wrapper.findComponent(LandingStub).vm.$emit('startFresh', FormType.DPIA)
+      await wrapper.vm.$nextTick()
+
+      expect(useAnswerStore().answers[FormType.PRE_SCAN]).toEqual({})
+    })
   })
 })

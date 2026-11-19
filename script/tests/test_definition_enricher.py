@@ -92,6 +92,32 @@ def test_inject_terms_leaves_unknown_text_untouched():
     assert inject_terms(original, term_map) == original
 
 
+def test_inject_terms_matches_term_ending_in_parenthesis():
+    # A term that ends in ")" has no word boundary after it, so a plain \b...\b
+    # pattern never matches it and the shorter overlapping term wins instead.
+    term_map = create_term_map(
+        make_begrippenkader(
+            ("Lijst EDPB", "de lijst"),
+            ("Lijst EDPB: Mensen beoordelen (evaluatie of scoring)", "het criterium"),
+        )
+    )
+
+    result = inject_terms("Lijst EDPB: Mensen beoordelen (evaluatie of scoring)", term_map)
+
+    assert (
+        '<span class="aiv-definition">Lijst EDPB: Mensen beoordelen (evaluatie of scoring)'
+        in result
+    )
+    assert "het criterium" in result
+    assert "de lijst" not in result
+
+
+def test_inject_terms_does_not_match_term_inside_a_longer_word():
+    term_map = create_term_map(make_begrippenkader(("Besluit (Awb)", "een besluit")))
+
+    assert inject_terms("Een Besluit (Awb)x hier.", term_map) == "Een Besluit (Awb)x hier."
+
+
 # --- inject_terms: all-uppercase terms ------------------------------------
 
 

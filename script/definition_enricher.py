@@ -230,16 +230,19 @@ def inject_terms(text, term_map, already_matched_terms=None):
             if already_matched_terms is not None and term in already_matched_terms:
                 continue
 
+            # Lookarounds instead of \b: a term that starts or ends with a
+            # non-word character, such as "Besluit (Awb)", has no \b there.
+
             # Determine case sensitivity: terms that are all uppercase in the
             # begrippenkader (e.g. "DAT") are matched case-sensitively to avoid
             # false positives with common Dutch words like "dat".
             original_term = term_map.get(term, {}).get("term", term)
             if len(original_term) > 1 and original_term.isupper():
                 # Use the original uppercase term in the pattern
-                term_pattern = r"\b" + re.escape(original_term) + r"\b"
+                term_pattern = r"(?<!\w)" + re.escape(original_term) + r"(?!\w)"
                 regex_flags = 0  # case-sensitive
             else:
-                term_pattern = r"\b" + re.escape(term) + r"\b"
+                term_pattern = r"(?<!\w)" + re.escape(term) + r"(?!\w)"
                 regex_flags = re.IGNORECASE
 
             # Find all matches for this term in the current state of the text

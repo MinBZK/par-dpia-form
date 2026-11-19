@@ -29,6 +29,11 @@ describe('normalizeCreateState', () => {
     expect((normalizeCreateState({}, 'iama').metadata as Record<string, unknown>).urn).toBe('urn:nl:iama:2.0')
   })
 
+  it('completes an urn without version, from an older export the client recognised', () => {
+    const out = normalizeCreateState({ metadata: { urn: 'urn:nl:prescan' }, answers: {} }, 'prescan')
+    expect((out.metadata as Record<string, unknown>).urn).toBe(ASSESSMENT_TYPE_URNS.prescan)
+  })
+
   it('preserves values the client did provide and never overwrites them', () => {
     const input = {
       $schema: 'client-schema',
