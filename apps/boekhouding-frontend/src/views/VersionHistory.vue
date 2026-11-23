@@ -45,7 +45,10 @@ const canRestore = computed(() => role.value === 'owner')
 // Expandable diff state
 const expandedVersion = ref<number | null>(null)
 const diffLoading = ref(false)
-const diffFields = ref<Array<{ fieldId: string; label: string; groupLabel?: string; editType?: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }>>([])
+type DiffField = { fieldId: string; label: string; groupLabel?: string; editType?: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }
+type RestoreTarget = Pick<DiffField, 'fieldId' | 'label' | 'editType' | 'rawOldValue' | 'originVersion'>
+
+const diffFields = ref<DiffField[]>([])
 
 // Description modal
 const descDialogRef = ref<HTMLDialogElement | null>(null)
@@ -61,7 +64,7 @@ const openMenuVersion = ref<number | null>(null)
 const openMenuField = ref<string | null>(null)
 const fieldRestoreDialogRef = ref<HTMLDialogElement | null>(null)
 const fieldRestoreModalOpen = ref(false)
-const fieldRestoreTarget = ref<{ fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number } | null>(null)
+const fieldRestoreTarget = ref<RestoreTarget | null>(null)
 
 // Namespace prefix of a field id (or a urn's namespace) to the form it belongs to.
 // Unknown values fall back to the pre-scan namespace, as the oldest exports carry
@@ -77,7 +80,7 @@ function formTypeForNamespace(namespace: string | undefined): FormType {
   return (namespace && FORM_TYPE_BY_NAMESPACE[namespace]) || FormType.PRE_SCAN
 }
 
-function openFieldRestoreModal(field: { fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number }) {
+function openFieldRestoreModal(field: RestoreTarget) {
   openMenuField.value = null
   fieldRestoreTarget.value = field
   fieldRestoreModalOpen.value = true
@@ -630,7 +633,7 @@ async function toggleDiff(version: number) {
 function mapEditsToDiffFields(
   edits: VersionEdit[],
   version: number,
-): Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> {
+): DiffField[] {
   // During consolidation, multiple edits for the same field can exist within one version.
   // Collapse them to show only the net change: first oldValue → last newValue.
   // If the net result is no change, skip the field entirely.
@@ -657,7 +660,7 @@ function mapEditsToDiffFields(
     }
   }
 
-  const result: Array<{ fieldId: string; label: string; oldValue: string; newValue: string; rawOldValue?: unknown; oldTimestamp?: string; originVersion?: number; canRestore: boolean }> = []
+  const result: DiffField[] = []
 
   for (const [dotId, edit] of collapsed) {
     // Instance added/removed: both values are null, so handle before the no-change check

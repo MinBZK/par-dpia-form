@@ -30,7 +30,7 @@ export interface ConflictState {
   resolve: (resolutions: Map<string, 'mine' | 'theirs'>) => void
 }
 
-export function createApiPersistence(assessmentId: string, namespace?: string) {
+export function createApiPersistence(assessmentId: string, namespace?: FormType) {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
 
@@ -57,7 +57,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   let lastSavedState: AssessmentState | null = null
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
   let instancesDirty = false
-  let pinnedNamespace: string | null = namespace ?? null
+  let pinnedNamespace: FormType | null = namespace ?? null
 
   let resolveCallback: ((resolutions: Map<string, 'mine' | 'theirs'>) => void) | null = null
 
