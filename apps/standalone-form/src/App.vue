@@ -29,7 +29,7 @@ const answerStore = useAnswerStore()
 const schemaStore = useSchemaStore()
 
 const currentView = ref<ViewState>(ViewState.Landing)
-const aiiaChatKey = ref('')    // this + send AiiaChat is for testing purposes!! 
+const aiiaChatKey = ref('')    // this + send AiiaChat is for testing purposes!!
 
 type ReformulationTask = Parameters<typeof buildReformulationMessages>[0]['task']
 
@@ -168,12 +168,12 @@ const isResume = (type: FormType) => persistence.hasSavedState(type)
     bannerTitle="Invulhulpen"
   />
 
-  
-  <!-- AIIA Form -->  
+
+  <!-- AIIA Form -->
   <div
     v-if="currentView === ViewState.AIIA"
-    class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md" 
-  > 
+    class="rvo-max-width-layout rvo-max-width-layout--lg rvo-max-width-layout-inline-padding--md"
+  >
     <label class="rvo-label" for="aiia-chat-key">Chat-sleutel</label>
     <input
       id="aiia-chat-key"

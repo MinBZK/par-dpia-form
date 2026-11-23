@@ -66,8 +66,8 @@ services:
     build:
       context: ..
       dockerfile: containers/standalone/Containerfile.dev
-    environment:   
-      API_URL: http://backend:3000    #this is to test- not sure if it'll work yet. 
+    environment:
+      API_URL: http://backend:3000    #this is to test- not sure if it'll work yet.
     ports:
       - "5175:5175"
     healthcheck:

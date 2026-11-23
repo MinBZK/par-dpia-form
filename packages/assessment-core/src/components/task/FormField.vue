@@ -8,7 +8,7 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
-import UiButton from '../ui/UiButton.vue'      
+import UiButton from '../ui/UiButton.vue'
 import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { renderMarkdownToHtml } from '../../utils/markdown'
 import { computed, ref, onMounted, nextTick, watch, inject } from 'vue'
@@ -185,7 +185,7 @@ const handleTextInput = (event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
   answerStore.setAnswer(props.instanceId, target.value)
   reformulationSuggestion.value = ''
-  reformulationError.value = null 
+  reformulationError.value = null
   if (target instanceof HTMLTextAreaElement) {
     autoGrowTextarea(target)
   }

@@ -32,7 +32,7 @@ function mountField(
   return mount(FormField, {
     props,
     global: {
-      provide: reformulateText ? { 'aiia-reformulate-text': reformulateText } : {},  
+      provide: reformulateText ? { 'aiia-reformulate-text': reformulateText } : {},
       // Stub ImageField to keep the image-upload component out of the mount.
       stubs: {
         ImageField: { name: 'ImageField', props: ['task', 'instanceId', 'label', 'description'], template: '<div class="image-field-stub" />' },
