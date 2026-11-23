@@ -253,6 +253,24 @@ describe('loadSourceForms', () => {
     expect(warn).toHaveBeenCalledWith('Kon de andere assessments in het project niet ophalen:', expect.any(Error))
   })
 
+  it('still opens the form when a stored source state cannot be applied', async () => {
+    activate(FormType.AIIA)
+    serve([
+      // A repeatable group whose stored instance is not an object: applying it throws.
+      instance('iama', 'iama', stateWith({ '2.1': [null] })),
+      instance('dpia', 'dpia', stateWith({ '1.1': answer('Uit de DPIA') })),
+    ])
+
+    await expect(loadSourceForms(instance('self', 'aiia'))).resolves.toBeUndefined()
+
+    const taskStore = useTaskStore()
+    expect(warn).toHaveBeenCalledWith('Kon assessment iama (iama) niet verwerken:', expect.any(Error))
+    // The broken source is left uninitialized, so it is not mistaken for a loaded one.
+    expect(taskStore.isInitialized[FormType.IAMA]).toBe(false)
+    expect(useAnswerStore().getAnswerFromNamespace(FormType.DPIA, '1.1')).toBe('Uit de DPIA')
+    expect(taskStore.activeNamespace).toBe(FormType.AIIA)
+  })
+
   it('still loads the other sources when one of them fails', async () => {
     activate(FormType.AIIA)
     serve([instance('dpia', 'dpia', stateWith({ '1.1': answer('Uit de DPIA') }))])

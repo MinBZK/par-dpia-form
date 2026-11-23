@@ -12,6 +12,8 @@ import { type FlatTask, taskIsOfTaskType, useTaskStore } from '../../stores/task
 import { computed } from 'vue'
 import risicoMatrixImage from '../../../../../sources/assets/risico_matrix.png'
 import stroomschemaIamaV2Image from '../../../../../sources/assets/stroomschema_iama_v2.png'
+import factsheetDuurzaamheidImage from '../../../../../sources/assets/Factsheet Duurzaamheid en AI - juni 2025-1.png'
+const beginselenAvgAiiaImage = new URL('../../../../../sources/assets/beginselenAVG_AIIA.JPG', import.meta.url).href
 
 const props = defineProps<{
   taskId: string
@@ -162,6 +164,8 @@ const showActiepuntenOverview = computed(() => task.value.action_point_summary =
 const imageMap = {
   'risico_matrix.png': risicoMatrixImage,
   'stroomschema_iama_v2.png': stroomschemaIamaV2Image,
+  'Factsheet Duurzaamheid en AI - juni 2025-1.png': factsheetDuurzaamheidImage,
+  'beginselenAVG_AIIA.JPG': beginselenAvgAiiaImage,
 }
 
 // Helper function with proper type safety
@@ -242,10 +246,10 @@ function shouldSkipTask(taskId: string): boolean {
       </div>
 
       <!-- Description section (if available) -->
-      <div v-if="task.description" class="utrecht-form-fieldset rvo-form-fieldset">
+      <div v-if="task.description || task.sources" class="utrecht-form-fieldset rvo-form-fieldset">
         <fieldset
           class="utrecht-form-fieldset__fieldset utrecht-form-fieldset--html-fieldset rvo-margin-block-start--xs rvo-margin-inline-start--xs">
-          <p class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
+          <p v-if="task.description" class="utrecht-paragraph preserve-whitespace" v-html="task.description"></p>
           <template v-if="task.sources">
             <template v-for="source in task.sources" :key="source.source">
               <img v-if="source.source && source.source in imageMap" :src="getImage(source.source)"

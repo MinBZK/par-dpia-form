@@ -1,4 +1,5 @@
 import {
+  FORM_TYPE_BY_NAME,
   FormType,
   REFERENCE_KEY,
   applyStateToStores,
@@ -10,13 +11,6 @@ import {
 } from '@overheid-assessment/core'
 import { assessments as assessmentsApi, type AssessmentInstance } from '../api'
 import { normalizeServerState } from './normalizeServerState'
-
-const NAMESPACE_BY_TYPE: Record<AssessmentInstance['assessmentType'], FormType> = {
-  prescan: FormType.PRE_SCAN,
-  dpia: FormType.DPIA,
-  iama: FormType.IAMA,
-  aiia: FormType.AIIA,
-}
 
 // Upper bound of the backend's project assessment list (LIST_PAGE.maxSize).
 const LIST_PAGE_SIZE = 500
@@ -63,7 +57,7 @@ export function pickSourceAssessments(
 ): Map<FormType, string> {
   const picked = new Map<FormType, string>()
   for (const candidate of candidates) {
-    const namespace = NAMESPACE_BY_TYPE[candidate.assessmentType]
+    const namespace = FORM_TYPE_BY_NAME[candidate.assessmentType]
     if (candidate.id === currentId || !wanted.includes(namespace)) continue
     if (!picked.has(namespace)) picked.set(namespace, candidate.id)
   }
@@ -117,17 +111,24 @@ export async function loadSourceForms(current: AssessmentInstance): Promise<void
       const schema = schemaStore.getSchema(namespace)!
       if (!(form.state as { metadata?: unknown } | undefined)?.metadata) continue
       if (taskStore.isInitialized[namespace]) continue
-      const state = normalizeServerState(form.state, namespace)
 
-      taskStore.setActiveNamespace(namespace)
-      answerStore.setActiveNamespace(namespace)
-      taskStore.init(schema.tasks)
-      applyStateToStores(state, taskStore, answerStore)
-      rebuildRepeatableInstances(
-        taskStore,
-        answerStore,
-        state.answers as Record<string, GroupedAnswerValue>,
-      )
+      try {
+        const state = normalizeServerState(form.state, namespace)
+        taskStore.setActiveNamespace(namespace)
+        answerStore.setActiveNamespace(namespace)
+        taskStore.init(schema.tasks)
+        applyStateToStores(state, taskStore, answerStore)
+        rebuildRepeatableInstances(
+          taskStore,
+          answerStore,
+          state.answers as Record<string, GroupedAnswerValue>,
+        )
+      } catch (error) {
+        // A half-applied source would pass for a loaded one; drop it entirely.
+        taskStore.isInitialized[namespace] = false
+        answerStore.answers[namespace] = {}
+        console.warn(`Kon assessment ${form.id} (${namespace}) niet verwerken:`, error)
+      }
     }
   } finally {
     taskStore.setActiveNamespace(activeNamespace)

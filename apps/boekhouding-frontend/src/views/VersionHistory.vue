@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FORM_TYPE_BY_NAME, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -69,15 +69,8 @@ const fieldRestoreTarget = ref<RestoreTarget | null>(null)
 // Namespace prefix of a field id (or a urn's namespace) to the form it belongs to.
 // Unknown values fall back to the pre-scan namespace, as the oldest exports carry
 // no namespace at all.
-const FORM_TYPE_BY_NAMESPACE: Record<string, FormType> = {
-  dpia: FormType.DPIA,
-  iama: FormType.IAMA,
-  aiia: FormType.AIIA,
-  prescan: FormType.PRE_SCAN,
-}
-
 function formTypeForNamespace(namespace: string | undefined): FormType {
-  return (namespace && FORM_TYPE_BY_NAMESPACE[namespace]) || FormType.PRE_SCAN
+  return FORM_TYPE_BY_NAME[namespace as `${FormType}`] ?? FormType.PRE_SCAN
 }
 
 function openFieldRestoreModal(field: RestoreTarget) {

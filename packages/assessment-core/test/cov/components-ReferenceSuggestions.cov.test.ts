@@ -42,15 +42,15 @@ function mountFor(task: FlatTask, instanceId = '3.1') {
   return mount(ReferenceSuggestions, { props: { task, instanceId } })
 }
 
-// Same as seedSuggestionForTarget, but with a configurable target type.
-function seedTarget(targetType: string, sourceAnswer: unknown): FlatTask {
+// Same as seedSuggestionForTarget, but with configurable target and source types.
+function seedTarget(targetType: string, sourceAnswer: unknown, sourceType = 'open_text'): FlatTask {
   taskStore.init(
     [
       { id: '3.1', task: 'Doel', type: [targetType] },
       {
         id: '3.2',
         task: 'Bron',
-        type: ['open_text'],
+        type: [sourceType],
         references: { DPIA: [{ id: '3.1', type: 'pre-view' }] },
       },
     ] as unknown as Task[],
@@ -122,6 +122,19 @@ describe('ReferenceSuggestions.vue', () => {
       await adoptButton(wrapper)!.trigger('click')
 
       expect(answerStore.getAnswer('3.1')).toBe('Eerder antwoord')
+    })
+
+    it.each([
+      ['true', 'Ja'],
+      ['false', 'Nee'],
+    ])('adopts a yes/no answer (%s) as the "%s" the suggestion shows', async (stored, shown) => {
+      const target = seedTarget('open_text', stored, 'radio_option')
+
+      const wrapper = mountFor(target, '3.1')
+      await adoptButton(wrapper)!.trigger('click')
+
+      expect(answerStore.getAnswer('3.1')).toBe(shown)
+      expect(adoptButton(wrapper)).toBeUndefined()
     })
 
     it('appends to existing open_text content after a blank line', async () => {
@@ -214,6 +227,22 @@ describe('ReferenceSuggestions.vue', () => {
       await adoptButton(wrapper)!.trigger('click')
 
       expect(answerStore.getAnswer('3.1')).toBe('Regel 1\nRegel 2')
+      expect(adoptButton(wrapper)).toBeUndefined()
+    })
+
+    it('still recognises an adopted answer when the user adds spaces at a line end', async () => {
+      const target = seedTarget('open_text', 'Ja')
+      answerStore.setAnswer('3.1', 'Eigen tekst')
+
+      const wrapper = mountFor(target, '3.1')
+      await adoptButton(wrapper)!.trigger('click')
+      // Two trailing spaces: a markdown hard break, then more text.
+      answerStore.setAnswer('3.1', 'Eigen tekst\n\nJa  \nVerder\n\nNog meer')
+      await wrapper.vm.$nextTick()
+      expect(adoptButton(wrapper)).toBeDefined()
+
+      answerStore.setAnswer('3.1', 'Eigen tekst\n\nJa  \n\nNog meer')
+      await wrapper.vm.$nextTick()
       expect(adoptButton(wrapper)).toBeUndefined()
     })
 

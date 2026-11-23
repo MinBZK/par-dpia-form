@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, provide, ref, watch } from 
 import { useRouter } from 'vue-router'
 import {
   Form,
+  FORM_TYPE_BY_NAME,
   FormType,
   useSchemaStore,
   useTaskStore,
@@ -200,14 +201,6 @@ watch(
   },
 )
 
-// Map assessment_type to FormType enum
-const assessmentTypeMap: Record<string, FormType> = {
-  prescan: FormType.PRE_SCAN,
-  dpia: FormType.DPIA,
-  iama: FormType.IAMA,
-  aiia: FormType.AIIA,
-}
-
 // Navigation: back goes to project detail
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => {
@@ -241,7 +234,7 @@ onMounted(async () => {
       })
     }
 
-    const namespace = assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA
+    const namespace = FORM_TYPE_BY_NAME[assessment.value.assessmentType] || FormType.DPIA
     taskStore.setActiveNamespace(namespace)
     answerStore.setActiveNamespace(namespace)
 
@@ -334,7 +327,7 @@ onUnmounted(() => {
 })
 
 const namespace = computed(() =>
-  assessment.value ? assessmentTypeMap[assessment.value.assessmentType] || FormType.DPIA : FormType.DPIA,
+  assessment.value ? FORM_TYPE_BY_NAME[assessment.value.assessmentType] || FormType.DPIA : FormType.DPIA,
 )
 
 const assessmentTypeLabel = computed(() =>

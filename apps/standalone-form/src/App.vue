@@ -107,7 +107,7 @@ const goByType: Record<FormType, () => void> = {
   [FormType.PRE_SCAN]: () => navigationFunctions.goToPreScanDPIA(),
   [FormType.DPIA]: () => navigationFunctions.goToDPIA(),
   [FormType.IAMA]: () => navigationFunctions.goToIAMA!(),
-  [FormType.AIIA]: () => navigationFunctions.goToAIIA!(),
+  [FormType.AIIA]: navigationFunctions.goToAIIA!,
 }
 const startFresh = (type: FormType) => {
   persistence.clearSavedState(type)
@@ -116,7 +116,7 @@ const startFresh = (type: FormType) => {
 
 // Wiping every namespace at once, for someone leaving a shared computer.
 const clearAll = () => {
-  ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
+  ALL_TYPES.forEach((type) => persistence.clearSavedState(type))
   refreshCachedTypes()
 }
 

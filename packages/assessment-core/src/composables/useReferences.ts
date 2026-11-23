@@ -1,4 +1,4 @@
-import { FormType, type TaskReference } from '../models/dpia'
+import { FormType, type TaskReference, type TaskTypeValue } from '../models/dpia'
 import { useAnswerStore, type AnswerValue } from '../stores/answers'
 import { useTaskStore, type FlatTask } from '../stores/tasks'
 import { getPlainTextWithoutDefinitions } from '../utils/stripHtml'
@@ -13,6 +13,9 @@ export const REFERENCE_KEY: Partial<Record<FormType, 'DPIA' | 'IAMA' | 'AIIA'>> 
   [FormType.IAMA]: 'IAMA',
   [FormType.AIIA]: 'AIIA',
 }
+
+// Task types whose answer is text the user typed, as opposed to a picked option.
+const TEXT_TYPES: TaskTypeValue[] = ['open_text', 'text_input']
 
 // References can originate from any form (self-references within the active
 // form, or cross-form references from another form such as pre-scan).
@@ -48,6 +51,8 @@ export interface PreScanReference {
 export interface ReferenceSuggestion {
   sourceTaskId: string
   sourceTaskTitle: string
+  // Whether the user typed the source answer (text field) or picked it.
+  sourceIsText: boolean
   answer: AnswerValue
 }
 
@@ -120,7 +125,12 @@ export function useReferences() {
       if (PREFILL_TYPES.includes(reference.type)) continue
       if (seen.has(sourceTask.id)) continue
       seen.add(sourceTask.id)
-      suggestions.push({ sourceTaskId: sourceTask.id, sourceTaskTitle: sourceTask.task, answer })
+      suggestions.push({
+        sourceTaskId: sourceTask.id,
+        sourceTaskTitle: sourceTask.task,
+        sourceIsText: sourceTask.type.some((type) => TEXT_TYPES.includes(type)),
+        answer,
+      })
     }
     return suggestions
   }

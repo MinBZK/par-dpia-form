@@ -1081,10 +1081,10 @@ describe('exportToPdf (IAMA namespace)', () => {
 
     await exportToPdf(taskStore, answerStore, calculationStore)
 
-    expect(allTexts().some((t) => t.startsWith('Gegenereerd met de Invulhulpen voor pre-scan, DPIA en IAMA op '))).toBe(true)
+    expect(allTexts().some((t) => t.startsWith('Gegenereerd met de Invulhulpen voor pre-scan, DPIA, IAMA en AIIA op '))).toBe(true)
     expect(allTexts().some((t) => t.includes('Rapportagemodel Editor'))).toBe(false)
-    expect(lastDocDefinition().info.author).toBe('Invulhulpen voor pre-scan, DPIA en IAMA')
-    expect(lastDocDefinition().info.creator).toBe('Invulhulpen voor pre-scan, DPIA en IAMA')
+    expect(lastDocDefinition().info.author).toBe('Invulhulpen voor pre-scan, DPIA, IAMA en AIIA')
+    expect(lastDocDefinition().info.creator).toBe('Invulhulpen voor pre-scan, DPIA, IAMA en AIIA')
   })
 
   it('uses an iama_-prefixed generated filename when none is provided', async () => {

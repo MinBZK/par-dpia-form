@@ -251,6 +251,23 @@ describe('TaskSection description with image sources', () => {
     expect(wrapper.find('img').exists()).toBe(false)
     expect(wrapper.html()).toContain('Alleen tekst')
   })
+
+  it('renders the image without a description paragraph when task has only sources', () => {
+    const tasks: Task[] = [
+      {
+        id: '5',
+        task: 'Alleen een plaatje',
+        type: ['text_input'],
+        is_official_id: true,
+        sources: [{ source: 'risico_matrix.png', description: 'De risicomatrix' }],
+      },
+    ]
+    taskStore.init(tasks, true)
+
+    const wrapper = mountSection('5')
+    expect(wrapper.find('img').attributes('alt')).toBe('De risicomatrix')
+    expect(wrapper.find('fieldset p.preserve-whitespace').exists()).toBe(false)
+  })
 })
 
 describe('TaskSection task groups with children', () => {
