@@ -118,6 +118,8 @@ uv run script/run_all.py \
   --output-md docs/questions/questions_DPIA.md
 ```
 
+`--output-md` schrijft een leesbaar overzicht van de vragen. Dat overzicht staat niet in de repository (`docs/questions/` staat in `.gitignore`, zie [PDR 0013](docs/PDR/0013-vragenoverzichten-niet-in-de-repository.md)); genereer het wanneer je het nodig hebt.
+
 ### Domeinkennis-plugin (AI-assistent)
 
 Voor **ontwikkelaars en redacteuren** die in de editor (Claude Code / Cursor) aan déze repo werken is er een Claude-plugin met domeinkennis over de assessment-definities: schema's, begrippenkaders, RVO-styling en een validatie-agent. Het is een hulpmiddel bij het *bouwen en onderhouden* van de definities en applicatie — **niet** een invul-assistent voor eindgebruikers die een pre-scan, DPIA of IAMA uitvoeren.
