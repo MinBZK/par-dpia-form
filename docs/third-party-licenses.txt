@@ -481,7 +481,7 @@ io-ts@2.2.22 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ip-address@10.7.3 [license(s): MIT]
+ip-address@10.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
