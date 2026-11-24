@@ -13,7 +13,7 @@ pnpm rapporteert die van het platform waarop de lijst gemaakt is.
 Licenties van gebruikte bibliotheken
 =====================================
 
-@babel/helper-string-parser@7.29.7 [license(s): MIT]
+@babel/helper-string-parser@7.29.14 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -21,7 +21,7 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@babel/parser@7.29.8 [license(s): MIT]
+@babel/parser@7.29.14 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -29,7 +29,7 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@babel/types@7.29.8 [license(s): MIT]
+@babel/types@7.29.14 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -41,11 +41,11 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/compress@9.2.0 [license(s): MIT]
+@fastify/compress@9.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/cors@11.3.0 [license(s): MIT]
+@fastify/cors@11.4.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -61,7 +61,7 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/helmet@13.1.1 [license(s): MIT]
+@fastify/helmet@13.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -73,7 +73,7 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/rate-limit@11.2.0 [license(s): MIT]
+@fastify/rate-limit@11.2.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -85,11 +85,11 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/swagger@9.8.1 [license(s): MIT]
+@fastify/swagger@9.9.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@fastify/swagger-ui@6.1.1 [license(s): MIT]
+@fastify/swagger-ui@6.1.4 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -117,17 +117,265 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@nl-rvo/assets@1.0.0 [license(s): CC0 1.0]
+@nl-rvo/assets@1.2.1 [license(s): CC0 1.0]
 ├── package.json:  CC0 1.0
 └── license files: CC0 1.0
 
-@nl-rvo/component-library-css@4.20.3 [license(s): CC0-1.0]
+@nl-rvo/component-library-css@5.1.0 [license(s): CC0-1.0]
 ├── package.json:  CC0-1.0
 └── license files: CC0-1.0
 
-@nl-rvo/design-tokens@2.4.2 [license(s): Unknown]
+@nl-rvo/css-accordion@1.4.3 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-action-group@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-alert@1.7.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-breadcrumbs@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-button@2.2.3 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-card@1.9.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-card-experimental@0.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-checkbox-filter@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-counter-badge@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-data-list@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-dialog@1.6.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-expandable-content@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-expandable-table@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-footer@1.11.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-autocomplete@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-checkbox@1.4.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-checkbox-group@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-feedback@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-field@1.8.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-fieldset@1.8.0 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-file-input@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-layout@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-radio-button@1.5.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-radio-button-group@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-select@1.6.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-text-input@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-form-textarea@1.6.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-grid@3.3.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-header@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-heading@2.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-hero@1.8.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-horizontal-rule@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-icon@1.7.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-image@1.3.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-item-list@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-layout-flow@1.6.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-link@1.7.3 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-loader@2.2.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-logo@1.5.3 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-max-width-layout@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-menubar@1.7.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-ordered-unordered-list@1.5.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-page-number-navigation@1.6.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-paragraph@1.6.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-progress-tracker@1.4.3 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-quote@1.2.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-scrollable-content@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-sidebar-layout@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-skeleton@1.0.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-skip-link@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-status-icon@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-status-indicator@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-table@1.10.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-tabs@2.1.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-tag@1.6.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/css-toggle@1.4.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/design-tokens@2.5.1 [license(s): Unknown]
 ├── package.json:  Unknown
 └── license files: Unknown
+
+@nl-rvo/utility-background@1.1.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/utility-border@1.2.0 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/utility-margin@2.1.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/utility-padding@2.1.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/utility-text@1.1.2 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
+
+@nl-rvo/utility-text-types@2.1.1 [license(s): CC0-1.0]
+├── package.json:  CC0-1.0
+└── license files: CC0-1.0
 
 @noble/ciphers@1.3.0 [license(s): MIT]
 ├── package.json:  MIT
@@ -149,7 +397,7 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@pdfme/pdf-lib@6.1.12 [license(s): MIT]
+@pdfme/pdf-lib@6.2.8 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -165,11 +413,11 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
-@tabler/icons@3.46.0 [license(s): MIT]
+@tabler/icons@3.52.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@tabler/icons-vue@3.46.0 [license(s): MIT]
+@tabler/icons-vue@3.52.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -177,13 +425,61 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@types/node@26.4.0 [license(s): MIT]
+@types/node@26.6.6 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
 @types/trusted-types@2.0.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
+
+@utrecht/form-fieldset-css@2.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-1-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-2-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-3-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-4-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-5-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/heading-6-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/icon-css@4.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/radio-button-css@2.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/select-css@2.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/textarea-css@3.0.1 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
+
+@utrecht/textbox-css@3.1.0 [license(s): EUPL-1.2]
+├── package.json:  EUPL-1.2
+└── license files: EUPL-1.2
 
 @vue-macros/common@3.1.4 [license(s): MIT]
 ├── package.json:  MIT
@@ -217,27 +513,23 @@ Licenties van gebruikte bibliotheken
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/reactivity@3.5.42 [license(s): MIT]
+@vue/reactivity@3.5.45 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/runtime-core@3.5.42 [license(s): MIT]
+@vue/runtime-core@3.5.45 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/runtime-dom@3.5.42 [license(s): MIT]
+@vue/runtime-dom@3.5.45 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-@vue/server-renderer@3.5.42 [license(s): MIT]
+@vue/server-renderer@3.5.45 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
 @vue/shared@3.5.42 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-abort-controller@3.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -261,7 +553,7 @@ ast-kit@2.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ast-walker-scope@0.9.0 [license(s): MIT]
+ast-walker-scope@0.10.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -293,15 +585,7 @@ brotli@1.3.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-browserify-zlib@0.2.0 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-buffer@6.0.3 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-chokidar@5.0.0 [license(s): MIT]
+chokidar@6.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -361,11 +645,11 @@ dfa@1.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-dompurify@3.4.17 [license(s): (MPL-2.0 OR Apache-2.0)]
+dompurify@3.4.18 [license(s): (MPL-2.0 OR Apache-2.0)]
 ├── package.json:  (MPL-2.0 OR Apache-2.0)
 └── license files: (MPL-2.0 OR Apache-2.0)
 
-drizzle-orm@0.45.2 [license(s): Apache-2.0]
+drizzle-orm@0.45.4 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
@@ -382,14 +666,6 @@ escape-html@1.0.3 [license(s): MIT]
 └── license files: MIT
 
 estree-walker@2.0.2 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-event-target-shim@5.0.1 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-events@3.3.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -417,7 +693,7 @@ fast-uri@3.1.8 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-fastify@5.12.5 [license(s): MIT]
+fastify@5.12.8 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -433,7 +709,11 @@ fdir@6.5.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-find-my-way@9.8.0 [license(s): MIT]
+fflate@0.8.3 [license(s): MIT]
+├── package.json:  MIT
+└── license files: MIT
+
+find-my-way@9.10.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -469,10 +749,6 @@ http-errors@2.0.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ieee754@1.2.1 [license(s): BSD-3-Clause]
-├── package.json:  BSD-3-Clause
-└── license files: BSD-3-Clause
-
 inherits@2.0.4 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
@@ -497,11 +773,7 @@ jiti@2.7.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-jose@6.2.10 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-js-md5@0.8.3 [license(s): MIT]
+jose@6.2.17 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -517,7 +789,7 @@ json-schema-traverse@1.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-keycloak-js@26.2.4 [license(s): Apache-2.0]
+keycloak-js@26.2.5 [license(s): Apache-2.0]
 ├── package.json:  Apache-2.0
 └── license files: Apache-2.0
 
@@ -537,7 +809,7 @@ local-pkg@1.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-lru-cache@11.5.2 [license(s): BlueOak-1.0.0]
+lru-cache@11.5.3 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
@@ -549,7 +821,7 @@ magic-string-ast@1.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-marked@18.0.11 [license(s): MIT]
+marked@18.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -585,7 +857,7 @@ muggle-string@0.4.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-nanoid@3.3.18 [license(s): MIT]
+nanoid@3.3.20 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -621,11 +893,11 @@ pathe@2.0.3 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-pdfkit@0.19.1 [license(s): MIT]
+pdfkit@0.20.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-pdfmake@0.3.11 [license(s): MIT]
+pdfmake@0.3.14 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -641,7 +913,7 @@ picomatch@4.0.7 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-pinia@4.0.3 [license(s): MIT]
+pinia@4.1.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -661,21 +933,17 @@ pkg-types@1.3.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-png-js@1.1.0 [license(s): MIT]
+png-js@2.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-postcss@8.5.26 [license(s): MIT]
+postcss@8.5.33 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-postgres@3.4.9 [license(s): Unlicense]
+postgres@4.1.1 [license(s): Unlicense]
 ├── package.json:  Unlicense
 └── license files: Unlicense
-
-process@0.11.10 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
 
 process-warning@4.0.1 [license(s): MIT]
 ├── package.json:  MIT
@@ -686,10 +954,6 @@ quansync@0.2.11 [license(s): MIT]
 └── license files: MIT
 
 quick-format-unescaped@4.0.4 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-readable-stream@4.7.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -726,10 +990,6 @@ rolldown@1.2.5 [license(s): MIT]
 └── license files: MIT
 
 rollup@4.59.0 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
-safe-buffer@5.2.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -781,10 +1041,6 @@ statuses@2.0.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-string_decoder@1.3.0 [license(s): MIT]
-├── package.json:  MIT
-└── license files: MIT
-
 supports-color@7.2.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
@@ -813,7 +1069,7 @@ tslib@2.8.1 [license(s): 0BSD]
 ├── package.json:  0BSD
 └── license files: 0BSD
 
-tsx@4.23.13 [license(s): MIT]
+tsx@4.23.15 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -825,7 +1081,7 @@ ufo@1.6.4 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-undici-types@8.3.0 [license(s): MIT]
+undici-types@8.9.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -837,7 +1093,7 @@ unicode-trie@2.0.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-unplugin@3.3.0 [license(s): MIT]
+unplugin@3.7.0 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -845,15 +1101,15 @@ unplugin-utils@0.3.2 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-vite@8.2.4 [license(s): MIT]
+vite@8.3.8 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-vue@3.5.42 [license(s): MIT]
+vue@3.5.45 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-vue-router@5.3.0 [license(s): MIT]
+vue-router@5.5.1 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -869,4 +1125,4 @@ yaml@2.9.0 [license(s): ISC]
 ├── package.json:  ISC
 └── license files: ISC
 
-LICENSES: (MIT AND Zlib), (MPL-2.0 OR Apache-2.0), 0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, CC0 1.0, CC0-1.0, ISC, MIT, MPL-2.0, Unknown, Unlicense
+LICENSES: (MIT AND Zlib), (MPL-2.0 OR Apache-2.0), 0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, BlueOak-1.0.0, CC0 1.0, CC0-1.0, EUPL-1.2, ISC, MIT, MPL-2.0, Unknown, Unlicense
