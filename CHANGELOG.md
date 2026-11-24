@@ -68,6 +68,9 @@ build) staan kort onder "Onder de motorkap".
   aparte handleiding over git voor wie daar nog weinig mee heeft gewerkt, en een
   naslag over het assessment-schema: welke velden er zijn, wat de engine ermee
   doet en waar schema en engine uit elkaar lopen.
+* Een koppeling tussen twee invulhulpen kan nu het type `suggestion` krijgen.
+  Het antwoord uit de andere invulhulp staat dan als suggestie bij de vraag,
+  met de knop "Neem antwoord over". Er is nog geen vraag die dit type gebruikt.
 
 ## [2026.8.25]
 

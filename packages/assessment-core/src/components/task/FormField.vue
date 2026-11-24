@@ -235,8 +235,8 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
-  <!-- Suggestions from other tasks in the same form that reference this one.
-       Renders nothing for forms without intra-form references. -->
+  <!-- Suggestions from other tasks that reference this one, in this form or another.
+       Renders nothing for a field no suggestion points at. -->
   <ReferenceSuggestions :task="task" :instanceId="instanceId" @adopted="focusAfterAdopt" />
 
   <!-- Text input field -->

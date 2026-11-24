@@ -361,7 +361,8 @@ references:
 De sleutel (`DPIA`, `IAMA`, `AIIA`) noemt het formulier waarin het *doel* staat.
 Types: `pre-fill`, `one-to-one` en `one-to-many` vullen het doelantwoord in;
 `pre-view` en `many-to-many` tonen het bronantwoord als context zonder het over
-te nemen. De logica staat in
+te nemen; `suggestion` toont het bij de doelvraag met de knop "Neem antwoord
+over". De logica staat in
 `packages/assessment-core/src/composables/useReferences.ts`, en die is het lezen
 waard.
 

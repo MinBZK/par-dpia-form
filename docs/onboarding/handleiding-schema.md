@@ -323,6 +323,14 @@ bronmodel.
 | `one-to-many` | Idem |
 | `pre-view` | Toont het bronantwoord als context, zonder het over te nemen |
 | `many-to-many` | Idem |
+| `suggestion` | Toont het bronantwoord als suggestie bij de doelvraag, met de knop "Neem antwoord over" |
+
+Binnen één formulier toont ook `pre-view` de suggestie met de knop. Tussen
+formulieren doet alleen `suggestion` dat; `pre-view` blijft daar naslag in het
+blok bovenaan de sectie. De knop staat alleen bij een open tekstveld en zet het
+antwoord als eigen alinea onder de tekst die er al staat. Van een herhaalbare
+bronvraag wordt alleen de eerste regel aangeboden; koppel daarom geen
+herhaalbare vraag als bron.
 
 Het schema kent daarnaast `direct takeover` en `many-to-one`. Die valideren wel,
 maar de engine doet er niets mee. De logica staat in

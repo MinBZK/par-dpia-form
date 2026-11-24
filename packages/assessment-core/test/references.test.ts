@@ -162,4 +162,113 @@ describe('useReferences — reference routing', () => {
     expect(suggestions).toHaveLength(1)
     expect(suggestions[0].sourceTaskId).toBe('4.2')
   })
+
+  // Seed a DPIA source task that points at IAMA task 1.1 with the given
+  // reference type, and make the IAMA the active form.
+  const seedCrossReference = (type: string) => {
+    initNamespace(FormType.DPIA, [
+      {
+        id: '5.1',
+        task: 'DPIA bron',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '1.1', type }] },
+      },
+    ] as unknown as Task[])
+    seedAnswer(FormType.DPIA, '5.1', 'Antwoord uit de DPIA')
+
+    initNamespace(FormType.IAMA, [
+      { id: '1.1', task: 'IAMA doel', type: ['open_text'] },
+    ] as unknown as Task[])
+
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    return taskStore.getTasksFromNamespace(FormType.IAMA)['1.1']
+  }
+
+  it('cross suggestion: offers the answer of a suggestion reference from another form', () => {
+    const target = seedCrossReference('suggestion')
+
+    const { getSuggestionsForTask, getPrefillValueForTask, getPreviewDataForSection } =
+      useReferences()
+
+    const suggestions = getSuggestionsForTask(target)
+    expect(suggestions).toHaveLength(1)
+    expect(suggestions[0]).toMatchObject({
+      sourceNamespace: FormType.DPIA,
+      scope: 'cross',
+      sourceTaskId: '5.1',
+      sourceTaskTitle: 'DPIA bron',
+      sourceIsText: true,
+      answer: 'Antwoord uit de DPIA',
+    })
+    // A suggestion is only offered: it neither fills the field nor shows in the
+    // section preview.
+    expect(getPrefillValueForTask(target)).toBeNull()
+    expect(getPreviewDataForSection('1')).toEqual([])
+  })
+
+  it('cross suggestion: a pre-view reference from another form stays a preview only', () => {
+    const target = seedCrossReference('pre-view')
+
+    const { getSuggestionsForTask, getPreviewDataForSection } = useReferences()
+
+    expect(getSuggestionsForTask(target)).toEqual([])
+    expect(getPreviewDataForSection('1')).toHaveLength(1)
+  })
+
+  it('cross suggestion: the title of the source question is shown without definition markup', () => {
+    initNamespace(FormType.DPIA, [
+      {
+        id: '5.1',
+        task: 'Beschrijf de <span class="aiv-definition">verwerking<span class="aiv-definition-text">Uitleg</span></span>',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '1.1', type: 'suggestion' }] },
+      },
+    ] as unknown as Task[])
+    seedAnswer(FormType.DPIA, '5.1', 'Antwoord')
+    initNamespace(FormType.IAMA, [
+      { id: '1.1', task: 'IAMA doel', type: ['open_text'] },
+    ] as unknown as Task[])
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+
+    const { getSuggestionsForTask } = useReferences()
+    const target = taskStore.getTasksFromNamespace(FormType.IAMA)['1.1']
+
+    expect(getSuggestionsForTask(target)[0].sourceTaskTitle).toBe('Beschrijf de verwerking')
+  })
+
+  it('cross suggestion: the same question number in two forms gives two suggestions', () => {
+    // Source 1.2 exists in the IAMA itself (self pre-view) and in the DPIA
+    // (cross suggestion); both point at IAMA 1.1 and both must be listed.
+    initNamespace(FormType.DPIA, [
+      {
+        id: '1.2',
+        task: 'DPIA bron',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '1.1', type: 'suggestion' }] },
+      },
+    ] as unknown as Task[])
+    seedAnswer(FormType.DPIA, '1.2', 'Uit de DPIA')
+    initNamespace(FormType.IAMA, [
+      { id: '1.1', task: 'IAMA doel', type: ['open_text'] },
+      {
+        id: '1.2',
+        task: 'IAMA bron',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '1.1', type: 'pre-view' }] },
+      },
+    ] as unknown as Task[])
+    seedAnswer(FormType.IAMA, '1.2', 'Uit het IAMA')
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+
+    const { getSuggestionsForTask } = useReferences()
+    const target = taskStore.getTasksFromNamespace(FormType.IAMA)['1.1']
+
+    expect(getSuggestionsForTask(target).map((s) => [s.sourceNamespace, s.answer])).toEqual([
+      [FormType.DPIA, 'Uit de DPIA'],
+      [FormType.IAMA, 'Uit het IAMA'],
+    ])
+  })
 })

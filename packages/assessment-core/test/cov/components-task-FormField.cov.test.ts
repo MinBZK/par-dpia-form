@@ -110,6 +110,43 @@ describe('FormField.vue', () => {
       wrapper.unmount()
     })
 
+    it('takes over a suggestion from another form into the textarea and focuses it', async () => {
+      // DPIA question 5.1 suggests its answer for IAMA question 1.1.
+      taskStore.init(
+        [{
+          id: '5.1',
+          task: 'Bron in de DPIA',
+          type: ['open_text'],
+          references: { IAMA: [{ id: '1.1', type: 'suggestion' }] },
+        }] as unknown as Task[],
+        true,
+      )
+      answerStore.setAnswer('5.1', 'Antwoord uit de DPIA')
+      taskStore.setActiveNamespace(FormType.IAMA)
+      answerStore.setActiveNamespace(FormType.IAMA)
+      taskStore.init([{ id: '1.1', task: 'Doel', type: ['open_text'] }] as unknown as Task[], true)
+      answerStore.setAnswer('1.1', 'Eigen tekst')
+
+      const wrapper = mount(FormField, {
+        props: {
+          task: taskStore.getTasksFromNamespace(FormType.IAMA)['1.1'],
+          instanceId: '1.1',
+          label: 'Doel',
+        },
+        attachTo: document.body,
+      })
+      expect(wrapper.text()).toContain('Suggestie uit de DPIA, vraag 5.1 – Bron in de DPIA')
+
+      await wrapper.findAll('button').find((b) => b.text() === 'Neem antwoord over')!.trigger('click')
+      await nextTick()
+
+      const textarea = wrapper.find('textarea').element
+      expect(textarea.value).toBe('Eigen tekst\n\nAntwoord uit de DPIA')
+      expect(document.activeElement).toBe(textarea)
+      expect(answerStore.getAnswerFromNamespace(FormType.DPIA, '5.1')).toBe('Antwoord uit de DPIA')
+      wrapper.unmount()
+    })
+
     it('does not throw when the field is gone before focus after adopting', async () => {
       const wrapper = mount(FormField, {
         props: { task: flatTask({ type: ['open_text'] }), instanceId: '1.1[0]', label: 'Toelichting' },

@@ -136,7 +136,7 @@ describe('codecs decode valid values', () => {
   })
 
   it('decodes ReferenceType literals', () => {
-    for (const rt of ['pre-view', 'pre-fill', 'one-to-one', 'one-to-many', 'many-to-many']) {
+    for (const rt of ['pre-view', 'pre-fill', 'one-to-one', 'one-to-many', 'many-to-many', 'suggestion']) {
       expect(isRight(dpia.ReferenceType.decode(rt))).toBe(true)
     }
     expect(isLeft(dpia.ReferenceType.decode('nope'))).toBe(true)

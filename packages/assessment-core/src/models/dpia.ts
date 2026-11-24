@@ -118,6 +118,7 @@ export const ReferenceType = t.union([
   t.literal('one-to-one'),
   t.literal('one-to-many'),
   t.literal('many-to-many'),
+  t.literal('suggestion'),
 ])
 
 export const TaskReference = t.type({

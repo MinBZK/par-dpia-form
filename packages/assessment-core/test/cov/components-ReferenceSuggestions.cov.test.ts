@@ -369,3 +369,73 @@ describe('ReferenceSuggestions.vue', () => {
     })
   })
 })
+
+// A DPIA source task (5.1) with a reference of the given type to IAMA task 1.1;
+// the IAMA is the active form and 1.1 the field the component renders for.
+function seedFromOtherForm(type: string, targetType = 'open_text'): FlatTask {
+  taskStore.setActiveNamespace(FormType.DPIA)
+  answerStore.setActiveNamespace(FormType.DPIA)
+  taskStore.init(
+    [
+      {
+        id: '5.1',
+        task: 'Bron in de DPIA',
+        type: ['open_text'],
+        references: { IAMA: [{ id: '1.1', type }] },
+      },
+    ] as unknown as Task[],
+    true,
+  )
+  answerStore.setAnswer('5.1', 'Antwoord uit de DPIA')
+
+  taskStore.setActiveNamespace(FormType.IAMA)
+  answerStore.setActiveNamespace(FormType.IAMA)
+  taskStore.init([{ id: '1.1', task: 'Doel', type: [targetType] }] as unknown as Task[], true)
+  return taskStore.getTasksFromNamespace(FormType.IAMA)['1.1']
+}
+
+describe('ReferenceSuggestions.vue — suggestie uit een ander formulier', () => {
+  it('names the source form and adopts the answer into the active form only', async () => {
+    const target = seedFromOtherForm('suggestion')
+
+    const wrapper = mountFor(target, '1.1')
+    expect(wrapper.text()).toContain('Suggestie uit de DPIA, vraag 5.1 – Bron in de DPIA')
+    expect(wrapper.text()).toContain('Antwoord uit de DPIA')
+
+    const button = adoptButton(wrapper)!
+    expect(button.attributes('aria-label')).toBe('Neem antwoord over van vraag 5.1 uit de DPIA')
+    await button.trigger('click')
+
+    expect(answerStore.getAnswerFromNamespace(FormType.IAMA, '1.1')).toBe('Antwoord uit de DPIA')
+    // The source form is left as it was.
+    expect(answerStore.getAnswerFromNamespace(FormType.DPIA, '5.1')).toBe('Antwoord uit de DPIA')
+    expect(wrapper.emitted('adopted')).toHaveLength(1)
+    // Once adopted, the button is gone.
+    expect(adoptButton(wrapper)).toBeUndefined()
+  })
+
+  it('adds the answer below text already in the field', async () => {
+    const target = seedFromOtherForm('suggestion')
+    answerStore.setAnswer('1.1', 'Eigen tekst')
+
+    const wrapper = mountFor(target, '1.1')
+    await adoptButton(wrapper)!.trigger('click')
+
+    expect(answerStore.getAnswer('1.1')).toBe('Eigen tekst\n\nAntwoord uit de DPIA')
+  })
+
+  it('shows the suggestion without a button when the field is not a text area', () => {
+    const target = seedFromOtherForm('suggestion', 'radio_option')
+
+    const wrapper = mountFor(target, '1.1')
+    expect(wrapper.text()).toContain('Suggestie uit de DPIA, vraag 5.1')
+    expect(adoptButton(wrapper)).toBeUndefined()
+  })
+
+  it('renders nothing for a pre-view reference from another form', () => {
+    const target = seedFromOtherForm('pre-view')
+
+    const wrapper = mountFor(target, '1.1')
+    expect(wrapper.find('.rvo-alert').exists()).toBe(false)
+  })
+})

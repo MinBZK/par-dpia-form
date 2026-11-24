@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { FormType } from '../models/dpia'
 import { useReferences, type ReferenceSuggestion } from '../composables/useReferences'
 import { type FlatTask } from '../stores/tasks'
 import { useAnswerStore, type AnswerValue } from '../stores/answers'
@@ -16,6 +17,14 @@ const emit = defineEmits<{
 
 const { getSuggestionsForTask } = useReferences()
 const answerStore = useAnswerStore()
+
+// How a suggestion names the form it comes from.
+const FORM_NAMES: Record<FormType, string> = {
+  [FormType.PRE_SCAN]: 'de pre-scan',
+  [FormType.DPIA]: 'de DPIA',
+  [FormType.IAMA]: 'het IAMA',
+  [FormType.AIIA]: 'het AIIA',
+}
 
 const formatAnswer = (answer: AnswerValue): string => {
   if (Array.isArray(answer)) return answer.join(', ')
@@ -39,6 +48,11 @@ const normalize = (text: string): string =>
   clean(text).replace(/[ \t]+$/gm, '').replace(/\n{2,}/g, PARAGRAPH)
 
 interface SuggestionItem extends ReferenceSuggestion {
+  // Unique per source question: two forms can use the same question number.
+  key: string
+  // Where the answer comes from; names the form when that is another one.
+  origin: string
+  adoptLabel: string
   // Shown in the suggestion ("Ja"/"Nee" for booleans).
   text: string
   // Written to the field: typed text as written, a picked answer as shown.
@@ -52,11 +66,23 @@ const items = computed<SuggestionItem[]>(() =>
     const text = formatAnswer(suggestion.answer)
     const written = suggestion.sourceIsText && typeof suggestion.answer === 'string'
     const adoptText = clean(written ? suggestion.answer as string : text)
-    return { ...suggestion, text, adoptText, needle: PARAGRAPH + normalize(adoptText) + PARAGRAPH }
+    const otherForm = suggestion.scope === 'cross' ? FORM_NAMES[suggestion.sourceNamespace] : null
+    return {
+      ...suggestion,
+      key: `${suggestion.sourceNamespace}:${suggestion.sourceTaskId}`,
+      origin: otherForm
+        ? `${otherForm}, vraag ${suggestion.sourceTaskId}`
+        : `antwoord op vraag ${suggestion.sourceTaskId}`,
+      adoptLabel: `Neem antwoord over van vraag ${suggestion.sourceTaskId}`
+        + (otherForm ? ` uit ${otherForm}` : ''),
+      text,
+      adoptText,
+      needle: PARAGRAPH + normalize(adoptText) + PARAGRAPH,
+    }
   }),
 )
 
-// Only free-text areas take over a suggestion (every in-form target is one), and
+// Only free-text areas take over a suggestion, and
 // only when the stored answer is text, so no other kind of answer is overwritten.
 const storedAnswer = computed(() => answerStore.getAnswer(props.instanceId))
 const canAdoptIntoField = computed(() =>
@@ -90,15 +116,15 @@ const adopt = (item: SuggestionItem) => {
 
 <template>
   <div v-if="items.length > 0" class="rvo-margin-block-end--md">
-    <div v-for="item in items" :key="item.sourceTaskId"
+    <div v-for="item in items" :key="item.key"
       class="rvo-alert rvo-alert--warning reference-suggestions__alert">
       <span class="utrecht-icon rvo-icon rvo-icon-waarschuwing rvo-icon--xl rvo-status-icon-waarschuwing" role="img"
         aria-label="Waarschuwing"></span>
       <div class="rvo-alert-text">
-        <p><strong>Suggestie uit antwoord op vraag {{ item.sourceTaskId }} – {{ item.sourceTaskTitle }}:</strong></p>
+        <p><strong>Suggestie uit {{ item.origin }} – {{ item.sourceTaskTitle }}:</strong></p>
         <p>{{ item.text }}</p>
         <UiButton v-if="canAdopt(item)" variant="secondary" size="sm" label="Neem antwoord over"
-          :ariaLabel="`Neem antwoord over van vraag ${item.sourceTaskId}`" @click="adopt(item)" />
+          :ariaLabel="item.adoptLabel" @click="adopt(item)" />
       </div>
     </div>
   </div>

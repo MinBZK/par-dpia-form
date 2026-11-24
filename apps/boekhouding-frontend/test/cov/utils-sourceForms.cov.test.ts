@@ -6,7 +6,15 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType } from '@overheid-assessment/core'
+import { mount } from '@vue/test-utils'
+import {
+  useTaskStore,
+  useAnswerStore,
+  useSchemaStore,
+  useReferences,
+  FormType,
+  ReferenceSuggestions,
+} from '@overheid-assessment/core'
 
 const mockList = vi.fn()
 const mockGet = vi.fn()
@@ -183,6 +191,41 @@ describe('loadSourceForms', () => {
     expect(taskStore.getInstanceIdsForTaskFromNamespace(FormType.IAMA, '2.1')).toContain('2.1[2]')
     expect(taskStore.activeNamespace).toBe(FormType.AIIA)
     expect(answerStore.activeNamespace).toBe(FormType.AIIA)
+  })
+
+  it('offers the answer of a suggestion reference from the project\'s other form to take over', async () => {
+    // Only the DPIA points at the AIIA, and only with a suggestion reference.
+    const dpia = buildSchema('urn:nl:dpia')
+    Object.assign(dpia.tasks[0].tasks[0], { references: { AIIA: [{ id: '1.1', type: 'suggestion' }] } })
+    const schemas = {
+      preScan: buildSchema('urn:nl:prescan'),
+      dpia,
+      iama: buildSchema('urn:nl:iama'),
+      aiia: SCHEMAS.aiia,
+    }
+    activate(FormType.AIIA, schemas)
+    const self = instance('self', 'aiia')
+    serve([instance('dpia', 'dpia', stateWith({ '1.1': answer('Uit de DPIA') })), self])
+    const taskStore = useTaskStore()
+    const answerStore = useAnswerStore()
+    taskStore.init(schemas.aiia.tasks as never)
+
+    await loadSourceForms(self)
+
+    expect(mockGet).toHaveBeenCalledTimes(1)
+    expect(mockGet).toHaveBeenCalledWith('dpia')
+    const target = taskStore.getTasksFromNamespace(FormType.AIIA)['1.1']
+    expect(useReferences().getSuggestionsForTask(target)).toMatchObject([
+      { sourceNamespace: FormType.DPIA, scope: 'cross', sourceTaskId: '1.1', answer: 'Uit de DPIA' },
+    ])
+
+    const wrapper = mount(ReferenceSuggestions, { props: { task: target, instanceId: '1.1' } })
+    expect(wrapper.text()).toContain('Suggestie uit de DPIA, vraag 1.1 – Beschrijf')
+    await wrapper.get('button').trigger('click')
+
+    expect(answerStore.getAnswerFromNamespace(FormType.AIIA, '1.1')).toBe('Uit de DPIA')
+    // The DPIA itself is only read.
+    expect(answerStore.getAnswerFromNamespace(FormType.DPIA, '1.1')).toBe('Uit de DPIA')
   })
 
   it('unwraps answers stored in the old namespace-keyed format', async () => {
