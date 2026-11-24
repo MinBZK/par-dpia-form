@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.2.1",
-    "@nl-rvo/component-library-css": "5.0.2",
+    "@nl-rvo/component-library-css": "5.1.0",
     "@nl-rvo/design-tokens": "2.5.1",
     "@overheid-assessment/core": "workspace:*",
     "pdfmake": "^0.3.14",
@@ -40,7 +40,7 @@
     "prettier": "^3.10.1",
     "typescript": "~5.9.3",
     "vite": "^8.3.8",
-    "vite-plugin-singlefile": "^2.3.4",
+    "vite-plugin-singlefile": "^2.3.3",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vitest": "^5.1.0",
     "vue-tsc": "^3.3.14"

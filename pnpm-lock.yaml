@@ -87,8 +87,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       '@nl-rvo/component-library-css':
-        specifier: 5.0.2
-        version: 5.0.2
+        specifier: 5.1.0
+        version: 5.1.0
       '@nl-rvo/design-tokens':
         specifier: 2.5.1
         version: 2.5.1
@@ -151,8 +151,8 @@ importers:
         specifier: ^1.2.1
         version: 1.2.1
       '@nl-rvo/component-library-css':
-        specifier: 5.0.2
-        version: 5.0.2
+        specifier: 5.1.0
+        version: 5.1.0
       '@nl-rvo/design-tokens':
         specifier: 2.5.1
         version: 2.5.1
@@ -221,8 +221,8 @@ importers:
         specifier: ^8.3.8
         version: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
       vite-plugin-singlefile:
-        specifier: ^2.3.4
-        version: 2.3.4(rollup@4.59.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
+        specifier: ^2.3.3
+        version: 2.3.3(rollup@4.59.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
       vite-plugin-vue-devtools:
         specifier: ^8.2.1
         version: 8.2.1(supports-color@7.2.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))(vue@3.5.45(typescript@5.9.3))
@@ -967,23 +967,23 @@ packages:
   '@nl-rvo/assets@1.2.1':
     resolution: {integrity: sha512-DdACt6SnsE1Zi1p12bN6n5vuitJiQyP9pYcE259ys3UKMbwBzgFm86pVG31SOEkLy6zP3DGFZJ2Zhlk1V7lLFQ==}
 
-  '@nl-rvo/component-library-css@5.0.2':
-    resolution: {integrity: sha512-EQmq68KpCUBMKuRWUU8Z5aR/gNiX4mMx2G7PuRwMNh0b2gyU1DjgdmifIf0YZcVXzg2iAlMr2OQ1/DNPTSK8lw==}
+  '@nl-rvo/component-library-css@5.1.0':
+    resolution: {integrity: sha512-y0diWKGhg9BTV5q6XWVe2zT2Luisv4TlvUZAie0jux7EKKH/ga2lMxCt+K9ISjSDijsMH5fwdq6pa94qkKpnYg==}
 
-  '@nl-rvo/css-accordion@1.4.1':
-    resolution: {integrity: sha512-zZaKpVQSTip8cDj1uZk/Mbjji6GMPZoujLY91KY75IpZJJswTEAewOwxw8MMB0XoeVbNHWXHt+UI/s+CF0uEYQ==}
+  '@nl-rvo/css-accordion@1.4.3':
+    resolution: {integrity: sha512-xbEiJkgSjXZOl1Kfp/tr+vvnvMGkmv/mDAdT78oBPif/xS0prJN6Tfp+cbEzqYrpe7UfB9+Y/JldFm8lcsIzrw==}
 
   '@nl-rvo/css-action-group@1.5.1':
     resolution: {integrity: sha512-Tg9MMwR4KNUSfLp3b8Va/rLksLM+Ped1+1ze1Bu+pH0KluUG39TuuzVt45AEDCoheJvrp9mlt2vq9FfkF3Qj8g==}
 
-  '@nl-rvo/css-alert@1.7.1':
-    resolution: {integrity: sha512-7+3wDBcCzP+nP6m/j5xESYnHOg5d0KGxKkY0znEsTDFeXAPsk71I6JTD+3XzE0QdGnLMl+GuFXbPAvKiHgmFWQ==}
+  '@nl-rvo/css-alert@1.7.2':
+    resolution: {integrity: sha512-NDtNGq5GLgG3av8X1gtsI5aurfRicnkW7Vrzz5jRjGOViThovtjFbzot+zNMiicTWYg39T3VvW/4MT+8Ufr2Ww==}
 
   '@nl-rvo/css-breadcrumbs@1.5.1':
     resolution: {integrity: sha512-Ia7X1zEWHIrT6jk2Om4f2ZQPnB0TOO5ffnK0AvJVslzuLQJ5dKet0C1Y3aRemMat4DTyFz9R3RQbQiAki1kUkw==}
 
-  '@nl-rvo/css-button@2.2.1':
-    resolution: {integrity: sha512-Gl9ikokIwaV/IYuMrTRsaLnR2p7SixJ4M9GR5X2ScQuXVJaAnjhh877hTY6AZ4txge4gzMHh0z67Rg9Ye1un3A==}
+  '@nl-rvo/css-button@2.2.3':
+    resolution: {integrity: sha512-cCYzm2R6JdBCoZXsTJ1Eu+PVvkVOtz2xIw/OPem8+njpTrRDvegg35OM8VvJSaaR43rEPE+m6Th1lt8Vhbj96A==}
 
   '@nl-rvo/css-card-experimental@0.4.1':
     resolution: {integrity: sha512-NENehCMkfPvdi06d5TwQvOVj62eOkL8J3BgsFs6KdyGU/jxPcqpsPNJdJpiaqiI6vnYM4Kdyo1eJPQYkHVoILA==}
@@ -1009,8 +1009,8 @@ packages:
   '@nl-rvo/css-expandable-table@1.0.1':
     resolution: {integrity: sha512-ihLy5025TE9EU6Dpb4dgExyeEBavrTf5trIy3k6kw4+lsf2lQLKKbT9F/you8hlWasyzLNeVGxSodJwTboLkRQ==}
 
-  '@nl-rvo/css-footer@1.11.1':
-    resolution: {integrity: sha512-fmFJvBTWIhKrgHtH9YfKluVN9VzeOCd30Tq4nBc8QMx/n82dCvbJiie+AEqhM6UJ8nUFoq/1S8jULT8pN+Rd8g==}
+  '@nl-rvo/css-footer@1.11.2':
+    resolution: {integrity: sha512-BJmnxMsjlofa0Om7tP6GDRTH511TKEQG6ptiaKGlZaubH3AEEIEXeFjjjsf391yA+yGkmy/tA28YQywKwyDBsA==}
 
   '@nl-rvo/css-form-autocomplete@1.0.1':
     resolution: {integrity: sha512-qhtjug1aDRVpSeefahdKUgPgQ2HbYisgl5Ejw9kO1iZ2CmEdk5DtApzB/8Rxo1QEmzIv3aZEDFeMrjcqwc9NnA==}
@@ -1018,8 +1018,8 @@ packages:
   '@nl-rvo/css-form-checkbox-group@1.4.1':
     resolution: {integrity: sha512-cQgAGIX78VgUXgWiEn0G05qxIsLNQUwMqXq7VsJaFIeRK45h+ghG3hwnC3L5GQ4EkIq3sN1NfdaYn3ZoG/EGoQ==}
 
-  '@nl-rvo/css-form-checkbox@1.4.1':
-    resolution: {integrity: sha512-W7Xd70PRy69OLrjR8pgmOtAo2Aow44ASVeTYHHkHpGyFK1UWag3lbC+O80lD68pVr5yetxYZBjRDasULY8rwTQ==}
+  '@nl-rvo/css-form-checkbox@1.4.2':
+    resolution: {integrity: sha512-py7e+ic7rccREu9kknU8rT4Ez90sNx+Vtt5kAMy2GX7QfqtL3i1tk7JvBsjse3vZwuC2poqBdvWjW6vOHoDJBA==}
 
   '@nl-rvo/css-form-feedback@1.5.1':
     resolution: {integrity: sha512-JbDz772eObbbJqJH7rdZ8dZp7wX5k4hkpta2rTRxJEtnqeZ2ussP8TTNfu7e5u5BeSPeK7EQBYP9AUWalTWPcA==}
@@ -1027,8 +1027,8 @@ packages:
   '@nl-rvo/css-form-field@1.8.1':
     resolution: {integrity: sha512-CjF8RpH0RO6he1ILRmp36eW/Gb6MDtF6QsR63jSrx+dyAw2nrcFpYecfHvKhxpLbumSNmmP9s2RmhhbQnM5otw==}
 
-  '@nl-rvo/css-form-fieldset@1.7.1':
-    resolution: {integrity: sha512-uydlUTccy144io5DiagtRhc8JO2GXGiyDyQ/UsosN/D+CuIjFNDFVrdCMXxESt5iZWiz09ZgdR0thPR1AD4UHw==}
+  '@nl-rvo/css-form-fieldset@1.8.0':
+    resolution: {integrity: sha512-w49ExArsOUyLenc9w7nZjkr0og7H75cb4qwGtOzsvIHb9/RFN99gYukz2oy8O4ynAIJ+4VcYf9UciuN9EkItTA==}
 
   '@nl-rvo/css-form-file-input@1.0.1':
     resolution: {integrity: sha512-fF7tq9vQ7dn3O615uvARQegrKBNoCuA/++ZnmSxlgOK3Qw8M93fsvC/EmkQrAcBJdYdXUuWYOHLFAkNE8Pjz5w==}
@@ -1039,8 +1039,8 @@ packages:
   '@nl-rvo/css-form-radio-button-group@1.4.1':
     resolution: {integrity: sha512-5NHuCmOaM3eGcX+D1eACv9cd997CzC76tYbSBJG8dgDg/IcE+n4XOOxNWeIPMS2cdJX5bL6x05SMfvrr41SOXA==}
 
-  '@nl-rvo/css-form-radio-button@1.5.1':
-    resolution: {integrity: sha512-QD05AVbMe1xZd8oe+ti5OAGv6N0AcYgmZ3Fg2H/7WqfwycoJeA78UD8LFRw4yrqAf+QwyFsoDUS0BETjvbVblw==}
+  '@nl-rvo/css-form-radio-button@1.5.2':
+    resolution: {integrity: sha512-ckhWdrtvgmHU1D6UUHP0XISFfLtuWn1svPm6Zi+rZI1ir3aIVNDxT0DWaIJGefmisFmIxQ0ZWyXPI1jhB54yNw==}
 
   '@nl-rvo/css-form-select@1.6.1':
     resolution: {integrity: sha512-Rsl0nBZKBJNJiH23BzG2kXsHbUZI3hqOUbcKwvTIDKHtAaptWk3BS9L3s2NDbwdensPlYbBrI1EbIqJGZz9/Wg==}
@@ -1048,8 +1048,8 @@ packages:
   '@nl-rvo/css-form-text-input@1.0.1':
     resolution: {integrity: sha512-ufGrpv1lhSbNcrN/auEgU5/A5rFQu5Q6H/VMyqDI54fmhJh58Lc/qaemMtEs87SduzU0mafP1NJjPid9EsX8Aw==}
 
-  '@nl-rvo/css-form-textarea@1.6.1':
-    resolution: {integrity: sha512-xXF0ms2Rwr5hoX74ZLbQ0kkX+C3LoIo1eoOIfwWUHWNWcfe2cudU2OoiCmMGN4KPgo6xNJblb/8gRqNWNEr7OA==}
+  '@nl-rvo/css-form-textarea@1.6.2':
+    resolution: {integrity: sha512-iMDkmMpi+bDcNeSXfsgAOlIb8CJPpNsxG6afaeH0j3ict50+VBHGNv/2Y9aZTCWfwhum6A5OdOT7zMFRQnZnYg==}
 
   '@nl-rvo/css-grid@3.3.1':
     resolution: {integrity: sha512-vCTpe64VDzOdg5wK1s0TEK+KFNoaFZfTe7Im6crYb/OHbKG26nQFN4UNSTv183QtWE4BT6o69YfXjibOo/pC9w==}
@@ -1078,32 +1078,32 @@ packages:
   '@nl-rvo/css-layout-flow@1.6.1':
     resolution: {integrity: sha512-0LBGb14qVnZ0hOCrndRAQ8umfa/i8YKPESL3jW/YsJF9CrL4CqiJeD3q2Si+H6XImZ0Yz9x9JXs5iYgq+AAlGw==}
 
-  '@nl-rvo/css-link@1.7.1':
-    resolution: {integrity: sha512-L93Z2Aos2WysrvjmDPK7nMMoxoym0IoT1AXMxQP5dtmMWCiqCg6xQrfRrLWKr6kHLE2VyAPHX6QEKdIgWIL9fw==}
+  '@nl-rvo/css-link@1.7.3':
+    resolution: {integrity: sha512-WpU/G9Qo9qkQn0402Rw2cuq8JOhtY8br8qFvFvVYBab/Yp755qz+9gn8j8uD4yNmvLkJUnBeeTTKlNrnR8Zu4w==}
 
   '@nl-rvo/css-loader@2.2.1':
     resolution: {integrity: sha512-BTfKNgRtWYODD9Y3cOVl20TA4FI1flLEmwQIDuVXe9cTLyrXn1HDVMMVeYQc7rXo/pMHcA+2RMuBWk3cDt5eoQ==}
 
-  '@nl-rvo/css-logo@1.5.1':
-    resolution: {integrity: sha512-tuEhmJaudcfYzxXACKHHcejYkCl2uTbYs6+jWVf/WHbHvXcdjNBP5uHszaZGgX6DAijCR/mGIA3jdQ66vX24MQ==}
+  '@nl-rvo/css-logo@1.5.3':
+    resolution: {integrity: sha512-b8YTeistvszshTA2TgLNV8uIkUZzyZJeiYrfHyyMNtSZ66fuERyRlzgtecrDcV1b5dkKwF6rhIBqbMx13oWF8Q==}
 
   '@nl-rvo/css-max-width-layout@1.4.1':
     resolution: {integrity: sha512-pycJeUbVUoWrCyUnGGaqcdGiEcELVgnilJSbS8VYapf1f93fB8D+nXY44nwNzL0xzX2VOAwHwgdSiYqfQbtEgw==}
 
-  '@nl-rvo/css-menubar@1.7.1':
-    resolution: {integrity: sha512-Ka9rVFs/2AdEL3QhnFiDgxDpBoIUOsEjf9rmGCRL/h58G2f5+xn7QRL9bQM8JGrY+i+w0Ll2Nia8szVsB4M0QA==}
+  '@nl-rvo/css-menubar@1.7.2':
+    resolution: {integrity: sha512-6eEb3eXd3eZ+qkQkCUmaHH1MBj5UVSCYcsA0fLrraoCDHHVrXpvD2bjXfrWOzXkAxjnhZkRZPYM9atS/sLiNWw==}
 
   '@nl-rvo/css-ordered-unordered-list@1.5.1':
     resolution: {integrity: sha512-w2or6QKj84/qk88hyg6oALKWcmftfElriKU6p18Z0cH4SKf5QB5oE3vwnprInaWKpgBUWspC+vSCbr1DjOJtvw==}
 
-  '@nl-rvo/css-page-number-navigation@1.6.1':
-    resolution: {integrity: sha512-TrgatZNr6VYQfq9LHJnLAqXe+iMuG+IMHm4S5KLywbQq3kdiGHYMO1I+gUdgsLtTioNYMLEB4Cz6ku5+9MeyrA==}
+  '@nl-rvo/css-page-number-navigation@1.6.2':
+    resolution: {integrity: sha512-VfUvFg/KRIv1YnpWjlnvQJ1Tdx95UGiYAxR+GNeifP1miw3bJTO3XfZvhUSZvsznZpIl9cpLEBpFCVZT0havFg==}
 
   '@nl-rvo/css-paragraph@1.6.1':
     resolution: {integrity: sha512-+SLYHKJrmnBy/dn8HnSQpEdvJh+NHPn0evCVwycRsXEL11IC1rP+64hVcNker/BrlKGvfru3NxObmfJAsC/PAA==}
 
-  '@nl-rvo/css-progress-tracker@1.4.1':
-    resolution: {integrity: sha512-LpFI9aG3vh5bwihgivk5s8pBZTLW2EQZbSn/NCBQzRKhpC5fGcTv50VouI/J/4c/F6WKf9btWK5es7UEDkd2uw==}
+  '@nl-rvo/css-progress-tracker@1.4.3':
+    resolution: {integrity: sha512-WDy7F1Jo4BmP+IR3ayNINDoDwtq4fd8IbzVf1vvEbTEMoaQ4dzQtgXc8i5cGPtLJORPjN/fIWohkFxFPSJSBhg==}
 
   '@nl-rvo/css-quote@1.2.1':
     resolution: {integrity: sha512-AaUf1ydM9CxsCuNFWxfR9TFHRhzFXki9ZSM/KBnJ0/cA6ljmv+Jd6eoYxWXv8nu0BdudmF7e2NoN6akfmLAPkg==}
@@ -1113,6 +1113,9 @@ packages:
 
   '@nl-rvo/css-sidebar-layout@1.4.1':
     resolution: {integrity: sha512-F6xRqVPg1KUbBpq64VGeWAawBP8FGcwJ1AiWs3NDUTaCA6W3P+lzCnGAtfJ782QrYVJWobI+b0tVaXpZuLPeOQ==}
+
+  '@nl-rvo/css-skeleton@1.0.1':
+    resolution: {integrity: sha512-Y6bZoihf7Bqhuz9Sl7XMteBI4rRIz+9/aer7lFQAnLa/zA65mfqOeFaMje1N25vkUjFM6ZBirXJXdsTErPX45A==}
 
   '@nl-rvo/css-skip-link@1.4.1':
     resolution: {integrity: sha512-27vpcj+WRD/+9u4PmKxznqNQCn+XbL2lT7bRjHExZDPztZc957PaW+MrOHlFTgWMp4vny1JfFHJaD+t26+c4pw==}
@@ -1126,8 +1129,11 @@ packages:
   '@nl-rvo/css-table@1.10.1':
     resolution: {integrity: sha512-gF1RKpCLRvh8NB4j7Fp7S8xlveSW28FjE6hUdd1VI9yeey8+dDrvqZ76KTkeWCfZanQ/NbtvcTtN7cjUswuXlg==}
 
-  '@nl-rvo/css-tabs@2.1.1':
-    resolution: {integrity: sha512-R5CvlmuDwzR5mkivtCnNkfya/0+PQWbju6c8qW5mEpHptz3ELiyVDxdJi96JZZaKkbhjQxQ4nrhmCMAbTJOFWQ==}
+  '@nl-rvo/css-tabs@2.1.2':
+    resolution: {integrity: sha512-shYtTW0nclMCV2Dr7Qn6qfLjQzP9KS/QszetppFbzRY2mzJYgjDUMHULvHeM94Bt6fn7GYMmUza4DKZvbcq16w==}
+
+  '@nl-rvo/css-tag@1.6.1':
+    resolution: {integrity: sha512-vHJpigHfilK+IiPVIvMi1zhvnbQ0hwOLfNT0tY0AK5THg3ZAeC8MLy1ki9aolmmjlpJHHN8vRq2pG+3qYuwURg==}
 
   '@nl-rvo/css-toggle@1.4.1':
     resolution: {integrity: sha512-46rdkQ5vtxl+4jfMqQ3H41GIxVRirEOfwwczUX1gHnKhyArpismhCK1V11jAmptD6FjdQ7mUF+g/fp7fdmR74w==}
@@ -1135,11 +1141,11 @@ packages:
   '@nl-rvo/design-tokens@2.5.1':
     resolution: {integrity: sha512-NwPNWOPbNk0MKsJ9wSZhakb50rk6HyplGw0fIDZHz4bNkCyrIB6kUcUU+jjCIsE1Pvda2+RHSROMZ4Np5HS8AA==}
 
-  '@nl-rvo/utility-background@1.1.1':
-    resolution: {integrity: sha512-Pr60HtmKPivs5fhIBErIm7A3SN5N6rLBJ0EmHeEt4n6hDBKjWp9tCpOkMyNw4IxiaqWbBO/SgIQ2SN6mhfLpQA==}
+  '@nl-rvo/utility-background@1.1.2':
+    resolution: {integrity: sha512-3JSylT95DM5TnL+aF1wNT2FEu4JJBenNnMBrBNo+GWjprpj1FxN3CLjZNdL6lXZYLh9wxsQkwv7mU7PO+0dW5g==}
 
-  '@nl-rvo/utility-border@1.1.1':
-    resolution: {integrity: sha512-N3ufFo8zpgSh7ToGklHklwKQe1E2mEc8VIouCybgmHV0chhd9rZwwYlgkTmrfoOZBMlbFnHC9sq9Mnv1+wA/2Q==}
+  '@nl-rvo/utility-border@1.2.0':
+    resolution: {integrity: sha512-/LLAT64WckZ3l925i03/uB4TmaQx8KZPg0f8S/i+cs+Mhbem3ch3rVNy/s6N6gNmRkF8forPyZe/NdWuLqpyrA==}
 
   '@nl-rvo/utility-margin@2.1.1':
     resolution: {integrity: sha512-XrB8NBTXtUX3V1e1OQX39CCs3PIKsK9T2BJrlXKn41RBPOAIGjhgbn/uNMJLHP7vyPNazC338T8U+FBlNaWacQ==}
@@ -1150,8 +1156,8 @@ packages:
   '@nl-rvo/utility-text-types@2.1.1':
     resolution: {integrity: sha512-6ZPS6VGg5nT9+wLHQceL/gn27QTG0QZLdb9zlrzBWD4buQdxAGH4yLTT3V2PvadzhjgMlZi4vyouZXwy5EoMKQ==}
 
-  '@nl-rvo/utility-text@1.1.1':
-    resolution: {integrity: sha512-8KbiRhy5VNaV53eFWZIQIshnKyA5KBsRnk/E7kI+ko2RgG14L7sKWf22lKoM6hYej7aNL3B57/4nw8Y4RK8gxw==}
+  '@nl-rvo/utility-text@1.1.2':
+    resolution: {integrity: sha512-C5cbAbXhFlrVF23hYR2D3k4J8gKzAIuHCGNB7q9ZDAa4KUVMzqlpKOB/SNc+BzTSBgpdx+O3N0CbZpfDiQqWTA==}
 
   '@noble/ciphers@1.3.0':
     resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
@@ -1677,6 +1683,9 @@ packages:
 
   '@utrecht/select-css@2.0.1':
     resolution: {integrity: sha512-Cile0O+ks3lve3l8hRvmkreHemHmV/LAwjnbvT7pY4rbpvDe7FwiC4fxC9Jsm+CTruCnmK253W6XV3jQSyjMxg==}
+
+  '@utrecht/textarea-css@3.0.1':
+    resolution: {integrity: sha512-byy2EpNx6g9ORxTZyeGxWclsvzJxbkmi1uqLSCS7286nw3t7PkwiWSKBPBJ568153nKgBD7FgiZrjR0Oe7TDnA==}
 
   '@utrecht/textbox-css@3.1.0':
     resolution: {integrity: sha512-KT2r6v1yTcdQPFZhswo/7+dMPL7x8aulBLeYO9SmrlVkpY47owJcB0KrkmMbF51/VvTLh4kW0qbaQ+vKnjwUsg==}
@@ -3257,8 +3266,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@7.29.0:
-    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+  undici@7.30.1:
+    resolution: {integrity: sha512-03KrMbjIFDWQR5RNPrSw3bd1r12JpyFQl9/yxjUbJtqkjmllqC5lFjZh6ujeuJCKr8EOQvRW872Oy/az+nLYxg==}
     engines: {node: '>=20.18.1'}
 
   unicode-properties@1.4.1:
@@ -3339,8 +3348,8 @@ packages:
       '@nuxt/kit':
         optional: true
 
-  vite-plugin-singlefile@2.3.4:
-    resolution: {integrity: sha512-1FAhlTCL6KJDpSUudrVU+gspapvS+tmKCg70vwNaAU6tyXn3E/C6+NnwQIze06byhBRv7VggZ78K0h+J/Rsdrg==}
+  vite-plugin-singlefile@2.3.3:
+    resolution: {integrity: sha512-XVnGH0QzbOa8fxRSsHdCarVN1BSBXNi7uLMQYlrGRN5apdHkk62XQWRJhVever0lnfuyBkwn+kvVChdm/OoOUg==}
     engines: {node: '>18.0.0'}
     peerDependencies:
       rollup: ^4.59.0
@@ -4160,13 +4169,13 @@ snapshots:
 
   '@nl-rvo/assets@1.2.1': {}
 
-  '@nl-rvo/component-library-css@5.0.2':
+  '@nl-rvo/component-library-css@5.1.0':
     dependencies:
-      '@nl-rvo/css-accordion': 1.4.1
+      '@nl-rvo/css-accordion': 1.4.3
       '@nl-rvo/css-action-group': 1.5.1
-      '@nl-rvo/css-alert': 1.7.1
+      '@nl-rvo/css-alert': 1.7.2
       '@nl-rvo/css-breadcrumbs': 1.5.1
-      '@nl-rvo/css-button': 2.2.1
+      '@nl-rvo/css-button': 2.2.3
       '@nl-rvo/css-card': 1.9.1
       '@nl-rvo/css-card-experimental': 0.4.1
       '@nl-rvo/css-checkbox-filter': 1.0.1
@@ -4175,20 +4184,20 @@ snapshots:
       '@nl-rvo/css-dialog': 1.6.1
       '@nl-rvo/css-expandable-content': 1.5.1
       '@nl-rvo/css-expandable-table': 1.0.1
-      '@nl-rvo/css-footer': 1.11.1
+      '@nl-rvo/css-footer': 1.11.2
       '@nl-rvo/css-form-autocomplete': 1.0.1
-      '@nl-rvo/css-form-checkbox': 1.4.1
+      '@nl-rvo/css-form-checkbox': 1.4.2
       '@nl-rvo/css-form-checkbox-group': 1.4.1
       '@nl-rvo/css-form-feedback': 1.5.1
       '@nl-rvo/css-form-field': 1.8.1
-      '@nl-rvo/css-form-fieldset': 1.7.1
+      '@nl-rvo/css-form-fieldset': 1.8.0
       '@nl-rvo/css-form-file-input': 1.0.1
       '@nl-rvo/css-form-layout': 1.4.1
-      '@nl-rvo/css-form-radio-button': 1.5.1
+      '@nl-rvo/css-form-radio-button': 1.5.2
       '@nl-rvo/css-form-radio-button-group': 1.4.1
       '@nl-rvo/css-form-select': 1.6.1
       '@nl-rvo/css-form-text-input': 1.0.1
-      '@nl-rvo/css-form-textarea': 1.6.1
+      '@nl-rvo/css-form-textarea': 1.6.2
       '@nl-rvo/css-grid': 3.3.1
       '@nl-rvo/css-header': 1.5.1
       '@nl-rvo/css-heading': 2.4.1
@@ -4198,44 +4207,46 @@ snapshots:
       '@nl-rvo/css-image': 1.3.1
       '@nl-rvo/css-item-list': 1.4.1
       '@nl-rvo/css-layout-flow': 1.6.1
-      '@nl-rvo/css-link': 1.7.1
+      '@nl-rvo/css-link': 1.7.3
       '@nl-rvo/css-loader': 2.2.1
-      '@nl-rvo/css-logo': 1.5.1
+      '@nl-rvo/css-logo': 1.5.3
       '@nl-rvo/css-max-width-layout': 1.4.1
-      '@nl-rvo/css-menubar': 1.7.1
+      '@nl-rvo/css-menubar': 1.7.2
       '@nl-rvo/css-ordered-unordered-list': 1.5.1
-      '@nl-rvo/css-page-number-navigation': 1.6.1
+      '@nl-rvo/css-page-number-navigation': 1.6.2
       '@nl-rvo/css-paragraph': 1.6.1
-      '@nl-rvo/css-progress-tracker': 1.4.1
+      '@nl-rvo/css-progress-tracker': 1.4.3
       '@nl-rvo/css-quote': 1.2.1
       '@nl-rvo/css-scrollable-content': 1.4.1
       '@nl-rvo/css-sidebar-layout': 1.4.1
+      '@nl-rvo/css-skeleton': 1.0.1
       '@nl-rvo/css-skip-link': 1.4.1
       '@nl-rvo/css-status-icon': 1.4.1
       '@nl-rvo/css-status-indicator': 1.4.1
       '@nl-rvo/css-table': 1.10.1
-      '@nl-rvo/css-tabs': 2.1.1
+      '@nl-rvo/css-tabs': 2.1.2
+      '@nl-rvo/css-tag': 1.6.1
       '@nl-rvo/css-toggle': 1.4.1
-      '@nl-rvo/utility-background': 1.1.1
-      '@nl-rvo/utility-border': 1.1.1
+      '@nl-rvo/utility-background': 1.1.2
+      '@nl-rvo/utility-border': 1.2.0
       '@nl-rvo/utility-margin': 2.1.1
       '@nl-rvo/utility-padding': 2.1.1
-      '@nl-rvo/utility-text': 1.1.1
+      '@nl-rvo/utility-text': 1.1.2
       '@nl-rvo/utility-text-types': 2.1.1
       modern-normalize: 3.0.1
 
-  '@nl-rvo/css-accordion@1.4.1':
+  '@nl-rvo/css-accordion@1.4.3':
     dependencies:
       '@nl-rvo/css-layout-flow': 1.6.1
-      '@nl-rvo/css-link': 1.7.1
+      '@nl-rvo/css-link': 1.7.3
 
   '@nl-rvo/css-action-group@1.5.1': {}
 
-  '@nl-rvo/css-alert@1.7.1': {}
+  '@nl-rvo/css-alert@1.7.2': {}
 
   '@nl-rvo/css-breadcrumbs@1.5.1': {}
 
-  '@nl-rvo/css-button@2.2.1':
+  '@nl-rvo/css-button@2.2.3':
     dependencies:
       '@nl-rvo/css-layout-flow': 1.6.1
 
@@ -4255,19 +4266,19 @@ snapshots:
 
   '@nl-rvo/css-expandable-table@1.0.1': {}
 
-  '@nl-rvo/css-footer@1.11.1': {}
+  '@nl-rvo/css-footer@1.11.2': {}
 
   '@nl-rvo/css-form-autocomplete@1.0.1': {}
 
   '@nl-rvo/css-form-checkbox-group@1.4.1': {}
 
-  '@nl-rvo/css-form-checkbox@1.4.1': {}
+  '@nl-rvo/css-form-checkbox@1.4.2': {}
 
   '@nl-rvo/css-form-feedback@1.5.1': {}
 
   '@nl-rvo/css-form-field@1.8.1': {}
 
-  '@nl-rvo/css-form-fieldset@1.7.1':
+  '@nl-rvo/css-form-fieldset@1.8.0':
     dependencies:
       '@utrecht/form-fieldset-css': 2.0.1
 
@@ -4277,7 +4288,7 @@ snapshots:
 
   '@nl-rvo/css-form-radio-button-group@1.4.1': {}
 
-  '@nl-rvo/css-form-radio-button@1.5.1':
+  '@nl-rvo/css-form-radio-button@1.5.2':
     dependencies:
       '@utrecht/radio-button-css': 2.0.1
 
@@ -4289,9 +4300,9 @@ snapshots:
     dependencies:
       '@utrecht/textbox-css': 3.1.0
 
-  '@nl-rvo/css-form-textarea@1.6.1':
+  '@nl-rvo/css-form-textarea@1.6.2':
     dependencies:
-      '@nl-rvo/css-layout-flow': 1.6.1
+      '@utrecht/textarea-css': 3.0.1
 
   '@nl-rvo/css-grid@3.3.1': {}
 
@@ -4320,31 +4331,33 @@ snapshots:
 
   '@nl-rvo/css-layout-flow@1.6.1': {}
 
-  '@nl-rvo/css-link@1.7.1': {}
+  '@nl-rvo/css-link@1.7.3': {}
 
   '@nl-rvo/css-loader@2.2.1': {}
 
-  '@nl-rvo/css-logo@1.5.1': {}
+  '@nl-rvo/css-logo@1.5.3': {}
 
   '@nl-rvo/css-max-width-layout@1.4.1': {}
 
-  '@nl-rvo/css-menubar@1.7.1':
+  '@nl-rvo/css-menubar@1.7.2':
     dependencies:
       '@nl-rvo/css-layout-flow': 1.6.1
 
   '@nl-rvo/css-ordered-unordered-list@1.5.1': {}
 
-  '@nl-rvo/css-page-number-navigation@1.6.1': {}
+  '@nl-rvo/css-page-number-navigation@1.6.2': {}
 
   '@nl-rvo/css-paragraph@1.6.1': {}
 
-  '@nl-rvo/css-progress-tracker@1.4.1': {}
+  '@nl-rvo/css-progress-tracker@1.4.3': {}
 
   '@nl-rvo/css-quote@1.2.1': {}
 
   '@nl-rvo/css-scrollable-content@1.4.1': {}
 
   '@nl-rvo/css-sidebar-layout@1.4.1': {}
+
+  '@nl-rvo/css-skeleton@1.0.1': {}
 
   '@nl-rvo/css-skip-link@1.4.1': {}
 
@@ -4354,15 +4367,17 @@ snapshots:
 
   '@nl-rvo/css-table@1.10.1': {}
 
-  '@nl-rvo/css-tabs@2.1.1': {}
+  '@nl-rvo/css-tabs@2.1.2': {}
+
+  '@nl-rvo/css-tag@1.6.1': {}
 
   '@nl-rvo/css-toggle@1.4.1': {}
 
   '@nl-rvo/design-tokens@2.5.1': {}
 
-  '@nl-rvo/utility-background@1.1.1': {}
+  '@nl-rvo/utility-background@1.1.2': {}
 
-  '@nl-rvo/utility-border@1.1.1': {}
+  '@nl-rvo/utility-border@1.2.0': {}
 
   '@nl-rvo/utility-margin@2.1.1': {}
 
@@ -4370,7 +4385,7 @@ snapshots:
 
   '@nl-rvo/utility-text-types@2.1.1': {}
 
-  '@nl-rvo/utility-text@1.1.1': {}
+  '@nl-rvo/utility-text@1.1.2': {}
 
   '@noble/ciphers@1.3.0': {}
 
@@ -4752,6 +4767,8 @@ snapshots:
   '@utrecht/radio-button-css@2.0.1': {}
 
   '@utrecht/select-css@2.0.1': {}
+
+  '@utrecht/textarea-css@3.0.1': {}
 
   '@utrecht/textbox-css@3.1.0': {}
 
@@ -5665,7 +5682,7 @@ snapshots:
       parse5-parser-stream: 8.1.1
       saxes: 6.0.0
       tough-cookie: 6.0.2
-      undici: 7.29.0
+      undici: 7.30.1
       w3c-xmlserializer: 6.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -6313,7 +6330,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@7.29.0: {}
+  undici@7.30.1: {}
 
   unicode-properties@1.4.1:
     dependencies:
@@ -6377,9 +6394,9 @@ snapshots:
       vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
       vite-dev-rpc: 2.0.0(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0))
 
-  vite-plugin-singlefile@2.3.4(rollup@4.59.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)):
+  vite-plugin-singlefile@2.3.3(rollup@4.59.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)):
     dependencies:
-      picomatch: 4.0.7
+      micromatch: 4.0.8
       vite: 8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.0)
     optionalDependencies:
       rollup: 4.59.0

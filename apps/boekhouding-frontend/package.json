@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@nl-rvo/assets": "^1.2.1",
-    "@nl-rvo/component-library-css": "5.0.2",
+    "@nl-rvo/component-library-css": "5.1.0",
     "@nl-rvo/design-tokens": "2.5.1",
     "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.52.0",
