@@ -445,7 +445,7 @@ fp-ts@2.16.11 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-glob@13.0.6 [license(s): BlueOak-1.0.0]
+glob@13.0.7 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
