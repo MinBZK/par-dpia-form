@@ -417,7 +417,7 @@ fast-uri@3.1.8 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-fastify@5.12.5 [license(s): MIT]
+fastify@5.12.6 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
