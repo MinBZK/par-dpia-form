@@ -22,6 +22,9 @@ COPY packages/assessment-core/ packages/assessment-core/
 COPY sources/generated/ sources/generated/
 COPY sources/assets/ sources/assets/
 COPY apps/standalone-form/ apps/standalone-form/
+# Experiment: the standalone form imports scripts/experiment/aiia.mjs through the
+# '@experiment/aiia' alias in its vite.config.ts.
+COPY scripts/experiment/ scripts/experiment/
 COPY apps/boekhouding-frontend/ apps/boekhouding-frontend/
 
 # Build standalone form (viteSingleFile → alles inlined in index.html)

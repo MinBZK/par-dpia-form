@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTaskDependencies } from '../../composables/useTaskDependencies'
-import { type Option, TaskTypeValue } from '../../models/dpia'
+import { FormType, type Option, TaskTypeValue } from '../../models/dpia'
 import { useAnswerStore } from '../../stores/answers'
 import { type FlatTask } from '../../stores/tasks'
 import { useTaskStore } from '../../stores/tasks'
@@ -8,9 +8,10 @@ import { usePrefixQuestionIds } from '../../composables/usePrefixQuestionIds'
 import { useReferences } from '../../composables/useReferences'
 import ReferenceSuggestions from '../ReferenceSuggestions.vue'
 import ImageField from './ImageField.vue'
+import UiButton from '../ui/UiButton.vue'
 import { autoGrowTextarea } from '../../utils/autoGrowTextarea'
 import { renderMarkdownToHtml } from '../../utils/markdown'
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { computed, ref, onMounted, nextTick, watch, inject } from 'vue'
 
 const props = defineProps<{
   task: FlatTask
@@ -21,6 +22,9 @@ const props = defineProps<{
 
 const answerStore = useAnswerStore()
 const taskStore = useTaskStore()
+type ReformulationTask = { id: string; task: string; description?: string }
+type ReformulateText = (task: ReformulationTask, answer: string) => Promise<string>  //for testing...
+const reformulateText = inject<ReformulateText | undefined>('aiia-reformulate-text', undefined)
 const { getSourceOptions, getDependencySourceTaskId } = useTaskDependencies()
 const { getPrefillValueForTask } = useReferences()
 
@@ -120,6 +124,15 @@ const hasType = (typeToCheck: TaskTypeValue): boolean => {
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const showPreview = ref(false)
+const isReformulating = ref(false)   //testing,,,
+const reformulationSuggestion = ref('')
+const reformulationError = ref<string | null>(null)
+const canReformulate = computed(() =>
+  taskStore.activeNamespace === FormType.AIIA && Boolean(reformulateText),
+)
+const hasMinimumReformulationLength = computed(() =>
+  Array.from(String(currentValue.value ?? '').trim()).length >= 40,
+)
 
 const renderedHtml = computed(() => {
   if (!showPreview.value) return ''
@@ -167,13 +180,48 @@ const focusAfterAdopt = () => {
   nextTick(() => textareaRef.value?.focus())
 }
 
-// Text input and textarea handler
+// Text input and textarea handler (reform added)
 const handleTextInput = (event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
   answerStore.setAnswer(props.instanceId, target.value)
+  reformulationSuggestion.value = ''
+  reformulationError.value = null
   if (target instanceof HTMLTextAreaElement) {
     autoGrowTextarea(target)
   }
+}
+
+const requestReformulation = async () => { //testing...
+  const answer = String(currentValue.value ?? '').trim()
+  if (!reformulateText || !hasMinimumReformulationLength.value || isReformulating.value) return
+
+  isReformulating.value = true
+  reformulationSuggestion.value = ''
+  reformulationError.value = null
+  try {
+    const suggestion = await reformulateText(props.task, answer)
+    if (String(currentValue.value ?? '').trim() !== answer) {
+      reformulationError.value = 'Je tekst is ondertussen gewijzigd. Vraag opnieuw om een voorstel voor de bijgewerkte tekst.'
+      return
+    }
+    if (!suggestion.trim()) {
+      throw new Error('Het taalmodel heeft geen tekstvoorstel teruggegeven.')
+    }
+    reformulationSuggestion.value = suggestion.trim()
+  } catch (error) {
+    reformulationError.value = error instanceof Error
+      ? `Herformuleren is niet gelukt: ${error.message}`
+      : 'Herformuleren is niet gelukt door een onbekende fout.'
+  } finally {
+    isReformulating.value = false
+  }
+}
+
+const adoptReformulation = () => {
+  if (!reformulationSuggestion.value) return
+  answerStore.setAnswer(props.instanceId, reformulationSuggestion.value)
+  reformulationSuggestion.value = ''
+  nextTick(() => textareaRef.value?.focus())
 }
 
 // Select handler
@@ -255,7 +303,26 @@ const handleCheckboxInput = (event: Event) => {
       :value="currentValue as string | number | readonly string[] | null | undefined"
       @input="handleTextInput"></textarea>
 
-    <div v-else
+    <div v-if="canReformulate && !showPreview" class="rvo-margin-block-start--sm">
+      <UiButton
+        variant="secondary"
+        :label="isReformulating ? 'Tekst wordt herformuleerd...' : 'Tekst herformuleren'"
+        :disabled="isReformulating || !hasMinimumReformulationLength"
+        @click="requestReformulation"
+      />
+      <p class="small-text rvo-margin-block-start--xs">
+        Vul minimaal 40 tekens in. Je tekst wordt naar het taalmodel gestuurd; gebruik geen echte persoonsgegevens.
+      </p>
+      <div v-if="reformulationError" class="rvo-alert rvo-alert--warning rvo-alert--padding-sm" role="alert">
+        {{ reformulationError }}
+      </div>
+      <div v-if="reformulationSuggestion" class="rvo-card rvo-margin-block-start--sm" role="status">
+        <p class="rvo-margin-block-end--sm preserve-whitespace">{{ reformulationSuggestion }}</p>
+        <UiButton variant="tertiary" label="Voorstel gebruiken" @click="adoptReformulation" />
+      </div>
+    </div>
+
+    <div v-else-if="showPreview"
       class="markdown-preview" dir="auto"
       role="region"
       :aria-label="'Voorbeeld van de opmaak'"

@@ -38,6 +38,11 @@ const routes: RouteRecordRaw[] = [
     props: true,
   },
   {
+    path: '/chat-sleutel',
+    name: 'chat-key',
+    component: () => import('./views/ChatKey.vue'),
+  },
+  {
     path: '/privacy',
     name: 'privacy',
     component: () => import('./views/PrivacyStatement.vue'),

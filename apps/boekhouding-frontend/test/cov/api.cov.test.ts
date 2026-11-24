@@ -496,3 +496,12 @@ describe('syncApi endpoints', () => {
     expect(f.mock.calls[0][0]).toBe('/api/v1/assessments/a1/sync')
   })
 })
+
+describe('chatKeys', () => {
+  it('create POSTs to the chat key route and returns the key', async () => {
+    const mockFetch = mockFetchOk({ key: 'k', expiresAt: '2026-10-26T20:00:00.000Z' })
+    const result = await api.chatKeys.create()
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/chat/keys', expect.objectContaining({ method: 'POST' }))
+    expect(result).toEqual({ key: 'k', expiresAt: '2026-10-26T20:00:00.000Z' })
+  })
+})

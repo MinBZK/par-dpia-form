@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
@@ -25,10 +25,14 @@ type MountProps = {
   description?: string
 }
 
-function mountField(props: MountProps) {
+function mountField(
+  props: MountProps,
+  reformulateText?: (task: Pick<FlatTask, 'id' | 'task' | 'description'>, answer: string) => Promise<string>,
+) {
   return mount(FormField, {
     props,
     global: {
+      provide: reformulateText ? { 'aiia-reformulate-text': reformulateText } : {},
       // Stub ImageField to keep the image-upload component out of the mount.
       stubs: {
         ImageField: { name: 'ImageField', props: ['task', 'instanceId', 'label', 'description'], template: '<div class="image-field-stub" />' },
@@ -257,6 +261,80 @@ describe('FormField.vue', () => {
       await textarea.setValue('regel een\nregel twee')
       await textarea.trigger('input')
       expect(answerStore.getAnswer('1.1[0]')).toBe('regel een\nregel twee')
+    })
+
+    it('shows a Dutch reformulation proposal in the AIIA without replacing the original until adopted', async () => {   //all tests utai "does not show reformulation action"
+      taskStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setAnswer('1.1[0]', 'Een lange, onduidelijke tekst met meer dan veertig tekens.')
+      const reformulateText = vi.fn(async () => 'Een heldere tekst.')
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+        label: 'Toelichting',
+      }, reformulateText)
+
+      expect(wrapper.text()).toContain('Vul minimaal 40 tekens in.')
+      await wrapper.find('button.rvo-button').trigger('click')
+      await vi.waitFor(() => expect(wrapper.text()).toContain('Een heldere tekst.'))
+
+      expect(answerStore.getAnswer('1.1[0]')).toBe('Een lange, onduidelijke tekst met meer dan veertig tekens.')
+      expect(reformulateText).toHaveBeenCalledWith(
+        expect.objectContaining({ id: '1.1', task: 'Een taak' }),
+        'Een lange, onduidelijke tekst met meer dan veertig tekens.',
+      )
+
+      await wrapper.findAll('button.rvo-button').find((button) => button.text().includes('Voorstel gebruiken'))!.trigger('click')
+      expect(answerStore.getAnswer('1.1[0]')).toBe('Een heldere tekst.')
+    })
+
+    it('shows the reformulation button disabled until the answer reaches 40 characters', async () => {
+      taskStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setAnswer('1.1[0]', 'x'.repeat(39))
+      const reformulateText = vi.fn().mockResolvedValue('Voorstel')
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+      }, reformulateText)
+      const button = wrapper.find('button.rvo-button')
+
+      expect(button.exists()).toBe(true)
+      expect((button.element as HTMLButtonElement).disabled).toBe(true)
+      await wrapper.find('textarea').setValue('x'.repeat(40))
+      expect((button.element as HTMLButtonElement).disabled).toBe(false)
+    })
+
+    it('shows API errors and preserves the existing answer', async () => {
+      taskStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setActiveNamespace(FormType.AIIA)
+      answerStore.setAnswer('1.1[0]', 'Bestaande tekst met meer dan veertig tekens.')
+      const reformulateText = vi.fn().mockRejectedValue(new Error('Chat niet beschikbaar'))
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+      }, reformulateText)
+
+      await wrapper.find('button.rvo-button').trigger('click')
+      await vi.waitFor(() => expect(wrapper.find('[role="alert"]').text()).toContain('Chat niet beschikbaar'))
+
+      expect(answerStore.getAnswer('1.1[0]')).toBe('Bestaande tekst met meer dan veertig tekens.')
+    })
+
+    it('does not show the reformulation action outside AIIA open-text fields', () => {
+      const reformulateText = vi.fn().mockResolvedValue('Voorstel')
+      const wrapper = mountField({
+        task: flatTask({ type: ['open_text'] }),
+        instanceId: '1.1[0]',
+      }, reformulateText)
+      expect(wrapper.find('button.rvo-button').exists()).toBe(false)
+
+      taskStore.setActiveNamespace(FormType.AIIA)
+      const textInput = mountField({
+        task: flatTask({ type: ['text_input'] }),
+        instanceId: '1.2[0]',
+      }, reformulateText)
+      expect(textInput.find('button.rvo-button').exists()).toBe(false)
     })
   })
 

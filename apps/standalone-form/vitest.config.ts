@@ -13,6 +13,7 @@ export default defineConfig({
       '@overheid-assessment/core': fileURLToPath(
         new URL('../../packages/assessment-core/src/index.ts', import.meta.url),
       ),
+      '@experiment/aiia': fileURLToPath(new URL('../../scripts/experiment/aiia.mjs', import.meta.url)),  //this is for testing purposes!!
     },
   },
   test: {

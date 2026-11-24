@@ -24,7 +24,7 @@ import { exportToPdf } from '../utils/pdfExport'
 import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
 import * as t from 'io-ts'
-import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, inject, onMounted, onBeforeUnmount, provide, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   navigation: NavigationFunctions
@@ -35,6 +35,10 @@ const props = withDefaults(defineProps<{
   showFileActions?: boolean
   autoStart?: boolean
   bannerTitle?: string
+  reformulateText?: (    //for testing.
+    task: { id: string; task: string; description?: string },
+    answer: string,
+  ) => Promise<string>
 }>(), {
   showBanner: true,
   showNavHeader: true,
@@ -42,6 +46,8 @@ const props = withDefaults(defineProps<{
   autoStart: false,
   bannerTitle: '',
 })
+
+provide('aiia-reformulate-text', props.reformulateText)
 
 // State
 const error = ref<string | null>(null)

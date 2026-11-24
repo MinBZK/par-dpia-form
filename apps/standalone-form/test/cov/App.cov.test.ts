@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import {
@@ -22,7 +22,7 @@ function storageKey(ns: string): string {
 
 const FormStub = {
   name: 'Form',
-  props: ['navigation', 'namespace', 'validData', 'autoStart', 'bannerTitle'],
+  props: ['navigation', 'namespace', 'validData', 'autoStart', 'bannerTitle', 'reformulateText'],
   template: '<div class="form-stub" :data-namespace="namespace" />',
 }
 
@@ -142,6 +142,44 @@ describe('App.vue', () => {
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(FormType.AIIA)
     expect(form.props('validData')).toBeNull()
+    expect(typeof form.props('reformulateText')).toBe('function')      // this + find chat key + use prompt builder is for testing purposes!!
+    expect(wrapper.find('#aiia-chat-key').exists()).toBe(true)
+  })
+
+  it('uses the shared AIIA prompt builder for web form requests', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ reply: 'Een heldere tekst.' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      nav.goToAIIA!()
+      await wrapper.vm.$nextTick()
+      await wrapper.find('#aiia-chat-key').setValue('test-key')
+
+      const reformulateText = wrapper.findComponent(FormStub).props('reformulateText') as (
+        task: { id: string; task: string; description?: string },
+        answer: string,
+      ) => Promise<string>
+      await expect(reformulateText({ id: '1.1.1', task: 'Een taak' }, 'Een antwoord.'))
+        .resolves.toBe('Een heldere tekst.')
+
+      const request = JSON.parse(fetchMock.mock.calls[0][1].body)
+      expect(request.messages).toEqual([
+        {
+          role: 'system',
+          content: expect.stringContaining('Herformuleer de tekst in helder, beknopt en professioneel Nederlands.'),
+        },
+        {
+          role: 'user',
+          content: 'Vraag 1.1.1: Een taak\n\nTe herformuleren tekst:\nEen antwoord.',
+        },
+      ])
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('returns to the LandingView via goToLanding', async () => {
