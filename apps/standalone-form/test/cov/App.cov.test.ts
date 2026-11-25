@@ -1,13 +1,17 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import {
   FormType,
   useTaskStore,
   useAnswerStore,
+  useSchemaStore,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
 import App from '../../src/App.vue'
+import dpiaJson from '../../../../sources/generated/DPIA.json'
+import preScanJson from '../../../../sources/generated/PreScanDPIA.json'
+import iamaJson from '../../../../sources/generated/IAMA.json'
 
 const LandingStub = {
   name: 'LandingView',
@@ -238,5 +242,55 @@ describe('App.vue — cached sessions (#322)', () => {
     expect(form.exists()).toBe(true)
     expect(form.props('namespace')).toBe(type)
     expect(form.props('autoStart')).toBe(true)
+  })
+
+  describe('DPIA and IAMA show each other', () => {
+    const save = (ns: FormType, answers: Record<string, unknown>) =>
+      localStorage.setItem(storageKey(ns), JSON.stringify({ metadata: { createdAt: 't' }, answers }))
+
+    beforeEach(() => {
+      useSchemaStore().init({ preScan: preScanJson, dpia: dpiaJson, iama: iamaJson })
+    })
+
+    it('loads the saved IAMA when the DPIA opens, and the saved DPIA when the IAMA opens', async () => {
+      save(FormType.IAMA, { '1.1.2': { value: 'Sneller beslissen' } })
+      save(FormType.DPIA, { '1.1': { value: 'Voorstel' } })
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      const answerStore = useAnswerStore()
+
+      nav.goToDPIA()
+      expect(answerStore.answers[FormType.IAMA]['1.1.2']).toMatchObject({ value: 'Sneller beslissen' })
+      expect(useTaskStore().activeNamespace).toBe(FormType.DPIA)
+
+      nav.goToIAMA!()
+      expect(answerStore.answers[FormType.DPIA]['1.1']).toMatchObject({ value: 'Voorstel' })
+      expect(useTaskStore().activeNamespace).toBe(FormType.IAMA)
+    })
+
+    it('still opens the DPIA when the saved IAMA cannot be loaded', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      save(FormType.IAMA, { '2.1': [null] })
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+
+      nav.goToDPIA()
+
+      expect(useTaskStore().activeNamespace).toBe(FormType.DPIA)
+      expect(useAnswerStore().answers[FormType.IAMA]).toEqual({})
+      expect(warn).toHaveBeenCalledWith('Saved counterpart not loaded:', expect.any(Error))
+      warn.mockRestore()
+    })
+
+    it('shows nothing of a counterpart that was wiped from the browser', () => {
+      const wrapper = mountApp()
+      const nav = wrapper.findComponent(LandingStub).props('navigation') as NavigationFunctions
+      const answerStore = useAnswerStore()
+      answerStore.answers[FormType.IAMA] = { '1.1.2': { value: 'gewist' } }
+
+      nav.goToDPIA()
+
+      expect(answerStore.answers[FormType.IAMA]).toEqual({})
+    })
   })
 })

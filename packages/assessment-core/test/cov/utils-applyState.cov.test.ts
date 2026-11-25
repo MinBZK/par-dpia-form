@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { useTaskStore } from '../../src/stores/tasks'
 import { useAnswerStore } from '../../src/stores/answers'
-import { applyStateToStores, rebuildRepeatableInstances } from '../../src/utils/applyState'
+import { applySourceForm, applyStateToStores, rebuildRepeatableInstances } from '../../src/utils/applyState'
 import type { AssessmentState, GroupedAnswerValue } from '../../src/models/assessmentState'
 import { FormType, type Task } from '../../src/models/dpia'
 
@@ -366,5 +366,51 @@ describe('rebuildRepeatableInstances', () => {
       const after = taskStore.getInstanceIdsForTask('3.1.1')
       expect(after).toEqual(before)
     })
+  })
+})
+
+describe('applySourceForm', () => {
+  const iamaTasks = [
+    { id: '1', task: 'Deel 1', type: ['task_group'], tasks: [{ id: '1.1', task: 'Vraag', type: ['open_text'] }] },
+    { id: '3', task: 'Deel 3', type: ['task_group'], tasks: [{ id: '3.1', task: 'Vraag', type: ['open_text'] }] },
+  ] as unknown as Task[]
+  const dpiaTasks = [{ id: '5', task: 'Doeleinden', type: ['open_text'] }] as unknown as Task[]
+
+  let taskStore: ReturnType<typeof useTaskStore>
+  let answerStore: ReturnType<typeof useAnswerStore>
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    taskStore = useTaskStore()
+    answerStore = useAnswerStore()
+    taskStore.setActiveNamespace(FormType.IAMA)
+    answerStore.setActiveNamespace(FormType.IAMA)
+    taskStore.init(iamaTasks)
+    taskStore.currentRootTaskId[FormType.IAMA] = '3'
+    answerStore.answers[FormType.IAMA] = { '3.1': { value: 'eigen antwoord' } }
+  })
+
+  it('loads the source into its own namespace and leaves the open form, and its section, alone', () => {
+    applySourceForm(
+      { metadata: { createdAt: 't' }, answers: { '5': { value: 'Aanvragen beoordelen' } } },
+      FormType.DPIA, dpiaTasks, taskStore, answerStore,
+    )
+
+    expect(answerStore.answers[FormType.DPIA]['5']).toMatchObject({ value: 'Aanvragen beoordelen' })
+    expect(answerStore.answers[FormType.IAMA]).toEqual({ '3.1': { value: 'eigen antwoord' } })
+    expect(taskStore.activeNamespace).toBe(FormType.IAMA)
+    expect(answerStore.activeNamespace).toBe(FormType.IAMA)
+    expect(taskStore.currentRootTaskId[FormType.IAMA]).toBe('3')
+  })
+
+  it('restores the open form when the source cannot be applied', () => {
+    expect(() => applySourceForm(
+      { metadata: { createdAt: 't' }, answers: {} },
+      FormType.DPIA, null as unknown as Task[], taskStore, answerStore,
+    )).toThrow()
+
+    expect(taskStore.activeNamespace).toBe(FormType.IAMA)
+    expect(answerStore.activeNamespace).toBe(FormType.IAMA)
+    expect(taskStore.currentRootTaskId[FormType.IAMA]).toBe('3')
   })
 })

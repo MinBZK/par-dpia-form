@@ -42,6 +42,10 @@ tasks:
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "1.1.1"
+                type: pre-view
         - task: Afbeeldingen
           description: Afbeeldingen
           id: "1.2"
@@ -87,6 +91,14 @@ tasks:
               type:
                 - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "2.3.1"
+                    type: pre-view
+                  - id: "2.2B.1"
+                    type: pre-view
+                  - id: "4.2.2"
+                    type: pre-view
             - task: Categorie betrokkene
               id: "2.1.2"
               type:
@@ -97,6 +109,14 @@ tasks:
               type:
                 - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "2.3.1"
+                    type: pre-view
+                  - id: "2.2B.1"
+                    type: pre-view
+                  - id: "4.2.2"
+                    type: pre-view
             - task: Type persoonsgegeven
               id: "2.1.4"
               type:
@@ -190,6 +210,10 @@ tasks:
               type:
                - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "3.1.1"
+                    type: pre-view
             - task: Gegevensverwerking beschrijving
               id: "3.1.2"
               type:
@@ -213,6 +237,10 @@ tasks:
           type:
            - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "3.1.1"
+                type: pre-view
         - task: Samenhang gegevensverwerkingen
           id: "3.3"
           type:
@@ -244,6 +272,18 @@ tasks:
    type:
       - open_text
    repeatable: false
+   references:
+     IAMA:
+       - id: "2.1.1"
+         type: pre-view
+       - id: "2.1.2"
+         type: pre-view
+       - id: "2.2A.1"
+         type: pre-view
+       - id: "3.2.1"
+         type: pre-view
+       - id: "3.2.2"
+         type: pre-view
  - task: Verwerkingsdoeleinden
    description: Beschrijf de doeleinden van alle gegevensverwerkingen.
    id: "5"
@@ -271,6 +311,10 @@ tasks:
           type:
             - open_text
           repeatable: true
+          references:
+            IAMA:
+              - id: "1.1.2"
+                type: pre-view
     - task: Aanvullende informatie over de verwerkingsdoeleinden
       description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
       id: "5.2"
@@ -312,6 +356,16 @@ tasks:
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.1"
+                  type: pre-view
+                - id: "1.4.2"
+                  type: pre-view
+                - id: "2.5.1"
+                  type: pre-view
+                - id: "2.5.3"
+                  type: pre-view
           - task: Partij rol
             id: "6.1.1.2"
             description: >-
@@ -335,11 +389,31 @@ tasks:
               - value: Ontvanger
                 label: Ontvanger
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.1"
+                  type: pre-view
+                - id: "1.4.2"
+                  type: pre-view
+                - id: "2.5.1"
+                  type: pre-view
+                - id: "2.5.3"
+                  type: pre-view
           - task: Functies/afdelingen
             id: "6.1.1.3"
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.1"
+                  type: pre-view
+                - id: "1.4.2"
+                  type: pre-view
+                - id: "2.5.1"
+                  type: pre-view
+                - id: "2.5.3"
+                  type: pre-view
           - task: Persoonsgegevens
             id: "6.1.1.4"
             type:
@@ -402,6 +476,12 @@ tasks:
                 - open_text
               repeatable: true
               item_name: belang
+              references:
+                IAMA:
+                  - id: "1.2.1"
+                    type: pre-view
+                  - id: "1.2.2"
+                    type: pre-view
         - task: Aanvullende informatie over de belangen
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "7.2"
@@ -483,6 +563,10 @@ tasks:
           type:
            - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "1.4.3"
+                type: pre-view
  - task: >-
      Juridisch en beleidsmatig kader
    description: >-
@@ -519,6 +603,20 @@ tasks:
               type:
                 - text_input
               repeatable: false
+              references:
+                IAMA:
+                  - id: "1.3.1"
+                    type: pre-view
+                  - id: "1.3.2"
+                    type: pre-view
+                  - id: "4.2.1"
+                    type: pre-view
+                  - id: "4.2.2"
+                    type: pre-view
+                  - id: "4.2.3"
+                    type: pre-view
+                  - id: "4.2.4"
+                    type: pre-view
             - task: Wetsartikelen
               id: "9.1.1.2"
               type:
@@ -530,6 +628,18 @@ tasks:
           type:
            - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "1.3.1"
+                type: pre-view
+              - id: "1.3.2"
+                type: pre-view
+              - id: "4.2.1"
+                type: pre-view
+              - id: "4.2.3"
+                type: pre-view
+              - id: "4.2.4"
+                type: pre-view
  - task: >-
      Bewaartermijnen
    description: >-
@@ -671,11 +781,19 @@ tasks:
               - value: Rechtsgrond taak van algemeen belang
               - value: Rechtsgrond gerechtvaardigd belang
               repeatable: false
+              references:
+                IAMA:
+                  - id: "1.3.2"
+                    type: pre-view
             - task: Toelichting op de rechtsgrond
               id: "11.1.1.2"
               type:
                 - open_text
               repeatable: false
+              references:
+                IAMA:
+                  - id: "1.3.2"
+                    type: pre-view
         - task: Aanvullende informatie over de rechtsgronden
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "11.2"
@@ -932,6 +1050,10 @@ tasks:
           type:
            - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "1.3.2"
+                type: pre-view
  - task: >-
      Doelbinding
    description: |
@@ -1008,6 +1130,10 @@ tasks:
                 - value: Niet van toepassing (geen verdere verwerking)
                   label: Niet van toepassing (geen verdere verwerking)
               repeatable: false
+              references:
+                IAMA:
+                  - id: "3.4.4"
+                    type: pre-view
             - task: Specificatie van het wetsartikel voor "Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht"
               id: "13.1.1.6"
               type:
@@ -1020,6 +1146,10 @@ tasks:
                   operator: equals
                   value: Toelaatbaar op grond van Unie- of lidstaatrechtelijk recht
                 action: show
+              references:
+                IAMA:
+                  - id: "3.4.4"
+                    type: pre-view
         - task: Aanvullende informatie over de verenigbaarheid en toelaatbaarheid
           description: Gebruik dit optionele tekstveld voor extra toelichting op de ingevulde vragen.
           id: "13.2"
@@ -1044,12 +1174,52 @@ tasks:
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "2.1.2"
+                type: pre-view
+              - id: "2.2A.3"
+                type: pre-view
+              - id: "2.2B.4"
+                type: pre-view
+              - id: "4.4.1"
+                type: pre-view
+              - id: "4.4.2"
+                type: pre-view
+              - id: "4.5.1"
+                type: pre-view
+              - id: "4.5.2"
+                type: pre-view
+              - id: "4.5.4"
+                type: pre-view
+              - id: "5.A.6"
+                type: pre-view
         - task: De beoordeling van de proportionaliteit
           id: "14.2"
           description: "Staat de inbreuk op de persoonlijke levenssfeer en de bescherming van de persoonsgegevens van de betrokkenen in evenredige verhouding tot de verwerkingsdoeleinden?"
           type:
             - open_text
           repeatable: false
+          references:
+            IAMA:
+              - id: "2.1.2"
+                type: pre-view
+              - id: "2.2A.3"
+                type: pre-view
+              - id: "2.2B.4"
+                type: pre-view
+              - id: "4.4.1"
+                type: pre-view
+              - id: "4.4.2"
+                type: pre-view
+              - id: "4.5.1"
+                type: pre-view
+              - id: "4.5.2"
+                type: pre-view
+              - id: "4.5.4"
+                type: pre-view
+              - id: "5.A.6"
+                type: pre-view
  - task: >-
      Rechten van de betrokkenen
    description: >-
@@ -1530,11 +1700,91 @@ tasks:
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "3.2.3"
+                  type: pre-view
+                - id: "3.5.1"
+                  type: pre-view
+                - id: "3.5.2"
+                  type: pre-view
+                - id: "3.5.6"
+                  type: pre-view
+                - id: "3.5.7"
+                  type: pre-view
+                - id: "4.1.1"
+                  type: pre-view
+                - id: "4.1.2"
+                  type: pre-view
+                - id: "4.1.3"
+                  type: pre-view
+                - id: "4.3.1"
+                  type: pre-view
+                - id: "4.3.2"
+                  type: pre-view
+                - id: "4.3.3"
+                  type: pre-view
+                - id: "2.4.1"
+                  type: pre-view
+                - id: "2.4.3"
+                  type: pre-view
+                - id: "2.2B.2"
+                  type: pre-view
+                - id: "2.3.2"
+                  type: pre-view
+                - id: "2.4.2"
+                  type: pre-view
+                - id: "2.3.3"
+                  type: pre-view
+                - id: "2.2A.2"
+                  type: pre-view
+                - id: "2.2B.3"
+                  type: pre-view
           - task: Oorsprong
             id: "16.1.2"
             type:
               - open_text
             repeatable: false
+            references:
+              IAMA:
+                - id: "3.2.3"
+                  type: pre-view
+                - id: "3.5.1"
+                  type: pre-view
+                - id: "3.5.2"
+                  type: pre-view
+                - id: "3.5.6"
+                  type: pre-view
+                - id: "3.5.7"
+                  type: pre-view
+                - id: "4.1.1"
+                  type: pre-view
+                - id: "4.1.2"
+                  type: pre-view
+                - id: "4.1.3"
+                  type: pre-view
+                - id: "4.3.1"
+                  type: pre-view
+                - id: "4.3.2"
+                  type: pre-view
+                - id: "4.3.3"
+                  type: pre-view
+                - id: "2.4.1"
+                  type: pre-view
+                - id: "2.4.3"
+                  type: pre-view
+                - id: "2.2B.2"
+                  type: pre-view
+                - id: "2.3.2"
+                  type: pre-view
+                - id: "2.4.2"
+                  type: pre-view
+                - id: "2.3.3"
+                  type: pre-view
+                - id: "2.2A.2"
+                  type: pre-view
+                - id: "2.2B.3"
+                  type: pre-view
           - task: Kans
             id: "16.1.3"
             type:
@@ -1626,6 +1876,22 @@ tasks:
             type:
               - text_input
             repeatable: false
+            references:
+              IAMA:
+                - id: "1.4.3"
+                  type: pre-view
+                - id: "2.5.2"
+                  type: pre-view
+                - id: "2.5.3"
+                  type: pre-view
+                - id: "3.1.5"
+                  type: pre-view
+                - id: "4.5.2"
+                  type: pre-view
+                - id: "4.5.3"
+                  type: pre-view
+                - id: "5.C"
+                  type: pre-view
           - task: Resterend risico en de risicoinschatting
             id: "17.1.4"
             type:

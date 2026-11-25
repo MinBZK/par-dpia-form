@@ -23,6 +23,7 @@ export async function runMigrations(databaseUrl: string): Promise<void> {
 // Order matters: truncate children before parents would be needed for FKs,
 // but CASCADE handles that. Single TRUNCATE with CASCADE is fastest.
 const TABLES = [
+  'assessment_links',
   'comments',
   'assessment_edits',
   'assessment_versions',

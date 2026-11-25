@@ -93,3 +93,18 @@ export const comments = pgTable('comments', {
   // Supports loading replies for a thread and FK cascade when a parent comment is deleted.
   index('comments_parent_idx').on(table.parentId),
 ])
+
+// Server-owned links between assessments of one project (e.g. an IAMA linked to
+// the DPIA it builds on). Directed: the owner of `from` manages its outgoing set.
+// Same-project is enforced by the route, not by the schema.
+export const assessmentLinks = pgTable('assessment_links', {
+  fromAssessmentId: uuid('from_assessment_id').notNull()
+    .references(() => assessmentInstances.id, { onDelete: 'cascade' }),
+  toAssessmentId: uuid('to_assessment_id').notNull()
+    .references(() => assessmentInstances.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.fromAssessmentId, table.toAssessmentId] }),
+  // Supports the incoming-links lookup and FK cascade when the target is deleted.
+  index('assessment_links_to_idx').on(table.toAssessmentId),
+])

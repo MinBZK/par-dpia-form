@@ -10,6 +10,7 @@ import {
   assessmentVersions,
   assessmentEdits,
   comments,
+  assessmentLinks,
 } from '../../src/db/schema.js'
 
 // getTableConfig() forces Drizzle's lazily-evaluated reference/config callbacks to run.
@@ -175,5 +176,26 @@ describe('db/schema comments table', () => {
     expect(instanceFk!.onDelete).toBe('cascade')
     expect(authorFk!.table).toBe(users)
     expect(resolvedByFk!.table).toBe(users)
+  })
+})
+
+describe('db/schema assessmentLinks table', () => {
+  it('keys on (from, to) and indexes the incoming side', () => {
+    const config = getTableConfig(assessmentLinks)
+    expect(config.name).toBe('assessment_links')
+    expect(config.primaryKeys[0].columns.map((c) => c.name)).toEqual(['from_assessment_id', 'to_assessment_id'])
+    expect(config.indexes.map((i) => i.config.name)).toEqual(['assessment_links_to_idx'])
+  })
+
+  it('cascade-deletes with either assessment', () => {
+    const config = getTableConfig(assessmentLinks)
+    const refs = config.foreignKeys.map((fk) => {
+      const r = fk.reference()
+      return { col: r.columns[0].name, table: r.foreignTable, onDelete: fk.onDelete }
+    })
+    expect(refs).toEqual([
+      { col: 'from_assessment_id', table: assessmentInstances, onDelete: 'cascade' },
+      { col: 'to_assessment_id', table: assessmentInstances, onDelete: 'cascade' },
+    ])
   })
 })

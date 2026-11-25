@@ -15,6 +15,7 @@ const projectsDelete = vi.fn()
 const assessmentsList = vi.fn()
 const assessmentsGet = vi.fn()
 const assessmentsCreate = vi.fn()
+const assessmentsSetLinks = vi.fn()
 
 vi.mock('../../src/api', () => ({
   projects: {
@@ -29,6 +30,7 @@ vi.mock('../../src/api', () => ({
     },
     get: (...a: unknown[]) => assessmentsGet(...a),
     create: (...a: unknown[]) => assessmentsCreate(...a),
+    setLinks: (...a: unknown[]) => assessmentsSetLinks(...a),
   },
 }))
 
@@ -109,6 +111,7 @@ beforeEach(() => {
   assessmentsList.mockReset()
   assessmentsGet.mockReset()
   assessmentsCreate.mockReset()
+  assessmentsSetLinks.mockReset()
   parseAndValidateImport.mockReset()
   importFromPdf.mockReset()
   detectImportType.mockReset()
@@ -470,8 +473,8 @@ describe('ProjectDetail', () => {
       expect(wrapper.text()).toContain('Selecteer een pre-scan')
     })
 
-    it('errors when the selected pre-scan has no answers (undefined state)', async () => {
-      assessmentsGet.mockResolvedValue({ id: 'ps1' })
+    it('links the chosen pre-scan to the new DPIA instead of copying its answers', async () => {
+      assessmentsCreate.mockResolvedValue({ id: 'dpia-new' })
       const wrapper = await mountDetail({
         project: makeProject({ role: 'owner' }),
         assessments: [makeAssessment({ id: 'ps1', assessmentType: 'prescan', name: 'PS1' })],
@@ -482,80 +485,12 @@ describe('ProjectDetail', () => {
       await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
       await flushPromises()
       await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
-      await flushPromises()
       await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
       await flushPromises()
-      expect(wrapper.text()).toContain('De geselecteerde pre-scan bevat geen ingevulde gegevens')
-    })
 
-    it('errors when the selected pre-scan has empty answers object', async () => {
-      assessmentsGet.mockResolvedValue({ id: 'ps1', state: { answers: {} } })
-      const wrapper = await mountDetail({
-        project: makeProject({ role: 'owner' }),
-        assessments: [makeAssessment({ id: 'ps1', assessmentType: 'prescan', name: 'PS1' })],
-      })
-      await wrapper.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      const dialog = wrapper.find('dialog.start-dialog')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
-      await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
-      await flushPromises()
-      await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      expect(wrapper.text()).toContain('De geselecteerde pre-scan bevat geen ingevulde gegevens')
-    })
-
-    it('takes over answers from a plain (non-namespaced) pre-scan', async () => {
-      assessmentsGet.mockResolvedValue({ id: 'ps1', state: { answers: { '0.1': { value: 'x' } } } })
-      assessmentsCreate.mockResolvedValue({ id: 'dpia-from-ps' })
-      const wrapper = await mountDetail({
-        project: makeProject({ role: 'owner' }),
-        assessments: [makeAssessment({ id: 'ps1', assessmentType: 'prescan', name: 'PS1' })],
-      })
-      await wrapper.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      const dialog = wrapper.find('dialog.start-dialog')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
-      await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
-      await flushPromises()
-      await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      expect(assessmentsCreate).toHaveBeenCalledWith(
-        'p1',
-        'dpia',
-        undefined,
-        expect.objectContaining({ _prescanAnswers: { '0.1': { value: 'x' } }, answers: {} }),
-      )
-      expect(routerPush).toHaveBeenCalledWith('/assessment/dpia-from-ps')
-    })
-
-    it('unwraps an old namespace-wrapped pre-scan ({ prescan: {...} })', async () => {
-      assessmentsGet.mockResolvedValue({
-        id: 'ps1',
-        state: { answers: { prescan: { '0.1': { value: 'wrapped' } } } },
-      })
-      assessmentsCreate.mockResolvedValue({ id: 'dpia2' })
-      const wrapper = await mountDetail({
-        project: makeProject({ role: 'owner' }),
-        assessments: [makeAssessment({ id: 'ps1', assessmentType: 'prescan', name: 'PS1' })],
-      })
-      await wrapper.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      const dialog = wrapper.find('dialog.start-dialog')
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'prescan-project')!.setValue()
-      await flushPromises()
-      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'ps1')!.setValue()
-      await flushPromises()
-      await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
-      await flushPromises()
-      expect(assessmentsCreate).toHaveBeenCalledWith(
-        'p1',
-        'dpia',
-        undefined,
-        expect.objectContaining({ _prescanAnswers: { '0.1': { value: 'wrapped' } } }),
-      )
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'dpia')
+      expect(assessmentsSetLinks).toHaveBeenCalledWith('dpia-new', ['ps1'])
+      expect(routerPush).toHaveBeenCalledWith('/assessment/dpia-new')
     })
 
     it('errors when import option chosen without a file', async () => {
@@ -595,10 +530,13 @@ describe('ProjectDetail', () => {
       expect(routerPush).toHaveBeenCalledWith('/assessment/dpia-import')
     })
 
-    it('imports a pre-scan file (detectImportType=prescan) and wraps it as _prescanAnswers', async () => {
+    it('adds an imported pre-scan file to the project and links it to the new DPIA', async () => {
       detectImportType.mockReturnValue('prescan')
-      parseAndValidateImport.mockReturnValue({ answers: { '0.1': { value: 'p' } } })
-      assessmentsCreate.mockResolvedValue({ id: 'dpia-from-import-ps' })
+      const imported = { answers: { '0.1': { value: 'p' } } }
+      parseAndValidateImport.mockReturnValue(imported)
+      assessmentsCreate
+        .mockResolvedValueOnce({ id: 'ps-import' })
+        .mockResolvedValueOnce({ id: 'dpia-new' })
       const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
       await wrapper.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
       await flushPromises()
@@ -606,7 +544,7 @@ describe('ProjectDetail', () => {
       await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'import')!.setValue()
       await flushPromises()
 
-      const file = new File([JSON.stringify({ answers: { '0.1': { value: 'p' } } })], 'ps.json', { type: 'application/json' })
+      const file = new File([JSON.stringify(imported)], 'Pre-scan klantportaal.json', { type: 'application/json' })
       const fileInput = dialog.find('input[type="file"]')
       Object.defineProperty(fileInput.element, 'files', { value: [file], configurable: true })
       await fileInput.trigger('change')
@@ -614,12 +552,10 @@ describe('ProjectDetail', () => {
 
       await dialog.findAll('button').find((b) => b.text() === 'Start DPIA')!.trigger('click')
       await flushPromises()
-      expect(assessmentsCreate).toHaveBeenCalledWith(
-        'p1',
-        'dpia',
-        undefined,
-        expect.objectContaining({ _prescanAnswers: { '0.1': { value: 'p' } }, answers: {} }),
-      )
+      expect(assessmentsCreate).toHaveBeenNthCalledWith(1, 'p1', 'prescan', 'Pre-scan klantportaal', imported)
+      expect(assessmentsCreate).toHaveBeenNthCalledWith(2, 'p1', 'dpia')
+      expect(assessmentsSetLinks).toHaveBeenCalledWith('dpia-new', ['ps-import'])
+      expect(routerPush).toHaveBeenCalledWith('/assessment/dpia-new')
     })
 
     it('surfaces a thrown error message via dialogError', async () => {
@@ -936,6 +872,40 @@ describe('ProjectDetail', () => {
       await flushPromises()
       expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama')
       expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
+    })
+
+    it('starts an IAMA linked to a DPIA of the project', async () => {
+      assessmentsCreate.mockResolvedValue({ id: 'iama-new' })
+      const wrapper = await mountDetail({
+        project: makeProject({ role: 'owner' }),
+        assessments: [makeAssessment({ id: 'dpia1', assessmentType: 'dpia', name: 'DPIA Klantportaal' })],
+      })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      const dialog = wrapper.find('dialog.start-dialog')
+      const start = () => dialog.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'dpia-project')!.setValue()
+      await flushPromises()
+
+      await start()
+      await flushPromises()
+      expect(wrapper.text()).toContain('Selecteer een DPIA')
+      expect(assessmentsCreate).not.toHaveBeenCalled()
+
+      expect(dialog.text()).toContain('DPIA Klantportaal')
+      await dialog.findAll('input[type="radio"]').find((r) => (r.element as HTMLInputElement).value === 'dpia1')!.setValue()
+      await start()
+      await flushPromises()
+      expect(assessmentsCreate).toHaveBeenCalledWith('p1', 'iama')
+      expect(assessmentsSetLinks).toHaveBeenCalledWith('iama-new', ['dpia1'])
+      expect(routerPush).toHaveBeenCalledWith('/assessment/iama-new')
+    })
+
+    it('offers no DPIA to link to when the project has none', async () => {
+      const wrapper = await mountDetail({ project: makeProject({ role: 'owner' }) })
+      await wrapper.findAll('button').find((b) => b.text() === 'Start IAMA')!.trigger('click')
+      await flushPromises()
+      expect(wrapper.find('input[value="dpia-project"]').exists()).toBe(false)
     })
 
     it('errors when IAMA import is chosen without a file', async () => {

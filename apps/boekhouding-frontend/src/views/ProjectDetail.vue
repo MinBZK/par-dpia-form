@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { projects as projectsApi, assessments as assessmentsApi, type Project, type AssessmentInstance } from '../api'
-import { FormType, type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
+import { type AssessmentState, parseAndValidateImport, importFromPdf, detectImportType, autoGrowTextarea } from '@overheid-assessment/core'
 import { IconUsers, IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { usePaginatedList } from '../composables/usePaginatedList'
@@ -28,8 +28,9 @@ const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 const startDialogRef = ref<HTMLDialogElement | null>(null)
 const dialogOpen = ref(false)
 const dialogAssessmentType = ref<'dpia' | 'prescan' | 'iama'>('dpia')
-const dialogOption = ref<'empty' | 'prescan-project' | 'import' | 'prescan-json-upload'>('empty')
+const dialogOption = ref<'empty' | 'prescan-project' | 'dpia-project' | 'import' | 'prescan-json-upload'>('empty')
 const selectedPrescanId = ref<string | null>(null)
+const selectedDpiaId = ref<string | null>(null)
 const uploadFile = ref<File | null>(null)
 const dialogError = ref<string | null>(null)
 const dialogSubmitting = ref(false)
@@ -61,6 +62,10 @@ const isOwner = computed(() => project.value?.role === 'owner')
 
 const existingPrescans = computed(() =>
   assessmentList.value.filter(a => a.assessmentType === 'prescan')
+)
+
+const existingDpias = computed(() =>
+  assessmentList.value.filter(a => a.assessmentType === 'dpia')
 )
 
 const loadError = ref<string | null>(null)
@@ -138,6 +143,7 @@ const openStartDialog = (assessmentType: 'dpia' | 'prescan' | 'iama') => {
   dialogAssessmentType.value = assessmentType
   dialogOption.value = 'empty'
   selectedPrescanId.value = null
+  selectedDpiaId.value = null
   uploadFile.value = null
   dialogError.value = null
   dialogSubmitting.value = false
@@ -185,15 +191,13 @@ const assertImportTypeMatches = (
   }
 }
 
-/** Build a DPIA initial state that embeds pre-scan answers for cross-referencing.
- *  Pre-scan answers go in a separate `_prescanAnswers` field (not inside `answers`)
- *  so they don't collide with DPIA flat-format answers and usePreScanReferences
- *  can load them into the PRE_SCAN namespace. The DPIA starts with empty answers. */
-const buildPrescanState = (prescanAnswers: Record<string, unknown>): Record<string, unknown> => ({
-  metadata: { createdAt: new Date().toISOString() },
-  answers: {},
-  _prescanAnswers: prescanAnswers,
-})
+// Create an assessment and link it to others of this project: the new one then
+// shows their answers where the questions overlap (see AssessmentEditor).
+const createLinked = async (assessmentType: 'dpia' | 'iama', linkTo: string[]) => {
+  const form = await assessmentsApi.create(props.projectId, assessmentType)
+  await assessmentsApi.setLinks(form.id, linkTo)
+  router.push(`/assessment/${form.id}`)
+}
 
 const submitDialog = async () => {
   dialogError.value = null
@@ -223,25 +227,12 @@ const submitDpiaDialog = async () => {
   }
 
   if (dialogOption.value === 'prescan-project') {
-    // Option 2a: Take over answers from a project pre-scan
+    // Option 2a: link a pre-scan of this project; the DPIA reads it live
     if (!selectedPrescanId.value) {
       dialogError.value = 'Selecteer een pre-scan'
       return
     }
-    const prescanForm = await assessmentsApi.get(selectedPrescanId.value)
-    const prescanState = prescanForm.state as Record<string, unknown> | undefined
-    let prescanAnswers = prescanState?.answers as Record<string, unknown> | undefined
-    // Unwrap old namespace-wrapped format: { prescan: { "0.1": ... } } → { "0.1": ... }
-    if (prescanAnswers?.[FormType.PRE_SCAN] && typeof prescanAnswers[FormType.PRE_SCAN] === 'object') {
-      prescanAnswers = prescanAnswers[FormType.PRE_SCAN] as Record<string, unknown>
-    }
-    if (!prescanAnswers || Object.keys(prescanAnswers).length === 0) {
-      dialogError.value = 'De geselecteerde pre-scan bevat geen ingevulde gegevens'
-      return
-    }
-    const initialState = buildPrescanState(prescanAnswers)
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
-    router.push(`/assessment/${form.id}`)
+    await createLinked('dpia', [selectedPrescanId.value])
     return
   }
 
@@ -255,13 +246,17 @@ const submitDpiaDialog = async () => {
     assertImportTypeMatches(state, ['dpia', 'prescan'])
     const importType = detectImportType(state as unknown as Record<string, unknown>)
 
-    // Pre-scan file imported to start a DPIA: wrap answers under prescan
-    // namespace so usePreScanReferences can find them; DPIA starts empty.
-    const initialState = importType === 'prescan'
-      ? buildPrescanState(state.answers as Record<string, unknown>)
-      : state
+    if (importType === 'prescan') {
+      // A pre-scan file becomes a pre-scan of the project, linked to the new
+      // DPIA, so it can be opened and kept up to date like any other.
+      const prescan = await assessmentsApi.create(
+        props.projectId, 'prescan', uploadFile.value.name.replace(/\.(json|pdf)$/i, ''), state,
+      )
+      await createLinked('dpia', [prescan.id])
+      return
+    }
 
-    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, initialState)
+    const form = await assessmentsApi.create(props.projectId, 'dpia', undefined, state)
     router.push(`/assessment/${form.id}`)
     return
   }
@@ -272,6 +267,17 @@ const submitIamaDialog = async () => {
     // Option 1: Start with empty IAMA
     const form = await assessmentsApi.create(props.projectId, 'iama')
     router.push(`/assessment/${form.id}`)
+    return
+  }
+
+  if (dialogOption.value === 'dpia-project') {
+    // Option 2: an IAMA linked to a DPIA of this project; each shows the
+    // other's answers where the two overlap.
+    if (!selectedDpiaId.value) {
+      dialogError.value = 'Selecteer een DPIA'
+      return
+    }
+    await createLinked('iama', [selectedDpiaId.value])
     return
   }
 
@@ -512,7 +518,7 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />
             <span class="start-dialog__option-label">
               Importeer een bestaande DPIA of pre-scan
-              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Pre-scan antwoorden worden automatisch overgenomen naar de DPIA.</span>
+              <span class="start-dialog__option-hint">Upload een JSON- of PDF-bestand en werk verder. Een pre-scan wordt als pre-scan aan het project toegevoegd en aan de DPIA gekoppeld.</span>
             </span>
           </label>
 
@@ -534,6 +540,25 @@ const formatDate = (dateStr: string) =>
             <input type="radio" v-model="dialogOption" value="empty" name="startOption" />
             <span class="start-dialog__option-label">Start een nieuwe IAMA</span>
           </label>
+
+          <label v-if="existingDpias.length > 0" class="start-dialog__option">
+            <input type="radio" v-model="dialogOption" value="dpia-project" name="startOption" />
+            <span class="start-dialog__option-label">
+              Start een nieuwe IAMA bij een DPIA uit dit project
+              <span class="start-dialog__option-hint">Waar IAMA en DPIA overlappen, zie je de antwoorden uit de andere.</span>
+            </span>
+          </label>
+
+          <div v-if="dialogOption === 'dpia-project' && existingDpias.length > 0" class="start-dialog__sub-options">
+            <label
+              v-for="dpia in existingDpias"
+              :key="dpia.id"
+              class="start-dialog__option"
+            >
+              <input type="radio" v-model="selectedDpiaId" :value="dpia.id" name="dpiaChoice" />
+              <span class="start-dialog__option-label">{{ dpia.name }} <span class="rvo-text--sm rvo-text--subtle">({{ formatDate(dpia.updatedAt) }})</span></span>
+            </label>
+          </div>
 
           <label class="start-dialog__option">
             <input type="radio" v-model="dialogOption" value="import" name="startOption" />

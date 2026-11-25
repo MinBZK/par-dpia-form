@@ -58,6 +58,10 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
   let instancesDirty = false
   let pinnedNamespace: string | null = namespace ?? null
+  // Pre-scan answers a DPIA started before links existed carries as a copy.
+  // Linked pre-scans are loaded live instead, so this copy is only passed on
+  // unchanged, never rebuilt from the store.
+  let legacyPrescanAnswers: Record<string, unknown> | undefined
 
   let resolveCallback: ((resolutions: Map<string, 'mine' | 'theirs'>) => void) | null = null
 
@@ -97,14 +101,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
         : state.answers,
     }
 
-    // Preserve pre-scan answers in a separate field so usePreScanReferences
-    // can cross-reference them after reload.
-    if (ns === FormType.DPIA) {
-      const prescanAnswers = answerStore.answers[FormType.PRE_SCAN]
-      if (prescanAnswers && Object.keys(prescanAnswers).length > 0) {
-        apiState._prescanAnswers = prescanAnswers
-      }
-    }
+    if (legacyPrescanAnswers) apiState._prescanAnswers = legacyPrescanAnswers
 
     return apiState
   }
@@ -794,6 +791,12 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       const form = await assessments.get(assessmentId)
       knownVersion.value = form.currentVersion
       knownUpdatedAt.value = form.updatedAt
+
+      // The copy sits in _prescanAnswers, or in the oldest format under
+      // answers.prescan, which normalizeServerResponse drops from the answers.
+      const raw = form.state as Record<string, unknown> | undefined
+      const legacy = raw?._prescanAnswers ?? (raw?.answers as Record<string, unknown> | undefined)?.[FormType.PRE_SCAN]
+      legacyPrescanAnswers = legacy && typeof legacy === 'object' ? legacy as Record<string, unknown> : undefined
 
       if (form.state && Object.keys(form.state).length > 0) {
         return normalizeServerResponse(form.state)
