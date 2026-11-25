@@ -142,10 +142,21 @@ describe('an unsent edit after a colleague’s change is merged', () => {
     await type('1.1.2', 'mijn tekst')
     colleagueSaves({ '1.1.1': 'collega' })
     await p.sync.handleRemoteChange(sectionOf('1.1.1'))
-    p.flushSave!()
 
     p.sync.applyDeferredOnNavigate()
     await p.saveAppState()
+
+    expect(serverAnswers()).toEqual({ '1.1.1': 'collega', '1.1.2': 'mijn tekst' })
+  })
+
+  it('goes out when the form flushes while a colleague’s change is deferred', async () => {
+    const { p, sectionOf, type } = await openEditor()
+    await type('1.1.2', 'mijn tekst')
+    colleagueSaves({ '1.1.1': 'collega' })
+    await p.sync.handleRemoteChange(sectionOf('1.1.1'))
+
+    p.flushSave!()
+    await pastDebounce()
 
     expect(serverAnswers()).toEqual({ '1.1.1': 'collega', '1.1.2': 'mijn tekst' })
   })
