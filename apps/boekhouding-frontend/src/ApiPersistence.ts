@@ -803,6 +803,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     if (debounceTimer) {
       clearTimeout(debounceTimer)
       debounceTimer = null
+      saveAppState()
     }
   }
 

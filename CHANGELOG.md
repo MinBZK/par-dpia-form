@@ -47,6 +47,9 @@ build) staan kort onder "Onder de motorkap".
   ook voor een keuze voor je eigen versie in het conflictvenster. Zo'n
   wijziging bleef liggen tot je opnieuw iets aanpaste, en ging verloren als je
   het venster eerder sloot.
+* Een wijziging die je vlak voor het wisselen van sectie of het verlaten van
+  het assessment maakt, wordt nu direct opgeslagen. Typte je binnen een halve
+  seconde voor zo'n klik, dan bleef die wijziging liggen of ging ze verloren.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
