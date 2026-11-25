@@ -90,6 +90,9 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
+* Een editor slaat alleen nog op zolang de gegevens in beeld bij zijn eigen
+  assessment horen. Dat is een extra vangnet tegen het overschrijven van een
+  ander assessment.
 * Twee guards in CI houden de beveiligingsinstellingen op hun plek: de build
   valt om als nginx ooit weer door de Alpine-variant wordt vervangen, en een
   check bewaakt dat de security-headers van de website en de API niet
