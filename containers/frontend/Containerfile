@@ -1,5 +1,5 @@
 # Stage 1: build
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS build
+FROM node:26-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS build
 
 RUN npm install --global corepack@0.35.0 && corepack enable && corepack prepare pnpm@11.23.0+sha512.f00082e5b283a199b74e079da28d155c008fe232f44c8a06ea7ddfa014ecf719fc362f790ecc67b28106ddac2afb24c49a9a079159da560b2ce7d1e98efd11af --activate
 
@@ -44,15 +44,33 @@ RUN node -e "const d = new Date(); d.setUTCFullYear(d.getUTCFullYear() + 1); pro
     > /app/security-txt-expires
 
 # Stage 2: unprivileged nginx voor statische bestanden
-FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:11f3f6249b4ae3d7a4ec2a51797060107b88ead52b33b6ed3c6c33f55ca96200
+FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6
 
 # `apk upgrade` pulls signed Alpine patches at build time: the digest above pins
 # the image to whatever musl/OpenSSL it shipped with until Dependabot bumps it.
 # --ignore nginx: Alpine ships an identically versioned nginx package, so a
 # blanket upgrade swaps out nginx.org's binary for Alpine's, which is built with
 # --prefix=/var/lib/nginx and no --error-log-path.
+#
+# nginx itself therefore has to come from nginx.org's own Alpine repository. The
+# base image installs it from there with the version pinned in /etc/apk/world
+# and leaves the signing key in /etc/apk/keys, but not the repository, so a
+# fixed nginx only arrives with a new base image. NGINX_PKG_VERSION bridges
+# that gap: when the base image still ships an older nginx, this installs the
+# named nginx.org build. Once the base image has caught up the step does
+# nothing, and the ARG can be removed (Dependabot does not bump it).
+# 1.30.7-r1: six CVEs (4 critical) in 1.30.6, base image unchanged since 19 Oct 2026.
+ARG NGINX_PKG_VERSION=1.30.7-r1
 USER root
-RUN apk upgrade --no-cache --ignore nginx && rm -rf /var/cache/apk/*
+RUN apk upgrade --no-cache --ignore nginx \
+    && installed="$(apk list --installed nginx | sed -n 's/^nginx-\([0-9][^ ]*\) .*/\1/p')" \
+    && [ -n "$installed" ] \
+    && if [ "$(apk version -t "$installed" "$NGINX_PKG_VERSION")" = "<" ]; then \
+         apk add --no-cache \
+           -X "https://nginx.org/packages/alpine/v$(cut -d. -f1,2 /etc/alpine-release)/main" \
+           "nginx=${NGINX_PKG_VERSION}"; \
+       fi \
+    && rm -rf /var/cache/apk/*
 # Fails the build if nginx is ever the Alpine package again: --ignore protects
 # silently, and losing it cost months of production alerts before anyone looked.
 RUN nginx -V 2>&1 | grep -q -- '--prefix=/etc/nginx'
