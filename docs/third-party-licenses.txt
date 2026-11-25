@@ -417,7 +417,7 @@ fast-uri@3.1.8 [license(s): BSD-3-Clause]
 ├── package.json:  BSD-3-Clause
 └── license files: BSD-3-Clause
 
-fastify@5.12.5 [license(s): MIT]
+fastify@5.12.6 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
@@ -445,7 +445,7 @@ fp-ts@2.16.11 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-glob@13.0.6 [license(s): BlueOak-1.0.0]
+glob@13.0.7 [license(s): BlueOak-1.0.0]
 ├── package.json:  BlueOak-1.0.0
 └── license files: BlueOak-1.0.0
 
@@ -481,7 +481,7 @@ io-ts@2.2.22 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
-ip-address@10.7.3 [license(s): MIT]
+ip-address@10.7.5 [license(s): MIT]
 ├── package.json:  MIT
 └── license files: MIT
 
