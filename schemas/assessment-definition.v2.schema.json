@@ -162,7 +162,8 @@
                                                 "one-to-one",
                                                 "one-to-many",
                                                 "many-to-one",
-                                                "many-to-many"
+                                                "many-to-many",
+                                                "suggestion"
                                             ],
                                             "description": "The type of reference"
                                         }

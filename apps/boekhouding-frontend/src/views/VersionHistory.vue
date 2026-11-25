@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { assessments as assessmentsApi, type AssessmentVersion, type VersionEdit } from '../api'
-import { useTaskStore, useAnswerStore, useSchemaStore, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
+import { useTaskStore, useAnswerStore, useSchemaStore, FORM_TYPE_BY_NAME, FormType, getPlainTextWithoutDefinitions, autoGrowTextarea, OUTPUT_SCHEMA_URL, isImageValue, parseFieldUrn, parseInstanceId } from '@overheid-assessment/core'
 import { IconDotsVertical } from '@tabler/icons-vue'
 import AppHeader from '../components/AppHeader.vue'
 import { escapeHtml, stripHtml } from '../utils/html'
@@ -62,6 +62,13 @@ const openMenuField = ref<string | null>(null)
 const fieldRestoreDialogRef = ref<HTMLDialogElement | null>(null)
 const fieldRestoreModalOpen = ref(false)
 const fieldRestoreTarget = ref<{ fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number } | null>(null)
+
+// Namespace prefix of a field id (or a urn's namespace) to the form it belongs to.
+// Unknown values fall back to the pre-scan namespace, as the oldest exports carry
+// no namespace at all.
+function formTypeForNamespace(namespace: string | undefined): FormType {
+  return FORM_TYPE_BY_NAME[namespace as `${FormType}`] ?? FormType.PRE_SCAN
+}
 
 function openFieldRestoreModal(field: { fieldId: string; label: string; rawOldValue?: unknown; originVersion?: number }) {
   openMenuField.value = null
@@ -236,14 +243,20 @@ watch(fieldRestoreModalOpen, (open) => {
 onMounted(async () => {
   // Load schemas so task labels can be resolved in diffs
   if (!schemaStore.isInitialized) {
-    const [dpiaModule, preScanModule, iamaModule] = await Promise.all([
+    const [dpiaModule, preScanModule, iamaModule, aiiaModule] = await Promise.all([
       import('../../../../sources/generated/DPIA.json'),
       import('../../../../sources/generated/PreScanDPIA.json'),
       import('../../../../sources/generated/IAMA.json'),
+      import('../../../../sources/generated/AIIA.json'),
     ])
-    schemaStore.init({ preScan: preScanModule.default, dpia: dpiaModule.default, iama: iamaModule.default })
+    schemaStore.init({
+      preScan: preScanModule.default,
+      dpia: dpiaModule.default,
+      iama: iamaModule.default,
+      aiia: aiiaModule.default,
+    })
   }
-  for (const ns of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+  for (const ns of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA, FormType.AIIA]) {
     if (!taskStore.isInitialized[ns]) {
       const schema = schemaStore.getSchema(ns)
       if (schema) {
@@ -387,6 +400,7 @@ const namespaceLabels: Record<string, string> = {
   dpia: 'DPIA',
   prescan: 'Pre-scan DPIA',
   iama: 'IAMA',
+  aiia: 'AIIA',
 }
 
 function stripInstanceSuffix(taskId: string): string {
@@ -579,13 +593,6 @@ function toDotFieldId(fieldId: string): string {
   const parsed = parseFieldUrn(fieldId)
   if (!parsed?.namespace) return fieldId
   return `${parsed.namespace}.${parsed.key}`
-}
-
-/** Map the namespace out of a field ID onto the assessment it belongs to. */
-function formTypeForNamespace(namespace?: string): FormType {
-  if (namespace === 'dpia') return FormType.DPIA
-  if (namespace === 'iama') return FormType.IAMA
-  return FormType.PRE_SCAN
 }
 
 // Diff — fetch edits from the API instead of diffing full states

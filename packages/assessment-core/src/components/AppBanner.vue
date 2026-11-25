@@ -11,7 +11,7 @@ withDefaults(defineProps<{
   linkUrl: 'https://github.com/MinBZK/par-dpia-form',
   linkLabel: 'Bètaversie',
   title: 'Invulhulpen',
-  subtitle: 'Pre-scan, DPIA en IAMA',
+  subtitle: 'Pre-scan, DPIA, IAMA en AIIA',
   homeUrl: '#',
 })
 </script>

@@ -290,6 +290,29 @@ describe('exportToMarkdown', () => {
     expect(downloadName).toMatch(/^iama_.*\.md$/)
   })
 
+  it('exports an AIIA document with the "AIIA" heading, not the pre-scan fallback', async () => {
+    const tasks: Record<string, FlatTask> = {
+      '1': {
+        id: '1', task: 'AIIA sectie', type: ['task_group'],
+        parentId: null, childrenIds: ['1.1'],
+      },
+      '1.1': {
+        id: '1.1', task: 'Vraag', type: ['open_text'],
+        parentId: '1', childrenIds: [],
+      },
+    }
+    const instances: Record<string, TaskInstance> = {
+      '1': { id: '1', taskId: '1', groupId: 'g1', parentInstanceId: null, childInstanceIds: ['1.1'] },
+      '1.1': { id: '1.1', taskId: '1.1', groupId: 'g1', parentInstanceId: '1', childInstanceIds: [] },
+    }
+    const setup = seed(FormType.AIIA, tasks, ['1'], instances, { '1.1': answer('AIIA antwoord') })
+
+    const md = await runExport(setup)
+    expect(md).toContain('# AIIA')
+    expect(md).not.toContain('Pre-scan')
+    expect(md).toContain('AIIA antwoord')
+  })
+
   it('exports a Pre-scan document and renders array/boolean/null answer values', async () => {
     const tasks: Record<string, FlatTask> = {
       '0': {

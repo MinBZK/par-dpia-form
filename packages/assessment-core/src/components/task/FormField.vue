@@ -157,6 +157,16 @@ watch(currentValue, () => {
   })
 })
 
+// After a suggestion is adopted its button disappears; move keyboard focus to
+// the textarea. Leaving preview mode focuses it through the showPreview watcher.
+const focusAfterAdopt = () => {
+  if (showPreview.value) {
+    showPreview.value = false
+    return
+  }
+  nextTick(() => textareaRef.value?.focus())
+}
+
 // Text input and textarea handler
 const handleTextInput = (event: Event) => {
   const target = event.target as HTMLInputElement | HTMLTextAreaElement
@@ -225,9 +235,9 @@ const handleCheckboxInput = (event: Event) => {
     </div>
   </div>
 
-  <!-- Suggestions from other tasks in the same form that reference this one.
-       Renders nothing for forms without intra-form references. -->
-  <ReferenceSuggestions :task="task" />
+  <!-- Suggestions from other tasks that reference this one, in this form or another.
+       Renders nothing for a field no suggestion points at. -->
+  <ReferenceSuggestions :task="task" :instanceId="instanceId" @adopted="focusAfterAdopt" />
 
   <!-- Text input field -->
   <div v-if="hasType('text_input')" class="field-group rvo-margin-block-end--md">

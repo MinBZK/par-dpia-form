@@ -101,3 +101,19 @@ def test_validator_rejects_task_id_the_output_schema_would_drop(tmp_path):
 
     assert is_valid is False
     assert errors
+
+
+def test_validator_accepts_suggestion_reference(tmp_path):
+    source = dict(VALID_SOURCE)
+    source["tasks"] = [
+        {
+            **VALID_SOURCE["tasks"][0],
+            "references": {"IAMA": [{"id": "1.1", "type": "suggestion"}]},
+        },
+    ]
+    yaml_path = _write_yaml(tmp_path, source)
+
+    validator = SchemaValidator(REPO_ROOT)
+    is_valid, errors, _ = validator.validate_yaml(yaml_path, SCHEMA_PATH)
+
+    assert is_valid is True, errors
