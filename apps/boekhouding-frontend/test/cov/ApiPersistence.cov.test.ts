@@ -568,23 +568,56 @@ describe('setupWatchers — answers / instances / visibility / teardown', () => 
 })
 
 describe('flushSave', () => {
-  it('cancels a scheduled debounce', async () => {
+  it('saves a scheduled debounce immediately, exactly once', async () => {
     vi.useFakeTimers()
     const { answerStore } = initStores()
     mockGet.mockResolvedValue(getResponse())
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
 
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
     const teardown = p.setupWatchers()
 
-    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'x', lastEditedAt: 't' }
-    await Promise.resolve()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'vlak voor Volgende', lastEditedAt: 't' }
+    await nextTick()
+    expect(mockUpdate).not.toHaveBeenCalled()
+
     p.flushSave()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(mockUpdate.mock.calls[0][1].answers['1.1']).toEqual(
+      expect.objectContaining({ value: 'vlak voor Volgende' }),
+    )
+
     vi.advanceTimersByTime(500)
     await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    teardown()
+  })
 
-    expect(mockUpdate).not.toHaveBeenCalled()
+  it('does not save when no debounce is scheduled', async () => {
+    vi.useFakeTimers()
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValue(getResponse())
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'al opgeslagen', lastEditedAt: 't' }
+    await nextTick()
+    await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+
+    p.flushSave()
+    await vi.runAllTimersAsync()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
     teardown()
   })
 
@@ -593,6 +626,7 @@ describe('flushSave', () => {
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     expect(() => p.flushSave()).not.toThrow()
+    expect(mockUpdate).not.toHaveBeenCalled()
   })
 })
 
