@@ -30,9 +30,16 @@ export interface ConflictState {
   resolve: (resolutions: Map<string, 'mine' | 'theirs'>) => void
 }
 
+// The stores are shared by every editor in the tab. The editor that loaded last
+// owns them, and an editor that is not the owner must not save: the stores then
+// hold another assessment's answers, and its own version number still passes.
+const storeOwners = new WeakMap<object, string>()
+
 export function createApiPersistence(assessmentId: string, namespace?: string) {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
+  const claimStores = () => storeOwners.set(answerStore, assessmentId)
+  const ownsStores = () => (storeOwners.get(answerStore) ?? assessmentId) === assessmentId
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
   let retryTimer: ReturnType<typeof setTimeout> | null = null
@@ -166,7 +173,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
-    if (disposed) return
+    if (disposed || !ownsStores()) return
 
     // One PUT at a time. Two saves in flight carry the same expectedVersion, so
     // the second always loses the optimistic lock: a 409 against the user's own
@@ -305,7 +312,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return
       throw error
     }
-    if (disposed || !fresh.state) return
+    if (disposed || !ownsStores() || !fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
     const serverState = normalizeServerResponse(fresh.state)
@@ -808,6 +815,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function loadAppState(namespace: FormType): Promise<AssessmentState | null> {
+    claimStores()
     try {
       // Pin the namespace at first load — all subsequent saves, UI state,
       // and state builds will use this namespace regardless of temporary
@@ -944,6 +952,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     flushSave,
     restoreUiState,
     snapshotBaseline: () => {
+      claimStores()
       pinnedNamespace = taskStore.activeNamespace
       lastSavedState = JSON.parse(JSON.stringify(buildState()))
       instancesDirty = false

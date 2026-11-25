@@ -2526,6 +2526,47 @@ describe('teardown stops late writes', () => {
   })
 })
 
+describe('an editor whose stores another editor has claimed', () => {
+  async function twoEditors() {
+    const { answerStore } = initStores()
+    const { createApiPersistence } = await loadModule()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const first = createApiPersistence('first')
+    await first.loadAppState(FormType.DPIA)
+    first.snapshotBaseline()
+    return { answerStore, createApiPersistence, first }
+  }
+
+  it('does not save once the next editor has loaded', async () => {
+    const { answerStore, createApiPersistence, first } = await twoEditors()
+    mockGet.mockResolvedValueOnce(getResponse({ id: 'second', currentVersion: 4 }))
+    await createApiPersistence('second').loadAppState(FormType.DPIA)
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'van de tweede', lastEditedAt: 't' }
+    await first.saveAppState()
+
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('abandons a conflict merge when the next editor loads during the fetch', async () => {
+    const { answerStore, createApiPersistence, first } = await twoEditors()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('conflict', 409))
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+
+    const savePromise = first.saveAppState()
+    await Promise.resolve()
+    mockGet.mockResolvedValueOnce(getResponse({ id: 'second', currentVersion: 4 }))
+    await createApiPersistence('second').loadAppState(FormType.DPIA)
+    release(getResponse({ currentVersion: 2 }))
+    await savePromise
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(mockUpdate.mock.calls[0][0]).toBe('first')
+  })
+})
+
 function teardownTimers() {
   vi.runOnlyPendingTimers()
 }
