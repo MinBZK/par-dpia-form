@@ -42,6 +42,11 @@ build) staan kort onder "Onder de motorkap".
 * Heb je een assessment met hetzelfde account in twee tabbladen of op twee
   apparaten open, dan overschrijft een wijziging in het ene tabblad niet langer
   het werk uit het andere.
+* Werk je tegelijk met een collega in een assessment, dan wordt je eigen
+  wijziging weer opgeslagen nadat die van je collega is overgenomen. Dat gold
+  ook voor een keuze voor je eigen versie in het conflictvenster. Zo'n
+  wijziging bleef liggen tot je opnieuw iets aanpaste, en ging verloren als je
+  het venster eerder sloot.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen

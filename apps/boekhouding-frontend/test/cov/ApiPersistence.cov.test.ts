@@ -1542,7 +1542,28 @@ describe('handleRemoteChange', () => {
     expect(p.sync.knownVersion.value).toBe(8)
   })
 
-  it('rebuilds the baseline so no spurious save is re-triggered after a background merge', async () => {
+  it('does not save again after a background merge when nothing of its own is pending', async () => {
+    vi.useFakeTimers()
+    const { p } = await loaded()
+    const teardown = p.setupWatchers()
+
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 8,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '0.1': { value: 'achtergrond' } },
+      },
+    }))
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
+
+    const result = await p.sync.handleRemoteChange('1')
+    expect(result.backgroundMerged).toBe(1)
+    await vi.runAllTimersAsync()
+    expect(mockUpdate).not.toHaveBeenCalled()
+    teardown()
+  })
+
+  it('still sends an edit made before the poll once the background change is merged', async () => {
     vi.useFakeTimers()
     const { p, answerStore } = await loaded()
     const teardown = p.setupWatchers()
@@ -1559,9 +1580,42 @@ describe('handleRemoteChange', () => {
     }))
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
 
-    const result = await p.sync.handleRemoteChange('1')
-    expect(result.backgroundMerged).toBe(1)
+    await p.sync.handleRemoteChange('1')
     await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    const sent = mockUpdate.mock.calls[0][1] as { answers: Record<string, { value: unknown }> }
+    expect(sent.answers['1.1'].value).toBe('mijn lokaal')
+    expect(sent.answers['0.1'].value).toBe('achtergrond')
+    expect(mockUpdate.mock.calls[0][2]).toEqual({ expectedVersion: 8 })
+    teardown()
+  })
+
+  it('takes a colleague’s cleared answer and completed section into the baseline', async () => {
+    vi.useFakeTimers()
+    const { answerStore, taskStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 1,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '0.1': { value: 'weg', lastEditedAt: 't' } },
+      },
+    }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    p.applyAppState((await p.loadAppState(FormType.DPIA))!)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 8,
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0', completedTasks: ['0'] }, answers: {} },
+    }))
+    const result = await p.sync.handleRemoteChange('1')
+    await vi.runAllTimersAsync()
+
+    expect(result.backgroundMerged).toBe(2)
+    expect(answerStore.answers[FormType.DPIA]['0.1']).toBeUndefined()
+    expect(taskStore.completedRootTaskIds[FormType.DPIA].has('0')).toBe(true)
     expect(mockUpdate).not.toHaveBeenCalled()
     teardown()
   })
