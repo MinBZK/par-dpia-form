@@ -34,6 +34,14 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Open je na een assessment een tweede assessment van hetzelfde soort zonder de
+  pagina te herladen, dan worden de antwoorden van de eerste niet langer
+  overschreven met die van de tweede. Dit kon de antwoorden van een assessment
+  ongemerkt wissen. Een eerdere versie is via de versiegeschiedenis terug te
+  zetten.
+* Heb je een assessment met hetzelfde account in twee tabbladen of op twee
+  apparaten open, dan overschrijft een wijziging in het ene tabblad niet langer
+  het werk uit het andere.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
