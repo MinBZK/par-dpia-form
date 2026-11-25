@@ -30,11 +30,11 @@ const introText = computed(() => {
 
 const uploadText = computed(() => {
   if (taskStore.activeNamespace === FormType.DPIA) {
-    return 'Heb je al eerder een pre-scan of DPIA ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan of DPIA in deze tool ingevuld voor deze gegevensverwerking? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.';
   } else if (taskStore.activeNamespace === FormType.IAMA) {
-    return 'Heb je al eerder een IAMA ingevuld? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een IAMA in deze tool ingevuld? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.';
   } else {
-    return 'Heb je al eerder een pre-scan ingevuld voor deze gegevensverwerking? Upload het PDF- of JSON-bestand hier om verder te werken.';
+    return 'Heb je al eerder een pre-scan in deze tool ingevuld voor deze gegevensverwerking? Upload dan hier het PDF- of JSON-bestand dat je hebt geëxporteerd om verder te werken.';
   }
 })
 

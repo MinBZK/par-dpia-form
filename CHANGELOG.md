@@ -17,6 +17,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Toegevoegd
 
+* Ook als je geen eigenaar van een project bent, zie je wie er lid is en met
+  welke rol, via de knop "Leden" in het project. Leden toevoegen, rollen
+  wijzigen en leden verwijderen blijft voorbehouden aan eigenaren.
+* De pre-scan heeft een colofon, zoals de DPIA: versie, status, dossier,
+  documentbeheerder en advies FG, en een onderdeel voor vaststelling en
+  ondertekening.
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
   Bij meerdere afbeeldingen in één groep blijft de knop per afbeelding zoals
   die was.
@@ -26,6 +32,42 @@ build) staan kort onder "Onder de motorkap".
 * In de IAMA staat onder vraag 1.3.1 en 1.3.2 een optioneel veld om je keuze
   toe te lichten ([#567](https://github.com/MinBZK/par-dpia-form/issues/567)).
 
+### Gewijzigd
+
+* In de DPIA heet het veld bij persoonsgegevens (vraag 2) nu "Bron
+  persoonsgegevens" in plaats van "Bron betrokkenen", met de vraag of de
+  persoonsgegevens via een derde partij zijn gekomen.
+* Bij het inladen van een eerdere pre-scan, DPIA of IAMA staat nu dat dit
+  alleen kan met een PDF- of JSON-bestand dat je in deze invulhulp hebt
+  geëxporteerd.
+* De inleiding van de pre-scan noemt ook organisatiespecifieke afspraken over
+  het uitvoeren van een DPIA, en dat de ingevulde gegevens herbruikbaar zijn
+  voor bijvoorbeeld het verwerkingsregister, ook als er geen DPIA nodig is.
+* Bij de grondslagvraag in de pre-scan staat dat een grondslag altijd nodig is
+  en dat je bij twijfel contact opneemt met de privacyprofessional van je
+  organisatie.
+* Als je in de pre-scan aangeeft dat er een cloudoplossing wordt gebruikt,
+  wijst de invulhulp op het cloudbeleid, het contact met CIO en CTO en het
+  cloudregister.
+* Bij de vraag of het algoritme een hoog-risico AI-systeem is (pre-scan 6.1.2)
+  verwijst de toelichting naar artikel 6, bijlage I en bijlage III van de
+  AI-verordening, met links naar de officiële tekst.
+* In de pre-scan vraagt de AP-lijst nu welke van de genoemde
+  gegevensverwerkingen gaan plaatsvinden, en de EDPB-lijst welke criteria van
+  toepassing zijn. Eerder vroegen beide naar groepen of categorieën
+  betrokkenen. Bij de EDPB-lijst staat ook hoe het aantal criteria de uitkomst
+  bepaalt.
+* De resultaatpagina van de pre-scan adviseert om de resultaten te bespreken
+  met de privacyprofessional van je organisatie, en zegt dat het advies pas
+  volledig is als alle vragen zijn ingevuld.
+* Op de startpagina staat dat alleen het SSO-systeem van de Rijksoverheid is
+  aangesloten.
+* "Over Invulhulpen" noemt een e-mailadres voor vragen en tips.
+* Een klacht over de verwerking van je persoonsgegevens dien je volgens de
+  privacyverklaring eerst in bij CIO Rijk (privacy-ciorijk@minbzk.nl), daarna
+  bij de Functionaris gegevensbescherming van BZK of de Autoriteit
+  Persoonsgegevens.
+
 ### Beveiliging
 
 * Bekende kwetsbaarheden in onderdelen van de server en de invulhulp zijn
@@ -34,6 +76,22 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Een nieuwe DPIA in het formulier zonder account neemt geen antwoorden meer
+  over uit een pre-scan die je eerder in dezelfde sessie had ingevuld, en
+  "Start nieuwe DPIA" begint echt leeg. Wil je de pre-scan meenemen, laad dan
+  het geëxporteerde bestand in bij de start van de DPIA. Hetzelfde gold tussen
+  DPIA en IAMA.
+* Een pre-scan-bestand dat je bij de start van een DPIA inlaadt in het
+  formulier zonder account, vult de DPIA nu vooraf in zoals in de
+  projectomgeving. Eerder kwamen de antwoorden van de pre-scan op DPIA-vragen
+  met hetzelfde nummer terecht.
+* Begrippen die eindigen op een haakje, zoals "Lijst EDPB: Mensen beoordelen
+  met persoonskenmerken (evaluatie of scoring)", "Privacy Impact Assessment
+  (PIA)" en "Besluit (Awb)", tonen weer hun eigen definitie en toelichting.
+  Eerder verscheen de definitie van een korter begrip, zoals "Lijst EDPB".
+* De tussenresultaten van de pre-scan noemen bij "DPIA verplicht" nu ook een
+  enkele keuze uit de EDPB-lijst. Die viel weg zodra de DPIA om een andere
+  reden verplicht was, bijvoorbeeld door de AP-lijst.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen

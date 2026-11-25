@@ -15,6 +15,7 @@ const membersList = vi.fn()
 const membersAdd = vi.fn()
 const membersUpdate = vi.fn()
 const membersRemove = vi.fn()
+const projectsGet = vi.fn()
 vi.mock('../../src/api', () => ({
   members: {
     list: async (...args: unknown[]) => {
@@ -24,6 +25,9 @@ vi.mock('../../src/api', () => ({
     add: (...args: unknown[]) => membersAdd(...args),
     update: (...args: unknown[]) => membersUpdate(...args),
     remove: (...args: unknown[]) => membersRemove(...args),
+  },
+  projects: {
+    get: (...args: unknown[]) => projectsGet(...args),
   },
 }))
 
@@ -71,6 +75,8 @@ beforeEach(() => {
   membersAdd.mockResolvedValue({ userId: 'new', role: 'editor' })
   membersUpdate.mockResolvedValue(editor)
   membersRemove.mockResolvedValue(undefined)
+  projectsGet.mockReset()
+  projectsGet.mockResolvedValue({ id: 'p1', role: 'owner' })
 })
 
 describe('ProjectMembers', () => {
@@ -364,5 +370,75 @@ describe('ProjectMembers — load more', () => {
     await wrapper.find('.version-list__more button').trigger('click')
     await flushPromises()
     expect(wrapper.find('.version-list__error').text()).toContain('mislukt')
+  })
+
+  describe('read-only for a member who is not an owner', () => {
+    it('lists the members and their roles without anything to manage', async () => {
+      projectsGet.mockResolvedValue({ id: 'p1', role: 'editor' })
+      const wrapper = await mountPage()
+
+      expect(projectsGet).toHaveBeenCalledWith('p1')
+      expect(wrapper.find('h1').text()).toBe('Leden')
+      const rows = wrapper.findAll('.member-row:not(.member-row--header)')
+      expect(rows.map((row) => row.find('.member-col--role').text())).toEqual(['Project eigenaar', 'Bewerker'])
+      expect(wrapper.find('select').exists()).toBe(false)
+      expect(wrapper.find('.member-col--action').exists()).toBe(false)
+      expect(wrapper.find('form').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('Lid toevoegen')
+    })
+
+    it('shows the management controls to an owner', async () => {
+      const wrapper = await mountPage()
+
+      expect(wrapper.find('h1').text()).toBe('Leden beheren')
+      expect(wrapper.find('select').exists()).toBe(true)
+      expect(wrapper.find('form').exists()).toBe(true)
+    })
+
+    it('still lists the members, read-only, when the role cannot be read', async () => {
+      projectsGet.mockRejectedValue(new Error('netwerk'))
+      const wrapper = await mountPage()
+
+      expect(wrapper.find('.rvo-alert--error').text()).toBe('Kan niet nagaan of je leden mag beheren. Probeer het later opnieuw.')
+      expect(wrapper.findAll('.member-row:not(.member-row--header)')).toHaveLength(2)
+      expect(wrapper.find('form').exists()).toBe(false)
+    })
+
+    it('reports the member list, not the role, when both fail', async () => {
+      membersList.mockRejectedValue(new Error('netwerk'))
+      projectsGet.mockRejectedValue(new Error('netwerk'))
+      const wrapper = await mountPage()
+
+      expect(wrapper.find('.rvo-alert--error').text()).toBe('Kan leden niet laden. Probeer het later opnieuw.')
+    })
+
+    it('drops the management controls once an owner removes themselves', async () => {
+      membersList.mockResolvedValue([owner, owner2])
+      const wrapper = await mountPage()
+
+      membersList.mockRejectedValue(new Error('Geen lid van dit project'))
+      projectsGet.mockRejectedValue(new Error('Geen lid van dit project'))
+      await wrapper.findAll('button.member-delete').at(0)!.trigger('click')
+      await wrapper.findAll('button.confirm-dialog__delete').find((b) => b.text() === 'Verwijderen' && !b.classes('member-delete'))!.trigger('click')
+      await flushPromises()
+
+      expect(membersRemove).toHaveBeenCalledWith('p1', 'owner1')
+      expect(wrapper.find('form').exists()).toBe(false)
+      expect(wrapper.find('select').exists()).toBe(false)
+    })
+
+    it('drops the management controls once an owner makes themselves editor', async () => {
+      membersList.mockResolvedValue([owner, owner2])
+      const wrapper = await mountPage()
+      expect(wrapper.find('form').exists()).toBe(true)
+
+      projectsGet.mockResolvedValue({ id: 'p1', role: 'editor' })
+      await wrapper.findAll('select').at(0)!.setValue('editor')
+      await flushPromises()
+
+      expect(membersUpdate).toHaveBeenCalledWith('p1', 'owner1', 'editor')
+      expect(wrapper.find('h1').text()).toBe('Leden')
+      expect(wrapper.find('form').exists()).toBe(false)
+    })
   })
 })

@@ -1,6 +1,7 @@
 import type { AssessmentState, GroupedAnswerValue, IndexedGroupElement } from '../models/assessmentState'
 import type { TaskStoreType } from '../stores/tasks'
 import type { Answer, AnswerStoreType } from '../stores/answers'
+import { FormType, type Task } from '../models/dpia'
 import { parseInstanceId } from '../stores/tasks'
 import { flattenGroupedAnswers } from './groupedAnswers'
 import { sanitizeAnswers } from './sanitizeState'
@@ -39,6 +40,28 @@ export function applyStateToStores(
       taskStore.flatTasks[ns],
     )
   }
+}
+
+/**
+ * Load a pre-scan as the source a DPIA reads its cross-form references from:
+ * into the PRE_SCAN namespace, leaving the DPIA's own answers alone. A pre-scan
+ * file applied as the DPIA's own state would put its answers on unrelated DPIA
+ * task ids. The DPIA stays the active namespace afterwards.
+ */
+export function applyPreScanSource(
+  state: AssessmentState,
+  preScanTasks: Task[],
+  taskStore: TaskStoreType,
+  answerStore: AnswerStoreType,
+): void {
+  const active = taskStore.activeNamespace
+  taskStore.setActiveNamespace(FormType.PRE_SCAN)
+  answerStore.setActiveNamespace(FormType.PRE_SCAN)
+  taskStore.init(preScanTasks, true)
+  applyStateToStores(state, taskStore, answerStore)
+  rebuildRepeatableInstances(taskStore, answerStore, state.answers)
+  taskStore.setActiveNamespace(active)
+  answerStore.setActiveNamespace(active)
 }
 
 /**

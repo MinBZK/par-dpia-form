@@ -158,10 +158,13 @@ describe('ProjectDetail', () => {
       expect(wrapper.find('.kebab-menu').exists()).toBe(true)
     })
 
-    it('hides owner actions for a non-owner (editor)', async () => {
+    it('hides owner actions for a non-owner (editor), who can still see the members', async () => {
       const wrapper = await mountDetail({ project: makeProject({ role: 'editor' }) })
       expect(wrapper.text()).not.toContain('Leden beheren')
       expect(wrapper.find('.kebab-menu').exists()).toBe(false)
+      const btn = wrapper.findAll('button').find((b) => b.text() === 'Leden')!
+      await btn.trigger('click')
+      expect(routerPush).toHaveBeenCalledWith('/project/p1/leden')
     })
 
     it('navigates to the members page when "Leden beheren" is clicked', async () => {

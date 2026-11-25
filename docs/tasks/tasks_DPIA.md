@@ -14,7 +14,7 @@
 | 2.1.3 |     Categorie persoonsgegevens |  | text_input |  |  |
 | 2.1.4 |     Type persoonsgegeven |  | select_option | gewoon; gevoelig; bijzonder; strafrechtelijk; nationaal identificatienummer |  |
 | 2.1.5 |     Oorspronkelijk verwerkingsdoeleinde |  | text_input |  |  |
-| 2.1.6 |     Bron betrokkenen | Zijn de persoonsgegevens via een betrokken partij gekomen? | radio_option | False; True |  |
+| 2.1.6 |     Bron persoonsgegevens | Zijn de persoonsgegevens via een derde partij gekomen? | radio_option | False; True |  |
 | 2.1.7 |     Partij naam |  | text_input |  | Show if 2.1.6 |
 | 2.1.8 |     Bron tool/platform |  | text_input |  | Show if 2.1.6 |
 | 2.1.9 |     Rechtsgrond verstrekking |  | text_input |  | Show if 2.1.6 |

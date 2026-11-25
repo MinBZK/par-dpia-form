@@ -9,15 +9,16 @@ tasks:
 - task: Inleiding
   description: >-
     Met behulp van de Pre-scan DPIA beoordeelt een organisatie of er mogelijke hoge risico's bestaan voor de rechten en vrijheden van betrokkenen, zoals beschreven in de AVG.
-    Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren.<br><br>
+    Indien de beoogde verwerking een hoog risico kent voor de rechten en de vrijheden van de betrokkenen, dan is de organisatie verplicht een DPIA uit te voeren.
+    Ook kunnen er organisatiespecifieke afspraken zijn voor het uitvoeren van een DPIA.
+    Ingevulde gegevens kunnen ook worden gebruikt (indien van toepassing) voor het verwerkingsregister, register van cloudactiviteiten etc. Ook in die gevallen dat er geen DPIA nodig is geeft dit herbruikbare informatie.<br><br>
     De Pre-scan DPIA geeft inzicht in zaken zoals:<br>
     • Categorieën persoonsgegevens<br>
     • Doelen van de verwerking<br>
     • Rechtsgrond<br>
     • Proportionaliteit van de verwerking<br>
     • Bijzondere aandachtspunten zoals verwerking buiten de Europese Economische Ruimte (EER)<br><br>
-    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), en een Impact Assessment Mensenrechten en Algoritmes (IAMA)
-    en welke andere privacy producten: een verwerkersovereenkomst, Standard Contractual Clauses.<br><br>
+    Aan de hand van de Pre-scan DPIA wordt beoordeeld of een volledige DPIA nodig is, een DTIA (Data Transfer Impact Assessment), een Impact Assessment Mensenrechten en Algoritmes (IAMA), etc.<br><br>
     Om je te helpen inzicht te krijgen in de voortgang van je pre-scan, is onderaan elke pagina een uitklapbaar gedeelte 'Tussenresultaten pre-scan' toegevoegd.
     Hier zie je direct welke assessments op basis van je huidige antwoorden verplicht of aangeraden zijn.
     Zodra je voldoende informatie hebt verzameld of weet welke assessments van toepassing zijn, kun je het proces versnellen door op 'Markeer als voltooid' te klikken en vervolgens naar 'Volgende stap' te gaan.
@@ -71,7 +72,7 @@ tasks:
         - id: "5.1.1"
           type: "one-to-many"
     - task: Wat is de grondslag voor de verwerking?
-      description: De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
+      description: Om persoonsgegevens te mogen verwerken is altijd een grondslag nodig. Ook als je geen DPIA hoeft te doen. Mocht je de grondslag (nog) niet weten, neem dan (alvast) contact op met de privacyprofessional van je organisatie. De grondslag kan gebruikt worden voor paragraaf 11 van het <a href="https://www.kcbr.nl/sites/default/files/2026-08/088_T1_20260818%20Model%20DPIA%20Rijksdienst.pdf" target="_blank">Model DPIA Rijksdienst</a>.
       id: "0.4"
       repeatable: false
       type:
@@ -108,6 +109,7 @@ tasks:
              label: Nee
        - task: Selecteer een of meer van onderstaande opties
          description: >-
+            <div class="rvo-alert rvo-alert--info content-alert--flex"><span class="utrecht-icon rvo-icon rvo-icon-info rvo-icon--xl rvo-status-icon-info" role="img" aria-label="Informatie"></span><div class="rvo-alert-text">Omdat er een cloudoplossing wordt gebruikt moet er, overeenkomstig het cloudbeleid, ook contact worden opgenomen met CIO en CTO. Het cloudgebruik moet waarschijnlijk ook worden opgenomen in een cloudregister.</div></div>
             Met Infrastructure as a Service (IaaS) huurt u een IT-infrastructuur (servers en virtuele machines (VM's)), opslag, netwerken, besturingssystemen) bij een cloudprovider op basis van betaling per gebruik.
             Platform as a Service (PaaS) verwijst naar diensten die bestaan uit de levering op aanvraag van een omgeving voor het ontwikkelen, testen, leveren en beheren van softwaretoepassingen.
             Software-as-a-Service (SaaS) is een methode voor de levering op aanvraag van softwaretoepassingen via het internet, en doorgaans op basis van een abonnement.
@@ -723,7 +725,7 @@ tasks:
   - task_group
   repeatable: false
   tasks:
-  - task: Welke groepen betrokkenen kun je onderscheiden?
+  - task: Welke van de onderstaande gegevensverwerkingen gaan er plaatsvinden?
     description: >-
       Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de Autoriteit Persoonsgegevens (AP). Deze lijst bevat soorten gegevensverwerkingen waarvoor een DPIA verplicht is.
     id: "3.1"
@@ -767,10 +769,10 @@ tasks:
   - task_group
   repeatable: false
   tasks:
-  - task: Welke categorieën betrokkenen kun je onderscheiden?
+  - task: Welke van de onderstaande criteria zijn van toepassing op de gegevensverwerking?
     id: "4.1"
     description: >-
-     Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is.
+     Bij het verwerken van persoonsgegevens moet worden aangegeven of de verwerking valt onder de lijst van de EDPB. Deze lijst bevat soorten gegevensverwerkingen waarvoor mogelijk een DPIA verplicht is. Voldoet de verwerking aan twee of meer criteria, dan is een DPIA in de meeste gevallen verplicht. Bij één criterium wordt een DPIA aanbevolen.
     type:
     - checkbox_option
     options:
@@ -901,7 +903,7 @@ tasks:
       repeatable: false
     - task: Kwalificeert het algoritme als (een onderdeel van) een ‘hoog-risico AI-systeem’ volgens de EU AI-verordening?
       description: Artikel 27 van de EU AI-verordening verplicht bepaalde gebruikers van een AI-systeem met een hoog risico  die worden ingezet voor publieke taken om voorafgaand aan ingebruikneming een grondrechteneffectbeoordeling  (Fundamental Rights Impact Assessment, FRIA) uit te voeren. <br><br>
-       Raadpleeg artikel 6 en Annex III uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
+       Raadpleeg <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#art_6" target="_blank">artikel 6</a>, <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_I" target="_blank">bijlage I</a> en <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#anx_III" target="_blank">bijlage III</a> uit de AI Verordening, of de <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-verordening</a> om te bepalen wanneer sprake is van een hoog-risico AI-systeem waarvoor deze verplichting geldt.
       id: "6.1.2"
       type:
       - radio_option
@@ -1023,6 +1025,216 @@ tasks:
                 value: 1
               - when: "digitaledienst_minderjarig == 2"
                 value: 2
+# Colofon, taken over from DPIA sections 19 and 20.
+- task: Versie, Status, Dossier, Documentbeheerder en Advies FG
+  id: "8"
+  type:
+    - task_group
+  repeatable: false
+  tasks:
+    - task: Versie
+      id: "8.1"
+      type:
+        - task_group
+      repeatable: true
+      tasks:
+        - task: Pre-scan versie
+          id: "8.1.1"
+          type:
+            - text_input
+          repeatable: false
+        - task: Datum
+          id: "8.1.2"
+          type:
+            - date
+          repeatable: false
+        - task: Toelichting
+          id: "8.1.3"
+          type:
+            - text_input
+          repeatable: false
+    - task: Status
+      id: "8.2"
+      type:
+        - select_option
+      options:
+        - value: concept
+        - value: definitief
+      repeatable: false
+    - task: Dossier
+      id: "8.3"
+      type:
+        - task_group
+      repeatable: false
+      tasks:
+        - task: Grootte (aantal documenten)
+          id: "8.3.1"
+          type:
+            - text_input
+          repeatable: false
+        - task: Documenten
+          id: "8.3.2"
+          type:
+            - task_group
+          repeatable: true
+          item_name: document
+          tasks:
+            - task: Document soort
+              id: "8.3.2.1"
+              type:
+                - text_input
+              repeatable: false
+            - task: Document naam
+              id: "8.3.2.2"
+              type:
+                - text_input
+              repeatable: false
+            - task: Document versie
+              id: "8.3.2.3"
+              type:
+                - text_input
+              repeatable: false
+            - task: Document locatie
+              id: "8.3.2.4"
+              type:
+                - text_input
+              repeatable: false
+    - task: Documentbeheerder
+      id: "8.4"
+      type:
+        - task_group
+      repeatable: false
+      tasks:
+        - task: Organisatie
+          id: "8.4.1"
+          type:
+            - text_input
+          repeatable: false
+        - task: Directie
+          id: "8.4.2"
+          type:
+            - text_input
+          repeatable: false
+        - task: Afdeling
+          id: "8.4.3"
+          type:
+            - text_input
+          repeatable: false
+        - task: Naam
+          id: "8.4.4"
+          type:
+            - text_input
+          repeatable: false
+        - task: Functie
+          id: "8.4.5"
+          type:
+            - text_input
+          repeatable: false
+        - task: Opslaglocatie
+          id: "8.4.6"
+          type:
+            - text_input
+          repeatable: false
+    - task: Advies functionaris voor gegevensbescherming (FG)
+      id: "8.5"
+      type:
+        - task_group
+      repeatable: false
+      tasks:
+        - task: Organisatie
+          id: "8.5.1"
+          type:
+            - text_input
+          repeatable: false
+        - task: Directie
+          id: "8.5.2"
+          type:
+            - text_input
+          repeatable: false
+        - task: Afdeling
+          id: "8.5.3"
+          type:
+            - text_input
+          repeatable: false
+        - task: Naam
+          id: "8.5.4"
+          type:
+            - text_input
+          repeatable: false
+        - task: Functie
+          id: "8.5.5"
+          type:
+            - text_input
+          repeatable: false
+        - task: Datum advies
+          id: "8.5.6"
+          type:
+            - date
+          repeatable: false
+        - task: Advies FG in document (naam document)
+          id: "8.5.7"
+          type:
+            - open_text
+          repeatable: false
+        - task: Advies FG verwerkt in versie (versienummer)
+          id: "8.5.8"
+          type:
+            - checkbox_option
+          repeatable: false
+          dependencies:
+            - type: source_options
+              condition:
+                id: "8.1.1"
+                operator: any
+              action: options
+- task: Vaststelling en ondertekening
+  id: "9"
+  type:
+    - task_group
+  repeatable: false
+  tasks:
+    - task: Verwerkingsverantwoordelijke
+      id: "9.1"
+      type:
+        - task_group
+      repeatable: true
+      tasks:
+        - task: Organisatie
+          id: "9.1.1"
+          type:
+            - text_input
+          repeatable: false
+        - task: Directie
+          id: "9.1.2"
+          type:
+            - text_input
+          repeatable: false
+        - task: Afdeling
+          id: "9.1.3"
+          type:
+            - text_input
+          repeatable: false
+        - task: Naam
+          id: "9.1.4"
+          type:
+            - text_input
+          repeatable: false
+        - task: Functie
+          id: "9.1.5"
+          type:
+            - text_input
+          repeatable: false
+        - task: Datum ondertekening
+          description: Om de pre-scan formeel vast te stellen is het noodzakelijk deze te ondertekenen, zodat het duidelijk is dat de pre-scan door de verwerkingsverantwoordelijke(n) akkoord is bevonden.
+          id: "9.1.6"
+          type:
+            - date
+          repeatable: false
+        - task: Opgesteld door afdeling
+          id: "9.1.7"
+          type:
+            - text_input
+          repeatable: false
 assessments:
   - id: "DPIA"
     levels:
@@ -1053,6 +1265,11 @@ assessments:
           - id: "edpblist2"
             expression: "countSelectedOptions('4.1') >= 2"
             explanation: "er minimaal 2 items op de EDPB-lijst zijn geselecteerd"
+          # Not part of the verdict above; listed so the outcome still names a
+          # single EDPB item when the DPIA is already required for another reason.
+          - id: "edpblist1"
+            expression: "countSelectedOptions('4.1') == 1"
+            explanation: "er daarnaast 1 item op de EDPB-lijst is geselecteerd"
       - level: "recommended"
         expression: "criteria.edpblist1"
         result: "DPIA aanbevolen"

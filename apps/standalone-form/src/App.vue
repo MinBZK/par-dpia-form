@@ -7,6 +7,7 @@ import {
   useTaskStore,
   useAnswerStore,
   useSchemaStore,
+  applyPreScanSource,
   PERSISTENCE_KEY,
   type NavigationFunctions,
 } from '@overheid-assessment/core'
@@ -44,26 +45,37 @@ const navigateTo = (view: ViewState) => {
   currentView.value = view
 }
 
+// Answers of the other forms are cleared first: left in the store, they would
+// prefill this form through its references (a pre-scan you filled in earlier
+// ending up in a new DPIA). A DPIA then gets back only the pre-scan that was
+// uploaded for it, which it keeps with its own saved state. The form's own
+// answers stay, in case saving them failed.
+const openForm = (namespace: FormType, view: ViewState) => {
+  for (const other of [FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA]) {
+    if (other !== namespace) answerStore.answers[other] = {}
+  }
+  // The pre-scan answers in memory may be the DPIA's uploaded source rather than
+  // the user's own pre-scan: then the pre-scan form starts from its own saved
+  // state, so that source never becomes the user's pre-scan.
+  if (namespace === FormType.PRE_SCAN && persistence.loadPrescanSource()) {
+    answerStore.answers[FormType.PRE_SCAN] = {}
+  }
+  const source = namespace === FormType.DPIA ? persistence.loadPrescanSource() : null
+  if (source) {
+    taskStore.setActiveNamespace(FormType.DPIA)
+    applyPreScanSource(source, schemaStore.getSchema(FormType.PRE_SCAN)!.tasks, taskStore, answerStore)
+  }
+  taskStore.setActiveNamespace(namespace)
+  answerStore.setActiveNamespace(namespace)
+  taskStore.isInitialized[namespace] = false
+  navigateTo(view)
+}
+
 const navigationFunctions: NavigationFunctions = {
   goToLanding: () => navigateTo(ViewState.Landing),
-  goToDPIA: () => {
-    taskStore.setActiveNamespace(FormType.DPIA)
-    answerStore.setActiveNamespace(FormType.DPIA)
-    taskStore.isInitialized[FormType.DPIA] = false
-    navigateTo(ViewState.DPIA)
-  },
-  goToPreScanDPIA: () => {
-    taskStore.setActiveNamespace(FormType.PRE_SCAN)
-    answerStore.setActiveNamespace(FormType.PRE_SCAN)
-    taskStore.isInitialized[FormType.PRE_SCAN] = false
-    navigateTo(ViewState.PreScanDPIA)
-  },
-  goToIAMA: () => {
-    taskStore.setActiveNamespace(FormType.IAMA)
-    answerStore.setActiveNamespace(FormType.IAMA)
-    taskStore.isInitialized[FormType.IAMA] = false
-    navigateTo(ViewState.IAMA)
-  },
+  goToDPIA: () => openForm(FormType.DPIA, ViewState.DPIA),
+  goToPreScanDPIA: () => openForm(FormType.PRE_SCAN, ViewState.PreScanDPIA),
+  goToIAMA: () => openForm(FormType.IAMA, ViewState.IAMA),
 }
 
 // "Nieuwe starten": discard the saved session, then open a fresh form.
@@ -74,11 +86,17 @@ const goByType: Record<FormType, () => void> = {
 }
 const startFresh = (type: FormType) => {
   persistence.clearSavedState(type)
+  answerStore.answers[type] = {}
   goByType[type]()
 }
 
 // Wiping every namespace at once, for someone leaving a shared computer.
 const clearAll = () => {
+  // Also what is still in memory: the next person on this computer must not see
+  // it. The task store first, so the save watcher sees no open form and does not
+  // write the emptied state straight back.
+  taskStore.reset()
+  answerStore.reset()
   ;[FormType.PRE_SCAN, FormType.DPIA, FormType.IAMA].forEach((type) => persistence.clearSavedState(type))
   refreshCachedTypes()
 }
