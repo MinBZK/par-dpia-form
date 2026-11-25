@@ -155,11 +155,11 @@ watch(
     if (!polledVersion || !assessment.value) return
     if (polledVersion === sync.knownVersion.value && polledUpdatedAt === sync.knownUpdatedAt.value) return
 
-    // Own change — only bookkeeping needed, no UI
-    if (collaborationStore.lastModifiedBySelf) {
-      if (sync.knownVersion.value === undefined || polledVersion > sync.knownVersion.value) {
-        sync.knownVersion.value = polledVersion
-      }
+    // "Self" means this account, not this tab: a newer version can come from another
+    // tab or device and has to be fetched like a colleague's, or the next save here
+    // overwrites it while passing the version check.
+    const alreadyHeld = sync.knownVersion.value !== undefined && polledVersion <= sync.knownVersion.value
+    if (collaborationStore.lastModifiedBySelf && alreadyHeld) {
       if (polledUpdatedAt) {
         sync.knownUpdatedAt.value = polledUpdatedAt
       }
