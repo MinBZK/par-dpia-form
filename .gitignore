@@ -50,6 +50,9 @@ __pycache__/
 # Generated assessment JSON (built from sources/*.yaml)
 sources/generated/
 
+# Generated question overviews (run_all.py --output-md), see docs/PDR/0013
+docs/questions/
+
 # Playwright
 .playwright-mcp
 
