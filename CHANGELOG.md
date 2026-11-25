@@ -15,6 +15,8 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+## [2026.11.25]
+
 ### Toegevoegd
 
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
@@ -61,6 +63,15 @@ build) staan kort onder "Onder de motorkap".
 * De titelpagina van de PDF noemt de invulhulpen voor pre-scan, DPIA en IAMA,
   in plaats van de oude naam "DPIA Rapportagemodel Editor".
 
+### Onder de motorkap
+
+* Een editor slaat alleen nog op zolang de gegevens in beeld bij zijn eigen
+  assessment horen. Dat is een extra vangnet tegen het overschrijven van een
+  ander assessment.
+* De boekhouding-frontend doorstaat de volledige type-check weer. Achttien
+  typefouten in de opslaglogica en de versiegeschiedenis zijn opgelost, zonder
+  gedragsverandering.
+
 ## [2026.8.25]
 
 ### Gewijzigd
@@ -90,12 +101,6 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
-* Een editor slaat alleen nog op zolang de gegevens in beeld bij zijn eigen
-  assessment horen. Dat is een extra vangnet tegen het overschrijven van een
-  ander assessment.
-* De boekhouding-frontend doorstaat de volledige type-check weer. Achttien
-  typefouten in de opslaglogica en de versiegeschiedenis zijn opgelost, zonder
-  gedragsverandering.
 * Twee guards in CI houden de beveiligingsinstellingen op hun plek: de build
   valt om als nginx ooit weer door de Alpine-variant wordt vervangen, en een
   check bewaakt dat de security-headers van de website en de API niet
@@ -519,7 +524,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.25...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.11.25...HEAD
+[2026.11.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.11.25
 [2026.8.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.25
 [2026.8.24]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.24
 [2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20
