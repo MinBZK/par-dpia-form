@@ -13,9 +13,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@nl-rvo/assets": "^1.2.1",
-    "@nl-rvo/component-library-css": "5.1.0",
-    "@nl-rvo/design-tokens": "2.5.1",
+    "@nl-rvo/assets": "^1.0.0-alpha.360",
+    "@nl-rvo/component-library-css": "4.20.3",
+    "@nl-rvo/design-tokens": "2.4.2",
     "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.52.0",
     "keycloak-js": "^26.2.5",
