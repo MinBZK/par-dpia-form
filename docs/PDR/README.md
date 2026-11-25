@@ -29,6 +29,7 @@ PDRs helpen ons om:
 | [0008](0008-backend-in-typescript.md) | Architectuur | Backend in TypeScript | Geaccepteerd | 2026-08-22 |
 | [0009](0009-IAMA-afwijkingen-invulhulp-ten-opzichte-van-iama-v2.md) | IAMA | Afwijkingen invulhulp IAMA ten opzichte van IAMA v2 | Voorgesteld | 2026-10-05 |
 | [0010](0010-IAMA-aanpassingen-op-basis-van-gebruikersonderzoek.md) | IAMA | Aanpassingen invulhulp IAMA op basis van gebruikersonderzoek | Voorgesteld | 2026-10-05 |
+| [0013](0013-vragenoverzichten-niet-in-de-repository.md) | Documentatie | Vragenoverzichten niet in de repository | Voorgesteld | 2026-11-23 |
 
 ## Template
 
