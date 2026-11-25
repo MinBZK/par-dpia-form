@@ -9,15 +9,13 @@ uv run --frozen --no-dev python script/run_all.py \
   --schema schemas/assessment-definition.v2.schema.json \
   --source sources/prescan.yaml \
   --begrippen-yaml sources/begrippenkader_dpia.yaml \
-  --output-json sources/generated/PreScanDPIA.json \
-  --output-md docs/questions/questions_prescan.md
+  --output-json sources/generated/PreScanDPIA.json
 
 uv run --frozen --no-dev python script/run_all.py \
   --schema schemas/assessment-definition.v2.schema.json \
   --source sources/dpia.yaml \
   --begrippen-yaml sources/begrippenkader_dpia.yaml \
-  --output-json sources/generated/DPIA.json \
-  --output-md docs/questions/questions_DPIA.md
+  --output-json sources/generated/DPIA.json
 
 uv run --frozen --no-dev python script/run_all.py \
   --schema schemas/assessment-definition.v2.schema.json \
