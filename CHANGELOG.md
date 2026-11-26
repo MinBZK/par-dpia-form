@@ -15,6 +15,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* In de uitkomst van de pre-scan sluiten de redenen onder "Een ... wordt
+  aanbevolen omdat:" weer aan op die kop. Bij het IAMA stond er een regel die
+  het advies herhaalde in plaats van een reden te geven
+  ([#323](https://github.com/MinBZK/par-dpia-form/issues/323)).
+
 ## [2026.11.25]
 
 ### Toegevoegd
