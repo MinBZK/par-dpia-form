@@ -299,7 +299,8 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/projects/${project.id}/assessments`,
-      headers: authHeader(await tokenFor(owner)),
+      // The auth middleware syncs displayName from the token's name claim.
+      headers: authHeader(await tokenFor(owner, { name: owner.displayName })),
     })
     expect(res.statusCode).toBe(200)
     const body = res.json()
@@ -323,7 +324,7 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     const res = await app.inject({
       method: 'GET',
       url: `/api/v1/projects/${project.id}/assessments`,
-      headers: authHeader(await tokenFor(owner)),
+      headers: authHeader(await tokenFor(owner, { name: 'Eigenaar' })),
     })
     expect(res.statusCode).toBe(200)
     const names = Object.fromEntries(
