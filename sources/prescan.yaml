@@ -1059,7 +1059,7 @@ assessments:
         criteria:
           - id: "edpblist1"
             expression: "countSelectedOptions('4.1') == 1"
-            explanation: "omdat er precies 1 item op de EDPB-lijst is geselecteerd."
+            explanation: "er precies 1 item op de EDPB-lijst is geselecteerd"
   - id: "DTIA"
     levels:
       - level: "required"
@@ -1080,22 +1080,19 @@ assessments:
         criteria:
           - id: "digitale_dienst"
             expression: "bool(answers('7.1.1'))"
-            explanation: "Er een digitale dienst wordt aangeboden"
+            explanation: "er een digitale dienst wordt aangeboden"
           - id: "minderjarigen"
             expression: "bool(answers('7.1.2'))"
-            explanation: "Deze primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
+            explanation: "de dienst primair bedoeld is voor gebruik door personen jonger dan 18 jaar"
   - id: "IAMA"
     levels:
       - level: "recommended"
         expression: "criteria.hoog_risico_ai || criteria.impactvol_algoritme"
-        result: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
+        result: "IAMA aanbevolen"
         criteria:
           - id: "hoog_risico_ai"
             expression: "bool(answers('6.1.2'))"
-            explanation: "Er gebruik wordt gemaakt van een hoog risico AI-systeem"
+            explanation: "er gebruik wordt gemaakt van een hoog risico AI-systeem"
           - id: "impactvol_algoritme"
             expression: "bool(answers('6.1.3'))"
-            explanation: "Er gebruik wordt gemaakt van een impactvol algoritme"
-          - id: "impact_grondrechten"
-            expression: "bool(answers('6.1.2')) || bool(answers('6.1.3'))"
-            explanation: "Het IAMA is aanbevolen om de impact op grondrechten in kaart te brengen."
+            explanation: "er gebruik wordt gemaakt van een impactvol algoritme"
