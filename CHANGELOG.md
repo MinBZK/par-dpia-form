@@ -15,6 +15,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Onder de motorkap
+
+* Een bron (`sources`) in de vragenlijsten moet een beschrijving hebben. Die
+  dient als alt-tekst van de afbeelding; zonder beschrijving faalt de
+  bronvalidatie nu, in plaats van stil een afbeelding zonder alt-tekst op te
+  leveren ([#555](https://github.com/MinBZK/par-dpia-form/issues/555)).
+
 ## [2026.11.25]
 
 ### Toegevoegd

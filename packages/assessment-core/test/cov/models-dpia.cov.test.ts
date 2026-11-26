@@ -27,7 +27,7 @@ describe('codecs decode valid values', () => {
           id: '2.1',
           type: ['text_input'],
           options: [{ value: 'email', label: 'E-mailadres' }, { value: true }, { value: null }],
-          sources: [{ source: 'AVG art. 5', description: 'Beginselen verwerking' }, { source: 'AVG art. 6' }],
+          sources: [{ source: 'AVG art. 5', description: 'Beginselen verwerking' }, { source: 'AVG art. 6', description: 'Grondslagen' }],
           dependencies: [
             {
               type: 'visibility',
@@ -80,9 +80,11 @@ describe('codecs decode valid values', () => {
     expect(isRight(result)).toBe(true)
   })
 
-  it('decodes Source with and without description', () => {
-    expect(isRight(dpia.Source.decode({ source: 'AVG art. 35' }))).toBe(true)
+  // The description is the alt text of a source image; without it a screen
+  // reader announces the file name (#555).
+  it('decodes Source only with a description', () => {
     expect(isRight(dpia.Source.decode({ source: 'AVG art. 35', description: 'DPIA-verplichting' }))).toBe(true)
+    expect(isLeft(dpia.Source.decode({ source: 'AVG art. 35' }))).toBe(true)
   })
 
   it('decodes Option value union variants', () => {
