@@ -13,27 +13,27 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@nl-rvo/assets": "^1.0.0-alpha.360",
-    "@nl-rvo/component-library-css": "4.20.3",
-    "@nl-rvo/design-tokens": "2.4.2",
+    "@nl-rvo/assets": "^1.2.1",
+    "@nl-rvo/component-library-css": "5.0.3",
+    "@nl-rvo/design-tokens": "2.5.2",
     "@overheid-assessment/core": "workspace:*",
     "@tabler/icons-vue": "^3.52.0",
     "keycloak-js": "^26.2.5",
-    "pdfmake": "^0.3.14",
+    "pdfmake": "^0.3.15",
     "pinia": "^4.1.0",
-    "vue": "^3.5.45",
+    "vue": "^3.5.46",
     "vue-router": "^5.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.11",
-    "@vitest/coverage-istanbul": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.1",
     "@vue/test-utils": "^2.6.0",
     "@vue/tsconfig": "^0.9.1",
     "jsdom": "^31.0.0",
-    "npm-run-all2": "^9.0.4",
+    "npm-run-all2": "^9.1.0",
     "typescript": "~5.9.3",
     "vite": "^8.3.8",
-    "vitest": "^5.1.0",
+    "vitest": "^5.1.1",
     "vue-tsc": "^3.3.14"
   }
 }
