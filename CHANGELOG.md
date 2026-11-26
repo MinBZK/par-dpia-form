@@ -15,6 +15,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Toegevoegd
+
+* Op de projectpagina staat bij elke assessment wie hem heeft aangemaakt en
+  wanneer. Zo is te zien waar een onverwachte assessment, zoals een tweede
+  IAMA, vandaan komt
+  ([#633](https://github.com/MinBZK/par-dpia-form/issues/633)).
+
 ## [2026.11.25]
 
 ### Toegevoegd

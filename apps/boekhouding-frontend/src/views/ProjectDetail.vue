@@ -412,6 +412,9 @@ const formatDate = (dateStr: string) =>
           >
             <div class="rvo-card__content">
               <h3 class="utrecht-heading-3 rvo-margin--none text-clamp-2">{{ item.name }}</h3>
+              <p class="rvo-text--sm rvo-text--subtle rvo-margin-block-end--none">
+                Aangemaakt<template v-if="item.createdByName"> door {{ item.createdByName }}</template> op {{ formatDate(item.createdAt) }}
+              </p>
               <p class="rvo-text--sm rvo-text--subtle">Laatst bewerkt: {{ formatDate(item.updatedAt) }}</p>
             </div>
           </router-link>
