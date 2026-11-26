@@ -1028,11 +1028,11 @@ tasks:
           - task: >-
               Is het algoritme een hoog-risico AI-systeem in de zin van de
               AI-verordening? Zo ja, toets dan of is voldaan aan de eisen van
-              hoofdstuk 2 van de AI-verordening.
+              <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#cpt_III.sct_2" target="_blank">hoofdstuk III, afdeling 2 van de AI-verordening</a>.
             description: >-
-              De <a href="https://minbzk.github.io/Algoritmekader/ai-verordening/" target="_blank">Beslishulp AI-Verordening</a> kan worden gebruikt om te bepalen in welke risicocategorie het algoritme valt.
+              De <a href="https://algoritmes.overheid.nl/nl/algoritmekader/ai-verordening/beslishulp-ai-verordening" target="_blank">Beslishulp AI-Verordening</a> kan worden gebruikt om te bepalen in welke risicocategorie het algoritme valt.
 
-              Is er sprake van een hoog-risico AI-systeem, toets dan op een ander moment of is voldaan aan de eisen van hoofdstuk 2 van de AI- verordening. Maak hier eventueel een actiepunt van.
+              Is er sprake van een hoog-risico AI-systeem, toets dan op een ander moment of is voldaan aan de eisen van <a href="https://eur-lex.europa.eu/legal-content/NL/TXT/HTML/?uri=OJ:L_202401689#cpt_III.sct_2" target="_blank">hoofdstuk III, afdeling 2 van de AI-verordening</a>. Maak hier eventueel een actiepunt van.
             id: "4.2.1"
             type:
               - open_text
