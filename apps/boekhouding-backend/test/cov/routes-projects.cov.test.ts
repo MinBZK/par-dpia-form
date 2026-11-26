@@ -306,9 +306,30 @@ describe('GET /api/v1/projects/:projectId/assessments (list assessments)', () =>
     expect(body).toHaveLength(1)
     expect(body[0].id).toBe(a.id)
     expect(body[0].name).toBe('A1')
+    expect(body[0].createdByName).toBe(owner.displayName)
     // The list must not return the full assessment content.
     expect(body[0].cachedState).toBeUndefined()
     expect(body[0].state).toBeUndefined()
+  })
+
+  it('names the member who created each assessment, not the requester', async () => {
+    const owner = await createUser({ displayName: 'Eigenaar' })
+    const editor = await createUser({ displayName: 'Collega' })
+    const project = await projectWithRole(owner, 'owner')
+    await addMember(project.id, editor.id, 'editor')
+    const byOwner = await createAssessment(project.id, owner.id, { name: 'Eerste' })
+    const byEditor = await createAssessment(project.id, editor.id, { name: 'Tweede' })
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/projects/${project.id}/assessments`,
+      headers: authHeader(await tokenFor(owner)),
+    })
+    expect(res.statusCode).toBe(200)
+    const names = Object.fromEntries(
+      res.json().map((a: { id: string; createdByName: string }) => [a.id, a.createdByName]),
+    )
+    expect(names).toEqual({ [byOwner.id]: 'Eigenaar', [byEditor.id]: 'Collega' })
   })
 })
 

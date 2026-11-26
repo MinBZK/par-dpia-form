@@ -141,6 +141,8 @@ export interface AssessmentInstance {
   projectId: string
   assessmentType: 'dpia' | 'prescan' | 'iama'
   name: string
+  /** Display name of the member who created it; only set by the project list. */
+  createdByName?: string
   currentVersion: number
   createdAt: string
   updatedAt: string

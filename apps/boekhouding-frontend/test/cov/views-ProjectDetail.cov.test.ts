@@ -1054,6 +1054,27 @@ describe('ProjectDetail', () => {
   })
 })
 
+describe('ProjectDetail — origin of each assessment', () => {
+  it('shows who created each assessment and when', async () => {
+    const wrapper = await mountDetail({
+      assessments: [
+        makeAssessment({ id: 'a1', name: 'IAMA 2', createdByName: 'Collega', createdAt: '2026-11-25T10:00:00Z' }),
+      ],
+    })
+    const card = wrapper.find('.card-link')
+    expect(card.text()).toContain('Aangemaakt door Collega op 25 november 2026')
+  })
+
+  it('shows only the creation date when the creator name is missing', async () => {
+    const wrapper = await mountDetail({
+      assessments: [makeAssessment({ id: 'a1', createdAt: '2026-11-25T10:00:00Z' })],
+    })
+    const text = wrapper.find('.card-link').text()
+    expect(text).toContain('Aangemaakt op 25 november 2026')
+    expect(text).not.toContain('Aangemaakt door')
+  })
+})
+
 describe('ProjectDetail — load more', () => {
   const mountRaw = async () => {
     const wrapper = mount(ProjectDetail, {

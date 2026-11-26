@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { db } from '../db/connection.js'
-import { projects, projectMembers, assessmentInstances, assessmentVersions, assessmentEdits } from '../db/schema.js'
+import { users, projects, projectMembers, assessmentInstances, assessmentVersions, assessmentEdits } from '../db/schema.js'
 import { eq, and, asc, desc, count } from 'drizzle-orm'
 import { requireAuth } from '../middleware/auth.js'
 import { requireProjectAccess } from '../middleware/projectAccess.js'
@@ -187,11 +187,15 @@ export async function projectRoutes(app: FastifyInstance) {
         assessmentType: assessmentInstances.assessmentType,
         name: assessmentInstances.name,
         createdBy: assessmentInstances.createdBy,
+        // Shown on the project page so members can see who started an
+        // assessment (an unexpected "IAMA 2" otherwise has no visible origin).
+        createdByName: users.displayName,
         currentVersion: assessmentInstances.currentVersion,
         createdAt: assessmentInstances.createdAt,
         updatedAt: assessmentInstances.updatedAt,
       })
       .from(assessmentInstances)
+      .innerJoin(users, eq(assessmentInstances.createdBy, users.id))
       .where(eq(assessmentInstances.projectId, projectId))
       .orderBy(desc(assessmentInstances.updatedAt), asc(assessmentInstances.id))
       .limit(limit)
