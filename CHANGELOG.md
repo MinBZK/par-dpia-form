@@ -15,6 +15,12 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Gewijzigd
+
+* In de IAMA linkt vraag 4.2.1 nu rechtstreeks naar de eisen voor hoog-risico
+  AI-systemen in de AI-verordening op EUR-Lex. De link naar de Beslishulp
+  AI-verordening gaat naar de nieuwe plek op algoritmes.overheid.nl.
+
 ### Opgelost
 
 * In de IAMA verwijst vraag 4.2.1 over hoog-risico AI-systemen nu naar de
