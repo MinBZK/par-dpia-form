@@ -568,23 +568,56 @@ describe('setupWatchers — answers / instances / visibility / teardown', () => 
 })
 
 describe('flushSave', () => {
-  it('cancels a scheduled debounce', async () => {
+  it('saves a scheduled debounce immediately, exactly once', async () => {
     vi.useFakeTimers()
     const { answerStore } = initStores()
     mockGet.mockResolvedValue(getResponse())
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
 
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
     const teardown = p.setupWatchers()
 
-    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'x', lastEditedAt: 't' }
-    await Promise.resolve()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'vlak voor Volgende', lastEditedAt: 't' }
+    await nextTick()
+    expect(mockUpdate).not.toHaveBeenCalled()
+
     p.flushSave()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(mockUpdate.mock.calls[0][1].answers['1.1']).toEqual(
+      expect.objectContaining({ value: 'vlak voor Volgende' }),
+    )
+
     vi.advanceTimersByTime(500)
     await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    teardown()
+  })
 
-    expect(mockUpdate).not.toHaveBeenCalled()
+  it('does not save when no debounce is scheduled', async () => {
+    vi.useFakeTimers()
+    const { answerStore } = initStores()
+    mockGet.mockResolvedValue(getResponse())
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 2 }))
+
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    await p.loadAppState(FormType.DPIA)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'al opgeslagen', lastEditedAt: 't' }
+    await nextTick()
+    await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+
+    p.flushSave()
+    await vi.runAllTimersAsync()
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
     teardown()
   })
 
@@ -593,6 +626,7 @@ describe('flushSave', () => {
     const { createApiPersistence } = await loadModule()
     const p = createApiPersistence('a1')
     expect(() => p.flushSave()).not.toThrow()
+    expect(mockUpdate).not.toHaveBeenCalled()
   })
 })
 
@@ -1542,7 +1576,28 @@ describe('handleRemoteChange', () => {
     expect(p.sync.knownVersion.value).toBe(8)
   })
 
-  it('rebuilds the baseline so no spurious save is re-triggered after a background merge', async () => {
+  it('does not save again after a background merge when nothing of its own is pending', async () => {
+    vi.useFakeTimers()
+    const { p } = await loaded()
+    const teardown = p.setupWatchers()
+
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 8,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '0.1': { value: 'achtergrond' } },
+      },
+    }))
+    mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
+
+    const result = await p.sync.handleRemoteChange('1')
+    expect(result.backgroundMerged).toBe(1)
+    await vi.runAllTimersAsync()
+    expect(mockUpdate).not.toHaveBeenCalled()
+    teardown()
+  })
+
+  it('still sends an edit made before the poll once the background change is merged', async () => {
     vi.useFakeTimers()
     const { p, answerStore } = await loaded()
     const teardown = p.setupWatchers()
@@ -1559,9 +1614,42 @@ describe('handleRemoteChange', () => {
     }))
     mockUpdate.mockResolvedValue(getResponse({ currentVersion: 9 }))
 
-    const result = await p.sync.handleRemoteChange('1')
-    expect(result.backgroundMerged).toBe(1)
+    await p.sync.handleRemoteChange('1')
     await vi.runAllTimersAsync()
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    const sent = mockUpdate.mock.calls[0][1] as { answers: Record<string, { value: unknown }> }
+    expect(sent.answers['1.1'].value).toBe('mijn lokaal')
+    expect(sent.answers['0.1'].value).toBe('achtergrond')
+    expect(mockUpdate.mock.calls[0][2]).toEqual({ expectedVersion: 8 })
+    teardown()
+  })
+
+  it('takes a colleague’s cleared answer and completed section into the baseline', async () => {
+    vi.useFakeTimers()
+    const { answerStore, taskStore } = initStores()
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 1,
+      state: {
+        metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0' },
+        answers: { '0.1': { value: 'weg', lastEditedAt: 't' } },
+      },
+    }))
+    const { createApiPersistence } = await loadModule()
+    const p = createApiPersistence('a1')
+    p.applyAppState((await p.loadAppState(FormType.DPIA))!)
+    p.snapshotBaseline()
+    const teardown = p.setupWatchers()
+
+    mockGet.mockResolvedValueOnce(getResponse({
+      currentVersion: 8,
+      state: { metadata: { createdAt: '2026-01-01', urn: 'urn:nl:dpia:3.0', completedTasks: ['0'] }, answers: {} },
+    }))
+    const result = await p.sync.handleRemoteChange('1')
+    await vi.runAllTimersAsync()
+
+    expect(result.backgroundMerged).toBe(2)
+    expect(answerStore.answers[FormType.DPIA]['0.1']).toBeUndefined()
+    expect(taskStore.completedRootTaskIds[FormType.DPIA].has('0')).toBe(true)
     expect(mockUpdate).not.toHaveBeenCalled()
     teardown()
   })
@@ -2435,6 +2523,47 @@ describe('teardown stops late writes', () => {
 
     expect(await remotePromise).toMatchObject({ backgroundMerged: 0, activeSectionChanges: [] })
     expect(answerStore.answers[FormType.DPIA]['1.1']).toBeUndefined()
+  })
+})
+
+describe('an editor whose stores another editor has claimed', () => {
+  async function twoEditors() {
+    const { answerStore } = initStores()
+    const { createApiPersistence } = await loadModule()
+    mockGet.mockResolvedValueOnce(getResponse({ currentVersion: 1 }))
+    const first = createApiPersistence('first')
+    await first.loadAppState(FormType.DPIA)
+    first.snapshotBaseline()
+    return { answerStore, createApiPersistence, first }
+  }
+
+  it('does not save once the next editor has loaded', async () => {
+    const { answerStore, createApiPersistence, first } = await twoEditors()
+    mockGet.mockResolvedValueOnce(getResponse({ id: 'second', currentVersion: 4 }))
+    await createApiPersistence('second').loadAppState(FormType.DPIA)
+
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'van de tweede', lastEditedAt: 't' }
+    await first.saveAppState()
+
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('abandons a conflict merge when the next editor loads during the fetch', async () => {
+    const { answerStore, createApiPersistence, first } = await twoEditors()
+    answerStore.answers[FormType.DPIA]['1.1'] = { value: 'mijn', lastEditedAt: 't' }
+    mockUpdate.mockRejectedValueOnce(new MockApiError('conflict', 409))
+    let release!: (v: unknown) => void
+    mockGet.mockReturnValueOnce(new Promise(resolve => { release = resolve }))
+
+    const savePromise = first.saveAppState()
+    await Promise.resolve()
+    mockGet.mockResolvedValueOnce(getResponse({ id: 'second', currentVersion: 4 }))
+    await createApiPersistence('second').loadAppState(FormType.DPIA)
+    release(getResponse({ currentVersion: 2 }))
+    await savePromise
+
+    expect(mockUpdate).toHaveBeenCalledTimes(1)
+    expect(mockUpdate.mock.calls[0][0]).toBe('first')
   })
 })
 

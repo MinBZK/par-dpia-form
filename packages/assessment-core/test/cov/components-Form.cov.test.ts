@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { watch } from 'vue'
 
 const exportToJsonMock = vi.fn()
 const exportToPdfMock = vi.fn<() => Promise<void>>()
@@ -256,19 +257,56 @@ describe('Form.vue onMounted initialization', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
-  it('takes the truthy teardown branch when setupWatchers returns a function', async () => {
+  it('runs the teardown from setupWatchers when the form unmounts', async () => {
     const teardown = vi.fn()
     const persistence = makePersistence({ teardown })
     const { wrapper } = await mountForm({ persistence })
 
     expect(persistence.setupWatchers).toHaveBeenCalledTimes(1)
-    expect(() => wrapper.unmount()).not.toThrow()
+    expect(teardown).not.toHaveBeenCalled()
+    wrapper.unmount()
+    expect(teardown).toHaveBeenCalledTimes(1)
   })
 
   it('does not register teardown when setupWatchers returns undefined', async () => {
     const persistence = makePersistence({ teardown: undefined })
     const { wrapper } = await mountForm({ persistence })
     expect(() => wrapper.unmount()).not.toThrow()
+  })
+
+  it('stops the watchers setupWatchers created once the form unmounts', async () => {
+    const onAnswersChange = vi.fn()
+    const persistence = makePersistence()
+    persistence.setupWatchers = vi.fn(() => {
+      watch(() => useAnswerStore().answers, onAnswersChange, { deep: true, flush: 'sync' })
+    })
+    const { wrapper } = await mountForm({ persistence })
+
+    useAnswerStore().setAnswer('0.1', 'voor unmount')
+    expect(onAnswersChange).toHaveBeenCalledTimes(1)
+
+    wrapper.unmount()
+    useAnswerStore().setAnswer('0.1', 'na unmount')
+    expect(onAnswersChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves the stores alone when it unmounts before the saved state arrives', async () => {
+    let resolveLoad: (v: AssessmentState | null) => void = () => {}
+    const persistence = makePersistence({
+      loadAppStateImpl: () => new Promise<AssessmentState | null>((res) => { resolveLoad = res }),
+    })
+    const wrapper = mount(Form, {
+      props: { navigation: makeNavigation(), namespace: FormType.DPIA, validData: makeValidData() },
+      global: { provide: { [PERSISTENCE_KEY as symbol]: persistence }, stubs },
+    })
+
+    wrapper.unmount()
+    resolveLoad({ metadata: { createdAt: '2026-03-20T12:00:00Z' }, answers: { '0.1': { value: 'oud' } } })
+    await flushPromises()
+
+    expect(persistence.applyAppState).not.toHaveBeenCalled()
+    expect(persistence.snapshotBaseline).not.toHaveBeenCalled()
+    expect(persistence.setupWatchers).not.toHaveBeenCalled()
   })
 })
 

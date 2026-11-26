@@ -1093,27 +1093,49 @@ describe('AssessmentEditor — remote change watcher', () => {
     wrapper.unmount()
   })
 
-  it('bookkeeps own change and bumps known version when newer', async () => {
+  const noRemoteChanges = {
+    changeId: 0, activeSectionChanges: [], activeSectionFieldLabels: [], backgroundMerged: 0, backgroundSectionLabels: [],
+  }
+
+  // The same account in another tab or on another device: without fetching that
+  // content, the next save here would overwrite it while passing the version check.
+  it('fetches a newer version made by the same account instead of only bumping the known version', async () => {
     collaborationStore.lastModifiedBySelf = true
     sync.knownVersion.value = 2
+    sync.handleRemoteChange.mockResolvedValue(noRemoteChanges)
     const wrapper = await boot()
     collaborationStore.assessmentVersion = 5
     collaborationStore.assessmentUpdatedAt = '2026-03-03T00:00:00Z'
-    await nextTick()
-    expect(sync.handleRemoteChange).not.toHaveBeenCalled()
-    expect(sync.knownVersion.value).toBe(5)
-    expect(sync.knownUpdatedAt.value).toBe('2026-03-03T00:00:00Z')
+    await flushPromises()
+    expect(sync.handleRemoteChange).toHaveBeenCalledTimes(1)
+    expect(sync.knownVersion.value).toBe(2)
     wrapper.unmount()
   })
 
-  it('bookkeeps own change when knownVersion is undefined', async () => {
+  it('fetches an own change when no version is known yet', async () => {
     collaborationStore.lastModifiedBySelf = true
     sync.knownVersion.value = undefined
+    sync.handleRemoteChange.mockResolvedValue(noRemoteChanges)
     const wrapper = await boot()
     collaborationStore.assessmentVersion = 9
     collaborationStore.assessmentUpdatedAt = '2026-03-04T00:00:00Z'
+    await flushPromises()
+    expect(sync.handleRemoteChange).toHaveBeenCalledTimes(1)
+    expect(sync.knownVersion.value).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('only updates the timestamp for an own change to a version this tab already holds', async () => {
+    collaborationStore.lastModifiedBySelf = true
+    sync.knownVersion.value = 5
+    sync.knownUpdatedAt.value = '2026-03-03T00:00:00Z'
+    const wrapper = await boot()
+    collaborationStore.assessmentVersion = 5
+    collaborationStore.assessmentUpdatedAt = '2026-03-03T00:05:00Z'
     await nextTick()
-    expect(sync.knownVersion.value).toBe(9)
+    expect(sync.handleRemoteChange).not.toHaveBeenCalled()
+    expect(sync.knownVersion.value).toBe(5)
+    expect(sync.knownUpdatedAt.value).toBe('2026-03-03T00:05:00Z')
     wrapper.unmount()
   })
 

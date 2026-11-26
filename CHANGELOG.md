@@ -15,6 +15,15 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Onder de motorkap
+
+* Een bron (`sources`) in de vragenlijsten moet een beschrijving hebben. Die
+  dient als alt-tekst van de afbeelding; zonder beschrijving faalt de
+  bronvalidatie nu, in plaats van stil een afbeelding zonder alt-tekst op te
+  leveren ([#555](https://github.com/MinBZK/par-dpia-form/issues/555)).
+
+## [2026.11.25]
+
 ### Toegevoegd
 
 * Een geüploade afbeelding kan je nu ook verwijderen, niet alleen vervangen.
@@ -34,6 +43,22 @@ build) staan kort onder "Onder de motorkap".
 
 ### Opgelost
 
+* Open je na een assessment een tweede assessment van hetzelfde soort zonder de
+  pagina te herladen, dan worden de antwoorden van de eerste niet langer
+  overschreven met die van de tweede. Dit kon de antwoorden van een assessment
+  ongemerkt wissen. Een eerdere versie is via de versiegeschiedenis terug te
+  zetten.
+* Heb je een assessment met hetzelfde account in twee tabbladen of op twee
+  apparaten open, dan overschrijft een wijziging in het ene tabblad niet langer
+  het werk uit het andere.
+* Werk je tegelijk met een collega in een assessment, dan wordt je eigen
+  wijziging weer opgeslagen nadat die van je collega is overgenomen. Dat gold
+  ook voor een keuze voor je eigen versie in het conflictvenster. Zo'n
+  wijziging bleef liggen tot je opnieuw iets aanpaste, en ging verloren als je
+  het venster eerder sloot.
+* Een wijziging die je vlak voor het wisselen van sectie of het verlaten van
+  het assessment maakt, wordt nu direct opgeslagen. Typte je binnen een halve
+  seconde voor zo'n klik, dan bleef die wijziging liggen of ging ze verloren.
 * De pre-scan weegt de vragen over categorieën betrokkenen en basisregistraties
   weer mee in de risicoscore. Die telden voor nul, ongeacht de aangevinkte
   antwoorden; een pre-scan kan nu op "DPIA verplicht" uitkomen waar eerder geen
@@ -47,10 +72,12 @@ build) staan kort onder "Onder de motorkap".
 
 ### Onder de motorkap
 
-* Een bron (`sources`) in de vragenlijsten moet een beschrijving hebben. Die
-  dient als alt-tekst van de afbeelding; zonder beschrijving faalt de
-  bronvalidatie nu, in plaats van stil een afbeelding zonder alt-tekst op te
-  leveren ([#555](https://github.com/MinBZK/par-dpia-form/issues/555)).
+* Een editor slaat alleen nog op zolang de gegevens in beeld bij zijn eigen
+  assessment horen. Dat is een extra vangnet tegen het overschrijven van een
+  ander assessment.
+* De boekhouding-frontend doorstaat de volledige type-check weer. Achttien
+  typefouten in de opslaglogica en de versiegeschiedenis zijn opgelost, zonder
+  gedragsverandering.
 
 ## [2026.8.25]
 
@@ -504,7 +531,8 @@ build) staan kort onder "Onder de motorkap".
 
 * Projectopzet en eerste dependency-configuratie.
 
-[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.8.25...HEAD
+[Unreleased]: https://github.com/MinBZK/par-dpia-form/compare/v2026.11.25...HEAD
+[2026.11.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.11.25
 [2026.8.25]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.25
 [2026.8.24]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.8.24
 [2026.6.20]: https://github.com/MinBZK/par-dpia-form/releases/tag/v2026.6.20

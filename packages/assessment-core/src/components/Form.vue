@@ -24,7 +24,7 @@ import { exportToPdf } from '../utils/pdfExport'
 import { rebuildRepeatableInstances } from '../utils/applyState'
 import { PERSISTENCE_KEY } from '../persistence'
 import * as t from 'io-ts'
-import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, effectScope, inject, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   navigation: NavigationFunctions
@@ -62,6 +62,13 @@ const hideReconcile = useConditionalHideReconcile()
 // Inject persistence provider
 const persistence = inject(PERSISTENCE_KEY)!
 
+// Code after the await in onMounted runs without an active component instance:
+// a lifecycle hook registered there is dropped and a watcher created there is
+// never stopped, so it would keep saving the next assessment's stores into this one.
+const persistenceScope = effectScope()
+let teardownPersistence: (() => void) | void
+let unmounted = false
+
 // Initialize tasks on component mount
 onMounted(async () => {
   try {
@@ -77,6 +84,7 @@ onMounted(async () => {
 
     // Step 2: Load saved state from persistence provider.
     const savedState = await persistence.loadAppState(props.namespace)
+    if (unmounted) return
 
     // Step 3: Initialize task structure.
     taskStore.init(props.validData.tasks)
@@ -114,8 +122,7 @@ onMounted(async () => {
     }
 
     // Step 7: Set up watchers for automatic saving (after snapshot).
-    const teardown = persistence.setupWatchers()
-    if (teardown) onBeforeUnmount(teardown)
+    teardownPersistence = persistenceScope.run(() => persistence.setupWatchers())
 
   } catch (e: unknown) {
     if (e instanceof Error) {
@@ -131,6 +138,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   formStarted.value = false
   if (persistence.flushSave) persistence.flushSave()
+  unmounted = true
+  persistenceScope.stop()
+  teardownPersistence?.()
 })
 
 // Sync instances whenever answers change

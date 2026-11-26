@@ -30,9 +30,16 @@ export interface ConflictState {
   resolve: (resolutions: Map<string, 'mine' | 'theirs'>) => void
 }
 
-export function createApiPersistence(assessmentId: string, namespace?: string) {
+// The stores are shared by every editor in the tab. The editor that loaded last
+// owns them, and an editor that is not the owner must not save: the stores then
+// hold another assessment's answers, and its own version number still passes.
+const storeOwners = new WeakMap<object, string>()
+
+export function createApiPersistence(assessmentId: string, namespace?: FormType) {
   const answerStore = useAnswerStore()
   const taskStore = useTaskStore()
+  const claimStores = () => storeOwners.set(answerStore, assessmentId)
+  const ownsStores = () => (storeOwners.get(answerStore) ?? assessmentId) === assessmentId
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null
   let retryTimer: ReturnType<typeof setTimeout> | null = null
@@ -57,7 +64,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   let lastSavedState: AssessmentState | null = null
   const pendingChanges = new Map<string, { key: string; value: unknown }>()
   let instancesDirty = false
-  let pinnedNamespace: string | null = namespace ?? null
+  let pinnedNamespace: FormType | null = namespace ?? null
 
   let resolveCallback: ((resolutions: Map<string, 'mine' | 'theirs'>) => void) | null = null
 
@@ -132,6 +139,30 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     } catch { /* ignore parse errors */ }
   }
 
+  // The baseline mirrors what the server holds. Merging a colleague's change has to
+  // move it field by field: rebuilding it from the stores would count this tab's
+  // unsent edits as saved, and the next save would find nothing to send.
+  function applyToBaseline(changes: { fieldId: string; newValue: unknown }[]) {
+    const baseline: AssessmentState = lastSavedState
+      ? JSON.parse(JSON.stringify(lastSavedState))
+      : { metadata: { createdAt: new Date().toISOString() }, answers: {} }
+    const answers = baseline.answers as Record<string, unknown>
+    const completed = new Set(baseline.metadata.completedTasks ?? [])
+    for (const { fieldId, newValue } of changes) {
+      if (fieldId.startsWith('completed.')) {
+        const taskId = fieldId.substring('completed.'.length)
+        if (newValue === true) completed.add(taskId)
+        else completed.delete(taskId)
+      } else if (newValue === null) {
+        delete answers[fieldId]
+      } else {
+        answers[fieldId] = newValue
+      }
+    }
+    baseline.metadata.completedTasks = Array.from(completed)
+    lastSavedState = baseline
+  }
+
   function updatePendingChanges() {
     if (!lastSavedState) return
     const diff = computeFieldDiff(lastSavedState, buildState())
@@ -142,7 +173,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
   }
 
   async function saveAppState(): Promise<void> {
-    if (disposed) return
+    if (disposed || !ownsStores()) return
 
     // One PUT at a time. Two saves in flight carry the same expectedVersion, so
     // the second always loses the optimistic lock: a 409 against the user's own
@@ -281,7 +312,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       if (error instanceof SessionExpiredError) return
       throw error
     }
-    if (disposed || !fresh.state) return
+    if (disposed || !ownsStores() || !fresh.state) return
 
     // Normalize server state (keeps grouped format for instance rebuild)
     const serverState = normalizeServerResponse(fresh.state)
@@ -633,7 +664,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     // Sync version tracking even when changes are deferred — prevents re-triggering on the next poll.
     knownVersion.value = fresh.currentVersion
     knownUpdatedAt.value = fresh.updatedAt
-    lastSavedState = JSON.parse(JSON.stringify(buildState()))
+    applyToBaseline(backgroundFields.map(([fieldId, change]) => ({ fieldId, newValue: change.newValue })))
 
     if (activeSectionFields.length > 0) {
       deferredServerState = serverState
@@ -643,9 +674,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       deferredChangeId++
     }
 
-    // lastSavedState was just rebuilt from the current store above, so this clears any
-    // stale pending changes left over from a prior save (the diff is always empty here).
+    // The debounce was cancelled above, so an edit made just before this poll needs a new save.
     updatePendingChanges()
+    if (pendingChanges.size > 0 || instancesDirty) debouncedSave()
 
     return {
       backgroundMerged: backgroundFields.length,
@@ -696,7 +727,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       replayPendingChanges()
       knownVersion.value = deferredVersion
       knownUpdatedAt.value = deferredUpdatedAt
-      lastSavedState = JSON.parse(JSON.stringify(buildState()))
+      applyToBaseline(deferredChanges)
       deferredChanges = []
       deferredServerState = null
       debouncedSave()
@@ -735,9 +766,9 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
       knownVersion.value = deferredVersion
       knownUpdatedAt.value = deferredUpdatedAt
       conflictState.active = false
+      applyToBaseline(deferredChanges)
       deferredChanges = []
       deferredServerState = null
-      lastSavedState = JSON.parse(JSON.stringify(buildState()))
       pendingChanges.clear()
 
       debouncedSave()
@@ -758,7 +789,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     }
     knownVersion.value = deferredVersion
     knownUpdatedAt.value = deferredUpdatedAt
-    lastSavedState = JSON.parse(JSON.stringify(buildState()))
+    applyToBaseline(deferredChanges)
     deferredChanges = []
     deferredServerState = null
   }
@@ -779,10 +810,12 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     if (debounceTimer) {
       clearTimeout(debounceTimer)
       debounceTimer = null
+      saveAppState()
     }
   }
 
   async function loadAppState(namespace: FormType): Promise<AssessmentState | null> {
+    claimStores()
     try {
       // Pin the namespace at first load — all subsequent saves, UI state,
       // and state builds will use this namespace regardless of temporary
@@ -919,6 +952,7 @@ export function createApiPersistence(assessmentId: string, namespace?: string) {
     flushSave,
     restoreUiState,
     snapshotBaseline: () => {
+      claimStores()
       pinnedNamespace = taskStore.activeNamespace
       lastSavedState = JSON.parse(JSON.stringify(buildState()))
       instancesDirty = false
