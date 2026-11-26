@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "@pdfme/pdf-lib": "^6.2.8",
-    "dompurify": "^3.4.18",
+    "dompurify": "^3.5.0",
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
     "jexl": "^2.3.0",
     "marked": "^18.2.1",
     "nanoid": "^6.0.2",
-    "pdfmake": "^0.3.14",
+    "pdfmake": "^0.3.15",
     "pinia": "^4.1.0",
-    "vue": "^3.5.45"
+    "vue": "^3.5.46"
   },
   "scripts": {
     "test": "vitest run",
@@ -29,13 +29,13 @@
     "@types/jexl": "^2.3.4",
     "@types/pdfmake": "^0.3.3",
     "@vitejs/plugin-vue": "^6.0.11",
-    "@vitest/coverage-istanbul": "^5.1.0",
+    "@vitest/coverage-istanbul": "^5.1.1",
     "@vue/test-utils": "^2.6.0",
     "@vue/tsconfig": "^0.9.1",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "jsdom": "^31.0.0",
     "typescript": "~5.9.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
