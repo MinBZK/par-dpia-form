@@ -15,6 +15,13 @@ build) staan kort onder "Onder de motorkap".
 
 ## [Unreleased]
 
+### Opgelost
+
+* In de IAMA verwijst vraag 4.2.1 over hoog-risico AI-systemen nu naar de
+  eisen in hoofdstuk III, afdeling 2 van de AI-verordening. Er stond hoofdstuk
+  2, maar dat gaat over verboden AI-praktijken
+  ([#635](https://github.com/MinBZK/par-dpia-form/issues/635)).
+
 ## [2026.11.25]
 
 ### Toegevoegd
